@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            @apply font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100;
+        }
+        .form-radio {
+            @apply h-5 w-5 border-2 border-primary/30 bg-transparent text-primary focus:ring-primary/50;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 py-3 lg:px-40 bg-background-light dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary/20 rounded-lg">
+<span class="material-symbols-outlined text-primary">security</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Tableau de bord</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Missions</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Messagerie</a>
+<a class="text-primary text-sm font-bold" href="#">Sécurité</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<label class="hidden sm:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden border border-primary/20">
+<div class="text-slate-400 flex bg-slate-100 dark:bg-primary/10 items-center justify-center pl-3">
+<span class="material-symbols-outlined text-sm">search</span>
+</div>
+<input class="form-input w-full border-none bg-slate-100 dark:bg-primary/10 focus:ring-0 text-sm placeholder:text-slate-500" placeholder="Rechercher..." value=""/>
+</div>
+</label>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-10 w-10 rounded-full border-2 border-primary/30 overflow-hidden">
+<img alt="User Profile" class="h-full w-full object-cover" data-alt="Photo de profil de l'utilisateur africain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMgj0-V2Sqj9UXau7Bm7-Yow2S_uGFy8fvLVndajP1n81Lv7-6NBmklnCicgQQoSEblBm_M1V8z4VU_U_tsRBloM5sj2B_GF48LUd06FeZREyaMWyCmUUHD2J3xlpqdZB9TEB173g4SxEX7lcgypoSmi0ptrUWtyj9YXR2gRrrTw8ErPUpoYjtF3Z_bHjPu445o5rcAxhiLAcSNRS1kS_2ydTN6YyC7BBM-YoZdjF1znmxOS7Am_KGuG2fMD2kEBqpn1XAxM9GYCTa"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-6 lg:px-40 py-8">
+<div class="max-w-5xl mx-auto space-y-8">
+<!-- Hero Section -->
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-black tracking-tight">Sécurité et Authentification</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg">Gérez la sécurité de votre compte et configurez l'authentification à deux facteurs.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column: 2FA Settings -->
+<div class="lg:col-span-2 space-y-8">
+<section class="bg-white dark:bg-primary/5 rounded-xl border border-primary/10 p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold">Authentification à deux facteurs (2FA)</h2>
+</div>
+<div class="space-y-4">
+<label class="flex items-center gap-4 rounded-xl border border-solid border-primary/20 p-4 cursor-pointer hover:border-primary/50 transition-colors bg-slate-50 dark:bg-transparent">
+<input checked="" class="form-radio" name="2fa_method" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">Google Authenticator</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">Utilisez une application d'authentification pour générer des codes de sécurité.</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">phonelink_lock</span>
+</label>
+<label class="flex items-center gap-4 rounded-xl border border-solid border-primary/20 p-4 cursor-pointer hover:border-primary/50 transition-colors bg-slate-50 dark:bg-transparent">
+<input class="form-radio" name="2fa_method" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-slate-900 dark:text-slate-100 text-sm font-semibold">SMS (Texto)</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">Recevez un code de sécurité par SMS sur votre téléphone mobile.</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">sms</span>
+</label>
+</div>
+<div class="mt-8 flex items-center justify-between border-t border-primary/10 pt-6">
+<p class="text-xs text-slate-500 dark:text-slate-400 italic">Dernière modification : il y a 3 mois</p>
+<button class="flex items-center justify-center rounded-lg h-10 px-6 bg-primary text-background-dark text-sm font-bold transition-transform hover:scale-[1.02] active:scale-95">
+                                    Activer la 2FA
+                                </button>
+</div>
+</section>
+<!-- Active Sessions -->
+<section class="bg-white dark:bg-primary/5 rounded-xl border border-primary/10 p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">devices</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold">Sessions actives</h2>
+</div>
+<button class="text-xs font-bold text-red-500 hover:underline">Déconnecter tous les autres appareils</button>
+</div>
+<div class="divide-y divide-primary/10">
+<!-- Session 1 -->
+<div class="py-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="size-10 bg-primary/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">laptop_mac</span>
+</div>
+<div>
+<p class="text-sm font-bold">Chrome sur macOS <span class="ml-2 px-2 py-0.5 bg-primary/20 text-primary text-[10px] rounded-full uppercase">Actuel</span></p>
+<p class="text-xs text-slate-500">Dakar, Sénégal • 192.168.1.15</p>
+</div>
+</div>
+<span class="text-xs text-slate-400">En ligne</span>
+</div>
+<!-- Session 2 -->
+<div class="py-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="size-10 bg-slate-100 dark:bg-primary/5 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">smartphone</span>
+</div>
+<div>
+<p class="text-sm font-bold">iPhone 13 - Safari</p>
+<p class="text-xs text-slate-500">Lagos, Nigeria • 105.112.34.89</p>
+</div>
+</div>
+<button class="text-xs font-medium text-slate-400 hover:text-red-500 transition-colors">Déconnexion</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Login History -->
+<div class="space-y-8">
+<section class="bg-white dark:bg-primary/5 rounded-xl border border-primary/10 p-6 shadow-sm h-full">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">history</span>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold">Historique de connexion</h2>
+</div>
+<div class="space-y-6">
+<!-- Entry 1 -->
+<div class="relative pl-6 border-l-2 border-primary/20 pb-4">
+<div class="absolute -left-[9px] top-0 size-4 rounded-full bg-primary border-4 border-background-dark"></div>
+<p class="text-xs font-bold text-primary">Aujourd'hui, 14:20</p>
+<p class="text-sm text-slate-900 dark:text-slate-100 font-medium">Connexion réussie</p>
+<p class="text-[11px] text-slate-500">Chrome, macOS • 41.82.12.44</p>
+</div>
+<!-- Entry 2 -->
+<div class="relative pl-6 border-l-2 border-primary/20 pb-4">
+<div class="absolute -left-[9px] top-0 size-4 rounded-full bg-primary/40 border-4 border-background-dark"></div>
+<p class="text-xs font-bold text-slate-500">Hier, 09:15</p>
+<p class="text-sm text-slate-900 dark:text-slate-100 font-medium">Connexion réussie</p>
+<p class="text-[11px] text-slate-500">Safari, iOS • 105.112.34.89</p>
+</div>
+<!-- Entry 3 -->
+<div class="relative pl-6 border-l-2 border-primary/20 pb-4">
+<div class="absolute -left-[9px] top-0 size-4 rounded-full bg-red-500 border-4 border-background-dark"></div>
+<p class="text-xs font-bold text-red-500">12 Oct, 23:45</p>
+<p class="text-sm text-slate-900 dark:text-slate-100 font-medium">Tentative échouée</p>
+<p class="text-[11px] text-slate-500">Firefox, Linux • 185.23.44.11</p>
+</div>
+<!-- Entry 4 -->
+<div class="relative pl-6 border-l-2 border-primary/20">
+<div class="absolute -left-[9px] top-0 size-4 rounded-full bg-primary/40 border-4 border-background-dark"></div>
+<p class="text-xs font-bold text-slate-500">10 Oct, 18:30</p>
+<p class="text-sm text-slate-900 dark:text-slate-100 font-medium">Mot de passe modifié</p>
+<p class="text-[11px] text-slate-500">Dakar, Sénégal</p>
+</div>
+</div>
+<button class="w-full mt-6 py-2 text-xs font-bold text-primary hover:bg-primary/10 rounded-lg transition-colors">Voir tout l'historique</button>
+</section>
+</div>
+</div>
+<!-- Footer Security Notice -->
+<div class="p-6 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-start gap-4">
+<span class="material-symbols-outlined text-yellow-500">warning</span>
+<div>
+<h4 class="text-yellow-500 font-bold text-sm">Conseil de sécurité</h4>
+<p class="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mt-1">
+                            Ne partagez jamais vos codes de récupération ou votre code 2FA avec quiconque, même avec le support d'AfriqueFreelance. Nous ne vous demanderons jamais ces informations par email ou téléphone.
+                        </p>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto border-t border-primary/10 py-8 px-6 lg:px-40 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-sm">
+<p>© 2023 AfriqueFreelance. Tous droits réservés.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">Confidentialité</a>
+<a class="hover:text-primary transition-colors" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary transition-colors" href="#">Aide</a>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

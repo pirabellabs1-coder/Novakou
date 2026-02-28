@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AfriqueFreelance - Admin Management Panel</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-72 bg-white dark:bg-background-dark border-r border-slate-200 dark:border-primary/20 flex flex-col shrink-0">
+<div class="p-6 border-b border-slate-200 dark:border-primary/20">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-tight">AfriqueFreelance</h1>
+<p class="text-xs text-slate-500 dark:text-primary/70 font-medium uppercase tracking-wider">Admin Panel</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto p-4 space-y-2">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Tableau de Bord</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-semibold">Utilisateurs</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">work</span>
+<span class="text-sm font-semibold">Services</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">gavel</span>
+<span class="text-sm font-semibold">Litiges</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-sm font-semibold">Finances</span>
+</div>
+<div class="pt-10 pb-2">
+<p class="px-4 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Paramètres</p>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 text-slate-600 dark:text-slate-400 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-semibold">Configuration</span>
+</div>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-primary/20">
+<div class="flex items-center gap-3 p-2 rounded-lg bg-slate-50 dark:bg-primary/5">
+<div class="w-10 h-10 rounded-full bg-cover bg-center" data-alt="Portrait of the system administrator" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBCAG7s92ouZvOzb0W9peuxkwY-iXG6_3Capg6arFR-PFBejoVy65XFGV-uGkZeOJ2QmZjwN5nSK98qfZ9IDZ1fAn_OxjbxYyiDa-_37vSfGnQrcjSIU67_sqCW_1WSONK_xaXOoZPaMdE7me6XGi3WXMTGtVel_DBo_BJAoGnRPQUFdMotSnteuvd-3Qm9OfbjNS0q9tc_AiACqbvPEGR9mMR93Bc2ZKe6ndP0uYDNC78YS-_gLdXqXoqC-IgSF-Z2oVa0b4XxNnim')"></div>
+<div class="flex-1 overflow-hidden">
+<p class="text-xs font-bold truncate">Marc-André Yao</p>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 truncate">Super Admin</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="h-20 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-primary/20 px-8 flex items-center justify-between shrink-0">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold tracking-tight">Admin Management Panel</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative max-w-xs hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="w-full bg-slate-50 dark:bg-primary/10 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/50 text-slate-700 dark:text-slate-100" placeholder="Rechercher..." type="text"/>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto bg-slate-50 dark:bg-background-dark/50 p-8">
+<!-- Dashboard Welcome Section -->
+<div class="mb-8">
+<h1 class="text-3xl font-extrabold tracking-tight mb-2">Tableau de Bord</h1>
+<p class="text-slate-500 dark:text-slate-400">Aperçu global de l'activité de la plateforme AfriqueFreelance.</p>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-emerald-500 text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>+5.2%
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total Utilisateurs</p>
+<p class="text-2xl font-black mt-1">12,450</p>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-emerald-500 text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>+12.8%
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">GMV (Volume d'affaires)</p>
+<p class="text-2xl font-black mt-1">45,200 €</p>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-red-500/10 rounded-lg text-red-500">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="text-red-500 text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_down</span>-2.4%
+                            </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Litiges Actifs</p>
+<p class="text-2xl font-black mt-1">18</p>
+</div>
+</div>
+<!-- Main Table Section -->
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-xl shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-primary/20 flex items-center justify-between">
+<h3 class="text-lg font-bold">File d'attente de vérification</h3>
+<button class="text-sm font-bold text-primary hover:underline">Voir tout</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-primary/10">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Utilisateur</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Type de Document</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date de soumission</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-primary/10">
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Profile image of Amina Diallo" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCyQkvpEUhRpyv1jCzLYBywMIZXL5ixZGRBDmOO6L558NaBEq4V2bDDOOlm5-5GGnyou-nQWph6dhubOnflPU3XCSEa0Mv9iNpc8sIPLgr0KBmTR7g-ZCg6WTUuTXrkBLrLoZbxTj-vFbgUef_fgra9KI0tM09AAOjSCJ-X_W6-QXcFGbBlrJHXrP_B-48_VQP0CgZMzMQcEyrY98iAYDmZ5eo9-GQiv6sJqQRiX63udPFGIL5C_6L-owqk5FRH4hyYrjJHtxKDcnDQ')"></div>
+<div>
+<p class="text-sm font-bold">Amina Diallo</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Dakar, Sénégal</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">badge</span>
+<span class="text-sm font-medium">Carte d'identité Nationale</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">12 Mai 2024, 14:30</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">Approuver</button>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 text-xs font-bold px-4 py-2 rounded-lg transition-colors">Rejeter</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Profile image of Koffi Kouassi" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD4ElnYALoczp3l85nuHGyiQ1jI35AGzePEz4h82jT9267iKnoT5rap9xUzKiNzxzJQ8R9N8CScsM0Mh0_EXMNgFsQKq9ucGLvp7ji3W5WdT0m2nmdjAQ7ju2MfE-w1k8EiAzG8NU27dA9Re9U-Pg1NuDRe1AGK5w38ICY6HZ6nWroN5GnXf4XfykYZyC1af1f5L2Ez7pFiVHMQxJfr5ySIELpuRlh5YIXJVihQmiMgpemc07Q0ygFifM3DAyOfDSV0XErOCYVhphS1')"></div>
+<div>
+<p class="text-sm font-bold">Koffi Kouassi</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Abidjan, Côte d'Ivoire</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">public</span>
+<span class="text-sm font-medium">Passeport</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">11 Mai 2024, 09:15</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">Approuver</button>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 text-xs font-bold px-4 py-2 rounded-lg transition-colors">Rejeter</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Profile image of Fatoumata Bamba" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDu45uPPF8SOMHOJNCaI8sZLQPwlGvrzeglGTTbQRLPfE9xOLIpaoEyaeMdR14W_wjMVyghKzHTa_9yZ7uu4UgoXCXsA8-rihuAVftKh54PW1whBRUHb5OSn579d_L39G1FZqV4-niDxMjhqD3bw2he3tGJulgFKNr30IMMKx-LlOFA8mv8iApcQVpttKUh49X24_Ifgd3foUdzeOQV6jG7tPef63FC2a8FfooANkpgXdHk-w-3jEhw8ktI8XXkMaoTcncu2oLbJwkj')"></div>
+<div>
+<p class="text-sm font-bold">Fatoumata Bamba</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Bamako, Mali</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">description</span>
+<span class="text-sm font-medium">Certificat de Résidence</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">10 Mai 2024, 17:45</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">Approuver</button>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 text-xs font-bold px-4 py-2 rounded-lg transition-colors">Rejeter</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Profile image of Samuel Mensah" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAfP6WW4JsRwHb9DyAzdErwJFBH13v3cvwEV4jUpY7it1OIYFE6bNJ_2AYTO-dvTUHgejqCwXzVwBbXRLlODhrPaWbnpNoH0A6SykeGsZbwk3v5YxP8nS7d5jDyfTXohdQ19ZJyLpzHiTLMCYkNT_uw_gk-lqlNMUMrsJDhR7PHleKgdaPSd5cHVLV7N-SO0IGRDamioQP54ynqEvo7LJvtbUdJpI7NbD65ibbla0HbJTlMNx-8nGMCkEPhN8Xo11gh6XZCZli2Tx5y')"></div>
+<div>
+<p class="text-sm font-bold">Samuel Mensah</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Accra, Ghana</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">badge</span>
+<span class="text-sm font-medium">Permis de conduire</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">10 Mai 2024, 11:20</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors">Approuver</button>
+<button class="bg-slate-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 text-slate-600 dark:text-slate-300 hover:text-red-600 text-xs font-bold px-4 py-2 rounded-lg transition-colors">Rejeter</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-6 border-t border-slate-200 dark:border-primary/20 flex items-center justify-between">
+<p class="text-xs text-slate-500 dark:text-slate-400">Affichage de 1 à 4 sur 14 vérifications en attente</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 text-slate-400 cursor-not-allowed">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-white text-xs font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-colors text-xs font-bold">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-slate-200 dark:border-primary/20 text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

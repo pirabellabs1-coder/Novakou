@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Espace de Co-working Collaboratif - AfriqueFreelance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-10 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 flex items-center justify-center rounded-lg bg-primary/10">
+<span class="material-symbols-outlined text-primary">workspace_premium</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">AfriqueFreelance</h2>
+</div>
+<label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden border border-slate-200 dark:border-primary/20 bg-white dark:bg-primary/10">
+<div class="text-slate-400 dark:text-primary/60 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-primary/40 px-4 text-base font-normal leading-normal" placeholder="Rechercher un projet..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Espaces</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Projets</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Messages</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Ressources</a>
+</div>
+<div class="flex gap-2">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal transition-opacity hover:opacity-90">
+<span>Partager</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-primary/20 text-slate-600 dark:text-slate-100 border border-transparent hover:border-primary/30 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-primary/20 text-slate-600 dark:text-slate-100 border border-transparent hover:border-primary/30 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="Photo de profil de l'utilisateur" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDiur35o7Bqx9RKDM-ldz2R0ainlciKQWUTuU0bE59Kk8GV8c8hnMVnK8AAuk-xiksNLWghFVcpv2w1qq-D303tU5jb5bO7qKM0sCZ0AMP3lgEl_d_YAlHOrlSi7WJvlPZ7pIu8t4QxVVWZWj3KFyv43Lh-ENSd2YgM-XXA-URqAOSgrujLD6On4wqZF0Kgf5iKTnB8utDpxF_XreO2kkh6Q5bB-Q18SKFW-816ASEKAnV5ljq-kP9-BzSBay9ZSumwi77bKvVv24TL");'></div>
+</div>
+</header>
+<main class="flex flex-1 flex-row">
+<aside class="w-64 border-r border-slate-200 dark:border-primary/20 p-4 flex flex-col gap-6 bg-white dark:bg-background-dark/50">
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-slate-100 text-base font-bold">Espace Co-working</h1>
+<p class="text-slate-500 dark:text-primary/60 text-xs font-medium uppercase tracking-wider">Projet: Refonte Web</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Aperçu</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">Documents</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">check_box</span>
+<span class="text-sm font-medium">Tâches</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">attach_file</span>
+<span class="text-sm font-medium">Fichiers</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-sm font-medium">Calendrier</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-slate-200 dark:border-primary/20 pt-4">
+<button class="w-full flex items-center justify-center gap-2 rounded-lg h-10 px-4 bg-primary/10 dark:bg-primary/20 text-primary dark:text-slate-100 text-sm font-bold border border-primary/20">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Nouvel Élément</span>
+</button>
+</div>
+</aside>
+<section class="flex-1 flex flex-col h-[calc(100vh-64px)] overflow-y-auto">
+<div class="p-8 border-b border-slate-200 dark:border-primary/10 bg-white/50 dark:bg-transparent">
+<div class="flex flex-wrap items-center gap-2 mb-4 text-xs font-medium uppercase tracking-widest text-slate-400 dark:text-primary/40">
+<a class="hover:text-primary transition-colors" href="#">Mes Projets</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-200">Espace de Co-working</span>
+</div>
+<div class="flex flex-wrap justify-between items-end gap-6 mb-8">
+<div class="max-w-2xl">
+<h2 class="text-slate-900 dark:text-slate-100 text-4xl font-extrabold tracking-tight mb-2">Espace Collaboratif</h2>
+<p class="text-slate-600 dark:text-primary/60 text-lg leading-relaxed">Collaboration en temps réel sur le projet de refonte. Centralisez vos idées, fichiers et tâches ici.</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex -space-x-3">
+<div class="size-10 rounded-full border-2 border-background-dark bg-slate-300" data-alt="Avatar collaborateur 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAkzqJzWEvVKbpmz-uSp2eyDYE949Me1rMnR2IW3W_mdNOtRl7R5x3AsPOhMqT2ANpH7E0HBySH1w8KdKu7FZU_jIPLEb5etg5_tqN3RpkSpVuRJbucIas22yqESzxAD1a8JW4GxjbSHRw6bFvrHqVC2QPR3-WakziqBUnp-YRdVDNr8HuGD357PLHRBBlOzUsWmvKR4gxhWGYjMma3qHq_PzyrD2BQIW3P9KNsFPqzYJdwq_4iHjA601-ZA5KhsQH0ZuB1sh_yofBn')"></div>
+<div class="size-10 rounded-full border-2 border-background-dark bg-primary" data-alt="Avatar collaborateur 2" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD9ce-YBmQq5PR1bo6xpE24L4xOsjLP7GxTOa-9fwNskhbG6SWRtxNQn-OsZvVfSiatdPiX52h_q5Ab4SWzAClr6AZcbvQAlT9Czn-BzVqlMZY3uVyhenGn-Yw-U0tXwoat1OcDR-8ZPF6zSgZUuLEDRNyL5w1JHW9I9Pu9XJJ8Iw5rb03AleNdgpoBC9KkrShU5m9LXii1wj8PFRon9BBb68HcF25haIvn0imn6YzkVMHjvXEGRpeGttmH8ZkrYTALcD8ECGmC3b4j')"></div>
+<div class="size-10 rounded-full border-2 border-background-dark bg-slate-500 flex items-center justify-center text-xs font-bold text-white">+2</div>
+</div>
+<button class="flex items-center gap-2 rounded-lg h-10 px-4 bg-slate-100 dark:bg-primary/10 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-primary/20 font-bold text-sm">
+<span class="material-symbols-outlined text-lg">person_add</span>
+<span>Inviter</span>
+</button>
+</div>
+</div>
+<div class="bg-slate-100 dark:bg-primary/5 rounded-xl p-6 border border-slate-200 dark:border-primary/10">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<p class="text-slate-900 dark:text-slate-100 font-bold uppercase text-sm tracking-widest">Progression Globale</p>
+</div>
+<span class="text-primary font-bold text-lg">65%</span>
+</div>
+<div class="h-3 w-full bg-slate-200 dark:bg-primary/20 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: 65%;"></div>
+</div>
+<div class="flex justify-between mt-3">
+<p class="text-slate-500 dark:text-primary/60 text-sm font-medium">Phase 3 sur 5 : Développement Backend</p>
+<p class="text-slate-500 dark:text-primary/60 text-sm font-medium">Prochaine étape : Tests QA</p>
+</div>
+</div>
+</div>
+<div class="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-8">
+<div class="bg-white dark:bg-primary/10 rounded-xl border border-slate-200 dark:border-primary/20 overflow-hidden shadow-sm">
+<div class="px-6 py-4 border-b border-slate-200 dark:border-primary/20 flex items-center justify-between bg-slate-50/50 dark:bg-transparent">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+                                        Document de Spécifications
+                                    </h3>
+<span class="text-xs px-2 py-1 rounded bg-primary/20 text-primary font-bold uppercase tracking-tighter">Édition en cours</span>
+</div>
+<div class="p-6">
+<div class="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-300">
+<h4 class="text-slate-900 dark:text-slate-100 font-bold mb-4">1. Objectifs du Projet</h4>
+<p class="mb-4">La refonte vise à améliorer l'UX globale de la plateforme de recrutement freelance. Nous devons nous concentrer sur la rapidité de navigation et la clarté du tunnel de conversion...</p>
+<div class="p-3 bg-primary/5 border-l-4 border-primary rounded-r italic mb-4">
+                                            "Ajouter un module de paiement local (Mobile Money) pour l'Afrique de l'Ouest" - <span class="text-primary font-bold">Client</span>
+</div>
+<h4 class="text-slate-900 dark:text-slate-100 font-bold mb-2">2. Design System</h4>
+<p>Utilisation d'une palette centrée sur le vert émeraude #0E7C66 pour inspirer la confiance et le dynamisme.</p>
+</div>
+<div class="mt-6 pt-4 border-t border-slate-100 dark:border-primary/10 flex gap-2">
+<div class="size-6 rounded-full bg-primary flex items-center justify-center text-[10px] text-white font-bold" title="Vous êtes en train d'éditer">MO</div>
+<div class="size-6 rounded-full bg-slate-400 flex items-center justify-center text-[10px] text-white font-bold" title="Le client observe">CL</div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/10 rounded-xl border border-slate-200 dark:border-primary/20 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-200 dark:border-primary/20 bg-slate-50/50 dark:bg-transparent">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">task_alt</span>
+                                        Liste des Tâches Partagées
+                                    </h3>
+</div>
+<div class="divide-y divide-slate-100 dark:divide-primary/10">
+<div class="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<div class="size-6 rounded border-2 border-primary/40 flex items-center justify-center text-primary cursor-pointer hover:bg-primary/10">
+<span class="material-symbols-outlined text-lg opacity-0 group-hover:opacity-100">check</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-slate-200 font-medium">Finalisation des maquettes Figma</p>
+<span class="text-xs text-slate-500">Assigné à: Freelance • Échéance: Demain</span>
+</div>
+<span class="px-2 py-1 rounded-full bg-primary/20 text-primary text-[10px] font-bold">HAUTE PRIORITÉ</span>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<div class="size-6 rounded border-2 border-primary bg-primary flex items-center justify-center text-white cursor-pointer">
+<span class="material-symbols-outlined text-lg">check</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-400 dark:text-slate-500 line-through font-medium">Choix du prestataire de messagerie</p>
+<span class="text-xs text-slate-400">Terminé par: Client</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<div class="size-6 rounded border-2 border-primary/40 flex items-center justify-center text-primary cursor-pointer hover:bg-primary/10">
+<span class="material-symbols-outlined text-lg opacity-0 group-hover:opacity-100">check</span>
+</div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-slate-200 font-medium">Setup environnement staging</p>
+<span class="text-xs text-slate-500">Assigné à: Freelance • Échéance: 22 Nov</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-8">
+<div class="bg-white dark:bg-primary/10 rounded-xl border border-slate-200 dark:border-primary/20 shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-200 dark:border-primary/20 bg-slate-50/50 dark:bg-transparent">
+<h3 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">push_pin</span>
+                                        Ressources Épinglées
+                                    </h3>
+</div>
+<div class="p-4 flex flex-col gap-4">
+<a class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 dark:border-primary/10 hover:border-primary transition-all bg-slate-50 dark:bg-primary/5" href="#">
+<div class="size-10 rounded bg-orange-100 dark:bg-orange-500/20 text-orange-600 flex items-center justify-center">
+<span class="material-symbols-outlined">link</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-bold truncate">Figma: Design System</p>
+<p class="text-[10px] text-slate-500 truncate">figma.com/file/afriquefreelance...</p>
+</div>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 dark:border-primary/10 hover:border-primary transition-all bg-slate-50 dark:bg-primary/5" href="#">
+<div class="size-10 rounded bg-blue-100 dark:bg-blue-500/20 text-blue-600 flex items-center justify-center">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-bold truncate">Cahier des charges.pdf</p>
+<p class="text-[10px] text-slate-500 truncate">Ajouté le 12 Oct • 2.4 Mo</p>
+</div>
+</a>
+<a class="flex items-center gap-3 p-3 rounded-lg border border-slate-100 dark:border-primary/10 hover:border-primary transition-all bg-slate-50 dark:bg-primary/5" href="#">
+<div class="size-10 rounded bg-green-100 dark:bg-primary/20 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-bold truncate">Tableau des prix</p>
+<p class="text-[10px] text-slate-500 truncate">Google Sheets • Mis à jour hier</p>
+</div>
+</a>
+</div>
+</div>
+<div class="bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20 p-6 text-center">
+<span class="material-symbols-outlined text-4xl text-primary mb-3">chat</span>
+<h4 class="font-bold text-slate-900 dark:text-slate-100 mb-2">Besoin de discuter ?</h4>
+<p class="text-sm text-slate-600 dark:text-primary/60 mb-4">Lancez un appel vidéo rapide avec le freelance en un clic.</p>
+<button class="w-full bg-primary text-white font-bold py-2 rounded-lg hover:opacity-90 transition-opacity">
+                                    Démarrer un Huddle
+                                </button>
+</div>
+<div class="bg-white dark:bg-primary/10 rounded-xl border border-slate-200 dark:border-primary/20 shadow-sm p-6">
+<h3 class="font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history</span>
+                                    Activité Récente
+                                </h3>
+<div class="space-y-6 relative before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 dark:before:bg-primary/10">
+<div class="flex gap-4 relative">
+<div class="size-6 rounded-full bg-primary border-4 border-background-light dark:border-background-dark z-10"></div>
+<div class="flex-1">
+<p class="text-xs"><span class="font-bold">Freelance</span> a mis à jour <span class="font-bold">"Structure DB"</span></p>
+<span class="text-[10px] text-slate-500">Il y a 10 min</span>
+</div>
+</div>
+<div class="flex gap-4 relative">
+<div class="size-6 rounded-full bg-slate-400 border-4 border-background-light dark:border-background-dark z-10"></div>
+<div class="flex-1">
+<p class="text-xs"><span class="font-bold">Client</span> a commenté dans le document</p>
+<span class="text-[10px] text-slate-500">Il y a 1 heure</span>
+</div>
+</div>
+<div class="flex gap-4 relative">
+<div class="size-6 rounded-full bg-primary border-4 border-background-light dark:border-background-dark z-10"></div>
+<div class="flex-1">
+<p class="text-xs"><span class="font-bold">Système</span> : Phase 3 validée</p>
+<span class="text-[10px] text-slate-500">Ce matin</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UI Kit Mobile AfriqueFreelance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#53c1ab", // Primary Emerald from reference
+                        "accent": "#F2B705",  // Gold from request
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#141e1c",
+                        "surface-dark": "#1c2a27",
+                        "border-dark": "#2c3533"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-10 py-4 bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-100 text-lg font-bold leading-tight tracking-tight">AfriqueFreelance Mobile UI</h2>
+</div>
+<nav class="hidden lg:flex items-center gap-9">
+<a class="text-slate-300 hover:text-primary text-sm font-medium transition-colors" href="#">iOS Guidelines</a>
+<a class="text-slate-300 hover:text-primary text-sm font-medium transition-colors" href="#">Android Components</a>
+<a class="text-slate-300 hover:text-primary text-sm font-medium transition-colors" href="#">Design System</a>
+<a class="text-slate-300 hover:text-primary text-sm font-medium transition-colors" href="#">Safe Areas</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-slate-400 flex items-center justify-center bg-surface-dark px-3">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="w-full border-none bg-surface-dark focus:ring-0 text-slate-100 placeholder:text-slate-500 text-sm" placeholder="Search components..." value=""/>
+</div>
+</label>
+<button class="bg-primary hover:bg-opacity-90 text-background-dark px-5 py-2 rounded-lg text-sm font-bold transition-all">
+                        Download Kit
+                    </button>
+<div class="size-10 rounded-full border-2 border-primary overflow-hidden" data-alt="User profile avatar placeholder">
+<img alt="Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLEs16D_8jM9DEbiOegSsDirpI_7SKSTIow-gOlvLm5tyH9MZUFoMlRLEMKu6Pxk4QpojpiKW_GhFENm-p0X1dNtHTGCApD9D9GvOgww-l4oZX4IRqNnM8lIU_nx1ErJ75NHGR01QrYi0AXQ1V0WTvpM2kmWAyynuwr9ag8rU3pd6yafgo_vMXsBZwpKSqignkoo_sQS1R6t_NK76OMDFSoA1VZQXEGf1my62BlQiTomn4nliAmgGejlxZ_76iP08Uosb4ERuNdNcL"/>
+</div>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto w-full px-6 py-10">
+<section class="flex flex-wrap justify-between items-end gap-6 mb-12">
+<div class="max-w-2xl space-y-4">
+<h1 class="text-slate-100 text-5xl font-black leading-tight tracking-tighter">Native Mobile UI Kit</h1>
+<p class="text-slate-400 text-lg leading-relaxed">
+                            A specialized set of components optimized for high-performance iOS and Android applications. Built on an 8px grid system with AfriqueFreelance brand identity integration.
+                        </p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-dark text-slate-100 px-6 py-3 rounded-xl font-bold border border-border-dark flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">menu_book</span>
+                            Docs
+                        </button>
+<button class="bg-accent text-background-dark px-6 py-3 rounded-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">bolt</span>
+                            Get Pro
+                        </button>
+</div>
+</section>
+<div class="border-b border-border-dark mb-10">
+<div class="flex gap-8 overflow-x-auto">
+<a class="border-b-2 border-primary pb-4 text-primary font-bold whitespace-nowrap" href="#">Core Elements</a>
+<a class="border-b-2 border-transparent pb-4 text-slate-500 hover:text-slate-300 font-medium transition-colors whitespace-nowrap" href="#">Screen Layouts</a>
+<a class="border-b-2 border-transparent pb-4 text-slate-500 hover:text-slate-300 font-medium transition-colors whitespace-nowrap" href="#">Navigation Patterns</a>
+<a class="border-b-2 border-transparent pb-4 text-slate-500 hover:text-slate-300 font-medium transition-colors whitespace-nowrap" href="#">Forms &amp; Inputs</a>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="bg-surface-dark rounded-xl p-8 border border-border-dark flex flex-col items-center gap-8">
+<div class="w-full">
+<h3 class="text-slate-100 text-lg font-bold mb-4">Bottom Navigation Bars</h3>
+<p class="text-slate-400 text-sm mb-6">Optimized for thumb reach zones.</p>
+</div>
+<div class="w-full bg-background-dark rounded-2xl p-4 shadow-xl border border-border-dark">
+<div class="flex justify-around items-center py-2">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px]">Search</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-[10px]">Orders</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="text-[10px]">Chat</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-500">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px]">Profile</span>
+</div>
+</div>
+</div>
+<div class="w-full bg-background-dark rounded-full p-2 shadow-xl border border-border-dark flex justify-between items-center px-4">
+<button class="bg-primary/20 text-primary p-2 rounded-full"><span class="material-symbols-outlined">home</span></button>
+<button class="text-slate-500 p-2"><span class="material-symbols-outlined">search</span></button>
+<button class="bg-accent text-background-dark p-3 rounded-full -mt-8 shadow-lg shadow-accent/20"><span class="material-symbols-outlined">add</span></button>
+<button class="text-slate-500 p-2"><span class="material-symbols-outlined">mail</span></button>
+<button class="text-slate-500 p-2"><span class="material-symbols-outlined">account_circle</span></button>
+</div>
+</div>
+<div class="bg-surface-dark rounded-xl p-8 border border-border-dark flex flex-col gap-6">
+<h3 class="text-slate-100 text-lg font-bold">Standardized Inputs</h3>
+<div class="space-y-4">
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Floating Label Input</label>
+<div class="relative">
+<input class="w-full bg-background-dark border-border-dark focus:border-primary rounded-xl pt-6 pb-2 px-4 text-slate-100 focus:ring-0 transition-all text-sm" type="text" value="john.doe@afriquefreelance.com"/>
+<span class="absolute top-2 left-4 text-[10px] font-bold text-primary uppercase">Email Address</span>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Search with Filter</label>
+<div class="flex gap-2">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg">search</span>
+<input class="w-full bg-background-dark border-border-dark rounded-xl py-3 pl-10 pr-4 text-slate-100 focus:ring-0 text-sm" placeholder="Find talent..." type="text"/>
+</div>
+<button class="bg-surface-dark border border-border-dark rounded-xl px-3 text-slate-300 hover:text-primary">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 bg-background-dark rounded-xl border border-border-dark">
+<span class="text-sm font-medium text-slate-300">Push Notifications</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<div class="bg-surface-dark rounded-xl p-8 border border-border-dark flex flex-col gap-6">
+<h3 class="text-slate-100 text-lg font-bold">Mobile Card Layouts</h3>
+<div class="bg-background-dark rounded-2xl overflow-hidden border border-border-dark group cursor-pointer">
+<div class="h-32 bg-slate-800 relative" data-alt="Abstract emerald and gold dynamic background pattern">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/20"></div>
+<div class="absolute top-3 right-3 bg-white/10 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white border border-white/20">
+                                    FEATURED
+                                </div>
+</div>
+<div class="p-4 space-y-2">
+<h4 class="text-slate-100 font-bold">Senior UX Designer</h4>
+<div class="flex items-center gap-2 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span>Lagos, Nigeria</span>
+</div>
+<div class="flex justify-between items-center pt-2">
+<span class="text-primary font-bold">$45/hr</span>
+<button class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">Apply</button>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 bg-background-dark rounded-2xl border border-border-dark">
+<div class="size-12 rounded-xl bg-accent/20 flex items-center justify-center text-accent">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<div class="flex-1">
+<p class="text-xs text-slate-500 font-medium">Available Balance</p>
+<p class="text-lg font-bold text-slate-100">CFA 450,000</p>
+</div>
+<button class="size-10 rounded-full border border-border-dark flex items-center justify-center text-slate-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="lg:col-span-2 bg-surface-dark rounded-xl p-8 border border-border-dark">
+<h3 class="text-slate-100 text-lg font-bold mb-8">Touch-Friendly Buttons</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+<div class="space-y-4">
+<button class="w-full bg-primary text-background-dark h-14 rounded-2xl font-black text-lg shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
+                                    Primary Action
+                                    <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="w-full border-2 border-primary text-primary h-14 rounded-2xl font-bold text-lg flex items-center justify-center">
+                                    Secondary Action
+                                </button>
+<button class="w-full bg-surface-dark border border-border-dark text-slate-300 h-14 rounded-2xl font-bold flex items-center justify-center gap-3">
+<img alt="Google Logo" class="size-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBRVJtF4K-bvPNssxnalJPGtIKv9NtQ3VWpbmX-UPX4Bwn4qSJhGaQUJbWS7kBHw8BBuR-i-p3HcZFEeN8DlTaLxH21HieGxe4oPZyV_A4CX7NTArQVi-_Rbda0_PeV-D1-hf4YeTcG3nY-M34h4U7MTK76gJyAz4JDJTJ23K-7wtJReF9jmvPF5aas7HAjnGr_qPfnu5W5p1wx0gHmRA_yiHaf2WpqaCx1CNj3cfQVymaPXR2omLDDswQnzBRvEGCvKj0a8NNp6x1P"/>
+                                    Continue with Google
+                                </button>
+</div>
+<div class="space-y-4">
+<button class="w-full bg-accent text-background-dark h-14 rounded-2xl font-black text-lg shadow-lg shadow-accent/20 flex items-center justify-center gap-3">
+<span class="material-symbols-outlined">payments</span>
+                                    Withdraw Now
+                                </button>
+<div class="flex gap-4">
+<button class="flex-1 bg-red-500/10 text-red-500 h-14 rounded-2xl font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">delete</span>
+                                        Cancel
+                                    </button>
+<button class="flex-1 bg-slate-700 text-white h-14 rounded-2xl font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">share</span>
+                                        Share
+                                    </button>
+</div>
+<div class="flex justify-between items-center bg-background-dark p-3 rounded-2xl border border-border-dark">
+<span class="text-slate-400 text-sm px-2">Qty: 01</span>
+<div class="flex items-center gap-4 bg-surface-dark rounded-xl p-1">
+<button class="size-8 rounded-lg bg-background-dark text-slate-100 flex items-center justify-center">-</button>
+<span class="text-slate-100 font-bold">1</span>
+<button class="size-8 rounded-lg bg-primary text-background-dark flex items-center justify-center font-bold">+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-dark rounded-xl p-8 border border-border-dark">
+<h3 class="text-slate-100 text-lg font-bold mb-6">Header Styles</h3>
+<div class="space-y-6">
+<div class="bg-background-dark border-b border-border-dark p-4 flex items-center justify-between">
+<button class="text-slate-400"><span class="material-symbols-outlined">arrow_back_ios</span></button>
+<span class="text-slate-100 font-bold">Post a Project</span>
+<button class="text-primary text-sm font-bold">Reset</button>
+</div>
+<div class="bg-background-dark p-4 rounded-xl border border-border-dark">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-full bg-slate-800" data-alt="User profile picture">
+<img alt="User" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCuFplin_R9XNLPPkek4922PC6JnBYlRalc7ntyWkGc9-tsdHNB4nRH9zJujBQxd3fgsdnSsqtKIE5Y3G4f7Vg9DEr06ImSeeeKtoVdhjQqWkomiDlUDrOeElfD8_aVIreme3CWxAHAt2dECyVHLsh7stAsEey0Ei78Fsgr0GDeYjC6nspV1kzejt0sm11gtRHU66oqCV9yZ_ZALZ2llmlR1yHMyOC9r23PM_bOYjWysukZKgzHchEOyaMfp2V9k0vMEXH7aoYf-1E5"/>
+</div>
+<div class="flex-1">
+<h4 class="text-slate-100 font-bold text-sm">Welcome back,</h4>
+<p class="text-primary font-bold">Amara Okafor</p>
+</div>
+<div class="relative">
+<span class="material-symbols-outlined text-slate-400">notifications</span>
+<span class="absolute top-0 right-0 size-2 bg-accent rounded-full border-2 border-background-dark"></span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-16 bg-surface-dark rounded-2xl p-12 border border-border-dark relative overflow-hidden">
+<div class="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none"></div>
+<div class="max-w-2xl relative z-10">
+<h2 class="text-3xl font-bold text-slate-100 mb-6">Optimized for Safe Areas</h2>
+<p class="text-slate-400 mb-8 text-lg">
+                            Every component in this kit is designed with the notch and bottom home indicator in mind. We provide automatic spacing presets for the latest iOS and Android device screen ratios.
+                        </p>
+<div class="flex flex-wrap gap-4">
+<div class="bg-background-dark px-4 py-2 rounded-lg border border-border-dark flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="text-sm font-medium text-slate-300">8px Grid System</span>
+</div>
+<div class="bg-background-dark px-4 py-2 rounded-lg border border-border-dark flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="text-sm font-medium text-slate-300">Retina Ready</span>
+</div>
+<div class="bg-background-dark px-4 py-2 rounded-lg border border-border-dark flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span class="text-sm font-medium text-slate-300">Contrast WCAG AA</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="mt-20 border-t border-border-dark py-10 px-10 bg-background-dark">
+<div class="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-4 text-slate-500">
+<div class="size-5">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<span class="text-sm">© 2024 AfriqueFreelance. Mobile UI Kit v2.4</span>
+</div>
+<div class="flex gap-8">
+<a class="text-slate-500 hover:text-primary transition-colors text-sm" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-primary transition-colors text-sm" href="#">Terms of Service</a>
+<a class="text-slate-500 hover:text-primary transition-colors text-sm" href="#">Support</a>
+</div>
+<div class="flex gap-4">
+<button class="size-8 rounded-lg bg-surface-dark flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">public</span>
+</button>
+<button class="size-8 rounded-lg bg-surface-dark flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">mail</span>
+</button>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

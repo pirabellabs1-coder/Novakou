@@ -1,0 +1,285 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .code-font {
+            font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<header class="sticky top-0 z-50 border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark/95 backdrop-blur-md px-4 md:px-10 lg:px-20 py-3">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">terminal</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight text-primary">AfriqueFreelance <span class="text-slate-400 font-normal text-sm ml-2">Dev</span></h2>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors text-primary" href="#">Développeur</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Support API</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-primary/20">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/30 border-2 border-primary overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIV__LDiOhTfEOi3gesxBKdeZL0Ga8hbHTcskJienod7mWrPKDFwwR4p6rQ08RkD8k1GRhzKsKGQK2NEoxD5dlaXWgEXtuO12muKkO6biFpzzeMOEHbSgtLRjZ5qc_HOCAFpn99gzSE0TVZvkN516tCAisyq1ph7XpGl3DYnIf3gynU6jpGyra_6S61eSHT6XP4UDcZk1uIcm-GV1QGRr6QJSCjqKn0W18c27KDbpLkxljvCk85wfJyZF4PX3ZYPGr0nESznVxKIN"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
+<aside class="w-full lg:w-72 p-6 border-r border-slate-200 dark:border-primary/10 shrink-0">
+<div class="sticky top-24">
+<h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 px-2">Menu Développeur</h3>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined text-sm">key</span>
+                    Clés API
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">webhook</span>
+                    Webhooks
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">list_alt</span>
+                    Journaux d'appels
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">description</span>
+                    Documentation
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">analytics</span>
+                    Statistiques
+                </a>
+</nav>
+<div class="mt-10 p-4 rounded-xl bg-slate-100 dark:bg-primary/5 border border-slate-200 dark:border-primary/10">
+<h4 class="text-xs font-bold mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">info</span>
+                    Limite actuelle
+                </h4>
+<div class="w-full bg-slate-200 dark:bg-white/10 h-1.5 rounded-full mb-2">
+<div class="bg-primary h-full rounded-full" style="width: 45%"></div>
+</div>
+<p class="text-[10px] text-slate-500">4,500 / 10,000 requêtes ce mois</p>
+</div>
+</div>
+</aside>
+<section class="flex-1 p-6 lg:p-10">
+<div class="mb-10">
+<h1 class="text-3xl font-extrabold mb-1">Gestion des Clés API et Webhooks</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Configurez vos accès techniques pour intégrer les services AfriqueFreelance à vos applications.</p>
+</div>
+<div class="mb-12">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">key</span>
+                    Clés d'accès
+                </h2>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+                    Générer une nouvelle clé
+                </button>
+</div>
+<div class="bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-white/5 text-slate-500 font-bold border-b border-slate-200 dark:border-primary/10">
+<tr>
+<th class="px-6 py-4">Nom de la clé</th>
+<th class="px-6 py-4">Clé API</th>
+<th class="px-6 py-4">Dernière utilisation</th>
+<th class="px-6 py-4">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-primary/10">
+<tr>
+<td class="px-6 py-4">
+<span class="font-bold">Production - Mobile App</span>
+<p class="text-[10px] text-slate-400">Créée le 12/10/2023</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<code class="bg-slate-100 dark:bg-black/20 px-2 py-1 rounded text-primary code-font">af_live_••••••••••••x7r2</code>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">content_copy</span></button>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500">Il y a 2 heures</td>
+<td class="px-6 py-4">
+<button class="text-red-500 hover:text-red-600 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-red-500">delete</span>
+                                    Révoquer
+                                </button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4">
+<span class="font-bold">Staging - Website</span>
+<p class="text-[10px] text-slate-400">Créée le 15/10/2023</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<code class="bg-slate-100 dark:bg-black/20 px-2 py-1 rounded text-primary code-font">af_test_••••••••••••9k2m</code>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">content_copy</span></button>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-500">Il y a 3 jours</td>
+<td class="px-6 py-4">
+<button class="text-red-500 hover:text-red-600 font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-red-500">delete</span>
+                                    Révoquer
+                                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+<div>
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">integration_instructions</span>
+                    Intégration rapide
+                </h2>
+<div class="space-y-4">
+<div class="bg-white dark:bg-primary/5 p-5 rounded-xl border border-slate-200 dark:border-primary/10">
+<h4 class="font-bold mb-3 flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-blue-500 text-sm">terminal</span>
+                            Authentification (cURL)
+                        </h4>
+<div class="bg-slate-900 text-slate-300 p-4 rounded-lg code-font text-xs overflow-x-auto">
+                            curl https://api.afriquefreelance.com/v1/services \<br/>
+                              -H "Authorization: Bearer YOUR_API_KEY"
+                        </div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<a class="p-4 bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 hover:border-primary/50 transition-all flex flex-col gap-2" href="#">
+<span class="material-symbols-outlined text-primary">api</span>
+<span class="font-bold text-sm">Référence API</span>
+<span class="text-xs text-slate-500">Explorer les endpoints disponibles.</span>
+</a>
+<a class="p-4 bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 hover:border-primary/50 transition-all flex flex-col gap-2" href="#">
+<span class="material-symbols-outlined text-primary">auto_stories</span>
+<span class="font-bold text-sm">Guide SDK</span>
+<span class="text-xs text-slate-500">Intégrez via Node.js ou Python.</span>
+</a>
+</div>
+</div>
+</div>
+<div>
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history</span>
+                    Appels API récents
+                </h2>
+<div class="bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden">
+<div class="divide-y divide-slate-100 dark:divide-primary/10">
+<div class="p-4 flex items-center justify-between text-xs">
+<div class="flex items-center gap-3">
+<span class="bg-green-100 dark:bg-green-900/30 text-green-600 px-2 py-1 rounded font-bold">200 OK</span>
+<div>
+<p class="font-bold">GET /v1/services/search</p>
+<p class="text-slate-500">Mobile App • Il y a 5 min</p>
+</div>
+</div>
+<span class="text-slate-400">124ms</span>
+</div>
+<div class="p-4 flex items-center justify-between text-xs">
+<div class="flex items-center gap-3">
+<span class="bg-green-100 dark:bg-green-900/30 text-green-600 px-2 py-1 rounded font-bold">200 OK</span>
+<div>
+<p class="font-bold">POST /v1/webhooks/orders</p>
+<p class="text-slate-500">Backend System • Il y a 12 min</p>
+</div>
+</div>
+<span class="text-slate-400">89ms</span>
+</div>
+<div class="p-4 flex items-center justify-between text-xs">
+<div class="flex items-center gap-3">
+<span class="bg-red-100 dark:bg-red-900/30 text-red-600 px-2 py-1 rounded font-bold">401 UNAUTHORIZED</span>
+<div>
+<p class="font-bold">GET /v1/user/profile</p>
+<p class="text-slate-500">Unknown Device • Il y a 45 min</p>
+</div>
+</div>
+<span class="text-slate-400">15ms</span>
+</div>
+</div>
+<div class="bg-slate-50 dark:bg-white/5 p-3 text-center">
+<button class="text-primary text-xs font-bold hover:underline">Voir tous les journaux</button>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 mb-20">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">webhook</span>
+                    Endpoints Webhooks
+                </h2>
+<button class="text-primary text-sm font-bold flex items-center gap-2 border border-primary/20 hover:bg-primary/10 px-4 py-2 rounded-lg transition-all">
+<span class="material-symbols-outlined text-sm">settings_input_component</span>
+                    Ajouter un endpoint
+                </button>
+</div>
+<div class="bg-white dark:bg-primary/5 p-8 rounded-xl border border-dashed border-slate-300 dark:border-primary/20 flex flex-col items-center justify-center text-center">
+<div class="size-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
+<span class="material-symbols-outlined text-4xl">sensors</span>
+</div>
+<h4 class="font-bold mb-2">Aucun webhook configuré</h4>
+<p class="text-sm text-slate-500 max-w-sm">Recevez des notifications en temps réel pour les événements comme les nouvelles commandes ou les messages.</p>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t border-slate-200 dark:border-primary/10 py-10 px-4 md:px-20 bg-white dark:bg-background-dark/50">
+<div class="max-w-[1440px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex flex-col items-center md:items-start gap-4">
+<div class="flex items-center gap-2">
+<div class="size-6 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xs">rocket_launch</span>
+</div>
+<h2 class="text-lg font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<p class="text-xs text-slate-500">La plateforme technique pour l'économie créative en Afrique.</p>
+</div>
+<div class="flex gap-8 text-sm font-semibold">
+<a class="hover:text-primary transition-colors" href="#">API Status</a>
+<a class="hover:text-primary transition-colors" href="#">Discord Développeurs</a>
+<a class="hover:text-primary transition-colors" href="#">Github</a>
+</div>
+<div class="text-xs text-slate-500">
+            © 2024 AfriqueFreelance. Tous droits réservés.
+        </div>
+</div>
+</footer>
+
+</body></html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "background-light": "#f7f9fa",
+                        "background-dark": "#0d1512",
+                        "surface-dark": "#16221e",
+                        "border-dark": "#243530"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .step-active { color: #0e7c66; border-left: 3px solid #0e7c66; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark px-6 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold leading-tight tracking-tight">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-border-dark rounded-lg px-2 py-1">
+<span class="material-symbols-outlined text-slate-400 px-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 text-slate-900 dark:text-slate-100 placeholder:text-slate-500" placeholder="Rechercher des freelances..."/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Tableau de bord</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Mes Projets</a>
+<a class="text-primary text-sm font-semibold" href="#">Publier un Projet</a>
+</nav>
+<div class="flex items-center gap-3 border-l border-slate-200 dark:border-border-dark pl-6">
+<button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-border-dark rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-surface-dark"></span>
+</button>
+<div class="size-10 rounded-full bg-primary/20 overflow-hidden border-2 border-primary/30">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Client user avatar profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEswQm0gVdFym_rYyKW7FG09S24PjJRQzvjUwRFig9-y4hK1SzAuPGBwp1b6Hn4t2UUsf2D_pTuqrWvT9blXUpFYuQNHwfffeZBKJiZl8OD1T2BQ077mxp51p-rDJLfgot3E9ie28V0_HgFuzhWkoJ-ezk0TvwEWf-INa1B9h9p__Ho1KvDgva_mfFwCya88pK5H4EHWaB8133-ALr7vg9q6Eh84Ytzpevs1f5hAsPD7iSRDjea3JKN9Qh0w_9XzZYEO3Pg3tBxouG"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto w-full px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Sidebar: Stepper -->
+<aside class="lg:col-span-3 space-y-8">
+<div class="bg-white dark:bg-surface-dark rounded-xl p-6 shadow-sm border border-slate-200 dark:border-border-dark">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-6">Progression</h3>
+<div class="space-y-1">
+<div class="flex items-center gap-4 px-4 py-3 step-active bg-primary/5 rounded-r-lg">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+<div>
+<p class="text-sm font-bold text-primary">Détails</p>
+<p class="text-xs text-slate-500">Titre &amp; Description</p>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-3 text-slate-400 dark:text-slate-500 border-l-3 border-transparent">
+<span class="material-symbols-outlined">category</span>
+<div>
+<p class="text-sm font-semibold">Catégorie</p>
+<p class="text-xs">Expertise requise</p>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-3 text-slate-400 dark:text-slate-500 border-l-3 border-transparent">
+<span class="material-symbols-outlined">payments</span>
+<div>
+<p class="text-sm font-semibold">Budget</p>
+<p class="text-xs">Tarifs &amp; Délais</p>
+</div>
+</div>
+<div class="flex items-center gap-4 px-4 py-3 text-slate-400 dark:text-slate-500 border-l-3 border-transparent">
+<span class="material-symbols-outlined">verified</span>
+<div>
+<p class="text-sm font-semibold">Révision</p>
+<p class="text-xs">Confirmation finale</p>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-slate-100 dark:border-border-dark">
+<div class="flex justify-between items-center mb-2">
+<span class="text-xs font-medium text-slate-500">Complété à 25%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-border-dark h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/4"></div>
+</div>
+</div>
+</div>
+<div class="bg-primary/10 rounded-xl p-6 border border-primary/20">
+<span class="material-symbols-outlined text-primary mb-2">lightbulb</span>
+<h4 class="text-primary font-bold text-sm mb-2">Conseil d'expert</h4>
+<p class="text-xs text-primary/80 leading-relaxed">
+                        Un titre clair et précis attire 3x plus de freelances qualifiés. Évitez les titres vagues comme "Besoin d'aide".
+                    </p>
+</div>
+</aside>
+<!-- Middle Column: Form -->
+<section class="lg:col-span-6 space-y-6">
+<div class="flex flex-col gap-2">
+<h1 class="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Publier un nouveau projet</h1>
+<p class="text-slate-500 dark:text-slate-400">Décrivez votre besoin pour recevoir des propositions en quelques heures.</p>
+</div>
+<div class="bg-white dark:bg-surface-dark rounded-xl p-8 shadow-sm border border-slate-200 dark:border-border-dark space-y-8">
+<!-- Title Input -->
+<div class="space-y-3">
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Quel est le titre de votre projet ?</label>
+<input class="w-full rounded-lg border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-background-dark focus:ring-primary focus:border-primary p-4 text-slate-900 dark:text-white" placeholder="Ex: Création d'une plateforme E-commerce avec React &amp; Node.js" type="text"/>
+</div>
+<!-- Category & Skills -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-3">
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Catégorie principale</label>
+<div class="relative">
+<select class="w-full rounded-lg border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-background-dark focus:ring-primary focus:border-primary p-4 appearance-none text-slate-900 dark:text-white">
+<option>Développement Web &amp; Mobile</option>
+<option>Design &amp; Creative</option>
+<option>Rédaction &amp; Traduction</option>
+<option>Marketing Digital</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-4 text-slate-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="space-y-3">
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Deadline souhaitée</label>
+<div class="relative">
+<input class="w-full rounded-lg border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-background-dark focus:ring-primary focus:border-primary p-4 text-slate-900 dark:text-white" type="date"/>
+</div>
+</div>
+</div>
+<!-- Description -->
+<div class="space-y-3">
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Description détaillée</label>
+<textarea class="w-full rounded-lg border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-background-dark focus:ring-primary focus:border-primary p-4 text-slate-900 dark:text-white placeholder:text-slate-400" placeholder="Décrivez les objectifs, les fonctionnalités attendues et le contexte du projet..." rows="6"></textarea>
+</div>
+<!-- Budget Selector -->
+<div class="space-y-4">
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Type de budget</label>
+<div class="grid grid-cols-2 gap-4">
+<button class="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5 text-primary font-bold">
+<span class="material-symbols-outlined">payments</span>
+                                Prix Fixe
+                            </button>
+<button class="flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-slate-200 dark:border-border-dark hover:border-primary/50 transition-colors font-medium text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">schedule</span>
+                                Taux Horaire
+                            </button>
+</div>
+<div class="flex items-center gap-4 bg-slate-50 dark:bg-background-dark p-4 rounded-lg border border-slate-200 dark:border-border-dark">
+<span class="text-slate-500 font-bold">$</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-slate-900 dark:text-white font-bold text-lg" placeholder="Montant estimé (ex: 1500)" type="number"/>
+<span class="text-slate-400 text-sm font-medium">USD</span>
+</div>
+</div>
+<!-- Skills Tags -->
+<div class="space-y-3">
+<label class="block text-sm font-bold text-slate-700 dark:text-slate-200">Compétences requises (Tags)</label>
+<div class="flex flex-wrap gap-2 p-3 border border-slate-200 dark:border-border-dark bg-slate-50 dark:bg-background-dark rounded-lg">
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
+                                React <span class="material-symbols-outlined text-xs cursor-pointer">close</span>
+</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-semibold">
+                                TypeScript <span class="material-symbols-outlined text-xs cursor-pointer">close</span>
+</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm min-w-[120px]" placeholder="Ajouter une compétence..." type="text"/>
+</div>
+</div>
+<div class="flex justify-between pt-6 border-t border-slate-100 dark:border-border-dark">
+<button class="px-6 py-3 rounded-lg font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-border-dark transition-colors">
+                            Sauvegarder en brouillon
+                        </button>
+<button class="px-8 py-3 bg-primary text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex items-center gap-2">
+                            Étape Suivante
+                            <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Right Sidebar: Summary & Estimates -->
+<aside class="lg:col-span-3 space-y-6">
+<div class="bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-slate-200 dark:border-border-dark overflow-hidden">
+<div class="p-6 bg-slate-50 dark:bg-background-dark border-b border-slate-200 dark:border-border-dark">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Aperçu de la visibilité</h3>
+</div>
+<div class="p-6 space-y-6">
+<div class="space-y-4">
+<div class="flex justify-between items-end">
+<span class="text-xs text-slate-500 font-medium">Portée estimée</span>
+<span class="text-lg font-bold text-primary">Haute</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-border-dark h-3 rounded-full overflow-hidden flex gap-1">
+<div class="bg-primary h-full flex-1"></div>
+<div class="bg-primary h-full flex-1"></div>
+<div class="bg-primary h-full flex-1"></div>
+<div class="bg-slate-200 dark:bg-border-dark h-full flex-1"></div>
+</div>
+<p class="text-xs text-slate-400 leading-relaxed">
+                                Sur la base de vos critères, environ <strong class="text-slate-700 dark:text-slate-200">45-60 freelances</strong> qualifiés recevront une notification immédiate.
+                            </p>
+</div>
+<div class="space-y-3 pt-6 border-t border-slate-100 dark:border-border-dark">
+<h4 class="text-xs font-bold uppercase text-slate-400">Résumé du projet</h4>
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-slate-400 text-sm">payments</span>
+<span class="text-slate-600 dark:text-slate-300">Budget: $1,500 (Fixe)</span>
+</div>
+<div class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-slate-400 text-sm">event</span>
+<span class="text-slate-600 dark:text-slate-300">Délai: 30 jours</span>
+</div>
+<div class="flex items-center gap-2 text-sm">
+<span class="material-symbols-outlined text-slate-400 text-sm">group</span>
+<span class="text-slate-600 dark:text-slate-300">Public: Tous les freelances</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-dark border border-primary/20 rounded-xl p-6 text-center space-y-4">
+<div class="size-12 bg-primary/20 rounded-full flex items-center justify-center mx-auto text-primary">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<h3 class="font-bold text-slate-100">Besoin d'aller plus vite ?</h3>
+<p class="text-xs text-slate-400">Boostez votre annonce pour qu'elle apparaisse en tête de liste pendant 24h.</p>
+<button class="w-full py-2 bg-primary/10 border border-primary/30 text-primary rounded-lg text-sm font-bold hover:bg-primary/20 transition-all">
+                        Promouvoir mon projet
+                    </button>
+</div>
+</aside>
+</main>
+<!-- Footer Help -->
+<footer class="mt-auto py-8 border-t border-slate-200 dark:border-border-dark bg-white dark:bg-surface-dark">
+<div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-6">
+<a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Centre d'aide</a>
+<a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Conditions d'utilisation</a>
+<a class="text-xs text-slate-500 hover:text-primary transition-colors" href="#">Sécurité &amp; Confidentialité</a>
+</div>
+<p class="text-xs text-slate-400">© 2024 AfriqueFreelance. Tous droits réservés.</p>
+</div>
+</footer>
+</div>
+</body></html>

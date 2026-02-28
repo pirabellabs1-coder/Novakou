@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tableau Kanban Gestion de Projets - AfriqueFreelance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .kanban-column {
+            min-width: 300px;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-screen flex-col overflow-hidden">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-primary/10 bg-white dark:bg-background-dark px-6 py-3 shrink-0">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">account_tree</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">AfriqueFreelance</h2>
+</div>
+<div class="hidden lg:flex items-center bg-primary/5 rounded-lg px-3 py-1.5 border border-primary/10 w-64">
+<span class="material-symbols-outlined text-primary/60 text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400" placeholder="Rechercher un projet..." type="text"/>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold text-primary" href="#">Tableau de bord</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Projets</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Équipes</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Rapports</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">add</span>
+                    Nouveau Projet
+                </button>
+<div class="h-8 w-[1px] bg-slate-200 mx-2"></div>
+<button class="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-10 rounded-full border-2 border-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Photo de profil du gestionnaire de projet" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAAdeHcdxiVN_5IvZ-AN6PL1IlvKMqkxq-3ORgRyH_WVjYDrpoNfymtE9BXN2adkJ7-rloTInJtsEJsYQS5rpHz0WNckOCL4_A6al57VUnYa-CR--IlQxbco5vXZ3Fvw2IvFN-i0Kv129k0rmtYLZCZ4k61Y2kFW1TgG1j0wjkD5RnrHIPkZ96lX4ZCC8YgTtkoR-HLgRMow7wbHuqb_71DKzZl2El3dayYseF3hsPHNQgamDsxXTbah7zFNEVd3npQGAGQsd9iJQW"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar Filters -->
+<aside class="w-64 border-r border-primary/10 bg-white dark:bg-background-dark p-6 flex flex-col gap-8 shrink-0">
+<div>
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Vue d'ensemble</h3>
+<ul class="space-y-1">
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm">Tableau Kanban</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 font-medium" href="#">
+<span class="material-symbols-outlined text-xl">list_alt</span>
+<span class="text-sm">Mes Tâches</span>
+</a>
+</li>
+<li>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 font-medium" href="#">
+<span class="material-symbols-outlined text-xl">calendar_today</span>
+<span class="text-sm">Calendrier</span>
+</a>
+</li>
+</ul>
+</div>
+<div>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Filtrer par Client</h3>
+<span class="material-symbols-outlined text-slate-400 text-sm cursor-pointer">settings</span>
+</div>
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary size-4 border-slate-300" type="checkbox"/>
+<span class="text-sm text-slate-700">MTN Group</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary size-4 border-slate-300" type="checkbox"/>
+<span class="text-sm text-slate-700">Ecobank CI</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary size-4 border-slate-300" type="checkbox"/>
+<span class="text-sm text-slate-700">Safaba Logistics</span>
+</label>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Membres d'équipe</h3>
+<div class="flex -space-x-2">
+<img class="size-8 rounded-full border-2 border-white object-cover shadow-sm" data-alt="Membre de l'équipe 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEQjdQrehxhXqOn1EuI0XZrT76fFiDUdCQTgh5dan6XLdbhTaayHA0P7K3ddgS3oOm_uvPzM7LwNhfOP3AADX6q8Up4JukBN5hhw1EeLxQCIXtHdL61JW2is-vJv49Qj2bXy1UdJSaapXxo3iVNv8TWJt3FPxwsqIocd_KZshGn2EJRb7_CWjLsEsKX9C-2JCztIcP3_qrPTWJKPU-y6fXa7Yn3vyqAl1FEneDJYx4D2V5xd4Ad5kJgyy3_FvCYNWzUQnXRWcrkK_G"/>
+<img class="size-8 rounded-full border-2 border-white object-cover shadow-sm" data-alt="Membre de l'équipe 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCr8FvE9BH_YcMbOmAnAvgXrvKLuOpLyfTAgwzjKkMeX_Exgeh9h5UF2FC4YIUITQqK-KA8-Ddwd5xLZn5N3huA5PGJeK5vT_wr9BMNtNjMzTI1QumZpqO89jWQJVncSGdUtMdKPlNwSI2khuMTN-2ayRhnDqyBRb9uaXN_GQ5jmh2QOyEnBpHcWymO7QT0A2IZUnVekv9JKz-7AX30VUPkBFKLHqrQ_te9WZBuST4ATCafCjxXXr8hgQZDZCiIfqyJSlYSC3l-pzWp"/>
+<img class="size-8 rounded-full border-2 border-white object-cover shadow-sm" data-alt="Membre de l'équipe 3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDf0yZ3LEeIkLEnZN1AdZ2BzxvVJBayUjlQ73a3qbKiHM7qmNw-279DGGhN957YVxJUZvPrNAl6GTggpXrVZNY0Q2GYRXJCTGtEAuqFkOn06obgQcw9f4Br-g7-jGWqlGrevoLHk1B7e1wD6AkFe85lXxzYoqnWShUel9gajMJ2206COtJmb7zV_wuqZyIEs7uSA3VMuZu5GfTfk8nO1YARgFuFzFGPFFompmRSlYu6N1eOCFoh1Kqbb23MHYeyPfgt6kd-I3H6xYmz"/>
+<div class="size-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">+4</div>
+</div>
+</div>
+<div class="mt-auto">
+<div class="bg-primary/5 p-4 rounded-xl border border-primary/10">
+<p class="text-xs text-primary font-bold mb-1">Capacité Agence</p>
+<div class="w-full bg-slate-200 rounded-full h-1.5 mb-2">
+<div class="bg-primary h-1.5 rounded-full" style="width: 75%"></div>
+</div>
+<p class="text-[10px] text-slate-500">75% des ressources occupées</p>
+</div>
+</div>
+</aside>
+<!-- Main Kanban Area -->
+<main class="flex-1 overflow-auto bg-slate-50/50 p-8">
+<!-- Kanban Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div>
+<div class="flex items-center gap-2 text-slate-400 text-sm mb-1">
+<span>AfriqueFreelance</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>Agence Créative</span>
+</div>
+<h1 class="text-3xl font-black text-slate-900 tracking-tight">Tableau Kanban</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex bg-white rounded-lg p-1 border border-slate-200 shadow-sm">
+<button class="px-3 py-1.5 rounded-md text-xs font-bold bg-primary text-white">Tableau</button>
+<button class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors">Liste</button>
+<button class="px-3 py-1.5 rounded-md text-xs font-medium text-slate-500 hover:bg-slate-50 transition-colors">Timeline</button>
+</div>
+<button class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+                            Filtrer
+                        </button>
+<button class="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 shadow-sm">
+<span class="material-symbols-outlined text-lg">share</span>
+                            Partager
+                        </button>
+</div>
+</div>
+<!-- Kanban Columns Container -->
+<div class="flex gap-6 overflow-x-auto pb-6">
+<!-- Column: À faire -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-slate-400"></span>
+<h3 class="font-bold text-slate-700 uppercase text-xs tracking-widest">À faire</h3>
+<span class="bg-slate-200 text-slate-600 text-[10px] px-1.5 py-0.5 rounded font-bold">3</span>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">add</span></button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Task Card 1 -->
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing group">
+<div class="flex items-center justify-between mb-3">
+<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">Urgent</span>
+<button class="text-slate-300 group-hover:text-slate-500 transition-colors"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<h4 class="font-bold text-slate-800 text-sm mb-4 leading-snug">Design UI pour Application Mobile de Fintech</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<img class="size-6 rounded-full object-cover" data-alt="Avatar designer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8Rj2-uUNcDcfAqV_tREBkR_SSi4MekUr0Oetqve0RbT93-v3lIVg9DdudzTOqKDfw9mj1BDl_cg1Rbd38oNBH33vYKXSnhrN4PnEUvpaOLHV0Ky4uhmb6jShrH_n5k-EoHdf3d8DwpivxDPww3shp9TAjzM-NXXcMkDRiV3NP9_BD_5HF7y18MLFZu8d_b57oqbKgT7ANk9AzAgm63c_SYeIpIPutashCotlY1ii2lOk0KNaGTltkqaWl26q4HUTPMeXwOBooztig"/>
+<span class="text-[10px] text-slate-500 font-medium">Aminata B.</span>
+</div>
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+<span class="text-[10px] font-bold">12 Oct</span>
+</div>
+</div>
+</div>
+<!-- Task Card 2 -->
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing group">
+<div class="flex items-center justify-between mb-3">
+<span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-0.5 rounded-full font-bold">Faible</span>
+<button class="text-slate-300 group-hover:text-slate-500 transition-colors"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<h4 class="font-bold text-slate-800 text-sm mb-4 leading-snug">Rédaction des Conditions Générales de Vente</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">KL</div>
+<span class="text-[10px] text-slate-500 font-medium">Koffi L.</span>
+</div>
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+<span class="text-[10px] font-bold">18 Oct</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: En cours -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-500"></span>
+<h3 class="font-bold text-slate-700 uppercase text-xs tracking-widest">En cours</h3>
+<span class="bg-blue-100 text-blue-600 text-[10px] px-1.5 py-0.5 rounded font-bold">2</span>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">add</span></button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Task Card 3 -->
+<div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-l-primary border-slate-200 hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing group">
+<div class="flex items-center justify-between mb-3">
+<span class="bg-orange-100 text-orange-600 text-[10px] px-2 py-0.5 rounded-full font-bold">Normal</span>
+<button class="text-slate-300 group-hover:text-slate-500 transition-colors"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<h4 class="font-bold text-slate-800 text-sm mb-2 leading-snug">Développement Backend API Logistique</h4>
+<div class="mb-4">
+<div class="flex justify-between text-[10px] text-slate-500 mb-1">
+<span>Progression</span>
+<span>65%</span>
+</div>
+<div class="w-full bg-slate-100 h-1 rounded-full">
+<div class="bg-primary h-1 rounded-full w-[65%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<img class="size-6 rounded-full object-cover" data-alt="Avatar développeur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8qG46f1VBAOZZexrmk1QNhsRjq_YQxTuWqzPg8NIPWl_KOVqcn0fnD_OcxBlXZPm3vYbixPuuL5616XmSBX4EWPlYK8C32W9L20-r6_LvgbsMogpGGDdaQXpuBnK6xLLtdvdOShJOYdeopXef9erf1aVk--bsy9nm116eGqppZbVr4xcie0O0cFvf_TpN5MVeYkzHja9jMNtH4rZ2nzgdZYvI41PcmCS3V4Tgzw18wlU_lv0JQNQQ_bcAPSxOc7pOR-FDBp8ymjui"/>
+<span class="text-[10px] text-slate-500 font-medium">Moussa D.</span>
+</div>
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+<span class="text-[10px] font-bold">14 Oct</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: En révision -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-orange-400"></span>
+<h3 class="font-bold text-slate-700 uppercase text-xs tracking-widest">En révision</h3>
+<span class="bg-orange-100 text-orange-600 text-[10px] px-1.5 py-0.5 rounded font-bold">1</span>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">add</span></button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Task Card 4 -->
+<div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing group">
+<div class="flex items-center justify-between mb-3">
+<span class="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">Urgent</span>
+<button class="text-slate-300 group-hover:text-slate-500 transition-colors"><span class="material-symbols-outlined text-lg">more_horiz</span></button>
+</div>
+<h4 class="font-bold text-slate-800 text-sm mb-4 leading-snug">Charte Graphique - Lancement Safaba</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<img class="size-6 rounded-full object-cover" data-alt="Avatar membre" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWD5U83guqbeu5hd8V2ZVnoUC9KCmEt4Db2KaSiydP8VsSsyPSHj-mNAERLvPpNX0AJjXEWw7bDavNKeHvMQsr3HNt4IOrGi5G9VSSCDJECVnW6DR1FAxwfJIE3f8eks8IgHYrYcSR5aS8nZrWyHdli7jH-axEKbd_KmAMkRwduMP2vXsawQi9rBtFx5FwHYjazM3PM2gjW14rxgjN8FMmEMTAWMxmTINSN6WCYvHzn0GiE44evtHUCTiP7VyzMrL9gUhnNxH8VJno"/>
+<span class="text-[10px] text-slate-500 font-medium">Chloé T.</span>
+</div>
+<div class="flex items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+<span class="text-[10px] font-bold">Demain</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Terminé -->
+<div class="kanban-column flex flex-col gap-4">
+<div class="flex items-center justify-between px-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-green-500"></span>
+<h3 class="font-bold text-slate-700 uppercase text-xs tracking-widest">Terminé</h3>
+<span class="bg-green-100 text-green-600 text-[10px] px-1.5 py-0.5 rounded font-bold">12</span>
+</div>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">add</span></button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Task Card 5 -->
+<div class="bg-white/70 p-4 rounded-xl shadow-sm border border-slate-200 group opacity-80">
+<div class="flex items-center justify-between mb-3">
+<span class="bg-slate-100 text-slate-400 text-[10px] px-2 py-0.5 rounded-full font-bold">Terminé</span>
+<span class="material-symbols-outlined text-green-500">check_circle</span>
+</div>
+<h4 class="font-bold text-slate-400 text-sm mb-4 leading-snug line-through">Audit de sécurité infrastructure Cloud</h4>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400">SD</div>
+<span class="text-[10px] text-slate-400 font-medium">Samuel D.</span>
+</div>
+<div class="text-[10px] text-slate-400 font-bold">05 Oct</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Add New Column -->
+<button class="kanban-column flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-200 rounded-xl h-32 text-slate-400 hover:border-primary hover:text-primary transition-all group">
+<span class="material-symbols-outlined text-2xl">add_circle</span>
+<span class="text-xs font-bold uppercase tracking-widest">Nouvelle Étape</span>
+</button>
+</div>
+</main>
+</div>
+</div>
+</body></html>

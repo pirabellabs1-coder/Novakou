@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Header / TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 lg:px-40 py-3">
+<div class="flex items-center gap-4">
+<div class="size-8 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-tight">PayGuard</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Transactions</a>
+<a class="text-sm font-medium text-primary" href="#">Paramètres</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold">
+<span>Mon Compte</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-slate-700" data-alt="User profile avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBB-Fo36rp262RlyZLS14xPJPbJzroULpm0i4avmEWzPeMfb5neD7GYP0zCjP94TiZ8uEOfz9kmnEE0INbMh5UT2DW-7Zton8gQjnGyM0-qXpgTSlcn5d2vO3R5QGbipv24QavJ53kiySkT3V_dhJB3m2HJzoACgdvRi611kNhl4DPYOmX7o8A6wZPyTKdbjS0DhjzzW9cEa5MIygYeWZJIjVpkuSWAJu8kJ4eyEbC6g5AUpdI0mFPZw3jkL90ZuzwqUyhSQGTx3sst");'></div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="px-6 lg:px-40 flex flex-1 justify-center py-8">
+<div class="layout-content-container flex flex-col max-w-[1024px] flex-1">
+<!-- Hero Section -->
+<div class="flex flex-wrap justify-between gap-3 mb-8">
+<div class="flex min-w-72 flex-col gap-2">
+<h1 class="text-4xl font-black leading-tight tracking-tight">Méthodes de Paiement</h1>
+<p class="text-slate-500 dark:text-slate-400 text-base">Gérez vos sources de financement et votre portefeuille en toute sécurité.</p>
+</div>
+<div class="flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-lg border border-primary/20 self-start">
+<span class="material-symbols-outlined text-primary text-sm">shield_lock</span>
+<span class="text-xs font-bold text-primary uppercase tracking-wider">Certifié PCI-DSS</span>
+</div>
+</div>
+<!-- Balance Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wide">Solde Portefeuille</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-black">450.000</p>
+<p class="text-sm font-bold text-slate-500">FCFA</p>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<p class="text-xs font-bold">+5.2% ce mois</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium uppercase tracking-wide">Méthodes Actives</p>
+<p class="text-3xl font-black">3</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 font-medium">1 Carte, 2 Mobile Money</p>
+</div>
+<div class="flex flex-col gap-4 rounded-xl p-6 bg-primary text-background-dark justify-center cursor-pointer hover:opacity-90 transition-opacity">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-3xl">add_card</span>
+<div class="flex flex-col">
+<p class="font-bold text-lg leading-tight">Ajouter un moyen</p>
+<p class="text-xs opacity-80">Rapide et sécurisé</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Sections Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left: List of Methods -->
+<div class="lg:col-span-2 space-y-6">
+<section>
+<h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">credit_card</span>
+                                    Cartes et Comptes
+                                </h2>
+<div class="space-y-3">
+<!-- Visa Card -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 group hover:border-primary/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-slate-100 dark:bg-slate-800 rounded-lg p-2 h-10 w-16 flex items-center justify-center">
+<img alt="Visa" class="h-4" data-alt="Visa logo for payment card" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa4QEP2-ZK8AsYVd_XTOyUD57AlbMZPUsqGi0qrkhzA9S9kBqv_rsDRY6v--kmxLnG7vkEV8zxAVM231A7KNRwRQ8MNBxomyq_T7frhdRMzNwD3VvKx27IMdmpTgphUdUumIqhjwX0x4JxnwP290dFPiJsmLX58TAAw-1JE0L53LEeAcgSj6b_zT1SQxDl7wHuz7AwSPT8cBuq9GUpZiKyAg1QABNqnAY7gu72bKhVx8QX8e9jAyVUtq7DKWaa-P2VkS270fJ1mY3O"/>
+</div>
+<div>
+<p class="font-bold">Visa Card •••• 4242</p>
+<p class="text-xs text-slate-500">Expire le 12/26 • Jean Dupont</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="bg-slate-200 dark:bg-slate-800 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Par défaut</span>
+<button class="p-2 text-slate-400 hover:text-red-500">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+<!-- Bank Account -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 group hover:border-primary/50 transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-slate-100 dark:bg-slate-800 rounded-lg p-2 h-10 w-16 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">account_balance</span>
+</div>
+<div>
+<p class="font-bold">Ecobank CI •••• 8812</p>
+<p class="text-xs text-slate-500">Compte courant • Vérifié</p>
+</div>
+</div>
+<button class="p-2 text-slate-400 hover:text-red-500">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+</section>
+<section>
+<h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">smartphone</span>
+                                    Mobile Money
+                                </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Orange Money -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-[#FF7900]">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 bg-black rounded flex items-center justify-center">
+<div class="w-6 h-6 bg-[#FF7900]"></div>
+</div>
+<div>
+<p class="font-bold text-sm">Orange Money</p>
+<p class="text-xs text-slate-500">+225 07 •• •• 90</p>
+</div>
+</div>
+<button class="text-slate-400"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+<!-- Wave -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-[#1da1f2]">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 bg-[#1da1f2] rounded flex items-center justify-center">
+<span class="text-white font-black italic text-xs">W</span>
+</div>
+<div>
+<p class="font-bold text-sm">Wave CI</p>
+<p class="text-xs text-slate-500">+225 05 •• •• 12</p>
+</div>
+</div>
+<button class="text-slate-400"><span class="material-symbols-outlined text-lg">more_vert</span></button>
+</div>
+</div>
+</section>
+</div>
+<!-- Right: Quick Add & Trust -->
+<div class="flex flex-col gap-6">
+<div class="bg-slate-100 dark:bg-slate-800/30 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-lg mb-4">Actions rapides</h3>
+<div class="space-y-3">
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-800 text-sm font-semibold hover:bg-primary hover:text-background-dark transition-all group">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined">add_circle</span>
+                                            Lier un compte bancaire
+                                        </span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-800 text-sm font-semibold hover:bg-primary hover:text-background-dark transition-all group">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+                                            Recharger le solde
+                                        </span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100">chevron_right</span>
+</button>
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-white dark:bg-slate-800 text-sm font-semibold hover:bg-primary hover:text-background-dark transition-all group">
+<span class="flex items-center gap-3">
+<span class="material-symbols-outlined">payments</span>
+                                            Effectuer un virement
+                                        </span>
+<span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="p-6 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col gap-4">
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Sécurité Garantie</p>
+<div class="flex items-center gap-4">
+<div class="size-10 flex items-center justify-center bg-primary/20 rounded-full text-primary">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<p class="text-xs leading-relaxed text-slate-500">Toutes vos données sont chiffrées en AES-256 bits et stockées sur des serveurs sécurisés conformes aux normes bancaires mondiales.</p>
+</div>
+<div class="flex gap-4 mt-2 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+<img alt="PayPal" class="h-4" data-alt="PayPal verified logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwQKMEwpPB4BWQH79_2Vbv7XlBQN18V3IDMepi6AlYRRQ-qO1zBrStPCIVk2u654nivIqN9t8lOBURckTiS7my_OOAhHrihbyyBDDTrJMp62s4mfBHIaUtaAyql7O_R6QbHAmKDjFEF3b7MuWdm-Ov98u41p2offG_CH_BjlUs4BNaWsw-IF3b0xwAFTwYGA_XfK7UMpE2kuxzFGYhQTTmROmCxvs_3Y24siLa3Xqjq2-CTbk8LRU1JpXLptWQdLl9Iow8lZAryLUI"/>
+<img alt="Mastercard" class="h-6" data-alt="Mastercard logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASFT8Hetfr-o4gDgVh58kXOUpPIuaR1rhnRQm-pyiec3x__lMxQFiiYfBodkQ37637Hh3nQGt4NWfAmbR2w3siu8-55fyJBrZiiR-dsJQGDmHFHEFtOSNLXRVU-V4bBtsV-iXh1lnLhiN_t5gIIPnfYqaJGaFxVj8Et_60pc6W8--SEhpVGS20yMsgHLdnmhnfUmacjKsFn81xLDuszLCbZl29DihN0vnIv-ddgnCxS3nghwUlqvx-R9624Rs-RjMfMip9_KDxtg-Y"/>
+<img alt="Stripe" class="h-4" data-alt="Stripe platform logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvlBPHTSuuSzWFjaQRO9Cg6sXeRi3LJqsei41jmMeUi0pdsJ5qpFpPrmh8xUF0Dg_obpePpqCGmp4SclwckAD4TRqQpS7SP9e4sg1NOZDdV5NC7O7cWXFk66KaPNGQV2-bvFEEK04PfMvYI4SVVqwhQDW6TWduodC-nENTQrW1rdij7f3FwtRy5GVw4IxurN1c8lkNKmypGtZtyYX5kzNiom13ySIc4YvcgHc5CrJesiikvAdmzreRG37mVv3osJ_A2phZgzZufA66"/>
+</div>
+</div>
+</div>
+</div>
+<!-- History / Recent Transactions Footer -->
+<div class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold">Activités récentes</h2>
+<button class="text-primary text-sm font-bold hover:underline">Voir tout le rapport</button>
+</div>
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500">
+<tr>
+<th class="px-6 py-3 font-semibold uppercase tracking-wider">Date</th>
+<th class="px-6 py-3 font-semibold uppercase tracking-wider">Méthode</th>
+<th class="px-6 py-3 font-semibold uppercase tracking-wider">Type</th>
+<th class="px-6 py-3 font-semibold uppercase tracking-wider text-right">Montant</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+<td class="px-6 py-4">Aujourd'hui, 14:20</td>
+<td class="px-6 py-4 font-medium flex items-center gap-2">
+<span class="size-2 rounded-full bg-[#FF7900]"></span> Orange Money
+                                        </td>
+<td class="px-6 py-4 text-slate-500">Rechargement</td>
+<td class="px-6 py-4 text-right font-bold text-primary">+25.000 FCFA</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+<td class="px-6 py-4">Hier, 09:12</td>
+<td class="px-6 py-4 font-medium flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-500"></span> Visa •••• 4242
+                                        </td>
+<td class="px-6 py-4 text-slate-500">Achat en ligne</td>
+<td class="px-6 py-4 text-right font-bold text-red-500">-12.500 FCFA</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Small -->
+<footer class="px-6 lg:px-40 py-8 border-t border-slate-200 dark:border-slate-800 text-center">
+<p class="text-slate-500 text-xs">© 2024 PayGuard Financial Services. Tous droits réservés. Agréé par la BCEAO.</p>
+</footer>
+</div>
+</div>
+</body></html>

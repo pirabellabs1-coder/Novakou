@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AfriqueFreelance - Onboarding</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "accent": "#f2b705",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                        "neutral-dark": "#1c2624",
+                        "border-dark": "#293835",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .bg-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(14, 124, 102, 0.1) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-300">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-pattern overflow-x-hidden">
+<!-- Navigation -->
+<header class="flex items-center justify-between border-b border-border-dark px-6 py-4 lg:px-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary flex items-center justify-center rounded-lg shadow-lg shadow-primary/20 text-accent">
+<span class="material-symbols-outlined text-3xl">language_international</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-xl font-extrabold leading-tight tracking-tight">Afrique<span class="text-primary">Freelance</span></h2>
+</div>
+<nav class="hidden md:flex items-center gap-10">
+<a class="text-slate-700 dark:text-slate-300 text-sm font-semibold hover:text-primary dark:hover:text-primary transition-colors" href="#">Explorer</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-semibold hover:text-primary dark:hover:text-primary transition-colors" href="#">Comment ça marche</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-semibold hover:text-primary dark:hover:text-primary transition-colors" href="#">Tarifs</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden sm:flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 text-slate-700 dark:text-white text-sm font-bold border border-border-dark hover:bg-white/5 transition-all">
+                Se connecter
+            </button>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg h-10 px-5 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                S'inscrire
+            </button>
+</div>
+</header>
+<main class="layout-container flex flex-col items-center flex-1 w-full max-w-[1280px] mx-auto px-4 lg:px-20">
+<!-- Hero Section -->
+<section class="w-full py-12 lg:py-20 flex flex-col lg:flex-row items-center gap-12">
+<div class="flex flex-col gap-8 flex-1 text-center lg:text-left">
+<div class="inline-flex items-center self-center lg:self-start gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-base">verified</span>
+                    Identité forte, Opportunités globales
+                </div>
+<h1 class="text-slate-900 dark:text-white text-4xl lg:text-6xl font-black leading-tight tracking-tight">
+                    Connecter les <span class="text-primary italic">talents</span> du monde entier
+                </h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg lg:text-xl font-normal max-w-xl">
+                    AfriqueFreelance est la plateforme de référence pour propulser votre carrière internationale tout en célébrant vos racines.
+                </p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+<button class="flex items-center justify-center gap-2 rounded-xl h-14 px-8 bg-primary text-white text-lg font-bold shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all group">
+<span>Compléter mon profil</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<button class="flex items-center justify-center gap-2 rounded-xl h-14 px-8 bg-white/5 dark:bg-neutral-dark border border-border-dark text-slate-700 dark:text-white text-lg font-bold hover:bg-white/10 transition-all">
+                        Explorer les missions
+                    </button>
+</div>
+</div>
+<div class="flex-1 w-full max-w-[500px] lg:max-w-none">
+<div class="relative group">
+<div class="absolute -inset-4 bg-gradient-to-tr from-primary to-accent opacity-20 blur-3xl rounded-full"></div>
+<div class="relative rounded-2xl overflow-hidden border-4 border-white dark:border-neutral-dark shadow-2xl aspect-video bg-neutral-dark">
+<img alt="Creative professionals collaborating in a modern office" class="w-full h-full object-cover grayscale-[20%] hover:grayscale-0 transition-all duration-700" data-alt="Modern collaborative workspace with diverse professionals" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2FdJFqBMN7-MCYccnCvHV7yBLyPKbAgoawyywKRWU1Hbme1fmnP3Py11mcXlUMTw5vECTBgiaMytnpHLrtvhLhNgYUvPZiuSkkGDtFFGmyOABSksvVR0or-Ec2VxWCkIhyODkGYvOCMiHkR3WIxyJsHJm4jcgr-xEcwMFjMdIvB52pqKt6IxYBGqfhZKWHxbTDGyzgXJarkVazXexE-GLUVtKDyuj-zr36oRYbx28KFO1O-3VXVgTttwVwkdxKaQIg9UPQ5T5WWLk"/>
+<div class="absolute bottom-4 left-4 right-4 p-4 bg-white/10 backdrop-blur-md rounded-xl border border-white/20">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-accent flex items-center justify-center text-slate-900">
+<span class="material-symbols-outlined text-sm">stars</span>
+</div>
+<p class="text-white text-sm font-medium">Top Freelance: "Une plateforme qui comprend nos besoins."</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Value Proposition -->
+<section class="w-full py-16 flex flex-col gap-12">
+<div class="flex flex-col gap-4 text-center items-center">
+<h2 class="text-slate-900 dark:text-white text-3xl lg:text-4xl font-bold">Pourquoi rejoindre AfriqueFreelance ?</h2>
+<div class="h-1.5 w-24 bg-accent rounded-full"></div>
+<p class="text-slate-600 dark:text-slate-400 text-base max-w-2xl mt-2">
+                    Découvrez une expérience d'onboarding conçue pour valoriser vos compétences uniques sur la scène internationale.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="group flex flex-col gap-5 p-8 rounded-2xl border border-border-dark bg-white/5 dark:bg-neutral-dark/40 hover:border-primary/50 hover:bg-primary/5 transition-all">
+<div class="size-14 rounded-xl bg-primary/20 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">badge</span>
+</div>
+<div>
+<h3 class="text-slate-900 dark:text-white text-xl font-bold mb-2">Identité Forte</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Une interface aux couleurs vibrantes pour une marque qui respecte et amplifie votre héritage professionnel.
+                        </p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group flex flex-col gap-5 p-8 rounded-2xl border border-border-dark bg-white/5 dark:bg-neutral-dark/40 hover:border-accent/50 hover:bg-accent/5 transition-all">
+<div class="size-14 rounded-xl bg-accent/20 text-accent flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">public</span>
+</div>
+<div>
+<h3 class="text-slate-900 dark:text-white text-xl font-bold mb-2">Opportunités Globales</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Accédez à des projets internationaux de haute facture tout en restant connecté à l'écosystème local.
+                        </p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group flex flex-col gap-5 p-8 rounded-2xl border border-border-dark bg-white/5 dark:bg-neutral-dark/40 hover:border-primary/50 hover:bg-primary/5 transition-all">
+<div class="size-14 rounded-xl bg-primary/20 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">diversity_3</span>
+</div>
+<div>
+<h3 class="text-slate-900 dark:text-white text-xl font-bold mb-2">Réseau d'Experts</h3>
+<p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                            Rejoignez une communauté dynamique de freelances et de clients engagés pour le succès collectif.
+                        </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Onboarding Path -->
+<section class="w-full py-16 mb-20 bg-primary/5 dark:bg-primary/10 rounded-3xl p-8 lg:p-12 border border-primary/20">
+<h2 class="text-slate-900 dark:text-white text-2xl lg:text-3xl font-bold mb-10 text-center lg:text-left">Votre parcours commence ici</h2>
+<div class="relative flex flex-col gap-0 md:flex-row md:gap-8">
+<!-- Step 1 -->
+<div class="relative flex flex-1 flex-col gap-4 group">
+<div class="flex items-center gap-4">
+<div class="z-10 size-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg group-hover:ring-4 group-hover:ring-primary/20 transition-all">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<div class="md:hidden text-lg font-bold">Création de compte</div>
+</div>
+<div class="hidden md:block absolute top-6 left-12 w-full h-[2px] bg-border-dark"></div>
+<div class="ml-16 md:ml-0 flex flex-col">
+<p class="hidden md:block text-slate-900 dark:text-white text-lg font-bold">Création de compte</p>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Moins de 2 minutes pour s'enregistrer</p>
+</div>
+</div>
+<!-- Step 2 -->
+<div class="relative flex flex-1 flex-col gap-4 group mt-8 md:mt-0">
+<div class="flex items-center gap-4">
+<div class="z-10 size-12 rounded-full bg-primary text-white flex items-center justify-center shadow-lg group-hover:ring-4 group-hover:ring-primary/20 transition-all">
+<span class="material-symbols-outlined">edit_square</span>
+</div>
+<div class="md:hidden text-lg font-bold">Personnalisation</div>
+</div>
+<div class="hidden md:block absolute top-6 left-12 w-full h-[2px] bg-border-dark"></div>
+<div class="ml-16 md:ml-0 flex flex-col">
+<p class="hidden md:block text-slate-900 dark:text-white text-lg font-bold">Personnalisation</p>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Ajoutez votre portfolio et vos tarifs</p>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="relative flex flex-1 flex-col gap-4 group mt-8 md:mt-0">
+<div class="flex items-center gap-4">
+<div class="z-10 size-12 rounded-full bg-accent text-slate-900 flex items-center justify-center shadow-lg group-hover:ring-4 group-hover:ring-accent/20 transition-all">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div class="md:hidden text-lg font-bold">Première mission</div>
+</div>
+<div class="ml-16 md:ml-0 flex flex-col">
+<p class="hidden md:block text-slate-900 dark:text-white text-lg font-bold">Première mission</p>
+<p class="text-slate-600 dark:text-slate-400 text-sm">Postulez et gagnez vos premiers contrats</p>
+</div>
+</div>
+</div>
+<div class="mt-12 flex justify-center">
+<button class="px-10 py-4 bg-primary text-white rounded-xl font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
+                    Commencer l'aventure
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full bg-white dark:bg-neutral-dark/80 py-12 px-6 lg:px-20 border-t border-border-dark">
+<div class="max-w-[1280px] mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary/20 flex items-center justify-center rounded-lg text-primary">
+<span class="material-symbols-outlined">language_international</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold">AfriqueFreelance</h2>
+</div>
+<div class="flex gap-8 text-sm text-slate-500 dark:text-slate-400 font-medium">
+<a class="hover:text-primary" href="#">Conditions</a>
+<a class="hover:text-primary" href="#">Confidentialité</a>
+<a class="hover:text-primary" href="#">Contact</a>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">© 2024 AfriqueFreelance. Tous droits réservés.</p>
+</div>
+</footer>
+</div>
+</body></html>

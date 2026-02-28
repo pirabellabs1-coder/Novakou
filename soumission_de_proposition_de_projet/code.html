@@ -1,0 +1,238 @@
+<html lang="fr"><head>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head><body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 transition-colors duration-200">节
+
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Soumission de Proposition - FreelanceHub</title>
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 bg-white dark:bg-slate-900 px-6 lg:px-40 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-slate-900 dark:text-slate-100">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined text-3xl">deployed_code</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">FreelanceHub</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-lg" data-icon="search">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-2 focus:ring-primary/50 h-full placeholder:text-slate-400 px-4 rounded-r-lg text-base font-normal" placeholder="Rechercher des missions..."/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden xl:flex items-center gap-8">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Mes Projets</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Messages</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Profil</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden sm:flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-slate-900 text-sm font-bold hover:brightness-110 transition-all">
+                            Déconnexion
+                        </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Photo de profil du freelance" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAldtk6HJ4Rbk8nVgJWc8RKV5UelOVOoTw6Cjb9CBhG9mlzF5s3T8Bnun7MSmtxLpvZU3TNkTyJ0CHnFOf-kU3Q_6_Rflaes-QWECpB7Fv3zYlmYLAOcSnVnGwq1w9MiGZKMnjNxp9hLm23UYfP6MQA_umQZ2zBPGa_z81TGPIM5jFxG6GjChX0kzaYp1eqfl4H3Rwv-gb5crcYwug7oqkZ_xaiDFDZxW9uopzt59xHVAlf5cDitz3q0xsAndHUoV6DL0qqwZFbpUks");'></div>
+</div>
+</div>
+</header>
+<main class="flex flex-col flex-1 px-6 lg:px-40 py-8">
+<div class="flex flex-wrap gap-2 text-sm text-slate-500 dark:text-slate-400 mb-6">
+<a class="hover:underline" href="#">Projets</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:underline" href="#">Développement Web</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100 font-medium">Soumettre une proposition</span>
+</div>
+<div class="mb-10">
+<h1 class="text-3xl md:text-4xl font-black tracking-tight mb-2">Soumettre une proposition</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg">Détaillez votre offre pour convaincre le client de travailler avec vous.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+<div class="lg:col-span-2 space-y-8">
+<section class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">description</span>
+                                Détails de la proposition
+                            </h2>
+<div class="space-y-6">
+<div>
+<label class="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Lettre de motivation</label>
+<div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/50">
+<div class="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-2 border-b border-slate-200 dark:border-slate-800">
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400" title="Gras">
+<span class="material-symbols-outlined text-xl">format_bold</span>
+</button>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400" title="Italique">
+<span class="material-symbols-outlined text-xl">format_italic</span>
+</button>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400" title="Liste">
+<span class="material-symbols-outlined text-xl">format_list_bulleted</span>
+</button>
+<button class="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-600 dark:text-slate-400" title="Lien">
+<span class="material-symbols-outlined text-xl">link</span>
+</button>
+</div>
+<textarea class="w-full min-h-[250px] p-4 bg-transparent border-none focus:ring-0 text-base resize-y" placeholder="Expliquez pourquoi vous êtes le candidat idéal pour ce projet, votre approche technique, et vos expériences similaires..."></textarea>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Votre tarif proposé (€)</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">€</span>
+<input class="w-full pl-8 pr-4 py-3 rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/50" placeholder="0.00" type="number"/>
+</div>
+<p class="mt-1 text-xs text-slate-500">Hors frais de plateforme (5%)</p>
+</div>
+<div>
+<label class="block text-sm font-semibold mb-2 text-slate-700 dark:text-slate-300">Délai de livraison estimé</label>
+<div class="relative">
+<span class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">jours</span>
+<input class="w-full pl-4 pr-16 py-3 rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-primary/50" placeholder="10" type="number"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800">
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">attach_file</span>
+                                Pièces jointes
+                            </h2>
+<div class="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl p-10 flex flex-col items-center justify-center text-center hover:border-primary/50 transition-colors cursor-pointer bg-slate-50 dark:bg-slate-800/20">
+<span class="material-symbols-outlined text-4xl text-slate-400 mb-2">cloud_upload</span>
+<p class="text-base font-medium">Faites glisser vos fichiers ici ou <span class="text-primary">parcourez</span></p>
+<p class="text-xs text-slate-500 mt-2">PDF, PNG, JPG ou ZIP (Max. 10 Mo par fichier)</p>
+</div>
+</section>
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="flex-1 min-w-[180px] cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-primary text-slate-900 text-lg font-bold hover:shadow-lg hover:shadow-primary/20 transition-all">
+                                Envoyer la proposition
+                            </button>
+<button class="flex-1 min-w-[180px] cursor-pointer items-center justify-center rounded-lg h-12 px-6 bg-slate-200 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-lg font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-all">
+                                Enregistrer en brouillon
+                            </button>
+</div>
+</div>
+<aside class="space-y-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 sticky top-24">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-4">Récapitulatif du projet</h3>
+<div class="mb-6">
+<h4 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Refonte UI/UX Dashboard SaaS</h4>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded">UI Design</span>
+<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded">React</span>
+<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded">SaaS</span>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400 line-clamp-4">
+                                    Nous recherchons un expert UI/UX pour repenser entièrement l'interface de notre outil de gestion RH. L'objectif est de simplifier les flux de travail complexes et d'apporter une esthétique moderne type "Clean Tech". Plus de 20 écrans à concevoir sur Figma.
+                                </p>
+</div>
+<hr class="border-slate-100 dark:border-slate-800 mb-6"/>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">payments</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 uppercase font-bold">Budget Client</p>
+<p class="text-sm font-semibold">1 500 € - 3 000 €</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 uppercase font-bold">Publié le</p>
+<p class="text-sm font-semibold">Il y a 2 jours</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">person</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 uppercase font-bold">Client</p>
+<p class="text-sm font-semibold">NexGen Solutions Ltd.</p>
+<div class="flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-xs text-yellow-400 fill-current">star</span>
+<span class="text-xs font-bold">4.9/5</span>
+<span class="text-xs text-slate-400">(12 avis)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 p-4 bg-primary/5 rounded-lg border border-primary/20">
+<p class="text-xs text-slate-600 dark:text-slate-400 italic">
+                                    "Conseil : Les propositions personnalisées qui mentionnent des projets similaires ont 40% de chances en plus d'être retenues."
+                                </p>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<footer class="bg-slate-100 dark:bg-slate-950 px-6 lg:px-40 py-12 mt-auto border-t border-slate-200 dark:border-slate-800">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+<div class="col-span-1 md:col-span-2">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-2xl">deployed_code</span>
+<span class="text-lg font-bold">FreelanceHub</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 max-w-sm">
+                            La plateforme leader pour connecter les meilleurs talents indépendants avec des entreprises ambitieuses.
+                        </p>
+</div>
+<div>
+<h4 class="font-bold mb-4">Plateforme</h4>
+<ul class="space-y-2 text-sm text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Trouver des missions</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Comment ça marche</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Tarifs</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold mb-4">Support</h4>
+<ul class="space-y-2 text-sm text-slate-500 dark:text-slate-400">
+<li><a class="hover:text-primary transition-colors" href="#">Centre d'aide</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sécurité</a></li>
+</ul>
+</div>
+</div>
+<div class="border-t border-slate-200 dark:border-slate-800 mt-12 pt-8 flex flex-col md:row justify-between items-center gap-4">
+<p class="text-sm text-slate-500 dark:text-slate-400">© 2024 FreelanceHub. Tous droits réservés.</p>
+<div class="flex gap-6">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">hub</span></a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">groups</span></a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

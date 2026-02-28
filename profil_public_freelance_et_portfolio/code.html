@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 bg-background-light dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">FreelanceHub</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-primary/10 border border-primary/20 overflow-hidden">
+<div class="text-primary flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 text-sm font-normal" placeholder="Rechercher des projets..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Projets</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Freelances</a>
+<a class="text-slate-700 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Ressources</a>
+</nav>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold transition-opacity hover:opacity-90">
+                        Tableau de bord
+                    </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Avatar de l'utilisateur connecté" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIcInYEvSwstsNnL3qUW9jHTJsa9VSVOHPB9oSoa_GmmErj8RtuvzKZRPlqGu_3PKdk2b_VdtMc24HdNEg5JZUxm2AzSzUwikerSv1X1QHCGuAYgsbiVwUNlAEFvx83NYJiI5AmjmFXbXzSUN52D4l50GPfcAgg0RM7-J8j_1U2X5RxJJHxu2Zi7ZlSQ6kYc1_eiNw1ZRYSP5Ze4Bna4X4I__n1kQONef24iisnVZEkkK_dWX9YQlUHXNYmx_d_CgK0DamIGPQQio-");'></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center">
+<div class="w-full max-w-[1100px] px-4 md:px-10 py-8">
+<!-- Hero/Header Section -->
+<div class="relative w-full @container">
+<div class="w-full bg-center bg-no-repeat bg-cover rounded-xl min-h-[260px] relative overflow-hidden shadow-xl" data-alt="Espace de travail moderne et lumineux" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAkLiXYpvXyAiW48FdyRm0HvDHIH0hryjwaqqGE4cY4hQemlXnJAqxcrXM3_P9gr2B0Kya4VY8dzjg7bQPeSv9P1QazAB9bqoNDEJnJtYyPfp3so71lcMpg9IEFbmX-AfoM8RPC97XjiB8IdrzWf41vttneMp7uJFyZBiqSGcCzm2ZmKa9wlWDCgc0n6h1nKXuG2mcqghOJFGLc0_oL2b41LKyG7LtPb3TxA9r0ZQCJqBV25jFv51scQvxkB8y0iBdln94Q4VuS4SgA");'>
+<div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 to-transparent"></div>
+</div>
+<div class="flex flex-col @[600px]:flex-row gap-6 px-6 -mt-16 relative z-10">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-2xl border-4 border-background-dark w-40 h-40 shadow-2xl shrink-0" data-alt="Portrait du freelance souriant" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDuoIDMNctdPnKy4fSbNoG36Akckxseq1IO39hE-I6Xanech4RM2F2L5Hvtvn5MvxpqQTDdnvPGYk7m2FOBG2uNEhE260iESf9meWbtuLim1ytW5DH5snzEmG74te98I6gBQ1xBxKxik0PMYB3JtEFxOl3rqy4WjwZEHsYQGKvvSmiWu54PfJhxCMZWpZ0DXytzTrWrdMWJZdwWmDPclTwqG2CyKslmVr_8M9h9vp2BL4QOOPeyWfsMSGix5XeCPEdcEYNE3wmZcGUO");'></div>
+<div class="flex flex-col justify-end pb-2 flex-1">
+<div class="flex flex-wrap items-center gap-3 mb-1">
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-extrabold tracking-tight">Alexandre Rivera</h1>
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded-full bg-primary/20 px-3 border border-primary/30">
+<span class="material-symbols-outlined text-primary text-sm fill-icon">check_circle</span>
+<p class="text-primary text-xs font-bold uppercase tracking-wider">Disponible maintenant</p>
+</div>
+</div>
+<p class="text-primary text-lg font-semibold">Développeur Full-Stack Senior &amp; Designer UI/UX</p>
+<div class="flex flex-wrap gap-4 mt-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-base">location_on</span> Paris, France</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-base">work_history</span> 10+ ans d'expérience</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-base">translate</span> Français, Anglais</span>
+</div>
+</div>
+<div class="flex items-end gap-3 pb-2 self-start @[600px]:self-end">
+<button class="flex-1 @[600px]:flex-none h-11 px-6 rounded-lg bg-primary/10 border border-primary/30 text-primary font-bold hover:bg-primary/20 transition-all">
+                                    Contacter
+                                </button>
+<button class="flex-1 @[600px]:flex-none h-11 px-6 rounded-lg bg-primary text-white font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all">
+                                    Recruter
+                                </button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
+<!-- Left Column: Bio and Skills -->
+<div class="lg:col-span-2 space-y-10">
+<!-- About Me -->
+<section>
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">person</span> À propos
+                                </h3>
+<div class="bg-primary/5 dark:bg-white/5 p-6 rounded-xl border border-primary/10">
+<p class="text-slate-700 dark:text-slate-300 leading-relaxed">
+                                        Passionné par la création d'expériences numériques exceptionnelles, j'accompagne les startups et les entreprises dans le développement de produits web robustes et esthétiques. Mon approche combine une expertise technique approfondie en architecture logicielle avec une sensibilité design centrée sur l'utilisateur.
+                                    </p>
+<p class="text-slate-700 dark:text-slate-300 mt-4 leading-relaxed">
+                                        Spécialisé en React, Node.js et TypeScript, je transforme des idées complexes en solutions simples, scalables et performantes.
+                                    </p>
+</div>
+</section>
+<!-- Portfolio Gallery -->
+<section>
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">collections</span> Portfolio
+                                    </h3>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/10 transition-colors z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Dashboard analytique moderne" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxVKJ6kDwhXnFEwm18eOu5FdPVZCJF7BmEc3W_kY49K3EVBvF75aJnrqCYNPiHlxU75GBXXfMbhJy-o5qaIAgyiQhaQNTym_eCcSFhrnHBY-J30IemYnkr5SMrgcZ2zht4cYLHKvogcVpQLQJ7IP2yIG6WxwN2jaM09iMPFUPWIEZPgLP2qK1D1iTzpNRjc2efY-bOv5xY_U4WaZe46mDsvPcruM0RvmKTVo-h87BaBr9-5zh90sALQp8MCbtBh11v1Up6QPNMJqTZ"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 z-20 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
+<p class="text-white font-bold">SaaS Analytics Platform</p>
+<p class="text-white/80 text-xs">UI/UX &amp; Frontend Development</p>
+</div>
+</div>
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/10 transition-colors z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Application mobile e-commerce" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXYCDjClMeksI5nbltzViJH7XyWvURw3WCakLp6xnxk_Mhxzozlq4aUStf7NnxKKVyeHVjaLoqm5A_y12Gan5RPNFWMvwlDTeHKxzz259wnj4mVAhiVwovEODhRP9zZp4aAARhOdAuDxoE8_hJlIngis1A0X40xjrpyWKJvXgaCq-IPQNrWYf2dQCTnuSf-hBWWfm9oY8dBh_5RG6pesY10S2OvMNhUS0hFtv5BPMeyPCH29bUTMwmWVfxuS92Y075tbjs1SgR4FH7"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 z-20 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
+<p class="text-white font-bold">Eco-Commerce Mobile App</p>
+<p class="text-white/80 text-xs">React Native &amp; Node.js</p>
+</div>
+</div>
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/10 transition-colors z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Interface utilisateur créative" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQUMfKtmFu598yBwAhA3OV0_gc8Ru_Dq3CsR98ONgaYSDU6-gyCWRiUky0eWXxUKz_I1J2sv-SBLMdpEQBTMpQZ6SocJrjDrqz-N4GAFfTQTxTnf8diQROuQFLzq5N2FRbXIvxJzaqeSG6hUSFyHMPsDN8WTdeAGQsVnDcoZgQLln1Es1TUi97EFQoQDNa001T3CIDl5M2xN9-DTBKFJdKwuOlFGXwbX7UKp2YjHzEjqZYKsHTgR2nKqbJFuKvXW0e8_RLdiK9q6hG"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 z-20 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
+<p class="text-white font-bold">Creative Agency Website</p>
+<p class="text-white/80 text-xs">Design &amp; Webflow</p>
+</div>
+</div>
+<div class="group relative aspect-video rounded-xl overflow-hidden cursor-pointer">
+<div class="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/10 transition-colors z-10"></div>
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Plateforme fintech sécurisée" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYWoyQs66cxznVzDrObFK2iq7Rj8r4F66DzReQiRL8i3_h1Afegdq0A4pBo0zK1NrhKNKjeDv6nrFNSbGlXb__p8KL81qTEYJf1yadilxmpptUwkF2t9E0ZdRPNcZEZwysCs6SAxJaNbLwpMI0jKcBzZnspUMgSpq2TWadguMyvESsMab5edmYN8WSkeNLehRknePW0ULZujD7uy6i6gy5O5gRnxBINpseUINad5PhIa4V2vS_jn_LhTabOecJsYCHwLGdBtDXNIAQ"/>
+<div class="absolute bottom-0 left-0 right-0 p-4 z-20 translate-y-2 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all">
+<p class="text-white font-bold">Fintech Wealth Management</p>
+<p class="text-white/80 text-xs">Full-stack Engineering</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Reviews -->
+<section>
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">star</span> Avis clients (24)
+                                </h3>
+<div class="space-y-4">
+<!-- Review 1 -->
+<div class="bg-primary/5 dark:bg-white/5 p-5 rounded-xl border border-primary/5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-300 dark:bg-slate-700 bg-cover" data-alt="Portrait de Marc Leroy" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuADkP_vMqjIjiUPxI2mVEBQxUhDGYKDmsfsbGQ1axZnuVQ8q-1-QwcN4XV9jFCvy_jY2DXG2MDGCMibE8N2y7am-ddpGSUHemElNJ-29819inMCGIXPhrXvvFcnfM0JavuCTX6YI6DA-K-HQ4sQgblH1BrYlk33FmPBmjOJLL29x4JfDqQFjxswsZwaQ_mPcGv1jdmgGcJ8zXDh80LG1MCqRlSRF7snVl_r_fjwNM0Ck14cshTGxaugmKdKnUe9ljwmvmxmNC11r97l");'></div>
+<div>
+<p class="font-bold text-sm">Marc Leroy</p>
+<p class="text-slate-500 text-xs">CEO de Techni-Soft</p>
+</div>
+</div>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+</div>
+</div>
+<p class="text-slate-700 dark:text-slate-400 text-sm italic">
+                                            "Alexandre a fait un travail remarquable sur notre plateforme SaaS. Non seulement il est techniquement excellent, mais il comprend parfaitement les enjeux business."
+                                        </p>
+</div>
+<!-- Review 2 -->
+<div class="bg-primary/5 dark:bg-white/5 p-5 rounded-xl border border-primary/5">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-300 dark:bg-slate-700 bg-cover" data-alt="Portrait de Sophie Durant" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuABhgedvYdUTROE443AwT0iTV0KZ4Q_PPxkcqmUAJvAMWbVfPy76l-ljpJcRBttar0zO9oy6ezt36Dd4yx6oK3yhNHA0NfDFVzjWzUM7obFNHaN1in8PQ0u5Jo0xgxN2EoYKyXXnqYAIIRv8PghXk96TERL5VpJNc9P0dWSe4qX7mCeYu8iaqKMg-SqpIOhX51duriTCARWwAgEx3IDTrb8mY0TsK9X2sTha7Ts9aswAg_A3LxMRTdDVl6C3lwaqq5wjfyKqRSTlWqu");'></div>
+<div>
+<p class="font-bold text-sm">Sophie Durant</p>
+<p class="text-slate-500 text-xs">Directrice Produit</p>
+</div>
+</div>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star_half</span>
+</div>
+</div>
+<p class="text-slate-700 dark:text-slate-400 text-sm italic">
+                                            "Un grand professionnalisme et une communication fluide. Le projet a été livré en avance avec une qualité de code irréprochable."
+                                        </p>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Skills, Stats, Sidebar -->
+<div class="space-y-8">
+<!-- Skills -->
+<div class="bg-primary/5 dark:bg-white/5 p-6 rounded-2xl border border-primary/10 shadow-sm">
+<h3 class="text-slate-900 dark:text-slate-100 text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology</span> Compétences
+                                </h3>
+<div class="space-y-5">
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="font-medium">React / Next.js</span>
+<span class="text-primary font-bold">Expert</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[95%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="font-medium">Node.js / Express</span>
+<span class="text-primary font-bold">Expert</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[90%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="font-medium">UI/UX Design</span>
+<span class="text-primary font-bold">Avancé</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[85%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="font-medium">TypeScript</span>
+<span class="text-primary font-bold">Expert</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[92%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1.5">
+<span class="font-medium">PostgreSQL / MongoDB</span>
+<span class="text-primary font-bold">Avancé</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[80%]"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-primary/10 flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">TailwindCSS</span>
+<span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">Docker</span>
+<span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">Figma</span>
+<span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">GraphQL</span>
+<span class="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg">Firebase</span>
+</div>
+</div>
+<!-- Stats/Info Card -->
+<div class="bg-primary dark:bg-primary/20 p-6 rounded-2xl text-white shadow-xl shadow-primary/10 border border-primary/20">
+<h4 class="font-bold mb-4 opacity-90">Statistiques clés</h4>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white/10 dark:bg-black/20 p-3 rounded-xl">
+<p class="text-2xl font-black">98%</p>
+<p class="text-[10px] uppercase tracking-wider opacity-80">Réussite</p>
+</div>
+<div class="bg-white/10 dark:bg-black/20 p-3 rounded-xl">
+<p class="text-2xl font-black">150+</p>
+<p class="text-[10px] uppercase tracking-wider opacity-80">Projets</p>
+</div>
+<div class="bg-white/10 dark:bg-black/20 p-3 rounded-xl">
+<p class="text-2xl font-black">4.9/5</p>
+<p class="text-[10px] uppercase tracking-wider opacity-80">Note client</p>
+</div>
+<div class="bg-white/10 dark:bg-black/20 p-3 rounded-xl">
+<p class="text-2xl font-black">2h</p>
+<p class="text-[10px] uppercase tracking-wider opacity-80">Rép. moyenne</p>
+</div>
+</div>
+</div>
+<!-- Social Links -->
+<div class="flex justify-center gap-6 py-2">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<svg class="size-6" fill="currentColor" viewbox="0 0 24 24"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-2 16h-2v-6h2v6zm-1-6.891c-.607 0-1.1-.496-1.1-1.109 0-.612.493-1.109 1.1-1.109s1.1.497 1.1 1.109c0 .613-.493 1.109-1.1 1.109zm8 6.891h-2v-3.86c0-.881-.719-1.6-1.6-1.6s-1.6.719-1.6 1.6v3.86h-2v-6h2v1.135c.671-.647 1.62-1.135 2.6-1.135 1.989 0 3.6 1.611 3.6 3.6v2.399z"></path></svg>
+</a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<svg class="size-6" fill="currentColor" viewbox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.042-1.416-4.042-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"></path></svg>
+</a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<svg class="size-6" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"></path></svg>
+</a>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Simple Footer -->
+<footer class="mt-auto border-t border-primary/10 bg-background-light dark:bg-background-dark py-10 px-4">
+<div class="max-w-[1100px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined font-bold">hub</span>
+<span class="font-bold text-slate-900 dark:text-slate-100">FreelanceHub</span>
+</div>
+<div class="flex gap-8 text-sm text-slate-500">
+<a class="hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary" href="#">Politique de confidentialité</a>
+<a class="hover:text-primary" href="#">Aide</a>
+</div>
+<p class="text-slate-400 text-xs">© 2024 FreelanceHub. Tous droits réservés.</p>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

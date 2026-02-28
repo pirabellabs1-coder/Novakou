@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 px-6 lg:px-20 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary/20 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">rocket_launch</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">FreelanceHub</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-64 !h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 dark:text-slate-400 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-lg" data-icon="search">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:ring-0 h-full placeholder:text-slate-500 rounded-r-lg px-2 text-sm" placeholder="Rechercher des freelances..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Messages</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Mes Projets</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Favoris</a>
+</nav>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/30" data-alt="Portrait d'un utilisateur masculin souriant" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD4Vxfi0R1SCl4spsM_yRqjcBnfMaRxdImTYE3uVwgXPMgHsTxM1gZvJnTWpiBeAA6oqGmWhbYUNGX68_2tIOV2Krld9XUA0Abz95rutG2LnSw0VQHuePwcZTo9fuI0qjbJ0lsf22zG4pM9X2q_30CK6UcA7sRFNnAqwB3FuML2P9Ghn2uYfPd8em_mpsCTAoufVJ4jxbwe98njiTqtflJrJaDpJBiiAKDbRtSVTZRxDi9mmstfNRctIOKu8_iIkCirajY5MAZ3geuI");'></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center px-6 lg:px-20 py-8">
+<div class="w-full max-w-[1200px]">
+<!-- Header Section -->
+<div class="flex flex-wrap justify-between items-end gap-6 mb-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-slate-100 text-4xl font-black leading-tight tracking-tight">Services et Freelances Favoris</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base">Gérez vos prestataires et services sauvegardés pour vos futurs projets.</p>
+</div>
+<button class="flex items-center justify-center gap-2 rounded-xl h-12 px-6 bg-primary text-background-dark text-sm font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Créer une nouvelle liste</span>
+</button>
+</div>
+<!-- Category Tabs -->
+<div class="border-b border-slate-200 dark:border-slate-800 mb-8 overflow-x-auto no-scrollbar">
+<div class="flex gap-8 min-w-max">
+<a class="flex items-center gap-2 border-b-2 border-primary text-primary pb-4 font-bold text-sm" href="#">
+<span class="material-symbols-outlined text-sm">all_inclusive</span>
+                                Tous
+                            </a>
+<a class="flex items-center gap-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-4 font-medium text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">palette</span>
+                                Projet Logo
+                            </a>
+<a class="flex items-center gap-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-4 font-medium text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">code</span>
+                                Développement Web
+                            </a>
+<a class="flex items-center gap-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 pb-4 font-medium text-sm transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+                                Rédaction Content
+                            </a>
+</div>
+</div>
+<!-- Freelancers Section -->
+<div class="mb-12">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">groups</span>
+                                Freelances Favoris
+                            </h2>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Freelance Card 1 -->
+<div class="group relative flex flex-col items-center bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all">
+<button class="absolute top-4 right-4 text-primary bg-primary/10 rounded-full p-1.5 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[20px] fill-1">favorite</span>
+</button>
+<div class="relative mb-4">
+<div class="size-24 bg-center bg-no-repeat bg-cover rounded-full border-4 border-slate-100 dark:border-slate-800" data-alt="Portrait d'un développeur barbu" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuClaatGoPCgObzM85MealLJyW8QdNfSzwkZffzjUBIZrj5vsdXxEl_FjysCmEnkNMxccUJfa-oee1EVui3LvwHNxoNFwZOdX8SxDNqRcrMTeGtdOFXcJVzg_PY94zrM35ObCtUQLQYVe6ptH2NtOgGrK5zTlwGYV94scMCCiP4XH_VLdOtqGrM4lr22vw7jK8tPc1F7i94tu6MiqV-NYRV821t8EJ47JB6eu7KJTmjbLkJdZJ8QQkutXEB1P7qz4Q1OddiGKVwROxCW");'></div>
+<div class="absolute bottom-0 right-0 size-6 bg-primary rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-background-dark font-bold">check</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-none mb-1">Jean D.</p>
+<p class="text-primary text-xs font-semibold uppercase tracking-wider mb-2">Expert React</p>
+<div class="flex items-center justify-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.9</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm">(120)</span>
+</div>
+<button class="w-full py-2 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold hover:bg-primary hover:text-background-dark transition-all">Profil</button>
+</div>
+</div>
+<!-- Freelance Card 2 -->
+<div class="group relative flex flex-col items-center bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all">
+<button class="absolute top-4 right-4 text-primary bg-primary/10 rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px] fill-1">favorite</span>
+</button>
+<div class="relative mb-4">
+<div class="size-24 bg-center bg-no-repeat bg-cover rounded-full border-4 border-slate-100 dark:border-slate-800" data-alt="Portrait d'une designer UX" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA-Sh4NpN5U_8AkH4nBQFSlR4ZO1afpkXbRO4acewNwZfNZAQbGvM0BPkqFJreBkR0WXkjJIc2GCh1_kPpO4CRzXo2eWssnp5z9qq5LtcPm7_DQhl1zEseMee6cK_hUrbR4kSoq-w3twUcoU_Xw6vaX8wiwXN8-bu25OxtRDzuhZ87BSDRwqcdDZmwhAeK1xaCBhipLRjLYoTBJt0XTy8TTHoovw_N0FOU6hlIx1yKk3eizfBWIpv46xamDuTEDwkOCYzdcHLcgQ4Ps");'></div>
+<div class="absolute bottom-0 right-0 size-6 bg-primary rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-background-dark font-bold">check</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-none mb-1">Marie L.</p>
+<p class="text-primary text-xs font-semibold uppercase tracking-wider mb-2">UI/UX Designer</p>
+<div class="flex items-center justify-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">5.0</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm">(85)</span>
+</div>
+<button class="w-full py-2 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold hover:bg-primary hover:text-background-dark transition-all">Profil</button>
+</div>
+</div>
+<!-- Freelance Card 3 -->
+<div class="group relative flex flex-col items-center bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all">
+<button class="absolute top-4 right-4 text-primary bg-primary/10 rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px] fill-1">favorite</span>
+</button>
+<div class="relative mb-4">
+<div class="size-24 bg-center bg-no-repeat bg-cover rounded-full border-4 border-slate-100 dark:border-slate-800" data-alt="Portrait d'un chef d'agence digital" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAgNJ6y1bf-0-2hF53GuafDb3MR8D9sOSg7TNBb-NHLJwqJsDRbmc1SFyi3PcmhiUEEyXrKvYLzg6UHE71QzFkfGbWcXjGYLJieS1OFNhGB2OHax2QdLCbBA1-McdvIftXB7ESe8wYXntFHtwjeCjVGhuFBy4fs8esZyPlxjm_jyIHiL5qHXdsJIn6x100DnoZ05oiCVy7u8O1p3bIDbSX9XCxZmtrnXBWHF8QQHbzfsQOFvrATJyEx_Jw0_XoGRiC-_sPO_HO0SDS3");'></div>
+</div>
+<div class="text-center">
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-none mb-1">Dev Studio</p>
+<p class="text-primary text-xs font-semibold uppercase tracking-wider mb-2">Fullstack Agency</p>
+<div class="flex items-center justify-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.8</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm">(210)</span>
+</div>
+<button class="w-full py-2 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold hover:bg-primary hover:text-background-dark transition-all">Profil</button>
+</div>
+</div>
+<!-- Freelance Card 4 -->
+<div class="group relative flex flex-col items-center bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-all">
+<button class="absolute top-4 right-4 text-primary bg-primary/10 rounded-full p-1.5">
+<span class="material-symbols-outlined text-[20px] fill-1">favorite</span>
+</button>
+<div class="relative mb-4">
+<div class="size-24 bg-center bg-no-repeat bg-cover rounded-full border-4 border-slate-100 dark:border-slate-800" data-alt="Portrait d'une illustratrice créative" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9CAianhGJA0F5TW1tZIoWVFL_LUvT0MUA7vVi2haOLjVmzP2Y4yvYsDA9nKfjNofHZbctEfFTBBGNYBnOHKES_IFpBts1A4U6GauwuMMZ3pmUpbz6yihzBE5IN_UtCceL2k8wlxefEtZhk5MF7DXwZ2EUQMlf9-0VVaUTtmmn6bZu7NNmxCcEO1awMKnt-F_HXBHiEw9WYqjRmkUrl5NB02-x1xFDzLhAozdN9O7nCBtnntBF_57B_itI-CWg8Gp4_VzA4U7eYeFq");'></div>
+</div>
+<div class="text-center">
+<p class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-none mb-1">Sophie Design</p>
+<p class="text-primary text-xs font-semibold uppercase tracking-wider mb-2">Illustratrice</p>
+<div class="flex items-center justify-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-sm font-bold">4.9</span>
+<span class="text-slate-500 dark:text-slate-400 text-sm">(56)</span>
+</div>
+<button class="w-full py-2 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm font-bold hover:bg-primary hover:text-background-dark transition-all">Profil</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Services Section -->
+<div class="mb-12">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">design_services</span>
+                                Services Sauvegardés
+                            </h2>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Service Card 1 -->
+<div class="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-primary/50 transition-all">
+<div class="h-40 bg-center bg-no-repeat bg-cover relative" data-alt="Design de logo minimaliste moderne" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAlyJJEgEsCvPu879DlfcixZbD3QAgsWnt0laFca3pYT6CYWr5MFV7jJszXSwbTIIisw0tuqICjYIFtb31J5-qEn76Jhpz7KRPMREZf9DzxlnMdS8w2GBAv7DvHpolX7fveZ16e6Y1hrSLKIrjapt-zLzzb_0nC_SbrQ5Y-Kj-IRUdtCYxwfxzesyVz1m9ZXGmzDOfF6apgEYZKIQ4WuVf3SPHzng9SZhkwIN12kLttLgCKdS3f37YIzASIA-KSqDIe3g8IQkJTGJ4B");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2">
+<div class="size-6 bg-center bg-no-repeat bg-cover rounded-full border border-white" data-alt="Petit avatar freelance" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB2QEtHREHwiGo6GQR7x-MN3iXp2gh5VicB3HtaO88rKdN3cO3TxMY4ZjuE4JCB5dhdxnGIWZ1A7SBC3kQ7br_3ttGa8q9X4jQKX74sDb_wdDUrMWNZgyKhSwyIgym10QVDqwNnIfxTCSDPptPyojy73Nr_nclhAXQf3mXEGXbZWKBnZU_LzQcELaFdz9T9H5imm5qnl_aaiIi9Cy7nYQyEffqhDq52T0MJFRIaHi5m989ghffNFvZB6y_A882kvmvfT5D7MVuPyGMT");'></div>
+<span class="text-white text-xs font-semibold">Jean D.</span>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold mb-1 leading-snug">Design de Logo Minimaliste &amp; Branding Premium</h3>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-xs font-bold">4.9</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">(42)</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 dark:text-slate-400 text-xs">À partir de</p>
+<p class="text-slate-900 dark:text-slate-100 font-black">250 €</p>
+</div>
+</div>
+</div>
+<!-- Service Card 2 -->
+<div class="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-primary/50 transition-all">
+<div class="h-40 bg-center bg-no-repeat bg-cover relative" data-alt="Interface web moderne sur écran" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBzA_nzgR_V8uFfYbR5a-XDEeTVx7Lm5cRrpuUivwe7QSiNuChTEBMYS1Kd2BvYQ4QbB_1h-kf48AnimdUOSfUlS8u9q6krc22xajA0JNHfWc0CGdMECNOMMq-ud1hQKsUd2wc28u9h3BB7_LJgxoUfeCIBAD_Ur888slftq5Jj4W6Eh9vX3uLhDLTXtmeBPkiU_yap04N5hWstcFXO7NC_mh2FCQryG5-KfAIMsUlqR0wskeWxfsWvQxzcb-6nwVtHTYYqBg2K0e7P");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2">
+<div class="size-6 bg-center bg-no-repeat bg-cover rounded-full border border-white" data-alt="Petit avatar freelance" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAI309QMGeN3IS3J7H2Zv5cRqIU0k5thR9IgVMR6Daa9tli1MzLJeKr0XFnoRfabaLu5oclS2afA4Uzwn4DfSzIMdBx95r-igh8tekeSM1STuJrTrnJxIFc4AdaTf_btpX9DAxcjxspAFA7S00DLTb4-pYraWnwzPqRSHK9kqyvwag-AyDJC0zsUnI_XPXnzyoe6oy01UF821c-LTXuNtIBFNWPcwbALmqtZ_uresFH84Pk0Q0wvKuZ0cqJfWy0-inax38qLIvQt0Fb");'></div>
+<span class="text-white text-xs font-semibold">Marie L.</span>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold mb-1 leading-snug">Landing Page Conversion-Optimisée (Figma/React)</h3>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-xs font-bold">5.0</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">(18)</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 dark:text-slate-400 text-xs">À partir de</p>
+<p class="text-slate-900 dark:text-slate-100 font-black">800 €</p>
+</div>
+</div>
+</div>
+<!-- Service Card 3 -->
+<div class="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:border-primary/50 transition-all">
+<div class="h-40 bg-center bg-no-repeat bg-cover relative" data-alt="Illustration digitale colorée" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBCz-7u9GVoqKBs1PcVwImmP3OZ1JUJJUbPenq3FxZXVHtS-J2CgGRiH-w8RuNTeEFQn1qbQFu2nruQnsf5cRtFJGGHKqHfDxVdJREmYzqhNM4bufiCokvG5HwUv0YEF2JYT4Xkx0O8VneJ7kzJdRuEUhGGuXnFuAoRkyE1F50PxeL7OT-Vup-RcC2192bFW6yVWNadJabUB4qsY4bU0JNc1g-srtbow0ta9aPp0pddm46moFRaXP_BXCty4YIH0je3Oc7Fu05SdmVc");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<div class="absolute bottom-3 left-3 flex items-center gap-2">
+<div class="size-6 bg-center bg-no-repeat bg-cover rounded-full border border-white" data-alt="Petit avatar freelance" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDA55rc0bkeMyXjuEDpsgMylTQEX8k1ClLnLQJEQYubKU3LR93x8Mg-XT09t7SDOAoavxCUcTuuIuoDnF3ER0UDY_rWufOONxEwCVMoJr7j4dzNOeGncL1UtSeAaUAo9gykV_2PvCm3Kb6dVtFYVYdEcTysAI93yUxESYbi1cbjpBc0AywG3nXNQ2v6Nv6wqpUwfSy6vVilYPyVhy4PHfP5-L0C6KuwvGyOz4shD23NdNUOMsiobqutu_4rPmjLEfe6ltER5K8EvsZD");'></div>
+<span class="text-white text-xs font-semibold">Sophie Design</span>
+</div>
+</div>
+<div class="p-4">
+<h3 class="text-slate-900 dark:text-slate-100 font-bold mb-1 leading-snug">Illustrations Personnalisées pour SaaS &amp; Blogs</h3>
+<div class="flex items-center gap-1 mb-3">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-slate-900 dark:text-slate-100 text-xs font-bold">4.8</span>
+<span class="text-slate-500 dark:text-slate-400 text-xs">(29)</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+<p class="text-slate-500 dark:text-slate-400 text-xs">À partir de</p>
+<p class="text-slate-900 dark:text-slate-100 font-black">150 €</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Custom Lists Section -->
+<div class="bg-primary/5 rounded-3xl p-8 border border-primary/20">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Vos Listes de Projets</h2>
+<p class="text-slate-500 dark:text-slate-400">Organisez vos favoris par type de projet.</p>
+</div>
+<button class="text-primary text-sm font-bold flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-lg">create_new_folder</span>
+                                Nouvelle liste
+                            </button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="size-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary">palette</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 font-bold text-base">Projet Logo</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">12 éléments sauvegardés</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="size-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary">laptop_mac</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 font-bold text-base">Développement Web</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">5 éléments sauvegardés</p>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow cursor-pointer">
+<div class="size-12 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary">movie</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 font-bold text-base">Montage Vidéo</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">3 éléments sauvegardés</p>
+</div>
+<div class="bg-slate-50 dark:bg-slate-900/30 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">add</span>
+<span class="text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-100 text-sm font-medium">Ajouter</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-20 border-t border-slate-200 dark:border-slate-800 py-10 px-6 lg:px-20 bg-white dark:bg-background-dark/50">
+<div class="max-w-[1200px] mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-bold text-slate-900 dark:text-slate-100">FreelanceHub</span>
+</div>
+<div class="flex gap-8">
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary text-sm transition-colors" href="#">Confidentialité</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary text-sm transition-colors" href="#">Aide &amp; Support</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary text-sm transition-colors" href="#">Contact</a>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm">© 2024 FreelanceHub. Tous droits réservés.</p>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

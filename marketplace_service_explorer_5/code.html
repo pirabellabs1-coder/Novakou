@@ -1,0 +1,381 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<header class="sticky top-0 z-50 border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark/95 backdrop-blur-md px-4 md:px-10 lg:px-20 py-3">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">rocket_launch</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<div class="hidden lg:flex relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-500" placeholder="Rechercher une activité..." type="text"/>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Équipe</a>
+<a class="text-sm font-semibold text-primary" href="#">Sécurité</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-primary/20 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/30 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile picture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIV__LDiOhTfEOi3gesxBKdeZL0Ga8hbHTcskJienod7mWrPKDFwwR4p6rQ08RkD8k1GRhzKsKGQK2NEoxD5dlaXWgEXtuO12muKkO6biFpzzeMOEHbSgtLRjZ5qc_HOCAFpn99gzSE0TVZvkN516tCAisyq1ph7XpGl3DYnIf3gynU6jpGyra_6S61eSHT6XP4UDcZk1uIcm-GV1QGRr6QJSCjqKn0W18c27KDbpLkxljvCk85wfJyZF4PX3ZYPGr0nESznVxKIN"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
+<aside class="w-full lg:w-72 p-6 border-r border-slate-200 dark:border-primary/10 shrink-0">
+<div class="sticky top-24">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Audit de Sécurité</h3>
+<button class="text-xs text-primary font-bold uppercase tracking-wider">Filtrer</button>
+</div>
+<div class="space-y-8">
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary text-sm">history</span> Types d'activité</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="space-y-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Connexions</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Transactions</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Modifs Services</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Sécurité Compte</span>
+</label>
+</div>
+</div>
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary text-sm">warning</span> Sévérité</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="flex flex-col gap-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-red-500"></span>
+<span class="text-sm group-hover:text-primary">Critique</span>
+</div>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-orange-500"></span>
+<span class="text-sm group-hover:text-primary">Avertissement</span>
+</div>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-500"></span>
+<span class="text-sm group-hover:text-primary">Information</span>
+</div>
+</label>
+</div>
+</div>
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary text-sm">calendar_today</span> Période</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<select class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg p-2 text-sm focus:ring-primary text-slate-700 dark:text-slate-200">
+<option>Dernières 24 heures</option>
+<option>7 derniers jours</option>
+<option>30 derniers jours</option>
+<option>Période personnalisée</option>
+</select>
+</div>
+<div class="pt-6 border-t border-slate-200 dark:border-primary/10">
+<button class="w-full flex items-center justify-center gap-2 py-3 bg-white dark:bg-primary/10 border border-slate-200 dark:border-primary/20 rounded-lg hover:bg-slate-50 dark:hover:bg-primary/20 transition-colors text-sm font-bold">
+<span class="material-symbols-outlined text-sm">download</span> Exporter les logs (CSV)
+                    </button>
+</div>
+</div>
+</div>
+</aside>
+<section class="flex-1 p-6 lg:p-10">
+<div class="mb-8">
+<nav class="flex items-center gap-2 text-xs text-slate-500 mb-4">
+<a class="hover:text-primary" href="#">Paramètres</a>
+<span class="material-symbols-outlined text-[10px]">chevron_right</span>
+<span class="text-primary font-medium">Journal d'Activité</span>
+</nav>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-extrabold mb-1">Journal d'Activité et Audit de Sécurité</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Suivez toutes les actions effectuées sur votre compte et par votre équipe.</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-sm font-medium whitespace-nowrap">Vue:</span>
+<select class="bg-white dark:bg-primary/20 border border-slate-200 dark:border-primary/40 rounded-lg px-3 py-2 text-sm font-medium focus:ring-primary">
+<option>Chronologique</option>
+<option>Groupé par membre</option>
+<option>Par importance</option>
+</select>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-blue-500">login</span>
+<span class="text-xs font-bold text-slate-500 uppercase">Dernière Connexion</span>
+</div>
+<p class="text-xl font-bold">Aujourd'hui, 09:42</p>
+<p class="text-xs text-slate-400 mt-1">IP: 197.241.xx.xx (Dakar, SN)</p>
+</div>
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-green-500">verified_user</span>
+<span class="text-xs font-bold text-slate-500 uppercase">Score de Sécurité</span>
+</div>
+<p class="text-xl font-bold text-green-500">Excellent (98%)</p>
+<p class="text-xs text-slate-400 mt-1">A2F activée • Mot de passe fort</p>
+</div>
+<div class="bg-white dark:bg-primary/5 p-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3 mb-2">
+<span class="material-symbols-outlined text-primary">groups</span>
+<span class="text-xs font-bold text-slate-500 uppercase">Actions Équipe (24h)</span>
+</div>
+<p class="text-xl font-bold">14 actions</p>
+<p class="text-xs text-slate-400 mt-1">3 membres actifs aujourd'hui</p>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl overflow-hidden mb-12">
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 dark:bg-primary/10 text-xs font-bold uppercase text-slate-500 border-b border-slate-200 dark:border-primary/10">
+<th class="px-6 py-4">Utilisateur</th>
+<th class="px-6 py-4">Action</th>
+<th class="px-6 py-4">Détails</th>
+<th class="px-6 py-4">Adresse IP</th>
+<th class="px-6 py-4">Date &amp; Heure</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-primary/10">
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-8 rounded-full object-cover" data-alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIV__LDiOhTfEOi3gesxBKdeZL0Ga8hbHTcskJienod7mWrPKDFwwR4p6rQ08RkD8k1GRhzKsKGQK2NEoxD5dlaXWgEXtuO12muKkO6biFpzzeMOEHbSgtLRjZ5qc_HOCAFpn99gzSE0TVZvkN516tCAisyq1ph7XpGl3DYnIf3gynU6jpGyra_6S61eSHT6XP4UDcZk1uIcm-GV1QGRr6QJSCjqKn0W18c27KDbpLkxljvCk85wfJyZF4PX3ZYPGr0nESznVxKIN"/>
+<div class="text-sm">
+<p class="font-bold">Moussa Diouf</p>
+<p class="text-[10px] text-primary">Admin</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 rounded text-[10px] font-bold uppercase">Changement MDP</span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Mot de passe du compte principal modifié</p>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-slate-500">197.241.22.10</td>
+<td class="px-6 py-4 text-sm text-slate-500">Il y a 2h</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">info</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-8 rounded-full object-cover" data-alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDox-P8oTdr0s1nV2zscclodnxQu4nNYSUcwRmuDP1y5TCcw4iAQLW8KapGpL3ND-kF93x1LNssnG4v3enP2QNMB89tGFa4vS-UG3AqT3jv5Pxw8luZzZBOxX8igx50KTklh6-v2VxIk-MIrCPTobNKJ3hLF1HZVxe5oHe5Mxvl1Sj_sU_feRP0B4Cz8Y-LoH8effLdMsgDfU8FKThVSPbe31CSTQHnZ-mmMlzHM1dR7MhS_s5hHVR9bB2ygG7ZCDPlcM8ASgVnRy7d"/>
+<div class="text-sm">
+<p class="font-bold">Sarah D.</p>
+<p class="text-[10px] text-slate-500">Freelance</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded text-[10px] font-bold uppercase">Modification Service</span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Mise à jour des prix du service "Design Logo"</p>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-slate-500">41.82.122.5</td>
+<td class="px-6 py-4 text-sm text-slate-500">Il y a 4h</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">info</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-8 rounded-full object-cover" data-alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqQEnQjIpLaRuw6nA0STK79C42YJIabBaSuZA5Hoctqto1iIZDttabrCCYMVYnX40Gv4q1pyqPnFBluTeRDMF-KdaUy7MYHoIVKLG5VttjHbMZ98hHa3ba_AN_Tz_Xwe34kRncFumxp9LxjNFverYbQUnfWN1II-mtduj_HuwIPJxzRJ3Bay38GlppFNugqeze6PDjbRkjTRc4l3IF4HYbX2KN_gsA3AMjj2_BleyK5E0tYkPF8PuSP5Fff02kXNYXhGuuPdJrmUcI"/>
+<div class="text-sm">
+<p class="font-bold">Amadou B.</p>
+<p class="text-[10px] text-slate-500">Équipe</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400 rounded text-[10px] font-bold uppercase">Transaction</span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Virement de 45 000 FCFA initié</p>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-slate-500">154.12.8.22</td>
+<td class="px-6 py-4 text-sm text-slate-500">Hier, 18:30</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">info</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">devices</span>
+</div>
+<div class="text-sm">
+<p class="font-bold">Nouveau Appareil</p>
+<p class="text-[10px] text-slate-500">Système</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-orange-100 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 rounded text-[10px] font-bold uppercase">Nouvelle Connexion</span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">MacBook Pro reconnu à Abidjan, CI</p>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-slate-500">160.120.44.11</td>
+<td class="px-6 py-4 text-sm text-slate-500">Hier, 14:15</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">info</span></button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="size-8 rounded-full object-cover" data-alt="User avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIV__LDiOhTfEOi3gesxBKdeZL0Ga8hbHTcskJienod7mWrPKDFwwR4p6rQ08RkD8k1GRhzKsKGQK2NEoxD5dlaXWgEXtuO12muKkO6biFpzzeMOEHbSgtLRjZ5qc_HOCAFpn99gzSE0TVZvkN516tCAisyq1ph7XpGl3DYnIf3gynU6jpGyra_6S61eSHT6XP4UDcZk1uIcm-GV1QGRr6QJSCjqKn0W18c27KDbpLkxljvCk85wfJyZF4PX3ZYPGr0nESznVxKIN"/>
+<div class="text-sm">
+<p class="font-bold">Moussa Diouf</p>
+<p class="text-[10px] text-primary">Admin</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-slate-100 dark:bg-primary/20 text-slate-600 dark:text-slate-400 rounded text-[10px] font-bold uppercase">Paramètres</span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Désactivation temporaire du mode vacances</p>
+</td>
+<td class="px-6 py-4 text-xs font-mono text-slate-500">197.241.22.10</td>
+<td class="px-6 py-4 text-sm text-slate-500">Hier, 10:05</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined">info</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="flex items-center justify-center gap-2 py-8">
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors font-bold">2</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors font-bold">3</button>
+<span class="px-2 text-slate-400">...</span>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors font-bold">42</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</section>
+</main>
+<footer class="border-t border-slate-200 dark:border-primary/10 py-10 px-4 md:px-20 bg-white dark:bg-background-dark/50">
+<div class="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="col-span-2 md:col-span-1">
+<div class="flex items-center gap-2 mb-4">
+<div class="size-6 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xs">rocket_launch</span>
+</div>
+<h2 class="text-lg font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<p class="text-sm text-slate-500">Centre de sécurité et surveillance des activités du compte.</p>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Compte</h4>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Profil &amp; Facturation</a></li>
+<li><a class="hover:text-primary" href="#">Gestion d'Équipe</a></li>
+<li><a class="hover:text-primary" href="#">Paramètres A2F</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Assistance</h4>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Centre de Sécurité</a></li>
+<li><a class="hover:text-primary" href="#">Signaler un incident</a></li>
+<li><a class="hover:text-primary" href="#">Vérification d'identité</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Outils d'audit</h4>
+<div class="flex gap-4">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary" title="Logs temps réel">monitoring</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary" title="Alertes email">mail_lock</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary" title="Export de données">database_upload</span>
+</div>
+</div>
+</div>
+<div class="max-w-[1440px] mx-auto pt-10 mt-10 border-t border-slate-100 dark:border-primary/5 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-xs text-slate-500">© 2024 AfriqueFreelance. Portail de Sécurité &amp; Audit.</p>
+<div class="flex gap-6 text-xs text-slate-500">
+<a class="hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary" href="#">Politique de confidentialité</a>
+</div>
+</div>
+</footer>
+
+</body></html>

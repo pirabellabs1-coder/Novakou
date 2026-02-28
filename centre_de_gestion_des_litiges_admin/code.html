@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Centre de Gestion des Litiges Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen flex-col overflow-hidden">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-3 shrink-0">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl">gavel</span>
+<h2 class="text-lg font-bold tracking-tight">Admin Litiges</h2>
+</div>
+<div class="relative w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="w-full h-10 pl-10 pr-4 rounded-lg border-none bg-slate-100 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-primary/50" placeholder="Rechercher un litige..."/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="flex items-center gap-6">
+<a class="text-sm font-semibold text-primary" href="#">Tableau de bord</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Litiges</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Utilisateurs</a>
+<a class="text-sm font-medium text-slate-500 hover:text-primary transition-colors" href="#">Audit</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
+                        JD
+                    </div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shrink-0 flex flex-col gap-6 overflow-y-auto">
+<div class="space-y-1">
+<p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Statut des dossiers</p>
+<button class="flex w-full items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium">
+<span class="material-symbols-outlined">inbox</span>
+<span class="text-sm">Tous les litiges</span>
+<span class="ml-auto text-xs bg-primary text-white px-2 py-0.5 rounded-full">24</span>
+</button>
+<button class="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">schedule</span>
+<span class="text-sm">En attente</span>
+</button>
+<button class="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">sync</span>
+<span class="text-sm">En cours</span>
+</button>
+<button class="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined">check_circle</span>
+<span class="text-sm">Résolus</span>
+</button>
+</div>
+<div class="space-y-1">
+<p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Priorité</p>
+<button class="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-red-500">priority_high</span>
+<span class="text-sm">Haute</span>
+</button>
+<button class="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-yellow-500">remove</span>
+<span class="text-sm">Moyenne</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto p-8 flex gap-8">
+<!-- Case List Section -->
+<div class="flex-1 min-w-0">
+<div class="mb-6 flex items-end justify-between">
+<div>
+<h1 class="text-3xl font-black text-slate-900 dark:text-slate-100">Centre de Gestion</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Arbitrage des litiges clients-freelances</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+                                Filtres
+                            </button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+<th class="px-6 py-4 text-xs font-semibold uppercase text-slate-500">ID Litige</th>
+<th class="px-6 py-4 text-xs font-semibold uppercase text-slate-500">Parties Impliquées</th>
+<th class="px-6 py-4 text-xs font-semibold uppercase text-slate-500">Montant</th>
+<th class="px-6 py-4 text-xs font-semibold uppercase text-slate-500">Statut</th>
+<th class="px-6 py-4 text-xs font-semibold uppercase text-slate-500 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 border-primary">
+<td class="px-6 py-4">
+<div class="font-bold text-slate-900 dark:text-slate-100">#L-8902</div>
+<div class="text-xs text-slate-500 mt-1">Ouvert le 12 Oct</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<img alt="Client" class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Portrait d'un client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ8vgdzn9rBEFlzAqXGOzuyWcarUDgppqiFwqKRkud0CRdsK-2U8gkDRi-_aFFZpaDChDlYDegOX7d73OuJJqIWOVwXZliEyhqLTexUo53fdo8R9zni4ePA3XhBzVi9xE7yj91RPXeIQ4HdubOvVA6nV8sf8rbg0ErX1yxupuaos9BZNXqbQe_fG8UEvgffWpxEGIwoqME94RIBUSvk0oBRNtgux052_YOO1itVtqoj1GHS6vHVjIlAoma_pSZi1an5oLF1E08Wg1P"/>
+<img alt="Freelance" class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Portrait d'un freelance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKhoE5VSrvHovRneQLUHR68bSob04MqibFlwK08WBO7L1gO_Zeg--RKjq6VdiVkCF5LawfV7tyW2mGcTrNtswTT7OGRoLL_pjXQW3YA78ntSgfSwst9GH3mtyEWBtm8UuIi0KvqqXy5EU13xFtlUcb6gK4ODDx7IjhErta0FEOLc89YNwjMgdd5HojB1PDlvId9cXWJn0wxuWsPmGvBSSVjFrAb5QLXOFwipA8SMX1ovezW08QslYkVWlsUICoo1uY7zeSBUHQo0Z2"/>
+</div>
+<div class="text-sm">
+<span class="font-medium dark:text-slate-200">Jean D.</span> vs <span class="font-medium dark:text-slate-200">Alice Studio</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold text-slate-900 dark:text-slate-100">1,250.00 €</div>
+<div class="text-xs text-slate-500">Paiement Escrow</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-200">
+                                            En cours
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary font-bold text-sm hover:underline">Examiner</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 border-transparent">
+<td class="px-6 py-4">
+<div class="font-bold">#L-8898</div>
+<div class="text-xs text-slate-500 mt-1">Ouvert le 11 Oct</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<img alt="User" class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Portrait d'un utilisateur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCzvDo1cqs2ZbxOGgRrcR4V9-uwB-0OMgSdCgc1j7VtZwbjdvdbUZiTZ5SkVj0U74B4WTMbO7xYrdKnpXKdhRRYq9jcuYYNKlhby0Iew3ko7OKlC0m784nkekU1fSM4UXHINd1Uc8zT5Wulocbxf4AMP7fAXNoffr2JTBrskJYb9aeWmkdTi09zZRCFT5PqxhHVicpQmkdFNlrJKTyP8v11Ea-mY3ap-l_pDa4gC5fXEq-tay_NXH6_NHIRmOFVxD3bQ3WWOiJXf_gC"/>
+<img alt="User" class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Portrait d'un professionnel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMCkWQh2TQPqr39Q7PCaHJeYeQLldZtlIIzgE0P6cguedzSbAfrepOM3qIvI7aR4I5QdD7tVE1Wlgx82EMLBJgz4tx4Cw7A_OfdNmRmWBMuD2cKdMdsbVu7dT4NYInq0Ilm0P_5gda_T75hhsEF1g7PLYABSF5prNWTIj7zPzsEcWTXfKX-K6ael3MoiinhvMoICdg7PGt1LM0KwbbcvODIvYBm1iNs9m6o4-UfJ99JpCbebhuU9GWFC_mUcU3_dV9oz1e4ABfwQNF"/>
+</div>
+<div class="text-sm text-slate-600 dark:text-slate-400">
+                                                Marc V. vs Kevin Code
+                                            </div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold">450.00 €</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400">
+                                            En attente
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary font-bold text-sm hover:underline">Examiner</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 border-transparent opacity-60">
+<td class="px-6 py-4">
+<div class="font-bold">#L-8895</div>
+<div class="text-xs text-slate-500 mt-1">Résolu le 08 Oct</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="flex -space-x-2">
+<img alt="User" class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Client anonyme" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3PEXTWThAZxhSRVVAMlfcAiENO8J6bxov0CSMf7On4OzY3vkslJ1C2qHT4rLli16yF7vmLL-ZUIRs2cYSriYMV73VRqmCegNiP0maSr0Fwc47qdq5f_nbRKpzv9_KoaRYBcYZLVBATbApHdcVz3zld3UMILJXTkxcnefwWmMDsKONDsCzf0RnUyiV0Pp5UuWci5JRQgYFBjCNv6XcuMz0PIowGfKzTzSJoH7TDt1cxJRpA_yyrMKBMHaRq0fj24cFnWVVcsLB8P18"/>
+<img alt="User" class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900" data-alt="Freelance anonyme" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVvRDnXaZ3WDFb_LSYG5BoVBcBcAsIXjSBQ-oqosjbNaux-C1RPTYYbbT7M8ZloD_2TWLd1bErbIQL8JIFay9JXCjI1IFTmijP8EkxBTokq0zEyGgR_KNuzuLlx2l72CiClZas8abybjV1P1MQp2pEy-rQfd8-tO5veaIyqK3-sko4IpPAYr8v3C5ncSYlCtxFXbqLgVGXBxiHhzgBOn-bCjS42FDoPf7q5vgNuac0d7z7HcjZQgMjNhR38M9dYUQPjYkLiivQlogX"/>
+</div>
+<div class="text-sm text-slate-600 dark:text-slate-400">
+                                                Sophie L. vs Web Creative
+                                            </div>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="font-bold">2,100.00 €</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-200">
+                                            Résolu
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 font-bold text-sm hover:underline">Détails</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Case Details Sidebar (Floating Panel style) -->
+<div class="w-[450px] shrink-0 flex flex-col gap-6 h-full">
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col h-full overflow-hidden shadow-xl">
+<!-- Header Details -->
+<div class="p-6 border-b border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-start mb-4">
+<h3 class="text-lg font-bold">Détails du Cas #L-8902</h3>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-4 bg-primary/5 rounded-lg border border-primary/10">
+<p class="text-xs text-primary font-bold uppercase mb-1">Motif de la plainte</p>
+<p class="text-sm font-medium">Retard de livraison majeur et non-conformité au cahier des charges (Section 3.2).</p>
+</div>
+</div>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<div class="space-y-4">
+<p class="text-center text-xs text-slate-400 font-medium bg-slate-100 dark:bg-slate-800 py-1 rounded">Conversation du Projet</p>
+<div class="flex gap-3">
+<img alt="Avatar" class="h-8 w-8 rounded-full" data-alt="Avatar client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOIa5PSUpeePZhY2MowvJuWQWA4jW214amrzwu4XQ9f8mvEZRjn10MbhQLIuSkT7kpLIsAWSgU41kUmrxXa0WDEX9tTdRCTIKnho4ClNw_JCVq496kp2JyhIdoayqPCE9V5_DtJutD_HNeUFD4TO5SXvlnzlNwi4w3b5ecF9vZp87X2lRJhxrIjNdRh0L_g1JW7x7bqcrVpnSwfjFpoUi6vbcSrS8aRE7rNO5AJaWLwA70HNmgohiOfNdriTLHAj9Ip3ZfDU5Vywq_"/>
+<div class="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl rounded-tl-none border border-slate-100 dark:border-slate-700">
+<div class="flex justify-between items-baseline mb-1">
+<span class="text-xs font-bold text-slate-900 dark:text-slate-100">Jean D. (Client)</span>
+<span class="text-[10px] text-slate-400">10/10 - 14:32</span>
+</div>
+<p class="text-sm">Bonjour, je n'ai toujours pas reçu les fichiers sources. Cela fait 3 jours que la deadline est passée.</p>
+</div>
+</div>
+<div class="flex gap-3 flex-row-reverse">
+<img alt="Avatar" class="h-8 w-8 rounded-full" data-alt="Avatar freelance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0SNCPL5v9kxR5F-wb9Qz_0aKAtn83tfzQUGnOtnH03cYcsCVrONHWchsbmU39nrgbDe54SFTF_PoglEq3m_Zot5adSvnHZA4tTkksHogtIqo2X25qgKclmlmlp9uULmwGEqrWxNcWSz31v71Qm2e2jFE08JhM0IydnfOP_Ohlh-3raMIWAqud4lukDjNnlUqWmNzzBwnrkMoisLMAg89Dh5UkiktbOL07_fcSdmgtzfJvpHvyUds2vT5T3FHnCscyIXgsgSdDBWk0"/>
+<div class="flex-1 bg-primary/5 p-3 rounded-xl rounded-tr-none border border-primary/10">
+<div class="flex justify-between items-baseline mb-1">
+<span class="text-[10px] text-slate-400">10/10 - 16:15</span>
+<span class="text-xs font-bold text-primary">Alice Studio (Freelance)</span>
+</div>
+<p class="text-sm">J'ai eu un problème technique avec le rendu 3D. Je vous livre ça ce soir sans faute.</p>
+</div>
+</div>
+<div class="flex gap-3">
+<img alt="Avatar" class="h-8 w-8 rounded-full" data-alt="Avatar client" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDawDklhVho02aAYe44GLO7utRCOok7A-O9DVYwrj4euli8qnFurJs0cmP5lot0OVsn-EPStlMB1A97CS9b2d8YMTwdFksIzwMlsQmvipD5TuxUEgjv6YcVJy5_ysT6PUAAh3DMk2xRxAYaM4xQyyJHfbijE3kjB-e2NzFDUBViqq9wCTGh6qvyxWz2jL0O_u9Ki3mI35WCNe3OfxqMsVYpZpQLkhMZi6R_LNwWnmpGB7O3hjo5CgAgaQdrMs_IuvDoM30ZwOL-ueNS"/>
+<div class="flex-1 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl rounded-tl-none border border-slate-100 dark:border-slate-700">
+<p class="text-sm">Toujours rien. Je demande l'ouverture d'un litige.</p>
+<div class="mt-2 p-2 bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">description</span>
+<span class="text-xs">screenshot_error.png (2MB)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Verdict Form -->
+<div class="p-6 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800">
+<h4 class="text-sm font-bold mb-3">Rendre un Verdict</h4>
+<div class="space-y-4">
+<div>
+<label class="text-xs font-medium text-slate-500 mb-1 block">Type de résolution</label>
+<select class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-primary">
+<option>Remboursement total au client</option>
+<option>Paiement total au freelance</option>
+<option>Paiement partiel (50/50)</option>
+<option>Arbitrage spécifique...</option>
+</select>
+</div>
+<div>
+<label class="text-xs font-medium text-slate-500 mb-1 block">Commentaire de décision</label>
+<textarea class="w-full bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-primary" placeholder="Justifiez votre verdict..." rows="3"></textarea>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                                        Confirmer le Verdict
+                                    </button>
+<button class="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                        Annuler
+                                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

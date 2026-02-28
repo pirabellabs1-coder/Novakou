@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestion d'Équipe Agence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex min-h-screen">
+<!-- Side Navigation -->
+<aside class="w-64 border-r border-primary/10 bg-background-light dark:bg-background-dark hidden lg:flex flex-col sticky top-0 h-screen">
+<div class="p-6 flex flex-col h-full">
+<div class="flex items-center gap-3 mb-10">
+<div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-background-dark">
+<span class="material-symbols-outlined font-bold">rocket_launch</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-slate-100 text-base font-bold leading-none">Agence Créative</h1>
+<p class="text-primary text-xs font-medium mt-1 uppercase tracking-wider">Administration</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">work</span>
+<span class="text-sm font-semibold">Projets</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/20 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-semibold">Équipe</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-sm font-semibold">Clients</span>
+</a>
+<div class="mt-auto">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-semibold">Paramètres</span>
+</a>
+</div>
+</nav>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+<header class="h-16 border-b border-primary/10 flex items-center justify-between px-8 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold">Gestion d'Équipe</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-primary/10 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 border border-primary/20 flex items-center justify-center overflow-hidden">
+<img alt="Avatar" class="h-full w-full object-cover" data-alt="Avatar photo of the administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK_XYDEK2auVQbJqt5RZCFh-VfYFjAtsL6xoaqQjsexDG8xr4cUZfEZu2Z7JtKwY33qsh9baECHNGLnLhdKH_F0AoxtfcfCfAtY5-dTo-1MyDeqcam1uosCFEcIwm6anDvPTJ98XFB0TpUsZtNXnqYw57A4aglKwRImlbSkxNRPH_71OIqU2sqmwWK5OWZj6K2G01JWhDqxb2rnipZFd1_Dnk4CBqOsMfytZL_l6fgFBh1pzRZNstHpmBTjjcHzQc-jP9jrdM9fLTp"/>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto w-full">
+<!-- Hero Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+<div class="max-w-xl">
+<h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-slate-100 mb-2">Membres de l'Agence</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base">Gérez les membres de votre agence, assignez des rôles et suivez la charge de travail en temps réel.</p>
+</div>
+<button class="flex items-center gap-2 px-6 py-3 bg-primary text-background-dark rounded-lg font-bold hover:brightness-110 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">person_add</span>
+<span>Ajouter un membre</span>
+</button>
+</div>
+<!-- Stats / Tabs -->
+<div class="mb-6">
+<div class="flex border-b border-primary/10 gap-8 overflow-x-auto">
+<a class="flex items-center gap-2 border-b-2 border-primary text-primary pb-4 px-1 whitespace-nowrap" href="#">
+<span class="text-sm font-bold tracking-wide">Tous les membres</span>
+<span class="bg-primary/20 text-xs px-2 py-0.5 rounded-full">12</span>
+</a>
+<a class="flex items-center gap-2 border-b-2 border-transparent text-slate-500 hover:text-primary pb-4 px-1 whitespace-nowrap transition-colors" href="#">
+<span class="text-sm font-bold tracking-wide">Disponibilité</span>
+</a>
+<a class="flex items-center gap-2 border-b-2 border-transparent text-slate-500 hover:text-primary pb-4 px-1 whitespace-nowrap transition-colors" href="#">
+<span class="text-sm font-bold tracking-wide">Demandes d'accès</span>
+<span class="bg-slate-200 dark:bg-slate-800 text-xs px-2 py-0.5 rounded-full">3</span>
+</a>
+</div>
+</div>
+<!-- Table Container -->
+<div class="bg-white dark:bg-background-dark border border-primary/10 rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-primary/5 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-bold tracking-widest">
+<th class="px-6 py-4">Collaborateur</th>
+<th class="px-6 py-4">Rôle</th>
+<th class="px-6 py-4">Accès</th>
+<th class="px-6 py-4">Charge de travail</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/10">
+<!-- Row 1 -->
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="Sarah L." class="h-full w-full object-cover" data-alt="Portrait of Sarah, Admin role" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAu99hRueSykNqCNQ2dSQAKxmDv9nHkXisMiGFD81HZmfZgwv6D2mL9fLMYQWrAy79zXHQ55aA07NjayoD6vDjlWJy6NsCGawz16SnaE7uWCpLsX6RbvxNfNLkn2JUOnTyfbpV9dXfzUXGB3s9GfNucpDC5iyJv-7e8lbRJt-qMTxc_74y_UcWN2AGup8oZxDyXfvShbfq91ta71m-C50m-ClZKTrFYrzj9JhBCGbFg2c0aW6kmY30aSfUQnAHwXjdkjIetF84ZfHSe"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Sarah Lemoine</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">sarah.l@agence.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/20 text-primary border border-primary/20">
+                                            Admin
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+                                            Plein
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1 w-full max-w-[160px]">
+<div class="flex items-center justify-between text-xs font-bold">
+<span>85%</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 85%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="Marc D." class="h-full w-full object-cover" data-alt="Portrait of Marc, Manager role" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBF-oLMkEZ1MGsLpxRPWjggZ-FUhxTbm4kscDp21BBWiei6x5KU9ab5q7M6cftZtfjnyRxeKpz3jwvfJ_rV1GNVruYKjgARLxgqyeah5ZN0RtN_Z8vloGAjACufbCpRVaLeKvsHdr0UWxs0PFKgvKxmLedZAnpoxQxH92ndBdxK5oary9zdrGTrW0V4hHSHoaH-kBvIDruo3JE7Zx3xPcCp1XzO_toJfKd1Ogd6mreSuBB8JgytjdNG3xPEitbcMzYAfomazblL79Aa"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Marc Dubois</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">marc.d@agence.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                                            Manager
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">lock</span>
+                                            Limité
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1 w-full max-w-[160px]">
+<div class="flex items-center justify-between text-xs font-bold">
+<span>40%</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 40%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="Julie V." class="h-full w-full object-cover" data-alt="Portrait of Julie, Creative role" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9nOh9S-OUH41tGRPPW5uTpKdN12WRsjqrsxhXDMg9m-PkMqldrbhzN1u4qkRrMy_pBc5aif0NWpnj_HyLrWW1gSH9Hr-uh84RmMQCyQK74RuckXBkqz6jWxzPITaOlkS_9MzjRXJp3X6AedvVr6yoGqLa79sNbSI0n5iirrZZJXblrbd17BgQjv3U2oqavJs2-8CfK8KVcU76nvfWo13gkomQw1rd_RPd4BMbiv109521AWh1K8kN6W36BdIv1ZB-AcvAgd2ImHoR"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Julie Valois</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">julie.v@agence.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                                            Créatif
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">lock</span>
+                                            Limité
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1 w-full max-w-[160px]">
+<div class="flex items-center justify-between text-xs font-bold text-red-500">
+<span>95%</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-red-500" style="width: 95%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="Thomas R." class="h-full w-full object-cover" data-alt="Portrait of Thomas, Creative role" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD143NPz48qeVrmCT4arvq2deGFe65_to-HJlVdsp423TPbVtC6ZIPQFTIVdhduLh5RFrIQyQl3-UF5_C-Zo3G63IkAEqrfRthjWsSG_eRE2NsYh7mb-6rJphN2gAGR-vxPGiHMFODY-yKhe7RM0Adcov7b15W182Zn9aRmZ-g6fegsetJHKXWqLniLEftRyV5CAjqs3Y7yupcLpYVo2jkfIHdiq6tv9klf3NRJS2U915oj2HviBBo01ej383ohrrj9vlIdhYdwh1pE"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 text-sm">Thomas Renault</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs">thomas.r@agence.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                                            Créatif
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined text-sm">visibility</span>
+                                            Lecture
+                                        </div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col gap-1 w-full max-w-[160px]">
+<div class="flex items-center justify-between text-xs font-bold">
+<span>20%</span>
+</div>
+<div class="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 20%"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex items-center justify-end gap-2">
+<button class="p-2 text-slate-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Team Analytics Section -->
+<div class="mt-12">
+<h3 class="text-xl font-bold mb-6 text-slate-900 dark:text-slate-100 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                        Statistiques de l'Équipe
+                    </h3>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-background-dark border border-primary/10 p-6 rounded-xl shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Charge Moyenne</p>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-extrabold text-primary">62%</span>
+<span class="text-primary/60 text-sm font-bold mb-1">+4% vs hier</span>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark border border-primary/10 p-6 rounded-xl shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Taux d'Activité</p>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-extrabold text-primary">92%</span>
+<span class="text-slate-500 text-sm font-bold mb-1">Optimal</span>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark border border-primary/10 p-6 rounded-xl shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Projets Actifs</p>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-extrabold text-primary">24</span>
+<span class="text-primary/60 text-sm font-bold mb-1">8 à livrer cette sem.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer info -->
+<footer class="mt-12 py-8 border-t border-primary/10 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 dark:text-slate-400 text-sm">
+<p>© 2024 Agence Créative SAS. Tous droits réservés.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary transition-colors" href="#">Politique de confidentialité</a>
+<a class="hover:text-primary transition-colors" href="#">Support</a>
+</div>
+</footer>
+</div>
+</main>
+</div>
+</body></html>

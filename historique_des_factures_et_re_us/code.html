@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historique des Factures et Reçus</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-primary/20 px-4 lg:px-40 py-4 bg-white dark:bg-background-dark">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 bg-primary/20 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">receipt_long</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Facturation</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden border border-slate-200 dark:border-primary/20">
+<div class="text-slate-500 dark:text-slate-400 flex bg-slate-50 dark:bg-primary/10 items-center justify-center pl-3">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-50 dark:bg-primary/10 text-slate-900 dark:text-slate-100 focus:ring-0 placeholder:text-slate-400 px-3 text-sm" placeholder="Rechercher une facture..."/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Tableau de bord</a>
+<a class="text-primary text-sm font-semibold border-b-2 border-primary pb-1" href="#">Factures</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Clients</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary text-sm font-semibold transition-colors" href="#">Paramètres</a>
+</nav>
+<div class="bg-primary/10 border-2 border-primary/20 rounded-full size-10 flex items-center justify-center overflow-hidden">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="User profile avatar circle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPOXcZsK3ZXNBjlCJ2mkK-A684s7_0lbUbU6mkNBly42KY1C_BHtKa5RBjX5bnFSs0dGHbvp2mVux2c0qPBOrJDVesfoNUBcoKbapEgRmCfWXHZUQP7nXsOAJM0z4MEje9qH-o97V0g5v8QLMOMpYboZhvR9r4Hoe5cnMDrtrW-8zezm1X7iwBUKJgMfXRsucTBv4PqTvEcZeiQiiNtcL0sIvUut0GE8VXzDW13_4VH-awoxDFVJuB00662gLQTrmxofgJ9LiTytpw"/>
+</div>
+</div>
+</header>
+<main class="flex flex-col flex-1 px-4 lg:px-40 py-8">
+<div class="flex flex-wrap items-center gap-2 mb-6">
+<a class="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-primary" href="#">Accueil</a>
+<span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+<span class="text-slate-900 dark:text-white text-sm font-semibold">Historique des Factures</span>
+</div>
+<div class="flex flex-wrap justify-between items-end gap-4 mb-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-white text-3xl lg:text-4xl font-extrabold tracking-tight">Historique des Factures et Reçus</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base max-w-2xl">
+                            Gérez vos documents financiers, suivez les paiements et téléchargez vos justificatifs en un clic.
+                        </p>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background-dark font-bold px-6 py-3 rounded-lg transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add_circle</span>
+<span>Nouvelle facture</span>
+</button>
+</div>
+<div class="flex gap-3 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-background-dark text-sm font-bold">
+<span>Toutes</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-primary/10 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-primary/20 transition-colors">
+<span class="size-2 rounded-full bg-green-500"></span>
+<span>Payées</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-primary/10 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-primary/20 transition-colors">
+<span class="size-2 rounded-full bg-amber-500"></span>
+<span>En attente</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-primary/10 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-primary/20 transition-colors">
+<span class="size-2 rounded-full bg-red-500"></span>
+<span>Annulées</span>
+</button>
+<div class="ml-auto flex items-center gap-2">
+<button class="p-2 text-slate-500 hover:text-primary dark:text-slate-400 bg-slate-100 dark:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary dark:text-slate-400 bg-slate-100 dark:bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined">file_download</span>
+</button>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-primary/20 bg-white dark:bg-background-dark shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-primary/5 border-b border-slate-200 dark:border-primary/20">
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Date</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">N° de facture</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Description</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right">Montant</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center">Statut</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-primary/10">
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-400 font-medium">12 Oct 2023</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100">INV-2023-001</td>
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-300">Abonnement Mensuel - Octobre Premium Plan</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100 text-right">150,00 €</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400">
+                                            Payée
+                                        </span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 font-bold text-xs uppercase tracking-wide group-hover:underline">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                            PDF
+                                        </button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-400 font-medium">05 Oct 2023</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100">INV-2023-002</td>
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-300">Consulting IT &amp; Audit Cyber-sécurité</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100 text-right">1 200,00 €</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-400">
+                                            En attente
+                                        </span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 font-bold text-xs uppercase tracking-wide group-hover:underline">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                            PDF
+                                        </button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-400 font-medium">28 Sep 2023</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100">INV-2023-003</td>
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-300">Maintenance Serveur Cloud - Forfait Trimestriel</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100 text-right">85,00 €</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400">
+                                            Payée
+                                        </span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 font-bold text-xs uppercase tracking-wide group-hover:underline">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                            PDF
+                                        </button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-400 font-medium">15 Sep 2023</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100">INV-2023-004</td>
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-300">Licences Logiciels - SaaS Tools Suite</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100 text-right">450,00 €</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 dark:bg-green-500/20 dark:text-green-400">
+                                            Payée
+                                        </span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="inline-flex items-center gap-1.5 text-primary hover:text-primary/80 font-bold text-xs uppercase tracking-wide group-hover:underline">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                            PDF
+                                        </button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-400 font-medium">01 Sep 2023</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100">INV-2023-005</td>
+<td class="px-6 py-5 text-sm text-slate-600 dark:text-slate-300">Formation Équipe - UX Design &amp; Frontend</td>
+<td class="px-6 py-5 text-sm font-bold text-slate-900 dark:text-slate-100 text-right">2 100,00 €</td>
+<td class="px-6 py-5 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-400">
+                                            Annulée
+                                        </span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="inline-flex items-center gap-1.5 text-slate-400 dark:text-slate-600 cursor-not-allowed font-bold text-xs uppercase tracking-wide">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span>
+                                            N/A
+                                        </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 flex items-center justify-between border-t border-slate-200 dark:border-primary/20 bg-slate-50/50 dark:bg-primary/5">
+<p class="text-sm text-slate-500 dark:text-slate-400">Affichage de <span class="font-semibold text-slate-900 dark:text-white">1</span> à <span class="font-semibold text-slate-900 dark:text-white">5</span> sur <span class="font-semibold text-slate-900 dark:text-white">24</span> factures</p>
+<div class="flex items-center gap-2">
+<button class="p-2 border border-slate-200 dark:border-primary/20 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10 disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="px-3 py-1 bg-primary text-background-dark font-bold rounded-lg">1</button>
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-primary/10 rounded-lg">2</button>
+<button class="px-3 py-1 hover:bg-slate-100 dark:hover:bg-primary/10 rounded-lg">3</button>
+<button class="p-2 border border-slate-200 dark:border-primary/20 rounded-lg hover:bg-slate-100 dark:hover:bg-primary/10">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="p-6 rounded-xl bg-primary/10 border border-primary/20">
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">Total Encaissé</span>
+<span class="material-symbols-outlined text-green-500">payments</span>
+</div>
+<div class="text-2xl font-black text-slate-900 dark:text-white">14,250.00 €</div>
+<div class="mt-2 text-sm text-green-500 font-semibold">+12.5% vs mois dernier</div>
+</div>
+<div class="p-6 rounded-xl bg-amber-500/10 border border-amber-500/20">
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 tracking-wider">En Attente</span>
+<span class="material-symbols-outlined text-amber-500">pending_actions</span>
+</div>
+<div class="text-2xl font-black text-slate-900 dark:text-white">1,200.00 €</div>
+<div class="mt-2 text-sm text-amber-500 font-semibold">1 facture impayée</div>
+</div>
+<div class="p-6 rounded-xl bg-primary text-background-dark">
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase text-background-dark/60 tracking-wider">Prochaine Échéance</span>
+<span class="material-symbols-outlined">event</span>
+</div>
+<div class="text-2xl font-black">25 Oct 2023</div>
+<div class="mt-2 text-sm font-bold opacity-80">Prélèvement automatique actif</div>
+</div>
+</div>
+</main>
+<footer class="mt-auto px-4 lg:px-40 py-8 border-t border-slate-200 dark:border-primary/20 bg-white dark:bg-background-dark">
+<div class="flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-lg">verified_user</span>
+<span class="text-sm">Système de facturation sécurisé conforme aux normes EU.</span>
+</div>
+<div class="flex items-center gap-6">
+<a class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">Politique de confidentialité</a>
+<a class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">Mentions légales</a>
+<a class="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" href="#">Support technique</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tableau de Bord Client - SaaS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#19e642",
+              "background-light": "#f6f8f6",
+              "background-dark": "#112114",
+            },
+            fontFamily: {
+              "display": ["Manrope", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            background-color: rgba(25, 230, 66, 0.1);
+            border-right: 3px solid #19e642;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-primary/10 bg-white dark:bg-background-dark flex flex-col justify-between">
+<div class="flex flex-col gap-8 p-6">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-background-dark">
+<span class="material-symbols-outlined font-bold">bolt</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-slate-100 text-base font-bold leading-tight">Espace Client</h1>
+<p class="text-slate-500 dark:text-primary/60 text-xs font-medium">Gestion de projets SaaS</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary" href="#">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<span class="text-sm font-semibold">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">account_tree</span>
+<span class="text-sm font-medium">Projets</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">chat_bubble</span>
+<span class="text-sm font-medium">Messages</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">favorite</span>
+<span class="text-sm font-medium">Favoris</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">description</span>
+<span class="text-sm font-medium">Factures</span>
+</a>
+</nav>
+</div>
+<div class="p-6">
+<button class="w-full bg-primary hover:bg-primary/90 text-background-dark font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="text-sm">Nouveau Projet</span>
+</button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Header -->
+<header class="h-16 border-b border-slate-200 dark:border-primary/10 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-10 px-8 flex items-center justify-between">
+<div class="flex items-center gap-4 flex-1 max-w-md">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="w-full bg-slate-100 dark:bg-primary/5 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/30 text-slate-900 dark:text-slate-100" placeholder="Rechercher un projet..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:bg-primary/10 mx-2"></div>
+<div class="flex items-center gap-3">
+<span class="text-sm font-semibold hidden md:block">Jean Dupont</span>
+<div class="h-9 w-9 rounded-full bg-slate-200 dark:bg-primary/20 border border-primary/20" data-alt="Portrait photo of a professional user avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD9_yrX8jiAnmDGN4yKroSRBwGlRTCX1uYnNst7rAi8AcygfJomPVqmSU-5WWhiucNYE1_u5cGdk4-rzq0Yj1O8XOdj2UILEj_qLEpFkWCNyNMjGQFPqB5MdOZVAPh3Wn2U4YmOqB_qCTKukKIm_zy4a8E41QLebU88efxXShWPKUENLj3BOt83Xbx5h0FE1AZcfZYVZeMezMtJuL4yF0c4p2ivlYOTJlMnhZbd2AVUAxyriwczPA1fRO9i91pVhwEHhednEyVO_Y1z"); background-size: cover;'></div>
+</div>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="p-8 max-w-7xl mx-auto w-full flex flex-col gap-8">
+<!-- Hero Stats -->
+<div class="flex flex-col gap-2">
+<h2 class="text-3xl font-black tracking-tight">Tableau de Bord</h2>
+<p class="text-slate-500 dark:text-primary/60">Bienvenue, voici un aperçu de votre activité actuelle.</p>
+</div>
+<!-- Stats Widgets -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 p-6 rounded-xl flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="text-slate-500 dark:text-primary/60 font-medium text-sm">Projets Actifs</span>
+<span class="p-2 rounded-lg bg-primary/10 text-primary material-symbols-outlined">folder_open</span>
+</div>
+<div>
+<div class="text-3xl font-bold">12</div>
+<div class="text-xs text-primary font-bold mt-1">+2% depuis le mois dernier</div>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 p-6 rounded-xl flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="text-slate-500 dark:text-primary/60 font-medium text-sm">Messages</span>
+<span class="p-2 rounded-lg bg-blue-500/10 text-blue-500 material-symbols-outlined">mail</span>
+</div>
+<div>
+<div class="text-3xl font-bold">4</div>
+<div class="text-xs text-slate-500 dark:text-primary/40 mt-1">Non lus ce matin</div>
+</div>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 p-6 rounded-xl flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<span class="text-slate-500 dark:text-primary/60 font-medium text-sm">Dépenses Mensuelles</span>
+<span class="p-2 rounded-lg bg-orange-500/10 text-orange-500 material-symbols-outlined">payments</span>
+</div>
+<div>
+<div class="text-3xl font-bold">2 450,00 €</div>
+<div class="text-xs text-red-500 font-bold mt-1">-5% budget restant</div>
+</div>
+</div>
+</div>
+<!-- Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Projets Actifs List -->
+<div class="lg:col-span-2 flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h3 class="text-xl font-bold">Projets Actifs</h3>
+<button class="text-primary text-sm font-semibold hover:underline">Voir tout</button>
+</div>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl overflow-hidden">
+<div class="p-4 border-b border-slate-200 dark:border-primary/10 grid grid-cols-12 text-xs font-bold text-slate-400 uppercase tracking-wider">
+<div class="col-span-5">Nom du Projet</div>
+<div class="col-span-4">Progression</div>
+<div class="col-span-3 text-right">Date d'échéance</div>
+</div>
+<div class="divide-y divide-slate-200 dark:divide-primary/10">
+<!-- Project Item -->
+<div class="p-4 grid grid-cols-12 items-center hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<div class="col-span-5 flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Refonte Site E-commerce</span>
+<span class="text-xs text-slate-500">Client: L'Oréal Paris</span>
+</div>
+</div>
+<div class="col-span-4 flex flex-col gap-1.5">
+<div class="flex justify-between text-[10px] font-bold">
+<span>75%</span>
+<span class="text-primary">En cours</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-primary/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-3/4"></div>
+</div>
+</div>
+<div class="col-span-3 text-right text-sm font-medium">12 Oct 2023</div>
+</div>
+<!-- Project Item -->
+<div class="p-4 grid grid-cols-12 items-center hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<div class="col-span-5 flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-500">
+<span class="material-symbols-outlined">api</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Développement API Mobile</span>
+<span class="text-xs text-slate-500">Client: TechNova</span>
+</div>
+</div>
+<div class="col-span-4 flex flex-col gap-1.5">
+<div class="flex justify-between text-[10px] font-bold">
+<span>32%</span>
+<span class="text-blue-500">Phase de test</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-primary/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full w-[32%]"></div>
+</div>
+</div>
+<div class="col-span-3 text-right text-sm font-medium">25 Nov 2023</div>
+</div>
+<!-- Project Item -->
+<div class="p-4 grid grid-cols-12 items-center hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<div class="col-span-5 flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500">
+<span class="material-symbols-outlined">brush</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold">Identité Visuelle - Startup</span>
+<span class="text-xs text-slate-500">Client: SolarFlow</span>
+</div>
+</div>
+<div class="col-span-4 flex flex-col gap-1.5">
+<div class="flex justify-between text-[10px] font-bold">
+<span>90%</span>
+<span class="text-orange-500">Finalisation</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-primary/10 h-1.5 rounded-full overflow-hidden">
+<div class="bg-orange-500 h-full w-[90%]"></div>
+</div>
+</div>
+<div class="col-span-3 text-right text-sm font-medium">05 Oct 2023</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Latest Orders / Sidebar Widgets -->
+<div class="flex flex-col gap-8">
+<div class="flex flex-col gap-4">
+<h3 class="text-xl font-bold">Dernières Commandes</h3>
+<div class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4 flex flex-col gap-4">
+<div class="flex items-center gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-100 dark:bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">receipt</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Pack Maintenance Annuelle</p>
+<p class="text-xs text-slate-500">#CMD-90231 • Payé</p>
+</div>
+<div class="text-sm font-bold">890€</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-100 dark:bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500">receipt</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Audit SEO - Trimestriel</p>
+<p class="text-xs text-slate-500">#CMD-89442 • En attente</p>
+</div>
+<div class="text-sm font-bold">450€</div>
+</div>
+<button class="w-full py-2 text-xs font-bold text-slate-500 dark:text-primary/60 border border-dashed border-slate-200 dark:border-primary/20 rounded-lg hover:border-primary/40 hover:text-primary transition-all">
+                                Voir tout l'historique
+                            </button>
+</div>
+</div>
+<!-- Usage Stats / Mini Chart Placeholder -->
+<div class="bg-primary/5 border border-primary/20 rounded-xl p-6 relative overflow-hidden group">
+<div class="relative z-10 flex flex-col gap-4">
+<h4 class="text-sm font-bold text-primary">Utilisation Stockage</h4>
+<div class="flex items-end gap-2">
+<span class="text-3xl font-black">78.4</span>
+<span class="text-lg font-bold text-primary/60 mb-1">GB</span>
+</div>
+<div class="w-full bg-primary/20 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[78%]"></div>
+</div>
+<p class="text-xs text-slate-500 dark:text-primary/40 font-medium">Vous utilisez 78% de votre quota de 100GB.</p>
+</div>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-9xl">cloud_queue</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

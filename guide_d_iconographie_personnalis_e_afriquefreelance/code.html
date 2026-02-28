@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                        "neutral-dark": "#1c2624",
+                        "border-dark": "#293835",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .icon-accent {
+            color: #0e7c66;
+        }
+        .icon-base {
+            color: #94a3b8;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-10 py-4 bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-100 text-xl font-bold tracking-tight">AfriqueFreelance</h2>
+</div>
+<label class="flex flex-col min-w-64 h-10">
+<div class="flex w-full flex-1 items-stretch rounded-lg bg-neutral-dark border border-border-dark overflow-hidden">
+<div class="text-slate-400 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="w-full border-none bg-transparent text-slate-100 placeholder:text-slate-500 focus:ring-0 text-sm" placeholder="Rechercher une icône..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex items-center gap-8">
+<nav class="flex items-center gap-6">
+<a class="text-slate-400 hover:text-primary transition-colors text-sm font-medium" href="#">Design System</a>
+<a class="text-slate-100 border-b-2 border-primary pb-1 text-sm font-medium" href="#">Iconographie</a>
+<a class="text-slate-400 hover:text-primary transition-colors text-sm font-medium" href="#">Composants</a>
+</nav>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>Exporter SVG</span>
+</button>
+<div class="size-10 rounded-full border-2 border-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Portrait of a designer in studio" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4ukr6tE-3RMQoj0229Rq0kOzDOqaXIrRJIa9SD5q-MtNPmKRH7onFNizoEB8Nt2UYU81VS9SuzsiQivYP-eZjXZNmNk12hep0Ws1TNCOSmJlcEfdb19er0HzEYHWPXvjhlJQarz_NkHJWVuQAVFSezWuU21-ZsP4cYqAGHqsoNSa-CSVdm6_GOVbH5iWTTgwVwVbRIOzkbCtJsXBbzl4cDFYmF6UTreTJ5-a0A9Qx62L2qHzqUnBCJxUIG3YTvnzg38MelB2JQaiY"/>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto w-full px-10 py-12">
+<!-- Hero Section -->
+<div class="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
+<div class="max-w-2xl">
+<h1 class="text-slate-100 text-5xl font-extrabold tracking-tight mb-4">Guide d'Iconographie</h1>
+<p class="text-slate-400 text-lg leading-relaxed">
+                            Système d'icônes dual-tone personnalisé conçu pour l'écosystème AfriqueFreelance. 
+                            Une alliance entre des lignes épurées et des accents émeraude pour une identité visuelle forte et cohérente.
+                        </p>
+</div>
+<div class="flex gap-3">
+<div class="bg-neutral-dark border border-border-dark p-4 rounded-xl flex items-center gap-4">
+<div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">grid_view</span>
+</div>
+<div>
+<p class="text-slate-500 text-xs uppercase tracking-widest font-bold">Grille de base</p>
+<p class="text-slate-100 font-bold">24 x 24 px</p>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-4 rounded-xl flex items-center gap-4">
+<div class="size-12 rounded-lg bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">line_weight</span>
+</div>
+<div>
+<p class="text-slate-500 text-xs uppercase tracking-widest font-bold">Épaisseur</p>
+<p class="text-slate-100 font-bold">1.5 pt</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="flex border-b border-border-dark mb-10 overflow-x-auto">
+<button class="px-6 py-4 border-b-2 border-primary text-primary font-bold text-sm whitespace-nowrap">Vue d'ensemble</button>
+<button class="px-6 py-4 text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors whitespace-nowrap">Système de Grille</button>
+<button class="px-6 py-4 text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors whitespace-nowrap">Principes de Design</button>
+<button class="px-6 py-4 text-slate-400 hover:text-slate-200 font-medium text-sm transition-colors whitespace-nowrap">Ressources (50+ icônes)</button>
+</div>
+<!-- Icon Categories Grid -->
+<div class="space-y-16">
+<!-- Navigation Category -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">navigation</span>
+<h3 class="text-xl font-bold text-slate-100">Navigation &amp; Interface</h3>
+</div>
+<span class="text-xs font-semibold bg-primary/20 text-primary px-3 py-1 rounded-full uppercase tracking-tighter">Usage Système</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<!-- Icon Card -->
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">home</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Accueil</p>
+<p class="text-slate-500 text-xs mt-1">nav_home</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">search</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Recherche</p>
+<p class="text-slate-500 text-xs mt-1">nav_search</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">chat_bubble</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Messages</p>
+<p class="text-slate-500 text-xs mt-1">nav_msg</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group opacity-50">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400">notifications</span>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Alertes</p>
+<p class="text-slate-500 text-xs mt-1">nav_notif</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Professional Category -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">work</span>
+<h3 class="text-xl font-bold text-slate-100">Professionnel &amp; Carrière</h3>
+</div>
+<span class="text-xs font-semibold bg-primary/20 text-primary px-3 py-1 rounded-full uppercase tracking-tighter">Usage Utilisateur</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">business_center</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Portfolio</p>
+<p class="text-slate-500 text-xs mt-1">prof_brief</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">military_tech</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Certification</p>
+<p class="text-slate-500 text-xs mt-1">prof_award</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">psychology</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Compétences</p>
+<p class="text-slate-500 text-xs mt-1">prof_skills</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Financial Category -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">payments</span>
+<h3 class="text-xl font-bold text-slate-100">Finances &amp; Blockchain</h3>
+</div>
+<span class="text-xs font-semibold bg-primary/20 text-primary px-3 py-1 rounded-full uppercase tracking-tighter">Paiements</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">account_balance_wallet</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Portefeuille</p>
+<p class="text-slate-500 text-xs mt-1">fin_wallet</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">currency_exchange</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Devises</p>
+<p class="text-slate-500 text-xs mt-1">fin_global</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">hub</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Blockchain</p>
+<p class="text-slate-500 text-xs mt-1">fin_block</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Marketing Category -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">campaign</span>
+<h3 class="text-xl font-bold text-slate-100">Marketing &amp; Croissance</h3>
+</div>
+<span class="text-xs font-semibold bg-primary/20 text-primary px-3 py-1 rounded-full uppercase tracking-tighter">Business</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">rocket_launch</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Lancement</p>
+<p class="text-slate-500 text-xs mt-1">mkt_rocket</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">query_stats</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Analytique</p>
+<p class="text-slate-500 text-xs mt-1">mkt_stats</p>
+</div>
+</div>
+</div>
+<div class="bg-neutral-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-all group">
+<div class="flex flex-col items-center gap-4 text-center">
+<div class="size-16 rounded-lg bg-background-dark flex items-center justify-center relative">
+<span class="material-symbols-outlined text-4xl text-slate-400 group-hover:scale-110 transition-transform">share</span>
+<div class="absolute top-3 right-3 size-2 rounded-full bg-primary shadow-[0_0_10px_#0e7c66]"></div>
+</div>
+<div>
+<p class="text-slate-200 text-sm font-bold">Affiliation</p>
+<p class="text-slate-500 text-xs mt-1">mkt_aff</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Technical Specification -->
+<div class="mt-24 p-8 bg-neutral-dark border border-border-dark rounded-2xl">
+<h3 class="text-2xl font-bold text-slate-100 mb-8 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">rule</span>
+                        Spécifications Techniques
+                    </h3>
+<div class="grid md:grid-cols-3 gap-8">
+<div>
+<h4 class="text-primary font-bold mb-3">Construction</h4>
+<p class="text-slate-400 text-sm leading-relaxed">
+                                Chaque icône est construite sur une grille de pixels 24x24. Nous utilisons un rayon de bordure constant de 2px pour les éléments rectangulaires.
+                            </p>
+</div>
+<div>
+<h4 class="text-primary font-bold mb-3">Couleurs</h4>
+<p class="text-slate-400 text-sm leading-relaxed">
+                                Lignes primaires en <code class="bg-black/30 px-2 py-1 rounded text-slate-200 text-xs">#1F2933</code> (Dark Slate) et accents de focus en <code class="bg-primary/20 px-2 py-1 rounded text-primary text-xs font-bold">#0E7C66</code> (Emerald Green).
+                            </p>
+</div>
+<div>
+<h4 class="text-primary font-bold mb-3">Zone de Sécurité</h4>
+<p class="text-slate-400 text-sm leading-relaxed">
+                                Une marge de 2px est maintenue autour du glyphe pour assurer une lisibilité optimale sur toutes les interfaces (web, mobile, dashboard).
+                            </p>
+</div>
+</div>
+</div>
+</main>
+<footer class="border-t border-border-dark mt-auto px-10 py-12 bg-background-dark text-slate-500">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-4">
+<div class="size-6 text-primary/50">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"></path>
+</svg>
+</div>
+<p class="text-sm">© 2024 AfriqueFreelance Design System. Tous droits réservés.</p>
+</div>
+<div class="flex gap-8 text-sm">
+<a class="hover:text-primary transition-colors" href="#">Documentation</a>
+<a class="hover:text-primary transition-colors" href="#">Github</a>
+<a class="hover:text-primary transition-colors" href="#">Figma Community</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

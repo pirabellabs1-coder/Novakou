@@ -1,0 +1,250 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#53c1ab",
+            "background-light": "#f6f8f7",
+            "background-dark": "#141e1c",
+          },
+          fontFamily: {
+            "display": ["Manrope", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Manrope', sans-serif;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-6 lg:px-20 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary text-2xl">grid_view</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">FreelanceHigh Design System</h2>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Icons</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Typography</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Colors</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Components</a>
+</nav>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="hidden sm:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-200/50 dark:bg-primary/10">
+<div class="text-slate-500 dark:text-primary/60 flex items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:ring-0 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-primary/40 text-sm font-normal" placeholder="Search components..." value=""/>
+</div>
+</label>
+<div class="bg-primary/20 rounded-full p-0.5 border border-primary/30">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" data-alt="User profile avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB8hJUWgDwpA97ZbzwgId1p7DEdaMInMuorfOYQzyre10Fl03dlHDGRTm0bFljobukw9KQDs34WI24J8KGuJkWfaSIFf6SGjTAbl_uWT-kJhWh61KTIFOhXivS2wYwASaLVcL6UDAeQWdm5OcPsTnCKV84b71Dhqi5DGR406Wt9IsazNkyEh9S_RWWJAzbopbbaG7L_9GxPWwFdoNRLEcfUlfOJUn7O1J4pY00U68aVlDlZ3l7O-4BgDVdIOgU7RSegTsTNtVtKDdRc");'></div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 flex-col px-6 lg:px-20 py-8 max-w-7xl mx-auto w-full">
+<!-- Breadcrumbs -->
+<div class="flex items-center flex-wrap gap-2 mb-6">
+<a class="text-slate-500 dark:text-primary/60 text-sm font-medium hover:underline" href="#">Assets</a>
+<span class="material-symbols-outlined text-slate-400 text-xs">chevron_right</span>
+<a class="text-slate-500 dark:text-primary/60 text-sm font-medium hover:underline" href="#">Brand Identity</a>
+<span class="material-symbols-outlined text-slate-400 text-xs">chevron_right</span>
+<span class="text-primary text-sm font-bold">App Icons &amp; Favicon</span>
+</div>
+<!-- Header Section -->
+<div class="flex flex-wrap justify-between items-end gap-6 mb-12 border-b border-primary/10 pb-10">
+<div class="flex flex-col gap-4 max-w-2xl">
+<h1 class="text-slate-900 dark:text-slate-100 text-5xl font-extrabold leading-tight tracking-tight">App Icon &amp; Favicon Specifications</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg font-normal leading-relaxed">Technical guidelines and visual standards for FreelanceHigh icon assets across web browsers, iOS, and Android platforms. Optimized for high clarity using our signature emerald primary.</p>
+</div>
+<button class="flex min-w-[160px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 px-6 bg-primary text-background-dark text-sm font-bold transition-transform active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">download</span>
+<span class="truncate">Download All Assets</span>
+</button>
+</div>
+<!-- Main Icon Visual Section -->
+<section class="mb-16">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">aspect_ratio</span>
+            Icon Variations &amp; Sizes
+          </h2>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Favicon 16 -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-primary/10 shadow-sm">
+<div class="w-full flex items-center justify-center aspect-square bg-slate-100 dark:bg-background-dark rounded-xl border border-primary/5">
+<div class="w-4 h-4 bg-primary rounded-[2px]" style="box-shadow: 0 0 10px rgba(83, 193, 171, 0.4);"></div>
+</div>
+<div>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold">Favicon (16x16)</p>
+<p class="text-slate-500 dark:text-primary/60 text-sm">Used in standard browser tabs</p>
+</div>
+</div>
+<!-- Browser Tab 32 -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-primary/10 shadow-sm">
+<div class="w-full flex items-center justify-center aspect-square bg-slate-100 dark:bg-background-dark rounded-xl border border-primary/5">
+<div class="w-8 h-8 bg-primary rounded-md" style="box-shadow: 0 0 15px rgba(83, 193, 171, 0.4);"></div>
+</div>
+<div>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold">Browser Tab (32x32)</p>
+<p class="text-slate-500 dark:text-primary/60 text-sm">Retina display and bookmarks</p>
+</div>
+</div>
+<!-- iOS 180 -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-primary/10 shadow-sm">
+<div class="w-full flex items-center justify-center aspect-square bg-slate-100 dark:bg-background-dark rounded-xl border border-primary/5">
+<div class="w-[180px] h-[180px] max-w-full bg-primary rounded-[38px] flex items-center justify-center shadow-xl">
+<span class="material-symbols-outlined text-background-dark text-7xl font-bold" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+</div>
+<div>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold">iOS Icon (180x180)</p>
+<p class="text-slate-500 dark:text-primary/60 text-sm">Apple Touch Icon profile</p>
+</div>
+</div>
+<!-- Android 512 -->
+<div class="flex flex-col gap-4 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-primary/10 shadow-sm">
+<div class="w-full flex items-center justify-center aspect-square bg-slate-100 dark:bg-background-dark rounded-xl border border-primary/5">
+<div class="w-[200px] h-[200px] max-w-full bg-primary rounded-full flex items-center justify-center shadow-2xl">
+<span class="material-symbols-outlined text-background-dark text-8xl font-bold" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+</div>
+</div>
+<div>
+<p class="text-slate-900 dark:text-slate-100 text-base font-bold">Android (512x512)</p>
+<p class="text-slate-500 dark:text-primary/60 text-sm">Google Play high-res asset</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Preview Environments -->
+<section class="mb-16">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">visibility</span>
+            Environment Previews
+          </h2>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Browser Preview -->
+<div class="flex flex-col gap-4">
+<p class="text-slate-700 dark:text-slate-300 font-semibold text-sm uppercase tracking-wider">Browser Tab Preview</p>
+<div class="w-full bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700 shadow-inner">
+<div class="flex items-center px-4 py-2 gap-4 bg-slate-300 dark:bg-slate-900">
+<div class="flex items-center gap-1.5">
+<div class="size-2.5 rounded-full bg-red-400"></div>
+<div class="size-2.5 rounded-full bg-yellow-400"></div>
+<div class="size-2.5 rounded-full bg-green-400"></div>
+</div>
+<div class="flex items-center gap-2 bg-white dark:bg-background-dark px-4 py-1.5 rounded-t-lg border-x border-t border-slate-300 dark:border-slate-800 -mb-2">
+<div class="size-4 bg-primary rounded-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-background-dark font-bold">trending_up</span>
+</div>
+<span class="text-xs font-medium text-slate-700 dark:text-slate-300">FreelanceHigh | Dashboard</span>
+<span class="material-symbols-outlined text-xs text-slate-400">close</span>
+</div>
+</div>
+<div class="h-24 bg-white dark:bg-background-dark p-4 flex items-center justify-center">
+<span class="text-slate-300 dark:text-slate-800 font-bold text-lg">Main Content Area Preview</span>
+</div>
+</div>
+</div>
+<!-- Background Contrast Preview -->
+<div class="flex flex-col gap-4">
+<p class="text-slate-700 dark:text-slate-300 font-semibold text-sm uppercase tracking-wider">Background Contrast (Emerald #0E7C66)</p>
+<div class="grid grid-cols-2 h-36 rounded-xl overflow-hidden border border-primary/10">
+<div class="bg-white flex flex-col items-center justify-center gap-3">
+<div class="size-12 bg-primary rounded-xl flex items-center justify-center">
+<span class="material-symbols-outlined text-background-dark text-2xl font-bold">trending_up</span>
+</div>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Light Mode</span>
+</div>
+<div class="bg-background-dark flex flex-col items-center justify-center gap-3">
+<div class="size-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-background-dark text-2xl font-bold">trending_up</span>
+</div>
+<span class="text-[10px] text-primary/60 font-bold uppercase">Dark Mode</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Specs Table -->
+<section class="mb-20">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">description</span>
+                Asset Parameters
+            </h2>
+<div class="overflow-hidden rounded-2xl border border-primary/10 bg-white dark:bg-primary/5">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-primary/10 border-b border-primary/10">
+<th class="px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-300">Target</th>
+<th class="px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-300">Resolution</th>
+<th class="px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-300">Format</th>
+<th class="px-6 py-4 text-sm font-bold text-slate-700 dark:text-slate-300">Safe Area</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-primary/70 font-medium">Standard Favicon</td>
+<td class="px-6 py-4 text-sm font-mono text-primary">16x16 px</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">ICO / PNG</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">100% (No Bleed)</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-primary/70 font-medium">Apple Touch Icon</td>
+<td class="px-6 py-4 text-sm font-mono text-primary">180x180 px</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">PNG</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">80% Center</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4 text-sm text-slate-600 dark:text-primary/70 font-medium">Android Splash</td>
+<td class="px-6 py-4 text-sm font-mono text-primary">512x512 px</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">SVG / WebP</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">Adaptive (Circle)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-primary/10 py-8 px-6 lg:px-20 bg-slate-100 dark:bg-background-dark/50">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="size-6 bg-primary rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-background-dark text-[14px] font-bold">trending_up</span>
+</div>
+<span class="text-slate-500 dark:text-primary/60 text-sm font-semibold">FreelanceHigh Brand Portal v2.4</span>
+</div>
+<div class="flex gap-8">
+<a class="text-xs text-slate-500 hover:text-primary transition-colors uppercase tracking-widest font-bold" href="#">Brand Guidelines</a>
+<a class="text-xs text-slate-500 hover:text-primary transition-colors uppercase tracking-widest font-bold" href="#">Privacy</a>
+<a class="text-xs text-slate-500 hover:text-primary transition-colors uppercase tracking-widest font-bold" href="#">Support</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+
+```</body></html>

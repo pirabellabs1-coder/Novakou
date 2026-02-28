@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Messagerie Temps Réel AfriqueFreelance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden h-screen">
+<div class="flex flex-col h-full">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between px-6 py-3 bg-background-light dark:bg-background-dark border-b border-primary/20">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl">hub</span>
+<h2 class="text-xl font-extrabold tracking-tight">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center gap-1">
+<label class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-2 bg-primary/10 border-none rounded-lg focus:ring-1 focus:ring-primary text-sm w-64 placeholder:text-slate-500" placeholder="Rechercher..." type="text"/>
+</label>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Projets</a>
+<a class="text-sm font-medium text-primary" href="#">Messagerie</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Paiements</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border-2 border-primary/20">
+<img class="h-full w-full object-cover" data-alt="Photo de profil utilisateur professionnel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgGbd3it6sv6o-wC-JKod2Fu2DkLgK5BYESrr3Xns7wXOR4UPlUFNOQ-BAnJrPI1l9TA04ib5Rdi5-n0VoUeQWSaB9F-p32aswUEgfauTi38C1tP9B0flsDHEZXUnSLOp1Q0XohItLtRVxnm6kH6hQR-15VIKp5ZDfuTOYz9Y9eMQKX8GFXLpM8nKmKbediuqrEZmP_7szohY_X4njYL4gk_lv9Az6DY81wy9jDa7FfXnzLvirrSYgFr02hBGH58EZ59WooF4NF8HQ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex flex-1 overflow-hidden">
+<!-- Sidebar: Channels and Contacts -->
+<aside class="w-80 flex-shrink-0 border-r border-primary/10 flex flex-col bg-slate-50 dark:bg-slate-900/50">
+<div class="p-4 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="font-bold text-lg">Discussions</h3>
+<button class="text-primary hover:bg-primary/10 p-1 rounded">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-primary font-semibold cursor-pointer">
+<span class="material-symbols-outlined">chat</span>
+<span>Direct Messages</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/10 cursor-pointer transition-colors text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">group</span>
+<span>Équipes &amp; Canaux</span>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Récent</div>
+<!-- Contact Item Active -->
+<div class="group flex items-center gap-3 px-3 py-3 rounded-xl bg-primary text-white cursor-pointer shadow-lg shadow-primary/20">
+<div class="relative h-12 w-12 rounded-full flex-shrink-0">
+<img class="rounded-full h-full w-full object-cover" data-alt="Portrait d'un freelance développeur souriant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiZSdJTFVIWyCyHtqChhRXD4HPXMDlyFF_mZDnRrhJy6VYs-s_VS39ReIQyWTo9jnN3CsJ0dv7siW8dh-YdepiOq48bG-CHbRy9252HtQs_jY_NFzRw0TsYz2sfc_0_62f5e5THei_JyJTv27c-f3pVFRBBHoOXF-YMmhTwThMTfwbGHPnW1U5KX7o0A5q5kXo-Lfd9xxglpzb-dcBNQaUr4L6P6howQREvEb6tePiIxohdQoVUDLgli7mEJpM-JshXYM6z_Lse8Xv"/>
+<div class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-primary rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-sm font-bold truncate">Jean-Luc S.</p>
+<span class="text-[10px] opacity-80">14:20</span>
+</div>
+<p class="text-xs truncate opacity-90 font-medium">Le code a été déployé sur le serveur...</p>
+</div>
+</div>
+<!-- Contact Item -->
+<div class="group flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-primary/10 cursor-pointer transition-colors">
+<div class="relative h-12 w-12 rounded-full flex-shrink-0">
+<img class="rounded-full h-full w-full object-cover grayscale" data-alt="Portrait d'une designer UX UI" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5wKCVLfHPcwblHsxIHNttEll_SxXEKmbW2pINg6pW8FousY4Mq-2o5udNncPOgIscTuAHq5P-a1-Egxjss8zljI1V1AqQnZKUzh0gWub6FdcvctlnsljcZwAnl2Bfbi4AVD5ZWCa4_BVfpXVv8Fw8gERiYczu8ouRnBwWKZZyEuvol5u231j6tsf-nx2d4vo9FTOkXb4mrioovD0Waxn1JZpan_a7d1huEutBLALD1yUHJRHmnvb3pCydYVrDx8Sv2OTBerVEB9O5"/>
+<div class="absolute bottom-0 right-0 h-3 w-3 bg-slate-400 border-2 border-background-dark rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-sm font-bold truncate">Marie Koffi</p>
+<span class="text-[10px] text-slate-500">Hier</span>
+</div>
+<p class="text-xs truncate text-slate-500">J'ai envoyé les maquettes Figma.</p>
+</div>
+<div class="h-2 w-2 rounded-full bg-primary flex-shrink-0"></div>
+</div>
+<!-- Contact Item -->
+<div class="group flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-primary/10 cursor-pointer transition-colors">
+<div class="relative h-12 w-12 rounded-full flex-shrink-0">
+<img class="rounded-full h-full w-full object-cover" data-alt="Portrait d'un client entreprise" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBaB_nwBKfaCZtGx3bZdZE0GDg29eNTtcAFYPBuQBW1Sh3nbS7GVAZMey9WqCQV9ZgdeFcMWYMqI3lUK4AvSm_eT26ZQTs_Hp-obEwGeKQbPNUW9mplfyPyVfwQps7yDJ5QT2SIb7bTtMPUjY1NIxGs1FVaTZFkXrpabdhOrff0flcDRa7e0fbKSg4mlOqVgXANiKadqPxOl50n7788qeiHclyTl3dmxUEWihFNNzQ3gwxw4-XMjGOpqTQGJ9fQPmI8wTiiLlR0xn7I"/>
+<div class="absolute bottom-0 right-0 h-3 w-3 bg-orange-500 border-2 border-background-dark rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-sm font-bold truncate">Ahmadou Traoré</p>
+<span class="text-[10px] text-slate-500">Mar</span>
+</div>
+<p class="text-xs truncate text-slate-500">On se voit à 15h pour le point ?</p>
+</div>
+</div>
+</div>
+<div class="p-4 mt-auto">
+<button class="w-full bg-primary py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/30 hover:brightness-110 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                        Nouveau Message
+                    </button>
+</div>
+</aside>
+<!-- Chat Window -->
+<section class="flex-1 flex flex-col bg-background-light dark:bg-background-dark relative">
+<!-- Chat Header -->
+<div class="h-20 border-b border-primary/10 px-6 flex items-center justify-between flex-shrink-0">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img class="h-10 w-10 rounded-full object-cover" data-alt="Avatar du contact actif" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCj2JY2v3VgNF1ap0Mv58v-3syob_QZsETWA-1RXKpGbn0TVnDFVjbwnMB5bL37I_EvcRT6ZjyjJqJeiHV_qcG9gX1UiFVNWyXWvJFa7oj5roq-iUqneaafH8IyX1AC4mwG06bg1NPJWh7Buo5vRO0vHkgH77RCuSVjfzfgKgKik8a-fBVU5sv9CiWl0gI9s9IxT3CqDdERMVOb1khix9GKOGtO3_uh0ZI967jY5YxJfyZqufbYs2OAZvBlBFVoSLTZV1XmpV5QIZSX"/>
+<div class="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-background-dark rounded-full"></div>
+</div>
+<div>
+<h4 class="font-bold">Jean-Luc S.</h4>
+<p class="text-xs text-green-500 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                En ligne maintenant
+                            </p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">call</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">videocam</span>
+</button>
+<div class="h-6 w-[1px] bg-primary/20 mx-2"></div>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+</div>
+<!-- Messages Container -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<div class="flex justify-center">
+<span class="px-3 py-1 bg-primary/5 rounded-full text-[10px] text-slate-500 uppercase font-bold tracking-widest">Aujourd'hui</span>
+</div>
+<!-- Incoming Message -->
+<div class="flex items-start gap-4 max-w-[80%]">
+<img class="h-8 w-8 rounded-full object-cover mt-1" data-alt="Jean-Luc S. avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOpgl2a4DSkFSXfIq4usRZruncaUjVswgU5OeiRbh1WhfOCkbwLIGhuF0E_0Ck9zbbisRZeOedoP-FwzVBgmXgU36hAeEe3co9mL3tj-NLyD11o0vYD9496tyh5N2xxczVY6OR_Os_vKNSxDQEjGd3ATx_O5l4c3hkZhp3B8LaC1xvu7P3c51VsQbzpTR3P2OlYfIGI0nvIz7mQF-OrBxqy34qKZv9wlF2lx0YcyK8SAs7WjHzUsR-AXrmYXMnNRyPwoo-7NXv3gpj"/>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold">Jean-Luc S.</span>
+<span class="text-[10px] text-slate-500">14:15</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm">
+<p class="text-sm leading-relaxed">Salut ! J'ai terminé les modifications demandées sur l'API de paiement. J'ai également optimisé les requêtes vers la base de données.</p>
+</div>
+</div>
+</div>
+<!-- Outgoing Message -->
+<div class="flex flex-row-reverse items-start gap-4 max-w-[80%] ml-auto">
+<div class="space-y-1 text-right">
+<div class="flex flex-row-reverse items-center gap-2">
+<span class="text-xs font-bold">Vous</span>
+<span class="text-[10px] text-slate-500">14:18</span>
+</div>
+<div class="bg-primary p-4 rounded-2xl rounded-tr-none shadow-lg shadow-primary/20 text-white">
+<p class="text-sm leading-relaxed">Super travail ! Est-ce que tu peux m'envoyer le rapport de performance s'il te plaît ?</p>
+</div>
+</div>
+</div>
+<!-- File Sharing Message (Incoming) -->
+<div class="flex items-start gap-4 max-w-[80%]">
+<img class="h-8 w-8 rounded-full object-cover mt-1" data-alt="Jean-Luc S. avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsfw7Ja8UCbvkT8-R5VO5VCqGP8quMoT9S3CUvlwXvdnDK4M_-OaqKMkwFKg3onTyXA_ofPoc9q33fhAVMCSZ2CThd9993_0lOKKmMUOyzCqVXkkPp9nJlCL6oJwflwMZCeoReVE4MxpMCU4Tb_uC3bjQrxvFKLWS1gsfhiqBZn3PRxfBkfhfWNG4VuRB1wX1RUYmVRcRiMA76_1rUOQPv7XuHqBJjbhcFaynQYNNVQ4XsjbIUqKqE2OxxQ5T0PtUhGlMlexxL-bui"/>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold">Jean-Luc S.</span>
+<span class="text-[10px] text-slate-500">14:20</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm space-y-3">
+<p class="text-sm">Bien sûr, le voici :</p>
+<div class="flex items-center gap-3 bg-background-light dark:bg-background-dark p-3 rounded-xl border border-primary/20 group cursor-pointer hover:border-primary transition-colors">
+<div class="bg-red-500/10 text-red-500 p-2 rounded-lg">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate uppercase tracking-tighter">Performance_Report_V2.pdf</p>
+<p class="text-[10px] text-slate-500">2.4 MB • Terminé</p>
+</div>
+<button class="text-slate-400 group-hover:text-primary">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-4 border-t border-primary/10">
+<div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl flex items-end gap-2 focus-within:ring-2 ring-primary/30 transition-all">
+<div class="flex items-center gap-1 mb-1">
+<button class="p-2 text-slate-500 hover:text-primary rounded-xl hover:bg-primary/10 transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary rounded-xl hover:bg-primary/10 transition-all">
+<span class="material-symbols-outlined">image</span>
+</button>
+</div>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 resize-none placeholder:text-slate-500 h-[40px]" placeholder="Tapez votre message ici..." rows="1"></textarea>
+<div class="flex items-center gap-1 mb-1">
+<button class="p-2 text-slate-500 hover:text-primary rounded-xl hover:bg-primary/10 transition-all">
+<span class="material-symbols-outlined">mood</span>
+</button>
+<button class="bg-primary text-white p-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined leading-none block">send</span>
+</button>
+</div>
+</div>
+<p class="text-[10px] text-center mt-2 text-slate-500">Shift + Enter pour une nouvelle ligne</p>
+</div>
+</section>
+<!-- Right Sidebar: Contract Details -->
+<aside class="w-80 flex-shrink-0 border-l border-primary/10 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 hidden xl:flex flex-col">
+<div class="p-6 border-b border-primary/10">
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Détails de la mission</h3>
+<p class="text-xs text-slate-500 mt-1">ID Contrat: #AF-92384</p>
+</div>
+<div class="p-6 space-y-8">
+<!-- Project Info -->
+<div>
+<div class="flex items-center gap-3 text-primary mb-3">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-xs font-bold uppercase tracking-wider">Projet Actif</span>
+</div>
+<h4 class="font-bold text-sm">Refonte de l'interface E-commerce Mobile</h4>
+<div class="mt-4 flex flex-col gap-2">
+<div class="flex justify-between text-xs">
+<span class="text-slate-500">Statut</span>
+<span class="px-2 py-0.5 bg-primary/20 text-primary rounded-full font-bold">En cours</span>
+</div>
+<div class="flex justify-between text-xs">
+<span class="text-slate-500">Budget</span>
+<span class="font-bold text-slate-900 dark:text-slate-100">1 500 €</span>
+</div>
+<div class="flex justify-between text-xs">
+<span class="text-slate-500">Échéance</span>
+<span class="font-bold text-slate-900 dark:text-slate-100">15 Oct. 2023</span>
+</div>
+</div>
+</div>
+<!-- Milestones -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-500">Jalons</span>
+<span class="text-[10px] font-bold text-primary">60% complété</span>
+</div>
+<div class="w-full bg-primary/10 h-2 rounded-full mb-4">
+<div class="bg-primary h-full rounded-full" style="width: 60%"></div>
+</div>
+<ul class="space-y-3">
+<li class="flex items-center gap-3 text-xs">
+<span class="material-symbols-outlined text-green-500 text-sm font-bold">check_circle</span>
+<span class="text-slate-500 line-through">Définition du cahier des charges</span>
+</li>
+<li class="flex items-center gap-3 text-xs">
+<span class="material-symbols-outlined text-green-500 text-sm font-bold">check_circle</span>
+<span class="text-slate-500 line-through">Architecture API</span>
+</li>
+<li class="flex items-center gap-3 text-xs">
+<span class="material-symbols-outlined text-primary text-sm">radio_button_checked</span>
+<span class="font-semibold">Implémentation Frontend</span>
+</li>
+<li class="flex items-center gap-3 text-xs">
+<span class="material-symbols-outlined text-slate-400 text-sm">radio_button_unchecked</span>
+<span class="text-slate-400">Tests unitaires et QA</span>
+</li>
+</ul>
+</div>
+<!-- Media/Files -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-500">Fichiers partagés</span>
+<button class="text-[10px] font-bold text-primary hover:underline">Tout voir</button>
+</div>
+<div class="grid grid-cols-3 gap-2">
+<div class="aspect-square rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden relative group cursor-pointer">
+<img class="h-full w-full object-cover" data-alt="Miniature d'une maquette UI design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9_tTewbYuiub__cZD22NSXAarbWvY28_hLxijGc7H74v0j6Uex5gFEa7Jsn8gzeibZ0nYb-K0Ty94KfsuUkGfMBD17rW5J1xTOqipdfIRO7CrAWARBAROVFlMBposso__qdc6S5i5oBIUp7Zvp0xLBNwqBWP5t1n4EwQ5yRFW4woLmVTUqzBRbgpX-RKx8L0ghHYn80n0kMYMJ-9oe7Z9Q-RjY26f3P2_lVurGh7fWSoCSJ6NvUAUX38YNv0tsgX3NBw4fuKrG24R"/>
+<div class="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white">visibility</span>
+</div>
+</div>
+<div class="aspect-square rounded-lg bg-slate-200 dark:bg-slate-800 overflow-hidden relative group cursor-pointer">
+<img class="h-full w-full object-cover" data-alt="Miniature de graphisme mobile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2iOjLtHy03fnKJ85uUl7Euhvou6SUjfvki2cJh_3TedRjmeIdRbqAqmp0ICfIvHagsZrcqYEsXhXv-AUC-XB1IhezISBNzAN94qmT7-XDMzsHMjAYrM8l5fVB2tBdbL8M6RcXy6vcHocuQmYj8OJwy8SU5ewgD9UVycAo8kzjsr7N7dVjMTeiK24DO6BtKCai3unpJZnMEuQwoKEsfnTJqtSiTfx0t7DzVb7Pno5iMwvYBQwWEmOQZAxJUtTzT4lkmbChj7KxHahn"/>
+<div class="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-white">visibility</span>
+</div>
+</div>
+<div class="aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center border-2 border-dashed border-primary/20 hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-slate-400 group-hover:text-primary">add</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6 border-t border-primary/10">
+<button class="w-full bg-slate-200 dark:bg-slate-800 py-3 rounded-xl text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors mb-2">
+                        Créer une facture
+                    </button>
+<button class="w-full text-red-500 py-3 rounded-xl text-[10px] font-bold hover:bg-red-500/10 transition-colors">
+                        Signaler un litige
+                    </button>
+</div>
+</aside>
+</main>
+</div>
+</body></html>

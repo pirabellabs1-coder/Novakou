@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AfriqueFreelance - Tableau de bord</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-300">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-72 flex-shrink-0 bg-white dark:bg-background-dark border-r border-slate-200 dark:border-primary/20 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-none">AfriqueFreelance</h1>
+<p class="text-xs text-slate-500 dark:text-primary/60">Tableau de bord Pro</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined">work</span>
+<span>Mes Services</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span>Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span>Messagerie</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Finances</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<div class="bg-primary/5 rounded-xl p-4 border border-primary/10">
+<p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Passer à l'offre Premium</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mb-3">Accédez à plus de clients et boostez vos revenus.</p>
+<button class="w-full bg-primary text-white text-xs font-bold py-2 rounded-lg hover:bg-primary/90 transition-colors">Mettre à jour</button>
+</div>
+</div>
+<div class="p-4 border-t border-slate-200 dark:border-primary/10 flex items-center gap-3">
+<img alt="Avatar" class="w-10 h-10 rounded-full border-2 border-primary/20" data-alt="Portrait d'un freelance professionnel souriant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHuCfk1Rk7xBmLiZ8kpeRq2kkRNS6ePsj1KTSCIm8AEoaV2oMrIkC1paKkOH7gAPakzbUX1J94s9c4Jvoajk4oM78XYEu5_l5unPTeuBSb15qxdIbXxzigkz9BsYBigEQLkNRQ_dC87E9lApz4Fm2dkpT8zkARAdLjQ3PpyBqLrJ1e8ovPNPVvzcYtOKF98uH7sKze_-YWGnFGNdXxfseKJkXqTtWVJKaiPcMn-aCrysxj07_5XVinpqEOZOSk9jcX76GntJdfLrRv"/>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Moussa Diop</p>
+<p class="text-xs text-slate-500 truncate">Développeur Fullstack</p>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-8">
+<header class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight">Aperçu du Tableau de bord</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Bienvenue, gérez vos revenus et vos projets en un coup d'œil.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-primary/10 border border-slate-200 dark:border-primary/20 rounded-lg text-sm font-semibold hover:shadow-sm transition-all">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Exporter
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+                        Nouveau Service
+                    </button>
+</div>
+</header>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">+12.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenus totaux</p>
+<p class="text-2xl font-bold mt-1">€4,250.00</p>
+</div>
+<div class="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+<span class="material-symbols-outlined">list_alt</span>
+</div>
+<span class="text-blue-500 text-xs font-bold bg-blue-500/10 px-2 py-1 rounded">+2</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Commandes en cours</p>
+<p class="text-2xl font-bold mt-1">8</p>
+</div>
+<div class="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<span class="text-amber-500 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded">+5</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Messages récents</p>
+<p class="text-2xl font-bold mt-1">12</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Earnings Chart Area -->
+<div class="lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-lg font-bold leading-tight">Revenus mensuels</h3>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-3xl font-black">€12,400</span>
+<span class="text-primary text-sm font-bold">+8% vs mois dernier</span>
+</div>
+</div>
+<select class="bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-lg text-sm font-medium px-3 py-1.5 focus:ring-primary focus:border-primary">
+<option>6 derniers mois</option>
+<option>Année 2023</option>
+</select>
+</div>
+<div class="flex items-end justify-between h-56 gap-4 px-2">
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-slate-100 dark:bg-primary/10 rounded-t-lg relative group transition-all" style="height: 50%;">
+<div class="absolute inset-0 bg-primary opacity-20 group-hover:opacity-40 transition-opacity rounded-t-lg"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Jan</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-slate-100 dark:bg-primary/10 rounded-t-lg relative group transition-all" style="height: 75%;">
+<div class="absolute inset-0 bg-primary opacity-20 group-hover:opacity-40 transition-opacity rounded-t-lg"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Fév</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-slate-100 dark:bg-primary/10 rounded-t-lg relative group transition-all" style="height: 90%;">
+<div class="absolute inset-0 bg-primary opacity-60 group-hover:opacity-80 transition-opacity rounded-t-lg shadow-lg shadow-primary/20"></div>
+</div>
+<span class="text-xs font-bold text-primary uppercase">Mar</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-slate-100 dark:bg-primary/10 rounded-t-lg relative group transition-all" style="height: 40%;">
+<div class="absolute inset-0 bg-primary opacity-20 group-hover:opacity-40 transition-opacity rounded-t-lg"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Avr</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-slate-100 dark:bg-primary/10 rounded-t-lg relative group transition-all" style="height: 65%;">
+<div class="absolute inset-0 bg-primary opacity-20 group-hover:opacity-40 transition-opacity rounded-t-lg"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Mai</span>
+</div>
+<div class="flex flex-col items-center flex-1 gap-3">
+<div class="w-full bg-slate-100 dark:bg-primary/10 rounded-t-lg relative group transition-all" style="height: 80%;">
+<div class="absolute inset-0 bg-primary opacity-20 group-hover:opacity-40 transition-opacity rounded-t-lg"></div>
+</div>
+<span class="text-xs font-bold text-slate-400 uppercase">Juin</span>
+</div>
+</div>
+</div>
+<!-- Recent Activity / Project Focus -->
+<div class="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+<h3 class="text-lg font-bold mb-6">Objectifs de la semaine</h3>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="font-medium">Chiffre d'affaires cible</span>
+<span class="text-primary font-bold">75%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-primary/10 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 75%;"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="font-medium">Projets terminés</span>
+<span class="text-blue-500 font-bold">4/6</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-primary/10 h-2 rounded-full overflow-hidden">
+<div class="bg-blue-500 h-full rounded-full" style="width: 66%;"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="font-medium">Taux de réponse</span>
+<span class="text-amber-500 font-bold">98%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-primary/10 h-2 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-full rounded-full" style="width: 98%;"></div>
+</div>
+</div>
+</div>
+<div class="mt-10 p-4 bg-primary/5 rounded-lg border border-dashed border-primary/30">
+<p class="text-sm font-bold text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-base">info</span>
+                            Conseil du jour
+                        </p>
+<p class="text-xs text-slate-600 dark:text-slate-400 mt-1 italic">
+                            Répondez aux messages en moins de 15 minutes pour augmenter votre visibilité de 20%.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Recent Orders Table -->
+<div class="mt-8 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-primary/10 flex justify-between items-center">
+<h3 class="text-lg font-bold">Commandes récentes</h3>
+<a class="text-primary text-sm font-bold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50/50 dark:bg-primary/5 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+<th class="px-6 py-4">Projet / Service</th>
+<th class="px-6 py-4">Client</th>
+<th class="px-6 py-4">Date de livraison</th>
+<th class="px-6 py-4">Montant</th>
+<th class="px-6 py-4">Statut</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-primary/10">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<p class="font-semibold text-sm">Design Dashboard SaaS</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">UI/UX Design</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-primary/20 flex items-center justify-center text-[10px] font-bold">TC</div>
+<span class="text-sm font-medium">TechCorp Inc.</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">24 Oct 2023</td>
+<td class="px-6 py-4 text-sm font-bold">€850.00</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                        En cours
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<p class="font-semibold text-sm">API Backend Node.js</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Développement</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-primary/20 flex items-center justify-center text-[10px] font-bold">LD</div>
+<span class="text-sm font-medium">Lamine Diallo</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">18 Oct 2023</td>
+<td class="px-6 py-4 text-sm font-bold">€1,200.00</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                        Livré
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<p class="font-semibold text-sm">Audit SEO E-commerce</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Marketing Digital</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-slate-200 dark:bg-primary/20 flex items-center justify-center text-[10px] font-bold">AF</div>
+<span class="text-sm font-medium">Auto-Focus</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">30 Oct 2023</td>
+<td class="px-6 py-4 text-sm font-bold">€450.00</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+                                        En attente
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,32 @@
+# Variables d'environnement — ne jamais commiter
+.env
+.env.*
+*.env
+
+# Claude Code — paramètres locaux uniquement
+.claude/settings.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node
+node_modules/
+.npm/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp

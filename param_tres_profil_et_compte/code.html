@@ -1,0 +1,228 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#19e642",
+            "background-light": "#f6f8f6",
+            "background-dark": "#112114",
+          },
+          fontFamily: {
+            "display": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body { font-family: 'Manrope', sans-serif; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="layout-container flex flex-col min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl">hub</span>
+<h2 class="text-xl font-extrabold tracking-tight">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center bg-slate-100 dark:bg-primary/10 rounded-lg px-3 py-1.5 border border-transparent focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-slate-500 dark:text-primary/60">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-slate-400 dark:placeholder:text-slate-500" placeholder="Rechercher des missions..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Projets</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Messages</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors text-primary" href="#">Freelances</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-primary/10 hover:bg-primary/20 transition-colors relative">
+<span class="material-symbols-outlined text-slate-700 dark:text-slate-200">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary/20 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHIKOX2kSJbUvZ_dMhZ-lAkDlaDNKvbeSX0AWFnWdghnE3Qn6Z11KdGkts6M3NRmpG1LOWvyHmUN7LfSQphRltmPQPSHtlY6C0ZGTouYr_biBO3IdGQC9Bf2NGIYHDou6sMyGoG8uexcy4MoIJHEvR0exyY7J6j6PCemuTcdmqlYuGAKDXxHAArusxxvpIqurfYNdcSysetbZfeKuQpYo5OPf8nDr_9LfvbrKO_Nvfzbd45Lq0iOz8MVUWtV-VVNJcWvdj2j767z-2"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10">
+<div class="mb-10">
+<h1 class="text-4xl font-black tracking-tight mb-2">Paramètres du compte</h1>
+<p class="text-slate-500 dark:text-slate-400">Gérez vos informations personnelles, votre sécurité et vos préférences de paiement.</p>
+</div>
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Sidebar Navigation -->
+<aside class="w-full lg:w-72 flex flex-col gap-2">
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">person</span>
+<span>Profil Public</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/5 transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">lock</span>
+<span>Sécurité</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/5 transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span>Paiements &amp; Facturation</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/5 transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">language</span>
+<span>Langues &amp; Devises</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/10 dark:hover:bg-primary/5 transition-colors font-medium" href="#">
+<span class="material-symbols-outlined">notifications_active</span>
+<span>Notifications</span>
+</a>
+</nav>
+<hr class="my-4 border-slate-200 dark:border-primary/10"/>
+<button class="flex items-center justify-between px-4 py-3 rounded-xl border-2 border-primary/30 text-primary font-bold hover:bg-primary/5 transition-all">
+<span>Voir mon profil public</span>
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+</button>
+</aside>
+<!-- Content Area -->
+<div class="flex-1 space-y-8">
+<!-- Section: Profil Public -->
+<section class="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/10 p-6 md:p-8">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-8 border-b border-slate-100 dark:border-primary/10">
+<div class="flex items-center gap-6">
+<div class="relative group">
+<div class="w-24 h-24 rounded-2xl overflow-hidden ring-4 ring-primary/20">
+<img class="w-full h-full object-cover" data-alt="Large user profile portrait for settings" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBndGZ1q5eZLlgiggVvCerDtcPZOyIHxwuZtWCOqEYuYXXXlqsdCuSMFG_mornuJqd4BTqbkcVuCkBeoz3Uj1ZeNZCi5YXwfJDjAVg1ZjzwCxmbCHu3CYnQrCMXeY6QxXfQ-Yn0ZNDysn5kLEHhUQ02OQORqleJxHdLCBWLGO7F4VqI19WncTrstGeAntqYH-tiXwKw7pQaj_CFM7_MworXUlBFkFxiqMD21_xv-qvsMoFFfULC00jr3U5gRx5FhdS38VUJAsc4ssZp"/>
+</div>
+<button class="absolute -bottom-2 -right-2 p-2 bg-primary text-background-dark rounded-lg shadow-xl hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-sm">photo_camera</span>
+</button>
+</div>
+<div>
+<h3 class="text-2xl font-bold">Jean Dupont</h3>
+<p class="text-slate-500 dark:text-slate-400">Développeur Fullstack • Dakar, Sénégal</p>
+</div>
+</div>
+<button class="bg-primary text-background-dark px-6 py-2.5 rounded-lg font-bold hover:opacity-90 transition-opacity">
+                Enregistrer les modifications
+              </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-primary/60">Nom Complet</label>
+<input class="w-full bg-slate-50 dark:bg-background-dark border-slate-200 dark:border-primary/20 rounded-lg px-4 py-3 focus:ring-primary focus:border-primary" type="text" value="Jean Dupont"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-primary/60">Email</label>
+<input class="w-full bg-slate-50 dark:bg-background-dark border-slate-200 dark:border-primary/20 rounded-lg px-4 py-3 focus:ring-primary focus:border-primary" type="email" value="jean.dupont@email.sn"/>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-primary/60">Bio Professionnelle</label>
+<textarea class="w-full bg-slate-50 dark:bg-background-dark border-slate-200 dark:border-primary/20 rounded-lg px-4 py-3 focus:ring-primary focus:border-primary" placeholder="Décrivez votre expertise en quelques phrases..." rows="4">Passionné par le développement web depuis 10 ans, j'accompagne les startups africaines dans la création de solutions innovantes et scalables.</textarea>
+</div>
+</div>
+</section>
+<!-- Section: Sécurité (Password Change) -->
+<section class="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/10 p-6 md:p-8">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">security</span>
+<h3 class="text-xl font-bold">Sécurité du compte</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-500">Mot de passe actuel</label>
+<input class="w-full bg-slate-50 dark:bg-background-dark border-slate-200 dark:border-primary/20 rounded-lg px-4 py-3" placeholder="••••••••" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-semibold text-slate-500">Nouveau mot de passe</label>
+<input class="w-full bg-slate-50 dark:bg-background-dark border-slate-200 dark:border-primary/20 rounded-lg px-4 py-3" placeholder="••••••••" type="password"/>
+</div>
+<div class="flex items-end">
+<button class="w-full bg-slate-200 dark:bg-primary/20 text-slate-700 dark:text-slate-100 px-6 py-3 rounded-lg font-bold hover:bg-primary hover:text-background-dark transition-all">
+                  Mettre à jour
+                </button>
+</div>
+</div>
+</section>
+<!-- Section: Préférences Régionales -->
+<section class="bg-white dark:bg-primary/5 rounded-2xl border border-slate-200 dark:border-primary/10 p-6 md:p-8">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">public</span>
+<h3 class="text-xl font-bold">Langue et Devise</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400">translate</span>
+<label class="text-sm font-bold uppercase tracking-wider text-slate-500">Langue de l'interface</label>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-primary bg-primary/10 font-bold">
+<span>Français</span>
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+</button>
+<button class="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-primary/20 hover:border-primary/40 font-medium">
+<span>English</span>
+</button>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400">monetization_on</span>
+<label class="text-sm font-bold uppercase tracking-wider text-slate-500">Devise préférée</label>
+</div>
+<select class="w-full bg-slate-50 dark:bg-background-dark border-slate-200 dark:border-primary/20 rounded-lg px-4 py-3 focus:ring-primary focus:border-primary appearance-none">
+<option selected="" value="FCFA">FCFA (Franc CFA)</option>
+<option value="EUR">EUR (€ Euro)</option>
+<option value="USD">USD ($ US Dollar)</option>
+<option value="NGN">NGN (Naira)</option>
+</select>
+<p class="text-xs text-slate-500 dark:text-slate-400 italic">Note: Les conversions sont approximatives et basées sur le taux du marché en temps réel.</p>
+</div>
+</div>
+</section>
+<!-- Danger Zone -->
+<div class="pt-8 border-t border-slate-200 dark:border-primary/10">
+<div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<h4 class="text-red-500 font-bold text-lg">Désactiver le compte</h4>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Ceci masquera votre profil de la plateforme jusqu'à votre prochaine connexion.</p>
+</div>
+<button class="px-6 py-2 border border-red-500/40 text-red-500 rounded-lg font-bold hover:bg-red-500 hover:text-white transition-all">
+                Désactiver
+              </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Simple Footer -->
+<footer class="mt-auto border-t border-slate-200 dark:border-primary/10 py-6 px-10 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-xs">
+<div class="flex items-center gap-4">
+<span>© 2024 AfriqueFreelance. Tous droits réservés.</span>
+<a class="hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary" href="#">Politique de confidentialité</a>
+</div>
+<div class="flex items-center gap-4">
+<a class="w-8 h-8 rounded-full bg-slate-100 dark:bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">share</span>
+</a>
+<a class="w-8 h-8 rounded-full bg-slate-100 dark:bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors" href="#">
+<span class="material-symbols-outlined text-sm">mail</span>
+</a>
+</div>
+</footer>
+</div>
+</body></html>

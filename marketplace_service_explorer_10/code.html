@@ -1,0 +1,408 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<!-- Navbar Component -->
+<header class="sticky top-0 z-50 border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark/95 backdrop-blur-md px-4 md:px-10 lg:px-20 py-3">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<div class="hidden lg:flex relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-500" placeholder="Rechercher un service..." type="text"/>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Explorer</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Devenir Freelance</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Messages</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-primary/20 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/30 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile picture of a male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIV__LDiOhTfEOi3gesxBKdeZL0Ga8hbHTcskJienod7mWrPKDFwwR4p6rQ08RkD8k1GRhzKsKGQK2NEoxD5dlaXWgEXtuO12muKkO6biFpzzeMOEHbSgtLRjZ5qc_HOCAFpn99gzSE0TVZvkN516tCAisyq1ph7XpGl3DYnIf3gynU6jpGyra_6S61eSHT6XP4UDcZk1uIcm-GV1QGRr6QJSCjqKn0W18c27KDbpLkxljvCk85wfJyZF4PX3ZYPGr0nESznVxKIN"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
+<!-- Sidebar Filters -->
+<aside class="w-full lg:w-72 p-6 border-r border-slate-200 dark:border-primary/10 shrink-0">
+<div class="sticky top-24">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Filtres avancés</h3>
+<button class="text-xs text-primary font-bold uppercase tracking-wider">Réinitialiser</button>
+</div>
+<div class="space-y-8">
+<!-- Categories -->
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary">category</span> Catégories</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="space-y-2">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Design &amp; Graphisme</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Développement Web</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded border-slate-300 dark:border-primary/40 text-primary focus:ring-primary bg-transparent" type="checkbox"/>
+<span class="text-sm group-hover:text-primary">Rédaction &amp; Traduction</span>
+</label>
+</div>
+</div>
+<!-- Price Range -->
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary">payments</span> Prix</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="flex items-center gap-2">
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg p-2 text-sm" placeholder="Min" type="number"/>
+<span class="text-slate-400">-</span>
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg p-2 text-sm" placeholder="Max" type="number"/>
+</div>
+</div>
+<!-- Delivery Time -->
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary">schedule</span> Délai de livraison</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<select class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg p-2 text-sm focus:ring-primary">
+<option>Peu importe</option>
+<option>Jusqu'à 24h</option>
+<option>Jusqu'à 3 jours</option>
+<option>Jusqu'à 7 jours</option>
+</select>
+</div>
+<!-- Location -->
+<div>
+<button class="flex items-center justify-between w-full mb-4">
+<span class="flex items-center gap-2 font-semibold"><span class="material-symbols-outlined text-primary">public</span> Pays du freelance</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg py-2 pl-8 text-sm" placeholder="Rechercher pays..." type="text"/>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<section class="flex-1 p-6 lg:p-10">
+<!-- Breadcrumbs & Header -->
+<div class="mb-8">
+<nav class="flex items-center gap-2 text-xs text-slate-500 mb-4">
+<a class="hover:text-primary" href="#">Accueil</a>
+<span class="material-symbols-outlined text-[10px]">chevron_right</span>
+<span class="text-primary font-medium">Design &amp; Graphisme</span>
+</nav>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-extrabold mb-1">Design de Logo</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Trouvez les meilleurs designers de logo pour votre projet parmi 1,240 services disponibles.</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="text-sm font-medium whitespace-nowrap">Trier par:</span>
+<select class="bg-white dark:bg-primary/20 border border-slate-200 dark:border-primary/40 rounded-lg px-3 py-2 text-sm font-medium focus:ring-primary">
+<option>Pertinence</option>
+<option>Les plus récents</option>
+<option>Prix croissant</option>
+<option>Prix décroissant</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Services Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+<!-- Service Card 1 -->
+<div class="group bg-white dark:bg-primary/5 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Modern minimalist logo design showcase" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWTJVaU0OhQKSuBkN6_g4OdHfJHqbHz-GxRSCjT8E81F4DlAO6yMHGXLMBt4rGdSUt0BJRrI84BT35HkFYaPMFfMbUsu40cBlHz25Fc-Z1bsjVklR5yyPZlZw4yhmVVG9t8lpl5rdMJ-en9meHaJVyE4DtkUfuaRfeLOCFJ-S48aWV7MaKrLnul3jJtcBXFDbYYIBIcTIODdFF31BlVCFShcyKOHQGXiPbczXuI25p3N5TF1sdJ7X8K5nlR56Cc3HVy08XckpLnX6V"/>
+<button class="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/50 backdrop-blur rounded-full text-slate-900 dark:text-white shadow-sm hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-3 mb-3">
+<img class="size-6 rounded-full object-cover border border-primary/20" data-alt="Female graphic designer profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDox-P8oTdr0s1nV2zscclodnxQu4nNYSUcwRmuDP1y5TCcw4iAQLW8KapGpL3ND-kF93x1LNssnG4v3enP2QNMB89tGFa4vS-UG3AqT3jv5Pxw8luZzZBOxX8igx50KTklh6-v2VxIk-MIrCPTobNKJ3hLF1HZVxe5oHe5Mxvl1Sj_sU_feRP0B4Cz8Y-LoH8effLdMsgDfU8FKThVSPbe31CSTQHnZ-mmMlzHM1dR7MhS_s5hHVR9bB2ygG7ZCDPlcM8ASgVnRy7d"/>
+<div>
+<h4 class="text-xs font-bold leading-none">Sarah D.</h4>
+<p class="text-[10px] text-primary font-medium">Top Prestataire</p>
+</div>
+</div>
+<a class="block text-sm font-bold mb-3 hover:text-primary line-clamp-2 leading-snug" href="#">Je vais créer un logo minimaliste et moderne pour votre entreprise</a>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-xs font-bold">4.9</span>
+<span class="text-xs text-slate-500">(124)</span>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-primary/10 flex items-center justify-between">
+<span class="material-symbols-outlined text-slate-400 text-sm">menu</span>
+<div class="text-right">
+<p class="text-[10px] uppercase text-slate-500 font-bold">À partir de</p>
+<p class="text-lg font-extrabold text-primary leading-none">25 000 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Service Card 2 -->
+<div class="group bg-white dark:bg-primary/5 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Abstract colorful geometric logo concept" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAVZY-7lOQ_06zhbrZswY6TDEb14c7ahVneWzxNG_DUA7z2v-qUjbKvI57KpiacVdTDG_apltAIKOdqvHQZJTcxY4X7ETg_WtfqErqVCcK_QgZYDlzD0palLZeZ4A-OjlV2nb1fdxtp9VqVlP6fOCrs2TMPEjRslAE86s2vfGztiU7BmjR4fk46VIEtatztgwxk3hH63O6KMl61wQO5U1ycbzX6En2Pxdz3p4KLbI3WARVSaEsZjpBzBA2Y7S1wbbZbQYzlZc2TZ0RL"/>
+<button class="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/50 backdrop-blur rounded-full text-slate-900 dark:text-white shadow-sm hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-3 mb-3">
+<img class="size-6 rounded-full object-cover border border-primary/20" data-alt="Male designer profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqQEnQjIpLaRuw6nA0STK79C42YJIabBaSuZA5Hoctqto1iIZDttabrCCYMVYnX40Gv4q1pyqPnFBluTeRDMF-KdaUy7MYHoIVKLG5VttjHbMZ98hHa3ba_AN_Tz_Xwe34kRncFumxp9LxjNFverYbQUnfWN1II-mtduj_HuwIPJxzRJ3Bay38GlppFNugqeze6PDjbRkjTRc4l3IF4HYbX2KN_gsA3AMjj2_BleyK5E0tYkPF8PuSP5Fff02kXNYXhGuuPdJrmUcI"/>
+<div>
+<h4 class="text-xs font-bold leading-none">Amadou B.</h4>
+<p class="text-[10px] text-slate-500 font-medium">Niveau 2</p>
+</div>
+</div>
+<a class="block text-sm font-bold mb-3 hover:text-primary line-clamp-2 leading-snug" href="#">Je vais designer votre identité visuelle complète et logo 3D</a>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-xs font-bold">5.0</span>
+<span class="text-xs text-slate-500">(48)</span>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-primary/10 flex items-center justify-between">
+<span class="material-symbols-outlined text-slate-400 text-sm">menu</span>
+<div class="text-right">
+<p class="text-[10px] uppercase text-slate-500 font-bold">À partir de</p>
+<p class="text-lg font-extrabold text-primary leading-none">45 000 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Service Card 3 -->
+<div class="group bg-white dark:bg-primary/5 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Vintage retro style brand logo design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB56W2IpqKWwqKHJrMw1ykQs3zeQqF5K2n-B6nJMLfmmGYuyZMTZ_ibcl5II9chYx6JlZaw25Ls1wG7X5UIAqV7T6uHxTgRnCKk283qm4x7noho8GoKrgBsimvBDwOj1LXB_yVct7yNj5hAArD-5MsrkSDvgG_jzQgXmyHCTvWV1NfrAzpkR86_qYzVdNnwycf4B171Kjxi9QBTSOx4DZJqZR8vjiuFH-OmpiS6pfZBL0IDC7D_yfBrFxWDFbBC8qaMNjTm-KziDBKO"/>
+<button class="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/50 backdrop-blur rounded-full text-slate-900 dark:text-white shadow-sm hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-3 mb-3">
+<img class="size-6 rounded-full object-cover border border-primary/20" data-alt="Expert freelancer profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9pFFkj-YGhyp0_Vz6ydFStXYIo65ymFq6CrjBKZ2UZzeq-25P9nIujlbttqer-Gy0UQdlRkHtVlVmckklhpRPagzm5niPpoXh_r3nkExoZn_is8LXvJeLp-ebdN_gjH8h2RG33bb4GRPnXTEXG0pb7pa3Z0CRXCZH4P6WJqykWGMtMnNJrefDG1SWfYbP-lHpGBizbXcfgk_qwW5MpkZywnJ53IW7ChUCevsm0HdyicyCAcGlRpqNOTGxSOxTrESbOpft9YNdKr-9"/>
+<div>
+<h4 class="text-xs font-bold leading-none">Kevin K.</h4>
+<p class="text-[10px] text-primary font-medium">Expert Studio</p>
+</div>
+</div>
+<a class="block text-sm font-bold mb-3 hover:text-primary line-clamp-2 leading-snug" href="#">Je vais créer un logo vintage luxueux pour votre marque premium</a>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-xs font-bold">4.8</span>
+<span class="text-xs text-slate-500">(82)</span>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-primary/10 flex items-center justify-between">
+<span class="material-symbols-outlined text-slate-400 text-sm">menu</span>
+<div class="text-right">
+<p class="text-[10px] uppercase text-slate-500 font-bold">À partir de</p>
+<p class="text-lg font-extrabold text-primary leading-none">60 000 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Service Card 4 -->
+<div class="group bg-white dark:bg-primary/5 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Tech industry startup logo concepts" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAILmceWnG4vg_Mj5ExlMMy5aoDfCi2pHOFgZyw-PzUcjCMfWuetfpoNMJoWwZPiLVrknoqoeHPKagVs3GBOHqritkHtF2gw0l5ZdShe14ejF0gVmsGGEUA3_IPWRK3K8mdyYm3AoNUW9yNOwtAxWLaZv9fhThVLJRqLGTxyj6if22hDmPuK8V4iuCxrWlgqt25ePlMtNV8Izdufw_qAoQwRtyNectIKuP09_G77ohRb4Mh3hyifwKPZI57vwQqz3fFTcZODAEDmvuq"/>
+<button class="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/50 backdrop-blur rounded-full text-slate-900 dark:text-white shadow-sm hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-3 mb-3">
+<img class="size-6 rounded-full object-cover border border-primary/20" data-alt="Professional woman designer avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuChig8U7EY9aUs1E7DpcT8juNo69_x6RU26nCYoSO6tYYSCokC8IjexTAEJ4LgUe7oyOIn5eVq1WQbsJgmtxhtbhx6VVoCT2K_0glLDzjZxqI-jYVjQSlLZ-KdUg4teZvQVGSIUsu5PVxGCf-AFCjmLKVxml_UM4wCJ363JXs5OynQ9eBEdMFn5jHcPojRWsBEtffQbc5nYAXGxqgI7Qmm77E9n1hm4s0nWA4H7aIdlLGbLILoju-m0tOo2jxv4Vdz-5KQHvG4UnWI8"/>
+<div>
+<h4 class="text-xs font-bold leading-none">Fatou Z.</h4>
+<p class="text-[10px] text-slate-500 font-medium">Nouveau</p>
+</div>
+</div>
+<a class="block text-sm font-bold mb-3 hover:text-primary line-clamp-2 leading-snug" href="#">Je vais dessiner un logo unique illustré à la main</a>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-xs font-bold">5.0</span>
+<span class="text-xs text-slate-500">(12)</span>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-primary/10 flex items-center justify-between">
+<span class="material-symbols-outlined text-slate-400 text-sm">menu</span>
+<div class="text-right">
+<p class="text-[10px] uppercase text-slate-500 font-bold">À partir de</p>
+<p class="text-lg font-extrabold text-primary leading-none">15 000 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Service Card 5 -->
+<div class="group bg-white dark:bg-primary/5 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Corporate professional brand identity design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCa1EOgO3w6vRLYNTk718efq9qHZntH77iG81RFowL6dVsVpiG2tnGP0M46yHaQUEoSa_VDFfVbsnvBMd6IUthfPSzJLB8s_pA3akkMK9-BzM3K9KDqMnnUtEB1Nawg_2ZV8LGeNOohjMwuYpVtpY7oxqOuYNQDFuVKOlt-GdMxEX0BWpAAb2AA-LfbIgIJJYwzcfhdghaExK2Ko53W5BMgGjzUj1fjWSkdITr1leWq_6ISgTSXStJixhNM7J3u95ZI5pC-1HIEMl0d"/>
+<button class="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/50 backdrop-blur rounded-full text-slate-900 dark:text-white shadow-sm hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-3 mb-3">
+<img class="size-6 rounded-full object-cover border border-primary/20" data-alt="Logo designer profile portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJk0kxxc-ciEW6CSAJ6fWDCgUQDGXzBpJJkaOi3qdvMa0jtPksaCyo3tsyNgAnuGW-aKfrhzqgGleTRSUXzk9nHmp3vZYgANxQoD4Alb0lECC9_652GAoxPUs750blmPON3OK9M0tAPEU4RwEWiUbSV_KP__nqI5saceONJgNsoRnlZoSgue5nPOtmySCLB1oKnL-xXD1UP19HgEODTcrhV53_kw7Nuj_OTksY5RwulPBcpIb5Cy_DaoMfgqdKLl_N_jxElxnypneo"/>
+<div>
+<h4 class="text-xs font-bold leading-none">Grace M.</h4>
+<p class="text-[10px] text-slate-500 font-medium">Niveau 1</p>
+</div>
+</div>
+<a class="block text-sm font-bold mb-3 hover:text-primary line-clamp-2 leading-snug" href="#">Je vais concevoir un logo créatif et flat design en 24h</a>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-xs font-bold">4.7</span>
+<span class="text-xs text-slate-500">(31)</span>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-primary/10 flex items-center justify-between">
+<span class="material-symbols-outlined text-slate-400 text-sm">menu</span>
+<div class="text-right">
+<p class="text-[10px] uppercase text-slate-500 font-bold">À partir de</p>
+<p class="text-lg font-extrabold text-primary leading-none">20 000 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Service Card 6 -->
+<div class="group bg-white dark:bg-primary/5 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:shadow-xl hover:shadow-primary/5 transition-all">
+<div class="relative aspect-[4/3] overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Hand drawn sketch of a logo design" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7aKjCnThgrDmCLeAPzUWbkG7CdKVfPJqh27yoyCkMrZW-Yx_kb0lv9dgG98W5DPyGmZ3rdgUBqYMUNbdUcfNdapSpmJKtcVRXrvCRq1B22AC9qB___CKZVahLeUu7sa6VNW03QTifldOdzVbrncXritiQdGR1UUUr12rusqz7Pa1rDTKh-AAqxdQzR8vLFV6miTPVADnryKp9Mj1dGgfBnbQFRP79N1F21j6Ek70xrtO9S1dJ98vy3CaSrqfu_Q0sd6LbGBFcLqxu"/>
+<button class="absolute top-3 right-3 p-2 bg-white/90 dark:bg-black/50 backdrop-blur rounded-full text-slate-900 dark:text-white shadow-sm hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-sm">favorite</span>
+</button>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-3 mb-3">
+<img class="size-6 rounded-full object-cover border border-primary/20" data-alt="Portrait of a male creative freelancer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3cyBSIVUQKVVGbHk52k8B9qe3lw_IM4c1c2-MvyOMmxyPIlsT6tLVUIPNMorUDGdRmSk5nAMaep1BKRUWObGoZQUYkOmpDVvYvEQoyEwPmw7lLsUNnpJdYD3dWh2dBTgpQR7FdjK4Rq9cmqT7pGq6zvEacftaynR4vD21-8IEmVHaa1lPtIMTcBSaR91T0dBidwC9k-71xxJ5CofPKCU3WbBnAtearpQ8kzgSrOKHW-XKKG1kHh8aCzYEz3gqY2C2nTsH7mAMxZH-"/>
+<div>
+<h4 class="text-xs font-bold leading-none">Oumar L.</h4>
+<p class="text-[10px] text-primary font-medium">Top Prestataire</p>
+</div>
+</div>
+<a class="block text-sm font-bold mb-3 hover:text-primary line-clamp-2 leading-snug" href="#">Je vais redesigner votre ancien logo pour le moderniser</a>
+<div class="flex items-center gap-1 mb-4">
+<span class="material-symbols-outlined text-yellow-500 text-sm">star</span>
+<span class="text-xs font-bold">4.9</span>
+<span class="text-xs text-slate-500">(215)</span>
+</div>
+<div class="pt-3 border-t border-slate-100 dark:border-primary/10 flex items-center justify-between">
+<span class="material-symbols-outlined text-slate-400 text-sm">menu</span>
+<div class="text-right">
+<p class="text-[10px] uppercase text-slate-500 font-bold">À partir de</p>
+<p class="text-lg font-extrabold text-primary leading-none">35 000 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-center gap-2 py-8">
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors font-bold">2</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors font-bold">3</button>
+<span class="px-2 text-slate-400">...</span>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors font-bold">12</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-slate-200 dark:border-primary/20 hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</section>
+</main>
+<!-- Footer for context -->
+<footer class="border-t border-slate-200 dark:border-primary/10 py-10 px-4 md:px-20 bg-white dark:bg-background-dark/50">
+<div class="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="col-span-2 md:col-span-1">
+<div class="flex items-center gap-2 mb-4">
+<div class="size-6 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xs">rocket_launch</span>
+</div>
+<h2 class="text-lg font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<p class="text-sm text-slate-500">La première plateforme de services freelance pour l'Afrique.</p>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Catégories</h4>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Design &amp; Graphisme</a></li>
+<li><a class="hover:text-primary" href="#">Marketing Digital</a></li>
+<li><a class="hover:text-primary" href="#">Programmation &amp; Tech</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Support</h4>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Aide &amp; Support</a></li>
+<li><a class="hover:text-primary" href="#">Confiance &amp; Sécurité</a></li>
+<li><a class="hover:text-primary" href="#">Vendre sur AfriqueFreelance</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Communauté</h4>
+<div class="flex gap-4">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">social_leaderboard</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">alternate_email</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">share</span>
+</div>
+</div>
+</div>
+<div class="max-w-[1440px] mx-auto pt-10 mt-10 border-t border-slate-100 dark:border-primary/5 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-xs text-slate-500">© 2024 AfriqueFreelance. Tous droits réservés.</p>
+<div class="flex gap-6 text-xs text-slate-500">
+<a class="hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary" href="#">Politique de confidentialité</a>
+</div>
+</div>
+</footer>
+</body></html>

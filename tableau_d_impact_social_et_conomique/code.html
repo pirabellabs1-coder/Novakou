@@ -1,0 +1,271 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#19e6bd",
+            "background-light": "#f6f8f8",
+            "background-dark": "#11211e",
+          },
+          fontFamily: {
+            "display": ["Manrope"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Header / Navigation -->
+<nav class="border-b border-primary/10 bg-background-light/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-20">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-icons text-background-dark">hub</span>
+</div>
+<span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Afrique<span class="text-primary">Freelance</span></span>
+</div>
+<div class="hidden md:flex items-center space-x-8">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Vision</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Talents</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Entreprises</a>
+<a class="text-sm font-medium text-primary border-b-2 border-primary pb-1" href="#">Impact Social</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="px-6 py-2.5 rounded-full bg-primary text-background-dark font-bold text-sm hover:opacity-90 transition-all">
+            Rejoindre l'Impact
+          </button>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<!-- Hero Section / Title -->
+<div class="mb-16">
+<h1 class="text-4xl md:text-5xl font-extrabold mb-4">Tableau d'Impact <span class="text-primary">Social &amp; Économique</span></h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg max-w-2xl leading-relaxed">
+        Suivez en temps réel la transformation économique opérée par notre communauté. Chaque projet freelance contribue au développement durable du continent.
+      </p>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+<div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-primary/10 p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-icons text-7xl">work_outline</span>
+</div>
+<h3 class="text-slate-500 dark:text-slate-400 font-medium mb-2">Emplois créés</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-bold">12,450</span>
+<span class="text-primary text-sm font-semibold flex items-center"><span class="material-icons text-xs">arrow_upward</span> +15%</span>
+</div>
+<div class="mt-4 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full">
+<div class="h-full bg-primary rounded-full" style="width: 75%"></div>
+</div>
+<p class="mt-4 text-sm text-slate-400">Impact direct sur les économies locales</p>
+</div>
+<div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-primary/10 p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-icons text-7xl">payments</span>
+</div>
+<h3 class="text-slate-500 dark:text-slate-400 font-medium mb-2">Revenus générés (Diaspora)</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-bold">€4.8M</span>
+<span class="text-primary text-sm font-semibold flex items-center"><span class="material-icons text-xs">arrow_upward</span> +22%</span>
+</div>
+<div class="mt-4 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full">
+<div class="h-full bg-primary rounded-full" style="width: 62%"></div>
+</div>
+<p class="mt-4 text-sm text-slate-400">Transferts de compétences et de capitaux</p>
+</div>
+<div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-primary/10 p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-icons text-7xl">volunteer_activism</span>
+</div>
+<h3 class="text-slate-500 dark:text-slate-400 font-medium mb-2">Projets locaux soutenus</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-4xl font-bold">342</span>
+<span class="text-primary text-sm font-semibold flex items-center"><span class="material-icons text-xs">check_circle</span> Actifs</span>
+</div>
+<div class="mt-4 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full">
+<div class="h-full bg-primary rounded-full" style="width: 89%"></div>
+</div>
+<p class="mt-4 text-sm text-slate-400">Initiatives à fort impact social</p>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+<!-- Interactive Map Section -->
+<div class="lg:col-span-2 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-primary/10 rounded-xl overflow-hidden flex flex-col">
+<div class="p-6 border-b border-slate-200 dark:border-primary/10 flex justify-between items-center">
+<div>
+<h2 class="text-xl font-bold">Flux Économiques &amp; Talents</h2>
+<p class="text-sm text-slate-500">Visualisation géographique de l'activité</p>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> Temps Réel
+            </span>
+</div>
+</div>
+<div class="relative flex-grow bg-slate-100 dark:bg-background-dark overflow-hidden min-h-[450px]">
+<!-- Map Placeholder -->
+<img class="w-full h-full object-cover opacity-50 mix-blend-luminosity" data-alt="Stylized dark world map showing Africa connections" data-location="Africa" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYZKCGfwFw-UA2gDoBleM9Yg7HS3s4tnky3-jMH0CcTY5V_56YvF70A-SZEG8gZcneF1qAddSw9_hElVyPA0yVOFu5wqHOOip7GzapsZb8tT1cu0B63a47bth1SvXFmE-oSx3iMsS_6iQ71V1kRLFum9ItG_KUJGpfPwT9qxxXz1go6wDBK9Gx6yDQOZLfXA8_yKHfqxWpyZhe4jRE5O4Lw0wEUij-TQGy_dxwvaCxWzCYBdGbPEfmHisAIv1XpvcNeZcvddmkHs0d"/>
+<!-- Map Overlay Markers -->
+<div class="absolute top-1/2 left-1/3 group">
+<div class="w-4 h-4 bg-primary rounded-full animate-ping absolute"></div>
+<div class="w-4 h-4 bg-primary rounded-full relative z-10 border-2 border-background-dark"></div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-slate-900 text-white p-2 rounded text-[10px] hidden group-hover:block whitespace-nowrap z-20 shadow-xl border border-primary/20">
+<span class="font-bold">Lagos, Nigeria</span><br/>
+              1,240 Freelancers actifs
+            </div>
+</div>
+<div class="absolute top-1/3 right-1/4 group">
+<div class="w-4 h-4 bg-primary rounded-full animate-ping absolute"></div>
+<div class="w-4 h-4 bg-primary rounded-full relative z-10 border-2 border-background-dark"></div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-slate-900 text-white p-2 rounded text-[10px] hidden group-hover:block whitespace-nowrap z-20 shadow-xl border border-primary/20">
+<span class="font-bold">Nairobi, Kenya</span><br/>
+              850 Projets tech
+            </div>
+</div>
+<div class="absolute bottom-1/4 left-1/2 group">
+<div class="w-4 h-4 bg-primary rounded-full animate-ping absolute"></div>
+<div class="w-4 h-4 bg-primary rounded-full relative z-10 border-2 border-background-dark"></div>
+<div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 bg-slate-900 text-white p-2 rounded text-[10px] hidden group-hover:block whitespace-nowrap z-20 shadow-xl border border-primary/20">
+<span class="font-bold">Johannesburg, SA</span><br/>
+              €1.2M flux annuel
+            </div>
+</div>
+<!-- Connecting Lines Decorative -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-30">
+<path d="M 300 300 Q 500 250 800 280" fill="none" stroke="#19e6bd" stroke-dasharray="4 4" stroke-width="1.5"></path>
+<path d="M 800 280 Q 600 500 450 600" fill="none" stroke="#19e6bd" stroke-dasharray="4 4" stroke-width="1.5"></path>
+</svg>
+<!-- Legend -->
+<div class="absolute bottom-4 left-4 p-4 bg-white/10 dark:bg-slate-900/80 backdrop-blur-md rounded-lg border border-primary/20 text-[10px] uppercase tracking-widest text-slate-400">
+<div class="flex items-center gap-2 mb-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span>Hubs d'activité intense</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-0.5 bg-primary/40 border-t border-dashed border-primary"></span>
+<span>Transferts de fonds</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Social Mission Feed -->
+<div class="bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-primary/10 rounded-xl overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-primary/10">
+<h2 class="text-xl font-bold">Histoires d'Impact</h2>
+<p class="text-sm text-slate-500">Témoignages du terrain</p>
+</div>
+<div class="p-6 space-y-6">
+<div class="flex gap-4">
+<img class="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20" data-alt="Portrait of a young African woman freelancer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo_qyvcHVDUOQUecw9sPZTQTuOQsFcGHf1H0ojK8hoXj4z7lpZkAhed4OOjd4Bd5V6v7AOjZm3346CEg90pG7-wdNEGwbVJdDvmeFB26ajdaHke0cZyACFs0R9Y9pYjAXtwuWyo6jnBw5POloc0S4O23yCcqJ6eTxXc2WEEmMK5hzewKUPltLETSrSHdAR61L2RFRYwXJ42gsvKYwbhtPWQK0b9bJwiZ38hwwiwbptPkwfyF9PhKJBIWrfyf19bgB6V-E6kXamZ7Vi"/>
+<div>
+<p class="text-sm font-semibold">Amara K.</p>
+<p class="text-xs text-slate-500 mb-2">UX Designer • Lagos</p>
+<p class="text-sm text-slate-400 leading-relaxed italic">"Grâce à AfriqueFreelance, j'ai pu financer mon propre studio et former 3 nouveaux talents locaux."</p>
+</div>
+</div>
+<div class="flex gap-4">
+<img class="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20" data-alt="Portrait of a professional African man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv30DKqcKQJi8qsOMMi5BmwLuS6VSrsWdGSBa8iBc5uB6cEgo9mKCjpH_leFONTIMu7cC72797u26zUkaBkK0R0Z4ITeyFM48d0o3wjeogjekckkVT1p1N7IzDKxLKMpFnMclH-mmD84WBtZrb06W4y3o_0VjAu9Jq71TfoODw6_-Fdc38RnrjfY699Mmt6JZWOf9tsR8vXVoD8WG467cOlpdBfQxLWX__g6D3YyaOnulYSLAVd7TY_wxS6r1hyove2lQrFtWzdsSB"/>
+<div>
+<p class="text-sm font-semibold">David O.</p>
+<p class="text-xs text-slate-500 mb-2">DevOps Engineer • Diaspora (Berlin)</p>
+<p class="text-sm text-slate-400 leading-relaxed italic">"Je réinvestis 20% de mes revenus de plateforme dans un incubateur agricole à Nairobi via l'outil Impact."</p>
+</div>
+</div>
+<div class="flex gap-4">
+<img class="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20" data-alt="Portrait of an African woman entrepreneur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG_OJyEqYFXRyMbtf_pjGo0doX-klxNtut0sHqxGdGDCEbpPborrmUKb1GT3qSCQgPbSYgpr2TaiBbVD0cJ2tIopHY6k4lt_M3QII5bLuYzA131l5-X9hIapxT5dJS9ZCBRnOdDgmF0ec_dWxcrKLSZ-sweKCktTkiDjPD46OS0qKmN7xcS1hOFnQrUmSLMTO7jjyjsR63Uq7rbpObR-zwMvWvpfmz06AnzUXJnNnrUfvP0uLqN4jgdYvzbseW_xFltKdvTuoX0Z53"/>
+<div>
+<p class="text-sm font-semibold">Fatoumata D.</p>
+<p class="text-xs text-slate-500 mb-2">Social Entrepreneur • Dakar</p>
+<p class="text-sm text-slate-400 leading-relaxed italic">"Le soutien de la communauté nous a permis de déployer l'énergie solaire dans deux villages reculés."</p>
+</div>
+</div>
+<button class="w-full py-3 rounded-lg border border-primary/20 text-primary text-sm font-bold hover:bg-primary/5 transition-colors">
+            Voir plus de témoignages
+          </button>
+</div>
+</div>
+</div>
+<!-- Sustainable Development Goals (SDGs) -->
+<div class="bg-primary/5 border border-primary/10 rounded-2xl p-10">
+<div class="flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="max-w-md">
+<h2 class="text-2xl font-bold mb-4">Notre alignement avec les ODD</h2>
+<p class="text-slate-400 leading-relaxed">
+            Nous mesurons notre succès à travers les Objectifs de Développement Durable des Nations Unies, en nous concentrant sur l'éducation de qualité et la croissance économique décente.
+          </p>
+</div>
+<div class="flex flex-wrap justify-center gap-6">
+<div class="flex flex-col items-center gap-2">
+<div class="w-16 h-16 bg-[#E5243B] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">1</div>
+<span class="text-[10px] uppercase font-bold text-slate-500">Pas de pauvreté</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-16 h-16 bg-[#A21942] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">8</div>
+<span class="text-[10px] uppercase font-bold text-slate-500">Travail Décent</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-16 h-16 bg-[#FD6925] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">9</div>
+<span class="text-[10px] uppercase font-bold text-slate-500">Innovation</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="w-16 h-16 bg-[#DD1367] rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg">5</div>
+<span class="text-[10px] uppercase font-bold text-slate-500">Égalité Sexes</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Call to Action Footer Section -->
+<div class="mt-20 text-center py-12 border-t border-slate-200 dark:border-primary/10">
+<h3 class="text-2xl font-bold mb-6">Prêt à amplifier votre impact ?</h3>
+<div class="flex flex-col sm:flex-row justify-center gap-4">
+<button class="px-8 py-4 bg-primary text-background-dark font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+          Devenir Partenaire d'Impact
+        </button>
+<button class="px-8 py-4 bg-transparent border border-slate-700 dark:border-slate-300 font-bold rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          Télécharger le Rapport Annuel
+        </button>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-900/50 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 bg-primary/20 rounded flex items-center justify-center">
+<span class="material-icons text-primary text-sm">hub</span>
+</div>
+<span class="font-bold text-slate-700 dark:text-slate-200">AfriqueFreelance</span>
+</div>
+<div class="flex gap-8 text-sm text-slate-500">
+<a class="hover:text-primary" href="#">Politique de Confidentialité</a>
+<a class="hover:text-primary" href="#">Conditions d'Utilisation</a>
+<a class="hover:text-primary" href="#">Transparence</a>
+</div>
+<div class="flex gap-4">
+<span class="material-icons text-slate-400 hover:text-primary cursor-pointer">facebook</span>
+<span class="material-icons text-slate-400 hover:text-primary cursor-pointer">language</span>
+<span class="material-icons text-slate-400 hover:text-primary cursor-pointer">public</span>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-slate-500">
+        © 2024 AfriqueFreelance. Propulser le développement de l'Afrique par le talent numérique.
+      </div>
+</div>
+</footer>
+
+```</body></html>

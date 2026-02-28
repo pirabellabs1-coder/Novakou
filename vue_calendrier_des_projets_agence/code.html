@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="bg-white dark:bg-slate-900 border-b border-primary/10 px-8 py-3 sticky top-0 z-50">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">auto_graph</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center bg-primary/5 rounded-lg px-3 py-1.5 border border-primary/10">
+<span class="material-symbols-outlined text-primary text-xl">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-64 placeholder:text-primary/40" placeholder="Rechercher un projet..." type="text"/>
+</div>
+</div>
+<nav class="flex items-center gap-8">
+<div class="flex items-center gap-6">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Calendrier</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Projets</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Équipe</a>
+</div>
+<div class="h-8 w-[1px] bg-primary/10"></div>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">add</span>
+                        Nouveau Projet
+                    </button>
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border-2 border-primary/10" data-alt="User profile avatar circle">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Photo de profil de l'utilisateur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoaRtmBVTuzeEvtQaOFKY23Ku8DauY6T5DtTJwYlsoWRxkzTK3FdADvUgxqm4qiRCmGXkth2hj0xvxbNwY9DIRwKRcpw-fKX4UQEZGY7gbp3Zs5vXUDIzfhQW9aUN2i_QXhjJWCSYrTiDMyn4QB5tLwJqmD0r6Nwq0YZqFFao0enBP009ah1MeWuC2378BsNCuuX_tg_CYxl61g9SYcCMl6yXuTmUOwXaUZcJehnYoxEO0XPgwcB4VGKJ5PmuvVe0pqncf_20GgsLj"/>
+</div>
+</div>
+</nav>
+</div>
+</header>
+<main class="flex-1 max-w-[1440px] mx-auto w-full flex">
+<!-- Sidebar Filters -->
+<aside class="w-72 border-r border-primary/10 p-6 flex flex-col gap-8 bg-white/50 dark:bg-slate-900/50">
+<div>
+<h3 class="text-xs font-bold uppercase tracking-wider text-primary mb-4">Filtrer par Équipe</h3>
+<div class="flex flex-col gap-2">
+<label class="flex items-center gap-3 p-2 bg-primary/10 rounded-lg cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox"/>
+<span class="text-sm font-medium">Tous les membres</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-primary/5 rounded-lg cursor-pointer">
+<img class="w-6 h-6 rounded-full" data-alt="Team member small avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhRmJoNhrjVl4Kw2SxIVusRncopSvvkbYPS37sw9cvIqU4HQNi_b8Nia9Fs6xT1zUDD6mgS6jV1OAIf0hqn3g2jSmct_EAJUC3trbJDUrPkPNlMSyv3ZSMSkY9BG7jQG8UzrKq4_ssmnjgtTMqE79Czx08eTx00JMyyi6izCVtTp4P6lIE2FBj3WoFb6pAU_6r9IrFkZ_xIfiTCI-y3o9Ip3lGeK-NOAJV5DKkCpOXN6aC5acQGbCcE1giECIgro1itsgrQpj8BWBp"/>
+<span class="text-sm">Jean D.</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-primary/5 rounded-lg cursor-pointer">
+<img class="w-6 h-6 rounded-full" data-alt="Team member small avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2CDAbz5Q5z5Q09ysYOAE8C141yJO6AjnanlJH5XenzE8nDepkWOsIz98GcS2UyHk5FnNdZuWQdkmqDevTlP7uYMzFDfWnEbFxwCh05uedLnqoY3ROBBYgdNLSdI3vSGax9QOtpT9zS54gVH7KyjhdWSo1j-EwP4_KO0J570wOBELz43ASOpVjwFlIgZN4Hkdwy8zmWnFq26mNzNmByaBi1Kj9vn9lNmfNI5FA1aly-8LRk62ihUgDS2Wxwbb6d8ytq2yo65kblpWq"/>
+<span class="text-sm">Sarah M.</span>
+</label>
+<label class="flex items-center gap-3 p-2 hover:bg-primary/5 rounded-lg cursor-pointer">
+<img class="w-6 h-6 rounded-full" data-alt="Team member small avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_fNbkwGmZG5gj6S3x3-I9tUKdbgBMhg7OlrA83rZfkkGM0DcMbFdrp2FiXvZ5MC-WHW88v8yV1-yLRfknolY_GzA0UBnbPAEObm8sz1O39ZR2Y-n9zK-C5brAn4vnSzJ9486frBzXJuQYmTpg1rxZigHYO5Qt35ydc1j905Pbq0FCBO5KQmTkfRpNETg2bmP-THBllP6hnIRS2jnJlTGTU0KCJQMRlpIP3DgOQjr7G4jMvmxhVlWvRl1YYlX-2v9DPRwtjL74UqKp"/>
+<span class="text-sm">Amadou K.</span>
+</label>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-bold uppercase tracking-wider text-primary mb-4">Catégories</h3>
+<div class="flex flex-col gap-3">
+<button class="flex items-center justify-between text-sm group">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-blue-500"></span>
+<span>Développement</span>
+</div>
+<span class="text-xs bg-primary/10 px-2 py-0.5 rounded-full">12</span>
+</button>
+<button class="flex items-center justify-between text-sm group">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-purple-500"></span>
+<span>Design UI/UX</span>
+</div>
+<span class="text-xs bg-primary/10 px-2 py-0.5 rounded-full">8</span>
+</button>
+<button class="flex items-center justify-between text-sm group">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-orange-500"></span>
+<span>Marketing</span>
+</div>
+<span class="text-xs bg-primary/10 px-2 py-0.5 rounded-full">5</span>
+</button>
+<button class="flex items-center justify-between text-sm group">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+<span>Revision Client</span>
+</div>
+<span class="text-xs bg-primary/10 px-2 py-0.5 rounded-full">3</span>
+</button>
+</div>
+</div>
+<div class="mt-auto p-4 bg-primary/5 rounded-xl border border-primary/10">
+<p class="text-xs font-bold text-primary mb-2">Statut de Charge</p>
+<div class="w-full bg-primary/20 h-2 rounded-full mb-2">
+<div class="bg-primary w-[75%] h-full rounded-full"></div>
+</div>
+<p class="text-[10px] text-slate-500">L'équipe est à 75% de sa capacité hebdomadaire.</p>
+</div>
+</aside>
+<!-- Main Calendar Area -->
+<section class="flex-1 flex flex-col bg-white dark:bg-slate-900 shadow-xl overflow-hidden">
+<!-- Calendar Toolbar -->
+<div class="p-6 border-b border-primary/10 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<h1 class="text-2xl font-black tracking-tight">Octobre 2023</h1>
+<div class="flex items-center bg-primary/5 rounded-lg p-1 border border-primary/10">
+<button class="p-1 hover:bg-white hover:shadow-sm rounded transition-all">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="px-3 text-xs font-bold">Aujourd'hui</button>
+<button class="p-1 hover:bg-white hover:shadow-sm rounded transition-all">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex bg-primary/5 rounded-lg p-1">
+<button class="px-4 py-1.5 text-xs font-bold bg-white text-primary shadow-sm rounded-md">Mois</button>
+<button class="px-4 py-1.5 text-xs font-bold hover:text-primary">Semaine</button>
+<button class="px-4 py-1.5 text-xs font-bold hover:text-primary">Jour</button>
+</div>
+<button class="flex items-center gap-2 text-xs font-bold border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/5">
+<span class="material-symbols-outlined text-lg">download</span>
+                        Exporter
+                    </button>
+</div>
+</div>
+<!-- Calendar Grid Header -->
+<div class="calendar-grid bg-primary/5 border-b border-primary/10">
+<div class="p-3 text-center text-xs font-bold text-primary uppercase">Lun</div>
+<div class="p-3 text-center text-xs font-bold text-primary uppercase">Mar</div>
+<div class="p-3 text-center text-xs font-bold text-primary uppercase">Mer</div>
+<div class="p-3 text-center text-xs font-bold text-primary uppercase">Jeu</div>
+<div class="p-3 text-center text-xs font-bold text-primary uppercase">Ven</div>
+<div class="p-3 text-center text-xs font-bold text-primary uppercase">Sam</div>
+<div class="p-3 text-center text-xs font-bold text-primary uppercase text-primary/40">Dim</div>
+</div>
+<!-- Calendar Cells -->
+<div class="calendar-grid flex-1">
+<!-- Row 1 -->
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-slate-50/50">
+<span class="text-xs font-bold text-slate-400">25</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-slate-50/50">
+<span class="text-xs font-bold text-slate-400">26</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-slate-50/50">
+<span class="text-xs font-bold text-slate-400">27</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-slate-50/50">
+<span class="text-xs font-bold text-slate-400">28</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-slate-50/50">
+<span class="text-xs font-bold text-slate-400">29</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-slate-50/50">
+<span class="text-xs font-bold text-slate-400">30</span>
+</div>
+<div class="min-h-[140px] border-b border-primary/5 p-2">
+<span class="text-xs font-bold">1</span>
+</div>
+<!-- Row 2 -->
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">2</span>
+<div class="mt-1 bg-blue-500/10 text-blue-600 p-1.5 rounded text-[10px] font-bold border-l-2 border-blue-500 truncate">Dev App Mobile</div>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">3</span>
+<div class="mt-1 bg-purple-500/10 text-purple-600 p-1.5 rounded text-[10px] font-bold border-l-2 border-purple-500 truncate">Logo Design - AF</div>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">4</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">5</span>
+<div class="mt-1 bg-orange-500/10 text-orange-600 p-1.5 rounded text-[10px] font-bold border-l-2 border-orange-500 truncate">Campagne Facebook</div>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">6</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">7</span>
+</div>
+<div class="min-h-[140px] border-b border-primary/5 p-2">
+<span class="text-xs font-bold">8</span>
+</div>
+<!-- Row 3 (Focus Row) -->
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 relative">
+<span class="text-xs font-bold">9</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2 bg-primary/5 ring-1 ring-inset ring-primary">
+<span class="text-xs font-bold text-primary">10</span>
+<div class="mt-1 bg-emerald-500/10 text-emerald-600 p-1.5 rounded text-[10px] font-bold border-l-2 border-emerald-500 shadow-sm cursor-pointer">
+                        Revue Client - E-commerce
+                    </div>
+<div class="mt-1 flex -space-x-1 overflow-hidden">
+<img alt="" class="inline-block h-4 w-4 rounded-full ring-2 ring-white" data-alt="Small team avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGADqMYwOdoFdSv-iDoPtn8D4hJt267vqdRHvIWhW1tmhMvONu42authGZA8eOy2_AFGP37t6LS7EYtvNG4mMUq7-ZYD96POtQoJgvPMBRuCVcoyIPYax4sIPF5gRifQpKa8nMkqjGDDlyg1atsQ5RD-hI38a64mvYBZJtXSt3XhJDDJrX4no2522WJKCdwhpUcLKQOq7aHB4vefWEaNDDjjNTBtBRI0G27XDe3sxSu_6X_cTlJdNdtEAXCSNNx6UYahqjWe8OymMA"/>
+<img alt="" class="inline-block h-4 w-4 rounded-full ring-2 ring-white" data-alt="Small team avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAl1Lz_jOYdIAXgOr1JnUU8Gm17x9JMmlaywh-2xpwlwMOQQ3WyblfQ7uixyl6JlV5JdgccFojxWcZcWaFxNMdZrVqh4XI1uMjcm4Be_wHhi9rs0Jtl4Sg8e1CkszqwfzmmuCkwjMAQ2yHjbmbaONeR4dVUqobiGg_5T1pz3EQM1DT1zecYAgEA0svRvqlo1qJsXolk-zOqaAw36kI0owxk-HLSeEt_KpzNfWwVOvdechyfLOPrlLKD5uu_uIMEkyGmm335XdU1jCq3"/>
+</div>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">11</span>
+<div class="mt-1 bg-blue-500 text-white p-1.5 rounded text-[10px] font-bold shadow-sm">Deadline Landing Page</div>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">12</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">13</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">14</span>
+</div>
+<div class="min-h-[140px] border-b border-primary/5 p-2">
+<span class="text-xs font-bold">15</span>
+</div>
+<!-- Row 4 -->
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">16</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">17</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">18</span>
+<div class="mt-1 bg-purple-500/10 text-purple-600 p-1.5 rounded text-[10px] font-bold border-l-2 border-purple-500">Workshop UI Kit</div>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">19</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">20</span>
+</div>
+<div class="min-h-[140px] border-r border-b border-primary/5 p-2">
+<span class="text-xs font-bold">21</span>
+</div>
+<div class="min-h-[140px] border-b border-primary/5 p-2">
+<span class="text-xs font-bold">22</span>
+</div>
+</div>
+</section>
+<!-- Right Side Panel (Detail View) -->
+<aside class="w-96 border-l border-primary/10 bg-white p-6 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<h2 class="text-lg font-bold">Détails de l'Événement</h2>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/20">
+<div class="flex items-center gap-2 text-emerald-600 mb-1">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Révision Client</span>
+</div>
+<h3 class="text-lg font-bold text-slate-900">E-commerce Plateforme</h3>
+<p class="text-sm text-slate-600 mt-1">Validation finale des maquettes de la page d'accueil avec le client.</p>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-slate-400 uppercase">Date &amp; Heure</p>
+<p class="text-sm font-semibold">10 Octobre 2023, 14:00 - 15:30</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">person</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-slate-400 uppercase">Client</p>
+<p class="text-sm font-semibold">Senegal Retail Group</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg">group</span>
+</div>
+<div>
+<p class="text-[10px] font-bold text-slate-400 uppercase">Assignés</p>
+<div class="flex items-center gap-2 mt-1">
+<img class="w-6 h-6 rounded-full border border-primary/10" data-alt="Team lead avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7XMQ1pccp_JtIpmvZgYDAm333N2xosTD6R7eXotnPkbiOkrsr_zSLXxuuq1cgb3LVLF7-PfxGgQVneTQ9pJk7biosjTWWNoXYnaKHT1NlGZSoWw8kiirYidFTC2MngQ2oaZ2UjX7JxnDgAKwHOO8n6Vavw-yHgo_ZVY_6cMrUeB_0dfbzsnibiIK_9OdDqWtYnbctBPfiRIYaohXRIRyAnCdam9gEDVbsttMH_EfCoUKpbDh779VT9KyXEDBlw_dibV0AmeEHbjv2"/>
+<img class="w-6 h-6 rounded-full border border-primary/10" data-alt="Team lead avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATlchHGlKsQMOf7cH6iA7bElx_zfBFEtVAs5_LxR2DFAJteq_ZHG1HTyMmsY5mj6tH7OiIDHBLGkeZWJDVFN7yx9b8_afJjQe-IWtyp_H94017rV-gnkSX-kPQ5zqXG4LLR0OZoc8aopuMMjvihP97vYUZSjAtYtcxg44_t4mJqJUX-n4YbIDBuX0umZJobBgRRLXzxHNeDkM3XsgyXIOGXM1i0Spdv7uZc_JPmtCVjaUkkfGf32dcrgzyHGxZw5yqf8cvvR6OGN2Q"/>
+<span class="text-xs font-medium">+2 autres</span>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-4 border-t border-slate-100">
+<p class="text-xs font-bold text-slate-400 uppercase mb-3">Lien de réunion</p>
+<button class="w-full bg-slate-100 py-3 px-4 rounded-lg flex items-center justify-between text-sm font-semibold hover:bg-slate-200 transition-colors">
+<span>Google Meet</span>
+<span class="material-symbols-outlined text-slate-400">open_in_new</span>
+</button>
+</div>
+<div class="pt-4 flex gap-2">
+<button class="flex-1 bg-primary text-white py-3 rounded-lg text-sm font-bold shadow-lg shadow-primary/20">Rejoindre</button>
+<button class="p-3 bg-primary/5 text-primary rounded-lg border border-primary/10">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+</div>
+<div class="mt-auto">
+<div class="bg-primary/5 rounded-xl p-4 flex items-center gap-4">
+<div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</div>
+<div>
+<p class="text-xs font-bold">Rappel activé</p>
+<p class="text-[10px] text-slate-500">Vous recevrez une alerte 15m avant.</p>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</body></html>

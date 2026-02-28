@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AfriqueFreelance - Design System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "accent": "#F2B705",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                        "text-main": "#1F2933",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .sidebar-item-active {
+            background-color: rgba(14, 124, 102, 0.1);
+            border-right: 4px solid #0e7c66;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main font-display selection:bg-primary/30">
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-primary/10 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-8 py-4">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-white">
+<span class="material-symbols-outlined text-2xl">token</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-xl font-extrabold leading-none tracking-tight text-slate-900 dark:text-slate-100">AfriqueFreelance</h1>
+<span class="text-xs font-semibold uppercase tracking-widest text-primary">Design System v1.0</span>
+</div>
+</div>
+<nav class="hidden lg:flex items-center gap-6 ml-4">
+<a class="text-sm font-semibold text-primary" href="#">Identity</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Components</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Assets</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Principles</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="h-10 w-64 rounded-lg border-none bg-slate-100 pl-10 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search tokens..." type="text"/>
+</div>
+<button class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white transition-all hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">download</span>
+<span>Export Kit</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-slate-200" data-alt="User avatar placeholder" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhCnHJXECepm9sNTMNIgEiy4JCO-3SBy4b-SsWSGv_yhjnCKZ0WaSTmPmgtSRbSDEZYgFcENuKrKjC_uJYplty9bsJ3Q7w17Fj5o_HkIC0g3xOnIYGDejxSGgN3Iv0-wS_MkTMMkN7ntN4Wi_SSp2ylQa2q3yQHr8xieKqm1K1b8CQQbkWMDClzy3gcyS2sEnr5s0CYDbj-n-xLsAQ4oDPFQDWXcYEZSjRbUYdnSHdwCzLQARgsG9DfCOxG4Y6z9LRWeQ-qVR3qj6c');"></div>
+</div>
+</header>
+<div class="flex flex-1">
+<!-- Sidebar Navigation -->
+<aside class="sticky top-20 hidden h-[calc(100vh-5rem)] w-64 border-r border-primary/5 bg-white p-6 lg:block">
+<div class="space-y-8">
+<div>
+<h3 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Foundation</h3>
+<ul class="space-y-2">
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-primary sidebar-item-active" href="#"><span class="material-symbols-outlined text-lg">palette</span> Visual DNA</a></li>
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">title</span> Typography</a></li>
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">grid_view</span> Layout &amp; Grid</a></li>
+</ul>
+</div>
+<div>
+<h3 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">UI Components</h3>
+<ul class="space-y-2">
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">smart_button</span> Buttons</a></li>
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">edit_note</span> Inputs &amp; Forms</a></li>
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">layers</span> Cards &amp; Surfaces</a></li>
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">navigation</span> Navigation</a></li>
+</ul>
+</div>
+<div>
+<h3 class="mb-4 text-xs font-bold uppercase tracking-widest text-slate-400">Assets</h3>
+<ul class="space-y-2">
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">mood</span> Iconography</a></li>
+<li><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors" href="#"><span class="material-symbols-outlined text-lg">image</span> Imagery Style</a></li>
+</ul>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 p-8 lg:p-12 max-w-6xl">
+<section class="mb-16">
+<div class="mb-8">
+<h2 class="text-4xl font-extrabold tracking-tight text-slate-900 mb-2">Visual DNA</h2>
+<p class="text-lg text-slate-600 max-w-2xl">The foundational aesthetic and core assets that define the AfriqueFreelance brand experience.</p>
+</div>
+<!-- Logo Section -->
+<div class="mb-16 rounded-xl bg-white p-8 shadow-sm border border-slate-100">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-xl font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary">category</span> Logo Variants</h3>
+<span class="text-xs font-bold text-slate-400 px-2 py-1 bg-slate-50 rounded">SVG ASSETS</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<div class="flex flex-col items-center p-8 border border-slate-50 rounded-lg hover:border-primary/20 transition-all group">
+<div class="w-full aspect-video flex items-center justify-center bg-slate-50 rounded-lg mb-4 overflow-hidden relative">
+<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#0e7c66 1px, transparent 1px); background-size: 10px 10px;"></div>
+<div class="flex items-center gap-3 relative z-10">
+<div class="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-white"><span class="material-symbols-outlined">work</span></div>
+<span class="text-xl font-bold text-slate-900">AfriqueFreelance</span>
+</div>
+</div>
+<span class="font-bold text-sm text-slate-900">Primary Logo</span>
+<p class="text-xs text-slate-500 mt-1">Emerald &amp; Dark Slate</p>
+</div>
+<div class="flex flex-col items-center p-8 border border-slate-50 rounded-lg hover:border-primary/20 transition-all">
+<div class="w-full aspect-video flex items-center justify-center bg-slate-900 rounded-lg mb-4">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 bg-white rounded-lg flex items-center justify-center text-slate-900"><span class="material-symbols-outlined">work</span></div>
+<span class="text-xl font-bold text-white">AfriqueFreelance</span>
+</div>
+</div>
+<span class="font-bold text-sm text-slate-900">Monochrome Inverse</span>
+<p class="text-xs text-slate-500 mt-1">White on Dark Surfaces</p>
+</div>
+<div class="flex flex-col items-center p-8 border border-slate-50 rounded-lg hover:border-primary/20 transition-all">
+<div class="w-full aspect-video flex items-center justify-center bg-slate-50 rounded-lg mb-4">
+<div class="h-14 w-14 bg-accent rounded-xl flex items-center justify-center text-slate-900 shadow-lg shadow-accent/20"><span class="material-symbols-outlined text-3xl">work</span></div>
+</div>
+<span class="font-bold text-sm text-slate-900">Symbol Mark</span>
+<p class="text-xs text-slate-500 mt-1">App Icon / Social avatar</p>
+</div>
+</div>
+</div>
+<!-- Color Palette -->
+<div class="mb-16">
+<div class="flex items-center justify-between mb-8">
+<h3 class="text-xl font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary">format_color_fill</span> Color Palette</h3>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="group cursor-pointer">
+<div class="h-40 w-full rounded-xl bg-primary mb-4 shadow-sm transition-transform group-hover:-translate-y-1"></div>
+<div class="flex flex-col">
+<span class="font-bold text-slate-900">Emerald Primary</span>
+<code class="text-sm text-slate-500">#0E7C66</code>
+<span class="mt-2 text-xs text-slate-400">Used for main actions and branding elements.</span>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="h-40 w-full rounded-xl bg-accent mb-4 shadow-sm transition-transform group-hover:-translate-y-1"></div>
+<div class="flex flex-col">
+<span class="font-bold text-slate-900">Golden Harvest</span>
+<code class="text-sm text-slate-500">#F2B705</code>
+<span class="mt-2 text-xs text-slate-400">Accent color for highlights and premium tags.</span>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="h-40 w-full rounded-xl bg-[#1F2933] mb-4 shadow-sm transition-transform group-hover:-translate-y-1"></div>
+<div class="flex flex-col">
+<span class="font-bold text-slate-900">Slate Night</span>
+<code class="text-sm text-slate-500">#1F2933</code>
+<span class="mt-2 text-xs text-slate-400">Primary text and deep background elements.</span>
+</div>
+</div>
+<div class="group cursor-pointer">
+<div class="h-40 w-full rounded-xl bg-white border border-slate-200 mb-4 shadow-sm transition-transform group-hover:-translate-y-1"></div>
+<div class="flex flex-col">
+<span class="font-bold text-slate-900">Pure Frost</span>
+<code class="text-sm text-slate-500">#FFFFFF</code>
+<span class="mt-2 text-xs text-slate-400">Main surface color and typography backgrounds.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Components Showcase -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Buttons and Controls -->
+<div class="rounded-xl bg-white p-8 shadow-sm border border-slate-100">
+<h3 class="text-xl font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">ads_click</span> Action Components</h3>
+<div class="space-y-8">
+<div class="flex flex-wrap gap-4 items-center">
+<button class="bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:opacity-90 transition-opacity">Primary Button</button>
+<button class="bg-primary/10 text-primary px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-primary/20 transition-colors">Secondary</button>
+<button class="border border-slate-200 text-slate-700 px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-slate-50 transition-colors">Outline</button>
+</div>
+<div class="flex flex-wrap gap-4 items-center">
+<button class="bg-accent text-slate-900 px-6 py-2.5 rounded-lg font-extrabold text-sm shadow-lg shadow-accent/20">Premium Call-to-Action</button>
+<button class="text-primary font-bold text-sm hover:underline decoration-2 underline-offset-4">Text Link</button>
+</div>
+<div class="grid grid-cols-1 gap-4">
+<label class="block">
+<span class="text-sm font-bold text-slate-700 mb-1.5 block">Default Input Field</span>
+<input class="w-full rounded-lg border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:border-primary focus:ring-primary/20 transition-all" placeholder="Enter text here..." type="text"/>
+</label>
+<label class="block">
+<span class="text-sm font-bold text-slate-700 mb-1.5 block">Search Variant</span>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full rounded-lg border-slate-200 bg-white pl-10 pr-4 py-2.5 text-sm focus:border-primary focus:ring-primary/20" placeholder="Search freelancers..." type="text"/>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Card Style and Elevation -->
+<div class="rounded-xl bg-white p-8 shadow-sm border border-slate-100">
+<h3 class="text-xl font-bold mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">view_quilt</span> Cards &amp; Containers</h3>
+<div class="space-y-6">
+<div class="rounded-xl border border-slate-100 bg-white p-5 shadow-xl shadow-slate-200/50 flex gap-4">
+<div class="h-16 w-16 shrink-0 rounded-lg bg-slate-100 overflow-hidden">
+<img alt="" class="h-full w-full object-cover" data-alt="Freelancer profile portrait placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTx-rPjf-eXjBFw0wSiB3q6cBXY33So1o3si4bntXsG6bIW1NsXXc-rqnwynW6aygEoLzdoMoXe1c0cilxTGDYt5uCYRhxHgLrWO11bPWf0sHWP-0Q3z55--_MrPlErdl1I3smxKYNU8LcuHsUCVlZXjXP1RwXpXv-t1iA18rJSyl4v82IU-GokWhaeRJa1SbKw_eaKRQkHsw44_ta9SiWoWpjwhqdusA7ZI0e8BLlFjzJYUfA9gGwihO5yhJk0ZVWKobrarrHSZ_n"/>
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between mb-1">
+<h4 class="font-bold text-slate-900">Jean-Pierre M.</h4>
+<span class="text-xs font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-xs fill-1">star</span> 4.9</span>
+</div>
+<p class="text-xs text-slate-500 mb-2">Senior Full-stack Developer</p>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-primary/10 text-[10px] font-bold text-primary uppercase">React</span>
+<span class="px-2 py-0.5 rounded bg-primary/10 text-[10px] font-bold text-primary uppercase">Python</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="rounded-lg bg-primary/5 border border-primary/10 p-4">
+<span class="material-symbols-outlined text-primary mb-2">verified</span>
+<h5 class="font-bold text-sm text-slate-900">Verified Pro</h5>
+<p class="text-xs text-slate-500 mt-1">Identity and skills validated by experts.</p>
+</div>
+<div class="rounded-lg bg-accent/5 border border-accent/20 p-4">
+<span class="material-symbols-outlined text-accent mb-2">workspace_premium</span>
+<h5 class="font-bold text-sm text-slate-900">Enterprise</h5>
+<p class="text-xs text-slate-500 mt-1">Managed accounts for scaling teams.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="mb-16">
+<div class="mb-8 flex items-center justify-between border-t border-slate-100 pt-16">
+<h3 class="text-xl font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary">text_fields</span> Typography Scale</h3>
+</div>
+<div class="space-y-12 rounded-xl bg-white p-8 shadow-sm border border-slate-100">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-baseline">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Heading 1</span>
+<div class="md:col-span-3">
+<h1 class="text-5xl font-extrabold tracking-tight text-slate-900">The future of work in Africa.</h1>
+<p class="text-xs text-slate-400 mt-2">Manrope ExtraBold / 48px / -0.025em</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-baseline">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Heading 2</span>
+<div class="md:col-span-3">
+<h2 class="text-3xl font-bold tracking-tight text-slate-900">Empowering local talent.</h2>
+<p class="text-xs text-slate-400 mt-2">Manrope Bold / 30px / -0.015em</p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-baseline">
+<span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Body Text</span>
+<div class="md:col-span-3">
+<p class="text-lg text-slate-600 leading-relaxed">Connect with thousands of specialized freelancers across the continent. AfriqueFreelance provides a secure, fast, and intuitive interface for seamless collaboration on high-impact projects.</p>
+<p class="text-xs text-slate-400 mt-2">Manrope Regular / 18px / 1.6 Line Height</p>
+</div>
+</div>
+</div>
+</section>
+<section class="mb-16">
+<div class="mb-8 border-t border-slate-100 pt-16">
+<h3 class="text-xl font-bold flex items-center gap-2 mb-4"><span class="material-symbols-outlined text-primary">draw</span> Iconography Style</h3>
+<p class="text-slate-600 max-w-xl">We use a dual-tone minimalist approach for all iconography. Primary icons use the Emerald theme, while accent icons leverage the Gold palette.</p>
+</div>
+<div class="grid grid-cols-4 md:grid-cols-8 gap-8 rounded-xl bg-slate-900 p-10 text-white">
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-primary">dashboard</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Dashboard</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-primary">group</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Talent</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-primary">payments</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Billing</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-primary">chat_bubble</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Chat</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-accent">workspace_premium</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Gold Kit</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-accent">verified</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Badge</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-accent">rocket_launch</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Boost</span>
+</div>
+<div class="flex flex-col items-center gap-3">
+<span class="material-symbols-outlined text-3xl text-accent">trending_up</span>
+<span class="text-[10px] text-slate-500 font-bold uppercase">Analytics</span>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- Footer Footer -->
+<footer class="border-t border-slate-100 bg-white px-8 py-6">
+<div class="flex flex-col md:flex-row items-center justify-between gap-4">
+<p class="text-sm text-slate-500">© 2024 AfriqueFreelance. Internal Documentation Only.</p>
+<div class="flex items-center gap-6">
+<a class="text-xs font-bold text-slate-400 hover:text-primary uppercase tracking-widest transition-colors" href="#">Documentation</a>
+<a class="text-xs font-bold text-slate-400 hover:text-primary uppercase tracking-widest transition-colors" href="#">GitHub Repo</a>
+<a class="text-xs font-bold text-slate-400 hover:text-primary uppercase tracking-widest transition-colors" href="#">Support</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

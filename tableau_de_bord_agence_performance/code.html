@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14b835",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Tableau de Bord Agence Performance</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-primary/10 bg-background-light dark:bg-background-dark flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary p-2 rounded-lg text-background-dark">
+<span class="material-symbols-outlined block">rocket_launch</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">Performance</h2>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">group</span>
+<span>Équipe</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">folder_open</span>
+<span>Projets</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">bar_chart</span>
+<span>Rapports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-slate-500">settings</span>
+<span>Paramètres</span>
+</a>
+</nav>
+<div class="p-4 border-t border-primary/10">
+<div class="flex items-center gap-3 p-2">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+<div>
+<p class="text-sm font-bold">Jean Dupuis</p>
+<p class="text-xs text-slate-500">Directeur Agence</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto">
+<!-- Top Navbar -->
+<header class="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative max-w-md w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-primary/5 border border-primary/10 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Rechercher un projet, un membre..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="bg-primary hover:bg-primary/90 text-background-dark font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+<span>Inviter un membre</span>
+</button>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Page Title & Quick Info -->
+<div class="flex flex-col gap-1">
+<h1 class="text-3xl font-black tracking-tight">Vue d'ensemble</h1>
+<p class="text-slate-500">Bienvenue dans votre espace Premium. Suivez les performances de votre agence en temps réel.</p>
+</div>
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 space-y-2">
+<p class="text-sm font-medium text-slate-500">Chiffre d'Affaires Global</p>
+<p class="text-3xl font-bold">145,200 €</p>
+<div class="flex items-center gap-1 text-primary text-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+12.4%</span>
+<span class="font-normal text-slate-500 ml-1">ce mois</span>
+</div>
+</div>
+<div class="p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 space-y-2">
+<p class="text-sm font-medium text-slate-500">Projets Actifs</p>
+<p class="text-3xl font-bold">24</p>
+<div class="flex items-center gap-1 text-primary text-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>3</span>
+<span class="font-normal text-slate-500 ml-1">nouveaux</span>
+</div>
+</div>
+<div class="p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 space-y-2">
+<p class="text-sm font-medium text-slate-500">Efficacité Équipe</p>
+<p class="text-3xl font-bold">89%</p>
+<div class="flex items-center gap-1 text-primary text-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Optimal</span>
+</div>
+</div>
+<div class="p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 space-y-2">
+<p class="text-sm font-medium text-slate-500">Nouveaux Leads</p>
+<p class="text-3xl font-bold">18</p>
+<div class="flex items-center gap-1 text-red-500 text-sm font-bold">
+<span class="material-symbols-outlined text-[16px]">trending_down</span>
+<span>-1.5%</span>
+</div>
+</div>
+</div>
+<!-- Charts and Lists Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Performance Chart Section -->
+<div class="lg:col-span-2 p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 flex flex-col gap-6">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold">Performance de l'Équipe (6 mois)</h3>
+<select class="bg-transparent border border-primary/20 rounded px-2 py-1 text-xs outline-none">
+<option>Mensuel</option>
+<option>Hebdomadaire</option>
+</select>
+</div>
+<div class="flex-1 min-h-[250px] flex flex-col justify-end">
+<div class="relative h-48 w-full">
+<!-- Area Chart Visualization -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 478 150">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#14b835" stop-opacity="0.3"></stop>
+<stop offset="100%" stop-color="#14b835" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25V150H0Z" fill="url(#chartGradient)"></path>
+<path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25" fill="none" stroke="#14b835" stroke-width="3"></path>
+</svg>
+</div>
+<div class="flex justify-between mt-4 text-xs font-bold text-slate-500 px-1">
+<span>JAN</span><span>FEV</span><span>MAR</span><span>AVR</span><span>MAI</span><span>JUN</span>
+</div>
+</div>
+</div>
+<!-- Team Status Section -->
+<div class="p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5 space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold">Disponibilité Équipe</h3>
+<a class="text-primary text-xs font-bold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="space-y-4">
+<!-- Member 1 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Avatar de Marie" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAX0m1kuxrDKenNbX1KoFdUDj1DjtaEhdxmFy4RfzhDkVD50f1SOTROEsxixZQzlruzwhLsyRxUEGJexdR0McFOMku94Sv9-Oq01NrGKMdhAEqT5A0OTpS5yWrkVPlwIzPz0_FWMjcYw1iFtHgvZ4Mw7O5Y-MiqTKnVXAwqKeTotb_kWSEFksunRy4IxD0wymSKD2oLEQyhZH-tXVTmw-GbS6GMB_70V5KMvZv5MzHqsJpfpE-uzjcl3C9pdxUzqyd626jgQJ9AGa2p')"></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-primary border-2 border-background-light dark:border-background-dark"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Marie L.</p>
+<p class="text-xs text-slate-500">UI/UX Designer</p>
+</div>
+</div>
+<span class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary font-bold uppercase tracking-wider">Libre</span>
+</div>
+<!-- Member 2 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Avatar de Thomas" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdv8DOYBmM947UHJ9PrzaJPdNrWnhJEFpH5xdk8OpsGSNkPq8VhQCDC7ajS-XSwPbqwk4LxM28AoK-KGdO0k5VS55SgCsY53hnLCKlwZDFtM_eugQ_h15hz08V0idhH3y9sGBOxoObUrzhYQgwaAq4VtDM1YZJ24EDLLEu4TQgCWxB-lxX5znjAaZeXXp1RuRy_2vH4pP1JeGxw8h1V6nsp2Nv3K6ZRfQXv4DtZl-BydhJL50aHEQ_DfuVq0Yf5KEm-3ENxKrcirxc')"></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-orange-500 border-2 border-background-light dark:border-background-dark"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Thomas D.</p>
+<p class="text-xs text-slate-500">Fullstack Dev</p>
+</div>
+</div>
+<span class="text-[10px] px-2 py-1 rounded bg-orange-500/10 text-orange-500 font-bold uppercase tracking-wider">Occupé</span>
+</div>
+<!-- Member 3 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Avatar de Sarah" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBoctKKYArZlgMtkoRYR1riD87TZ6N_96p5reKiMy4sByFFLFWSy7IqgdNdpMFLQZGb8kzdX3BDFBuBI25d8VuIgHbWvSeKs1k3Edy5NkW1sjV5wE45-jItdy64XDcfaF-nJWmykW3FQX4atNzYgGiQo5LT5rVVmM01E-mV3eAsIYdY9rtl2chPNhILfbe3nt9CLDSmFqJ7tVv0hkUpLKug6bFT7tTH5Jj62It4xZ94Cla3Mz93w-RsJ9QkiAwybMV8UEiu1SD4JzIi')"></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-primary border-2 border-background-light dark:border-background-dark"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Sarah K.</p>
+<p class="text-xs text-slate-500">Social Media</p>
+</div>
+</div>
+<span class="text-[10px] px-2 py-1 rounded bg-primary/10 text-primary font-bold uppercase tracking-wider">Libre</span>
+</div>
+<!-- Member 4 -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-10 h-10 rounded-lg bg-slate-200 dark:bg-slate-800 bg-cover bg-center" data-alt="Avatar de Kevin" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBRTsFaL5Vs_yqxqYHFPnfwdkMDp5Mfljq6v3cA1JGTlQraSwK4TLEDbjcyIoK-bhmjmWthn6yba8s1f8ePJbBdTJlEkWVDjIH98AlanrdDpxmJ84V2JRwUnWrVnfRFaZs5tLe-R4E-nkW6dwlvkRKNXvvTj0Nn-pDHMlT5IOKzunoLXsja-3xCjmBgI86isWltyDIQq0q3prMIZdAwI1Udsj9cGGkUNfdYJO3_uqfcUQRuVeGdi98-0AVUOpLmIAt-JXtdlIZ-uYck')"></div>
+<div class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-slate-500 border-2 border-background-light dark:border-background-dark"></div>
+</div>
+<div>
+<p class="text-sm font-bold">Kevin M.</p>
+<p class="text-xs text-slate-500">Ads Specialist</p>
+</div>
+</div>
+<span class="text-[10px] px-2 py-1 rounded bg-slate-500/10 text-slate-500 font-bold uppercase tracking-wider">Hors-ligne</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Projects Table -->
+<div class="p-6 rounded-xl border border-primary/10 bg-white dark:bg-primary/5">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Projets en cours</h3>
+<button class="flex items-center gap-2 text-sm text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+<span>Filtrer</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="border-b border-primary/10 text-slate-500 text-xs font-bold uppercase tracking-widest">
+<th class="pb-4 font-semibold">Projet</th>
+<th class="pb-4 font-semibold">Responsable</th>
+<th class="pb-4 font-semibold">Statut</th>
+<th class="pb-4 font-semibold">Progression</th>
+<th class="pb-4 font-semibold text-right">Budget</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 font-bold">Refonte Branding EcoLog</td>
+<td class="py-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-background-dark bg-slate-400" data-alt="Collaborateur 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB36HBHBRob4--tfxBMAkTXenJ0iPCO4_FmyuvihaRiZRw8npKl4zFeeVyLESgKVpbkBJ_g8NM3Jy_vzuMZSNWyLI37hqObhNEiAB3vXBAhGxvM0Kf99IgSJRoXapzGpWMWrUzWaCJkYOlPZSEHWuMsNTPyneTOEPnVZjGzkbIx0yHlPdfxnk9UT9lHWMW8xxF3_wB-O3GaLguD7dmvWcjZJ2XlgvraIt1eltMJ81c_LXgrI0_XzpTogy-9RekVGtwWzG69jYyY5eUr')"></div>
+<div class="w-6 h-6 rounded-full border border-background-dark bg-slate-500" data-alt="Collaborateur 2" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDtJQ3afalAYc_vZ2vkQ1S3gYhXydExDypMhO9EM-zdbL4uq-K0w2ZCxi_5O7rdbEJAp-6GPmkB7wsdYHM5DTU3mJT5ldEpfvEZBNu7rwYluqwKhCHiQ1VajmkFC4aPuHksYozrRBgLQ2c2ZCdJXLoJfXWTxhqy0922LYcRQhmljenySMNqtDG8kd4GGj5y1wkoKwi4VMK4I7zUaynISR46RMpm9R77c_2-3tT9JwyNdZm9BbR7Ji2t9wV2Hy5NtkfFdtPayQIIC9xN')"></div>
+</div>
+</td>
+<td class="py-4">
+<span class="px-2 py-1 rounded-full text-[10px] bg-blue-500/10 text-blue-500 font-bold">CONCEPTION</span>
+</td>
+<td class="py-4">
+<div class="w-32 h-1.5 bg-primary/10 rounded-full overflow-hidden">
+<div class="w-[45%] h-full bg-primary"></div>
+</div>
+</td>
+<td class="py-4 text-right font-bold">12,500 €</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 font-bold">Campagne Ads Q4</td>
+<td class="py-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-background-dark bg-slate-400" data-alt="Collaborateur 3" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQSeBNrcv_v1nAoYss8aDYcSlAzBtgsN4egmVRM1NUeOfP0RN1PySvrYaKQHJjoQD2o6Zpi-XzaXZ8ctYR-P0qW4CTesKA1o428lkmTILL23bQ9lPKjFryS8MTyC-vqpWMTbTs9Nuc8sETKQfjEiMkayEtTF3l-OfAhmINNcht3xWl5bu_MRV_5CxM3ilAt6Ew1QrE9SYlh84ATK7jjGxq6hVxXbnDyWjggzfsJIR6t-aktZsbcEhiPFsjg_hUnS2_l8HFc3oMMHqw')"></div>
+</div>
+</td>
+<td class="py-4">
+<span class="px-2 py-1 rounded-full text-[10px] bg-primary/10 text-primary font-bold">ACTIF</span>
+</td>
+<td class="py-4">
+<div class="w-32 h-1.5 bg-primary/10 rounded-full overflow-hidden">
+<div class="w-[85%] h-full bg-primary"></div>
+</div>
+</td>
+<td class="py-4 text-right font-bold">8,200 €</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="py-4 font-bold">App Mobile Fitness</td>
+<td class="py-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-background-dark bg-slate-400" data-alt="Collaborateur 4" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7P-nM_XRnvBLMreSlh_GInt0i0cePZwgV_rnS3pK2jfuPrndc8k-fUgleGwOf_LX0M0ueLz1bQMphUNwCuLSGx-UTSMvuDofThWb9xoGwBHtOKJfpzw8iOcaOA3A0a5o1fTDFwwEy0IHr-wBBXaqYnlyexzP8r0zIcT7pmYn1p-H7MNouS_m8PsqwvUPD7ZB_Q0E1pSVkMRsj4aWUbEUaekRiWMTYUnScEreaVvfUHs6AoAQfQ227PnWzuwMxcNadCOIjsTzx5JqF')"></div>
+<div class="w-6 h-6 rounded-full border border-background-dark bg-slate-500" data-alt="Collaborateur 5" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuApLF9xLdBv2bTvLFrd98pE2iqnmMA-OBHuSiWCAm_naGs5CMx_BZ4cGNjio3gIxtxQvAuI8IE2mZzGDjsFAVi7N18A-VxcCvXYdIU4fq3zPCLgT_NVHE4FsFGXQyb8LF4Pm5FO8nmtH2TXF8MK3speee64Jr6gSHjZHvjMafmnOXcrCbVD9SsthvfW5E2WMR-3Vyj8tgG8iAUAzNk-NGfO-4lifEHskQhG3cMQZJW6l7QKfv9bfVImzbSG28H88JK2Vz-WMWk4r5e4')"></div>
+<div class="w-6 h-6 rounded-full border border-background-dark bg-slate-600" data-alt="Collaborateur 6" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWZzqrcpU67X25upKhv8Tw7gdoK-8za6T6vQBdSnnbw5HVdJBkr3GFEosjc5NUwWSvW10yzZQUKGCeo2pHFUNSCepiobYxwy7NejBZ8fRwEcdzWoyF4uFSUQMnJ-AXLi-5MpttVdOfOrEFYIyLUWyBcLcHFoIF8Jt-0Hk6DE-p6fjyvEcf1J0Dlahz4RC3HRru2tYnfiOlSwimJM7bO7_hugWr8L9BSmtSNR5np1dc0U7S6hbYudyPLbaeOV5d-tWyUAUt95ufntjM')"></div>
+</div>
+</td>
+<td class="py-4">
+<span class="px-2 py-1 rounded-full text-[10px] bg-yellow-500/10 text-yellow-500 font-bold">EN ATTENTE</span>
+</td>
+<td class="py-4">
+<div class="w-32 h-1.5 bg-primary/10 rounded-full overflow-hidden">
+<div class="w-[10%] h-full bg-primary"></div>
+</div>
+</td>
+<td class="py-4 text-right font-bold">25,000 €</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e6bd",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                        "neutral-dark": "#1a2e2a",
+                        "neutral-light": "#293835",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Suivi de Productivité - FreelanceHub</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-neutral-light px-6 py-3 bg-background-light dark:bg-background-dark">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-6 flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">track_changes</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">FreelanceHub</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-neutral-light/10 dark:bg-neutral-light">
+<div class="text-slate-500 dark:text-primary flex border-none items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-transparent placeholder:text-slate-400 dark:placeholder:text-slate-300 px-4 pl-2 text-base font-normal" placeholder="Rechercher un projet..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<div class="flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary" href="#">Projets</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Factures</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Rapports</a>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-neutral-light/10 dark:bg-neutral-light text-slate-700 dark:text-white hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-neutral-light/10 dark:bg-neutral-light text-slate-700 dark:text-white hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="bg-primary/30 rounded-full size-10 flex items-center justify-center border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar de l'utilisateur freelance souriant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEnFtoZS5c5aIu1J3tfJtsR-EbMBafhXtZ8uwYFFTN8N_tpdTl6OE9EWM_cEPaifEBD9Nj5oDy0I86uOVItSR5Iyn7XZ8WzlLtMgZlP4Zog07cYtJOuna_MrqcGK20KQPPLRwzCwNB_zLGvz5v6fhXcveaMrXj8nbSD3eSDONFZl0mJ2lmnXvaxk86UCOrPbk8A7g8WQVOJw5ixW5KGXWJ9GDH9Jg6AfuH82AS3e0nLfEWFHNK2bRYf2rkXY1urgMEyF3Bgjn53RFJ"/>
+</div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar -->
+<aside class="w-64 border-r border-neutral-light p-4 flex flex-col justify-between bg-neutral-light/5 dark:bg-background-dark">
+<div class="flex flex-col gap-6">
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-base font-bold">Projet E-commerce 2024</h1>
+<p class="text-slate-500 dark:text-primary text-xs font-medium">Contrat à l'heure : 65€/h</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<p class="text-sm font-medium">Vue d'ensemble</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined text-[20px] fill-1">timer</span>
+<p class="text-sm font-bold">Mode Focus</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<p class="text-sm font-medium">Historique &amp; Preuves</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-primary/10 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<p class="text-sm font-medium">Documents</p>
+</a>
+</nav>
+<div class="pt-4 border-t border-neutral-light">
+<div class="bg-neutral-light/10 dark:bg-neutral-dark rounded-xl p-4 flex flex-col gap-3 border border-neutral-light">
+<p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Session Active</p>
+<div class="flex items-center gap-2">
+<span class="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+<span class="text-sm font-medium">Design System UI</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-2/3"></div>
+</div>
+<p class="text-[10px] text-slate-400">Objectif du jour : 6h (4h réalisées)</p>
+</div>
+</div>
+</div>
+<button class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary text-background-dark font-bold text-sm shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Nouvelle Entrée</span>
+</button>
+</aside>
+<!-- Main Content Area -->
+<section class="flex-1 overflow-y-auto p-8">
+<div class="max-w-5xl mx-auto space-y-8">
+<!-- Header Section -->
+<div class="flex flex-wrap items-end justify-between gap-4">
+<div class="space-y-1">
+<div class="flex items-center gap-2 text-slate-400 text-sm font-medium">
+<a class="hover:text-primary transition-colors" href="#">Projets</a>
+<span>/</span>
+<span class="text-slate-900 dark:text-white">Session de Focus</span>
+</div>
+<h2 class="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Mode Focus</h2>
+<p class="text-slate-500 dark:text-slate-400">Suivi du temps en temps réel pour <span class="text-primary font-semibold">Client XYZ</span></p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-neutral-light bg-white dark:bg-neutral-light text-slate-900 dark:text-white text-sm font-bold hover:bg-neutral-light/10 transition-all">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                                    Détails Projet
+                                </button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-neutral-light/10 dark:bg-neutral-light text-slate-900 dark:text-white text-sm font-bold hover:bg-neutral-light transition-all">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                    Partager au Client
+                                </button>
+</div>
+</div>
+<!-- Timer Pomodoro Component -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Timer Card -->
+<div class="lg:col-span-2 bg-white dark:bg-neutral-dark rounded-2xl p-8 border border-neutral-light shadow-sm flex flex-col items-center justify-center text-center space-y-8">
+<div class="flex items-center gap-4 px-6 py-2 bg-primary/10 rounded-full border border-primary/20">
+<span class="material-symbols-outlined text-primary">psychology</span>
+<span class="text-primary font-bold text-sm">Session de Travail Intense</span>
+</div>
+<!-- Timer Display -->
+<div class="flex items-center gap-6">
+<div class="flex flex-col gap-2">
+<div class="w-32 h-32 flex items-center justify-center rounded-2xl bg-neutral-light/5 dark:bg-neutral-light border-2 border-primary/30">
+<p class="text-6xl font-black text-slate-900 dark:text-white tabular-nums">01</p>
+</div>
+<span class="text-slate-400 text-xs font-bold uppercase">Heures</span>
+</div>
+<div class="text-4xl font-black text-primary pb-6">:</div>
+<div class="flex flex-col gap-2">
+<div class="w-32 h-32 flex items-center justify-center rounded-2xl bg-neutral-light/5 dark:bg-neutral-light border-2 border-primary/30 shadow-2xl shadow-primary/10">
+<p class="text-6xl font-black text-slate-900 dark:text-white tabular-nums">42</p>
+</div>
+<span class="text-slate-400 text-xs font-bold uppercase">Minutes</span>
+</div>
+<div class="text-4xl font-black text-primary pb-6">:</div>
+<div class="flex flex-col gap-2">
+<div class="w-32 h-32 flex items-center justify-center rounded-2xl bg-neutral-light/5 dark:bg-neutral-light border-2 border-primary/30">
+<p class="text-6xl font-black text-slate-900 dark:text-white tabular-nums">15</p>
+</div>
+<span class="text-slate-400 text-xs font-bold uppercase">Secondes</span>
+</div>
+</div>
+<!-- Timer Controls -->
+<div class="flex items-center gap-6">
+<button class="flex items-center justify-center w-14 h-14 rounded-full border-2 border-slate-300 dark:border-neutral-light text-slate-500 dark:text-slate-300 hover:border-primary hover:text-primary transition-all">
+<span class="material-symbols-outlined text-3xl">refresh</span>
+</button>
+<button class="flex items-center justify-center w-20 h-20 rounded-full bg-primary text-background-dark shadow-xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-5xl">pause</span>
+</button>
+<button class="flex items-center justify-center w-14 h-14 rounded-full border-2 border-slate-300 dark:border-neutral-light text-slate-500 dark:text-slate-300 hover:border-red-500 hover:text-red-500 transition-all">
+<span class="material-symbols-outlined text-3xl">stop</span>
+</button>
+</div>
+</div>
+<!-- Proof of Work Sidebar -->
+<div class="flex flex-col gap-6">
+<div class="bg-white dark:bg-neutral-dark rounded-2xl p-6 border border-neutral-light flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white">Preuves de travail</h3>
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full font-bold">ACTIF</span>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-3 rounded-xl bg-neutral-light/5 dark:bg-background-dark border border-neutral-light">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">camera_alt</span>
+<span class="text-xs font-medium">Capture d'écran (auto)</span>
+</div>
+<div class="w-8 h-4 bg-primary rounded-full relative flex items-center px-0.5">
+<div class="h-3 w-3 bg-white rounded-full translate-x-4"></div>
+</div>
+</div>
+<div class="flex items-center justify-between p-3 rounded-xl bg-neutral-light/5 dark:bg-background-dark border border-neutral-light">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-slate-400">keyboard</span>
+<span class="text-xs font-medium">Niveau d'activité clavier</span>
+</div>
+<span class="text-xs font-bold text-primary">85%</span>
+</div>
+</div>
+<div class="relative group cursor-pointer overflow-hidden rounded-xl border border-neutral-light">
+<img class="w-full h-32 object-cover transition-transform group-hover:scale-105" data-alt="Dernière capture d'écran de l'espace de travail montrant du code" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlxsTjk5hTH8AUS98MK9L3ark1mt6siGH39Muqmn7ZeqetCrUQSQEuyYx0ySpTco9myvJu6hLJwcXBlPcgO7L2e9utVZPnXpxx8Bb-Isk9qbPtPdRCI65GwPXzyJBpmMxVh4HXXqYTh3BHQCIvXoI6Tz5_CsE6kuLi4CMIgwV52dEpq6_-s1P8s0KsQGtcbrH47OK0ovKhqspqlGmkRNYFOGwFyfrj_T3evtMKxxdDp4eq7s2L3mP1uEzPWItmHYdMBViZfjfIa_BR"/>
+<div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="text-[10px] text-white font-bold mb-1">Dernière capture : 14:40</span>
+<span class="material-symbols-outlined text-white">open_in_new</span>
+</div>
+</div>
+<p class="text-[10px] text-slate-400 italic">Captures partagées automatiquement avec le client sur ce contrat.</p>
+</div>
+<div class="bg-primary/5 dark:bg-primary/5 rounded-2xl p-6 border border-primary/20 flex flex-col gap-3">
+<h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">local_cafe</span>
+                                        Pause suggérée
+                                    </h3>
+<p class="text-xs text-slate-600 dark:text-slate-400">Vous travaillez depuis 1h42 sans pause. Une pause de 5 min améliorerait votre productivité.</p>
+<button class="w-full py-2 bg-primary/20 text-primary text-xs font-bold rounded-lg border border-primary/30 hover:bg-primary/30 transition-all">Prendre une pause</button>
+</div>
+</div>
+</div>
+<!-- Daily Progress -->
+<div class="bg-white dark:bg-neutral-dark rounded-2xl border border-neutral-light overflow-hidden">
+<div class="px-6 py-4 border-b border-neutral-light flex items-center justify-between">
+<h3 class="font-bold text-slate-900 dark:text-white">Sessions de la journée</h3>
+<div class="flex items-center gap-4 text-xs font-medium text-slate-500">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span>Focus</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-neutral-light"></span>
+<span>Pause</span>
+</div>
+</div>
+</div>
+<div class="p-6">
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 rounded-xl hover:bg-neutral-light/5 transition-all">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Design System - Composants Boutons</p>
+<p class="text-xs text-slate-400">09:00 - 10:30 (1h 30m)</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-primary">97.50 €</p>
+<p class="text-[10px] text-slate-400">Approuvé</p>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-xl hover:bg-neutral-light/5 transition-all">
+<div class="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Recherche Iconographie</p>
+<p class="text-xs text-slate-400">10:45 - 12:15 (1h 30m)</p>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold text-primary">97.50 €</p>
+<p class="text-[10px] text-slate-400">En cours</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</body></html>

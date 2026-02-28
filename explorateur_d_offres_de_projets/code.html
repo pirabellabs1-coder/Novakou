@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Explorateur d'Offres de Projets</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-6 md:px-20 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">ProjectHub</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-500 dark:text-slate-400 flex border-none bg-slate-200 dark:bg-primary/10 items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-lg text-slate-900 dark:text-slate-100 focus:outline-0 focus:ring-1 focus:ring-primary border-none bg-slate-200 dark:bg-primary/10 h-full placeholder:text-slate-500 dark:placeholder:text-slate-400 px-4 pl-2 text-sm font-normal" placeholder="Rechercher une mission..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Tableau de bord</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Mes Offres</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Messages</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Profil</a>
+</nav>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all shadow-sm">
+<span>Poster une mission</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Photo de profil de l'utilisateur" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDxGayyj29abWc_YB7BXTGck10PR_ZxhPRmhnSsoIjD5MbiRxFJxEiYcLIypteff3ARgXpTFCxIrezyrasWog6BGNytRttno5QOg5ziknVxLg0Ktmr7uY2ONBnPwpBjZ5mpQ67E1GwH-EG1RA0ojUY4uBqQurkYqg_lEmUy6NzbB91Ica1Knr_hUifnznDruH-OCcjvR0fDHr5G9HX6wfgyN8cYOKgqES_reR6yKLCF6_LZu51418K-igeb6x2t2gy8y9xbanSyzz3w");'></div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full px-6 md:px-20 py-8">
+<!-- Hero Header -->
+<div class="flex flex-wrap justify-between items-end gap-6 mb-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-slate-900 dark:text-slate-100 text-4xl font-black leading-tight tracking-tight">Explorateur d'Offres</h1>
+<p class="text-slate-600 dark:text-slate-400 text-lg max-w-2xl">Trouvez la mission qui correspond à vos compétences parmi les appels d'offres récents postés par nos clients.</p>
+</div>
+<button class="flex items-center gap-2 rounded-lg h-10 px-4 bg-slate-200 dark:bg-primary/10 text-slate-900 dark:text-slate-100 text-sm font-bold hover:bg-primary/20 transition-all border border-primary/10">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+<span>Actualiser</span>
+</button>
+</div>
+<!-- Filters Bar -->
+<div class="flex gap-3 pb-6 flex-wrap overflow-x-auto no-scrollbar border-b border-primary/10 mb-8">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 pl-4 pr-3 border border-primary/5 hover:border-primary/30 transition-all">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-semibold">Budget</p>
+<span class="material-symbols-outlined text-primary text-[20px]">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 pl-4 pr-3 border border-primary/5 hover:border-primary/30 transition-all">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-semibold">Catégorie</p>
+<span class="material-symbols-outlined text-primary text-[20px]">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 pl-4 pr-3 border border-primary/5 hover:border-primary/30 transition-all">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-semibold">Pays</p>
+<span class="material-symbols-outlined text-primary text-[20px]">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-slate-200 dark:bg-primary/10 pl-4 pr-3 border border-primary/5 hover:border-primary/30 transition-all">
+<p class="text-slate-700 dark:text-slate-200 text-sm font-semibold">Type de contrat</p>
+<span class="material-symbols-outlined text-primary text-[20px]">expand_more</span>
+</button>
+<div class="h-10 w-[1px] bg-primary/10 mx-2"></div>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary/10 text-primary px-4 font-bold text-sm">
+<span>Effacer les filtres</span>
+</button>
+</div>
+<!-- Projects Grid -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Project Card 1 -->
+<div class="group flex flex-col md:flex-row items-stretch gap-6 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
+<div class="w-full md:w-64 h-48 md:h-auto bg-center bg-no-repeat bg-cover rounded-xl shrink-0 overflow-hidden relative" data-alt="Interface d'application mobile sur un smartphone" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsP_jFUfqkQbW1DDSDC-ICCrx6sglWZGRhFsWNyjR-hz2gEILGIbqWaJZHMeJQ2aSIn0MS0D9i3crfybMEba2G-hQKC2d5udAwP-_W6F7MZrXuODzGBIs3pChJ62WgthBnkY_gHYq74eJcPtf0T9TJtGf1zVmQL6HOWYTRh3CRCbtHUmiBrTwRC0fns4qk_kC8Fk2kkGVRWxq-NohXpFMNvvFY2j5T8PCPzpCRwnuv7nGrX8mWN7alUXvHrHsCs_Xf38pHmOclc8R6");'>
+<div class="absolute top-3 left-3 bg-primary/90 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">Urgent</div>
+</div>
+<div class="flex flex-1 flex-col justify-between py-2">
+<div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold group-hover:text-primary transition-colors">Développement Application Mobile E-commerce</h3>
+<span class="text-primary font-black text-lg whitespace-nowrap">200.000 FCFA</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-base mb-4 line-clamp-2">Nous recherchons un développeur Flutter expérimenté pour finaliser une application de vente en ligne. L'application doit intégrer les paiements mobiles (Orange Money, Wave) et une gestion de stock en temps réel via Firebase.</p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Flutter</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Firebase</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Dart</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">API REST</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-primary/10">
+<div class="flex items-center gap-6 text-slate-500 dark:text-slate-400 text-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span>30 jours</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>Sénégal (Distanciel)</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>12 Propositions</span>
+</div>
+</div>
+<button class="flex min-w-[120px] items-center justify-center rounded-lg h-10 px-6 bg-primary text-white text-sm font-bold hover:brightness-110 transition-all">
+<span>Postuler</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="group flex flex-col md:flex-row items-stretch gap-6 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
+<div class="w-full md:w-64 h-48 md:h-auto bg-center bg-no-repeat bg-cover rounded-xl shrink-0" data-alt="Processus de design de logo sur tablette" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBYunxURPkbi6U4HoLnwElWm2Pffv5SygPpS7ZqnWQwFxQaXUWr-YChrRM65FEW-CnEF4ARsx0TUNK-NFcR68tug15_G1de8uKU96rnUbGiKcUiWLF6J9l8DJoXRjKwfCWQbZMEl3_RTTOu3_d_qlk9P_GPG_OZzoz-jZfiTkVCqGdETjk_toKvIrzwmjuCq_Vh6sketDZ-pwjpa0QVR_d3_efdNvw42-SXEoBXZbWaTZOY4PdIFdp36m4oz-vW9QhaHPQO7GFXsmRN");'></div>
+<div class="flex flex-1 flex-col justify-between py-2">
+<div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold group-hover:text-primary transition-colors">Design Logo &amp; Charte Graphique</h3>
+<span class="text-primary font-black text-lg whitespace-nowrap">50.000 FCFA</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-base mb-4 line-clamp-2">Création d'une identité visuelle complète pour une nouvelle startup de livraison écologique. Nous avons besoin d'un logo moderne, d'une palette de couleurs et de polices d'accompagnement.</p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Adobe Illustrator</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Branding</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">UI/UX</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-primary/10">
+<div class="flex items-center gap-6 text-slate-500 dark:text-slate-400 text-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span>7 jours</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>Côte d'Ivoire</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>5 Propositions</span>
+</div>
+</div>
+<button class="flex min-w-[120px] items-center justify-center rounded-lg h-10 px-6 bg-primary text-white text-sm font-bold hover:brightness-110 transition-all">
+<span>Postuler</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="group flex flex-col md:flex-row items-stretch gap-6 p-5 rounded-2xl bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 hover:border-primary/40 transition-all shadow-sm hover:shadow-md">
+<div class="w-full md:w-64 h-48 md:h-auto bg-center bg-no-repeat bg-cover rounded-xl shrink-0" data-alt="Graphiques de performance web sur écran" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCMJCdpi5ld1EKhiCt08b0bexrds55CwGmL5hqbU6cmh1OrzVDg0xMlZirKXYQIx-FdavvA_1yZ-dEap9RNk5AAVJb7FMM6R7AywBBZk--9FH_BZinDJW1nkws0r-x3iK93ZbmzP6x7wg3NnyI5yYimYYr5WFGwUMJLsac05rfrorCesSPULG7VGd8ePQyuGsVkBJdJmAgTG6hb_WjJr5_PrvJFfglghyk7kDF7IS6rxTjzxeOS04abC2ptoh4x6ng4VYdCJD40RHKN");'></div>
+<div class="flex flex-1 flex-col justify-between py-2">
+<div>
+<div class="flex justify-between items-start mb-2">
+<h3 class="text-slate-900 dark:text-slate-100 text-xl font-bold group-hover:text-primary transition-colors">Rédaction de Contenus SEO - Blog Tech</h3>
+<span class="text-primary font-black text-lg whitespace-nowrap">85.000 FCFA</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-base mb-4 line-clamp-2">Nous recherchons un rédacteur spécialisé en nouvelles technologies pour produire 10 articles de 1200 mots optimisés pour le SEO. Thématique : Intelligence Artificielle et Web3.</p>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Copywriting</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">SEO</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-primary/20 text-slate-700 dark:text-primary text-xs font-bold rounded-full">Français</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-primary/10">
+<div class="flex items-center gap-6 text-slate-500 dark:text-slate-400 text-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span>15 jours</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">location_on</span>
+<span>France</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>8 Propositions</span>
+</div>
+</div>
+<button class="flex min-w-[120px] items-center justify-center rounded-lg h-10 px-6 bg-primary text-white text-sm font-bold hover:brightness-110 transition-all">
+<span>Postuler</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="flex items-center justify-center gap-4 mt-12 py-4">
+<button class="size-10 flex items-center justify-center rounded-lg border border-primary/20 bg-slate-200 dark:bg-primary/5 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg bg-primary text-white font-bold">1</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-primary/20 hover:bg-primary hover:text-white transition-all">2</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-primary/20 hover:bg-primary hover:text-white transition-all">3</button>
+<span class="text-slate-400">...</span>
+<button class="size-10 flex items-center justify-center rounded-lg border border-primary/20 hover:bg-primary hover:text-white transition-all">12</button>
+<button class="size-10 flex items-center justify-center rounded-lg border border-primary/20 bg-slate-200 dark:bg-primary/5 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="border-t border-primary/10 py-12 px-6 md:px-20 bg-white dark:bg-black/20">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-3 text-primary opacity-70">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-bold">ProjectHub © 2024</span>
+</div>
+<div class="flex gap-8 text-sm text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary" href="#">Politique de confidentialité</a>
+<a class="hover:text-primary" href="#">Aide &amp; Support</a>
+</div>
+<div class="flex gap-4">
+<button class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-[20px]">language</span>
+</button>
+<button class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined text-[20px]">share</span>
+</button>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</body></html>

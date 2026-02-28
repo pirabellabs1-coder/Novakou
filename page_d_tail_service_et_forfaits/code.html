@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#11d462",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102218",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-size: 24px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-emerald-900/30 px-6 md:px-20 py-3 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl">token</span>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight">AfriqueFreelance</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full overflow-hidden">
+<div class="text-slate-400 dark:text-emerald-500/50 flex items-center justify-center pl-4 bg-slate-100 dark:bg-emerald-900/20">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-emerald-900/20 text-slate-900 dark:text-white focus:ring-0 placeholder:text-slate-400 dark:placeholder:text-emerald-700 px-4 pl-2 text-sm" placeholder="Trouver un service..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Explorer</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Devenir Freelance</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors relative" href="#">
+<span class="material-symbols-outlined">mail</span>
+<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span></span>
+</a>
+</nav>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-background-dark text-sm font-bold transition-transform hover:scale-105 active:scale-95">
+                Connexion
+            </button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Avatar de l'utilisateur africain" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDF4qod8pImJy8Hf8blL1IP-rSVwNGE-opmQQaDDz6bnzbFDGmW6mxjz94spdCujsCast6W2q0KdNWt1P_Ff5K5iYecYZ34cgHX5JiPSCXHoheJ5B3XfEe9114CWxk7jlH8C-wrm4r4RCeehyNO7VKjFuHYcQT9HcebCB-TBM-31nw_2OpDlK5v1lbyR4EvUeIok4xGs7fLRfT_cf0B2Qhg2ORA-w9CHHb0-F43GtwrTvTug1DFklHzrJUS3zRVZwNYozt9h9Yz2K4d");'></div>
+</div>
+</header>
+<main class="max-w-[1200px] mx-auto w-full px-6 py-8">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 mb-6 text-sm">
+<a class="text-slate-500 hover:text-primary" href="#">Accueil</a>
+<span class="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
+<a class="text-slate-500 hover:text-primary" href="#">Design &amp; Graphisme</a>
+<span class="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-semibold">Logo Design</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+<!-- Left Column: Content -->
+<div class="lg:col-span-2 flex flex-col gap-8">
+<section>
+<h1 class="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-4">
+                        Je vais concevoir un logo professionnel et moderne pour votre marque africaine
+                    </h1>
+<div class="flex items-center gap-4 mb-6">
+<div class="flex items-center gap-2">
+<div class="size-12 rounded-full bg-cover bg-center border-2 border-primary" data-alt="Portrait du freelance expert" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB0fVaT5RpEc6F512XMheDZzyNPK-ufAbMHFzFJtemAbBcIOEvbQjjktXKHLqta90oiMW79X_wsUkl3mtcPXaOTdiBmu67OJfI1xDZzSL85AT5USIjR19NvoTXxrLMqCuyJap5B0tKNh6BuLuCtpAuGcs8YuMknN5UfCnplGPKlsjKgiLRU-rBKGVsnjhEKbh2UolJH7sGFYSHuO_OkFwHwBxjf0J_69twIi6bkTwdfGpBqfSksdg5KIlTtC1PXMt1nA37Ge9fTTeAM");'></div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white leading-none">Moussa K.</p>
+<div class="flex items-center gap-1 text-xs text-amber-500">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="font-bold">4.9</span>
+<span class="text-slate-400 font-normal ml-1">(124 avis)</span>
+</div>
+</div>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-emerald-900/30"></div>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded">Top Rated</span>
+<span class="px-2 py-1 bg-blue-500/10 text-blue-500 text-[10px] font-bold uppercase rounded">Vérifié</span>
+</div>
+</div>
+<!-- Image Gallery -->
+<div class="relative group rounded-xl overflow-hidden aspect-video bg-slate-200 dark:bg-emerald-900/10">
+<div class="absolute inset-0 bg-center bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Exemple de logo moderne designé par le freelance" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB2bHOgJY0bkTp9nbXsG3xW1E3IREe90DYNbyPW3WV-o3XqEuwAnLjkQPd2DIiffs29j6YXea-o-_jeKPBRms2Jvm5vJ1IUCGDFbPTBagTLtCcB2AdAebvK1C_0_ds-73n1AucNdVjXW2XNldut78SVzm1cL5fzUOHZJ8iRErteLn_FuOk3vs4zEDL8NLxueIHblI08RYqHxbhwWAF_7Q63xH-0EuATy0jGjiWz5SV5hG3-KUw3PCUF1kidGp2aOy6SiKFyUh3wyItx");'></div>
+<button class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white p-2 rounded-full">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/40 backdrop-blur-md text-white p-2 rounded-full">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+<div class="size-2 rounded-full bg-primary"></div>
+<div class="size-2 rounded-full bg-white/50"></div>
+<div class="size-2 rounded-full bg-white/50"></div>
+</div>
+</div>
+</section>
+<!-- Navigation Tabs -->
+<div class="border-b border-slate-200 dark:border-emerald-900/30">
+<nav class="flex gap-8">
+<a class="pb-4 border-b-2 border-primary text-primary font-bold text-sm" href="#about">À propos</a>
+<a class="pb-4 border-b-2 border-transparent text-slate-500 font-bold text-sm hover:text-primary transition-colors" href="#packages">Forfaits</a>
+<a class="pb-4 border-b-2 border-transparent text-slate-500 font-bold text-sm hover:text-primary transition-colors" href="#profile">Profil</a>
+<a class="pb-4 border-b-2 border-transparent text-slate-500 font-bold text-sm hover:text-primary transition-colors" href="#reviews">Avis</a>
+</nav>
+</div>
+<!-- Rich Text Description -->
+<section class="prose prose-slate dark:prose-invert max-w-none" id="about">
+<h3 class="text-xl font-bold mb-4">À propos de ce service</h3>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                        Vous lancez votre startup ou votre PME en Afrique et vous avez besoin d'une identité visuelle qui marque les esprits ? Je suis Moussa, designer spécialisé dans le branding avec plus de 5 ans d'expérience. 
+                    </p>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                        Je ne me contente pas de dessiner un logo. Je crée une identité qui raconte votre histoire et résonne avec votre public cible, en alliant modernité et codes culturels locaux.
+                    </p>
+<h4 class="font-bold mb-2">Pourquoi me choisir ?</h4>
+<ul class="grid grid-cols-1 md:grid-cols-2 gap-2 list-none p-0">
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Créations 100% originales</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Formats haute résolution (PNG, JPG, Vectoriel)</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Support client réactif 7j/7</li>
+<li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">check_circle</span> Révisions illimitées (Pack Premium)</li>
+</ul>
+</section>
+<hr class="border-slate-200 dark:border-emerald-900/20"/>
+<!-- User Reviews -->
+<section id="reviews">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold">Avis clients (124)</h3>
+<div class="flex items-center gap-1 text-amber-500 font-bold">
+<span class="material-symbols-outlined fill-1">star</span>
+<span>4.9 / 5</span>
+</div>
+</div>
+<div class="space-y-6">
+<!-- Review 1 -->
+<div class="p-6 rounded-xl bg-slate-50 dark:bg-emerald-900/10 border border-slate-100 dark:border-emerald-900/20">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-3">
+<div class="size-10 rounded-full bg-slate-300 flex items-center justify-center font-bold text-slate-700 bg-[url('https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&amp;w=100&amp;auto=format&amp;fit=crop')] bg-cover" data-alt="Client testimonial photo"></div>
+<div>
+<p class="font-bold text-sm">Sarah D. - Sénégal</p>
+<div class="flex text-amber-500">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+</div>
+</div>
+</div>
+<span class="text-xs text-slate-400">Il y a 2 jours</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm">
+                                Travail exceptionnel ! Moussa a parfaitement compris l'essence de ma marque de cosmétiques naturels. Je recommande vivement pour son sérieux et sa créativité.
+                            </p>
+</div>
+<!-- Review 2 -->
+<div class="p-6 rounded-xl bg-slate-50 dark:bg-emerald-900/10 border border-slate-100 dark:border-emerald-900/20">
+<div class="flex justify-between items-start mb-4">
+<div class="flex gap-3">
+<div class="size-10 rounded-full bg-slate-300 flex items-center justify-center font-bold text-slate-700 bg-[url('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&amp;w=100&amp;auto=format&amp;fit=crop')] bg-cover" data-alt="Second client testimonial"></div>
+<div>
+<p class="font-bold text-sm">Jean-Luc B. - Côte d'Ivoire</p>
+<div class="flex text-amber-500">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+</div>
+</div>
+</div>
+<span class="text-xs text-slate-400">La semaine dernière</span>
+</div>
+<p class="text-slate-600 dark:text-slate-400 text-sm">
+                                Très professionnel et livraison en avance. Les concepts proposés étaient tous excellents, le choix a été difficile !
+                            </p>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Sticky Sidebar Packages -->
+<div class="lg:col-span-1">
+<div class="sticky top-24 flex flex-col gap-6">
+<!-- Package Card -->
+<div class="rounded-xl border border-slate-200 dark:border-emerald-900/30 bg-white dark:bg-emerald-900/10 shadow-xl overflow-hidden">
+<div class="flex bg-slate-50 dark:bg-emerald-950/40">
+<button class="flex-1 py-4 text-sm font-bold border-b-2 border-primary text-primary bg-white dark:bg-background-dark/30">Basique</button>
+<button class="flex-1 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-emerald-900/20 transition-colors">Standard</button>
+<button class="flex-1 py-4 text-sm font-bold border-b-2 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-emerald-900/20 transition-colors">Premium</button>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-bold text-lg uppercase tracking-wider text-slate-400 text-xs">Pack Bronze</h4>
+<div class="text-right">
+<p class="text-2xl font-black text-primary">35 000 FCFA</p>
+<p class="text-xs text-slate-500">~ 53.50 EUR</p>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                                Idéal pour un projet personnel ou une petite page sur les réseaux sociaux. 1 concept de logo en HD.
+                            </p>
+<div class="space-y-3 mb-8">
+<div class="flex items-center gap-3 text-sm">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<span>Livraison en 3 jours</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<span class="material-symbols-outlined text-primary">update</span>
+<span>2 Révisions</span>
+</div>
+<div class="flex items-center gap-3 text-sm">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+<span>Format PNG &amp; Transparent</span>
+</div>
+<div class="flex items-center gap-3 text-sm opacity-50">
+<span class="material-symbols-outlined">cancel</span>
+<span class="line-through">Fichier source (AI/EPS)</span>
+</div>
+<div class="flex items-center gap-3 text-sm opacity-50">
+<span class="material-symbols-outlined">cancel</span>
+<span class="line-through">Guide de marque complet</span>
+</div>
+</div>
+<button class="w-full bg-primary hover:bg-emerald-500 text-background-dark font-bold py-4 rounded-lg flex items-center justify-center gap-2 transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/20">
+                                Commander ce forfait
+                                <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="w-full mt-3 py-3 rounded-lg border border-slate-200 dark:border-emerald-800 text-sm font-bold hover:bg-slate-50 dark:hover:bg-emerald-900/10 transition-colors">
+                                Contacter Moussa
+                            </button>
+</div>
+</div>
+<!-- Trust Badges -->
+<div class="rounded-xl p-4 border border-slate-200 dark:border-emerald-900/30 bg-slate-50 dark:bg-emerald-950/20">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<span class="text-xs font-bold uppercase tracking-tighter">Garantie AfriqueFreelance</span>
+</div>
+<p class="text-[11px] text-slate-500 leading-tight">
+                            Votre paiement est sécurisé et n'est libéré au freelance qu'une fois que vous avez approuvé la livraison.
+                        </p>
+</div>
+<!-- Social Proof -->
+<div class="flex items-center justify-center gap-4 py-2 opacity-60 grayscale hover:grayscale-0 transition-all duration-300">
+<img class="h-6" data-alt="Visa Card Icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyuIzjxoH5OIefxRHVuuB2WgkrDlhEwvVRqrUNJDVPG6hDUP3Nvcig-wsFekWnqIDwxZM9fcgXqpoX20pO6oc6htWVCoYcj39cf7jmdaGJboAdsXSNfbFJ96eAsL-UuT4qRC-IxMhb4p2lDKggIrE5UoNm35qzUh1e5AvJyxjXDyBHhEU5Bx_hZ_YXa61nUU9_OB5qR5FIzQLEILQ3mQ-NaaLGblYJhxIf9qcBvY6dpUYpQ5mizLj2bD9tQcfI6GKvk-e3JEhi3dWv"/>
+<img class="h-6" data-alt="Mastercard Icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoygjT4_fM3h6eEw8bW6nflyGcg1XPGFuw6Vk97l9MY-bN4d5cJC0XqtZ7Z1giOBUpZQtt9zVn-ntRUIhsjjTEvI5cbN-yk6tjcyJnKHPLq9ruX__1wEwZQDy_suw94FMUGIq1h9PzUHHCwT596tbmcxpklF9W0GCMzEO4AG46atgyczldJ2-8sfjNzvqvpX31FlO6jyfajl7GDT7rN-bQaAxT1OAvIDStXUOiTo2wK6LkXsdZ-PLowv3ko1RKZwugBlUUK_RLdCAM"/>
+<img class="h-6" data-alt="Orange Money Icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBo5I1zJ4y3vWEbmLrZtBGnGTsjWQB4qjbtHtV3FxQrZv5EtxGIkTRc8doGSOHyJ0zR0yjc3SWgzHP8L1vmtuVZ6TTk0JYdzBG7Qgch5emjP0nGMvRVB1XMcZlHaDKgUIH9HTZy0S07YOIelfYihf9RU0OXPRWcxp1LuLJmqR_yWUOJZibBQcsNI7nw1g7fTK-AcUesV0n75Dm4ECOkuL95Cv7Jb0L8QlzbF6nMB_nR92QuR_AxwGcwAsNgBd2jt5L3iqO49hEP1fFi"/>
+<img class="h-6" data-alt="MTN MoMo Icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwM5UXEOJSL3q2UCsNRqFCCH-SG9nmUu1q9PwuUxw19uAXhnWdg-lLgstvUDicneu40ZvQ5rfrAzpAqKKNXShOfWwNdZJklIfFm2nhlHH282AIsraaHsKTEuXEaMPTNru3Yflny7BLx6RnnyzY5YNM7H5TO4JbBkwM-XbJx8EL9CLPeMyVHLjZNTnxRuPGfcqpTFCMMtm8y4g_Hf8Q3o35a8Inil5IR8vO-MoI00bitlgm2FFrA8JqxwPDnQPujw-6pteExLMN9E_V"/>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="mt-20 border-t border-slate-200 dark:border-emerald-900/30 bg-white dark:bg-background-dark py-12 px-20">
+<div class="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+<div class="col-span-1 md:col-span-2">
+<div class="flex items-center gap-2 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl">token</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-bold">AfriqueFreelance</h2>
+</div>
+<p class="text-slate-500 text-sm max-w-xs mb-6">
+                    La première plateforme de services en ligne dédiée aux talents et entreprises du continent africain.
+                </p>
+<div class="flex gap-4">
+<a class="size-8 rounded-full bg-slate-100 dark:bg-emerald-900/20 flex items-center justify-center text-slate-600 dark:text-emerald-500 hover:bg-primary hover:text-white transition-all" href="#"><span class="material-symbols-outlined text-lg">public</span></a>
+<a class="size-8 rounded-full bg-slate-100 dark:bg-emerald-900/20 flex items-center justify-center text-slate-600 dark:text-emerald-500 hover:bg-primary hover:text-white transition-all" href="#"><span class="material-symbols-outlined text-lg">share</span></a>
+</div>
+</div>
+<div>
+<h5 class="font-bold mb-4 text-sm uppercase tracking-wider text-slate-400">Services</h5>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary transition-colors" href="#">Design Graphique</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Développement Web</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Marketing Digital</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Traduction</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-bold mb-4 text-sm uppercase tracking-wider text-slate-400">Support</h5>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary transition-colors" href="#">Centre d'aide</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Sécurité</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Conditions Générales</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact</a></li>
+</ul>
+</div>
+</div>
+<div class="mt-12 pt-8 border-t border-slate-100 dark:border-emerald-900/10 text-center text-xs text-slate-400">
+            © 2024 AfriqueFreelance. Tous droits réservés. Designé pour le futur de l'Afrique.
+        </div>
+</footer>
+</div>
+</body></html>

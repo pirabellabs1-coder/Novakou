@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f0b505",
+                        "secondary": "#0e7c66",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#181611",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .bg-pattern {
+            background-image: radial-gradient(circle at 2px 2px, rgba(240, 181, 5, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-pattern">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 px-6 py-4 lg:px-20">
+<div class="flex items-center gap-3">
+<div class="text-primary">
+<span class="material-symbols-outlined text-4xl">work_history</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<nav class="flex gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Freelances</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Projets</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Assistance</a>
+</nav>
+<div class="flex gap-3">
+<button class="rounded-lg px-4 py-2 text-sm font-bold bg-primary text-background-dark hover:brightness-110 transition-all">S'inscrire</button>
+<button class="rounded-lg px-4 py-2 text-sm font-bold bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 transition-all">Connexion</button>
+</div>
+</div>
+</header>
+<main class="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
+<div class="relative mb-8">
+<div class="absolute -inset-4 rounded-full bg-primary/10 blur-3xl"></div>
+<div class="relative flex items-center justify-center">
+<span class="text-[12rem] font-black text-slate-200/50 dark:text-slate-800/50 select-none">404</span>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="h-64 w-64 md:h-80 md:w-80 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 p-1">
+<div class="h-full w-full rounded-2xl bg-background-light dark:bg-background-dark flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-800">
+<img alt="Illustration d'un freelance travaillant sur une île déserte" class="h-full w-full object-cover opacity-90" data-alt="Modern 3D illustration of a freelance working on a small desert island" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfzN4w0zt0cnxGgdPnrwPxoh4Ut0eEjdQNMD6mrsx4YRSwfw3JKEp-1JSlSfGuUX2mzbbLhWjV79AP4nSpiaoseYUyRn094vbwZGaHxG32-jlVlwidcniEl8OnhneId17viMjCIKG__0x0HITsuxJHXgMUbxa2IuK02jWjiGeqU_kHmzlxTaEhb68QnILOifBmYPdIzAuj4ldr5l6tgBV7AncxK0gZAJjKVJjA1aWLBQEBkWKNk3vEXj8FI5TVDBtn6NRVia2Rmg2S"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="max-w-2xl space-y-4">
+<h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">
+                    Oups ! Cette page est partie en <span class="text-primary">freelance</span>.
+                </h1>
+<p class="text-lg text-slate-600 dark:text-slate-400">
+                    Il semble que le lien que vous avez suivi ait décidé de prendre des vacances prolongées ou n'existe plus. Pas de panique, nos meilleurs experts sont sur le coup.
+                </p>
+</div>
+<div class="mt-10 flex flex-col sm:flex-row gap-4">
+<a class="flex items-center justify-center gap-2 rounded-xl bg-primary px-8 py-4 text-background-dark font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">home</span>
+                    Retour à l'accueil
+                </a>
+<a class="flex items-center justify-center gap-2 rounded-xl bg-secondary px-8 py-4 text-white font-bold text-lg hover:scale-105 transition-transform shadow-lg shadow-secondary/20" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+                    Nous contacter
+                </a>
+</div>
+<div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+<div class="group flex flex-col items-center p-6 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">help</span>
+</div>
+<h3 class="text-lg font-bold mb-1">Centre d'aide</h3>
+<p class="text-sm text-slate-500 text-center">Trouvez des solutions rapides à vos problèmes.</p>
+</div>
+<div class="group flex flex-col items-center p-6 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-secondary/20 text-secondary">
+<span class="material-symbols-outlined">search</span>
+</div>
+<h3 class="text-lg font-bold mb-1">Explorer des projets</h3>
+<p class="text-sm text-slate-500 text-center">Découvrez les dernières missions disponibles.</p>
+</div>
+<div class="group flex flex-col items-center p-6 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary transition-colors">
+<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined">person_search</span>
+</div>
+<h3 class="text-lg font-bold mb-1">Trouver un talent</h3>
+<p class="text-sm text-slate-500 text-center">Recrutez les meilleurs freelances d'Afrique.</p>
+</div>
+</div>
+</main>
+<footer class="border-t border-slate-200 dark:border-slate-800 px-6 py-10 lg:px-20 text-center">
+<div class="flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">work_history</span>
+<span class="font-bold">AfriqueFreelance</span>
+</div>
+<div class="flex gap-6 text-sm font-medium text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary" href="#">Conditions</a>
+<a class="hover:text-primary" href="#">Confidentialité</a>
+<a class="hover:text-primary" href="#">Blog</a>
+</div>
+<div class="flex gap-4">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"></path></svg>
+</a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.84 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"></path></svg>
+</a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"></path></svg>
+</a>
+</div>
+</div>
+<p class="mt-8 text-xs text-slate-500">© 2024 AfriqueFreelance. Propulsé par la créativité africaine.</p>
+</footer>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,215 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c24",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<header class="sticky top-0 z-50 border-b border-slate-200 dark:border-primary/20 bg-background-light dark:bg-background-dark/95 backdrop-blur-md px-4 md:px-10 lg:px-20 py-3">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<div class="hidden lg:flex relative w-80">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-primary/10 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-500" placeholder="Rechercher un service..." type="text"/>
+</div>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-semibold text-primary transition-colors" href="#">Mes Services</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Ventes</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Messages</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-primary/20 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/30 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile picture of a male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdIV__LDiOhTfEOi3gesxBKdeZL0Ga8hbHTcskJienod7mWrPKDFwwR4p6rQ08RkD8k1GRhzKsKGQK2NEoxD5dlaXWgEXtuO12muKkO6biFpzzeMOEHbSgtLRjZ5qc_HOCAFpn99gzSE0TVZvkN516tCAisyq1ph7XpGl3DYnIf3gynU6jpGyra_6S61eSHT6XP4UDcZk1uIcm-GV1QGRr6QJSCjqKn0W18c27KDbpLkxljvCk85wfJyZF4PX3ZYPGr0nESznVxKIN"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
+<aside class="w-full lg:w-72 p-6 border-r border-slate-200 dark:border-primary/10 shrink-0">
+<div class="sticky top-24">
+<div class="flex items-center gap-2 mb-8">
+<a class="text-slate-500 hover:text-primary flex items-center gap-1 text-sm" href="#">
+<span class="material-symbols-outlined text-sm">arrow_back</span>
+                    Retour au service
+                </a>
+</div>
+<h3 class="text-lg font-bold mb-6">Paramètres Service</h3>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors text-slate-500" href="#">
+<span class="material-symbols-outlined">edit_note</span> Informations générales
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors text-slate-500" href="#">
+<span class="material-symbols-outlined">payments</span> Tarification
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium bg-primary/10 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">search_check</span> SEO &amp; Visibilité
+                </a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-primary/10 transition-colors text-slate-500" href="#">
+<span class="material-symbols-outlined">collections</span> Galerie
+                </a>
+</nav>
+</div>
+</aside>
+<section class="flex-1 p-6 lg:p-10">
+<div class="max-w-4xl mx-auto">
+<div class="mb-10">
+<h1 class="text-3xl font-extrabold mb-2">Optimisation SEO</h1>
+<p class="text-slate-500 dark:text-slate-400">Améliorez le classement de votre service sur Google et dans les recherches internes de la plateforme.</p>
+</div>
+<div class="grid grid-cols-1 gap-10">
+<div class="bg-white dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 p-8">
+<div class="space-y-8">
+<div>
+<label class="block text-sm font-bold mb-2">
+                                Meta Titre SEO
+                                <span class="text-xs font-normal text-slate-400 ml-2">(60-70 caractères recommandés)</span>
+</label>
+<input class="w-full bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Ex: Expert en Design de Logo Minimaliste et Moderne" type="text" value="Je vais créer un logo minimaliste et moderne pour votre entreprise"/>
+<div class="flex justify-between mt-1">
+<p class="text-[10px] text-slate-400">Le titre qui apparaîtra dans les résultats de recherche.</p>
+<span class="text-[10px] font-bold text-primary">64 / 70</span>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">
+                                Meta Description SEO
+                                <span class="text-xs font-normal text-slate-400 ml-2">(150-160 caractères recommandés)</span>
+</label>
+<textarea class="w-full bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Décrivez votre service pour les moteurs de recherche..." rows="4">Besoin d'une identité visuelle forte ? Je conçois des logos uniques, minimalistes et professionnels adaptés à votre marque en 24h. Plus de 500 clients satisfaits en Afrique.</textarea>
+<div class="flex justify-between mt-1">
+<p class="text-[10px] text-slate-400">Un résumé accrocheur pour inciter les clients à cliquer.</p>
+<span class="text-[10px] font-bold text-primary">158 / 160</span>
+</div>
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">Mots-clés personnalisés (Tags)</label>
+<div class="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-lg">
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold">
+                                    Logo Design <button class="material-symbols-outlined text-xs">close</button>
+</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold">
+                                    Minimaliste <button class="material-symbols-outlined text-xs">close</button>
+</span>
+<span class="inline-flex items-center gap-1 px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold">
+                                    Identité Visuelle <button class="material-symbols-outlined text-xs">close</button>
+</span>
+<input class="flex-1 bg-transparent border-none p-0 text-sm focus:ring-0 placeholder:text-slate-400" placeholder="Ajouter un mot-clé..." type="text"/>
+</div>
+<p class="mt-2 text-[10px] text-slate-400">Séparez les mots-clés par une virgule ou appuyez sur Entrée. (Max 5)</p>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<h3 class="text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">visibility</span>
+                        Aperçu du résultat Google
+                    </h3>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+<div class="max-w-xl">
+<div class="flex items-center gap-2 mb-1">
+<div class="size-6 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-slate-400">public</span>
+</div>
+<div class="text-[12px] text-slate-600 dark:text-slate-400 truncate">
+                                    afriquefreelance.com › services › design-logo
+                                </div>
+</div>
+<h4 class="text-[20px] text-[#1a0dab] dark:text-[#8ab4f8] hover:underline cursor-pointer font-medium leading-tight mb-1">
+                                Je vais créer un logo minimaliste et moderne pour votre entreprise
+                            </h4>
+<p class="text-[14px] text-slate-700 dark:text-slate-300 leading-normal">
+<span class="text-slate-500 font-bold">Note : 4.9 · ‎124 avis</span> — Besoin d'une identité visuelle forte ? Je conçois des logos uniques, minimalistes et professionnels adaptés à votre marque en 24h. Plus de 500 clients satisfaits en Afrique.
+                            </p>
+</div>
+</div>
+</div>
+<div class="flex justify-end gap-4 border-t border-slate-200 dark:border-primary/10 pt-8">
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold border border-slate-200 dark:border-primary/20 hover:bg-slate-50 dark:hover:bg-primary/5">Annuler</button>
+<button class="px-8 py-2.5 rounded-lg text-sm font-bold bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20">Enregistrer les modifications</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t border-slate-200 dark:border-primary/10 py-10 px-4 md:px-20 bg-white dark:bg-background-dark/50 mt-20">
+<div class="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+<div class="col-span-2 md:col-span-1">
+<div class="flex items-center gap-2 mb-4">
+<div class="size-6 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xs">rocket_launch</span>
+</div>
+<h2 class="text-lg font-extrabold tracking-tight text-primary">AfriqueFreelance</h2>
+</div>
+<p class="text-sm text-slate-500">La première plateforme de services freelance pour l'Afrique.</p>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Tableau de bord</h4>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Mes services</a></li>
+<li><a class="hover:text-primary" href="#">Mes commandes</a></li>
+<li><a class="hover:text-primary" href="#">Profil vendeur</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Ressources SEO</h4>
+<ul class="space-y-2 text-sm text-slate-500">
+<li><a class="hover:text-primary" href="#">Guide du référencement</a></li>
+<li><a class="hover:text-primary" href="#">Mots-clés populaires</a></li>
+<li><a class="hover:text-primary" href="#">Aide &amp; Support</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-sm mb-4">Social</h4>
+<div class="flex gap-4">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">social_leaderboard</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">alternate_email</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary">share</span>
+</div>
+</div>
+</div>
+<div class="max-w-[1440px] mx-auto pt-10 mt-10 border-t border-slate-100 dark:border-primary/5 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-xs text-slate-500">© 2024 AfriqueFreelance. Tous droits réservés.</p>
+<div class="flex gap-6 text-xs text-slate-500">
+<a class="hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary" href="#">Politique de confidentialité</a>
+</div>
+</div>
+</footer>
+
+</body></html>

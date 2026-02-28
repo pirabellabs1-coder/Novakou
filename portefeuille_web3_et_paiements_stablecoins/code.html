@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e6bd",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>AfriqueFreelance - Portefeuille Web3</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/20 px-10 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8 flex items-center justify-center bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em]">AfriqueFreelance Web3</h2>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="hidden md:flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Transactions</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Échanges</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-medium hover:text-primary transition-colors" href="#">Paramètres</a>
+</nav>
+<button class="flex min-w-[140px] cursor-pointer items-center justify-center gap-2 rounded-lg h-11 px-5 bg-primary text-background-dark text-sm font-bold transition-all hover:opacity-90 active:scale-95">
+<span class="material-symbols-outlined text-sm">link</span>
+<span>Connecter Wallet</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-primary/30" data-alt="User profile avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBhGg4RcLuDpxe_jO4qaSxGkMCxmCSttpXOPWzinTJRcLvZCtdru8NVmwhHPfaeZVop7jU1B5RUBUTHJr1W9dqyWbMa9vRZkdHosnnFAGm66eIDSM_mDgIauaS3m8uwwB79mNqyNkeaZ8j1Qo224JkuLJ7cuDcQ2Z8OYfYBsFasCWyeWLQ4o8P5LGFC7mK7NhyXMJnWPsAU_ZWXFNnb0IiK5R9yeGNkHBZ9ivEhpBdf9Mvm2goKuRrgwL5_XzrPhd304Yy9ck4VWc8n");'></div>
+</div>
+</header>
+<main class="flex-1 px-4 md:px-20 lg:px-40 py-10">
+<div class="max-w-[1100px] mx-auto space-y-8">
+<!-- Hero Section -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-xs font-bold uppercase tracking-widest">Sécurisé par Blockchain</span>
+</div>
+<div class="flex flex-wrap justify-between items-end gap-6">
+<div class="max-w-2xl space-y-3">
+<h1 class="text-slate-900 dark:text-slate-100 text-5xl font-black leading-tight tracking-[-0.033em]">Paiements en Stablecoins</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg font-normal">Recevez vos revenus en USDC et USDT. Évitez l'instabilité monétaire et les frais bancaires internationaux élevés.</p>
+</div>
+<div class="bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center gap-4">
+<div class="p-3 bg-primary/10 rounded-full text-primary">
+<span class="material-symbols-outlined">shield</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">Statut Réseau</p>
+<p class="text-sm font-semibold text-emerald-500 flex items-center gap-1">
+<span class="size-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                    Opérationnel
+                                </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Balance Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="flex flex-col gap-3 rounded-xl p-8 border border-primary/20 bg-white dark:bg-background-dark/50 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Solde Total</p>
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 tracking-tight text-3xl font-bold leading-tight">$12,450.85</p>
+<div class="flex items-center gap-1 text-emerald-500 text-sm font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+<span>+12.5% cette semaine</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl p-8 border border-primary/10 bg-white dark:bg-background-dark/50 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Paiements en Attente</p>
+<span class="material-symbols-outlined text-amber-500">pending_actions</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 tracking-tight text-3xl font-bold leading-tight">1,200.00 USDC</p>
+<p class="text-slate-400 text-sm font-normal">Prévu pour le 24 Mai</p>
+</div>
+<div class="flex flex-col gap-3 rounded-xl p-8 border border-primary/10 bg-white dark:bg-background-dark/50 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Frais de Réseau (Gas)</p>
+<span class="material-symbols-outlined text-slate-400">local_gas_station</span>
+</div>
+<p class="text-slate-900 dark:text-slate-100 tracking-tight text-3xl font-bold leading-tight">0.0042 ETH</p>
+<p class="text-emerald-500 text-sm font-medium">Optimisé via Polygon</p>
+</div>
+</div>
+<!-- Asset Table -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="text-slate-900 dark:text-slate-100 text-2xl font-bold tracking-tight">Vos Actifs Crypto</h2>
+<button class="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+                            Voir tout l'historique <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+<div class="overflow-hidden rounded-xl border border-primary/10 bg-white dark:bg-background-dark/30 shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-primary/5 border-b border-primary/10">
+<th class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Actif</th>
+<th class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Solde</th>
+<th class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Valeur USD</th>
+<th class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider">Réseau</th>
+<th class="px-6 py-4 text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-primary/5">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-2">
+<img alt="USDC Logo" data-alt="USDC cryptocurrency token logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnb6Sv-OsuCuEmYh4l1iyEoI-V6RZB3MK38X0izGwxy7LQMafTqFKINZRdxY5VHLmIZ1O_PLt7ldiQmYNqP5nxl1-uyTvkRDVPPR9Urwww_teR4oBYM_fQSAVvIoMICRzv2ATij_utwSKqrrNYWNa0gxoZxzeJDjKdsPk9T_btRDtrdbjLgKBEf8a5t1mGkfpVimz9QQt0gd_l7EMV_EccU1jc5eAH6rfSP1yqkJW2UyuXr9u0biyKmnu6SmV4xgUKcjNIqEjHmhmM"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 leading-none">USD Coin</p>
+<p class="text-xs text-slate-500 mt-1 uppercase font-semibold">USDC</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5 font-semibold text-slate-900 dark:text-slate-100">8,450.00</td>
+<td class="px-6 py-5 text-slate-500 dark:text-slate-400">$8,450.00</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                                            Ethereum
+                                        </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="bg-primary hover:opacity-90 text-background-dark px-4 py-2 rounded-lg text-sm font-bold transition-all">Recevoir</button>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center p-2">
+<img alt="USDT Logo" data-alt="Tether USDT cryptocurrency token logo icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9PcRGTUDTio79B-b5dcKQK3-aUjNY2VpYKy2LuVjM5cxnR9zZqYjz5OGBu22Rr9eAu2ScMlpkEcPqv0XomlBfCIKkuTiqDwIcWGMOj0B-TzBqfGIK-x-3nBkylWh7HpFxKFoM2E4G3CauVhgd-bOuNlmUFeqx_2Sx-n7cSakKWWznUIfo27YcGMFZeXoONXt29pdcPNsU0GQ09ddORfrbYhzcw1X2NZb7NRXfQDEf0-65nCqRrCNH_tR_4FK0XK5IspEv7-hGpOFs"/>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-slate-100 leading-none">Tether</p>
+<p class="text-xs text-slate-500 mt-1 uppercase font-semibold">USDT</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5 font-semibold text-slate-900 dark:text-slate-100">4,000.85</td>
+<td class="px-6 py-5 text-slate-500 dark:text-slate-400">$4,000.85</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                            Polygon
+                                        </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="bg-primary hover:opacity-90 text-background-dark px-4 py-2 rounded-lg text-sm font-bold transition-all">Recevoir</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Features Info -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-primary/10">
+<div class="flex gap-4 p-6 bg-primary/5 rounded-xl border border-primary/10">
+<div class="size-12 rounded-xl bg-primary text-background-dark flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">security</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Sécurité Maximale</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Vos fonds sont stockés sur la blockchain. Vous seul contrôlez vos clés privées via votre wallet Web3 (MetaMask, Trust Wallet).</p>
+</div>
+</div>
+<div class="flex gap-4 p-6 bg-primary/5 rounded-xl border border-primary/10">
+<div class="size-12 rounded-xl bg-primary text-background-dark flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">currency_exchange</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Retrait Facile</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Convertissez instantanément vos stablecoins en monnaie locale via nos partenaires P2P certifiés en Afrique.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Footer -->
+<footer class="mt-auto py-10 border-t border-primary/10 px-10 text-center">
+<p class="text-slate-500 dark:text-slate-500 text-sm">© 2024 AfriqueFreelance. Propulsé par la technologie Web3 sécurisée.</p>
+</footer>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,FILL@0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e642",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#112114",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 bg-slate-100 dark:bg-background-dark border-r border-slate-200 dark:border-primary/10 flex flex-col">
+<div class="p-6">
+<h1 class="text-primary text-xl font-extrabold tracking-tight">Freelance Pro</h1>
+<p class="text-slate-500 dark:text-primary/60 text-xs font-semibold uppercase tracking-widest mt-1">Espace Travail</p>
+</div>
+<nav class="flex-1 px-4 space-y-2 overflow-y-auto no-scrollbar">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/20 text-primary rounded-lg transition-colors border border-primary/20" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">shopping_bag</span>
+<span class="text-sm font-bold">Mes Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="text-sm font-medium">Messages</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-sm font-medium">Portefeuille</span>
+</a>
+<div class="pt-4 pb-2 border-t border-slate-200 dark:border-primary/10 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-primary/10 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</div>
+</nav>
+<div class="p-4 bg-slate-50 dark:bg-primary/5 m-4 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary border border-primary/30">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-bold truncate">Marc Antoine</p>
+<p class="text-xs text-slate-500 dark:text-primary/60 truncate">Designer Senior</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-y-auto no-scrollbar">
+<!-- Header -->
+<header class="sticky top-0 z-10 flex items-center justify-between px-8 py-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-primary/10">
+<div class="flex items-center gap-4">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-background-dark">
+<span class="material-symbols-outlined font-bold">receipt_long</span>
+</div>
+<div>
+<h2 class="text-lg font-bold tracking-tight">Suivi de Commande #ORD-7829</h2>
+<div class="flex items-center gap-2 text-xs text-slate-500 dark:text-primary/60">
+<span>Client: Digital-Nexus Agency</span>
+<span>•</span>
+<span>Service: Design UI/UX Mobile</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-slate-400 dark:text-primary/40">
+<span class="material-symbols-outlined text-xl">search</span>
+</span>
+<input class="bg-slate-200 dark:bg-primary/5 border-none focus:ring-1 focus:ring-primary rounded-lg pl-10 pr-4 py-2 text-sm w-64 transition-all" placeholder="Rechercher..." type="text"/>
+</div>
+<button class="relative p-2 text-slate-600 dark:text-primary/80 hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-primary rounded-full border-2 border-background-dark"></span>
+</button>
+<button class="flex items-center gap-2 bg-primary text-background-dark px-4 py-2 rounded-lg text-sm font-bold hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-lg">help</span>
+                        Support
+                    </button>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto w-full space-y-8">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-primary/60">
+<a class="hover:text-primary" href="#">Commandes</a>
+<span class="material-symbols-outlined text-base">chevron_right</span>
+<a class="hover:text-primary" href="#">En cours</a>
+<span class="material-symbols-outlined text-base">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-100">Détails Commande</span>
+</nav>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+<!-- Left Column: Progress & Delivery -->
+<div class="xl:col-span-2 space-y-8">
+<!-- Timeline Section -->
+<section class="bg-slate-50 dark:bg-primary/5 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+                                État d'avancement
+                            </h3>
+<div class="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<!-- Vertical Line for mobile, Horizontal for desktop -->
+<div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-primary/10 -translate-y-1/2 z-0"></div>
+<div class="relative z-10 flex flex-row md:flex-col items-center gap-4 text-left md:text-center w-full md:w-auto">
+<div class="size-10 rounded-full bg-primary text-background-dark flex items-center justify-center ring-4 ring-background-dark shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">check</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Commande passée</p>
+<p class="text-xs text-slate-500 dark:text-primary/60">12 Oct 2023, 14:30</p>
+</div>
+</div>
+<div class="relative z-10 flex flex-row md:flex-col items-center gap-4 text-left md:text-center w-full md:w-auto">
+<div class="size-10 rounded-full bg-primary/20 border-2 border-primary text-primary flex items-center justify-center ring-4 ring-background-dark">
+<span class="material-symbols-outlined text-xl">engineering</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">En cours de réalisation</p>
+<p class="text-xs text-primary font-semibold">Active - 80% réalisé</p>
+</div>
+</div>
+<div class="relative z-10 flex flex-row md:flex-col items-center gap-4 text-left md:text-center w-full md:w-auto opacity-50">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-primary/10 text-slate-500 dark:text-primary/40 flex items-center justify-center ring-4 ring-background-dark">
+<span class="material-symbols-outlined text-xl">inventory_2</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Livraison effectuée</p>
+<p class="text-xs text-slate-500 dark:text-primary/60">En attente des fichiers</p>
+</div>
+</div>
+</div>
+<!-- Timer Countdown -->
+<div class="mt-10 grid grid-cols-4 gap-4">
+<div class="bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg p-4 text-center">
+<p class="text-2xl font-black text-primary">02</p>
+<p class="text-[10px] uppercase font-bold text-slate-400">Jours</p>
+</div>
+<div class="bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg p-4 text-center">
+<p class="text-2xl font-black text-primary">14</p>
+<p class="text-[10px] uppercase font-bold text-slate-400">Heures</p>
+</div>
+<div class="bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg p-4 text-center">
+<p class="text-2xl font-black text-primary">35</p>
+<p class="text-[10px] uppercase font-bold text-slate-400">Min</p>
+</div>
+<div class="bg-background-light dark:bg-background-dark border border-slate-200 dark:border-primary/20 rounded-lg p-4 text-center">
+<p class="text-2xl font-black text-primary">00</p>
+<p class="text-[10px] uppercase font-bold text-slate-400">Sec</p>
+</div>
+</div>
+</section>
+<!-- Delivery Section -->
+<section class="bg-slate-50 dark:bg-primary/5 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">upload_file</span>
+                                    Livraison des fichiers finaux
+                                </h3>
+<span class="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase rounded-full">Prêt pour envoi</span>
+</div>
+<div class="border-2 border-dashed border-primary/20 rounded-xl p-10 flex flex-col items-center justify-center text-center bg-background-light dark:bg-background-dark group hover:border-primary transition-all cursor-pointer">
+<div class="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-3xl">add_to_drive</span>
+</div>
+<p class="text-base font-bold">Glissez-déposez vos fichiers ici</p>
+<p class="text-sm text-slate-500 dark:text-primary/60 mt-1 max-w-xs">Format ZIP, FIG, PSD ou PDF (Max 500MB). Vous pouvez envoyer plusieurs versions.</p>
+<button class="mt-6 px-6 py-2 border border-primary text-primary rounded-lg text-sm font-bold hover:bg-primary hover:text-background-dark transition-all">
+                                    Parcourir les fichiers
+                                </button>
+</div>
+<div class="mt-6 flex flex-col gap-3">
+<p class="text-xs font-bold uppercase text-slate-400 tracking-wider">Fichiers récents (Brouillons)</p>
+<div class="flex items-center justify-between p-3 bg-background-light dark:bg-background-dark rounded-lg border border-slate-200 dark:border-primary/5">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">description</span>
+<div>
+<p class="text-sm font-medium">mobile_v2_final_preview.pdf</p>
+<p class="text-[10px] text-slate-400">12.4 MB • Modifié il y a 2h</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Revision Request Form -->
+<section class="bg-slate-50 dark:bg-primary/5 p-6 rounded-xl border border-slate-200 dark:border-primary/10">
+<h3 class="text-lg font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history_edu</span>
+                                Formulaire de Révision
+                            </h3>
+<div class="space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-semibold text-slate-500 dark:text-primary/60">Sujet de la modification</label>
+<input class="bg-background-light dark:bg-background-dark border-slate-200 dark:border-primary/10 rounded-lg text-sm focus:ring-primary focus:border-primary transition-all" placeholder="Ex: Ajustement de la palette de couleurs" type="text"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-semibold text-slate-500 dark:text-primary/60">Instructions détaillées</label>
+<textarea class="bg-background-light dark:bg-background-dark border-slate-200 dark:border-primary/10 rounded-lg text-sm focus:ring-primary focus:border-primary transition-all" placeholder="Décrivez les changements attendus par le client..." rows="4"></textarea>
+</div>
+<div class="flex justify-end gap-3">
+<button class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700 dark:text-primary/60 dark:hover:text-primary transition-colors">Annuler</button>
+<button class="bg-primary/20 text-primary border border-primary/30 px-6 py-2 rounded-lg text-sm font-bold hover:bg-primary hover:text-background-dark transition-all">Soumettre pour Révision</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Contextual Chat -->
+<div class="xl:col-span-1">
+<div class="sticky top-24 bg-slate-50 dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 h-[calc(100vh-140px)] flex flex-col">
+<!-- Chat Header -->
+<div class="p-4 border-b border-slate-200 dark:border-primary/10 flex items-center gap-3">
+<div class="relative">
+<img class="size-10 rounded-full border border-primary/20" data-alt="Client profile picture placeholder" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7qFrRpeGn7kMHf8BpIQ6m6b1Ipi_YCiIUVnhIZXc98Vc-prqATzANbwobXCUlqCL4O2aHl0z6RbQ59hhjarrVMITUWjq4edth610X1iKbomB5CyWIlI1dWIIJhjC1pctkCdusdIWqqKxbMhxptIzbaOdauB1tDo5U95d3PTWM3z1Sbw_wUUBy5b96-y96zdveNoqtJ3w3HzOmbowwv59BscaUPORaTjjNmVlAnLVOGWJuqCZU4G4NmwrxQHh0yoji_pXxhRf1dwyA"/>
+<span class="absolute bottom-0 right-0 size-3 bg-primary rounded-full border-2 border-background-dark"></span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-bold truncate">Thomas Weber</p>
+<p class="text-[10px] text-primary flex items-center gap-1">
+<span class="size-1.5 rounded-full bg-primary"></span>
+                                        En ligne
+                                    </p>
+</div>
+<button class="text-slate-400 hover:text-primary">
+<span class="material-symbols-outlined text-xl">more_vert</span>
+</button>
+</div>
+<!-- Messages Area -->
+<div class="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
+<div class="flex flex-col items-center">
+<span class="px-3 py-1 bg-slate-200 dark:bg-primary/10 text-[10px] text-slate-500 dark:text-primary/60 rounded-full font-bold">Hier</span>
+</div>
+<div class="flex items-start gap-2 max-w-[85%]">
+<div class="bg-white dark:bg-primary/10 p-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 dark:border-primary/5">
+<p>Bonjour Marc ! Est-ce que tu penses pouvoir m'envoyer les premières maquettes ce soir ?</p>
+<p class="text-[9px] text-slate-400 mt-1 text-right">14:20</p>
+</div>
+</div>
+<div class="flex items-start gap-2 max-w-[85%] ml-auto">
+<div class="bg-primary text-background-dark p-3 rounded-2xl rounded-tr-none text-sm shadow-lg shadow-primary/10 font-medium">
+<p>Oui, absolument. Je termine l'écran de profil et je t'envoie un ZIP de prévisualisation.</p>
+<p class="text-[9px] opacity-70 mt-1 text-right">14:25</p>
+</div>
+</div>
+<div class="flex flex-col items-center py-2">
+<span class="px-3 py-1 bg-slate-200 dark:bg-primary/10 text-[10px] text-slate-500 dark:text-primary/60 rounded-full font-bold uppercase tracking-widest">Aujourd'hui</span>
+</div>
+<div class="flex items-start gap-2 max-w-[85%]">
+<div class="bg-white dark:bg-primary/10 p-3 rounded-2xl rounded-tl-none text-sm shadow-sm border border-slate-100 dark:border-primary/5">
+<p>Super, merci ! Le client est impatient de voir le résultat.</p>
+<p class="text-[9px] text-slate-400 mt-1 text-right">09:15</p>
+</div>
+</div>
+<div class="flex items-start gap-2 max-w-[85%] ml-auto">
+<div class="bg-primary text-background-dark p-3 rounded-2xl rounded-tr-none text-sm shadow-lg shadow-primary/10 font-medium">
+<p>C'est noté. Je prépare le pack de livraison finale maintenant.</p>
+<p class="text-[9px] opacity-70 mt-1 text-right">Il y a 10 min</p>
+</div>
+</div>
+<!-- Typing Indicator -->
+<div class="flex items-center gap-1 text-xs text-slate-400 dark:text-primary/40 italic">
+<span class="material-symbols-outlined text-sm">edit</span>
+<span>Thomas est en train d'écrire...</span>
+</div>
+</div>
+<!-- Chat Input -->
+<div class="p-4 border-t border-slate-200 dark:border-primary/10 bg-background-light dark:bg-background-dark/30">
+<div class="flex items-end gap-2">
+<div class="flex-1 bg-slate-100 dark:bg-primary/5 rounded-xl border border-slate-200 dark:border-primary/10 overflow-hidden focus-within:ring-1 focus-within:ring-primary transition-all">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm py-3 px-4 resize-none max-h-32 overflow-y-auto no-scrollbar" placeholder="Votre message..." rows="1"></textarea>
+<div class="flex items-center justify-between px-3 pb-2">
+<div class="flex items-center gap-2">
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">attach_file</span></button>
+<button class="text-slate-400 hover:text-primary"><span class="material-symbols-outlined text-xl">mood</span></button>
+</div>
+<button class="size-8 bg-primary text-background-dark rounded-lg flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-xl">send</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<footer class="mt-12 p-8 border-t border-slate-200 dark:border-primary/10 text-center text-xs text-slate-400 dark:text-primary/40">
+<p>© 2023 Freelance Pro Platform. Système de paiement sécurisé activé.</p>
+</footer>
+</main>
+</div>
+</body></html>

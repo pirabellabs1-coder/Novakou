@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Messagerie avec Convertisseur de Devises - AfriqueFreelance</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+        :root {
+            --primary-emerald: #0E7C66;
+        }
+        @layer utilities {
+            .bg-emerald-custom { background-color: var(--primary-emerald); }
+            .text-emerald-custom { color: var(--primary-emerald); }
+            .border-emerald-custom { border-color: var(--primary-emerald); }
+            .ring-emerald-custom { --tw-ring-color: var(--primary-emerald); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0E7C66",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#0a1614",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-hidden h-screen">
+<div class="flex flex-col h-full">
+<header class="flex items-center justify-between px-6 py-3 bg-background-light dark:bg-background-dark border-b border-primary/20">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl">payments</span>
+<h2 class="text-xl font-extrabold tracking-tight">AfriqueFreelance</h2>
+</div>
+<div class="hidden md:flex items-center gap-1">
+<label class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-2 bg-primary/10 border-none rounded-lg focus:ring-1 focus:ring-primary text-sm w-64 placeholder:text-slate-500" placeholder="Rechercher..." type="text"/>
+</label>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">
+<span class="material-symbols-outlined text-primary text-sm">currency_exchange</span>
+<span class="text-[10px] font-bold text-primary uppercase">1 USD = 612.45 FCFA</span>
+</div>
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-medium text-primary" href="#">Messagerie</a>
+<a class="text-sm font-medium hover:text-primary transition-colors" href="#">Paiements</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full overflow-hidden border-2 border-primary/20">
+<img class="h-full w-full object-cover" data-alt="Photo de profil utilisateur professionnel" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgGbd3it6sv6o-wC-JKod2Fu2DkLgK5BYESrr3Xns7wXOR4UPlUFNOQ-BAnJrPI1l9TA04ib5Rdi5-n0VoUeQWSaB9F-p32aswUEgfauTi38C1tP9B0flsDHEZXUnSLOp1Q0XohItLtRVxnm6kH6hQR-15VIKp5ZDfuTOYz9Y9eMQKX8GFXLpM8nKmKbediuqrEZmP_7szohY_X4njYL4gk_lv9Az6DY81wy9jDa7FfXnzLvirrSYgFr02hBGH58EZ59WooF4NF8HQ"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<aside class="w-80 flex-shrink-0 border-r border-primary/10 flex flex-col bg-slate-50 dark:bg-slate-900/50">
+<div class="p-4 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="font-bold text-lg">Discussions</h3>
+<button class="text-primary hover:bg-primary/10 p-1 rounded">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<div class="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Récent</div>
+<div class="group flex items-center gap-3 px-3 py-3 rounded-xl bg-primary text-white cursor-pointer shadow-lg shadow-primary/20">
+<div class="relative h-12 w-12 rounded-full flex-shrink-0">
+<img class="rounded-full h-full w-full object-cover" data-alt="Portrait d'un freelance développeur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiZSdJTFVIWyCyHtqChhRXD4HPXMDlyFF_mZDnRrhJy6VYs-s_VS39ReIQyWTo9jnN3CsJ0dv7siW8dh-YdepiOq48bG-CHbRy9252HtQs_jY_NFzRw0TsYz2sfc_0_62f5e5THei_JyJTv27c-f3pVFRBBHoOXF-YMmhTwThMTfwbGHPnW1U5KX7o0A5q5kXo-Lfd9xxglpzb-dcBNQaUr4L6P6howQREvEb6tePiIxohdQoVUDLgli7mEJpM-JshXYM6z_Lse8Xv"/>
+<div class="absolute bottom-0 right-0 h-3 w-3 bg-green-500 border-2 border-primary rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<p class="text-sm font-bold truncate">Jean-Luc S.</p>
+<span class="text-[10px] opacity-80">14:20</span>
+</div>
+<p class="text-xs truncate opacity-90 font-medium">L'offre de 1,500 USD est prête...</p>
+</div>
+</div>
+</div>
+<div class="p-4 mt-auto border-t border-primary/5">
+<div class="p-3 bg-primary/5 rounded-xl border border-primary/10">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] font-bold text-slate-500 uppercase">Ma Devise</span>
+<select class="bg-transparent border-none text-[10px] font-bold text-primary p-0 focus:ring-0 cursor-pointer">
+<option>XOF (FCFA)</option>
+<option>EUR (€)</option>
+<option>USD ($)</option>
+</select>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<span class="text-xs text-slate-400">Taux de change</span>
+<span class="text-xs font-bold text-primary">Live</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<section class="flex-1 flex flex-col bg-background-light dark:bg-background-dark relative">
+<div class="h-20 border-b border-primary/10 px-6 flex items-center justify-between flex-shrink-0">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img class="h-10 w-10 rounded-full object-cover" data-alt="Avatar du contact actif" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCj2JY2v3VgNF1ap0Mv58v-3syob_QZsETWA-1RXKpGbn0TVnDFVjbwnMB5bL37I_EvcRT6ZjyjJqJeiHV_qcG9gX1UiFVNWyXWvJFa7oj5roq-iUqneaafH8IyX1AC4mwG06bg1NPJWh7Buo5vRO0vHkgH77RCuSVjfzfgKgKik8a-fBVU5sv9CiWl0gI9s9IxT3CqDdERMVOb1khix9GKOGtO3_uh0ZI967jY5YxJfyZqufbYs2OAZvBlBFVoSLTZV1XmpV5QIZSX"/>
+<div class="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-green-500 border-2 border-background-dark rounded-full"></div>
+</div>
+<div>
+<h4 class="font-bold">Jean-Luc S.</h4>
+<p class="text-xs text-green-500 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> En ligne
+                        </p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-bold hover:bg-primary/20 transition-all">
+<span class="material-symbols-outlined text-sm">calculate</span>
+                        Convertisseur
+                    </button>
+<div class="h-6 w-[1px] bg-primary/20 mx-2"></div>
+<button class="p-2 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">info</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-6 space-y-6">
+<div class="flex items-start gap-4 max-w-[80%]">
+<img class="h-8 w-8 rounded-full object-cover mt-1" data-alt="Jean-Luc S. avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOpgl2a4DSkFSXfIq4usRZruncaUjVswgU5OeiRbh1WhfOCkbwLIGhuF0E_0Ck9zbbisRZeOedoP-FwzVBgmXgU36hAeEe3co9mL3tj-NLyD11o0vYD9496tyh5N2xxczVY6OR_Os_vKNSxDQEjGd3ATx_O5l4c3hkZhp3B8LaC1xvu7P3c51VsQbzpTR3P2OlYfIGI0nvIz7mQF-OrBxqy34qKZv9wlF2lx0YcyK8SAs7WjHzUsR-AXrmYXMnNRyPwoo-7NXv3gpj"/>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<span class="text-xs font-bold">Jean-Luc S.</span>
+<span class="text-[10px] text-slate-500">14:15</span>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl rounded-tl-none shadow-sm relative group">
+<p class="text-sm leading-relaxed">
+                                J'ai analysé vos besoins. Pour la refonte complète, je propose un tarif de <span class="font-bold text-primary underline decoration-dotted underline-offset-4 cursor-help">1,500 USD</span>.
+                            </p>
+<div class="absolute -right-2 top-0 translate-x-full hidden group-hover:flex flex-col gap-1 bg-white dark:bg-slate-700 p-3 rounded-xl shadow-xl border border-primary/20 z-10 w-48">
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Conversions Temps Réel</p>
+<div class="flex justify-between items-center text-xs">
+<span class="text-slate-500">FCFA (XOF)</span>
+<span class="font-bold text-primary">918,675 FCFA</span>
+</div>
+<div class="flex justify-between items-center text-xs border-t border-slate-100 dark:border-slate-600 pt-1 mt-1">
+<span class="text-slate-500">EUR (€)</span>
+<span class="font-bold text-primary">1,412.30 €</span>
+</div>
+<button class="mt-2 text-[10px] text-center w-full bg-primary/10 text-primary py-1 rounded font-bold hover:bg-primary/20 transition-colors">
+                                    Utiliser pour le contrat
+                                </button>
+</div>
+<button class="absolute -bottom-3 -right-2 bg-primary text-white p-1 rounded-full shadow-lg border-2 border-white dark:border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-xs">currency_exchange</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex flex-row-reverse items-start gap-4 max-w-[80%] ml-auto">
+<div class="space-y-1 text-right">
+<div class="flex flex-row-reverse items-center gap-2">
+<span class="text-xs font-bold">Vous</span>
+<span class="text-[10px] text-slate-500">14:18</span>
+</div>
+<div class="bg-primary p-4 rounded-2xl rounded-tr-none shadow-lg shadow-primary/20 text-white">
+<p class="text-sm leading-relaxed">C'est parfait, les <span class="font-bold border-b border-white/40">1,500 USD</span> correspondent bien à notre budget prévisionnel de 920k FCFA.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="mx-6 mb-2 flex items-center gap-4 px-4 py-2 bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur rounded-xl border border-primary/10">
+<div class="flex items-center gap-2 border-r border-primary/10 pr-4">
+<span class="material-symbols-outlined text-primary text-sm">show_chart</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Contrat : 1,500 USD</span>
+</div>
+<div class="flex-1 flex gap-6 overflow-x-auto no-scrollbar">
+<div class="flex flex-col">
+<span class="text-[9px] text-slate-400 uppercase font-bold">Valeur en XOF</span>
+<span class="text-xs font-bold text-primary">918,675 FCFA</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[9px] text-slate-400 uppercase font-bold">Valeur en EUR</span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-300">1,412.30 €</span>
+</div>
+<div class="flex flex-col">
+<span class="text-[9px] text-slate-400 uppercase font-bold">Valeur en NGN</span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-300">1,155,000 ₦</span>
+</div>
+</div>
+<button class="p-1.5 hover:bg-primary/10 rounded text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">settings</span>
+</button>
+</div>
+<div class="p-4 border-t border-primary/10">
+<div class="bg-slate-100 dark:bg-slate-800 p-2 rounded-2xl flex items-end gap-2 focus-within:ring-2 ring-primary/30 transition-all">
+<div class="flex items-center gap-1 mb-1">
+<button class="p-2 text-slate-500 hover:text-primary rounded-xl hover:bg-primary/10 transition-all">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="p-2 text-slate-500 hover:text-primary rounded-xl hover:bg-primary/10 transition-all">
+<span class="material-symbols-outlined text-sm">euro_symbol</span>
+</button>
+</div>
+<textarea class="flex-1 bg-transparent border-none focus:ring-0 text-sm py-2 resize-none placeholder:text-slate-500 h-[40px]" placeholder="Tapez votre message ou une offre (ex: 500$)..." rows="1"></textarea>
+<div class="flex items-center gap-1 mb-1">
+<button class="bg-primary text-white p-2.5 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined leading-none block">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<aside class="w-80 flex-shrink-0 border-l border-primary/10 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 hidden xl:flex flex-col">
+<div class="p-6 border-b border-primary/10">
+<h3 class="font-bold text-slate-900 dark:text-slate-100">Détails de la mission</h3>
+<div class="mt-4 p-4 bg-emerald-custom/5 border border-emerald-custom/20 rounded-xl">
+<div class="flex items-center justify-between mb-3">
+<span class="text-[10px] font-bold text-emerald-custom uppercase">Budget Projet</span>
+<span class="material-symbols-outlined text-emerald-custom text-sm">verified_user</span>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between items-baseline">
+<span class="text-sm text-slate-500">Initial (USD)</span>
+<span class="font-bold text-lg text-slate-900 dark:text-slate-100">$ 1,500</span>
+</div>
+<div class="flex justify-between items-baseline pt-2 border-t border-emerald-custom/10">
+<span class="text-xs text-slate-400">Equivalent Local</span>
+<span class="font-bold text-emerald-custom">918,675 FCFA</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 space-y-6">
+<div>
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs font-bold uppercase tracking-wider text-slate-500">Paiements échelonnés</span>
+<button class="text-[10px] font-bold text-primary">Détails</button>
+</div>
+<ul class="space-y-4">
+<li class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-primary/10 flex items-center gap-3">
+<span class="material-symbols-outlined text-green-500">check_circle</span>
+<div class="flex-1">
+<p class="text-[10px] font-bold">Acompte (30%)</p>
+<p class="text-xs text-slate-500">$ 450 <span class="text-[10px] opacity-60">(275,600 FCFA)</span></p>
+</div>
+</li>
+<li class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-primary/10 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">pending</span>
+<div class="flex-1">
+<p class="text-[10px] font-bold">Livrable 1 (40%)</p>
+<p class="text-xs text-slate-500">$ 600 <span class="text-[10px] opacity-60">(367,470 FCFA)</span></p>
+</div>
+</li>
+</ul>
+</div>
+<div class="p-4 bg-slate-100 dark:bg-slate-800/50 rounded-xl border border-primary/5">
+<p class="text-[10px] font-bold text-slate-500 uppercase mb-3">Taux du marché (BCEAO)</p>
+<div class="space-y-2">
+<div class="flex justify-between text-xs">
+<span class="text-slate-400">USD / XOF</span>
+<span class="font-medium">612.45 <span class="text-green-500 text-[10px]">+0.12%</span></span>
+</div>
+<div class="flex justify-between text-xs">
+<span class="text-slate-400">EUR / XOF</span>
+<span class="font-medium">655.95 <span class="text-slate-500 text-[10px]">0.00%</span></span>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
+<button class="w-full text-center text-[10px] text-primary font-bold hover:underline">
+                            Actualiser les taux
+                        </button>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6 border-t border-primary/10">
+<button class="w-full bg-primary py-3 rounded-xl text-xs font-bold text-white hover:brightness-110 transition-all mb-2 shadow-lg shadow-primary/20">
+                    Générer Facture Convertie
+                </button>
+<button class="w-full text-slate-500 py-2 rounded-xl text-[10px] font-bold hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                    Paramètres de paiement
+                </button>
+</div>
+</aside>
+</main>
+</div>
+
+</body></html>

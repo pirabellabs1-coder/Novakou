@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0e7c66",
+                        "accent-gold": "#F2B705",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211e",
+                        "surface-dark": "#1a2e2a",
+                        "border-dark": "#293835",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Système de Récompenses - AfriqueFreelance</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-10 py-4 bg-background-dark/80 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-primary">
+<div class="size-8">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-100 text-xl font-bold leading-tight tracking-tight">AfriqueFreelance</h2>
+</div>
+<label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-slate-400 flex border-none bg-surface-dark items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-surface-dark text-slate-100 focus:ring-0 h-full placeholder:text-slate-500 px-4 rounded-r-lg text-sm font-normal" placeholder="Rechercher des missions..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8 items-center">
+<nav class="flex items-center gap-8">
+<a class="text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Tableau de bord</a>
+<a class="text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Missions</a>
+<a class="text-slate-300 hover:text-primary transition-colors text-sm font-medium" href="#">Réseau</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Récompenses</a>
+</nav>
+<div class="flex items-center gap-4 border-l border-border-dark pl-8">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all">
+<span>Mon Profil</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/30" data-alt="Photo de profil de l'utilisateur" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBq9WKpfSWjWc9UChBW0n59vQbER8jkzPU_bSEiNH6FwjtvcSG6bZpwYkFnCEjqRuPC3CH1DieRdHwkleofNL5ihfTCMV15RF6L-F0MQ2GhrvV6HkMrm0P2A1_E07oAtHFLC54EguNKzKP4WL7nlfqqk1Q5hjE7ajC9ntKZAr34d3oV_o3oq8X-Zew5DUwjtRSoV1-_C8o1cLfuetjmNTF2k5hUTCb-OAxuAGXbNxdL3iM9pFXyQoMwGpH87xFbcoUX25Bpnf7PF9e3");'></div>
+</div>
+</div>
+</header>
+<main class="layout-container flex h-full grow flex-col px-4 md:px-20 lg:px-40 py-10">
+<!-- Hero Section -->
+<section class="flex flex-wrap justify-between items-end gap-6 mb-12">
+<div class="flex flex-col gap-4 max-w-2xl">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                    Programme d'Affiliation
+                </div>
+<h1 class="text-slate-100 text-5xl font-extrabold leading-tight tracking-tight">Programme de Récompenses par Paliers</h1>
+<p class="text-slate-400 text-lg font-normal">Propulsez votre carrière et celle de votre réseau. Plus vous parrainez de talents, plus vos avantages deviennent exclusifs.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-dark text-slate-100 font-bold hover:bg-border-dark transition-all border border-border-dark">
+<span class="material-symbols-outlined">share</span>
+                    Partager mon lien
+                </button>
+<button class="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold hover:shadow-[0_0_20px_rgba(14,124,102,0.4)] transition-all">
+<span class="material-symbols-outlined">person_add</span>
+                    Inviter un ami
+                </button>
+</div>
+</section>
+<!-- Current Progress Card -->
+<section class="bg-surface-dark border border-border-dark rounded-2xl p-8 mb-12 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+<div class="relative z-10">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-slate-100 text-xl font-bold flex items-center gap-2">
+                            Votre Progression Actuelle 
+                            <span class="text-accent-gold material-symbols-outlined">trending_up</span>
+</h3>
+<p class="text-slate-400 text-sm">Vous êtes actuellement au palier <span class="text-slate-100 font-bold">Argent</span></p>
+</div>
+<div class="text-right">
+<span class="text-slate-100 text-3xl font-black">65%</span>
+<p class="text-slate-400 text-xs font-medium uppercase tracking-widest">Vers le niveau Or</p>
+</div>
+</div>
+<div class="w-full h-4 bg-background-dark rounded-full mb-4 p-1 shadow-inner">
+<div class="h-full rounded-full bg-gradient-to-r from-primary to-accent-gold shadow-[0_0_15px_rgba(242,183,5,0.3)]" style="width: 65%;"></div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined">verified</span>
+                        Argent (35 parrainages)
+                    </div>
+<div class="text-slate-400 text-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-gold">info</span>
+                        Plus que <span class="text-slate-100 font-bold">15 parrainages</span> pour atteindre le niveau <span class="text-accent-gold font-bold">Or</span> !
+                    </div>
+<div class="flex items-center gap-2 text-slate-500 font-bold opacity-50">
+                        Or (50 parrainages)
+                        <span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Tiers Grid -->
+<h2 class="text-slate-100 text-2xl font-bold mb-8 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">military_tech</span>
+            Paliers d'Affiliation &amp; Avantages
+        </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+<!-- Bronze Tier -->
+<div class="bg-surface-dark border border-border-dark rounded-2xl p-6 flex flex-col gap-6 hover:border-primary/50 transition-all group">
+<div class="aspect-square w-full rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center relative overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-slate-400 group-hover:scale-110 transition-transform">workspace_premium</span>
+<div class="absolute bottom-4 left-4 right-4 py-1 px-3 bg-slate-900/80 backdrop-blur-sm rounded-lg text-center">
+<span class="text-slate-300 text-xs font-bold uppercase tracking-widest">0-10 Filleuls</span>
+</div>
+</div>
+<div>
+<h4 class="text-slate-100 text-xl font-bold mb-3">Bronze</h4>
+<ul class="flex flex-col gap-3 text-slate-400 text-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                            Commission standard
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                            Accès communauté
+                        </li>
+</ul>
+</div>
+<div class="mt-auto">
+<span class="px-3 py-1 bg-primary/20 text-primary text-[10px] font-black uppercase rounded tracking-tighter">Débloqué</span>
+</div>
+</div>
+<!-- Silver Tier -->
+<div class="bg-surface-dark border-2 border-primary rounded-2xl p-6 flex flex-col gap-6 relative shadow-[0_0_30px_rgba(14,124,102,0.15)] transition-all group">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-3 py-1 rounded-full uppercase">Actuel</div>
+<div class="aspect-square w-full rounded-xl bg-gradient-to-br from-primary/40 to-primary/10 flex items-center justify-center relative overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-primary group-hover:scale-110 transition-transform">stars</span>
+<div class="absolute bottom-4 left-4 right-4 py-1 px-3 bg-primary/20 backdrop-blur-sm rounded-lg text-center">
+<span class="text-primary text-xs font-bold uppercase tracking-widest">11-50 Filleuls</span>
+</div>
+</div>
+<div>
+<h4 class="text-slate-100 text-xl font-bold mb-3">Argent</h4>
+<ul class="flex flex-col gap-3 text-slate-400 text-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                            Commission +2%
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">check_circle</span>
+                            Support prioritaire
+                        </li>
+</ul>
+</div>
+</div>
+<!-- Gold Tier -->
+<div class="bg-surface-dark border border-border-dark rounded-2xl p-6 flex flex-col gap-6 hover:border-accent-gold/50 transition-all group">
+<div class="aspect-square w-full rounded-xl bg-gradient-to-br from-accent-gold/20 to-accent-gold/5 flex items-center justify-center relative overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-accent-gold group-hover:scale-110 transition-transform">emoji_events</span>
+<div class="absolute bottom-4 left-4 right-4 py-1 px-3 bg-accent-gold/10 backdrop-blur-sm rounded-lg text-center">
+<span class="text-accent-gold text-xs font-bold uppercase tracking-widest">51-100 Filleuls</span>
+</div>
+</div>
+<div>
+<h4 class="text-slate-100 text-xl font-bold mb-3">Or</h4>
+<ul class="flex flex-col gap-3 text-slate-400 text-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-gold text-lg">add_circle</span>
+                            Commission +5%
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-gold text-lg">add_circle</span>
+                            Badge profil exclusif
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-gold text-lg">add_circle</span>
+                            Webinaires VIP
+                        </li>
+</ul>
+</div>
+</div>
+<!-- Ambassador Tier -->
+<div class="bg-surface-dark border border-border-dark rounded-2xl p-6 flex flex-col gap-6 hover:border-slate-100/30 transition-all group">
+<div class="aspect-square w-full rounded-xl bg-gradient-to-br from-slate-200/10 to-slate-200/5 flex items-center justify-center relative overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-slate-100 group-hover:scale-110 transition-transform">diamond</span>
+<div class="absolute bottom-4 left-4 right-4 py-1 px-3 bg-slate-100/5 backdrop-blur-sm rounded-lg text-center">
+<span class="text-slate-100 text-xs font-bold uppercase tracking-widest">100+ Filleuls</span>
+</div>
+</div>
+<div>
+<h4 class="text-slate-100 text-xl font-bold mb-3">Ambassadeur</h4>
+<ul class="flex flex-col gap-3 text-slate-400 text-sm">
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-100 text-lg">bolt</span>
+                            Récompenses Cash VIP
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-100 text-lg">bolt</span>
+                            Événements physiques
+                        </li>
+<li class="flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-100 text-lg">bolt</span>
+                            Conseil consultatif
+                        </li>
+</ul>
+</div>
+</div>
+</div>
+<!-- Historical Rewards -->
+<section>
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-slate-100 text-2xl font-bold flex items-center gap-3">
+<span class="material-symbols-outlined text-accent-gold">history_edu</span>
+                    Récompenses Débloquées
+                </h2>
+<button class="text-primary text-sm font-bold hover:underline">Voir tout l'historique</button>
+</div>
+<div class="bg-surface-dark border border-border-dark rounded-2xl overflow-hidden">
+<table class="w-full text-left">
+<thead class="bg-background-dark/50 border-b border-border-dark">
+<tr>
+<th class="px-6 py-4 text-slate-400 text-xs font-bold uppercase tracking-wider">Récompense</th>
+<th class="px-6 py-4 text-slate-400 text-xs font-bold uppercase tracking-wider">Date</th>
+<th class="px-6 py-4 text-slate-400 text-xs font-bold uppercase tracking-wider">Statut</th>
+<th class="px-6 py-4 text-slate-400 text-xs font-bold uppercase tracking-wider text-right">Valeur</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<div class="text-slate-100 font-bold">Bonus Palier Argent</div>
+<div class="text-slate-500 text-xs">Atteint après 11 parrainages</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-400 text-sm">12 Oct 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] font-black uppercase rounded">Versé</span>
+</td>
+<td class="px-6 py-4 text-slate-100 font-bold text-right">50.000 FCFA</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-accent-gold/10 rounded-lg flex items-center justify-center text-accent-gold">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<div>
+<div class="text-slate-100 font-bold">Badge "Pionnier Freelance"</div>
+<div class="text-slate-500 text-xs">Exclusivité membre fondateur</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-400 text-sm">05 Sep 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-primary/10 text-primary text-[10px] font-black uppercase rounded">Activé</span>
+</td>
+<td class="px-6 py-4 text-slate-100 font-bold text-right">Unique</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500">
+<span class="material-symbols-outlined">redeem</span>
+</div>
+<div>
+<div class="text-slate-100 font-bold">Bonus de Bienvenue</div>
+<div class="text-slate-500 text-xs">Premier parrainage validé</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-slate-400 text-sm">28 Août 2023</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] font-black uppercase rounded">Versé</span>
+</td>
+<td class="px-6 py-4 text-slate-100 font-bold text-right">5.000 FCFA</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-border-dark px-10 py-8 bg-surface-dark mt-20">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2 opacity-60">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" fill="currentColor"></path>
+</svg>
+</div>
+<span class="text-slate-100 font-bold text-sm tracking-tight">AfriqueFreelance © 2024</span>
+</div>
+<div class="flex gap-8 text-slate-400 text-sm">
+<a class="hover:text-primary transition-colors" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary transition-colors" href="#">Politique d'affiliation</a>
+<a class="hover:text-primary transition-colors" href="#">Support</a>
+</div>
+<div class="flex gap-4">
+<a class="size-8 rounded-full bg-border-dark flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">public</span>
+</a>
+<a class="size-8 rounded-full bg-border-dark flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined text-sm">mail</span>
+</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>

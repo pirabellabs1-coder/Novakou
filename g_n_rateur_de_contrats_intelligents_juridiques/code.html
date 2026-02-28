@@ -1,0 +1,268 @@
+<html class="dark"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#135bec",
+            "background-light": "#f6f6f8",
+            "background-dark": "#101622",
+          },
+          fontFamily: {
+            "display": ["Manrope", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body { font-family: 'Manrope', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    :root {
+      --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(255,255,255)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
+    }
+  </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex min-h-screen flex-col overflow-x-hidden">
+<!-- Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 px-8 py-4 bg-background-light dark:bg-background-dark sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined text-3xl font-bold">gavel</span>
+<h2 class="text-slate-900 dark:text-white text-xl font-extrabold tracking-tight">LexSmart AI</h2>
+</div>
+<div class="hidden md:flex items-center gap-2">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+</div>
+<input class="block w-64 pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-100 dark:bg-slate-900 text-sm focus:ring-primary focus:border-primary" placeholder="Rechercher un modèle..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-primary transition-colors" href="#">Modèles</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-primary transition-colors" href="#">Mes Contrats</a>
+<a class="text-slate-600 dark:text-slate-300 text-sm font-semibold hover:text-primary transition-colors" href="#">Signatures</a>
+</nav>
+<div class="h-8 w-[1px] bg-slate-200 dark:border-slate-800 hidden lg:block"></div>
+<button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+          Nouveau Contrat
+        </button>
+<div class="size-10 rounded-full border-2 border-primary/20 bg-cover bg-center" data-alt="Photo de profil utilisateur professionnel" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAsktwUeupPiC6aNEODdQERPDiPKjoG_8xe4KNiIyZGK8Ggcn-mu4NWJIQGvvNsH8QI3Ctz3KzTMM_4eoD8RTjwqSD--Jubv4VVYlynRUB-smnPwy0xNNp2_FtDOGYvJbqIpNzgaPy86_s3-sQ4UiYsRWVL1Ys4Zl5QhwsQB7PIERlh83_GaLWNMybTo9lqzdt62l7oM2ugLTns1ec-U3lRaTCa88foTUEI6SY3n3CraZ7Qi0XuJRtusAxLqrDFzrycs1iqjk-bKvo-')"></div>
+</div>
+</header>
+<main class="flex-1 flex flex-col max-w-7xl mx-auto w-full p-6 lg:p-10 gap-8">
+<!-- Stepper & Header -->
+<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-2">
+<h1 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white">Générateur de Contrat Intelligent</h1>
+<p class="text-slate-500 dark:text-slate-400 text-lg">Personnalisez votre contrat juridique en quelques clics avec notre IA assistée.</p>
+</div>
+<div class="flex items-center w-full max-w-4xl pt-4">
+<div class="flex flex-1 flex-col items-center gap-2">
+<div class="size-8 rounded-full bg-primary/20 text-primary border-2 border-primary flex items-center justify-center font-bold text-xs">1</div>
+<span class="text-xs font-bold text-primary">Configuration</span>
+</div>
+<div class="h-[2px] flex-1 bg-primary"></div>
+<div class="flex flex-1 flex-col items-center gap-2">
+<div class="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs">2</div>
+<span class="text-xs font-bold text-slate-900 dark:text-white">Clauses</span>
+</div>
+<div class="h-[2px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+<div class="flex flex-1 flex-col items-center gap-2">
+<div class="size-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 border-2 border-slate-200 dark:border-slate-800 flex items-center justify-center font-bold text-xs">3</div>
+<span class="text-xs font-bold text-slate-400">Révision</span>
+</div>
+<div class="h-[2px] flex-1 bg-slate-200 dark:bg-slate-800"></div>
+<div class="flex flex-1 flex-col items-center gap-2">
+<div class="size-8 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 border-2 border-slate-200 dark:border-slate-800 flex items-center justify-center font-bold text-xs">4</div>
+<span class="text-xs font-bold text-slate-400">Signature</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Selection Sidebar -->
+<div class="lg:col-span-7 flex flex-col gap-6">
+<div class="bg-white dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+<h2 class="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
+<span class="material-symbols-outlined text-primary">checklist</span>
+              Clauses Contractuelles
+            </h2>
+<div class="space-y-3">
+<!-- Clause Card -->
+<label class="group flex items-start gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
+<input checked="" class="mt-1 h-5 w-5 rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<div class="flex-1">
+<div class="flex justify-between">
+<p class="font-bold text-slate-900 dark:text-slate-100">Délais de livraison et jalons</p>
+<span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">Recommandé</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Définit les dates limites et les pénalités de retard.</p>
+</div>
+</label>
+<label class="group flex items-start gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
+<input class="mt-1 h-5 w-5 rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<div class="flex-1">
+<p class="font-bold text-slate-900 dark:text-slate-100">Révisions de prix et indexation</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Permet d'ajuster les tarifs selon l'inflation ou le coût des matières.</p>
+</div>
+</label>
+<label class="group flex items-start gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
+<input checked="" class="mt-1 h-5 w-5 rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<div class="flex-1">
+<p class="font-bold text-slate-900 dark:text-slate-100">Transfert de propriété intellectuelle</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Précise à qui appartiennent les livrables finaux du projet.</p>
+</div>
+</label>
+<label class="group flex items-start gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
+<input checked="" class="mt-1 h-5 w-5 rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<div class="flex-1">
+<p class="font-bold text-slate-900 dark:text-slate-100">Clause de confidentialité (NDA)</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Protection stricte des informations sensibles échangées.</p>
+</div>
+</label>
+<label class="group flex items-start gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
+<input class="mt-1 h-5 w-5 rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<div class="flex-1">
+<p class="font-bold text-slate-900 dark:text-slate-100">Limitation de responsabilité</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Limite les dommages et intérêts en cas de litige.</p>
+</div>
+</label>
+<label class="group flex items-start gap-4 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer transition-all">
+<input class="mt-1 h-5 w-5 rounded border-slate-300 dark:border-slate-700 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<div class="flex-1">
+<p class="font-bold text-slate-900 dark:text-slate-100">Résiliation anticipée</p>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Modalités de fin de contrat avant l'échéance prévue.</p>
+</div>
+</label>
+</div>
+<button class="mt-8 w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.01] transition-transform">
+              Générer l'aperçu du contrat
+              <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Preview Column -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<div class="bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-[700px]">
+<div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900/80">
+<span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Aperçu en temps réel</span>
+<div class="flex gap-2">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
+<span class="material-symbols-outlined text-xl">zoom_in</span>
+</button>
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
+<span class="material-symbols-outlined text-xl">file_download</span>
+</button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-12 custom-scrollbar bg-slate-200 dark:bg-slate-950/50">
+<!-- Document Mockup -->
+<div class="bg-white dark:bg-slate-100 text-slate-900 shadow-2xl mx-auto p-12 min-h-full max-w-[450px] flex flex-col gap-6 text-[10px] leading-relaxed">
+<div class="text-center mb-4">
+<h3 class="font-bold text-sm uppercase">Contrat de Prestation de Services</h3>
+<div class="h-0.5 w-12 bg-slate-900 mx-auto mt-2"></div>
+</div>
+<p><strong>ENTRE LES SOUSSIGNÉS :</strong></p>
+<p>Société Alpha Tech, SARL au capital de 10 000€, dont le siège est situé au 15 rue de la Paix, Paris, représentée par Jean Dupont (ci-après le "Prestataire").</p>
+<p>ET : Jean-Luc Client, particulier (ci-après le "Client").</p>
+<p class="font-bold">ARTICLE 1 : OBJET</p>
+<p>Le présent contrat a pour objet de définir les conditions dans lesquelles le Prestataire s'engage à fournir des services de développement informatique au Client.</p>
+<div class="bg-blue-50 p-2 border-l-2 border-primary">
+<p class="font-bold text-primary">ARTICLE 2 : DÉLAIS DE LIVRAISON (Activé)</p>
+<p>Les livrables seront remis selon le calendrier suivant : Phase 1 - 15 Jours, Phase 2 - 45 Jours après validation.</p>
+</div>
+<div class="bg-blue-50 p-2 border-l-2 border-primary">
+<p class="font-bold text-primary">ARTICLE 3 : PROPRIÉTÉ INTELLECTUELLE (Activé)</p>
+<p>Le Client devient propriétaire exclusif des codes sources et designs à réception du paiement final intégral.</p>
+</div>
+<div class="bg-blue-50 p-2 border-l-2 border-primary">
+<p class="font-bold text-primary">ARTICLE 4 : CONFIDENTIALITÉ (Activé)</p>
+<p>Les parties s'engagent à ne pas divulguer les informations sensibles échangées pendant toute la durée du contrat et 2 ans après.</p>
+</div>
+<div class="mt-auto pt-10 border-t border-slate-200">
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-4">
+<p class="font-bold">Pour le Prestataire :</p>
+<div class="h-10 border border-dashed border-slate-300 rounded flex items-center justify-center italic text-slate-400">En attente de signature</div>
+</div>
+<div class="flex flex-col gap-4">
+<p class="font-bold">Pour le Client :</p>
+<div class="h-10 border-2 border-primary/40 bg-primary/5 rounded flex items-center justify-center text-primary font-bold">Signer numériquement</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 bg-white dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-800">
+<div class="flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
+<span class="text-sm font-medium">Document juridiquement valide &amp; sécurisé</span>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-lg text-sm hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Modifier le modèle</button>
+<button class="flex-1 py-3 bg-primary text-white font-bold rounded-lg text-sm flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">draw</span>
+                    Signer Maintenant
+                  </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Tips -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+<div class="flex gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+<span class="material-symbols-outlined text-primary text-3xl">verified_user</span>
+<div>
+<h4 class="font-bold text-sm">Conformité RGPD</h4>
+<p class="text-xs text-slate-500 mt-1">Toutes nos clauses sont auditées par des experts juridiques pour le marché européen.</p>
+</div>
+</div>
+<div class="flex gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+<span class="material-symbols-outlined text-primary text-3xl">token</span>
+<div>
+<h4 class="font-bold text-sm">Preuve Blockchain</h4>
+<p class="text-xs text-slate-500 mt-1">Chaque signature génère un hachage unique ancré sur la blockchain pour une preuve immuable.</p>
+</div>
+</div>
+<div class="flex gap-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+<span class="material-symbols-outlined text-primary text-3xl">edit_document</span>
+<div>
+<h4 class="font-bold text-sm">Export Multi-format</h4>
+<p class="text-xs text-slate-500 mt-1">Exportez vos contrats finalisés en PDF certifié, DOCX ou format JSON structuré.</p>
+</div>
+</div>
+</section>
+</main>
+<footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-8 px-8 mt-auto">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="flex items-center gap-2 text-slate-400">
+<span class="material-symbols-outlined text-sm">copyright</span>
+<span class="text-sm">2024 LexSmart AI. Tous droits réservés.</span>
+</div>
+<div class="flex gap-6">
+<a class="text-sm text-slate-400 hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="text-sm text-slate-400 hover:text-primary" href="#">Confidentialité</a>
+<a class="text-sm text-slate-400 hover:text-primary" href="#">Support</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
