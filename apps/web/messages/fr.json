@@ -1,0 +1,83 @@
+{
+  "common": {
+    "connexion": "Connexion",
+    "inscription": "Inscription",
+    "explorer": "Explorer",
+    "projets": "Projets",
+    "devenir_freelance": "Devenir Freelance",
+    "trouver_freelance": "Trouver un freelance",
+    "lancer_projet": "Lancer mon projet",
+    "voir_tout": "Voir tout",
+    "rechercher": "Rechercher"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Réseau Francophone Elite",
+      "title": "La plateforme freelance qui élève votre carrière",
+      "title_highlight": "au plus haut niveau",
+      "subtitle": "Connectez-vous avec les meilleurs talents d'Afrique francophone, de la diaspora et du monde entier pour propulser vos projets vers l'excellence.",
+      "search_placeholder": "Rechercher un service (ex: UI Design, React, Rédaction...)",
+      "cta_find": "Trouver un freelance",
+      "cta_become": "Devenir Freelance"
+    },
+    "stats": {
+      "freelances_label": "Freelances actifs",
+      "freelances_value": "15 000+",
+      "freelances_growth": "+12% ce mois",
+      "missions_label": "Missions complétées",
+      "missions_value": "8 240",
+      "missions_growth": "+8% croissance",
+      "countries_label": "Pays couverts",
+      "countries_value": "24",
+      "countries_sub": "Afrique & Diaspora"
+    },
+    "categories": {
+      "title": "Catégories Populaires",
+      "subtitle": "Trouvez l'expert idéal parmi nos domaines d'expertise les plus demandés."
+    },
+    "top_freelances": {
+      "title": "Top Freelances de la semaine",
+      "subtitle": "Découvrez les profils les plus plébiscités pour leur qualité de travail et leur professionnalisme.",
+      "from": "À partir de",
+      "per_day": "/ jour"
+    },
+    "how_it_works": {
+      "title": "Comment ça marche ?",
+      "subtitle": "Trouvez le talent qu'il vous faut en quelques clics grâce à notre processus simplifié et sécurisé.",
+      "step1_title": "Publiez votre mission",
+      "step1_desc": "Décrivez votre projet, vos besoins techniques et votre budget en moins de 2 minutes.",
+      "step2_title": "Sélectionnez votre expert",
+      "step2_desc": "Recevez des propositions qualifiées de freelances vérifiés et comparez les profils.",
+      "step3_title": "Collaborez en toute sécurité",
+      "step3_desc": "Payez via notre système de séquestre sécurisé. Les fonds ne sont libérés qu'après validation.",
+      "cta": "Lancer mon projet"
+    },
+    "cta_section": {
+      "title": "Prêt à transformer vos idées en",
+      "title_highlight": "réalité numérique",
+      "subtitle": "Rejoignez la plus grande communauté de talents digitaux francophones et boostez votre croissance.",
+      "btn_find": "Trouver un freelance",
+      "btn_become": "Devenir Freelance"
+    }
+  },
+  "footer": {
+    "description": "Le pont entre les entreprises ambitieuses et les meilleurs talents indépendants d'Afrique francophone et de sa diaspora.",
+    "platform": "Plateforme",
+    "support": "Support",
+    "newsletter_title": "Newsletter",
+    "newsletter_desc": "Recevez les meilleures opportunités et talents chaque mois.",
+    "newsletter_placeholder": "Votre email",
+    "newsletter_submit": "S'abonner",
+    "copyright": "© 2026 FreelanceHigh. Tous droits réservés. Fondée par Lissanon Gildas.",
+    "links": {
+      "explorer": "Parcourir les freelances",
+      "how_it_works": "Comment ça marche",
+      "pricing": "Tarifs",
+      "reviews": "Avis clients",
+      "help": "Centre d'aide",
+      "contact": "Nous contacter",
+      "privacy": "Politique de confidentialité",
+      "terms": "CGU"
+    }
+  }
+}

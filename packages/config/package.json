@@ -1,0 +1,9 @@
+{
+  "name": "@freelancehigh/config",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint.js",
+    "./typescript": "./tsconfig.json"
+  }
+}

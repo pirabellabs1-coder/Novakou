@@ -1,0 +1,22 @@
+{
+  "name": "freelancehigh",
+  "private": true,
+  "version": "0.0.1",
+  "description": "FreelanceHigh — La plateforme freelance qui élève votre carrière au plus haut niveau",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  }
+}
