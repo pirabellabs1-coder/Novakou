@@ -1,0 +1,691 @@
+[
+  {
+    "id": "s1",
+    "userId": "dev-freelance-1",
+    "slug": "logo-design-moderne-minimaliste-mmge3qv3",
+    "title": "Logo Design Moderne & Minimaliste",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Logo Design Moderne & Minimaliste. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Logo Design Moderne & Minimaliste",
+    "categoryId": "cat-design",
+    "categoryName": "Design & Graphisme",
+    "subCategoryId": "sub-logo",
+    "subCategoryName": "Logo & Identité",
+    "tags": [
+      "logo",
+      "design",
+      "moderne",
+      "minimaliste"
+    ],
+    "basePrice": 45,
+    "deliveryDays": 3,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 45,
+        "deliveryDays": 5,
+        "revisions": 1,
+        "description": "Version basique de Logo Design Moderne & Minimaliste"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 81,
+        "deliveryDays": 3,
+        "revisions": 3,
+        "description": "Version complète de Logo Design Moderne & Minimaliste"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 135,
+        "deliveryDays": 2,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Logo Design Moderne & Minimaliste"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 4200,
+    "clicks": 210,
+    "orderCount": 12,
+    "revenue": 540,
+    "rating": 4.8871875256875565,
+    "ratingCount": 8,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Logo Design Moderne & Minimaliste",
+    "metaDescription": "Logo Design Moderne & Minimaliste - Service professionnel sur FreelanceHigh",
+    "seoScore": 45,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-01-05T20:47:50.314Z",
+    "updatedAt": "2026-03-07T13:59:29.727Z"
+  },
+  {
+    "id": "s2",
+    "userId": "dev-freelance-1",
+    "slug": "redaction-article-blog-seo-1000-mots-mmge3qv4",
+    "title": "Redaction Article Blog SEO 1000 mots",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Redaction Article Blog SEO 1000 mots. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Redaction Article Blog SEO 1000 mots",
+    "categoryId": "cat-redaction",
+    "categoryName": "Rédaction & Contenu",
+    "subCategoryId": "sub-redaction-web",
+    "subCategoryName": "Rédaction Web",
+    "tags": [
+      "redaction",
+      "article",
+      "blog",
+      "seo",
+      "1000"
+    ],
+    "basePrice": 60,
+    "deliveryDays": 2,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 60,
+        "deliveryDays": 4,
+        "revisions": 1,
+        "description": "Version basique de Redaction Article Blog SEO 1000 mots"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 108,
+        "deliveryDays": 2,
+        "revisions": 3,
+        "description": "Version complète de Redaction Article Blog SEO 1000 mots"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 180,
+        "deliveryDays": 1,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Redaction Article Blog SEO 1000 mots"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2100,
+    "clicks": 105,
+    "orderCount": 3,
+    "revenue": 180,
+    "rating": 4.926654000011232,
+    "ratingCount": 2,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Redaction Article Blog SEO 1000 mots",
+    "metaDescription": "Redaction Article Blog SEO 1000 mots - Service professionnel sur FreelanceHigh",
+    "seoScore": 41,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-08T13:26:44.343Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  },
+  {
+    "id": "s3",
+    "userId": "dev-freelance-1",
+    "slug": "montage-video-pub-facebook-pro-mmge3qv4",
+    "title": "Montage Video Pub Facebook Pro",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Montage Video Pub Facebook Pro. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Montage Video Pub Facebook Pro",
+    "categoryId": "cat-video",
+    "categoryName": "Vidéo & Animation",
+    "subCategoryId": "sub-montage",
+    "subCategoryName": "Montage Vidéo",
+    "tags": [
+      "montage",
+      "video",
+      "pub",
+      "facebook",
+      "pro"
+    ],
+    "basePrice": 120,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 120,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Montage Video Pub Facebook Pro"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 216,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Montage Video Pub Facebook Pro"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 360,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Montage Video Pub Facebook Pro"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&q=80",
+    "videoUrl": "",
+    "status": "pause",
+    "views": 1500,
+    "clicks": 75,
+    "orderCount": 0,
+    "revenue": 0,
+    "rating": 0,
+    "ratingCount": 0,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Montage Video Pub Facebook Pro",
+    "metaDescription": "Montage Video Pub Facebook Pro - Service professionnel sur FreelanceHigh",
+    "seoScore": 70,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-03-05T14:49:27.513Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  },
+  {
+    "id": "s4",
+    "userId": "dev-freelance-1",
+    "slug": "developpement-application-react-next-js-mmge3qv4",
+    "title": "Developpement Application React/Next.js",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Developpement Application React/Next.js. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Developpement Application React/Next.js",
+    "categoryId": "cat-dev-web",
+    "categoryName": "Développement Web",
+    "subCategoryId": "sub-frontend",
+    "subCategoryName": "Frontend",
+    "tags": [
+      "developpement",
+      "application",
+      "react/next.js"
+    ],
+    "basePrice": 120,
+    "deliveryDays": 14,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 120,
+        "deliveryDays": 16,
+        "revisions": 1,
+        "description": "Version basique de Developpement Application React/Next.js"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 216,
+        "deliveryDays": 14,
+        "revisions": 3,
+        "description": "Version complète de Developpement Application React/Next.js"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 360,
+        "deliveryDays": 13,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Developpement Application React/Next.js"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 3800,
+    "clicks": 190,
+    "orderCount": 8,
+    "revenue": 2160,
+    "rating": 4.5369004504341355,
+    "ratingCount": 6,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Developpement Application React/Next.js",
+    "metaDescription": "Developpement Application React/Next.js - Service professionnel sur FreelanceHigh",
+    "seoScore": 56,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-01-16T08:29:54.474Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  },
+  {
+    "id": "s5",
+    "userId": "dev-freelance-1",
+    "slug": "design-ui-ux-avec-figma-mmge3qv4",
+    "title": "Design UI/UX avec Figma",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Design UI/UX avec Figma. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Design UI/UX avec Figma",
+    "categoryId": "cat-design",
+    "categoryName": "Design & Graphisme",
+    "subCategoryId": "sub-ui-ux",
+    "subCategoryName": "UI/UX Design",
+    "tags": [
+      "design",
+      "ui/ux",
+      "avec",
+      "figma"
+    ],
+    "basePrice": 75,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 75,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Design UI/UX avec Figma"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 135,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Design UI/UX avec Figma"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 225,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Design UI/UX avec Figma"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=80",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2800,
+    "clicks": 140,
+    "orderCount": 6,
+    "revenue": 750,
+    "rating": 4.76214280033843,
+    "ratingCount": 4,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Design UI/UX avec Figma",
+    "metaDescription": "Design UI/UX avec Figma - Service professionnel sur FreelanceHigh",
+    "seoScore": 74,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2025-12-22T07:02:10.480Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  },
+  {
+    "id": "s6",
+    "userId": "dev-freelance-1",
+    "slug": "api-backend-node-js-prisma-mmge3qv4",
+    "title": "API Backend Node.js + Prisma",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de API Backend Node.js + Prisma. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de API Backend Node.js + Prisma",
+    "categoryId": "cat-dev-web",
+    "categoryName": "Développement Web",
+    "subCategoryId": "sub-backend",
+    "subCategoryName": "Backend",
+    "tags": [
+      "api",
+      "backend",
+      "node.js",
+      "prisma"
+    ],
+    "basePrice": 95,
+    "deliveryDays": 10,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 95,
+        "deliveryDays": 12,
+        "revisions": 1,
+        "description": "Version basique de API Backend Node.js + Prisma"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 171,
+        "deliveryDays": 10,
+        "revisions": 3,
+        "description": "Version complète de API Backend Node.js + Prisma"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 285,
+        "deliveryDays": 9,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de API Backend Node.js + Prisma"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1900,
+    "clicks": 95,
+    "orderCount": 5,
+    "revenue": 475,
+    "rating": 4.867086511117051,
+    "ratingCount": 4,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "API Backend Node.js + Prisma",
+    "metaDescription": "API Backend Node.js + Prisma - Service professionnel sur FreelanceHigh",
+    "seoScore": 73,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2025-12-12T08:35:01.104Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  },
+  {
+    "id": "s7",
+    "userId": "dev-freelance-1",
+    "slug": "audit-seo-technique-complet-mmge3qv4",
+    "title": "Audit SEO Technique Complet",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Audit SEO Technique Complet. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Audit SEO Technique Complet",
+    "categoryId": "cat-marketing",
+    "categoryName": "Marketing Digital",
+    "subCategoryId": "sub-seo",
+    "subCategoryName": "SEO",
+    "tags": [
+      "audit",
+      "seo",
+      "technique",
+      "complet"
+    ],
+    "basePrice": 350,
+    "deliveryDays": 7,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 350,
+        "deliveryDays": 9,
+        "revisions": 1,
+        "description": "Version basique de Audit SEO Technique Complet"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 630,
+        "deliveryDays": 7,
+        "revisions": 3,
+        "description": "Version complète de Audit SEO Technique Complet"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 1050,
+        "deliveryDays": 6,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Audit SEO Technique Complet"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&q=80",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1200,
+    "clicks": 60,
+    "orderCount": 4,
+    "revenue": 1400,
+    "rating": 4.681729881142417,
+    "ratingCount": 3,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Audit SEO Technique Complet",
+    "metaDescription": "Audit SEO Technique Complet - Service professionnel sur FreelanceHigh",
+    "seoScore": 50,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-03T11:35:46.035Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  },
+  {
+    "id": "s8",
+    "userId": "dev-freelance-1",
+    "slug": "formation-next-js-15-app-router-mmge3qv4",
+    "title": "Formation Next.js 15 App Router",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Formation Next.js 15 App Router. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Formation Next.js 15 App Router",
+    "categoryId": "cat-formation",
+    "categoryName": "Formation & Coaching",
+    "subCategoryId": "sub-dev-formation",
+    "subCategoryName": "Développement",
+    "tags": [
+      "formation",
+      "next.js",
+      "app",
+      "router"
+    ],
+    "basePrice": 200,
+    "deliveryDays": 3,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 200,
+        "deliveryDays": 5,
+        "revisions": 1,
+        "description": "Version basique de Formation Next.js 15 App Router"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 360,
+        "deliveryDays": 3,
+        "revisions": 3,
+        "description": "Version complète de Formation Next.js 15 App Router"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 600,
+        "deliveryDays": 2,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Formation Next.js 15 App Router"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"
+    ],
+    "mainImage": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80",
+    "videoUrl": "",
+    "status": "brouillon",
+    "views": 0,
+    "clicks": 0,
+    "orderCount": 0,
+    "revenue": 0,
+    "rating": 0,
+    "ratingCount": 0,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Formation Next.js 15 App Router",
+    "metaDescription": "Formation Next.js 15 App Router - Service professionnel sur FreelanceHigh",
+    "seoScore": 56,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Gildas Lissanon",
+    "vendorAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "vendorUsername": "gildas-dev",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2025-12-15T02:41:40.804Z",
+    "updatedAt": "2026-03-07T13:59:29.728Z"
+  }
+]

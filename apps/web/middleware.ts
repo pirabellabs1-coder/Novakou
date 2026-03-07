@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { auth } from "@/lib/auth";
+import { getToken } from "next-auth/jwt";
 
 // Routes publiques — toujours accessibles
 const PUBLIC_ROUTES = [
@@ -9,6 +9,9 @@ const PUBLIC_ROUTES = [
   "/services",
   "/freelances",
   "/agences",
+  "/freelancers",
+  "/agencies",
+  "/feed/service",
   "/offres-projets",
   "/blog",
   "/tarifs",
@@ -41,7 +44,6 @@ const ROLE_ROUTES: Record<string, string[]> = {
 };
 
 function isPublicRoute(pathname: string): boolean {
-  // Exact match or starts with a public route prefix
   return PUBLIC_ROUTES.some((route) => {
     if (route === "/") return pathname === "/";
     return pathname === route || pathname.startsWith(route + "/");
@@ -73,7 +75,7 @@ function getRequiredRole(pathname: string): string | null {
   return null;
 }
 
-export default auth((req: NextRequest & { auth?: { user?: { role?: string } } }) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Laisser passer les assets statiques et les routes API
@@ -81,14 +83,27 @@ export default auth((req: NextRequest & { auth?: { user?: { role?: string } } })
     return NextResponse.next();
   }
 
+  // Pas de profil public client (/clients/[id] → /feed)
+  if (pathname.startsWith("/clients/")) {
+    return NextResponse.redirect(new URL("/feed", req.url));
+  }
+
   // Routes publiques — toujours accessibles
   if (isPublicRoute(pathname)) {
+    // Si connecté et sur la page d'accueil → rediriger vers /feed
+    if (pathname === "/") {
+      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+      if (token) {
+        return NextResponse.redirect(new URL("/feed", req.url));
+      }
+    }
     return NextResponse.next();
   }
 
-  const session = req.auth;
-  const isAuthenticated = !!session?.user;
-  const userRole = session?.user?.role;
+  // Lire le token JWT directement (compatible Edge Runtime)
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const isAuthenticated = !!token;
+  const userRole = token?.role as string | undefined;
 
   // Routes auth — rediriger vers le bon espace si deja connecte
   if (isAuthRoute(pathname)) {
@@ -117,7 +132,6 @@ export default auth((req: NextRequest & { auth?: { user?: { role?: string } } })
     // L'admin a acces a tout
     if (userRole === "admin") {
       const response = NextResponse.next();
-      // Ajouter un header pour l'impersonation si l'admin visite un espace non-admin
       if (requiredRole !== "admin") {
         response.headers.set("x-admin-viewing", "true");
       }
@@ -126,16 +140,15 @@ export default auth((req: NextRequest & { auth?: { user?: { role?: string } } })
 
     // Verifier que le role correspond
     if (userRole !== requiredRole) {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL("/feed", req.url));
     }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
-    // Match all paths except static files
     "/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)",
   ],
 };

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -35,8 +36,11 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Projets", href: "/agence/projets", icon: "folder_open" },
       { label: "Services", href: "/agence/services", icon: "work" },
+      { label: "Créer un service", href: "/agence/services/creer", icon: "add_circle" },
       { label: "Portfolio", href: "/agence/portfolio", icon: "photo_library" },
       { label: "Commandes", href: "/agence/commandes", icon: "shopping_cart" },
+      { label: "SEO", href: "/agence/services/seo", icon: "search" },
+      { label: "Boost", href: "/agence/services/boost", icon: "rocket_launch" },
     ],
   },
   {
@@ -110,6 +114,19 @@ export function AgenceSidebar({ onClose }: AgenceSidebarProps) {
             <span className="material-symbols-outlined">close</span>
           </button>
         )}
+      </div>
+
+      {/* Accueil — retour au feed */}
+      <div className="px-3 pb-2">
+        <Link
+          href="/feed"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          onClick={onClose}
+        >
+          <span className="material-symbols-outlined text-lg">home</span>
+          <span>Accueil</span>
+        </Link>
+        <div className="border-b border-border-dark mt-2" />
       </div>
 
       {/* CTA Nouveau Service */}
@@ -230,6 +247,13 @@ export function AgenceSidebar({ onClose }: AgenceSidebarProps) {
             chevron_right
           </span>
         </Link>
+        <button
+          onClick={() => signOut({ callbackUrl: "/connexion" })}
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors mt-1"
+        >
+          <span className="material-symbols-outlined text-xl">logout</span>
+          <span>Se déconnecter</span>
+        </button>
       </div>
     </aside>
   );

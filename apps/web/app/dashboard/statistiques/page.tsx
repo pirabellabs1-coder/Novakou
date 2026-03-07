@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/store/dashboard";
-import { MONTHLY_REVENUE, PROFILE_VIEWS, TRAFFIC_SOURCES, WEEKLY_ORDERS } from "@/lib/demo-data";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 const PERIODS = [
@@ -17,18 +16,45 @@ const PERIODS = [
   { label: "1 an", value: "1a" },
 ];
 
+const TRAFFIC_SOURCES = [
+  { name: "Recherche", value: 45, color: "#0e7c66" },
+  { name: "Direct", value: 25, color: "#0EA5E9" },
+  { name: "Social", value: 20, color: "#f2b705" },
+  { name: "Referral", value: 10, color: "#8b5cf6" },
+];
+
 export default function StatistiquesPage() {
-  const { services, orders, transactions } = useDashboardStore();
+  const { services, transactions, stats: apiStats, syncStats } = useDashboardStore();
   const [period, setPeriod] = useState("30d");
 
+  useEffect(() => {
+    syncStats();
+  }, [syncStats]);
+
   const stats = useMemo(() => {
+    if (apiStats) {
+      const totalViews = apiStats.viewsThisMonth;
+      const totalClicks = services.reduce((s, sv) => s + sv.clicks, 0);
+      const totalOrders = services.reduce((s, sv) => s + sv.orders, 0);
+      return {
+        totalViews,
+        totalClicks,
+        totalOrders,
+        totalRevenue: apiStats.summary.totalEarned,
+        conversionRate: apiStats.conversionRate,
+      };
+    }
     const totalViews = services.reduce((s, sv) => s + sv.views, 0);
     const totalClicks = services.reduce((s, sv) => s + sv.clicks, 0);
     const totalOrders = services.reduce((s, sv) => s + sv.orders, 0);
     const totalRevenue = transactions.filter((t) => t.type === "vente" && t.status === "complete").reduce((s, t) => s + t.amount, 0);
     const conversionRate = totalViews > 0 ? ((totalOrders / totalViews) * 100) : 0;
     return { totalViews, totalClicks, totalOrders, totalRevenue, conversionRate };
-  }, [services, transactions]);
+  }, [services, transactions, apiStats]);
+
+  const monthlyRevenue = apiStats?.monthlyRevenue ?? [];
+  const profileViews = apiStats?.profileViews ?? [];
+  const weeklyOrders = apiStats?.weeklyOrders ?? [];
 
   const servicePerf = useMemo(() =>
     services.filter((s) => s.status === "actif").map((s) => ({
@@ -89,7 +115,7 @@ export default function StatistiquesPage() {
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
           <h3 className="font-bold mb-6">Revenus mensuels</h3>
           <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={MONTHLY_REVENUE}>
+            <LineChart data={monthlyRevenue}>
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v}`} />
@@ -103,7 +129,7 @@ export default function StatistiquesPage() {
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
           <h3 className="font-bold mb-6">Vues du profil (semaine)</h3>
           <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={PROFILE_VIEWS}>
+            <AreaChart data={profileViews}>
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />
@@ -138,7 +164,7 @@ export default function StatistiquesPage() {
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
           <h3 className="font-bold mb-6">Commandes par semaine</h3>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={WEEKLY_ORDERS}>
+            <BarChart data={weeklyOrders}>
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="week" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />

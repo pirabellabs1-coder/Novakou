@@ -1,0 +1,115 @@
+{
+  "dev-freelance-1": {
+    "userId": "dev-freelance-1",
+    "firstName": "Gildas",
+    "lastName": "Lissanon",
+    "username": "gildas-dev",
+    "email": "gildas@freelancehigh.com",
+    "phone": "+225 07 12 34 56",
+    "photo": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    "title": "Développeur Full-Stack & Designer UI/UX",
+    "bio": "Développeur passionné basé à Abidjan, spécialisé en React/Next.js et design d'interfaces modernes. +5 ans d'expérience avec des clients internationaux.",
+    "city": "Abidjan",
+    "country": "Côte d'Ivoire",
+    "hourlyRate": 45,
+    "skills": [
+      {
+        "name": "React/Next.js",
+        "level": "expert"
+      },
+      {
+        "name": "TypeScript",
+        "level": "expert"
+      },
+      {
+        "name": "Node.js",
+        "level": "expert"
+      },
+      {
+        "name": "Figma",
+        "level": "intermediaire"
+      },
+      {
+        "name": "Tailwind CSS",
+        "level": "expert"
+      },
+      {
+        "name": "PostgreSQL",
+        "level": "intermediaire"
+      }
+    ],
+    "languages": [
+      {
+        "name": "Français",
+        "level": "Natif"
+      },
+      {
+        "name": "Anglais",
+        "level": "Courant"
+      }
+    ],
+    "links": {
+      "linkedin": "https://linkedin.com/in/gildas-dev",
+      "github": "https://github.com/gildas-dev",
+      "portfolio": "https://gildas.dev",
+      "behance": ""
+    },
+    "completionPercent": 85,
+    "badges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "availability": [
+      {
+        "day": 0,
+        "dayName": "Lundi",
+        "available": true,
+        "startTime": "09:00",
+        "endTime": "18:00"
+      },
+      {
+        "day": 1,
+        "dayName": "Mardi",
+        "available": true,
+        "startTime": "09:00",
+        "endTime": "18:00"
+      },
+      {
+        "day": 2,
+        "dayName": "Mercredi",
+        "available": true,
+        "startTime": "09:00",
+        "endTime": "18:00"
+      },
+      {
+        "day": 3,
+        "dayName": "Jeudi",
+        "available": true,
+        "startTime": "09:00",
+        "endTime": "18:00"
+      },
+      {
+        "day": 4,
+        "dayName": "Vendredi",
+        "available": true,
+        "startTime": "09:00",
+        "endTime": "16:00"
+      },
+      {
+        "day": 5,
+        "dayName": "Samedi",
+        "available": false,
+        "startTime": "10:00",
+        "endTime": "13:00"
+      },
+      {
+        "day": 6,
+        "dayName": "Dimanche",
+        "available": false,
+        "startTime": "10:00",
+        "endTime": "13:00"
+      }
+    ],
+    "vacationMode": false
+  }
+}

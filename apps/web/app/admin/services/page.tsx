@@ -1,9 +1,22 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useToastStore } from "@/store/dashboard";
 import { usePlatformDataStore } from "@/store/platform-data";
 import { cn } from "@/lib/utils";
+
+async function adminServiceAction(id: string, action: string, reason?: string): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/admin/services/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, reason }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   actif: { label: "Actif", cls: "bg-emerald-500/20 text-emerald-400" },
@@ -20,6 +33,23 @@ export default function AdminServices() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const { addToast } = useToastStore();
   const { services, categories, approveService, refuseService, deleteService, featureService, unfeatureService, pauseService } = usePlatformDataStore();
+  const setServices = usePlatformDataStore((s) => s.setServices);
+
+  // Load services from API on mount and merge with local data
+  useEffect(() => {
+    fetch("/api/admin/services")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.services?.length > 0) {
+          // Merge: API services + local-only services (avoid duplicates)
+          const apiIds = new Set(data.services.map((s: { id: string }) => s.id));
+          const localOnly = services.filter((s) => !apiIds.has(s.id));
+          setServices([...data.services, ...localOnly]);
+        }
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     if (tab === "tous") return services;
@@ -34,44 +64,50 @@ export default function AdminServices() {
     pause: services.filter(s => s.status === "pause").length,
   }), [services]);
 
-  function handleApprove(id: string) {
+  async function handleApprove(id: string) {
     const svc = services.find(s => s.id === id);
     approveService(id);
+    await adminServiceAction(id, "approve");
     addToast("success", `"${svc?.title}" approuvé — visible sur la marketplace`);
   }
 
-  function handleRefuse() {
+  async function handleRefuse() {
     if (!refuseId || !refuseReason.trim()) { addToast("warning", "Indiquez un motif de refus"); return; }
     const svc = services.find(s => s.id === refuseId);
     refuseService(refuseId, refuseReason);
+    await adminServiceAction(refuseId, "refuse", refuseReason);
     addToast("success", `"${svc?.title}" refusé`);
     setRefuseId(null);
     setRefuseReason("");
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteId) return;
     const svc = services.find(s => s.id === deleteId);
     deleteService(deleteId);
+    await adminServiceAction(deleteId, "delete");
     addToast("success", `"${svc?.title}" supprimé définitivement`);
     setDeleteId(null);
   }
 
-  function handleFeature(id: string) {
+  async function handleFeature(id: string) {
     const svc = services.find(s => s.id === id);
     featureService(id);
+    await adminServiceAction(id, "feature");
     addToast("success", `"${svc?.title}" mis en vedette sur la marketplace`);
   }
 
-  function handleUnfeature(id: string) {
+  async function handleUnfeature(id: string) {
     const svc = services.find(s => s.id === id);
     unfeatureService(id);
+    await adminServiceAction(id, "unfeature");
     addToast("success", `"${svc?.title}" retiré de la vedette`);
   }
 
-  function handlePause(id: string) {
+  async function handlePause(id: string) {
     const svc = services.find(s => s.id === id);
     pauseService(id);
+    await adminServiceAction(id, "pause");
     addToast("success", `"${svc?.title}" mis en pause`);
   }
 

@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ToastContainer } from "@/components/ui/toast";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { DashboardNotificationBell } from "@/components/dashboard/DashboardNotificationBell";
+import { useDashboardStore } from "@/store/dashboard";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const syncFromApi = useDashboardStore((s) => s.syncFromApi);
+  const lastSyncAt = useDashboardStore((s) => s.lastSyncAt);
+  const hasSynced = useRef(false);
+
+  // Sync from API on first mount
+  useEffect(() => {
+    if (!hasSynced.current) {
+      hasSynced.current = true;
+      syncFromApi();
+    }
+  }, [syncFromApi]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background-dark">
@@ -51,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="font-bold text-lg text-white">FreelanceHigh</span>
             </div>
           </div>
-          <NotificationBell userId="u1" notificationsHref="/dashboard/parametres" />
+          <DashboardNotificationBell />
         </div>
 
         {children}

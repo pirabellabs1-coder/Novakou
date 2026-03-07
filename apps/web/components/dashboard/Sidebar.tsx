@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { useDashboardStore } from "@/store/dashboard";
 
 // --- Types ---
 
@@ -12,6 +14,7 @@ interface NavItem {
   href: string;
   icon: string;
   exact?: boolean;
+  badge?: number;
 }
 
 interface NavSection {
@@ -32,6 +35,9 @@ const SECTIONS: NavSection[] = [
       { label: "Tableau de bord", href: "/dashboard", icon: "dashboard", exact: true },
       { label: "Explorer", href: "/dashboard/explorer", icon: "explore" },
       { label: "Mes Services", href: "/dashboard/services", icon: "work" },
+      { label: "Créer un service", href: "/dashboard/services/creer", icon: "add_circle" },
+      { label: "SEO Services", href: "/dashboard/services/seo", icon: "search_check" },
+      { label: "Boost", href: "/dashboard/boost", icon: "rocket_launch" },
       { label: "Commandes", href: "/dashboard/commandes", icon: "shopping_cart" },
     ],
   },
@@ -125,6 +131,15 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const isActive = useIsActive();
+  const unreadCount = useDashboardStore((s) => s.unreadCount);
+
+  // Augment nav items with dynamic badges
+  const sections = SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.map((item) =>
+      item.href === "/dashboard/notifications" ? { ...item, badge: unreadCount } : item
+    ),
+  }));
 
   // All sections start expanded
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(
@@ -182,8 +197,24 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           collapsed ? "px-2 space-y-1" : "px-3"
         )}
       >
+        {/* Accueil — retour au feed */}
+        <Link
+          href="/feed"
+          className={cn(
+            "flex items-center gap-3 rounded-xl font-semibold transition-colors mb-2",
+            collapsed
+              ? "w-10 h-10 justify-center text-slate-400 hover:text-white hover:bg-white/5"
+              : "px-3 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-white/5"
+          )}
+          title="Accueil"
+        >
+          <span className="material-symbols-outlined text-lg flex-shrink-0">home</span>
+          {!collapsed && <span>Accueil</span>}
+        </Link>
+        <div className={cn("border-b border-border-dark", collapsed ? "mb-1" : "mb-3")} />
+
         {/* Collapsible sections */}
-        {SECTIONS.map((section) => {
+        {sections.map((section) => {
           const isOpen = openSections[section.id] ?? true;
           const hasActive = sectionHasActive(section.items, isActive);
 
@@ -286,12 +317,18 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               <p className="text-sm font-semibold text-white truncate">Lissanon Gildas</p>
               <p className="text-xs text-slate-400 truncate">Développeur Fullstack</p>
             </div>
-            <Link
-              href="/dashboard/parametres"
-              className="text-slate-400 hover:text-primary transition-colors flex-shrink-0"
-            >
-              <span className="material-symbols-outlined">settings</span>
-            </Link>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <Link href="/dashboard/parametres" className="text-slate-400 hover:text-primary transition-colors p-1 rounded-lg hover:bg-white/5" title="Paramètres">
+                <span className="material-symbols-outlined text-lg">settings</span>
+              </Link>
+              <button
+                onClick={() => signOut({ callbackUrl: "/connexion" })}
+                className="text-slate-400 hover:text-red-400 transition-colors p-1 rounded-lg hover:bg-red-400/10"
+                title="Se déconnecter"
+              >
+                <span className="material-symbols-outlined text-lg">logout</span>
+              </button>
+            </div>
           </>
         )}
       </div>
@@ -310,12 +347,13 @@ function NavLink({
   active: boolean;
   collapsed: boolean;
 }) {
+  const badge = item.badge;
   return (
     <Link
       href={item.href}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "flex items-center rounded-lg text-sm font-semibold transition-colors",
+        "flex items-center rounded-lg text-sm font-semibold transition-colors relative",
         collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2",
         active
           ? "bg-primary/10 text-primary"
@@ -326,6 +364,17 @@ function NavLink({
         {item.icon}
       </span>
       {!collapsed && <span className="truncate">{item.label}</span>}
+      {badge != null && badge > 0 && (
+        collapsed ? (
+          <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] rounded-full bg-primary flex items-center justify-center text-[9px] font-bold text-white px-0.5">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        ) : (
+          <span className="ml-auto min-w-[20px] h-[20px] rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary px-1">
+            {badge > 99 ? "99+" : badge}
+          </span>
+        )
+      )}
     </Link>
   );
 }

@@ -1,286 +1,322 @@
 "use client";
 
-import { useState } from "react";
-import { Mail, Wallet, FolderOpen } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useDashboardStore } from "@/store/dashboard";
 import { cn } from "@/lib/utils";
+import type { ApiNotification } from "@/lib/api-client";
 
 // ---------------------------------------------------------------------------
-// Toggle component
+// Type icons mapping
 // ---------------------------------------------------------------------------
 
-interface ToggleProps {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  label?: string;
-  id: string;
+const TYPE_META: Record<string, { icon: string; color: string; bgColor: string; label: string }> = {
+  admin_action: { icon: "admin_panel_settings", color: "text-amber-400", bgColor: "bg-amber-400/10", label: "Action admin" },
+  message: { icon: "chat", color: "text-blue-400", bgColor: "bg-blue-400/10", label: "Message" },
+  order: { icon: "shopping_cart", color: "text-green-400", bgColor: "bg-green-400/10", label: "Commande" },
+  kyc: { icon: "verified", color: "text-purple-400", bgColor: "bg-purple-400/10", label: "Verification" },
+  payment: { icon: "payments", color: "text-emerald-400", bgColor: "bg-emerald-400/10", label: "Paiement" },
+  system: { icon: "info", color: "text-slate-400", bgColor: "bg-slate-400/10", label: "Systeme" },
+};
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const minutes = Math.floor(diff / 60_000);
+
+  if (minutes < 1) return "A l'instant";
+  if (minutes < 60) return `Il y a ${minutes} min`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Il y a ${hours}h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `Il y a ${days} jour${days > 1 ? "s" : ""}`;
+
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+  });
 }
 
-function Toggle({ checked, onChange, label, id }: ToggleProps) {
-  return (
-    <div className="flex items-center gap-2">
-      {label && (
-        <span className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-          {label}
-        </span>
-      )}
-      <button
-        id={id}
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={cn(
-          "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0e7c66] focus-visible:ring-offset-2 focus-visible:ring-offset-[#11211e]",
-          checked ? "bg-[#0e7c66]" : "bg-[#293835]"
-        )}
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
-            checked ? "translate-x-5" : "translate-x-0"
-          )}
-        />
-      </button>
-    </div>
-  );
-}
+function groupByDate(notifications: ApiNotification[]): { label: string; items: ApiNotification[] }[] {
+  const groups: Record<string, ApiNotification[]> = {};
 
-// ---------------------------------------------------------------------------
-// Section wrapper
-// ---------------------------------------------------------------------------
+  for (const notif of notifications) {
+    const date = new Date(notif.createdAt);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - date.getTime()) / 86_400_000);
 
-interface SectionProps {
-  icon: React.ReactNode;
-  title: string;
-  children: React.ReactNode;
-}
+    let label: string;
+    if (diffDays === 0) {
+      label = "Aujourd'hui";
+    } else if (diffDays === 1) {
+      label = "Hier";
+    } else if (diffDays < 7) {
+      label = "Cette semaine";
+    } else if (diffDays < 30) {
+      label = "Ce mois";
+    } else {
+      label = "Plus ancien";
+    }
 
-function Section({ icon, title, children }: SectionProps) {
-  return (
-    <div className="rounded-xl border border-[#293835] bg-[#11211e]/50 overflow-hidden">
-      {/* Section header */}
-      <div className="flex items-center gap-3 border-b border-[#293835] px-6 py-4">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0e7c66]/20 text-[#0e7c66]">
-          {icon}
-        </span>
-        <h2 className="text-sm font-semibold text-slate-100">{title}</h2>
-      </div>
-      {/* Section rows */}
-      <div className="divide-y divide-[#293835]">{children}</div>
-    </div>
-  );
-}
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(notif);
+  }
 
-// ---------------------------------------------------------------------------
-// Notification row — single toggle
-// ---------------------------------------------------------------------------
-
-interface SingleRowProps {
-  id: string;
-  label: string;
-  description: string;
-  checked: boolean;
-  onChange: (value: boolean) => void;
-}
-
-function SingleRow({ id, label, description, checked, onChange }: SingleRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-6 py-5">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-100">{label}</p>
-        <p className="mt-0.5 text-sm text-slate-400">{description}</p>
-      </div>
-      <Toggle id={id} checked={checked} onChange={onChange} />
-    </div>
-  );
+  const order = ["Aujourd'hui", "Hier", "Cette semaine", "Ce mois", "Plus ancien"];
+  return order
+    .filter((label) => groups[label] && groups[label].length > 0)
+    .map((label) => ({ label, items: groups[label] }));
 }
 
 // ---------------------------------------------------------------------------
-// Notification row — double toggle (SMS + EMAIL)
+// Filter tabs
 // ---------------------------------------------------------------------------
 
-interface DoubleRowProps {
-  label: string;
-  description: string;
-  smsChecked: boolean;
-  emailChecked: boolean;
-  onSmsChange: (value: boolean) => void;
-  onEmailChange: (value: boolean) => void;
-}
+type FilterType = "all" | "unread" | "order" | "message" | "payment" | "system";
 
-function DoubleRow({
-  label,
-  description,
-  smsChecked,
-  emailChecked,
-  onSmsChange,
-  onEmailChange,
-}: DoubleRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 px-6 py-5">
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-slate-100">{label}</p>
-        <p className="mt-0.5 text-sm text-slate-400">{description}</p>
-      </div>
-      <div className="flex items-center gap-6">
-        <Toggle
-          id="finances-sms"
-          checked={smsChecked}
-          onChange={onSmsChange}
-          label="SMS"
-        />
-        <Toggle
-          id="finances-email"
-          checked={emailChecked}
-          onChange={onEmailChange}
-          label="EMAIL"
-        />
-      </div>
-    </div>
-  );
-}
+const FILTER_TABS: { value: FilterType; label: string; icon: string }[] = [
+  { value: "all", label: "Toutes", icon: "notifications" },
+  { value: "unread", label: "Non lues", icon: "mark_email_unread" },
+  { value: "order", label: "Commandes", icon: "shopping_cart" },
+  { value: "message", label: "Messages", icon: "chat" },
+  { value: "payment", label: "Paiements", icon: "payments" },
+  { value: "system", label: "Systeme", icon: "info" },
+];
 
 // ---------------------------------------------------------------------------
-// Page
+// Page component
 // ---------------------------------------------------------------------------
 
 export default function NotificationsPage() {
-  // Messages section
-  const [emailMessages, setEmailMessages] = useState(true);
-  const [pushMessages, setPushMessages] = useState(true);
+  const apiNotifications = useDashboardStore((s) => s.apiNotifications);
+  const unreadCount = useDashboardStore((s) => s.unreadCount);
+  const markNotificationRead = useDashboardStore((s) => s.markNotificationRead);
+  const markAllNotificationsRead = useDashboardStore((s) => s.markAllNotificationsRead);
+  const refreshNotifications = useDashboardStore((s) => s.refreshNotifications);
 
-  // Finances section
-  const [financeSms, setFinanceSms] = useState(true);
-  const [financeEmail, setFinanceEmail] = useState(true);
+  const [filter, setFilter] = useState<FilterType>("all");
+  const hasRefreshed = useRef(false);
 
-  // Projects section
-  const [orderUpdates, setOrderUpdates] = useState(true);
-  const [newProjects, setNewProjects] = useState(false);
+  // Refresh notifications from API on mount
+  useEffect(() => {
+    if (!hasRefreshed.current) {
+      hasRefreshed.current = true;
+      refreshNotifications();
+    }
+  }, [refreshNotifications]);
 
-  function handleCancel() {
-    // Reset to default values
-    setEmailMessages(true);
-    setPushMessages(true);
-    setFinanceSms(true);
-    setFinanceEmail(true);
-    setOrderUpdates(true);
-    setNewProjects(false);
-  }
+  // Apply filter
+  const filtered = apiNotifications.filter((n) => {
+    if (filter === "all") return true;
+    if (filter === "unread") return !n.read;
+    return n.type === filter;
+  });
 
-  function handleSave() {
-    const preferences = {
-      messages: { email: emailMessages, push: pushMessages },
-      finances: { sms: financeSms, email: financeEmail },
-      projects: { orderUpdates, newProjects },
-    };
-    // TODO: persist preferences via API
-    console.log("Saving preferences:", preferences);
+  const grouped = groupByDate(filtered);
+
+  function handleMarkRead(notif: ApiNotification) {
+    if (!notif.read) {
+      markNotificationRead(notif.id);
+    }
   }
 
   return (
-    <div className="min-h-screen bg-[#11211e] px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-3xl">
-        {/* Breadcrumb */}
-        <nav className="mb-6 flex items-center gap-2 text-sm">
-          <a
-            href="/dashboard/parametres"
-            className="font-medium text-[#0e7c66] hover:underline"
-          >
-            Paramètres
-          </a>
-          <span className="text-slate-400">/</span>
-          <span className="text-slate-400">Centre de Notifications</span>
-        </nav>
-
-        {/* Page heading */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-100">
-            Centre de Notifications Personnalisées
-          </h1>
-          <p className="mt-2 text-sm text-slate-400">
-            Gérez comment et quand vous souhaitez être informé de vos activités
-            professionnelles.
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Notifications</h1>
+          <p className="text-sm text-slate-400 mt-1">
+            {unreadCount > 0
+              ? `${unreadCount} notification${unreadCount > 1 ? "s" : ""} non lue${unreadCount > 1 ? "s" : ""}`
+              : "Toutes vos notifications sont lues"}
           </p>
         </div>
-
-        {/* Sections */}
-        <div className="space-y-4">
-          {/* Messages et Communications */}
-          <Section
-            icon={<Mail className="h-4 w-4" />}
-            title="Messages et Communications"
+        <div className="flex items-center gap-2">
+          {unreadCount > 0 && (
+            <button
+              onClick={() => markAllNotificationsRead()}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">done_all</span>
+              Tout marquer comme lu
+            </button>
+          )}
+          <Link
+            href="/dashboard/parametres"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 border border-border-dark transition-colors"
           >
-            <SingleRow
-              id="email-messages"
-              label="Emails de nouveaux messages"
-              description="Recevoir un résumé par email pour chaque nouveau message non lu."
-              checked={emailMessages}
-              onChange={setEmailMessages}
-            />
-            <SingleRow
-              id="push-messages"
-              label="Notifications Push (Navigateur)"
-              description="Alertes en temps réel sur votre bureau lorsque vous êtes connecté."
-              checked={pushMessages}
-              onChange={setPushMessages}
-            />
-          </Section>
-
-          {/* Finances et Paiements */}
-          <Section
-            icon={<Wallet className="h-4 w-4" />}
-            title="Finances et Paiements"
-          >
-            <DoubleRow
-              label="Paiements reçus"
-              description="Alerte immédiate par SMS et Email dès qu'un virement est confirmé."
-              smsChecked={financeSms}
-              emailChecked={financeEmail}
-              onSmsChange={setFinanceSms}
-              onEmailChange={setFinanceEmail}
-            />
-          </Section>
-
-          {/* Projets et Missions */}
-          <Section
-            icon={<FolderOpen className="h-4 w-4" />}
-            title="Projets et Missions"
-          >
-            <SingleRow
-              id="order-updates"
-              label="Mises à jour de commandes"
-              description="Changements de statut, validations d'étapes et retours clients."
-              checked={orderUpdates}
-              onChange={setOrderUpdates}
-            />
-            <SingleRow
-              id="new-projects"
-              label="Alertes de nouveaux projets"
-              description="Soyez informé dès qu'une mission correspondant à vos compétences est publiée."
-              checked={newProjects}
-              onChange={setNewProjects}
-            />
-          </Section>
-        </div>
-
-        {/* Footer actions */}
-        <div className="mt-8 flex items-center justify-end gap-4">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="text-sm font-medium text-slate-400 hover:text-slate-100 transition-colors"
-          >
-            Annuler
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="rounded-lg bg-[#0e7c66] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0b6a57] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0e7c66] focus-visible:ring-offset-2 focus-visible:ring-offset-[#11211e] transition-colors"
-          >
-            Enregistrer les préférences
-          </button>
+            <span className="material-symbols-outlined text-sm">settings</span>
+            Preferences
+          </Link>
         </div>
       </div>
+
+      {/* Filter tabs */}
+      <div className="flex items-center gap-1 mb-6 overflow-x-auto pb-2 scrollbar-none">
+        {FILTER_TABS.map((tab) => {
+          const isActive = filter === tab.value;
+          const count =
+            tab.value === "all"
+              ? apiNotifications.length
+              : tab.value === "unread"
+                ? unreadCount
+                : apiNotifications.filter((n) => n.type === tab.value).length;
+
+          return (
+            <button
+              key={tab.value}
+              onClick={() => setFilter(tab.value)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors",
+                isActive
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-slate-400 hover:text-white hover:bg-white/5 border border-transparent"
+              )}
+            >
+              <span className="material-symbols-outlined text-sm">{tab.icon}</span>
+              {tab.label}
+              {count > 0 && (
+                <span
+                  className={cn(
+                    "min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold px-1",
+                    isActive ? "bg-primary/20 text-primary" : "bg-white/10 text-slate-500"
+                  )}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Notification list */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 rounded-xl border border-border-dark bg-neutral-dark">
+          <span className="material-symbols-outlined text-5xl text-slate-600 mb-3">
+            {filter === "unread" ? "mark_email_read" : "notifications_off"}
+          </span>
+          <p className="text-sm font-semibold text-slate-400 mb-1">
+            {filter === "unread" ? "Aucune notification non lue" : "Aucune notification"}
+          </p>
+          <p className="text-xs text-slate-500">
+            {filter === "unread"
+              ? "Vous avez lu toutes vos notifications."
+              : filter === "all"
+                ? "Vous n'avez pas encore de notifications."
+                : `Aucune notification de type "${FILTER_TABS.find((t) => t.value === filter)?.label}".`}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {grouped.map((group) => (
+            <div key={group.label}>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 px-1">
+                {group.label}
+              </h2>
+              <div className="rounded-xl border border-border-dark bg-neutral-dark overflow-hidden divide-y divide-border-dark/50">
+                {group.items.map((notif) => {
+                  const meta = TYPE_META[notif.type] ?? TYPE_META.system;
+                  return (
+                    <div
+                      key={notif.id}
+                      className={cn(
+                        "flex gap-4 px-4 py-4 sm:px-5 transition-colors group",
+                        !notif.read
+                          ? "bg-primary/[0.03] hover:bg-primary/[0.06]"
+                          : "hover:bg-white/[0.02]"
+                      )}
+                    >
+                      {/* Icon */}
+                      <div
+                        className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                          meta.bgColor
+                        )}
+                      >
+                        <span className={cn("material-symbols-outlined text-xl", meta.color)}>
+                          {meta.icon}
+                        </span>
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p
+                                className={cn(
+                                  "text-sm font-semibold truncate",
+                                  notif.read ? "text-slate-400" : "text-white"
+                                )}
+                              >
+                                {notif.title}
+                              </p>
+                              {!notif.read && (
+                                <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                              {notif.message}
+                            </p>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="text-[10px] text-slate-600">
+                                {formatDate(notif.createdAt)}
+                              </span>
+                              <span
+                                className={cn(
+                                  "text-[10px] font-semibold px-1.5 py-0.5 rounded",
+                                  meta.bgColor,
+                                  meta.color
+                                )}
+                              >
+                                {meta.label}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {!notif.read && (
+                              <button
+                                onClick={() => handleMarkRead(notif)}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-primary/10 transition-colors"
+                                title="Marquer comme lu"
+                              >
+                                <span className="material-symbols-outlined text-sm">done</span>
+                              </button>
+                            )}
+                            {notif.link && (
+                              <Link
+                                href={notif.link}
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-primary hover:bg-primary/10 transition-colors"
+                                title="Voir le detail"
+                              >
+                                <span className="material-symbols-outlined text-sm">
+                                  open_in_new
+                                </span>
+                              </Link>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

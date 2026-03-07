@@ -9,6 +9,11 @@ import {
   type PortfolioProject, type FreelancerProfile, type AvailabilitySlot,
   type NotificationSetting, type OrderMessage, type OrderFile,
 } from "@/lib/demo-data";
+import {
+  servicesApi, ordersApi, financesApi, profileApi, notificationsApi, conversationsApi, statsApi, reviewsApi,
+  mapApiServiceToLocal, mapApiOrderToLocal, mapApiTransactionToLocal, mapApiConversationToLocal,
+  type ApiNotification, type ApiReview, type ApiReviewSummary, type ApiStats,
+} from "@/lib/api-client";
 
 // ============================================================
 // Toast store
@@ -41,27 +46,49 @@ export const useToastStore = create<ToastState>((set) => ({
 // Dashboard store — all freelance dashboard state
 // ============================================================
 interface DashboardState {
+  // API sync
+  isLoading: boolean;
+  lastSyncAt: string | null;
+  syncFromApi: () => Promise<void>;
+
+  // Notifications (from API)
+  apiNotifications: ApiNotification[];
+  unreadCount: number;
+  refreshNotifications: () => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+
   // Services
   services: Service[];
   addService: (service: Omit<Service, "id" | "views" | "clicks" | "orders" | "revenue" | "conversionRate" | "createdAt"> & { extras?: Service["extras"] }) => void;
   updateService: (id: string, updates: Partial<Service>) => void;
   deleteService: (id: string) => void;
   toggleServiceStatus: (id: string) => void;
+  // API-backed service operations
+  apiCreateService: (data: Record<string, unknown>) => Promise<string | null>;
+  apiDeleteService: (id: string) => Promise<boolean>;
+  apiToggleService: (id: string) => Promise<boolean>;
 
   // Orders
   orders: Order[];
   updateOrderStatus: (id: string, status: Order["status"]) => void;
   addOrderMessage: (orderId: string, message: Omit<OrderMessage, "id">) => void;
   addOrderFile: (orderId: string, file: Omit<OrderFile, "id">) => void;
+  // API-backed order operations
+  apiAcceptOrder: (id: string) => Promise<boolean>;
+  apiDeliverOrder: (id: string, message: string, files: Omit<OrderFile, "id">[]) => Promise<boolean>;
+  apiSendOrderMessage: (orderId: string, content: string) => Promise<boolean>;
 
   // Transactions
   transactions: Transaction[];
   addTransaction: (tx: Omit<Transaction, "id">) => void;
+  apiRequestWithdrawal: (amount: number, method: string) => Promise<boolean>;
 
   // Conversations
   conversations: Conversation[];
   sendMessage: (convId: string, content: string, type?: ChatMessage["type"], fileName?: string, fileSize?: string) => void;
   markConversationRead: (convId: string) => void;
+  apiSendMessage: (convId: string, content: string) => Promise<boolean>;
 
   // Portfolio
   portfolio: PortfolioProject[];
@@ -73,6 +100,7 @@ interface DashboardState {
   // Profile
   profile: FreelancerProfile;
   updateProfile: (updates: Partial<FreelancerProfile>) => void;
+  apiSaveProfile: (updates: Partial<FreelancerProfile>) => Promise<boolean>;
 
   // Availability
   availability: AvailabilitySlot[];
@@ -80,7 +108,7 @@ interface DashboardState {
   updateAvailability: (day: number, updates: Partial<AvailabilitySlot>) => void;
   toggleVacationMode: () => void;
 
-  // Notifications
+  // Notifications settings
   notificationSettings: NotificationSetting[];
   updateNotificationSetting: (id: string, updates: Partial<NotificationSetting>) => void;
 
@@ -92,6 +120,18 @@ interface DashboardState {
   };
   updateSettings: (updates: Partial<DashboardState["settings"]>) => void;
 
+  // Reviews
+  reviews: ApiReview[];
+  reviewSummary: ApiReviewSummary | null;
+  syncReviews: () => Promise<void>;
+  apiReplyToReview: (reviewId: string, reply: string) => Promise<boolean>;
+  apiReportReview: (reviewId: string) => Promise<boolean>;
+  apiMarkHelpful: (reviewId: string) => Promise<boolean>;
+
+  // Stats (from API)
+  stats: ApiStats | null;
+  syncStats: () => Promise<void>;
+
   // Subscription
   currentPlan: string;
   changePlan: (planId: string) => void;
@@ -100,6 +140,120 @@ interface DashboardState {
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set, get) => ({
+      // API sync
+      isLoading: false,
+      lastSyncAt: null,
+
+      syncFromApi: async () => {
+        set({ isLoading: true });
+        try {
+          const [servicesRes, ordersRes, transactionsRes, conversationsRes, profileRes, notificationsRes, statsRes, reviewsRes] = await Promise.allSettled([
+            servicesApi.list(),
+            ordersApi.list(),
+            financesApi.transactions(),
+            conversationsApi.list(),
+            profileApi.get(),
+            notificationsApi.list(),
+            statsApi.get(),
+            reviewsApi.getByFreelance(),
+          ]);
+
+          const updates: Partial<DashboardState> = {
+            lastSyncAt: new Date().toISOString(),
+            isLoading: false,
+          };
+
+          if (servicesRes.status === "fulfilled") {
+            updates.services = servicesRes.value.map(mapApiServiceToLocal);
+          }
+          if (ordersRes.status === "fulfilled") {
+            updates.orders = ordersRes.value.orders.map(mapApiOrderToLocal);
+          }
+          if (transactionsRes.status === "fulfilled") {
+            updates.transactions = transactionsRes.value.transactions.map(mapApiTransactionToLocal);
+          }
+          if (conversationsRes.status === "fulfilled") {
+            updates.conversations = conversationsRes.value.conversations.map(mapApiConversationToLocal);
+          }
+          if (profileRes.status === "fulfilled") {
+            const p = profileRes.value;
+            updates.profile = {
+              firstName: p.firstName,
+              lastName: p.lastName,
+              username: p.username,
+              email: p.email,
+              phone: p.phone,
+              photo: p.photo,
+              title: p.title,
+              bio: p.bio,
+              city: p.city,
+              country: p.country,
+              hourlyRate: p.hourlyRate,
+              skills: p.skills as FreelancerProfile["skills"],
+              languages: p.languages,
+              links: p.links,
+              completionPercent: p.completionPercent,
+            };
+            if (p.availability) {
+              updates.availability = p.availability;
+            }
+            if (p.vacationMode !== undefined) {
+              updates.vacationMode = p.vacationMode;
+            }
+          }
+          if (notificationsRes.status === "fulfilled") {
+            updates.apiNotifications = notificationsRes.value.notifications as ApiNotification[];
+            updates.unreadCount = notificationsRes.value.unreadCount;
+          }
+          if (statsRes.status === "fulfilled") {
+            updates.stats = statsRes.value;
+          }
+          if (reviewsRes.status === "fulfilled") {
+            updates.reviews = reviewsRes.value.reviews;
+            updates.reviewSummary = reviewsRes.value.summary;
+          }
+
+          set(updates);
+        } catch (err) {
+          console.error("[Dashboard Sync] Error:", err);
+          set({ isLoading: false });
+        }
+      },
+
+      // Notifications (API)
+      apiNotifications: [],
+      unreadCount: 0,
+      refreshNotifications: async () => {
+        try {
+          const data = await notificationsApi.list();
+          set({ apiNotifications: data.notifications as ApiNotification[], unreadCount: data.unreadCount });
+        } catch (err) {
+          console.error("[Notifications] Error:", err);
+        }
+      },
+      markNotificationRead: async (id: string) => {
+        try {
+          await notificationsApi.markRead(id);
+          set((s) => ({
+            apiNotifications: s.apiNotifications.map((n) => n.id === id ? { ...n, read: true } : n),
+            unreadCount: Math.max(0, s.unreadCount - 1),
+          }));
+        } catch (err) {
+          console.error("[Notification markRead] Error:", err);
+        }
+      },
+      markAllNotificationsRead: async () => {
+        try {
+          await notificationsApi.markAllRead();
+          set((s) => ({
+            apiNotifications: s.apiNotifications.map((n) => ({ ...n, read: true })),
+            unreadCount: 0,
+          }));
+        } catch (err) {
+          console.error("[Notifications markAllRead] Error:", err);
+        }
+      },
+
       // Services
       services: DEMO_SERVICES,
       addService: (service) => {
@@ -128,6 +282,42 @@ export const useDashboardStore = create<DashboardState>()(
           ),
         })),
 
+      // API-backed service operations
+      apiCreateService: async (data) => {
+        try {
+          const result = await servicesApi.create(data);
+          const localService = mapApiServiceToLocal(result);
+          set((s) => ({ services: [localService, ...s.services] }));
+          return result.id;
+        } catch (err) {
+          console.error("[Service create] Error:", err);
+          return null;
+        }
+      },
+      apiDeleteService: async (id) => {
+        try {
+          await servicesApi.delete(id);
+          set((s) => ({ services: s.services.filter((sv) => sv.id !== id) }));
+          return true;
+        } catch (err) {
+          console.error("[Service delete] Error:", err);
+          return false;
+        }
+      },
+      apiToggleService: async (id) => {
+        try {
+          const result = await servicesApi.toggle(id);
+          const local = mapApiServiceToLocal(result);
+          set((s) => ({
+            services: s.services.map((sv) => (sv.id === id ? local : sv)),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Service toggle] Error:", err);
+          return false;
+        }
+      },
+
       // Orders
       orders: DEMO_ORDERS,
       updateOrderStatus: (id, status) =>
@@ -140,39 +330,21 @@ export const useDashboardStore = create<DashboardState>()(
               updates.progress = 100;
               updates.timeline = [
                 ...o.timeline,
-                {
-                  id: "t" + Date.now(),
-                  type: "delivered",
-                  title: "Livraison effectuee",
-                  description: "Vous avez livré la commande",
-                  timestamp: new Date().toISOString(),
-                },
+                { id: "t" + Date.now(), type: "delivered", title: "Livraison effectuée", description: "Vous avez livré la commande", timestamp: new Date().toISOString() },
               ];
             }
             if (status === "en_cours" && o.status === "en_attente") {
               updates.progress = 10;
               updates.timeline = [
                 ...o.timeline,
-                {
-                  id: "t" + Date.now(),
-                  type: "started",
-                  title: "Travail demarre",
-                  description: "Vous avez commencé le travail",
-                  timestamp: new Date().toISOString(),
-                },
+                { id: "t" + Date.now(), type: "started", title: "Travail démarré", description: "Vous avez commencé le travail", timestamp: new Date().toISOString() },
               ];
             }
             if (status === "termine") {
               updates.progress = 100;
               updates.timeline = [
                 ...o.timeline,
-                {
-                  id: "t" + Date.now(),
-                  type: "completed",
-                  title: "Commande terminee",
-                  description: "Le client a validé la livraison",
-                  timestamp: new Date().toISOString(),
-                },
+                { id: "t" + Date.now(), type: "completed", title: "Commande terminée", description: "Le client a validé la livraison", timestamp: new Date().toISOString() },
               ];
             }
             return { ...o, ...updates };
@@ -195,11 +367,58 @@ export const useDashboardStore = create<DashboardState>()(
           ),
         })),
 
+      // API-backed order operations
+      apiAcceptOrder: async (id) => {
+        try {
+          const result = await ordersApi.update(id, { status: "en_cours" });
+          const local = mapApiOrderToLocal(result);
+          set((s) => ({ orders: s.orders.map((o) => (o.id === id ? local : o)) }));
+          return true;
+        } catch (err) {
+          console.error("[Order accept] Error:", err);
+          return false;
+        }
+      },
+      apiDeliverOrder: async (id, message, files) => {
+        try {
+          const result = await ordersApi.update(id, { deliveryMessage: message, deliveryFiles: files });
+          const local = mapApiOrderToLocal(result);
+          set((s) => ({ orders: s.orders.map((o) => (o.id === id ? local : o)) }));
+          return true;
+        } catch (err) {
+          console.error("[Order deliver] Error:", err);
+          return false;
+        }
+      },
+      apiSendOrderMessage: async (orderId, content) => {
+        try {
+          const result = await ordersApi.sendMessage(orderId, { content });
+          const local = mapApiOrderToLocal(result);
+          set((s) => ({ orders: s.orders.map((o) => (o.id === orderId ? local : o)) }));
+          return true;
+        } catch (err) {
+          console.error("[Order message] Error:", err);
+          return false;
+        }
+      },
+
       // Transactions
       transactions: DEMO_TRANSACTIONS,
       addTransaction: (tx) => {
         const id = "tx" + Date.now();
         set((s) => ({ transactions: [{ ...tx, id }, ...s.transactions] }));
+      },
+      apiRequestWithdrawal: async (amount, method) => {
+        try {
+          await financesApi.withdrawal({ amount, method });
+          // Refresh transactions after withdrawal
+          const txRes = await financesApi.transactions();
+          set({ transactions: txRes.transactions.map(mapApiTransactionToLocal) });
+          return true;
+        } catch (err) {
+          console.error("[Withdrawal] Error:", err);
+          return false;
+        }
       },
 
       // Conversations
@@ -230,14 +449,43 @@ export const useDashboardStore = create<DashboardState>()(
         set((s) => ({
           conversations: s.conversations.map((c) =>
             c.id === convId
-              ? {
-                  ...c,
-                  unread: 0,
-                  messages: c.messages.map((m) => ({ ...m, read: true })),
-                }
+              ? { ...c, unread: 0, messages: c.messages.map((m) => ({ ...m, read: true })) }
               : c
           ),
         })),
+      apiSendMessage: async (convId, content) => {
+        try {
+          // Optimistic update
+          const msg: ChatMessage = {
+            id: "cm" + Date.now(),
+            sender: "me",
+            content,
+            timestamp: new Date().toISOString(),
+            type: "text",
+            read: true,
+          };
+          set((s) => ({
+            conversations: s.conversations.map((c) =>
+              c.id === convId
+                ? { ...c, messages: [...c.messages, msg], lastMessage: content, lastMessageTime: new Date().toISOString() }
+                : c
+            ),
+          }));
+          // API call
+          await conversationsApi.sendMessage(convId, { content });
+          // Refresh after auto-reply delay
+          setTimeout(async () => {
+            try {
+              const data = await conversationsApi.list();
+              set({ conversations: data.conversations.map(mapApiConversationToLocal) });
+            } catch { /* ignore */ }
+          }, 3000);
+          return true;
+        } catch (err) {
+          console.error("[Message send] Error:", err);
+          return false;
+        }
+      },
 
       // Portfolio
       portfolio: DEMO_PORTFOLIO,
@@ -263,6 +511,35 @@ export const useDashboardStore = create<DashboardState>()(
       profile: DEMO_PROFILE,
       updateProfile: (updates) =>
         set((s) => ({ profile: { ...s.profile, ...updates } })),
+      apiSaveProfile: async (updates) => {
+        try {
+          const result = await profileApi.update(updates as Record<string, unknown>);
+          set((s) => ({
+            profile: {
+              ...s.profile,
+              firstName: result.firstName,
+              lastName: result.lastName,
+              username: result.username,
+              email: result.email,
+              phone: result.phone,
+              photo: result.photo,
+              title: result.title,
+              bio: result.bio,
+              city: result.city,
+              country: result.country,
+              hourlyRate: result.hourlyRate,
+              skills: result.skills as FreelancerProfile["skills"],
+              languages: result.languages,
+              links: result.links,
+              completionPercent: result.completionPercent,
+            },
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Profile save] Error:", err);
+          return false;
+        }
+      },
 
       // Availability
       availability: DEMO_AVAILABILITY,
@@ -303,6 +580,65 @@ export const useDashboardStore = create<DashboardState>()(
       updateSettings: (updates) =>
         set((s) => ({ settings: { ...s.settings, ...updates } })),
 
+      // Reviews
+      reviews: [],
+      reviewSummary: null,
+      syncReviews: async () => {
+        try {
+          const data = await reviewsApi.getByFreelance();
+          set({ reviews: data.reviews, reviewSummary: data.summary });
+        } catch (err) {
+          console.error("[Reviews sync] Error:", err);
+        }
+      },
+      apiReplyToReview: async (reviewId, reply) => {
+        try {
+          const result = await reviewsApi.reply(reviewId, reply);
+          set((s) => ({
+            reviews: s.reviews.map((r) => (r.id === reviewId ? result.review : r)),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Review reply] Error:", err);
+          return false;
+        }
+      },
+      apiReportReview: async (reviewId) => {
+        try {
+          const result = await reviewsApi.report(reviewId);
+          set((s) => ({
+            reviews: s.reviews.map((r) => (r.id === reviewId ? result.review : r)),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Review report] Error:", err);
+          return false;
+        }
+      },
+      apiMarkHelpful: async (reviewId) => {
+        try {
+          const result = await reviewsApi.markHelpful(reviewId);
+          set((s) => ({
+            reviews: s.reviews.map((r) => (r.id === reviewId ? result.review : r)),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Review helpful] Error:", err);
+          return false;
+        }
+      },
+
+      // Stats
+      stats: null,
+      syncStats: async () => {
+        try {
+          const data = await statsApi.get();
+          set({ stats: data });
+        } catch (err) {
+          console.error("[Stats sync] Error:", err);
+        }
+      },
+
       // Subscription
       currentPlan: "pro",
       changePlan: (planId) => set({ currentPlan: planId }),
@@ -321,6 +657,9 @@ export const useDashboardStore = create<DashboardState>()(
         notificationSettings: state.notificationSettings,
         settings: state.settings,
         currentPlan: state.currentPlan,
+        reviews: state.reviews,
+        reviewSummary: state.reviewSummary,
+        stats: state.stats,
       }),
     }
   )

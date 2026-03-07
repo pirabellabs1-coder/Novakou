@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { MONTHLY_REVENUE } from "@/lib/demo-data";
 
 const TX_ICONS: Record<string, { icon: string; color: string }> = {
   vente: { icon: "payments", color: "text-emerald-400 bg-emerald-500/10" },
@@ -32,7 +31,13 @@ const WITHDRAWAL_METHODS = [
 ];
 
 export default function FinancesPage() {
-  const { transactions, addTransaction } = useDashboardStore();
+  const { transactions, addTransaction, apiRequestWithdrawal, stats: apiStats, syncStats } = useDashboardStore();
+
+  useEffect(() => {
+    syncStats();
+  }, [syncStats]);
+
+  const monthlyRevenue = apiStats?.monthlyRevenue ?? [];
   const addToast = useToastStore((s) => s.addToast);
 
   const [filterType, setFilterType] = useState<string>("all");
@@ -43,11 +48,19 @@ export default function FinancesPage() {
   const [withdrawing, setWithdrawing] = useState(false);
 
   const balances = useMemo(() => {
+    // Use API summary if available
+    if (apiStats?.summary) {
+      return {
+        available: apiStats.summary.available,
+        pending: apiStats.summary.pending,
+        totalEarned: apiStats.summary.totalEarned,
+      };
+    }
     const complete = transactions.filter((t) => t.status === "complete").reduce((s, t) => s + t.amount, 0);
     const pending = transactions.filter((t) => t.status === "en_attente").reduce((s, t) => s + t.amount, 0);
     const totalEarned = transactions.filter((t) => t.type === "vente" && t.status === "complete").reduce((s, t) => s + t.amount, 0);
     return { available: complete, pending, totalEarned };
-  }, [transactions]);
+  }, [transactions, apiStats]);
 
   const filtered = useMemo(() => {
     let result = [...transactions];
@@ -56,14 +69,29 @@ export default function FinancesPage() {
     return result.sort((a, b) => b.date.localeCompare(a.date));
   }, [transactions, filterType, filterStatus]);
 
-  function handleWithdraw() {
+  async function handleWithdraw() {
     const amount = Number(withdrawAmount);
-    if (amount <= 0 || amount > balances.available) {
-      addToast("error", "Montant invalide ou insuffisant");
+    if (amount < 20) {
+      addToast("error", "Le montant minimum de retrait est de 20€");
+      return;
+    }
+    if (amount > balances.available) {
+      addToast("error", "Solde insuffisant pour ce retrait");
       return;
     }
     setWithdrawing(true);
-    setTimeout(() => {
+    try {
+      const success = await apiRequestWithdrawal(amount, withdrawMethod);
+      if (success) {
+        setShowWithdraw(false);
+        setWithdrawAmount("");
+        const method = WITHDRAWAL_METHODS.find((m) => m.id === withdrawMethod);
+        addToast("success", `Retrait de €${amount} demandé via ${method?.label}`);
+      } else {
+        addToast("error", "Erreur lors de la demande de retrait");
+      }
+    } catch {
+      // Fallback to local
       const method = WITHDRAWAL_METHODS.find((m) => m.id === withdrawMethod);
       addTransaction({
         type: "retrait",
@@ -73,11 +101,12 @@ export default function FinancesPage() {
         date: new Date().toISOString().slice(0, 10),
         method: method?.label,
       });
-      setWithdrawing(false);
+      addToast("success", `Retrait de €${amount} demandé via ${method?.label}`);
       setShowWithdraw(false);
       setWithdrawAmount("");
-      addToast("success", `Retrait de €${amount} demande via ${method?.label}`);
-    }, 800);
+    } finally {
+      setWithdrawing(false);
+    }
   }
 
   function handleExportCSV() {
@@ -190,7 +219,7 @@ export default function FinancesPage() {
       <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
         <h3 className="font-bold text-lg mb-6">Revenus mensuels</h3>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={MONTHLY_REVENUE}>
+          <BarChart data={monthlyRevenue}>
             <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
             <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
             <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v}`} />

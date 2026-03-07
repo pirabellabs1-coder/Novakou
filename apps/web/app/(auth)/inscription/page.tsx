@@ -290,15 +290,14 @@ export default function InscriptionPage() {
 
       if (signInResult?.error) {
         // Inscription reussie mais connexion echouee — rediriger vers connexion
-        router.push("/connexion");
+        router.push("/connexion?registered=1");
         return;
       }
 
-      // Rediriger vers le bon espace
-      if (role === "client") router.push("/client");
-      else if (role === "agence") router.push("/agence");
-      else router.push("/dashboard");
+      // Rediriger vers le bon espace (refresh d'abord pour propager la session)
       router.refresh();
+      const dest = role === "client" ? "/client" : role === "agence" ? "/agence" : "/dashboard";
+      router.push(dest);
     } catch {
       setRegisterError("Une erreur est survenue. Veuillez reessayer.");
       setRegisterLoading(false);

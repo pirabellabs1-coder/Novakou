@@ -51,8 +51,8 @@ export function Navbar() {
             </div>
           </div>
 
-          {/* Auth buttons */}
-          <div className="flex items-center gap-3">
+          {/* Auth buttons — hidden on mobile, shown in mobile menu */}
+          <div className="hidden md:flex items-center gap-3">
             <Link
               href="/connexion"
               className="text-sm font-bold hover:text-primary transition-colors px-2 py-2"

@@ -25,6 +25,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Empêche Next.js de bundler @prisma/client — le binaire engine doit rester dans node_modules
+  serverExternalPackages: ["@prisma/client"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },

@@ -1,6 +1,5 @@
-import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import Google from "next-auth/providers/google";
+import type { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from "./rate-limiter";
 
@@ -33,23 +32,11 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const authConfig: NextAuthConfig = {
-  providers: [
-    // Google OAuth — methode principale
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
-    }),
+const IS_DEV_MODE = process.env.DEV_MODE === "true";
 
-    // Email/Password — methode secondaire
-    Credentials({
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -61,14 +48,48 @@ export const authConfig: NextAuthConfig = {
 
         if (!email || !password) return null;
 
-        // Rate limiting — verifie AVANT le mot de passe
+        // Rate limiting
         const rateCheck = checkRateLimit(email);
         if (!rateCheck.allowed) {
           throw new Error("Trop de tentatives. Reessayez dans 15 minutes.");
         }
 
+        // ── MODE DEV : authentification via store JSON local ──────────
+        if (IS_DEV_MODE) {
+          try {
+            const { devStore } = await import("../dev/dev-store");
+            const user = devStore.findByEmail(email);
+            if (!user) {
+              recordFailedAttempt(email);
+              return null;
+            }
+            if (user.status !== "ACTIF") {
+              throw new Error("Votre compte est desactive.");
+            }
+            const valid = await bcrypt.compare(password, user.passwordHash);
+            if (!valid) {
+              recordFailedAttempt(email);
+              return null;
+            }
+            resetAttempts(email);
+            devStore.updateLastLogin(user.id);
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+              kyc: user.kyc,
+              plan: user.plan,
+            };
+          } catch (err) {
+            if (err instanceof Error && (err.message.includes("tentatives") || err.message.includes("desactive"))) throw err;
+            console.error("[AUTH DEV] Erreur:", err);
+            return null;
+          }
+        }
+
+        // ── MODE PRODUCTION : authentification via Prisma / Supabase ──
         try {
-          // Prisma lookup — importe dynamiquement pour eviter les erreurs si DB non configuree
           const { prisma } = await import("@freelancehigh/db");
           const user = await prisma.user.findUnique({
             where: { email },
@@ -89,26 +110,22 @@ export const authConfig: NextAuthConfig = {
             return null;
           }
 
-          // Compte suspendu ou banni
           if (user.status !== "ACTIF") {
             throw new Error("Votre compte est desactive. Contactez le support.");
           }
 
-          // Verifier le mot de passe
           const valid = await bcrypt.compare(password, user.passwordHash);
           if (!valid) {
             recordFailedAttempt(email);
             return null;
           }
 
-          // Succes — reset les tentatives
           resetAttempts(email);
 
-          // Mettre a jour lastLoginAt
           await prisma.user.update({
             where: { id: user.id },
             data: { lastLoginAt: new Date(), loginCount: { increment: 1 } },
-          }).catch(() => {}); // Non bloquant
+          }).catch(() => {});
 
           return {
             id: user.id,
@@ -119,7 +136,6 @@ export const authConfig: NextAuthConfig = {
             plan: user.plan.toLowerCase(),
           };
         } catch (err) {
-          // Si la DB n'est pas configuree, laisser l'erreur remonter
           if (err instanceof Error && err.message.includes("tentatives")) throw err;
           if (err instanceof Error && err.message.includes("desactive")) throw err;
           console.error("[AUTH] Database error:", err);
@@ -130,7 +146,7 @@ export const authConfig: NextAuthConfig = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60, // 24h
+    maxAge: 24 * 60 * 60,
   },
   pages: {
     signIn: "/connexion",
@@ -138,58 +154,6 @@ export const authConfig: NextAuthConfig = {
     error: "/connexion",
   },
   callbacks: {
-    async signIn({ user, account }) {
-      // Pour les connexions Google, creer ou mettre a jour l'utilisateur en DB
-      if (account?.provider === "google" && user.email) {
-        try {
-          const { prisma } = await import("@freelancehigh/db");
-          const existingUser = await prisma.user.findUnique({
-            where: { email: user.email },
-          });
-
-          if (existingUser) {
-            // Mettre a jour lastLoginAt
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: {
-                lastLoginAt: new Date(),
-                loginCount: { increment: 1 },
-                avatar: user.image || existingUser.avatar,
-              },
-            });
-            // Injecter les donnees dans l'objet user pour les callbacks
-            user.id = existingUser.id;
-            user.role = existingUser.role.toLowerCase();
-            user.kyc = existingUser.kyc;
-            user.plan = existingUser.plan.toLowerCase();
-          } else {
-            // Creer un nouveau compte depuis Google
-            const newUser = await prisma.user.create({
-              data: {
-                email: user.email,
-                name: user.name || "Utilisateur",
-                passwordHash: "", // Pas de mot de passe pour les comptes Google
-                avatar: user.image || null,
-                role: "FREELANCE",
-                plan: "GRATUIT",
-                kyc: 1,
-              },
-            });
-            user.id = newUser.id;
-            user.role = "freelance";
-            user.kyc = 1;
-            user.plan = "gratuit";
-          }
-        } catch (err) {
-          console.error("[AUTH] Google sign-in DB error:", err);
-          // Permettre la connexion meme si la DB echoue (mode degrade)
-          user.role = "freelance";
-          user.kyc = 1;
-          user.plan = "gratuit";
-        }
-      }
-      return true;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
@@ -206,11 +170,6 @@ export const authConfig: NextAuthConfig = {
       session.user.plan = token.plan;
       return session;
     },
-    async redirect({ url, baseUrl }) {
-      if (url.startsWith(baseUrl) || url.startsWith("/")) {
-        return url;
-      }
-      return baseUrl;
-    },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };

@@ -1,4 +1,9 @@
-import NextAuth from "next-auth";
-import { authConfig } from "./config";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./config";
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+export { authOptions };
+
+/** Helper pour récupérer la session côté serveur */
+export function auth() {
+  return getServerSession(authOptions);
+}

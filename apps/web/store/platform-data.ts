@@ -525,6 +525,7 @@ interface PlatformDataState {
   verifyUserKyc: (id: string, level: number) => void;
 
   // ── Service Actions ──
+  setServices: (services: PlatformService[]) => void;
   approveService: (id: string) => void;
   refuseService: (id: string, reason: string) => void;
   deleteService: (id: string) => void;
@@ -689,6 +690,8 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
   },
 
   // ── Service Actions ──
+  setServices: (services) => set({ services }),
+
   approveService: (id) => set(s => {
     const svc = s.services.find(sv => sv.id === id);
     const catName = svc?.category;
@@ -847,8 +850,9 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
     if (dispute) {
       const verdictLabels: Record<string, string> = { client: "en faveur du client", freelance: "en faveur du freelance", partiel: `partiel (${partialPercent}%)`, annulation: "annulation mutuelle" };
       get().logAudit({ adminId: "admin-1", adminName: "Admin Principal", action: "resolve_dispute", targetUserId: dispute.clientId, targetUserName: dispute.clientName, details: { orderId: dispute.orderId, verdict, note } });
-      get().addUserNotification({ userId: dispute.clientId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictLabels[verdict] ?? verdict}.`, type: "admin_action", link: "/client/commandes" });
-      get().addUserNotification({ userId: dispute.freelanceId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictLabels[verdict] ?? verdict}.`, type: "admin_action", link: "/dashboard/commandes" });
+      const verdictStr = verdict ? (verdictLabels[verdict] ?? verdict) : "inconnu";
+      get().addUserNotification({ userId: dispute.clientId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictStr}.`, type: "admin_action", link: "/client/commandes" });
+      get().addUserNotification({ userId: dispute.freelanceId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictStr}.`, type: "admin_action", link: "/dashboard/commandes" });
     }
   },
 

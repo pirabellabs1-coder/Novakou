@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 import { Providers } from "./providers";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import "./globals.css";
@@ -43,7 +43,12 @@ export default async function RootLayout({
           </Providers>
         </NextIntlClientProvider>
       </body>
-      {gaId && <GoogleAnalytics gaId={gaId} />}
+      {gaId && (
+        <>
+          <Script src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} strategy="afterInteractive" />
+          <Script id="ga-init" strategy="afterInteractive">{`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');`}</Script>
+        </>
+      )}
     </html>
   );
 }

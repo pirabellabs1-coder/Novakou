@@ -26,7 +26,7 @@ export function HowItWorksSection() {
     <section className="py-32 px-6 lg:px-20">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
         {/* Visual */}
-        <div className="relative order-2 lg:order-1">
+        <div className="relative order-2 lg:order-1 overflow-hidden">
           <div className="bg-accent/10 rounded-[3rem] w-full aspect-square absolute -rotate-6 z-0 border border-accent/20"></div>
           <img
             alt="Collaboration entre client et freelance"
@@ -34,7 +34,7 @@ export function HowItWorksSection() {
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuDU-wjNmvoaekii1VavUXeH1NsSrY4IxYrzNNkTbCP8yKbfy1k_TDeZhsNcFxkTJeixI5PfZ3lPN3DXitH98toGdsHGA3QEPVNUMsRJcTEZ1kPA67JZrE1WYBDQl1BF91GUVn7T07qLGjcz-eSWPFRr4Lo2feTVSi1k3mcwpO1UW0P_ceWrYmdf9frG9yLFLjlNPDfwX5xUJiKodovaeyIgF_XnSDmuGO0-n1_rgYfJbv8OihuopGfISoad4bbM3SBwAkfp6yFhKD9o"
           />
           {/* Floating card */}
-          <div className="absolute -bottom-8 -right-8 z-20 bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl border border-primary/10 max-w-xs">
+          <div className="absolute -bottom-8 right-0 sm:-right-8 z-20 bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-3xl shadow-2xl border border-primary/10 max-w-[200px] sm:max-w-xs">
             <div className="flex items-center gap-4 mb-4">
               <span className="material-symbols-outlined text-primary text-3xl">verified</span>
               <p className="font-bold text-lg leading-tight">Satisfaction garantie</p>

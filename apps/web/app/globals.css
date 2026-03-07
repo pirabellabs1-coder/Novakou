@@ -22,9 +22,14 @@
     @apply border-border;
   }
 
+  html {
+    overflow-x: hidden;
+  }
+
   body {
     @apply font-display antialiased;
     font-family: 'Manrope', sans-serif;
+    overflow-x: hidden;
   }
 
   .material-symbols-outlined {

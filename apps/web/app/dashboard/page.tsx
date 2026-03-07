@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -8,7 +8,6 @@ import {
 } from "recharts";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
-import { MONTHLY_REVENUE, WEEKLY_ORDERS, TRAFFIC_SOURCES } from "@/lib/demo-data";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   en_cours: { label: "En cours", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
@@ -20,11 +19,29 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
 };
 
 export default function DashboardPage() {
-  const { services, orders, transactions, conversations } = useDashboardStore();
+  const { services, orders, transactions, conversations, stats: apiStats, syncStats } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [chartPeriod, setChartPeriod] = useState("6 derniers mois");
 
+  useEffect(() => {
+    syncStats();
+  }, [syncStats]);
+
   const stats = useMemo(() => {
+    // Use API stats if available, fall back to local calculation
+    if (apiStats) {
+      const unreadMessages = conversations.reduce((sum, c) => sum + c.unread, 0);
+      const completedOrders = apiStats.completedOrders;
+      const totalOrders = apiStats.totalOrders;
+      const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
+      return {
+        totalRevenue: apiStats.summary.totalEarned,
+        pendingRevenue: apiStats.summary.pending,
+        activeOrders: apiStats.activeOrders,
+        unreadMessages,
+        completionRate,
+      };
+    }
     const totalRevenue = transactions
       .filter((t) => t.type === "vente" && t.status === "complete")
       .reduce((sum, t) => sum + t.amount, 0);
@@ -37,7 +54,7 @@ export default function DashboardPage() {
     const totalOrders = orders.filter((o) => o.status !== "annule").length;
     const completionRate = totalOrders > 0 ? Math.round((completedOrders / totalOrders) * 100) : 0;
     return { totalRevenue, pendingRevenue, activeOrders, unreadMessages, completionRate };
-  }, [transactions, orders, conversations]);
+  }, [transactions, orders, conversations, apiStats]);
 
   const recentOrders = useMemo(
     () => [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
@@ -55,8 +72,11 @@ export default function DashboardPage() {
     ];
   }, [services]);
 
+  const monthlyRevenue = apiStats?.monthlyRevenue ?? [];
+  const weeklyOrders = apiStats?.weeklyOrders ?? [];
+
   function handleExport() {
-    const csv = ["Mois,Revenus,Commandes", ...MONTHLY_REVENUE.map((r) => `${r.month},${r.revenue},${r.orders}`)].join("\n");
+    const csv = ["Mois,Revenus,Commandes", ...monthlyRevenue.map((r) => `${r.month},${r.revenue},${r.orders}`)].join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -84,7 +104,7 @@ export default function DashboardPage() {
             Exporter
           </button>
           <Link
-            href="/dashboard/services/nouveau"
+            href="/dashboard/services/creer"
             className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:bg-primary/90 transition-all"
           >
             <span className="material-symbols-outlined text-lg">add</span>
@@ -164,7 +184,7 @@ export default function DashboardPage() {
             </select>
           </div>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={MONTHLY_REVENUE}>
+            <BarChart data={monthlyRevenue}>
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v}`} />
@@ -221,7 +241,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-6">Commandes par semaine</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={WEEKLY_ORDERS}>
+            <LineChart data={weeklyOrders}>
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="week" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />

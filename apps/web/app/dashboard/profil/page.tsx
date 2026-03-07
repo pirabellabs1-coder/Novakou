@@ -7,20 +7,30 @@ import { useDashboardStore, useToastStore } from "@/store/dashboard";
 const SKILL_LEVELS = ["debutant", "intermediaire", "expert"] as const;
 
 export default function ProfilPage() {
-  const { profile, updateProfile } = useDashboardStore();
+  const { profile, updateProfile, apiSaveProfile } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [form, setForm] = useState(profile);
   const [saving, setSaving] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [newSkillLevel, setNewSkillLevel] = useState<"debutant" | "intermediaire" | "expert">("intermediaire");
 
-  function handleSave() {
+  async function handleSave() {
     setSaving(true);
-    setTimeout(() => {
+    try {
+      const success = await apiSaveProfile(form);
+      if (success) {
+        addToast("success", "Profil mis à jour avec succès !");
+      } else {
+        // Fallback to local update
+        updateProfile(form);
+        addToast("success", "Profil mis à jour localement");
+      }
+    } catch {
       updateProfile(form);
+      addToast("success", "Profil mis à jour localement");
+    } finally {
       setSaving(false);
-      addToast("success", "Profil mis a jour avec succes !");
-    }, 600);
+    }
   }
 
   function addSkill() {

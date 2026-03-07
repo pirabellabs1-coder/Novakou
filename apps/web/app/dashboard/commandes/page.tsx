@@ -27,7 +27,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string
 };
 
 export default function CommandesPage() {
-  const { orders, updateOrderStatus } = useDashboardStore();
+  const { orders, updateOrderStatus, apiAcceptOrder, apiDeliverOrder } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -55,13 +55,15 @@ export default function CommandesPage() {
     revenue: orders.filter((o) => ["termine", "livre"].includes(o.status)).reduce((s, o) => s + o.amount, 0),
   }), [orders]);
 
-  function handleQuickAction(order: Order, action: string) {
+  async function handleQuickAction(order: Order, action: string) {
     if (action === "start" && order.status === "en_attente") {
-      updateOrderStatus(order.id, "en_cours");
-      addToast("success", `Commande ${order.id} demarree`);
+      const success = await apiAcceptOrder(order.id);
+      if (!success) updateOrderStatus(order.id, "en_cours");
+      addToast("success", `Commande ${order.id} démarrée`);
     } else if (action === "deliver" && order.status === "en_cours") {
-      updateOrderStatus(order.id, "livre");
-      addToast("success", `Commande ${order.id} livree`);
+      const success = await apiDeliverOrder(order.id, "Livraison effectuée", []);
+      if (!success) updateOrderStatus(order.id, "livre");
+      addToast("success", `Commande ${order.id} livrée`);
     }
   }
 

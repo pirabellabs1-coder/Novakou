@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { reviewsApi } from "@/lib/api-client";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   en_attente: { label: "En attente", color: "bg-amber-500/10 text-amber-400", icon: "schedule" },
@@ -30,7 +31,7 @@ export default function OrderDetailPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = params.id as string;
-  const { orders, updateOrderStatus, addOrderMessage, addOrderFile } = useDashboardStore();
+  const { orders, updateOrderStatus, addOrderMessage, addOrderFile, apiAcceptOrder, apiDeliverOrder, apiSendOrderMessage } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
 
   const order = useMemo(() => orders.find((o) => o.id === orderId), [orders, orderId]);
@@ -40,6 +41,46 @@ export default function OrderDetailPage() {
   const [cancelModal, setCancelModal] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Review state (for client after completion)
+  const [reviewQualite, setReviewQualite] = useState(5);
+  const [reviewCommunication, setReviewCommunication] = useState(5);
+  const [reviewDelai, setReviewDelai] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [hasExistingReview, setHasExistingReview] = useState(false);
+
+  // Check for existing review when order is completed
+  useEffect(() => {
+    if (order?.status === "termine") {
+      reviewsApi.getByOrder(orderId).then((data) => {
+        if (data.reviews.length > 0) {
+          setHasExistingReview(true);
+        }
+      }).catch(() => {});
+    }
+  }, [order?.status, orderId]);
+
+  async function handleSubmitReview() {
+    if (!order) return;
+    setReviewSubmitting(true);
+    try {
+      await reviewsApi.create({
+        orderId: order.id,
+        qualite: reviewQualite,
+        communication: reviewCommunication,
+        delai: reviewDelai,
+        comment: reviewComment,
+      });
+      setReviewSubmitted(true);
+      addToast("success", "Avis publie avec succes !");
+    } catch (err) {
+      addToast("error", err instanceof Error ? err.message : "Erreur lors de la publication de l'avis");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  }
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,55 +99,71 @@ export default function OrderDetailPage() {
   const sc = STATUS_CONFIG[order.status];
   const daysLeft = Math.ceil((new Date(order.deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
 
-  function handleSendMessage() {
+  async function handleSendMessage() {
     if (!message.trim() || !order) return;
-    addOrderMessage(order.id, {
-      sender: "freelance",
-      senderName: "Vous",
-      content: message,
-      timestamp: new Date().toISOString(),
-      type: "text",
-    });
+    const content = message.trim();
     setMessage("");
+    const success = await apiSendOrderMessage(order.id, content);
+    if (!success) {
+      // Fallback to local store if API fails
+      addOrderMessage(order.id, {
+        sender: "freelance",
+        senderName: "Vous",
+        content,
+        timestamp: new Date().toISOString(),
+        type: "text",
+      });
+    }
   }
 
-  function handleFileUpload(files: FileList | null) {
+  async function handleFileUpload(files: FileList | null) {
     if (!files || !order) return;
-    Array.from(files).forEach((f) => {
+    for (const f of Array.from(files)) {
+      const fileSize = `${(f.size / (1024 * 1024)).toFixed(1)} MB`;
       addOrderFile(order.id, {
         name: f.name,
-        size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
+        size: fileSize,
         type: f.name.split(".").pop() || "file",
         uploadedBy: "freelance",
         uploadedAt: new Date().toISOString(),
         url: "#",
       });
-      addOrderMessage(order.id, {
-        sender: "freelance",
-        senderName: "Vous",
-        content: `Fichier envoye : ${f.name}`,
-        timestamp: new Date().toISOString(),
-        type: "file",
-        fileName: f.name,
-        fileSize: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
-      });
-    });
+      // Send file message via API, fallback to local
+      const success = await apiSendOrderMessage(order.id, `Fichier envoye : ${f.name}`);
+      if (!success) {
+        addOrderMessage(order.id, {
+          sender: "freelance",
+          senderName: "Vous",
+          content: `Fichier envoye : ${f.name}`,
+          timestamp: new Date().toISOString(),
+          type: "file",
+          fileName: f.name,
+          fileSize,
+        });
+      }
+    }
     addToast("success", "Fichier(s) envoye(s)");
   }
 
-  function handleDeliver() {
+  async function handleDeliver() {
     if (!order) return;
     setDelivering(true);
-    setTimeout(() => {
+    const success = await apiDeliverOrder(order.id, "Livraison effectuee", order.files.filter((f) => f.uploadedBy === "freelance"));
+    if (!success) {
+      // Fallback to local store if API fails
       updateOrderStatus(order.id, "livre");
-      setDelivering(false);
-      addToast("success", "Commande livree avec succes !");
-    }, 800);
+    }
+    setDelivering(false);
+    addToast("success", "Commande livree avec succes !");
   }
 
-  function handleStart() {
+  async function handleStart() {
     if (!order) return;
-    updateOrderStatus(order.id, "en_cours");
+    const success = await apiAcceptOrder(order.id);
+    if (!success) {
+      // Fallback to local store if API fails
+      updateOrderStatus(order.id, "en_cours");
+    }
     addToast("success", "Travail demarre !");
   }
 
@@ -321,6 +378,93 @@ export default function OrderDetailPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Review Section — shown when order is completed */}
+      {order.status === "termine" && !hasExistingReview && !reviewSubmitted && (
+        <div className="bg-background-dark/50 border border-primary/30 rounded-xl p-6 space-y-5">
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">rate_review</span>
+            Laisser un avis
+          </h3>
+          <p className="text-sm text-slate-400">
+            Evaluez cette prestation sur 3 criteres. Votre avis aide les autres clients.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: "Qualite", value: reviewQualite, setter: setReviewQualite, icon: "workspace_premium" },
+              { label: "Communication", value: reviewCommunication, setter: setReviewCommunication, icon: "forum" },
+              { label: "Delai", value: reviewDelai, setter: setReviewDelai, icon: "schedule" },
+            ].map(({ label, value, setter, icon }) => (
+              <div key={label} className="bg-primary/5 rounded-xl border border-primary/10 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-primary text-sm">{icon}</span>
+                  <span className="text-sm font-bold">{label}</span>
+                </div>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => setter(star)}
+                      className="transition-transform hover:scale-110"
+                    >
+                      <span
+                        className={cn(
+                          "material-symbols-outlined text-2xl",
+                          star <= value ? "text-amber-400" : "text-slate-600"
+                        )}
+                        style={{ fontVariationSettings: "'FILL' 1" }}
+                      >
+                        star
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <label className="block text-sm font-bold mb-2">Commentaire (optionnel)</label>
+            <textarea
+              value={reviewComment}
+              onChange={(e) => setReviewComment(e.target.value)}
+              placeholder="Partagez votre experience..."
+              rows={3}
+              className="w-full bg-neutral-dark border border-border-dark rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-primary resize-none placeholder:text-slate-500"
+            />
+          </div>
+
+          <button
+            onClick={handleSubmitReview}
+            disabled={reviewSubmitting}
+            className="flex items-center gap-2 px-6 py-2.5 bg-primary text-white font-bold rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 shadow-lg shadow-primary/20 transition-all"
+          >
+            {reviewSubmitting ? (
+              <>
+                <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+                Publication...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-lg">send</span>
+                Publier l&apos;avis
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Review submitted confirmation */}
+      {(reviewSubmitted || hasExistingReview) && order.status === "termine" && (
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-6 flex items-center gap-4">
+          <span className="material-symbols-outlined text-emerald-400 text-3xl">check_circle</span>
+          <div>
+            <p className="font-bold text-emerald-400">Avis publie</p>
+            <p className="text-sm text-slate-400">Merci pour votre evaluation ! Elle est visible sur le profil du freelance.</p>
+          </div>
         </div>
       )}
     </div>

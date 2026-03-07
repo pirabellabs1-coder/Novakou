@@ -1,0 +1,72 @@
+[
+  {
+    "id": "n1",
+    "userId": "dev-freelance-1",
+    "title": "Nouvelle commande",
+    "message": "TechCorp Inc. a commandé Design Dashboard SaaS (€850)",
+    "type": "order",
+    "read": false,
+    "link": "/dashboard/commandes/ORD-1024",
+    "createdAt": "2026-02-15T09:00:00"
+  },
+  {
+    "id": "n2",
+    "userId": "dev-freelance-1",
+    "title": "Paiement reçu",
+    "message": "€1 200 reçu pour API Backend Node.js",
+    "type": "payment",
+    "read": true,
+    "link": "/dashboard/finances",
+    "createdAt": "2026-02-18T16:30:00"
+  },
+  {
+    "id": "n3",
+    "userId": "dev-freelance-1",
+    "title": "Révision demandée",
+    "message": "Moussa Keita a demandé une révision pour Logo Startup FinTech",
+    "type": "order",
+    "read": false,
+    "link": "/dashboard/commandes/ORD-1012",
+    "createdAt": "2026-02-15T08:00:00"
+  },
+  {
+    "id": "n4",
+    "userId": "dev-freelance-1",
+    "title": "Service approuvé",
+    "message": "Votre service 'Design UI/UX avec Figma' est maintenant en ligne !",
+    "type": "service",
+    "read": true,
+    "link": "/dashboard/services",
+    "createdAt": "2026-02-01T10:00:00"
+  },
+  {
+    "id": "n5",
+    "userId": "dev-freelance-1",
+    "title": "Nouveau message",
+    "message": "Lamine Diallo vous a envoyé un message",
+    "type": "message",
+    "read": true,
+    "link": "/dashboard/messages",
+    "createdAt": "2026-02-20T14:00:00"
+  },
+  {
+    "id": "n6",
+    "userId": "dev-freelance-1",
+    "title": "Retrait traité",
+    "message": "Votre retrait de €500 vers Wave a été effectué",
+    "type": "payment",
+    "read": true,
+    "link": "/dashboard/finances",
+    "createdAt": "2026-02-20T16:00:00"
+  },
+  {
+    "id": "n7",
+    "userId": "dev-freelance-1",
+    "title": "Nouvelle commande",
+    "message": "Auto-Focus SARL a commandé Audit SEO E-commerce (€450)",
+    "type": "order",
+    "read": false,
+    "link": "/dashboard/commandes/ORD-1016",
+    "createdAt": "2026-02-28T11:00:00"
+  }
+]

@@ -9,28 +9,53 @@ const registerSchema = z.object({
   role: z.enum(["freelance", "client", "agence"]),
 });
 
+const IS_DEV_MODE = process.env.DEV_MODE === "true";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
-      const errors = parsed.error.errors.map((e) => e.message).join(", ");
+      const errors = parsed.error.issues.map((e) => e.message).join(", ");
       return NextResponse.json({ error: errors }, { status: 400 });
     }
 
     const { email, password, name, role } = parsed.data;
+    const passwordHash = await bcrypt.hash(password, 12);
 
+    // ── MODE DEV : stockage dans le fichier JSON local ────────────────
+    if (IS_DEV_MODE) {
+      const { devStore } = await import("@/lib/dev/dev-store");
+
+      const existing = devStore.findByEmail(email);
+      if (existing) {
+        return NextResponse.json({ error: "Un compte avec cet email existe deja" }, { status: 409 });
+      }
+
+      const user = devStore.create({
+        email,
+        passwordHash,
+        name,
+        role,
+        plan: "gratuit",
+        kyc: 1,
+        status: "ACTIF",
+      });
+
+      return NextResponse.json({
+        success: true,
+        user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      }, { status: 201 });
+    }
+
+    // ── MODE PRODUCTION : stockage via Prisma / Supabase ──────────────
     const { prisma } = await import("@freelancehigh/db");
 
-    // Verifier que l'email n'est pas deja utilise
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "Un compte avec cet email existe deja" }, { status: 409 });
     }
-
-    // Hasher le mot de passe — JAMAIS stocker en clair
-    const passwordHash = await bcrypt.hash(password, 12);
 
     const user = await prisma.user.create({
       data: {
@@ -41,21 +66,14 @@ export async function POST(request: Request) {
         plan: "GRATUIT",
         kyc: 1,
       },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-      },
+      select: { id: true, email: true, name: true, role: true },
     });
-
-    // TODO: Envoyer email de bienvenue via Resend quand configure
-    // await sendWelcomeEmail(user.email, user.name);
 
     return NextResponse.json({
       success: true,
       user: { id: user.id, email: user.email, name: user.name, role: user.role.toLowerCase() },
     }, { status: 201 });
+
   } catch (err) {
     console.error("[REGISTER]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

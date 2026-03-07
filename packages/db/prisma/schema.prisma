@@ -282,49 +282,138 @@ model Category {
   parent      Category? @relation("CategoryChildren", fields: [parentId], references: [id])
   children    Category[] @relation("CategoryChildren")
   services    Service[]
+  tags        Tag[]
   createdAt   DateTime @default(now())
 
   @@index([slug])
   @@index([order])
 }
 
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
 model Service {
-  id            String        @id @default(cuid())
-  title         String
-  slug          String        @unique
-  description   String?       @db.Text
-  categoryId    String
-  userId        String
-  status        ServiceStatus @default(BROUILLON)
-  price         Float
-  deliveryDays  Int           @default(7)
-  revisions     Int           @default(1)
-  tags          String[]      @default([])
-  images        String[]      @default([])
-  packages      Json?         // { basic: {...}, standard: {...}, premium: {...} }
-  faq           Json?         // Array d'objets { question, answer }
-  extras        Json?         // Array d'objets { title, price, deliveryDays }
-  views         Int           @default(0)
-  orderCount    Int           @default(0)
-  rating        Float         @default(0)
-  ratingCount   Int           @default(0)
-  isBoosted     Boolean       @default(false)
-  boostedUntil  DateTime?
-  refuseReason  String?
+  id                   String        @id @default(cuid())
+  title                String
+  slug                 String        @unique
+  language             String        @default("fr")
+  description          Json?         // Format Tiptap JSON
+  descriptionText      String?       @db.Text // Texte brut pour la recherche FTS
+  categoryId           String
+  subCategoryId        String?
+  userId               String
+  agencyId             String?
+  status               ServiceStatus @default(BROUILLON)
+  basePrice            Float         @default(5)
+  deliveryDays         Int           @default(7)
+  revisions            Int           @default(1)
+  instructionsRequired Boolean       @default(false)
+  instructionsContent  Json?         // Format Tiptap JSON
+  draftData            Json?         // Sauvegarde brouillon wizard complet
+  draftStep            Int?          // Derniere etape completee du wizard
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  // Ancien champ prix conserve pour compatibilite
+  price                Float         @default(5)
 
-  category      Category      @relation(fields: [categoryId], references: [id])
-  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders        Order[]
-  reviews       Review[]
+  // Legacy fields (migration progressive)
+  tags                 String[]      @default([])
+  images               String[]      @default([])
+  packages             Json?
+  faq                  Json?
+  extras               Json?
+
+  // Stats
+  views                Int           @default(0)
+  orderCount           Int           @default(0)
+  rating               Float         @default(0)
+  ratingCount          Int           @default(0)
+  isBoosted            Boolean       @default(false)
+  boostedUntil         DateTime?
+  refuseReason         String?
+
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  category             Category      @relation(fields: [categoryId], references: [id])
+  user                 User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders               Order[]
+  reviews              Review[]
+  options              ServiceOption[]
+  media                ServiceMedia[]
+  serviceTags          ServiceTag[]
 
   @@index([slug])
   @@index([categoryId])
   @@index([userId])
   @@index([status])
   @@index([rating])
+  @@index([agencyId])
+}
+
+model ServiceOption {
+  id                  String   @id @default(cuid())
+  serviceId           String
+  title               String
+  description         String?
+  extraPrice          Float    @default(0)
+  extraDays           Int      @default(0)
+  isRecommended       Boolean  @default(false)
+  sortOrder           Int      @default(0)
+  expressEnabled      Boolean  @default(false)
+  expressPrice        Float?
+  expressDaysReduction Int?
+
+  createdAt           DateTime @default(now())
+
+  service             Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([sortOrder])
+}
+
+model ServiceMedia {
+  id          String    @id @default(cuid())
+  serviceId   String
+  type        MediaType @default(IMAGE)
+  url         String
+  isPrimary   Boolean   @default(false)
+  sortOrder   Int       @default(0)
+  width       Int?
+  height      Int?
+
+  createdAt   DateTime  @default(now())
+
+  service     Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([isPrimary])
+}
+
+model Tag {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  slug        String       @unique
+  categoryId  String?
+
+  category    Category?    @relation(fields: [categoryId], references: [id])
+  services    ServiceTag[]
+
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model ServiceTag {
+  serviceId   String
+  tagId       String
+
+  service     Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  tag         Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([serviceId, tagId])
+  @@index([tagId])
 }
 
 model Order {
@@ -653,6 +742,8 @@ model Notification {
 model LoginAttempt {
   id        String   @id @default(cuid())
   email     String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
   ipAddress String?
   success   Boolean
   createdAt DateTime @default(now())

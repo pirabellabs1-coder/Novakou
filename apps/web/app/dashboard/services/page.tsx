@@ -7,15 +7,17 @@ import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
-const TABS = ["Actifs", "En pause", "Brouillons"];
+const TABS = ["Actifs", "En attente", "En pause", "Brouillons", "Refusés"];
 const STATUS_MAP: Record<string, string> = {
   Actifs: "actif",
+  "En attente": "en_attente",
   "En pause": "pause",
   Brouillons: "brouillon",
+  "Refusés": "refuse",
 };
 
 export default function ServicesPage() {
-  const { services, toggleServiceStatus, deleteService, addService } = useDashboardStore();
+  const { services, toggleServiceStatus, deleteService, addService, apiToggleService, apiDeleteService } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState("Actifs");
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,16 +56,28 @@ export default function ServicesPage() {
     revenue: 0,
   }), []);
 
-  function handleToggle(id: string) {
+  async function handleToggle(id: string) {
     const svc = services.find((s) => s.id === id);
-    toggleServiceStatus(id);
-    addToast("success", svc?.status === "actif" ? "Service mis en pause" : "Service active !");
+    const success = await apiToggleService(id);
+    if (success) {
+      addToast("success", svc?.status === "actif" ? "Service mis en pause" : "Service activé !");
+    } else {
+      // Fallback to local toggle
+      toggleServiceStatus(id);
+      addToast("success", svc?.status === "actif" ? "Service mis en pause" : "Service activé !");
+    }
   }
 
-  function handleDelete(id: string) {
-    deleteService(id);
+  async function handleDelete(id: string) {
+    const success = await apiDeleteService(id);
+    if (success) {
+      addToast("success", "Service supprimé avec succès");
+    } else {
+      // Fallback to local delete
+      deleteService(id);
+      addToast("success", "Service supprimé avec succès");
+    }
     setDeleteModal(null);
-    addToast("success", "Service supprime avec succes");
   }
 
   function handleDuplicate(id: string) {
@@ -171,7 +185,7 @@ export default function ServicesPage() {
               </div>
             </div>
             <div className="mt-6 pt-4 border-t border-border-dark flex gap-3">
-              <Link href={`/dashboard/services/nouveau?edit=${statsService.id}`}
+              <Link href={`/dashboard/services/creer?edit=${statsService.id}`}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all">
                 <span className="material-symbols-outlined text-sm">edit</span> Modifier le service
               </Link>
@@ -191,7 +205,7 @@ export default function ServicesPage() {
           <p className="text-primary/60 mt-1">Gerez, analysez et optimisez vos offres pour maximiser vos revenus.</p>
         </div>
         <Link
-          href="/dashboard/services/nouveau"
+          href="/dashboard/services/creer"
           className="inline-flex items-center gap-2 bg-primary hover:scale-105 active:scale-95 text-white font-bold px-6 py-3 rounded-xl text-sm transition-all shadow-lg shadow-primary/20"
         >
           <span className="material-symbols-outlined text-lg">add_circle</span>
@@ -358,6 +372,16 @@ export default function ServicesPage() {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {s.status === "actif" && (
+                          <Link
+                            href={`/services/${s.id}`}
+                            target="_blank"
+                            className="p-2 rounded-lg hover:bg-primary/20 text-primary transition-colors"
+                            title="Voir en ligne"
+                          >
+                            <span className="material-symbols-outlined">open_in_new</span>
+                          </Link>
+                        )}
                         {isPaused && (
                           <button
                             onClick={() => handleToggle(s.id)}
@@ -377,11 +401,25 @@ export default function ServicesPage() {
                           </button>
                         )}
                         <Link
-                          href={`/dashboard/services/nouveau?edit=${s.id}`}
+                          href={`/dashboard/services/creer?edit=${s.id}`}
                           className="p-2 rounded-lg hover:bg-primary/20 text-primary transition-colors"
                           title="Modifier"
                         >
                           <span className="material-symbols-outlined">edit</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/services/seo"
+                          className="p-2 rounded-lg hover:bg-primary/20 text-primary transition-colors"
+                          title="Optimiser le SEO"
+                        >
+                          <span className="material-symbols-outlined">search_check</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/boost"
+                          className="p-2 rounded-lg hover:bg-amber-500/20 text-amber-400 transition-colors"
+                          title="Booster"
+                        >
+                          <span className="material-symbols-outlined">rocket_launch</span>
                         </Link>
                         <button
                           onClick={() => setStatsModal(s.id)}
