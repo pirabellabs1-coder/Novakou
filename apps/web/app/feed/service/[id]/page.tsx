@@ -12,6 +12,8 @@ import {
   getReviewsByService,
   getSimilarServices,
 } from "@/lib/dev/mock-data";
+import ReviewCard, { type ReviewData } from "@/components/reviews/ReviewCard";
+import ReviewSummary from "@/components/reviews/ReviewSummary";
 
 export default function ServiceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -246,78 +248,54 @@ function ServiceReviews({
   rating: number;
   reviewCount: number;
 }) {
+  const reviewCards: ReviewData[] = reviews.map((review) => ({
+    id: review.id,
+    clientName: review.reviewer.name,
+    clientAvatar: review.reviewer.avatar,
+    clientCountry:
+      review.reviewer.country === "Sénégal" ? "SN"
+      : review.reviewer.country === "France" ? "FR"
+      : review.reviewer.country === "Côte d'Ivoire" ? "CI"
+      : review.reviewer.country === "Maroc" ? "MA"
+      : review.reviewer.country === "Ghana" ? "GH"
+      : review.reviewer.country === "Belgique" ? "BE"
+      : review.reviewer.country === "Cameroun" ? "CM"
+      : review.reviewer.country,
+    serviceTitle: "",
+    qualite: review.qualite,
+    communication: review.communication,
+    delai: review.delai,
+    rating: review.rating,
+    comment: review.comment,
+    reply: review.response || null,
+    repliedAt: review.response ? review.date : null,
+    helpful: review.helpful || 0,
+    createdAt: review.date,
+  }));
+
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        <h2 className="text-base font-bold text-white">Avis clients</h2>
-        <div className="flex items-center gap-1">
-          <span className="material-symbols-outlined text-yellow-400 text-base" style={{ fontVariationSettings: "'FILL' 1" }}>
-            star
-          </span>
-          <span className="text-sm font-bold text-white">{rating.toFixed(1)}</span>
-          <span className="text-xs text-slate-500">({reviewCount} avis)</span>
-        </div>
-      </div>
+      <h2 className="text-base font-bold text-white mb-4">Avis clients</h2>
 
-      {reviews.length === 0 ? (
-        <p className="text-sm text-slate-500">Aucun avis pour l&apos;instant.</p>
-      ) : (
-        <div className="space-y-4">
-          {reviews.map((review) => (
-            <div key={review.id} className="bg-white/5 rounded-xl p-4 border border-white/5">
-              <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full overflow-hidden bg-white/10 flex-shrink-0">
-                  <Image
-                    src={review.reviewer.avatar}
-                    alt={review.reviewer.name}
-                    width={36}
-                    height={36}
-                    className="rounded-full"
-                    onError={() => {}}
-                    unoptimized
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between flex-wrap gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-white">{review.reviewer.name}</span>
-                      <span className="text-base">{review.reviewer.flag}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <span
-                          key={s}
-                          className={cn(
-                            "material-symbols-outlined text-sm",
-                            s <= review.rating ? "text-yellow-400" : "text-white/10"
-                          )}
-                          style={{ fontVariationSettings: "'FILL' 1" }}
-                        >
-                          star
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-sm text-slate-300 mt-2 leading-relaxed">{review.comment}</p>
-                  {review.response && (
-                    <div className="mt-3 pl-3 border-l-2 border-primary/40">
-                      <p className="text-xs text-primary font-semibold mb-1">Réponse du vendeur</p>
-                      <p className="text-xs text-slate-400">{review.response}</p>
-                    </div>
-                  )}
-                  <p className="text-xs text-slate-600 mt-2">
-                    {new Date(review.date).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="space-y-4">
+        <ReviewSummary
+          reviews={reviews.map((r) => ({
+            qualite: r.qualite,
+            communication: r.communication,
+            delai: r.delai,
+            rating: r.rating,
+          }))}
+          totalCount={reviewCount}
+        />
+
+        {reviewCards.length === 0 ? (
+          <p className="text-sm text-slate-500">Aucun avis pour l&apos;instant.</p>
+        ) : (
+          reviewCards.map((review) => (
+            <ReviewCard key={review.id} review={review} />
+          ))
+        )}
+      </div>
     </div>
   );
 }

@@ -218,24 +218,84 @@ export function StepPublish({ role }: { role: string }) {
               </div>
             )}
 
-            {/* Pricing */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Basique</p>
-                <p className="text-lg font-bold text-primary">{store.basePrice} EUR</p>
-                <p className="text-[10px] text-slate-500 mt-1">{store.baseDeliveryDays} jour{store.baseDeliveryDays > 1 ? "s" : ""}</p>
-              </div>
-              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center">
-                <p className="text-xs text-primary font-semibold mb-1">Standard</p>
-                <p className="text-lg font-bold text-primary">{store.basePrice * 2} EUR</p>
-                <p className="text-[10px] text-slate-500 mt-1">{store.baseDeliveryDays} jours</p>
-              </div>
-              <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-                <p className="text-xs text-slate-400 font-semibold mb-1">Premium</p>
-                <p className="text-lg font-bold text-primary">{store.basePrice * 3} EUR</p>
-                <p className="text-[10px] text-slate-500 mt-1">{store.baseDeliveryDays} jours</p>
-              </div>
+            {/* Pricing — 3 forfaits */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(["basic", "standard", "premium"] as const).map((tier) => {
+                const pkg = store.packages[tier];
+                const isPopular = tier === "standard";
+                return (
+                  <div
+                    key={tier}
+                    className={cn(
+                      "rounded-xl p-5 text-center relative flex flex-col",
+                      isPopular
+                        ? "bg-primary/10 border-2 border-primary/30 ring-1 ring-primary/20"
+                        : "bg-white/5 border border-white/10"
+                    )}
+                  >
+                    {isPopular && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wide">
+                        Le plus populaire
+                      </span>
+                    )}
+                    <p className={cn("text-xs font-semibold mb-2", isPopular ? "text-primary" : "text-slate-400")}>
+                      {pkg.name || tier.charAt(0).toUpperCase() + tier.slice(1)}
+                    </p>
+                    <p className="text-2xl font-bold text-white mb-1">{pkg.price} <span className="text-sm font-normal text-slate-400">EUR</span></p>
+                    <p className="text-xs text-slate-500 mb-3">
+                      {pkg.deliveryDays} jour{pkg.deliveryDays > 1 ? "s" : ""} · {pkg.revisions >= 99 ? "Révisions illimitées" : `${pkg.revisions} révision${pkg.revisions > 1 ? "s" : ""}`}
+                    </p>
+                    {pkg.description && (
+                      <p className="text-xs text-slate-400 mb-4 flex-1">{pkg.description}</p>
+                    )}
+                    <button
+                      disabled
+                      className={cn(
+                        "w-full py-2.5 rounded-lg text-sm font-bold transition-all cursor-not-allowed",
+                        isPopular
+                          ? "bg-primary/80 text-white"
+                          : "bg-white/10 text-slate-300"
+                      )}
+                    >
+                      Commander
+                    </button>
+                  </div>
+                );
+              })}
             </div>
+
+            {/* Features table */}
+            {store.packages.features.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-2 px-3 text-xs font-semibold text-slate-400 uppercase">Fonctionnalité</th>
+                      <th className="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase">Basique</th>
+                      <th className="text-center py-2 px-3 text-xs font-semibold text-primary uppercase">Standard</th>
+                      <th className="text-center py-2 px-3 text-xs font-semibold text-slate-400 uppercase">Premium</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {store.packages.features.map((feature) => (
+                      <tr key={feature.id} className="border-b border-white/5">
+                        <td className="py-2 px-3 text-sm text-slate-300">{feature.label}</td>
+                        {(["Basic", "Standard", "Premium"] as const).map((t) => {
+                          const key = `includedIn${t}` as "includedInBasic" | "includedInStandard" | "includedInPremium";
+                          return (
+                            <td key={t} className="text-center py-2 px-3">
+                              <span className={cn("material-symbols-outlined text-sm", feature[key] ? "text-emerald-400" : "text-slate-600")}>
+                                {feature[key] ? "check" : "close"}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
             {/* Description */}
             <div>

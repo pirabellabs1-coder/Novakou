@@ -76,5 +76,18 @@
     "createdAt": "2026-03-06T22:43:32.734Z",
     "loginCount": 2,
     "lastLoginAt": "2026-03-06T23:36:02.532Z"
+  },
+  {
+    "email": "pirabellabs@gmail.com",
+    "passwordHash": "$2b$12$rfMfkwgEI4XxniSZOXBJmOuu.rv9PrBv9VaaEHAPC2GbBXMJdXgz6",
+    "name": "Gildas LISSANON",
+    "role": "agence",
+    "plan": "gratuit",
+    "kyc": 1,
+    "status": "ACTIF",
+    "id": "dev-1772897050562",
+    "createdAt": "2026-03-07T15:24:10.562Z",
+    "loginCount": 1,
+    "lastLoginAt": "2026-03-07T15:24:14.376Z"
   }
 ]

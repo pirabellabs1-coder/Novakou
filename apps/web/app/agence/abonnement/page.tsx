@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useToastStore } from "@/store/dashboard";
 import { cn } from "@/lib/utils";
 
@@ -118,6 +119,7 @@ const INVOICES = [
 // Component
 // ---------------------------------------------------------------------------
 export default function AgenceAbonnement() {
+  const router = useRouter();
   const [billing, setBilling] = useState<"mensuel" | "annuel">("mensuel");
   const [showCancel, setShowCancel] = useState(false);
   const [showChangePlan, setShowChangePlan] = useState(false);
@@ -138,12 +140,9 @@ export default function AgenceAbonnement() {
     setShowCancel(false);
   }
 
-  function handleChangePlan() {
-    if (!selectedPlan) return;
-    const plan = PLANS.find((p) => p.id === selectedPlan);
-    if (plan) {
-      addToast("success", `Plan changé vers ${plan.name}. Effectif au prochain cycle de facturation.`);
-    }
+  function handleNavigateToPayment(planId: string) {
+    const billingParam = billing === "annuel" ? "annual" : "monthly";
+    router.push(`/agence/abonnement/paiement?plan=${planId}&billing=${billingParam}`);
     setShowChangePlan(false);
     setSelectedPlan(null);
   }
@@ -666,7 +665,7 @@ export default function AgenceAbonnement() {
                 Annuler
               </button>
               <button
-                onClick={handleChangePlan}
+                onClick={() => selectedPlan && handleNavigateToPayment(selectedPlan)}
                 disabled={!selectedPlan}
                 className={cn(
                   "flex-1 py-2.5 text-sm font-bold rounded-xl transition-all",
@@ -675,7 +674,7 @@ export default function AgenceAbonnement() {
                     : "bg-border-dark text-slate-500 cursor-not-allowed"
                 )}
               >
-                Confirmer le changement
+                Continuer vers le paiement
               </button>
             </div>
           </div>

@@ -35,7 +35,7 @@ export default function OrderDetailPage() {
   const addToast = useToastStore((s) => s.addToast);
 
   const order = useMemo(() => orders.find((o) => o.id === orderId), [orders, orderId]);
-  const [activeTab, setActiveTab] = useState<"chat" | "fichiers" | "timeline">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "fichiers">("chat");
   const [message, setMessage] = useState("");
   const [delivering, setDelivering] = useState(false);
   const [cancelModal, setCancelModal] = useState(false);
@@ -238,6 +238,88 @@ export default function OrderDetailPage() {
         <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${order.progress}%` }} />
       </div>
 
+      {/* Timeline — Always visible */}
+      <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
+        <h3 className="text-sm font-bold mb-4 flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-lg">timeline</span>
+          Suivi de la commande
+        </h3>
+        {/* Horizontal stepper on desktop, vertical on mobile */}
+        <div className="hidden md:flex items-start gap-0">
+          {order.timeline.map((event, i) => {
+            const tc = TIMELINE_ICONS[event.type] ?? { icon: "circle", color: "text-slate-400" };
+            const isLast = i === order.timeline.length - 1;
+            return (
+              <div key={event.id} className="flex-1 flex flex-col items-center text-center relative">
+                <div className={cn(
+                  "w-10 h-10 rounded-full flex items-center justify-center z-10",
+                  isLast ? "bg-primary/20 ring-2 ring-primary" : "bg-white/5"
+                )}>
+                  <span className={cn("material-symbols-outlined text-xl", isLast ? "text-primary" : tc.color)}>{tc.icon}</span>
+                </div>
+                {i < order.timeline.length - 1 && (
+                  <div className="absolute top-5 left-[calc(50%+20px)] right-[calc(-50%+20px)] h-0.5 bg-primary/30" />
+                )}
+                <p className={cn("text-xs font-bold mt-2", isLast ? "text-primary" : "text-slate-300")}>{event.title}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{formatDate(event.timestamp)}</p>
+              </div>
+            );
+          })}
+        </div>
+        {/* Vertical on mobile */}
+        <div className="md:hidden space-y-0">
+          {order.timeline.map((event, i) => {
+            const tc = TIMELINE_ICONS[event.type] ?? { icon: "circle", color: "text-slate-400" };
+            const isLast = i === order.timeline.length - 1;
+            return (
+              <div key={event.id} className="flex gap-3">
+                <div className="flex flex-col items-center">
+                  <div className={cn(
+                    "w-8 h-8 rounded-full flex items-center justify-center",
+                    isLast ? "bg-primary/20 ring-2 ring-primary" : "bg-white/5"
+                  )}>
+                    <span className={cn("material-symbols-outlined text-lg", isLast ? "text-primary" : tc.color)}>{tc.icon}</span>
+                  </div>
+                  {i < order.timeline.length - 1 && <div className="w-0.5 flex-1 bg-border-dark my-1" />}
+                </div>
+                <div className="pb-4">
+                  <p className={cn("font-bold text-sm", isLast ? "text-primary" : "")}>{event.title}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{event.description}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{formatDate(event.timestamp)}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Buyer actions when order is delivered */}
+      {order.status === "livre" && (
+        <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-5 space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-emerald-400">local_shipping</span>
+            <p className="font-bold text-sm">La commande a été livrée</p>
+          </div>
+          <p className="text-sm text-slate-400">Vérifiez le travail livré et validez ou demandez une révision.</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { updateOrderStatus(order.id, "termine"); addToast("success", "Commande validée ! Les fonds seront libérés."); }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 text-white font-bold rounded-lg text-sm hover:bg-emerald-600 shadow-lg shadow-emerald-500/20"
+            >
+              <span className="material-symbols-outlined text-lg">check_circle</span>
+              Valider la livraison
+            </button>
+            <button
+              onClick={() => { updateOrderStatus(order.id, "revision"); addToast("info", "Révision demandée au freelance."); }}
+              className="flex items-center gap-2 px-5 py-2.5 border border-orange-500/30 text-orange-400 font-bold rounded-lg text-sm hover:bg-orange-500/10"
+            >
+              <span className="material-symbols-outlined text-lg">edit_note</span>
+              Demander une révision
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="flex gap-3 flex-wrap">
         {order.status === "en_attente" && (
@@ -267,12 +349,12 @@ export default function OrderDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-border-dark">
-        {(["chat", "fichiers", "timeline"] as const).map((tab) => (
+        {(["chat", "fichiers"] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={cn("pb-3 text-sm font-bold capitalize relative transition-colors",
               activeTab === tab ? "text-primary" : "text-slate-500 hover:text-slate-300"
             )}>
-            {tab === "chat" ? "Messagerie" : tab === "fichiers" ? `Fichiers (${order.files.length})` : "Timeline"}
+            {tab === "chat" ? "Messagerie" : `Fichiers (${order.files.length})`}
             {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
           </button>
         ))}
@@ -359,27 +441,7 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {/* Timeline Tab */}
-      {activeTab === "timeline" && (
-        <div className="space-y-0">
-          {order.timeline.map((event, i) => {
-            const tc = TIMELINE_ICONS[event.type] ?? { icon: "circle", color: "text-slate-400" };
-            return (
-              <div key={event.id} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <span className={cn("material-symbols-outlined text-xl", tc.color)}>{tc.icon}</span>
-                  {i < order.timeline.length - 1 && <div className="w-0.5 flex-1 bg-border-dark my-1" />}
-                </div>
-                <div className="pb-6">
-                  <p className="font-bold text-sm">{event.title}</p>
-                  <p className="text-xs text-slate-400 mt-0.5">{event.description}</p>
-                  <p className="text-xs text-slate-500 mt-1">{formatDate(event.timestamp)}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {/* Timeline is now always visible above the tabs */}
 
       {/* Review Section — shown when order is completed */}
       {order.status === "termine" && !hasExistingReview && !reviewSubmitted && (

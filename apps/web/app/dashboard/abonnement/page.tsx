@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { DEMO_PLANS, INVOICES } from "@/lib/demo-data";
@@ -13,26 +14,17 @@ const PLAN_STYLES: Record<string, { icon: string; color: string; bg: string; bor
 };
 
 export default function AbonnementPage() {
+  const router = useRouter();
   const { currentPlan, changePlan } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
-  const [changingTo, setChangingTo] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [processing, setProcessing] = useState(false);
 
   const current = DEMO_PLANS.find((p) => p.id === currentPlan) || DEMO_PLANS[1];
   const style = PLAN_STYLES[currentPlan] || PLAN_STYLES.pro;
 
-  function handleChangePlan() {
-    if (!changingTo) return;
-    setProcessing(true);
-    setTimeout(() => {
-      changePlan(changingTo);
-      setProcessing(false);
-      setChangingTo(null);
-      const plan = DEMO_PLANS.find((p) => p.id === changingTo);
-      addToast("success", `Vous etes maintenant sur le plan ${plan?.name || changingTo} !`);
-    }, 800);
+  function handleSelectPlan(planId: string) {
+    router.push(`/dashboard/abonnement/paiement?plan=${planId}&billing=${billing}`);
   }
 
   function handleCancelSubscription() {
@@ -41,44 +33,43 @@ export default function AbonnementPage() {
     addToast("info", "Votre abonnement a ete annule. Vous passerez au plan Gratuit a la fin de la periode.");
   }
 
-  function handleDownloadPDF(invoice: typeof INVOICES[0]) {
-    const content = [
-      "======================================",
-      "        FREELANCEHIGH - FACTURE       ",
-      "======================================",
-      "",
-      `Facture N° : ${invoice.id}`,
-      `Date       : ${invoice.date}`,
-      `Montant    : ${invoice.amount.toFixed(2)} EUR`,
-      `Description: ${invoice.description}`,
-      `Statut     : ${invoice.status === "payee" ? "Payee" : "En attente"}`,
-      "",
-      "--------------------------------------",
-      "FreelanceHigh SAS",
-      "no-reply@freelancehigh.com",
-      "======================================",
-    ].join("\n");
-
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${invoice.id}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    addToast("success", `Facture ${invoice.id} telechargee`);
+  async function handleDownloadPDF(invoice: typeof INVOICES[0]) {
+    try {
+      const res = await fetch(`/api/invoices/${invoice.id}/pdf`);
+      if (!res.ok) {
+        // Fallback: client-side generation
+        const { generateInvoicePDF } = await import("@/lib/pdf/invoice-template");
+        const pdfBytes = generateInvoicePDF({
+          id: invoice.id,
+          date: invoice.date,
+          amount: invoice.amount,
+          description: invoice.description,
+          status: invoice.status as "payee" | "en_attente",
+        });
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `FreelanceHigh-${invoice.id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `FreelanceHigh-${invoice.id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      addToast("success", `Facture ${invoice.id} telechargee`);
+    } catch {
+      addToast("error", "Erreur lors du telechargement de la facture");
+    }
   }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      <ConfirmModal
-        open={!!changingTo}
-        title="Changer de plan"
-        message={`Vous allez passer au plan ${DEMO_PLANS.find((p) => p.id === changingTo)?.name || ""}. ${changingTo === "free" ? "Vous perdrez les avantages de votre plan actuel." : "Le changement prendra effet immediatement."}`}
-        confirmLabel={processing ? "Changement..." : "Confirmer le changement"}
-        onConfirm={handleChangePlan}
-        onCancel={() => setChangingTo(null)}
-      />
       <ConfirmModal
         open={showCancelConfirm}
         title="Annuler l'abonnement"
@@ -202,7 +193,7 @@ export default function AbonnementPage() {
               </ul>
 
               <button
-                onClick={() => !isCurrent && setChangingTo(plan.id)}
+                onClick={() => !isCurrent && handleSelectPlan(plan.id)}
                 disabled={isCurrent}
                 className={cn(
                   "w-full py-2.5 rounded-lg text-sm font-bold transition-all",

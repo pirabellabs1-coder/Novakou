@@ -69,9 +69,13 @@ export interface MockReview {
   serviceId: string;
   reviewer: { name: string; avatar: string; country: string; flag: string };
   rating: number;
+  qualite: number;
+  communication: number;
+  delai: number;
   comment: string;
   date: string;
   response?: string;
+  helpful?: number;
 }
 
 // ─── Vendors ────────────────────────────────────────────────────────────────
@@ -1115,57 +1119,85 @@ export const MOCK_REVIEWS: MockReview[] = [
     serviceId: "srv1",
     reviewer: { name: "Mamadou Sow", avatar: "https://i.pravatar.cc/40?u=mamadou", country: "Sénégal", flag: "🇸🇳" },
     rating: 5,
+    qualite: 5,
+    communication: 5,
+    delai: 5,
     comment: "Excellent travail ! Alexandre a livré un site Next.js ultra-rapide, exactement selon nos specs. Communication parfaite, délai respecté. Je recommande vivement.",
     date: "2024-12-15",
     response: "Merci Mamadou ! Ce fut un plaisir de travailler sur ce projet. N'hésitez pas à revenir pour les futures évolutions.",
+    helpful: 12,
   },
   {
     id: "r2",
     serviceId: "srv1",
     reviewer: { name: "Isabelle Dupont", avatar: "https://i.pravatar.cc/40?u=isabelle", country: "France", flag: "🇫🇷" },
     rating: 5,
+    qualite: 5,
+    communication: 4.5,
+    delai: 5,
     comment: "Développeur très professionnel. Il a su comprendre mes besoins complexes et les traduire en une solution élégante. Le code est propre et bien documenté.",
     date: "2024-11-28",
+    helpful: 8,
   },
   {
     id: "r3",
     serviceId: "srv1",
     reviewer: { name: "Yao Kouassi", avatar: "https://i.pravatar.cc/40?u=yao", country: "Côte d'Ivoire", flag: "🇨🇮" },
     rating: 4,
+    qualite: 4.5,
+    communication: 3.5,
+    delai: 4,
     comment: "Très bon travail globalement. Quelques allers-retours pour les détails du design, mais le résultat final est excellent. Je reviendrai certainement.",
     date: "2024-10-15",
+    helpful: 5,
   },
   {
     id: "r4",
     serviceId: "srv2",
     reviewer: { name: "Amine Tahir", avatar: "https://i.pravatar.cc/40?u=amine", country: "Maroc", flag: "🇲🇦" },
     rating: 5,
+    qualite: 5,
+    communication: 5,
+    delai: 4.5,
     comment: "Amara a créé un logo parfait pour mon entreprise. Elle a compris immédiatement l'essence de ma marque. La charte graphique est très professionnelle.",
     date: "2024-12-01",
+    helpful: 15,
   },
   {
     id: "r5",
     serviceId: "srv2",
     reviewer: { name: "Sophie Martin", avatar: "https://i.pravatar.cc/40?u=sophie", country: "France", flag: "🇫🇷" },
     rating: 5,
+    qualite: 5,
+    communication: 4,
+    delai: 5,
     comment: "Créativité exceptionnelle ! Le logo est unique, moderne et mémorable. Les fichiers livrés sont de qualité professionnelle. Très satisfaite.",
     date: "2024-11-10",
+    helpful: 9,
   },
   {
     id: "r6",
     serviceId: "srv12",
     reviewer: { name: "Kwame Asante", avatar: "https://i.pravatar.cc/40?u=kwame", country: "Ghana", flag: "🇬🇭" },
     rating: 5,
+    qualite: 5,
+    communication: 4.5,
+    delai: 4,
     comment: "Design exceptionnel pour notre app mobile. L'UX est intuitive, le design est magnifique. Notre taux de conversion a augmenté de 40% après l'implémentation.",
     date: "2024-12-20",
+    helpful: 18,
   },
   {
     id: "r7",
     serviceId: "srv9",
     reviewer: { name: "Thomas Leroy", avatar: "https://i.pravatar.cc/40?u=thomas", country: "Belgique", flag: "🇧🇪" },
     rating: 5,
+    qualite: 5,
+    communication: 5,
+    delai: 4.5,
     comment: "Creative Minds Studio a créé une identité de marque qui dépasse toutes nos attentes. Le brand book est un document de référence que toute l'équipe utilise.",
     date: "2024-11-25",
+    helpful: 7,
   },
 ];
 

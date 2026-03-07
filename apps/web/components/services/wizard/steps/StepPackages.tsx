@@ -173,10 +173,10 @@ export function StepPackages({ role }: { role: string }) {
                 <select
                   value={p.price}
                   onChange={(e) => updateTier(tier, { price: Number(e.target.value) })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-primary outline-none"
                 >
                   {PRICE_OPTIONS.map((price) => (
-                    <option key={price} value={price}>
+                    <option key={price} value={price} className="bg-[#1a1f2e] text-white">
                       {price} €
                     </option>
                   ))}
@@ -194,10 +194,10 @@ export function StepPackages({ role }: { role: string }) {
                 <select
                   value={p.deliveryDays}
                   onChange={(e) => updateTier(tier, { deliveryDays: Number(e.target.value) })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-primary outline-none"
                 >
                   {DELIVERY_DAYS_OPTIONS.map((d) => (
-                    <option key={d} value={d}>
+                    <option key={d} value={d} className="bg-[#1a1f2e] text-white">
                       {d} jour{d > 1 ? "s" : ""}
                     </option>
                   ))}
@@ -212,10 +212,10 @@ export function StepPackages({ role }: { role: string }) {
                 <select
                   value={p.revisions}
                   onChange={(e) => updateTier(tier, { revisions: Number(e.target.value) })}
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-primary outline-none"
                 >
                   {[0, 1, 2, 3, 5, 10, -1].map((r) => (
-                    <option key={r} value={r === -1 ? 99 : r}>
+                    <option key={r} value={r === -1 ? 99 : r} className="bg-[#1a1f2e] text-white">
                       {r === -1 ? "Illimitées" : r}
                     </option>
                   ))}

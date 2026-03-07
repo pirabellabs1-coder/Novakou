@@ -55,8 +55,8 @@ export function MessagingLayout({
   const totalUnread = myConversations.reduce((s, c) => s + c.unreadCount, 0);
 
   return (
-    <div className="max-w-full space-y-6">
-      <div>
+    <div className="flex flex-col h-[calc(100vh-56px)]">
+      <div className="px-4 sm:px-6 lg:px-8 py-4 flex-shrink-0">
         <h2 className="text-3xl font-extrabold tracking-tight">{title}</h2>
         <p className="text-slate-400 mt-1">
           {totalUnread > 0
@@ -65,10 +65,7 @@ export function MessagingLayout({
         </p>
       </div>
 
-      <div
-        className="flex bg-background-dark/50 border border-border-dark rounded-xl overflow-hidden"
-        style={{ height: "calc(100vh - 220px)" }}
-      >
+      <div className="flex flex-1 min-h-0 bg-background-dark/50 border-t border-border-dark overflow-hidden">
         {/* Conversations sidebar */}
         <div className="w-80 border-r border-border-dark flex-shrink-0">
           <ConversationList

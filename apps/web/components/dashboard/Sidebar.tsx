@@ -132,6 +132,7 @@ interface SidebarProps {
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const isActive = useIsActive();
   const unreadCount = useDashboardStore((s) => s.unreadCount);
+  const currentPlan = useDashboardStore((s) => s.currentPlan);
 
   // Augment nav items with dynamic badges
   const sections = SECTIONS.map((section) => ({
@@ -281,8 +282,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </div>
       </nav>
 
-      {/* Upgrade card — hidden when collapsed */}
-      {!collapsed && (
+      {/* Upgrade card — hidden when collapsed or when user has a paid plan */}
+      {!collapsed && currentPlan === "free" && (
         <div className="p-4 mt-auto flex-shrink-0">
           <div className="bg-primary/10 rounded-xl p-4 border border-primary/20">
             <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">

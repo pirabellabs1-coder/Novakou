@@ -11,6 +11,8 @@ import {
   getServicesByVendor,
   MOCK_REVIEWS,
 } from "@/lib/dev/mock-data";
+import ReviewCard, { type ReviewData } from "@/components/reviews/ReviewCard";
+import ReviewSummary from "@/components/reviews/ReviewSummary";
 
 type Tab = "services" | "portfolio" | "avis";
 
@@ -208,34 +210,44 @@ export default function FreelancerProfilePage() {
             {/* Avis tab */}
             {activeTab === "avis" && (
               <div className="space-y-4">
+                <ReviewSummary
+                  reviews={reviews.map((r) => ({
+                    qualite: r.qualite,
+                    communication: r.communication,
+                    delai: r.delai,
+                    rating: r.rating,
+                  }))}
+                  totalCount={reviews.length}
+                />
                 {reviews.length === 0 ? (
                   <p className="text-sm text-slate-500">Aucun avis pour l&apos;instant.</p>
                 ) : (
-                  reviews.map((review) => (
-                    <div key={review.id} className="bg-[#1a1f2e] rounded-xl p-4 border border-white/5">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Image
-                            src={review.reviewer.avatar}
-                            alt={review.reviewer.name}
-                            width={32}
-                            height={32}
-                            className="rounded-full"
-                            onError={() => {}}
-                            unoptimized
-                          />
-                          <span className="text-sm font-semibold text-white">{review.reviewer.name}</span>
-                          <span>{review.reviewer.flag}</span>
-                        </div>
-                        <div className="flex">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <span key={s} className={cn("material-symbols-outlined text-sm", s <= review.rating ? "text-yellow-400" : "text-white/10")} style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-300">{review.comment}</p>
-                    </div>
-                  ))
+                  reviews.map((review) => {
+                    const cardData: ReviewData = {
+                      id: review.id,
+                      clientName: review.reviewer.name,
+                      clientAvatar: review.reviewer.avatar,
+                      clientCountry: review.reviewer.country === "Sénégal" ? "SN"
+                        : review.reviewer.country === "France" ? "FR"
+                        : review.reviewer.country === "Côte d'Ivoire" ? "CI"
+                        : review.reviewer.country === "Maroc" ? "MA"
+                        : review.reviewer.country === "Ghana" ? "GH"
+                        : review.reviewer.country === "Belgique" ? "BE"
+                        : review.reviewer.country === "Cameroun" ? "CM"
+                        : review.reviewer.country,
+                      serviceTitle: "",
+                      qualite: review.qualite,
+                      communication: review.communication,
+                      delai: review.delai,
+                      rating: review.rating,
+                      comment: review.comment,
+                      reply: review.response || null,
+                      repliedAt: review.response ? review.date : null,
+                      helpful: review.helpful || 0,
+                      createdAt: review.date,
+                    };
+                    return <ReviewCard key={review.id} review={cardData} />;
+                  })
                 )}
               </div>
             )}

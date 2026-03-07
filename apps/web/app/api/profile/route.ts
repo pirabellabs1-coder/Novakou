@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { profileStore } from "@/lib/dev/data-store";
+import { profileStore, orderStore, reviewStore } from "@/lib/dev/data-store";
+import { computeBadges } from "@/lib/badges";
 
 export async function GET() {
   try {
@@ -18,6 +19,25 @@ export async function GET() {
         { status: 404 }
       );
     }
+
+    // Compute badges dynamically based on actual metrics
+    const orders = orderStore.getByFreelance(session.user.id);
+    const completedOrders = orders.filter((o) => o.status === "termine").length;
+    const totalOrders = orders.filter((o) => !["annule"].includes(o.status)).length;
+    const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0;
+
+    const reviews = reviewStore.getByFreelance(session.user.id);
+    const avgRating = reviews.length > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      : 0;
+
+    profile.badges = computeBadges({
+      completedOrders,
+      completionRate,
+      avgRating,
+      kycLevel: 2, // Default for dev mode
+      plan: "pro", // Default for dev mode
+    });
 
     return NextResponse.json({ profile });
   } catch (error) {
