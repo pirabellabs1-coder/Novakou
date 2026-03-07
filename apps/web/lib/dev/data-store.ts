@@ -200,6 +200,7 @@ export interface StoredProfile {
   email: string;
   phone: string;
   photo: string;
+  coverPhoto: string;
   title: string;
   bio: string;
   city: string;
@@ -207,11 +208,61 @@ export interface StoredProfile {
   hourlyRate: number;
   skills: { name: string; level: "debutant" | "intermediaire" | "expert" }[];
   languages: { name: string; level: string }[];
+  education: { title: string; school: string; year: string; type: "diplome" | "certificat" | "formation" }[];
   links: { linkedin: string; github: string; portfolio: string; behance: string };
   completionPercent: number;
   badges: string[];
   availability: { day: number; dayName: string; available: boolean; startTime: string; endTime: string }[];
   vacationMode: boolean;
+}
+
+export interface StoredProject {
+  id: string;
+  clientId: string;
+  clientName: string;
+  clientCountry: string;
+  clientRating: number;
+  title: string;
+  description: string;
+  category: string;
+  budgetMin: number;
+  budgetMax: number;
+  deadline: string;
+  urgency: "normale" | "urgente" | "tres_urgente";
+  contractType: "ponctuel" | "long_terme" | "recurrent";
+  skills: string[];
+  proposals: number;
+  status: "ouvert" | "pourvu" | "ferme";
+  postedAt: string;
+}
+
+export interface StoredCandidature {
+  id: string;
+  projectId: string;
+  projectTitle: string;
+  clientName: string;
+  freelanceId: string;
+  motivation: string;
+  proposedPrice: number;
+  deliveryDays: number;
+  status: "en_attente" | "vue" | "acceptee" | "refusee";
+  submittedAt: string;
+}
+
+export interface StoredOffre {
+  id: string;
+  freelanceId: string;
+  client: string;
+  clientEmail: string;
+  title: string;
+  amount: number;
+  delay: string;
+  revisions: number;
+  description: string;
+  validityDays: number;
+  status: "en_attente" | "vue" | "acceptee" | "refusee" | "expiree";
+  sentAt: string;
+  expiresAt: string;
 }
 
 export interface StoredConversation {
@@ -334,17 +385,7 @@ export function getSubCategoryName(catId: string, subId: string): string {
 const SERVICES_FILE = "services.json";
 
 function getDefaultServices(): StoredService[] {
-  // Seed with demo data for the default freelance user
-  return [
-    createSeedService("s1", "dev-freelance-1", "Logo Design Moderne & Minimaliste", "cat-design", "sub-logo", 45, 3, "actif", 4200, 12, 540, "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&q=80"),
-    createSeedService("s2", "dev-freelance-1", "Redaction Article Blog SEO 1000 mots", "cat-redaction", "sub-redaction-web", 60, 2, "actif", 2100, 3, 180, "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80"),
-    createSeedService("s3", "dev-freelance-1", "Montage Video Pub Facebook Pro", "cat-video", "sub-montage", 120, 5, "pause", 1500, 0, 0, "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&q=80"),
-    createSeedService("s4", "dev-freelance-1", "Developpement Application React/Next.js", "cat-dev-web", "sub-frontend", 120, 14, "actif", 3800, 8, 2160, "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&q=80"),
-    createSeedService("s5", "dev-freelance-1", "Design UI/UX avec Figma", "cat-design", "sub-ui-ux", 75, 5, "actif", 2800, 6, 750, "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&q=80"),
-    createSeedService("s6", "dev-freelance-1", "API Backend Node.js + Prisma", "cat-dev-web", "sub-backend", 95, 10, "actif", 1900, 5, 475, "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400&q=80"),
-    createSeedService("s7", "dev-freelance-1", "Audit SEO Technique Complet", "cat-marketing", "sub-seo", 350, 7, "actif", 1200, 4, 1400, "https://images.unsplash.com/photo-1562577309-4932fdd64cd1?w=400&q=80"),
-    createSeedService("s8", "dev-freelance-1", "Formation Next.js 15 App Router", "cat-formation", "sub-dev-formation", 200, 3, "brouillon", 0, 0, 0, "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"),
-  ];
+  return [];
 }
 
 function createSeedService(
@@ -544,6 +585,11 @@ function calculateSeoScore(service: Partial<StoredService>): number {
 const ORDERS_FILE = "orders.json";
 
 function getDefaultOrders(): StoredOrder[] {
+  return [];
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _getDefaultOrdersLegacy(): StoredOrder[] {
   const now = new Date().toISOString();
   return [
     {
@@ -767,20 +813,7 @@ export const orderStore = {
 const TRANSACTIONS_FILE = "transactions.json";
 
 function getDefaultTransactions(): StoredTransaction[] {
-  return [
-    { id: "tx1", userId: "dev-freelance-1", type: "vente", description: "Commande ORD-1024 - Design Dashboard SaaS", amount: 850, status: "en_attente", date: "2026-02-15", orderId: "ORD-1024" },
-    { id: "tx2", userId: "dev-freelance-1", type: "vente", description: "Commande ORD-1019 - API Backend Node.js", amount: 1200, status: "complete", date: "2026-02-18", orderId: "ORD-1019" },
-    { id: "tx3", userId: "dev-freelance-1", type: "commission", description: "Commission FreelanceHigh (15%) - ORD-1019", amount: -180, status: "complete", date: "2026-02-18" },
-    { id: "tx4", userId: "dev-freelance-1", type: "retrait", description: "Retrait vers Wave - SN", amount: -500, status: "complete", date: "2026-02-20", method: "Wave" },
-    { id: "tx5", userId: "dev-freelance-1", type: "vente", description: "Commande ORD-1012 - Logo Startup FinTech", amount: 150, status: "en_attente", date: "2026-02-10", orderId: "ORD-1012" },
-    { id: "tx6", userId: "dev-freelance-1", type: "vente", description: "Commande ORD-1008 - Pack 5 Articles Blog", amount: 300, status: "complete", date: "2026-01-18", orderId: "ORD-1008" },
-    { id: "tx7", userId: "dev-freelance-1", type: "commission", description: "Commission FreelanceHigh (15%) - ORD-1008", amount: -45, status: "complete", date: "2026-01-18" },
-    { id: "tx8", userId: "dev-freelance-1", type: "retrait", description: "Retrait vers virement SEPA", amount: -800, status: "complete", date: "2026-01-25", method: "SEPA" },
-    { id: "tx9", userId: "dev-freelance-1", type: "bonus", description: "Bonus de bienvenue FreelanceHigh", amount: 25, status: "complete", date: "2025-11-15" },
-    { id: "tx10", userId: "dev-freelance-1", type: "retrait", description: "Retrait vers Orange Money", amount: -200, status: "echoue", date: "2026-02-01", method: "Orange Money" },
-    { id: "tx11", userId: "dev-freelance-1", type: "vente", description: "Commande terminée - UI/UX Design", amount: 400, status: "complete", date: "2026-01-02" },
-    { id: "tx12", userId: "dev-freelance-1", type: "vente", description: "Commande terminée - API Backend", amount: 250, status: "complete", date: "2025-12-20" },
-  ];
+  return [];
 }
 
 export const transactionStore = {
@@ -836,15 +869,7 @@ export const transactionStore = {
 const NOTIFICATIONS_FILE = "notifications.json";
 
 function getDefaultNotifications(): StoredNotification[] {
-  return [
-    { id: "n1", userId: "dev-freelance-1", title: "Nouvelle commande", message: "TechCorp Inc. a commandé Design Dashboard SaaS (€850)", type: "order", read: false, link: "/dashboard/commandes/ORD-1024", createdAt: "2026-02-15T09:00:00" },
-    { id: "n2", userId: "dev-freelance-1", title: "Paiement reçu", message: "€1 200 reçu pour API Backend Node.js", type: "payment", read: true, link: "/dashboard/finances", createdAt: "2026-02-18T16:30:00" },
-    { id: "n3", userId: "dev-freelance-1", title: "Révision demandée", message: "Moussa Keita a demandé une révision pour Logo Startup FinTech", type: "order", read: false, link: "/dashboard/commandes/ORD-1012", createdAt: "2026-02-15T08:00:00" },
-    { id: "n4", userId: "dev-freelance-1", title: "Service approuvé", message: "Votre service 'Design UI/UX avec Figma' est maintenant en ligne !", type: "service", read: true, link: "/dashboard/services", createdAt: "2026-02-01T10:00:00" },
-    { id: "n5", userId: "dev-freelance-1", title: "Nouveau message", message: "Lamine Diallo vous a envoyé un message", type: "message", read: true, link: "/dashboard/messages", createdAt: "2026-02-20T14:00:00" },
-    { id: "n6", userId: "dev-freelance-1", title: "Retrait traité", message: "Votre retrait de €500 vers Wave a été effectué", type: "payment", read: true, link: "/dashboard/finances", createdAt: "2026-02-20T16:00:00" },
-    { id: "n7", userId: "dev-freelance-1", title: "Nouvelle commande", message: "Auto-Focus SARL a commandé Audit SEO E-commerce (€450)", type: "order", read: false, link: "/dashboard/commandes/ORD-1016", createdAt: "2026-02-28T11:00:00" },
-  ];
+  return [];
 }
 
 export const notificationStore = {
@@ -980,37 +1005,24 @@ function getDefaultProfiles(): Record<string, StoredProfile> {
   return {
     "dev-freelance-1": {
       userId: "dev-freelance-1",
-      firstName: "Gildas",
-      lastName: "Lissanon",
-      username: "gildas-dev",
-      email: "gildas@freelancehigh.com",
-      phone: "+225 07 12 34 56",
-      photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-      title: "Développeur Full-Stack & Designer UI/UX",
-      bio: "Développeur passionné basé à Abidjan, spécialisé en React/Next.js et design d'interfaces modernes. +5 ans d'expérience avec des clients internationaux.",
-      city: "Abidjan",
-      country: "Côte d'Ivoire",
-      hourlyRate: 45,
-      skills: [
-        { name: "React/Next.js", level: "expert" },
-        { name: "TypeScript", level: "expert" },
-        { name: "Node.js", level: "expert" },
-        { name: "Figma", level: "intermediaire" },
-        { name: "Tailwind CSS", level: "expert" },
-        { name: "PostgreSQL", level: "intermediaire" },
-      ],
-      languages: [
-        { name: "Français", level: "Natif" },
-        { name: "Anglais", level: "Courant" },
-      ],
-      links: {
-        linkedin: "https://linkedin.com/in/gildas-dev",
-        github: "https://github.com/gildas-dev",
-        portfolio: "https://gildas.dev",
-        behance: "",
-      },
-      completionPercent: 85,
-      badges: ["Vérifié", "Pro"],
+      firstName: "",
+      lastName: "",
+      username: "",
+      email: "",
+      phone: "",
+      photo: "",
+      coverPhoto: "",
+      title: "",
+      bio: "",
+      city: "",
+      country: "",
+      hourlyRate: 0,
+      skills: [],
+      languages: [],
+      education: [],
+      links: { linkedin: "", github: "", portfolio: "", behance: "" },
+      completionPercent: 0,
+      badges: [],
       availability: [
         { day: 0, dayName: "Lundi", available: true, startTime: "09:00", endTime: "18:00" },
         { day: 1, dayName: "Mardi", available: true, startTime: "09:00", endTime: "18:00" },
@@ -1161,92 +1173,7 @@ export function calculateStats(userId: string) {
 const REVIEWS_FILE = "reviews.json";
 
 function getDefaultReviews(): StoredReview[] {
-  return [
-    {
-      id: "rev-1",
-      orderId: "ORD-1008",
-      serviceId: "s2",
-      clientId: "dev-client-1",
-      clientName: "Marie Dupont",
-      clientAvatar: "MD",
-      clientCountry: "FR",
-      freelanceId: "dev-freelance-1",
-      serviceTitle: "Pack 5 Articles Blog",
-      qualite: 5,
-      communication: 5,
-      delai: 5,
-      rating: 5,
-      comment: "Travail exceptionnel ! Les articles sont parfaitement rédigés, optimisés SEO et livrés en avance. Je recommande vivement.",
-      reply: "Merci beaucoup Marie ! Ce fut un plaisir de travailler sur ce projet. N'hésitez pas à me contacter pour d'autres articles.",
-      repliedAt: "2026-01-22T10:00:00",
-      helpful: 8,
-      reported: false,
-      createdAt: "2026-01-20T14:00:00",
-    },
-    {
-      id: "rev-2",
-      orderId: "ORD-0998",
-      serviceId: "s4",
-      clientId: "dev-client-2",
-      clientName: "TechVision Mali",
-      clientAvatar: "TV",
-      clientCountry: "ML",
-      freelanceId: "dev-freelance-1",
-      serviceTitle: "API Backend Node.js + Prisma",
-      qualite: 5,
-      communication: 4,
-      delai: 4,
-      rating: 4.3,
-      comment: "Développeur très compétent. L'API livrée est bien structurée, documentée et performante. Quelques allers-retours sur les spécifications mais rien de bloquant.",
-      reply: null,
-      repliedAt: null,
-      helpful: 3,
-      reported: false,
-      createdAt: "2026-01-15T09:00:00",
-    },
-    {
-      id: "rev-3",
-      orderId: "ORD-0985",
-      serviceId: "s4",
-      clientId: "dev-client-3",
-      clientName: "E-Commerce Côte d'Ivoire",
-      clientAvatar: "EC",
-      clientCountry: "CI",
-      freelanceId: "dev-freelance-1",
-      serviceTitle: "Développement Application React/Next.js",
-      qualite: 5,
-      communication: 5,
-      delai: 5,
-      rating: 5,
-      comment: "Projet livré en avance, qualité irréprochable. Le code est propre, bien documenté et testé. Collaboration parfaite du début à la fin.",
-      reply: null,
-      repliedAt: null,
-      helpful: 12,
-      reported: false,
-      createdAt: "2026-01-02T16:00:00",
-    },
-    {
-      id: "rev-4",
-      orderId: "ORD-0970",
-      serviceId: "s5",
-      clientId: "dev-client-4",
-      clientName: "StartupTech Dakar",
-      clientAvatar: "SD",
-      clientCountry: "SN",
-      freelanceId: "dev-freelance-1",
-      serviceTitle: "Design UI/UX avec Figma",
-      qualite: 5,
-      communication: 5,
-      delai: 4,
-      rating: 4.7,
-      comment: "Excellent travail sur la conception UX/UI de notre app mobile. Les maquettes Figma sont impeccables. Communication fluide tout au long du projet.",
-      reply: "Merci pour votre confiance ! Avec plaisir pour la v2.",
-      repliedAt: "2025-12-28T11:00:00",
-      helpful: 5,
-      reported: false,
-      createdAt: "2025-12-25T10:00:00",
-    },
-  ];
+  return [];
 }
 
 export const reviewStore = {
@@ -1366,53 +1293,7 @@ export const reviewStore = {
 const CONVERSATIONS_FILE = "conversations.json";
 
 function getDefaultConversations(): StoredConversation[] {
-  return [
-    {
-      id: "conv1", participants: ["dev-freelance-1", "dev-client-1"],
-      contactName: "TechCorp Inc.", contactAvatar: "TC", contactRole: "client",
-      lastMessage: "Super travail ! Quelques ajustements sur la sidebar svp.",
-      lastMessageTime: "2026-02-19T09:00:00", unread: 1, online: true, orderId: "ORD-1024",
-      messages: [
-        { id: "cm1", senderId: "dev-client-1", sender: "them", content: "Bonjour ! On aimerait un dashboard moderne.", timestamp: "2026-02-15T10:00:00", type: "text", read: true },
-        { id: "cm2", senderId: "dev-freelance-1", sender: "me", content: "Parfait ! Je commence par les wireframes.", timestamp: "2026-02-15T10:30:00", type: "text", read: true },
-        { id: "cm3", senderId: "dev-client-1", sender: "them", content: "Super travail ! Quelques ajustements sur la sidebar svp.", timestamp: "2026-02-19T09:00:00", type: "text", read: false },
-      ],
-    },
-    {
-      id: "conv2", participants: ["dev-freelance-1", "dev-client-1"],
-      contactName: "Lamine Diallo", contactAvatar: "LD", contactRole: "client",
-      lastMessage: "Merci beaucoup, l'API fonctionne parfaitement !",
-      lastMessageTime: "2026-02-20T14:00:00", unread: 0, online: false, orderId: "ORD-1019",
-      messages: [
-        { id: "cm1", senderId: "dev-client-1", sender: "them", content: "J'ai besoin d'une API pour mon app.", timestamp: "2026-01-20T08:00:00", type: "text", read: true },
-        { id: "cm2", senderId: "dev-freelance-1", sender: "me", content: "Voici le code source complet.", timestamp: "2026-02-18T16:00:00", type: "text", read: true },
-        { id: "cm3", senderId: "dev-client-1", sender: "them", content: "Merci beaucoup, l'API fonctionne parfaitement !", timestamp: "2026-02-20T14:00:00", type: "text", read: true },
-      ],
-    },
-    {
-      id: "conv3", participants: ["dev-freelance-1", "dev-client-1"],
-      contactName: "Moussa Keita", contactAvatar: "MK", contactRole: "client",
-      lastMessage: "J'aime le concept 2, couleurs plus vives.",
-      lastMessageTime: "2026-02-15T08:00:00", unread: 2, online: true, orderId: "ORD-1012",
-      messages: [
-        { id: "cm1", senderId: "dev-client-1", sender: "them", content: "J'aimerais un logo pour ma startup FinTech.", timestamp: "2026-02-10T14:00:00", type: "text", read: true },
-        { id: "cm2", senderId: "dev-freelance-1", sender: "me", content: "Super projet ! Je commence les recherches.", timestamp: "2026-02-10T15:00:00", type: "text", read: true },
-        { id: "cm3", senderId: "dev-client-1", sender: "them", content: "J'aime le concept 2, couleurs plus vives.", timestamp: "2026-02-15T08:00:00", type: "text", read: false },
-        { id: "cm4", senderId: "dev-client-1", sender: "them", content: "Pouvez-vous aussi tester avec un fond sombre ?", timestamp: "2026-02-15T08:05:00", type: "text", read: false },
-      ],
-    },
-    {
-      id: "conv4", participants: ["dev-freelance-1", "support"],
-      contactName: "Support FreelanceHigh", contactAvatar: "FH", contactRole: "support",
-      lastMessage: "Votre retrait a été traité avec succès.",
-      lastMessageTime: "2026-02-21T10:00:00", unread: 0, online: true,
-      messages: [
-        { id: "cm1", senderId: "dev-freelance-1", sender: "me", content: "Mon retrait vers Wave est en attente depuis 3 jours.", timestamp: "2026-02-20T09:00:00", type: "text", read: true },
-        { id: "cm2", senderId: "support", sender: "them", content: "Nous vérifions votre retrait.", timestamp: "2026-02-20T10:00:00", type: "text", read: true },
-        { id: "cm3", senderId: "support", sender: "them", content: "Votre retrait a été traité avec succès.", timestamp: "2026-02-21T10:00:00", type: "text", read: true },
-      ],
-    },
-  ];
+  return [];
 }
 
 export const conversationStore = {
@@ -1489,6 +1370,120 @@ export const conversationStore = {
       for (const m of convs[idx].messages) m.read = true;
       writeJson(CONVERSATIONS_FILE, convs);
     }
+  },
+};
+
+// ── Project Store ──────────────────────────────────────────────────────────
+
+const PROJECTS_FILE = "projects.json";
+
+export const projectStore = {
+  getAll(): StoredProject[] {
+    return readJson<StoredProject[]>(PROJECTS_FILE, []);
+  },
+
+  getOpen(): StoredProject[] {
+    return this.getAll().filter((p) => p.status === "ouvert");
+  },
+
+  getById(id: string): StoredProject | null {
+    return this.getAll().find((p) => p.id === id) ?? null;
+  },
+
+  incrementProposals(id: string): void {
+    const projects = this.getAll();
+    const idx = projects.findIndex((p) => p.id === id);
+    if (idx !== -1) {
+      projects[idx].proposals += 1;
+      writeJson(PROJECTS_FILE, projects);
+    }
+  },
+};
+
+// ── Candidature Store ──────────────────────────────────────────────────────
+
+const CANDIDATURES_FILE = "candidatures.json";
+
+export const candidatureStore = {
+  getAll(): StoredCandidature[] {
+    return readJson<StoredCandidature[]>(CANDIDATURES_FILE, []);
+  },
+
+  getByFreelance(freelanceId: string): StoredCandidature[] {
+    return this.getAll()
+      .filter((c) => c.freelanceId === freelanceId)
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  },
+
+  create(data: Omit<StoredCandidature, "id" | "status" | "submittedAt">): StoredCandidature {
+    const candidatures = this.getAll();
+    const c: StoredCandidature = {
+      ...data,
+      id: `cand_${Date.now().toString(36)}`,
+      status: "en_attente",
+      submittedAt: new Date().toISOString(),
+    };
+    candidatures.unshift(c);
+    writeJson(CANDIDATURES_FILE, candidatures);
+    return c;
+  },
+
+  update(id: string, updates: Partial<StoredCandidature>): StoredCandidature | null {
+    const candidatures = this.getAll();
+    const idx = candidatures.findIndex((c) => c.id === id);
+    if (idx === -1) return null;
+    candidatures[idx] = { ...candidatures[idx], ...updates };
+    writeJson(CANDIDATURES_FILE, candidatures);
+    return candidatures[idx];
+  },
+};
+
+// ── Offre Store ──────────────────────────────────────────────────────────
+
+const OFFRES_FILE = "offres.json";
+
+export const offreStore = {
+  getAll(): StoredOffre[] {
+    return readJson<StoredOffre[]>(OFFRES_FILE, []);
+  },
+
+  getByFreelance(freelanceId: string): StoredOffre[] {
+    return this.getAll()
+      .filter((o) => o.freelanceId === freelanceId)
+      .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
+  },
+
+  create(data: Omit<StoredOffre, "id" | "status" | "sentAt" | "expiresAt">): StoredOffre {
+    const offres = this.getAll();
+    const now = new Date();
+    const expires = new Date(now.getTime() + data.validityDays * 24 * 60 * 60 * 1000);
+    const o: StoredOffre = {
+      ...data,
+      id: `off_${Date.now().toString(36)}`,
+      status: "en_attente",
+      sentAt: now.toISOString(),
+      expiresAt: expires.toISOString(),
+    };
+    offres.unshift(o);
+    writeJson(OFFRES_FILE, offres);
+    return o;
+  },
+
+  update(id: string, updates: Partial<StoredOffre>): StoredOffre | null {
+    const offres = this.getAll();
+    const idx = offres.findIndex((o) => o.id === id);
+    if (idx === -1) return null;
+    offres[idx] = { ...offres[idx], ...updates };
+    writeJson(OFFRES_FILE, offres);
+    return offres[idx];
+  },
+
+  delete(id: string): boolean {
+    const offres = this.getAll();
+    const filtered = offres.filter((o) => o.id !== id);
+    if (filtered.length === offres.length) return false;
+    writeJson(OFFRES_FILE, filtered);
+    return true;
   },
 };
 

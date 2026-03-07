@@ -184,6 +184,7 @@ export const useDashboardStore = create<DashboardState>()(
               email: p.email,
               phone: p.phone,
               photo: p.photo,
+              coverPhoto: (p as unknown as Record<string, unknown>).coverPhoto as string || "",
               title: p.title,
               bio: p.bio,
               city: p.city,
@@ -191,6 +192,7 @@ export const useDashboardStore = create<DashboardState>()(
               hourlyRate: p.hourlyRate,
               skills: p.skills as FreelancerProfile["skills"],
               languages: p.languages,
+              education: (p as unknown as Record<string, unknown>).education as FreelancerProfile["education"] || [],
               links: p.links,
               completionPercent: p.completionPercent,
             };
@@ -523,6 +525,7 @@ export const useDashboardStore = create<DashboardState>()(
               email: result.email,
               phone: result.phone,
               photo: result.photo,
+              coverPhoto: (result as unknown as Record<string, unknown>).coverPhoto as string || s.profile.coverPhoto,
               title: result.title,
               bio: result.bio,
               city: result.city,
@@ -530,6 +533,7 @@ export const useDashboardStore = create<DashboardState>()(
               hourlyRate: result.hourlyRate,
               skills: result.skills as FreelancerProfile["skills"],
               languages: result.languages,
+              education: (result as unknown as Record<string, unknown>).education as FreelancerProfile["education"] || s.profile.education,
               links: result.links,
               completionPercent: result.completionPercent,
             },
@@ -644,7 +648,7 @@ export const useDashboardStore = create<DashboardState>()(
       changePlan: (planId) => set({ currentPlan: planId }),
     }),
     {
-      name: "freelancehigh-dashboard",
+      name: "freelancehigh-dashboard-v2",
       partialize: (state) => ({
         services: state.services,
         orders: state.orders,

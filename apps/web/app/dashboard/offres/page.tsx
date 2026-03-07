@@ -1,75 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useToastStore } from "@/store/dashboard";
 
-const OFFRES = [
-  {
-    id: "OFF-018",
-    client: "Koffi M.",
-    clientCountry: "CI",
-    title: "Développement API REST Node.js + documentation Swagger",
-    amount: 1400,
-    delay: "14 jours",
-    revisions: 2,
-    status: "acceptee",
-    sentAt: "20 Fév 2026",
-    expiresAt: "6 Mar 2026",
-    description: "Développement d'une API REST complète avec authentification JWT, documentation Swagger interactive et tests unitaires Jest.",
-  },
-  {
-    id: "OFF-017",
-    client: "Amara D.",
-    clientCountry: "SN",
-    title: "Intégration Supabase Auth + Storage pour app existante",
-    amount: 750,
-    delay: "7 jours",
-    revisions: 1,
-    status: "en_attente",
-    sentAt: "25 Fév 2026",
-    expiresAt: "11 Mar 2026",
-    description: "Migration du système d'authentification vers Supabase Auth avec intégration du stockage sécurisé pour les documents utilisateurs.",
-  },
-  {
-    id: "OFF-016",
-    client: "StartupTech Dakar",
-    clientCountry: "SN",
-    title: "Migration base de données MySQL vers PostgreSQL + Prisma",
-    amount: 980,
-    delay: "10 jours",
-    revisions: 2,
-    status: "expiree",
-    sentAt: "1 Fév 2026",
-    expiresAt: "15 Fév 2026",
-    description: "Migration complète de la base de données MySQL vers PostgreSQL avec mise en place de Prisma ORM et migration des données existantes.",
-  },
-  {
-    id: "OFF-015",
-    client: "Agence Digital Paris",
-    clientCountry: "FR",
-    title: "Audit technique et refactoring Next.js app router",
-    amount: 600,
-    delay: "5 jours",
-    revisions: 1,
-    status: "refusee",
-    sentAt: "10 Jan 2026",
-    expiresAt: "24 Jan 2026",
-    description: "Audit complet du projet Next.js, identification des bottlenecks de performance et refactoring vers App Router avec Server Components.",
-  },
-  {
-    id: "OFF-014",
-    client: "TechCorp Mali",
-    clientCountry: "ML",
-    title: "Développement tableau de bord analytics avec Recharts",
-    amount: 1850,
-    delay: "18 jours",
-    revisions: 3,
-    status: "en_attente",
-    sentAt: "27 Fév 2026",
-    expiresAt: "13 Mar 2026",
-    description: "Création d'un dashboard analytics complet avec graphiques interactifs, filtres avancés, export PDF/CSV et accès par rôles.",
-  },
-];
+interface Offre {
+  id: string;
+  client: string;
+  clientEmail: string;
+  title: string;
+  amount: number;
+  delay: string;
+  revisions: number;
+  description: string;
+  validityDays: number;
+  status: "en_attente" | "vue" | "acceptee" | "refusee" | "expiree";
+  sentAt: string;
+  expiresAt: string;
+}
 
 const STATUS_CONFIG = {
   en_attente: { label: "En attente", color: "bg-blue-500/10 text-blue-400", iconName: "schedule" },
@@ -78,8 +26,6 @@ const STATUS_CONFIG = {
   refusee: { label: "Refusée", color: "bg-red-500/10 text-red-400", iconName: "cancel" },
   expiree: { label: "Expirée", color: "bg-slate-500/10 text-slate-500", iconName: "schedule" },
 };
-
-const FLAG: Record<string, string> = { CI: "🇨🇮", SN: "🇸🇳", FR: "🇫🇷", ML: "🇲🇱", BJ: "🇧🇯" };
 
 const TABS = [
   { label: "Toutes", statuses: ["en_attente", "vue", "acceptee", "refusee", "expiree"] },
@@ -90,6 +36,7 @@ const TABS = [
 
 type NewOffer = {
   client: string;
+  clientEmail: string;
   title: string;
   amount: string;
   delay: string;
@@ -98,22 +45,48 @@ type NewOffer = {
   expiry: string;
 };
 
+const EMPTY_FORM: NewOffer = {
+  client: "",
+  clientEmail: "",
+  title: "",
+  amount: "",
+  delay: "",
+  revisions: "2",
+  description: "",
+  expiry: "14",
+};
+
 export default function OffresPage() {
+  const addToast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState("Toutes");
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<NewOffer>({
-    client: "",
-    title: "",
-    amount: "",
-    delay: "",
-    revisions: "2",
-    description: "",
-    expiry: "14",
-  });
+  const [form, setForm] = useState<NewOffer>({ ...EMPTY_FORM });
+  const [offres, setOffres] = useState<Offre[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchOffres = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/offres");
+      if (res.ok) {
+        const data = await res.json();
+        setOffres(data.offres);
+      }
+    } catch (err) {
+      console.error("Erreur chargement offres:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOffres();
+  }, [fetchOffres]);
 
   const activeStatuses = TABS.find((t) => t.label === activeTab)?.statuses ?? [];
-  const filtered = OFFRES.filter(
+  const filtered = offres.filter(
     (o) =>
       activeStatuses.includes(o.status) &&
       (o.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -122,6 +95,72 @@ export default function OffresPage() {
 
   function handleChange(field: keyof NewOffer, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  async function handleSubmit() {
+    if (!form.client || !form.title || !form.amount || !form.delay || !form.description) {
+      addToast("warning", "Veuillez remplir tous les champs obligatoires");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/offres", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client: form.client,
+          clientEmail: form.clientEmail,
+          title: form.title,
+          amount: Number(form.amount),
+          delay: form.delay,
+          revisions: Number(form.revisions),
+          description: form.description,
+          validityDays: Number(form.expiry),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOffres((prev) => [data.offre, ...prev]);
+        setForm({ ...EMPTY_FORM });
+        setShowForm(false);
+        addToast("success", "Offre envoyée avec succès !");
+      } else {
+        const err = await res.json();
+        addToast("error", err.error || "Erreur lors de l'envoi");
+      }
+    } catch {
+      addToast("error", "Erreur réseau");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      const res = await fetch(`/api/offres/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setOffres((prev) => prev.filter((o) => o.id !== id));
+        addToast("success", "Offre supprimée");
+      } else {
+        addToast("error", "Erreur lors de la suppression");
+      }
+    } catch {
+      addToast("error", "Erreur réseau");
+    }
+  }
+
+  function handleDuplicate(offre: Offre) {
+    setForm({
+      client: offre.client,
+      clientEmail: offre.clientEmail || "",
+      title: offre.title,
+      amount: String(offre.amount),
+      delay: offre.delay,
+      revisions: String(offre.revisions),
+      description: offre.description,
+      expiry: String(offre.validityDays),
+    });
+    setShowForm(true);
   }
 
   return (
@@ -152,11 +191,21 @@ export default function OffresPage() {
                 type="text"
                 value={form.client}
                 onChange={(e) => handleChange("client", e.target.value)}
-                placeholder="Nom du client ou email"
+                placeholder="Nom du client"
                 className="w-full bg-background-dark border border-border-dark rounded-xl px-3 py-2.5 text-sm text-slate-200 outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-slate-500"
               />
             </div>
             <div>
+              <label className="block text-xs font-bold text-slate-400 mb-1.5">Email du client</label>
+              <input
+                type="email"
+                value={form.clientEmail}
+                onChange={(e) => handleChange("clientEmail", e.target.value)}
+                placeholder="email@client.com"
+                className="w-full bg-background-dark border border-border-dark rounded-xl px-3 py-2.5 text-sm text-slate-200 outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-slate-500"
+              />
+            </div>
+            <div className="sm:col-span-2">
               <label className="block text-xs font-bold text-slate-400 mb-1.5">Titre de l&apos;offre *</label>
               <input
                 type="text"
@@ -193,7 +242,7 @@ export default function OffresPage() {
                 onChange={(e) => handleChange("revisions", e.target.value)}
                 className="w-full bg-background-dark border border-border-dark rounded-xl px-3 py-2.5 text-sm text-slate-200 outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
-                {["1", "2", "3", "5", "Illimitées"].map((v) => (
+                {["1", "2", "3", "5"].map((v) => (
                   <option key={v} value={v}>{v} révision{v === "1" ? "" : "s"}</option>
                 ))}
               </select>
@@ -222,11 +271,16 @@ export default function OffresPage() {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button className="flex-1 bg-primary hover:opacity-90 text-white font-bold py-2.5 rounded-xl text-sm transition-all">
-              Envoyer l&apos;offre
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex-1 bg-primary hover:opacity-90 text-white font-bold py-2.5 rounded-xl text-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {submitting && <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>}
+              {submitting ? "Envoi..." : "Envoyer l'offre"}
             </button>
             <button
-              onClick={() => setShowForm(false)}
+              onClick={() => { setShowForm(false); setForm({ ...EMPTY_FORM }); }}
               className="px-4 py-2.5 border border-border-dark rounded-xl text-sm font-bold text-slate-400 hover:bg-primary/5 transition-colors"
             >
               Annuler
@@ -264,7 +318,11 @@ export default function OffresPage() {
         </div>
 
         {/* List */}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="py-16 text-center">
+            <span className="material-symbols-outlined animate-spin text-3xl text-primary">progress_activity</span>
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="py-16 text-center">
             <span className="material-symbols-outlined text-4xl leading-none text-slate-600 mx-auto mb-3 block">sell</span>
             <p className="text-slate-500 font-semibold">Aucune offre dans cette catégorie</p>
@@ -272,17 +330,10 @@ export default function OffresPage() {
         ) : (
           <div className="divide-y divide-border-dark">
             {filtered.map((o) => {
-              const s = STATUS_CONFIG[o.status as keyof typeof STATUS_CONFIG];
+              const s = STATUS_CONFIG[o.status];
               const isActive = ["en_attente", "vue"].includes(o.status);
               const daysLeft = isActive
-                ? Math.max(
-                    0,
-                    Math.ceil(
-                      (new Date(o.expiresAt.split(" ").reverse().join("-")).getTime() -
-                        Date.now()) /
-                        86400000
-                    )
-                  )
+                ? Math.max(0, Math.ceil((new Date(o.expiresAt).getTime() - Date.now()) / 86400000))
                 : 0;
 
               return (
@@ -295,9 +346,9 @@ export default function OffresPage() {
                           <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500 flex-wrap">
                             <span>{o.id}</span>
                             <span>·</span>
-                            <span>{FLAG[o.clientCountry] ?? ""} {o.client}</span>
+                            <span>{o.client}</span>
                             <span>·</span>
-                            <span>Envoyée le {o.sentAt}</span>
+                            <span>Envoyée le {new Date(o.sentAt).toLocaleDateString("fr-FR")}</span>
                             {isActive && daysLeft <= 3 && (
                               <>
                                 <span>·</span>
@@ -325,10 +376,18 @@ export default function OffresPage() {
 
                     {/* Actions */}
                     <div className="hidden sm:flex items-center gap-1 flex-shrink-0">
-                      <button className="p-1.5 rounded-lg text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-all" title="Dupliquer">
+                      <button
+                        onClick={() => handleDuplicate(o)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+                        title="Dupliquer"
+                      >
                         <span className="material-symbols-outlined text-sm leading-none">content_copy</span>
                       </button>
-                      <button className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all" title="Supprimer">
+                      <button
+                        onClick={() => handleDelete(o.id)}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                        title="Supprimer"
+                      >
                         <span className="material-symbols-outlined text-sm leading-none">delete</span>
                       </button>
                     </div>
