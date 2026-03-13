@@ -671,6 +671,9 @@ export const conversationsApi = {
 
   markRead: (id: string) =>
     fetchApi<unknown>(`/api/conversations/${id}/read`, { method: "POST" }),
+
+  create: (data: { participantId: string; contactName: string; contactAvatar?: string; contactRole?: string; orderId?: string }) =>
+    fetchApi<{ conversation: ApiConversation }>("/api/conversations", { method: "POST", body: JSON.stringify(data) }),
 };
 
 // ── Type Mappers (API types → local store types) ──

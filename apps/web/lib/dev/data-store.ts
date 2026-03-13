@@ -1318,7 +1318,102 @@ export const reviewStore = {
 const CONVERSATIONS_FILE = "conversations.json";
 
 function getDefaultConversations(): StoredConversation[] {
-  return [];
+  const now = new Date();
+  return [
+    {
+      id: "conv-seed-1",
+      participants: ["dev-1773299214975", "dev-1773366800521"],
+      contactName: "Gildas LISSANON",
+      contactAvatar: "GL",
+      contactRole: "client",
+      lastMessage: "Bonjour, je suis interesse par votre service de developpement web.",
+      lastMessageTime: new Date(now.getTime() - 30 * 60000).toISOString(),
+      unread: 1,
+      online: true,
+      messages: [
+        {
+          id: "cm_seed_1",
+          senderId: "dev-1773366800521",
+          sender: "them",
+          content: "Bonjour, je suis interesse par votre service de developpement web.",
+          timestamp: new Date(now.getTime() - 30 * 60000).toISOString(),
+          type: "text",
+          read: false,
+        },
+      ],
+    },
+    {
+      id: "conv-seed-2",
+      participants: ["dev-admin-1", "dev-1773299214975"],
+      contactName: "Gildas LISSANON",
+      contactAvatar: "GL",
+      contactRole: "support",
+      lastMessage: "Votre profil a ete verifie avec succes. Bienvenue sur FreelanceHigh !",
+      lastMessageTime: new Date(now.getTime() - 2 * 3600000).toISOString(),
+      unread: 0,
+      online: false,
+      messages: [
+        {
+          id: "cm_seed_2",
+          senderId: "dev-admin-1",
+          sender: "me",
+          content: "Bienvenue sur FreelanceHigh ! N'hesitez pas a nous contacter si vous avez des questions.",
+          timestamp: new Date(now.getTime() - 5 * 3600000).toISOString(),
+          type: "text",
+          read: true,
+        },
+        {
+          id: "cm_seed_3",
+          senderId: "dev-1773299214975",
+          sender: "them",
+          content: "Merci beaucoup ! J'ai une question sur la verification KYC.",
+          timestamp: new Date(now.getTime() - 3 * 3600000).toISOString(),
+          type: "text",
+          read: true,
+        },
+        {
+          id: "cm_seed_4",
+          senderId: "dev-admin-1",
+          sender: "me",
+          content: "Votre profil a ete verifie avec succes. Bienvenue sur FreelanceHigh !",
+          timestamp: new Date(now.getTime() - 2 * 3600000).toISOString(),
+          type: "text",
+          read: true,
+        },
+      ],
+    },
+    {
+      id: "conv-seed-3",
+      participants: ["dev-admin-1", "dev-1773366800521"],
+      contactName: "Gildas LISSANON",
+      contactAvatar: "GL",
+      contactRole: "client",
+      lastMessage: "Merci pour votre aide concernant ma commande.",
+      lastMessageTime: new Date(now.getTime() - 6 * 3600000).toISOString(),
+      unread: 0,
+      online: true,
+      messages: [
+        {
+          id: "cm_seed_5",
+          senderId: "dev-admin-1",
+          sender: "me",
+          content: "Bonjour, comment puis-je vous aider ?",
+          timestamp: new Date(now.getTime() - 8 * 3600000).toISOString(),
+          type: "text",
+          read: true,
+        },
+        {
+          id: "cm_seed_6",
+          senderId: "dev-1773366800521",
+          sender: "them",
+          content: "Merci pour votre aide concernant ma commande.",
+          timestamp: new Date(now.getTime() - 6 * 3600000).toISOString(),
+          type: "text",
+          read: true,
+        },
+      ],
+    },
+  ];
 }
 
 export const conversationStore = {
@@ -1395,6 +1490,39 @@ export const conversationStore = {
       for (const m of convs[idx].messages) m.read = true;
       writeJson(CONVERSATIONS_FILE, convs);
     }
+  },
+
+  create(data: { participants: string[]; contactName: string; contactAvatar: string; contactRole: StoredConversation["contactRole"]; orderId?: string }): StoredConversation {
+    const convs = this.getAll();
+
+    // Check if conversation already exists between same participants (+ optional orderId)
+    const existing = convs.find((c) => {
+      const sameParticipants =
+        c.participants.length === data.participants.length &&
+        data.participants.every((p) => c.participants.includes(p));
+      if (data.orderId) return sameParticipants && c.orderId === data.orderId;
+      return sameParticipants;
+    });
+
+    if (existing) return existing;
+
+    const conv: StoredConversation = {
+      id: `conv_${Date.now().toString(36)}`,
+      participants: data.participants,
+      contactName: data.contactName,
+      contactAvatar: data.contactAvatar,
+      contactRole: data.contactRole,
+      lastMessage: "",
+      lastMessageTime: new Date().toISOString(),
+      unread: 0,
+      online: false,
+      orderId: data.orderId,
+      messages: [],
+    };
+
+    convs.unshift(conv);
+    writeJson(CONVERSATIONS_FILE, convs);
+    return conv;
   },
 };
 

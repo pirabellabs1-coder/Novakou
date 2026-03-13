@@ -11,6 +11,7 @@ import { AudioCallModal } from "./calls/AudioCallModal";
 import { VideoCallModal } from "./calls/VideoCallModal";
 import { IncomingCallPopup } from "./calls/IncomingCallPopup";
 import { useWebRTC } from "./calls/useWebRTC";
+import { NewConversationDialog } from "./NewConversationDialog";
 
 interface MessagingLayoutProps {
   userId: string;
@@ -41,11 +42,15 @@ export function MessagingLayout({
     getMyConversations,
     getAllConversations,
     addSystemMessage,
+    syncFromApi,
+    apiSendMessage,
+    isSynced,
   } = useMessagingStore();
 
   const callStore = useCallStore();
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showNewConvDialog, setShowNewConvDialog] = useState(false);
 
   const currentUser: CallUser = useMemo(() => ({
     id: userId,
@@ -88,10 +93,11 @@ export function MessagingLayout({
     onCallMissed: handleCallMissed,
   });
 
-  // Set current user on mount
+  // Set current user on mount + sync from API
   useEffect(() => {
     setCurrentUser(userId, userRole);
-  }, [userId, userRole, setCurrentUser]);
+    syncFromApi();
+  }, [userId, userRole, setCurrentUser, syncFromApi]);
 
   const myConversations = useMemo(() => {
     return showAllConversations ? getAllConversations() : getMyConversations();
@@ -137,9 +143,29 @@ export function MessagingLayout({
 
   return (
     <div className="flex flex-col h-[calc(100vh-56px)]">
+      {/* New conversation dialog for admin */}
+      {showAllConversations && (
+        <NewConversationDialog
+          open={showNewConvDialog}
+          onClose={() => setShowNewConvDialog(false)}
+          onConversationCreated={(convId) => setSelectedId(convId)}
+        />
+      )}
+
       <div className="flex flex-1 min-h-0 bg-background-dark/50 overflow-hidden">
         {/* Conversations sidebar */}
-        <div className="w-80 border-r border-border-dark flex-shrink-0">
+        <div className="w-80 border-r border-border-dark flex-shrink-0 flex flex-col">
+          {showAllConversations && (
+            <div className="p-3 border-b border-border-dark">
+              <button
+                onClick={() => setShowNewConvDialog(true)}
+                className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-primary text-white font-bold text-sm rounded-xl hover:bg-primary/90 transition-colors"
+              >
+                <span className="material-symbols-outlined text-lg">edit_square</span>
+                Nouvelle conversation
+              </button>
+            </div>
+          )}
           <ConversationList
             conversations={myConversations}
             currentUserId={userId}
@@ -156,7 +182,11 @@ export function MessagingLayout({
           currentUserId={userId}
           onSendMessage={(content, type, fileName, fileSize, audioUrl, audioDuration) => {
             if (selectedId) {
-              sendMessage(selectedId, content, type, fileName, fileSize, audioUrl, audioDuration);
+              if (isSynced) {
+                apiSendMessage(selectedId, content, type, fileName, fileSize);
+              } else {
+                sendMessage(selectedId, content, type, fileName, fileSize, audioUrl, audioDuration);
+              }
             }
           }}
           onMarkRead={() => {

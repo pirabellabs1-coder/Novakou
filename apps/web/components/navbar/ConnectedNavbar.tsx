@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "./NotificationBell";
+import { MessagesBadge } from "./MessagesBadge";
 
 const ROLE_CONFIG: Record<string, { label: string; href: string; icon: string }> = {
   freelance: { label: "Mes ventes", href: "/dashboard", icon: "work" },
@@ -51,8 +53,6 @@ export function ConnectedNavbar() {
     }
   }
 
-  const notifHref = role === "admin" ? "/admin/notifications" : `/${role === "freelance" ? "dashboard" : role}/notifications`;
-  const msgHref = role === "admin" ? "/admin/messages" : `/${role === "freelance" ? "dashboard" : role}/messages`;
   const settingsHref = role === "admin" ? "/admin/configuration" : `/${role === "freelance" ? "dashboard" : role}/parametres`;
 
   return (
@@ -92,28 +92,10 @@ export function ConnectedNavbar() {
         {session ? (
           <>
             {/* Notifications */}
-            <Link
-              href={notifHref}
-              className="relative w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-              title="Notifications"
-            >
-              <span className="material-symbols-outlined text-xl">notifications</span>
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
-                3
-              </span>
-            </Link>
+            <NotificationBell role={role} />
 
             {/* Messages */}
-            <Link
-              href={msgHref}
-              className="relative w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-              title="Messages"
-            >
-              <span className="material-symbols-outlined text-xl">chat_bubble</span>
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-primary text-[#0f1117] text-[9px] font-bold rounded-full flex items-center justify-center">
-                5
-              </span>
-            </Link>
+            <MessagesBadge role={role} />
 
             {/* Bouton rôle */}
             <Link

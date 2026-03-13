@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { orderStore, serviceStore, transactionStore, notificationStore } from "@/lib/dev/data-store";
+import { orderStore, serviceStore, transactionStore, notificationStore, conversationStore } from "@/lib/dev/data-store";
 
 export async function GET(request: NextRequest) {
   try {
@@ -223,6 +223,15 @@ export async function POST(request: NextRequest) {
     // Increment service order count
     serviceStore.update(service.id, {
       orderCount: service.orderCount + 1,
+    });
+
+    // Auto-create conversation between client and freelance for this order
+    conversationStore.create({
+      participants: [session.user.id, service.userId],
+      contactName: service.vendorName || "Freelance",
+      contactAvatar: service.vendorAvatar || "FL",
+      contactRole: "client",
+      orderId: order.id,
     });
 
     return NextResponse.json({ order }, { status: 201 });

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
+import { ordersApi } from "@/lib/api-client";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 // ============================================================
@@ -171,7 +172,7 @@ export default function OrderTrackingPage() {
   const router = useRouter();
   const orderId = params.id as string;
 
-  const { orders, updateOrderStatus, addOrderMessage, addOrderFile } = useDashboardStore();
+  const { orders, updateOrderStatus, addOrderMessage, addOrderFile, apiSendOrderMessage } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
 
   const order = useMemo(() => orders.find((o) => o.id === orderId), [orders, orderId]);
@@ -236,23 +237,29 @@ export default function OrderTrackingPage() {
 
   function handleSendMessage() {
     if (!chatMessage.trim() || !order) return;
+    const content = chatMessage.trim();
+    setChatMessage("");
+    // Optimistic local update
     addOrderMessage(order.id, {
       sender: "freelance",
       senderName: "Vous",
-      content: chatMessage,
+      content,
       timestamp: new Date().toISOString(),
       type: "text",
     });
-    setChatMessage("");
+    // Persist via API
+    apiSendOrderMessage(order.id, content);
   }
 
   function handleChatFileUpload(files: FileList | null) {
     if (!files || !order) return;
     Array.from(files).forEach((f) => {
+      const fileSize = `${(f.size / (1024 * 1024)).toFixed(1)} MB`;
+      const fileName = f.name;
       addOrderFile(order.id, {
-        name: f.name,
-        size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
-        type: f.name.split(".").pop() || "file",
+        name: fileName,
+        size: fileSize,
+        type: fileName.split(".").pop() || "file",
         uploadedBy: "freelance",
         uploadedAt: new Date().toISOString(),
         url: "#",
@@ -260,12 +267,14 @@ export default function OrderTrackingPage() {
       addOrderMessage(order.id, {
         sender: "freelance",
         senderName: "Vous",
-        content: `Fichier envoye : ${f.name}`,
+        content: `Fichier envoye : ${fileName}`,
         timestamp: new Date().toISOString(),
         type: "file",
-        fileName: f.name,
-        fileSize: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
+        fileName,
+        fileSize,
       });
+      // Persist file message via API
+      ordersApi.sendMessage(order.id, { content: `Fichier envoye : ${fileName}`, type: "file", fileName, fileSize });
     });
     addToast("success", `${files.length} fichier(s) envoye(s)`);
   }
@@ -345,10 +354,12 @@ export default function OrderTrackingPage() {
   function handleReDeliveryFiles(files: FileList | null) {
     if (!files || !order) return;
     Array.from(files).forEach((f) => {
+      const fileSize = `${(f.size / (1024 * 1024)).toFixed(1)} MB`;
+      const fileName = f.name;
       addOrderFile(order.id, {
-        name: f.name,
-        size: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
-        type: f.name.split(".").pop() || "file",
+        name: fileName,
+        size: fileSize,
+        type: fileName.split(".").pop() || "file",
         uploadedBy: "freelance",
         uploadedAt: new Date().toISOString(),
         url: "#",
@@ -356,12 +367,13 @@ export default function OrderTrackingPage() {
       addOrderMessage(order.id, {
         sender: "freelance",
         senderName: "Vous",
-        content: `Nouvelle livraison : ${f.name}`,
+        content: `Nouvelle livraison : ${fileName}`,
         timestamp: new Date().toISOString(),
         type: "file",
-        fileName: f.name,
-        fileSize: `${(f.size / (1024 * 1024)).toFixed(1)} MB`,
+        fileName,
+        fileSize,
       });
+      ordersApi.sendMessage(order.id, { content: `Nouvelle livraison : ${fileName}`, type: "file", fileName, fileSize });
     });
     updateOrderStatus(order.id, "livre");
     addToast("success", "Nouvelle livraison envoyee !");

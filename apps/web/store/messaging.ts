@@ -53,6 +53,7 @@ interface MessagingState {
   conversations: UnifiedConversation[];
   currentUserId: string;
   currentUserRole: UserRole;
+  isSynced: boolean;
 
   // Actions
   setCurrentUser: (userId: string, role: UserRole) => void;
@@ -62,6 +63,10 @@ interface MessagingState {
   getMyConversations: () => UnifiedConversation[];
   getAllConversations: () => UnifiedConversation[];
   addSystemMessage: (convId: string, content: string) => void;
+
+  // API sync
+  syncFromApi: () => Promise<void>;
+  apiSendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string) => Promise<void>;
 }
 
 // ── Demo Data ──
@@ -77,6 +82,10 @@ const DEMO_PARTICIPANTS: Record<string, MessageParticipant> = {
   "u11": { id: "u11", name: "Studio Digital Dakar", avatar: "SD", role: "agence", online: true },
   "u12": { id: "u12", name: "Agence Creatif CI", avatar: "AC", role: "agence", online: false },
   "admin-1": { id: "admin-1", name: "Admin Principal", avatar: "AP", role: "admin", online: true },
+  // Real dev users
+  "dev-1773299214975": { id: "dev-1773299214975", name: "Gildas LISSANON", avatar: "GL", role: "freelance", online: true },
+  "dev-1773366800521": { id: "dev-1773366800521", name: "Gildas LISSANON", avatar: "GL", role: "client", online: true },
+  "dev-admin-1": { id: "dev-admin-1", name: "Admin FreelanceHigh", avatar: "AF", role: "admin", online: true },
 };
 
 function p(id: string): MessageParticipant {
@@ -185,10 +194,69 @@ function genConvId() {
 
 // ── Store ──
 
+// Helper to map a StoredConversation (from API) to UnifiedConversation
+function mapStoredToUnified(stored: {
+  id: string;
+  participants: string[];
+  contactName: string;
+  contactAvatar: string;
+  contactRole: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  unread: number;
+  online: boolean;
+  orderId?: string;
+  messages: { id: string; senderId: string; sender: string; content: string; timestamp: string; type: string; fileName?: string; fileSize?: string; read: boolean }[];
+}, currentUserId: string): UnifiedConversation {
+  // Build participants from stored data
+  const otherParticipantId = stored.participants.find((p) => p !== currentUserId) || stored.participants[0];
+  const participants: MessageParticipant[] = stored.participants.map((pid) => {
+    if (pid === currentUserId) {
+      return DEMO_PARTICIPANTS[pid] || { id: pid, name: "Vous", avatar: "V", role: "freelance" as UserRole, online: true };
+    }
+    return DEMO_PARTICIPANTS[pid] || {
+      id: pid,
+      name: stored.contactName,
+      avatar: stored.contactAvatar,
+      role: (stored.contactRole === "support" ? "admin" : stored.contactRole) as UserRole,
+      online: stored.online,
+    };
+  });
+
+  const messages: UnifiedMessage[] = stored.messages.map((m) => {
+    const sender = DEMO_PARTICIPANTS[m.senderId];
+    return {
+      id: m.id,
+      senderId: m.senderId,
+      senderName: sender?.name ?? (m.sender === "me" ? "Vous" : stored.contactName),
+      senderRole: sender?.role ?? ("client" as UserRole),
+      content: m.content,
+      type: (m.type || "text") as MessageContentType,
+      fileName: m.fileName,
+      fileSize: m.fileSize,
+      createdAt: m.timestamp,
+      readBy: m.read ? [currentUserId, m.senderId] : [m.senderId],
+    };
+  });
+
+  return {
+    id: stored.id,
+    type: stored.orderId ? "order" : "direct",
+    participants,
+    title: stored.orderId ? `Commande ${stored.orderId}` : undefined,
+    orderId: stored.orderId,
+    lastMessage: stored.lastMessage,
+    lastMessageTime: stored.lastMessageTime,
+    unreadCount: stored.unread,
+    messages,
+  };
+}
+
 export const useMessagingStore = create<MessagingState>()((set, get) => ({
   conversations: DEMO_CONVERSATIONS,
   currentUserId: "u1", // Default pour le demo
   currentUserRole: "freelance" as UserRole,
+  isSynced: false,
 
   setCurrentUser: (userId, role) => set({ currentUserId: userId, currentUserRole: role }),
 
@@ -349,5 +417,74 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
           : conv
       ),
     }));
+  },
+
+  syncFromApi: async () => {
+    try {
+      const res = await fetch("/api/conversations");
+      if (!res.ok) return;
+      const data = await res.json();
+      const { currentUserId } = get();
+      const apiConversations: UnifiedConversation[] = (data.conversations || []).map(
+        (c: Parameters<typeof mapStoredToUnified>[0]) => mapStoredToUnified(c, currentUserId)
+      );
+      if (apiConversations.length > 0) {
+        set({ conversations: apiConversations, isSynced: true });
+      } else {
+        set({ isSynced: true });
+      }
+    } catch (err) {
+      console.error("[MessagingStore syncFromApi]", err);
+    }
+  },
+
+  apiSendMessage: async (convId, content, type = "text", fileName, fileSize) => {
+    const { currentUserId, currentUserRole } = get();
+    const participant = DEMO_PARTICIPANTS[currentUserId];
+
+    // Optimistic local update
+    const newMessage: UnifiedMessage = {
+      id: genMsgId(),
+      senderId: currentUserId,
+      senderName: participant?.name ?? "Vous",
+      senderRole: currentUserRole,
+      content,
+      type,
+      fileName,
+      fileSize,
+      createdAt: new Date().toISOString(),
+      readBy: [currentUserId],
+    };
+
+    const lastMessageText =
+      type === "voice" ? "Message vocal" :
+      type === "file" ? (fileName ?? content) :
+      content;
+
+    set((s) => ({
+      conversations: s.conversations.map((conv) =>
+        conv.id === convId
+          ? {
+              ...conv,
+              messages: [...conv.messages, newMessage],
+              lastMessage: lastMessageText,
+              lastMessageTime: newMessage.createdAt,
+            }
+          : conv
+      ),
+    }));
+
+    // Persist via API
+    try {
+      await fetch(`/api/conversations/${convId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, type, fileName, fileSize }),
+      });
+      // Refresh from API after auto-reply delay
+      setTimeout(() => get().syncFromApi(), 3000);
+    } catch (err) {
+      console.error("[MessagingStore apiSendMessage]", err);
+    }
   },
 }));
