@@ -39,6 +39,22 @@ Test1234!
 - Configuration plateforme (commissions, modes de paiement)
 - Analytics
 
+**Admin Formations** (meme compte `admin@test.com`) :
+
+| Page | URL |
+|---|---|
+| Dashboard formations | http://localhost:3450/formations/admin/dashboard |
+| Gestion formations | http://localhost:3450/formations/admin/formations |
+| Produits numeriques | http://localhost:3450/formations/admin/produits |
+| Instructeurs | http://localhost:3450/formations/admin/instructeurs |
+| Apprenants | http://localhost:3450/formations/admin/apprenants |
+| Finances formations | http://localhost:3450/formations/admin/finances |
+| Certificats | http://localhost:3450/formations/admin/certificats |
+| Categories | http://localhost:3450/formations/admin/categories |
+| Codes promo | http://localhost:3450/formations/admin/promo-codes |
+
+Le lien "Formations" dans le sidebar admin principal redirige directement vers `/formations/admin/dashboard`.
+
 ---
 
 ### Freelance (Espace Freelance)

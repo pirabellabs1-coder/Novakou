@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { label: "Litiges", href: "/admin/litiges", icon: "gavel" },
   { label: "Finances", href: "/admin/finances", icon: "payments" },
   { label: "Plans", href: "/admin/plans", icon: "workspace_premium" },
-  { label: "Formations", href: "/admin/formations", icon: "school" },
+  { label: "Formations", href: "/formations/admin/dashboard", icon: "school" },
   { label: "Blog", href: "/admin/blog", icon: "article" },
   { label: "Catégories", href: "/admin/categories", icon: "category" },
   { label: "Messages", href: "/admin/messages", icon: "chat" },
