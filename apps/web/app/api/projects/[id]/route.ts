@@ -3,6 +3,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { projectStore } from "@/lib/dev/data-store";
+import { z } from "zod";
+
+const projectUpdateSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  description: z.string().max(5000).optional(),
+  budget: z.number().positive().optional(),
+  deadline: z.string().optional(),
+  status: z.enum(["ouvert", "en_cours", "ferme", "annule"]).optional(),
+  skills: z.array(z.string()).optional(),
+}).strict();
 
 export async function GET(
   _req: NextRequest,
@@ -52,10 +62,14 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = projectUpdateSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Donnees invalides", details: parsed.error.issues }, { status: 400 });
+    }
 
     if (IS_DEV) {
-      const project = projectStore.update(id, body);
+      const project = projectStore.update(id, parsed.data);
       if (!project) {
         return NextResponse.json({ error: "Projet non trouve" }, { status: 404 });
       }
@@ -66,7 +80,7 @@ export async function PATCH(
     // Production: Prisma
     const project = await prisma.bid.update({
       where: { id },
-      data: body,
+      data: parsed.data,
     });
 
     return NextResponse.json({ project });

@@ -5,7 +5,11 @@ import { sendWelcomeEmail } from "@/lib/email";
 
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caracteres"),
+  password: z.string()
+    .min(10, "Le mot de passe doit contenir au moins 10 caracteres")
+    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une majuscule")
+    .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
   name: z.string().min(2, "Le nom est requis"),
   role: z.enum(["freelance", "client", "agence"]).default("freelance"),
   formationsRole: z.enum(["apprenant", "instructeur"]).optional(),

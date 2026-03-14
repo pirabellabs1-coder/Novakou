@@ -155,6 +155,14 @@ export async function PATCH(
       }
       // Handle other status changes
       else {
+        // Only client can mark as completed
+        if (status === "termine" && session.user.id !== order.clientId) {
+          return NextResponse.json(
+            { error: "Seul le client peut valider la livraison" },
+            { status: 403 }
+          );
+        }
+
         const updates: Record<string, unknown> = {};
         if (status !== undefined) updates.status = status;
         if (progress !== undefined) updates.progress = progress;
@@ -366,12 +374,30 @@ export async function PATCH(
       else {
         const prismaStatus = status ? (STATUS_MAP[status] || status.toUpperCase()) : undefined;
 
+        // Only the client can mark as completed (validates delivery)
+        if (prismaStatus === "TERMINE" && session.user.id !== order.clientId) {
+          return NextResponse.json(
+            { error: "Seul le client peut valider la livraison" },
+            { status: 403 }
+          );
+        }
+
         updatedOrder = await prisma.$transaction(async (tx) => {
           const updateData: Record<string, unknown> = {};
           if (prismaStatus) updateData.status = prismaStatus;
           if (progress !== undefined) updateData.progress = progress;
 
           if (prismaStatus === "TERMINE") {
+            // SECURITY: Verify payment was actually received before releasing escrow
+            const payment = await tx.payment.findFirst({
+              where: { orderId: id, type: "paiement", status: "COMPLETE" },
+            });
+            if (!payment) {
+              return NextResponse.json(
+                { error: "Impossible de terminer : le paiement n'a pas ete confirme" },
+                { status: 400 }
+              );
+            }
             updateData.completedAt = new Date();
             updateData.progress = 100;
             updateData.escrowStatus = "RELEASED";

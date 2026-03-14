@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import {
   serviceStore,
   orderStore,
@@ -13,6 +15,11 @@ import { trackingStore } from "@/lib/tracking/tracking-store";
 // GET /api/admin/analytics — Platform analytics computed from all stores
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const users = devStore.getAll().filter((u) => u.role !== "admin");
     const orders = orderStore.getAll();
     const services = serviceStore.getAll();

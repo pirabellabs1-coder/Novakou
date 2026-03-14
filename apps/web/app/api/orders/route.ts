@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { orderStore, serviceStore, transactionStore, notificationStore, conversationStore } from "@/lib/dev/data-store";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 export async function GET(request: NextRequest) {
   try {
@@ -91,6 +92,11 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    const rl = rateLimit(`orders:${session.user.id}`, 10, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop de requetes. Reessayez dans 1 minute." }, { status: 429 });
     }
 
     const body = await request.json();

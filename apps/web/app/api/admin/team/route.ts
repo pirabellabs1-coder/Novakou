@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { devStore } from "@/lib/dev/dev-store";
 import { notificationStore } from "@/lib/dev/data-store";
 import { ALL_ADMIN_ROLES, type AdminRole } from "@/lib/admin-permissions";
@@ -6,6 +8,11 @@ import { ALL_ADMIN_ROLES, type AdminRole } from "@/lib/admin-permissions";
 // GET /api/admin/team — List admin team members
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const allUsers = devStore.getAll();
     const admins = allUsers
       .filter((u) => u.role === "admin")
@@ -32,6 +39,11 @@ export async function GET() {
 // POST /api/admin/team — Invite a new admin team member
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { email, name, adminRole } = body;
 
@@ -95,6 +107,11 @@ export async function POST(request: NextRequest) {
 // PATCH /api/admin/team — Update member role
 export async function PATCH(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { memberId, adminRole } = body;
 
@@ -147,6 +164,11 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/admin/team — Remove a team member
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(request.url);
     const memberId = searchParams.get("id");
 

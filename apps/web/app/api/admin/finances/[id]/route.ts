@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { transactionStore, notificationStore } from "@/lib/dev/data-store";
 
 // PATCH /api/admin/finances/[id] — Block/unblock/approve a transaction
@@ -7,6 +9,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { action } = body;

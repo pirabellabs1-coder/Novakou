@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import DOMPurify from "isomorphic-dompurify";
 import {
   Play, FileText, BookOpen, CheckCircle, Circle,
   ChevronDown, ChevronUp, X, StickyNote, MessageCircle,
@@ -332,7 +333,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
               <div className="h-full overflow-y-auto p-8">
                 <div
                   className="prose prose-invert max-w-3xl mx-auto"
-                  dangerouslySetInnerHTML={{ __html: currentLesson.content }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentLesson.content) }}
                 />
               </div>
             )}

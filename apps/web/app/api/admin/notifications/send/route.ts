@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { notificationStore } from "@/lib/dev/data-store";
 import { devStore } from "@/lib/dev/dev-store";
 
 // POST /api/admin/notifications/send — Send notifications to users
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { title, message, type, target, channel } = body;
 

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifySync } from "otplib";
+import crypto from "crypto";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
 
@@ -15,6 +17,15 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Email et code requis" },
         { status: 400 }
+      );
+    }
+
+    // Rate limiting sur les tentatives 2FA
+    const rateLimitResult = checkRateLimit(`2fa:${email}`);
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Reessayez dans 15 minutes." },
+        { status: 429 }
       );
     }
 
@@ -71,15 +82,23 @@ export async function POST(request: Request) {
     });
 
     if (!result.valid) {
+      recordFailedAttempt(`2fa:${email}`);
       return NextResponse.json(
         { error: "Code 2FA incorrect" },
         { status: 400 }
       );
     }
 
+    // Generer un token HMAC signe cote serveur pour prouver la verification 2FA
+    const twoFactorToken = crypto
+      .createHmac("sha256", process.env.NEXTAUTH_SECRET || "fallback-secret")
+      .update(`${email}:${Date.now().toString().slice(0, -4)}`)
+      .digest("hex");
+
     return NextResponse.json({
       success: true,
       verified: true,
+      twoFactorToken,
     });
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

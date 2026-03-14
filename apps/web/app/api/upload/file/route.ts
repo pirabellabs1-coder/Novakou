@@ -59,8 +59,14 @@ export async function POST(req: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // Validate file extension
+    const ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "zip", "png", "jpg", "jpeg", "gif", "webp"];
+    const extension = (file.name.split(".").pop() || "").toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(extension)) {
+      return NextResponse.json({ error: "Extension de fichier non autorisee" }, { status: 400 });
+    }
+
     // Build a unique path scoped to the user
-    const extension = file.name.split(".").pop() || "bin";
     const storagePath = `${session.user.id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${extension}`;
 
     // Try Supabase Storage upload

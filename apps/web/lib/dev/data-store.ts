@@ -1672,6 +1672,106 @@ export const offreStore = {
   },
 };
 
+// ── KYC Request Store ──────────────────────────────────────────────────
+
+export interface StoredKycRequest {
+  id: string;
+  userId: string;
+  level: 2 | 3 | 4;
+  documentType: "phone" | "cni" | "passeport" | "diplome" | "certificat" | "siret";
+  documentUrl: string;
+  status: "en_attente" | "approuve" | "refuse";
+  reason: string;
+  createdAt: string;
+  reviewedAt: string | null;
+  reviewedBy: string | null;
+}
+
+const KYC_FILE = "kyc-requests.json";
+
+export const kycRequestStore = {
+  getAll(): StoredKycRequest[] {
+    return readJson<StoredKycRequest[]>(KYC_FILE, []);
+  },
+
+  getByUser(userId: string): StoredKycRequest[] {
+    return this.getAll().filter((k) => k.userId === userId);
+  },
+
+  getById(id: string): StoredKycRequest | undefined {
+    return this.getAll().find((k) => k.id === id);
+  },
+
+  getPending(): StoredKycRequest[] {
+    return this.getAll().filter((k) => k.status === "en_attente");
+  },
+
+  getUserLevel(userId: string): number {
+    const requests = this.getByUser(userId);
+    const approved = requests.filter((k) => k.status === "approuve");
+    if (approved.some((k) => k.level === 4)) return 4;
+    if (approved.some((k) => k.level === 3)) return 3;
+    if (approved.some((k) => k.level === 2)) return 2;
+    return 1;
+  },
+
+  create(data: Omit<StoredKycRequest, "id" | "status" | "createdAt" | "reviewedAt" | "reviewedBy" | "reason">): StoredKycRequest {
+    const all = this.getAll();
+    const req: StoredKycRequest = {
+      ...data,
+      id: `kyc_${Date.now().toString(36)}`,
+      status: "en_attente",
+      reason: "",
+      createdAt: new Date().toISOString(),
+      reviewedAt: null,
+      reviewedBy: null,
+    };
+    all.unshift(req);
+    writeJson(KYC_FILE, all);
+    return req;
+  },
+
+  update(id: string, updates: Partial<StoredKycRequest>): StoredKycRequest | null {
+    const all = this.getAll();
+    const idx = all.findIndex((k) => k.id === id);
+    if (idx === -1) return null;
+    all[idx] = { ...all[idx], ...updates };
+    writeJson(KYC_FILE, all);
+    return all[idx];
+  },
+};
+
+// ── Contact Store ─────────────────────────────────────────────────────
+
+export interface StoredContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+}
+
+const CONTACT_FILE = "contact-messages.json";
+
+export const contactStore = {
+  getAll(): StoredContactMessage[] {
+    return readJson<StoredContactMessage[]>(CONTACT_FILE, []);
+  },
+
+  create(data: Omit<StoredContactMessage, "id" | "createdAt">): StoredContactMessage {
+    const all = this.getAll();
+    const msg: StoredContactMessage = {
+      ...data,
+      id: `contact_${Date.now().toString(36)}`,
+      createdAt: new Date().toISOString(),
+    };
+    all.unshift(msg);
+    writeJson(CONTACT_FILE, all);
+    return msg;
+  },
+};
+
 // ── Export SEO score calculator for API use ──────────────────────────────
 
 export { calculateSeoScore };

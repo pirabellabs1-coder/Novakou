@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
+import { z } from "zod";
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
+
+const blogUpdateSchema = z.object({
+  id: z.string(),
+  title: z.string().min(5).max(200).optional(),
+  slug: z.string().optional(),
+  excerpt: z.string().max(500).optional(),
+  content: z.string().optional(),
+  coverImage: z.string().optional(),
+  category: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  status: z.enum(["brouillon", "programme", "publie"]).optional(),
+  publishDate: z.string().optional(),
+}).strict();
 
 function generateSlug(title: string): string {
   return title
@@ -55,6 +71,11 @@ function mapStatusToPrisma(s: string): "BROUILLON" | "PROGRAMME" | "PUBLIE" {
 // ── GET /api/admin/blog — List all blog articles ──
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     if (IS_DEV_MODE) {
       // Check for scheduled articles
       const now = new Date();
@@ -146,6 +167,11 @@ export async function GET() {
 // ── POST /api/admin/blog — Create a new blog article ──
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { title, content, excerpt, author, authorId, category, tags, status, scheduledAt, featuredImage } = body;
 
@@ -243,12 +269,18 @@ export async function POST(request: NextRequest) {
 // ── PATCH /api/admin/blog — Update an existing blog article ──
 export async function PATCH(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { id, ...updates } = body;
-
-    if (!id) {
-      return NextResponse.json({ error: "id est requis" }, { status: 400 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
+
+    const rawBody = await request.json();
+    const parsed = blogUpdateSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Donnees invalides", details: parsed.error.issues }, { status: 400 });
+    }
+
+    const { id, ...updates } = parsed.data;
 
     if (IS_DEV_MODE) {
       const idx = devBlogPosts.findIndex(a => a.id === id);
@@ -355,6 +387,11 @@ export async function PATCH(request: NextRequest) {
 // ── DELETE /api/admin/blog — Delete a blog article ──
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const { searchParams } = request.nextUrl;
     const id = searchParams.get("id");
 

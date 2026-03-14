@@ -10,6 +10,7 @@ import {
   generateTransactionId,
 } from "@/lib/cinetpay";
 import { orderStore } from "@/lib/dev/data-store";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
         { error: "Non authentifie" },
         { status: 401 }
       );
+    }
+
+    const rl = rateLimit(`cinetpay:${session.user.id}`, 10, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop de requetes. Reessayez dans 1 minute." }, { status: 429 });
     }
 
     // ── Parse request body ──────────────────────────────────────────────

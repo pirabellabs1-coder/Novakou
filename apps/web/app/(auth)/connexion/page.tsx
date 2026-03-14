@@ -97,11 +97,11 @@ export default function ConnexionPage() {
         return;
       }
 
-      // 2FA verifiee — maintenant on se connecte avec le flag twoFactorVerified
+      // 2FA verifiee — maintenant on se connecte avec le token HMAC signe par le serveur
       const loginResult = await signIn("credentials", {
         email: form.email,
         password: form.password,
-        twoFactorVerified: "true",
+        twoFactorToken: data.twoFactorToken,
         redirect: false,
       });
 

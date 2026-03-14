@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { stripe } from "@/lib/stripe";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 const VALID_PLANS = ["pro", "business", "agence"] as const;
 type PaidPlanId = (typeof VALID_PLANS)[number];
@@ -46,6 +47,11 @@ export async function POST(request: NextRequest) {
         { error: "Authentification requise." },
         { status: 401 }
       );
+    }
+
+    const rl = rateLimit(`subscription:${session.user.id}`, 5, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop de requetes. Reessayez dans 1 minute." }, { status: 429 });
     }
 
     // Check Stripe is configured

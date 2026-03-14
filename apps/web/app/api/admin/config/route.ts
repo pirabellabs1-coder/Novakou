@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 
 // ── In-memory Platform Config Store ──
 // Configuration persists for the lifetime of the server process.
@@ -82,6 +84,11 @@ const platformConfig: PlatformConfig = {
 // GET /api/admin/config — Get platform configuration
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     return NextResponse.json({ config: platformConfig });
   } catch (error) {
     console.error("[API /admin/config GET]", error);
@@ -95,6 +102,11 @@ export async function GET() {
 // PATCH /api/admin/config — Update platform configuration (deep merge)
 export async function PATCH(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
 
     // Deep merge updates into platformConfig

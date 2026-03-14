@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import LinkedInProvider from "next-auth/providers/linkedin";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import { checkRateLimit, recordFailedAttempt, resetAttempts } from "./rate-limiter";
 
 // Types etendus pour le JWT et la session
@@ -47,12 +48,12 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Mot de passe", type: "password" },
-        twoFactorVerified: { label: "2FA Verified", type: "text" },
+        twoFactorToken: { label: "2FA Token", type: "text" },
       },
       async authorize(credentials) {
         const email = credentials?.email as string;
         const password = credentials?.password as string;
-        const twoFactorVerified = credentials?.twoFactorVerified === "true";
+        const twoFactorToken = credentials?.twoFactorToken as string | undefined;
 
         if (!email || !password) return null;
 
@@ -79,10 +80,24 @@ export const authOptions: NextAuthOptions = {
               recordFailedAttempt(email);
               return null;
             }
-            // Verifier si 2FA est active (sauf si deja verifie)
+            // Verifier si 2FA est active — valider le token HMAC signe par le serveur
             const userRecord = user as unknown as Record<string, unknown>;
-            if (userRecord.twoFactorEnabled && !twoFactorVerified) {
-              throw new Error("REQUIRES_2FA");
+            if (userRecord.twoFactorEnabled) {
+              if (!twoFactorToken) {
+                throw new Error("REQUIRES_2FA");
+              }
+              const secret = process.env.NEXTAUTH_SECRET || "fallback-secret";
+              const now = Date.now().toString().slice(0, -4);
+              const prev = (Date.now() - 10000).toString().slice(0, -4);
+              const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
+              const validToken2 = crypto.createHmac("sha256", secret).update(`${email}:${prev}`).digest("hex");
+
+              if (
+                !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken1)) &&
+                !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken2))
+              ) {
+                throw new Error("REQUIRES_2FA");
+              }
             }
             resetAttempts(email);
             devStore.updateLastLogin(user.id);
@@ -136,9 +151,23 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Verifier si 2FA est active (sauf si deja verifie)
-          if (user.twoFactorEnabled && !twoFactorVerified) {
-            throw new Error("REQUIRES_2FA");
+          // Verifier si 2FA est active — valider le token HMAC signe par le serveur
+          if (user.twoFactorEnabled) {
+            if (!twoFactorToken) {
+              throw new Error("REQUIRES_2FA");
+            }
+            const secret = process.env.NEXTAUTH_SECRET || "fallback-secret";
+            const now = Date.now().toString().slice(0, -4);
+            const prev = (Date.now() - 10000).toString().slice(0, -4);
+            const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
+            const validToken2 = crypto.createHmac("sha256", secret).update(`${email}:${prev}`).digest("hex");
+
+            if (
+              !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken1)) &&
+              !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken2))
+            ) {
+              throw new Error("REQUIRES_2FA");
+            }
           }
 
           resetAttempts(email);
@@ -186,7 +215,7 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 24 * 60 * 60,
+    maxAge: 8 * 60 * 60, // 8 hours for financial platform security
   },
   pages: {
     signIn: "/connexion",

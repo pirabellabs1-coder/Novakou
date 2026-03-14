@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { orderStore, transactionStore, notificationStore } from "@/lib/dev/data-store";
 
 // GET /api/admin/disputes — All orders with status "litige"
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const orders = orderStore.getAll();
     const disputes = orders
       .filter((o) => o.status === "litige")
@@ -75,6 +82,11 @@ export async function GET() {
 // POST /api/admin/disputes — Examine or resolve a dispute
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { action, orderId, verdict, resolution } = body;
 
