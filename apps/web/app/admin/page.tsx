@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 export default function AdminDashboard() {
   const { dashboardStats, loading, config, syncDashboard, syncConfig } = useAdminStore();
@@ -211,7 +212,7 @@ export default function AdminDashboard() {
               </defs>
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 10 }} tickFormatter={v => `€${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 12 }} formatter={(v: number) => [`€${v.toLocaleString()}`, ""]} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `€${v.toLocaleString("fr-FR")}`} />} />
               <Area type="monotone" dataKey="revenue" stroke="#6C2BD9" strokeWidth={2.5} fill="url(#dashGrad)" name="Revenus" />
               <Area type="monotone" dataKey="commissions" stroke="#10B981" strokeWidth={1.5} fill="none" name="Commissions" />
             </AreaChart>
@@ -273,7 +274,7 @@ export default function AdminDashboard() {
               <Pie data={rolePie} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={30} outerRadius={50} paddingAngle={4}>
                 {rolePie.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 11 }} />
+              <Tooltip content={<ChartTooltip />} />
             </PieChart>
           </ResponsiveContainer>
           {roleCounts.map(r => (

@@ -289,7 +289,7 @@ export default function AgenceBoostPage() {
         <div>
           <h1 className="text-3xl font-extrabold mb-1">Boost de Services</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Boostez la visibilite de vos services et atteignez plus de clients potentiels.
+            Boostez la visibilité de vos services et atteignez plus de clients potentiels.
           </p>
         </div>
         <Link
@@ -525,7 +525,7 @@ export default function AgenceBoostPage() {
                   },
                   {
                     icon: "payments",
-                    label: "Total depense",
+                    label: "Total dépensé",
                     value: `${stats.totalSpent.toFixed(2)} EUR`,
                     bg: "bg-amber-500/10",
                     iconColor: "text-amber-400",
@@ -565,7 +565,7 @@ export default function AgenceBoostPage() {
                     <div>
                       <h3 className="text-lg font-bold">Performance du boost</h3>
                       <p className="text-xs text-slate-500">
-                        Repartition des vues et clics par jour
+                        Répartition des vues et clics par jour
                       </p>
                     </div>
                     <div className="flex gap-4">
@@ -618,7 +618,7 @@ export default function AgenceBoostPage() {
                   {stats.totalViews === 0 && stats.totalClicks === 0 && (
                     <div className="text-center py-4">
                       <p className="text-xs text-slate-400">
-                        Aucune donnee de performance pour ce service. Les statistiques apparaitront apres l&apos;activation d&apos;un boost.
+                        Aucune donnée de performance pour ce service. Les statistiques apparaîtront après l&apos;activation d&apos;un boost.
                       </p>
                     </div>
                   )}
@@ -687,7 +687,7 @@ export default function AgenceBoostPage() {
                                       "w-1.5 h-1.5 rounded-full",
                                       isActive ? "bg-primary" : "bg-emerald-400"
                                     )} />
-                                    {isActive ? "Actif" : "Termine"}
+                                    {isActive ? "Actif" : "Terminé"}
                                   </span>
                                 </td>
                               </tr>

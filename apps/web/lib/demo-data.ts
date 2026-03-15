@@ -28,6 +28,7 @@ export interface Service {
   };
   faq: { question: string; answer: string }[];
   extras: { label: string; price: number }[];
+  isBoosted?: boolean;
 }
 
 export interface Order {

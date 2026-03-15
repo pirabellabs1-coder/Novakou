@@ -4,6 +4,7 @@ import { rateLimit } from "@/lib/api-rate-limit";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { generateResetToken } from "@/lib/auth/password-reset";
 import { IS_DEV } from "@/lib/prisma";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const schema = z.object({ email: z.string().email() });
 
@@ -11,6 +12,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email } = schema.parse(body);
+
+    // Rate limit (auth rate-limiter): 5 attempts per 15 min per email
+    const rateLimitKey = `password-reset:${email}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
+        { status: 429 }
+      );
+    }
+    recordFailedAttempt(rateLimitKey);
 
     // Rate limit: 3 requests per 15 min per email
     const rl = rateLimit(`reset:${email.toLowerCase()}`, 3, 15 * 60 * 1000);

@@ -154,9 +154,9 @@ export default function AdminTeamPage() {
             <thead>
               <tr className="border-b border-border-dark">
                 <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Membre</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Role</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Rôle</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Statut</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Derniere connexion</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Dernière connexion</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>

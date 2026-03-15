@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { devStore } from "@/lib/dev/dev-store";
 import { serviceStore, orderStore, transactionStore, notificationStore } from "@/lib/dev/data-store";
 
@@ -8,6 +10,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
     const { id } = await params;
     const user = devStore.findById(id);
 
@@ -59,6 +65,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const { id } = await params;
     const body = await req.json();
     const { status, role, plan, kyc } = body;

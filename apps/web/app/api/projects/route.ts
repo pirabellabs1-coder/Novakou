@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { projectStore } from "@/lib/dev/data-store";
+import { z } from "zod";
+
+const createProjectSchema = z.object({
+  title: z.string().min(5, "Titre trop court").max(200),
+  description: z.string().min(20, "Description trop courte").max(5000),
+  category: z.string().optional(),
+  budgetMin: z.number().min(0).max(1000000).optional(),
+  budgetMax: z.number().min(0).max(1000000).optional(),
+  deadline: z.string().optional(),
+  urgency: z.string().optional(),
+  contractType: z.string().optional(),
+  skills: z.array(z.string()).max(20).optional(),
+}).refine(
+  (data) => !data.budgetMin || !data.budgetMax || data.budgetMin <= data.budgetMax,
+  { message: "Le budget min doit etre inferieur au budget max", path: ["budgetMax"] }
+);
 
 export async function GET() {
   try {
@@ -30,11 +46,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, category, budgetMin, budgetMax, deadline, urgency, contractType, skills } = body;
-
-    if (!title || !description) {
-      return NextResponse.json({ error: "Titre et description requis" }, { status: 400 });
+    const result = createProjectSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Donnees invalides", details: z.treeifyError(result.error) },
+        { status: 400 }
+      );
     }
+    const { title, description, category, budgetMin, budgetMax, deadline, urgency, contractType, skills } = result.data;
 
     const project = projectStore.create({
       clientId: session.user.id,

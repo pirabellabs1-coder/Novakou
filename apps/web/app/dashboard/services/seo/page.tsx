@@ -140,7 +140,7 @@ export default function SeoPage() {
       setHasLoaded(true);
     } catch (err) {
       console.error("[SEO] Fetch error:", err);
-      addToast("error", "Impossible de charger les donnees SEO de ce service.");
+      addToast("error", "Impossible de charger les données SEO de ce service.");
       setHasLoaded(false);
     } finally {
       setIsLoading(false);
@@ -280,7 +280,7 @@ export default function SeoPage() {
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-3">
               <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-slate-400">Chargement des donnees SEO...</p>
+              <p className="text-sm text-slate-400">Chargement des données SEO...</p>
             </div>
           </div>
         )}
@@ -412,7 +412,7 @@ export default function SeoPage() {
             <div className="bg-primary/5 rounded-xl border border-primary/10 p-8">
               <h3 className="text-sm font-bold mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">edit_note</span>
-                Modifier les meta-donnees
+                Modifier les méta-données
               </h3>
               <div className="space-y-8">
                 {/* Meta Title */}
@@ -549,7 +549,7 @@ export default function SeoPage() {
             <div className="space-y-4">
               <h3 className="text-sm font-bold flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">visibility</span>
-                Apercu du resultat Google
+                Aperçu du résultat Google
               </h3>
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
                 <div className="max-w-xl">

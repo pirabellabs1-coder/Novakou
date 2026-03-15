@@ -62,11 +62,13 @@ const DOC_TYPES_BY_LEVEL: Record<number, { value: string; label: string }[]> = {
   3: [
     { value: "cni", label: "Carte nationale d'identite" },
     { value: "passeport", label: "Passeport" },
+    { value: "permis", label: "Permis de conduire" },
   ],
   4: [
     { value: "diplome", label: "Diplome" },
     { value: "certificat", label: "Certificat professionnel" },
     { value: "siret", label: "Numero SIRET / registre commerce" },
+    { value: "registre_commerce", label: "Registre de commerce / immatriculation" },
   ],
 };
 

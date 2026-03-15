@@ -119,19 +119,19 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Participants" : "Participants"}</p>
-          <p className="text-xl font-bold text-slate-900">{cohort.currentCount}/{cohort.maxParticipants}</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{cohort.currentCount}/{cohort.maxParticipants}</p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Progression moyenne" : "Avg Progress"}</p>
-          <p className="text-xl font-bold text-slate-900">{avgProgress}%</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{avgProgress}%</p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Messages" : "Messages"}</p>
-          <p className="text-xl font-bold text-slate-900">{cohort._count?.messages ?? 0}</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{cohort._count?.messages ?? 0}</p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Revenus" : "Revenue"}</p>
           <p className="text-xl font-bold text-primary">{(cohort.price * cohort.currentCount * 0.7).toFixed(0)}€</p>
         </div>
@@ -148,7 +148,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
             key={key}
             onClick={() => setTab(key as typeof tab)}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === key ? "bg-white dark:bg-neutral-dark text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -159,7 +159,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
 
       {/* Participants tab */}
       {tab === "participants" && (
-        <div className="bg-white rounded-xl border overflow-hidden">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark overflow-hidden">
           {participants.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Users className="w-10 h-10 mx-auto mb-3 text-slate-300" />
@@ -238,9 +238,9 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
 
       {/* Settings tab */}
       {tab === "settings" && (
-        <div className="bg-white rounded-xl border p-6 space-y-6">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 space-y-6">
           <div>
-            <h3 className="font-semibold text-slate-900 mb-3">{fr ? "Informations" : "Details"}</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-3">{fr ? "Informations" : "Details"}</h3>
             <div className="grid sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-slate-500">{fr ? "Début" : "Start"}</span>

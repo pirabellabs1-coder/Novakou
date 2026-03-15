@@ -81,8 +81,8 @@ export default function ClientSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white">Parametres</h1>
-        <p className="text-slate-400 text-sm mt-1">Configurez votre compte, votre securite et vos preferences.</p>
+        <h1 className="text-3xl font-black text-white">Paramètres</h1>
+        <p className="text-slate-400 text-sm mt-1">Configurez votre compte, votre sécurité et vos préférences.</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">

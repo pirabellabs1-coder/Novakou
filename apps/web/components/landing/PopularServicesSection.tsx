@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCurrencyStore } from "@/store/currency";
+import { InlineBadge } from "@/components/ui/BadgeDisplay";
 
 interface TopService {
   id: string;
@@ -17,6 +18,7 @@ interface TopService {
   orderCount: number;
   image: string;
   freelancer: string;
+  vendorBadges?: string[];
 }
 
 export function PopularServicesSection() {
@@ -80,7 +82,12 @@ export function PopularServicesSection() {
                 <h4 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
                   {service.title}
                 </h4>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{service.freelancer}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-2">
+                  {service.freelancer}
+                  {service.vendorBadges && service.vendorBadges.length > 0 && (
+                    <InlineBadge badge={service.vendorBadges[0]} />
+                  )}
+                </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <span

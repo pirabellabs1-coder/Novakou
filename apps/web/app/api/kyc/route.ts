@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
-import { kycRequestStore } from "@/lib/dev/data-store";
+import { kycRequestStore, kycPersonalInfoStore } from "@/lib/dev/data-store";
 
 export async function GET() {
   try {
@@ -14,8 +14,9 @@ export async function GET() {
     if (IS_DEV) {
       const requests = kycRequestStore.getByUser(session.user.id);
       const currentLevel = kycRequestStore.getUserLevel(session.user.id);
+      const personalInfo = kycPersonalInfoStore.getByUser(session.user.id);
 
-      return NextResponse.json({ requests, currentLevel });
+      return NextResponse.json({ requests, currentLevel, personalInfo });
     }
 
     // Production: Prisma
@@ -25,10 +26,35 @@ export async function GET() {
     });
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { kyc: true },
+      select: {
+        kyc: true,
+        firstName: true,
+        lastName: true,
+        country: true,
+        city: true,
+        address: true,
+        dateOfBirth: true,
+      },
     });
 
-    return NextResponse.json({ requests, currentLevel: user?.kyc ?? 1 });
+    const personalInfo = user
+      ? {
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          country: user.country || "",
+          city: user.city || "",
+          address: user.address || "",
+          dateOfBirth: user.dateOfBirth
+            ? new Date(user.dateOfBirth).toISOString().split("T")[0]
+            : "",
+        }
+      : null;
+
+    return NextResponse.json({
+      requests,
+      currentLevel: user?.kyc ?? 1,
+      personalInfo,
+    });
   } catch (error) {
     console.error("[API /kyc GET]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -117,6 +143,84 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ request: req }, { status: 201 });
   } catch (error) {
     console.error("[API /kyc POST]", error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { personalInfo } = body;
+
+    if (!personalInfo) {
+      return NextResponse.json(
+        { error: "Champs requis : personalInfo" },
+        { status: 400 }
+      );
+    }
+
+    const { firstName, lastName, country, city, dateOfBirth } = personalInfo;
+
+    if (!firstName || !lastName || !country || !city || !dateOfBirth) {
+      return NextResponse.json(
+        {
+          error:
+            "Champs requis : firstName, lastName, country, city, dateOfBirth",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate age (must be at least 18)
+    const birthDate = new Date(dateOfBirth);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const isUnder18 =
+      age < 18 || (age === 18 && monthDiff < 0) ||
+      (age === 18 && monthDiff === 0 && today.getDate() < birthDate.getDate());
+
+    if (isUnder18) {
+      return NextResponse.json(
+        { error: "Vous devez avoir au moins 18 ans" },
+        { status: 400 }
+      );
+    }
+
+    if (IS_DEV) {
+      kycPersonalInfoStore.upsert(session.user.id, {
+        firstName: personalInfo.firstName,
+        lastName: personalInfo.lastName,
+        country: personalInfo.country,
+        city: personalInfo.city,
+        address: personalInfo.address || "",
+        dateOfBirth: personalInfo.dateOfBirth,
+      });
+
+      return NextResponse.json({ success: true });
+    }
+
+    // Production: Prisma — update user profile fields
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        firstName: personalInfo.firstName,
+        lastName: personalInfo.lastName,
+        country: personalInfo.country,
+        city: personalInfo.city,
+        address: personalInfo.address || "",
+        dateOfBirth: new Date(personalInfo.dateOfBirth),
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[API /kyc PATCH]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

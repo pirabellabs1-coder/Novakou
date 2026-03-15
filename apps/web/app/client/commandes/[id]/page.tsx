@@ -16,11 +16,11 @@ import { OrderPhasePipeline } from "@/components/ui/order-phase-pipeline";
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   en_attente: { label: "En attente", cls: "bg-slate-500/20 text-slate-400" },
   en_cours: { label: "En cours", cls: "bg-blue-500/20 text-blue-400" },
-  livre: { label: "Livre", cls: "bg-primary/20 text-primary" },
-  revision: { label: "Revision", cls: "bg-orange-500/20 text-orange-400" },
-  termine: { label: "Termine", cls: "bg-emerald-500/20 text-emerald-400" },
+  livre: { label: "Livré", cls: "bg-primary/20 text-primary" },
+  revision: { label: "Révision", cls: "bg-orange-500/20 text-orange-400" },
+  termine: { label: "Terminé", cls: "bg-emerald-500/20 text-emerald-400" },
   litige: { label: "Litige", cls: "bg-red-500/20 text-red-400" },
-  annule: { label: "Annule", cls: "bg-red-500/20 text-red-400" },
+  annule: { label: "Annulé", cls: "bg-red-500/20 text-red-400" },
 };
 
 // ---------------------------------------------------------------------------
@@ -389,7 +389,7 @@ export default function ClientOrderDetailPage() {
               {order.status === "revision" && (
                 <div className="flex items-center gap-2 text-orange-400 text-sm font-semibold">
                   <span className="material-symbols-outlined">replay</span>
-                  Revision en cours -- {order.revisionsLeft} revision(s) restante(s)
+                  Révision en cours -- {order.revisionsLeft} révision(s) restante(s)
                 </div>
               )}
             </div>

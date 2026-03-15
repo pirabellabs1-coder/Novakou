@@ -112,7 +112,7 @@ export default function InstructeurMesFormationsPage() {
       </div>
 
       {/* Nav */}
-      <div className="flex gap-1 mb-6 bg-white border rounded-xl p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-white dark:bg-neutral-dark border dark:border-border-dark rounded-xl p-1 w-fit">
         {([
           ["dashboard", fr ? "Dashboard" : "Dashboard"],
           ["mes-formations", fr ? "Mes formations" : "My Courses"],
@@ -151,7 +151,7 @@ export default function InstructeurMesFormationsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1,2,3].map((i) => (
-            <div key={i} className="bg-white rounded-xl border p-4 animate-pulse flex gap-4">
+            <div key={i} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 animate-pulse flex gap-4">
               <div className="w-28 h-20 bg-slate-100 rounded-lg flex-shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-slate-100 rounded w-2/3" />
@@ -161,7 +161,7 @@ export default function InstructeurMesFormationsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border">
+        <div className="text-center py-16 bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
           <div className="text-5xl mb-4">📚</div>
           <p className="text-slate-500 mb-4">{fr ? "Aucune formation pour l'instant" : "No courses yet"}</p>
           <Link href="/formations/instructeur/creer" className="bg-primary text-white font-medium px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors inline-block">
@@ -173,7 +173,7 @@ export default function InstructeurMesFormationsPage() {
           {filtered.map((f) => {
             const title = fr ? f.titleFr : (f.titleEn || f.titleFr);
             return (
-              <div key={f.id} className="bg-white rounded-xl border hover:border-slate-300 transition-colors p-4">
+              <div key={f.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:border-slate-300 transition-colors p-4">
                 <div className="flex gap-4">
                   {/* Thumbnail */}
                   <div className="w-28 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden">

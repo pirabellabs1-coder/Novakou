@@ -12,7 +12,7 @@ const SERVICES = [
     icon: "web",
   },
   {
-    name: "Base de donnees",
+    name: "Base de données",
     description: "PostgreSQL via Supabase",
     icon: "database",
   },
@@ -78,7 +78,7 @@ export default function StatusPage() {
         )}
 
         {/* Services list */}
-        <div className="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 shadow-sm">
+        <div className="bg-white dark:bg-neutral-dark rounded-2xl border border-slate-200 dark:border-border-dark divide-y divide-slate-100 dark:divide-border-dark shadow-sm">
           {SERVICES.map((service) => (
             <div key={service.name} className="p-5 flex items-center justify-between">
               <div className="flex items-center gap-4">

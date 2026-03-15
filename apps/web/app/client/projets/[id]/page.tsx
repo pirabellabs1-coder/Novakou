@@ -30,7 +30,7 @@ interface ProjectCandidate {
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   actif: { label: "Actif", cls: "bg-primary/20 text-primary" },
-  termine: { label: "Termine", cls: "bg-slate-500/20 text-slate-400" },
+  termine: { label: "Terminé", cls: "bg-slate-500/20 text-slate-400" },
   brouillon: { label: "Brouillon", cls: "bg-amber-500/20 text-amber-400" },
 };
 

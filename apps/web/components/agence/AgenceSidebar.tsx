@@ -17,7 +17,7 @@ interface NavItem {
 // All navigation links — flat list, always visible, no collapsible sections
 const NAV_ITEMS: NavItem[] = [
   { label: "Tableau de bord", href: "/agence", icon: "dashboard", exact: true },
-  { label: "Equipe", href: "/agence/equipe", icon: "groups" },
+  { label: "Équipe", href: "/agence/equipe", icon: "groups" },
   { label: "Services", href: "/agence/services", icon: "work" },
   { label: "Projets", href: "/agence/projets", icon: "assignment" },
   { label: "Commandes", href: "/agence/commandes", icon: "shopping_cart" },
@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "SEO", href: "/agence/services/seo", icon: "search" },
   { label: "Litiges", href: "/agence/litiges", icon: "gavel" },
   { label: "Aide", href: "/agence/aide", icon: "help" },
-  { label: "Parametres", href: "/agence/parametres", icon: "settings" },
+  { label: "Paramètres", href: "/agence/parametres", icon: "settings" },
 ];
 
 interface AgenceSidebarProps {
@@ -192,10 +192,10 @@ export function AgenceSidebar({ onClose, collapsed = false, onToggleCollapse }: 
             "flex items-center rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors mt-1",
             collapsed ? "justify-center w-full py-2 px-0" : "gap-2 w-full px-3 py-2"
           )}
-          title={collapsed ? "Se deconnecter" : undefined}
+          title={collapsed ? "Se déconnecter" : undefined}
         >
           <span className="material-symbols-outlined text-xl">logout</span>
-          {!collapsed && <span>Se deconnecter</span>}
+          {!collapsed && <span>Se déconnecter</span>}
         </button>
       </div>
     </aside>

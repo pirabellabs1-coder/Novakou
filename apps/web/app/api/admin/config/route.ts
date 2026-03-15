@@ -38,6 +38,13 @@ interface PlatformConfig {
   languages: string[];
   supportEmail: string;
   platformName: string;
+  rankThresholds: {
+    rising_talent: number;
+    professional: number;
+    top_rated: number;
+    elite_expert: number;
+  };
+  boostEnabled: boolean;
 }
 
 const platformConfig: PlatformConfig = {
@@ -79,7 +86,27 @@ const platformConfig: PlatformConfig = {
   languages: ["fr", "en"],
   supportEmail: "support@freelancehigh.com",
   platformName: "FreelanceHigh",
+  rankThresholds: {
+    rising_talent: 5,
+    professional: 25,
+    top_rated: 50,
+    elite_expert: 100,
+  },
+  boostEnabled: true,
 };
+
+// Expose maintenance state for middleware and public access
+export function getMaintenanceState(): { enabled: boolean; message: string } {
+  return {
+    enabled: platformConfig.maintenanceMode,
+    message: platformConfig.maintenanceMessage,
+  };
+}
+
+// Expose full config for internal use
+export function getPlatformConfig(): PlatformConfig {
+  return platformConfig;
+}
 
 // GET /api/admin/config — Get platform configuration
 export async function GET() {

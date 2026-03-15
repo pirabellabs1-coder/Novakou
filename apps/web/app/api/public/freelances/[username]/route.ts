@@ -67,6 +67,36 @@ export async function GET(
   else if (avgRating >= 4.0) badge = "TOP RATED";
   else if (completedOrders >= 1) badge = "RISING TALENT";
 
+  // Fetch formation certificates (query Prisma if available)
+  let certificates: { id: string; code: string; formationTitle: string; instructorName: string; score: number; issuedAt: string }[] = [];
+  try {
+    const prisma = (await import("@freelancehigh/db")).default;
+    const certs = await prisma.certificate.findMany({
+      where: { userId: user.id, revokedAt: null },
+      include: {
+        enrollment: {
+          include: {
+            formation: {
+              select: { titleFr: true, instructeur: { select: { user: { select: { name: true } } } } },
+            },
+          },
+        },
+      },
+      orderBy: { issuedAt: "desc" },
+      take: 20,
+    });
+    certificates = certs.map((c) => ({
+      id: c.id,
+      code: c.code,
+      formationTitle: c.enrollment?.formation?.titleFr ?? "Formation",
+      instructorName: c.enrollment?.formation?.instructeur?.user?.name ?? "Instructeur",
+      score: c.score,
+      issuedAt: c.issuedAt.toISOString(),
+    }));
+  } catch {
+    // DB not connected or no certificates — return empty array
+  }
+
   return NextResponse.json({
     freelance: {
       id: user.id,
@@ -96,6 +126,7 @@ export async function GET(
       badge,
       services,
       reviews: reviews.slice(0, 10),
+      certificates,
       stats: {
         completedOrders,
         totalOrders,

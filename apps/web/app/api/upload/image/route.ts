@@ -5,6 +5,22 @@ import { uploadImage } from "@/lib/cloudinary";
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
+// Magic bytes pour valider le contenu reel de l'image
+const IMAGE_MAGIC_BYTES: Record<string, number[][]> = {
+  "image/jpeg": [[0xFF, 0xD8, 0xFF]],
+  "image/png": [[0x89, 0x50, 0x4E, 0x47]],
+  "image/gif": [[0x47, 0x49, 0x46, 0x38]],
+  "image/webp": [[0x52, 0x49, 0x46, 0x46]], // RIFF
+};
+
+function validateImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  const signatures = IMAGE_MAGIC_BYTES[mimeType];
+  if (!signatures) return false;
+  return signatures.some((sig) =>
+    sig.every((byte, i) => buffer.length > i && buffer[i] === byte)
+  );
+}
+
 const FOLDER_MAP: Record<string, string> = {
   avatar: "freelancehigh/avatars",
   service: "freelancehigh/services",
@@ -54,6 +70,14 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Valider les magic bytes pour empecher les fichiers deguises en images
+    if (!validateImageMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: "Le contenu du fichier ne correspond pas au format image declare. Upload refuse." },
+        { status: 400 }
+      );
+    }
 
     // Determine the Cloudinary folder
     const cloudinaryFolder = FOLDER_MAP[folder] || "freelancehigh/uploads";

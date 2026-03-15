@@ -113,13 +113,13 @@ function ConfirmationContent() {
       {/* What's next */}
       <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 text-left">
         <p className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-          Prochaines etapes
+          Prochaines étapes
         </p>
         <ul className="space-y-2.5">
           {[
             { icon: "work", text: "Publiez vos services et attirez de nouveaux clients" },
-            { icon: "trending_up", text: "Utilisez les boosts pour gagner en visibilite" },
-            { icon: "verified", text: "Completez votre profil pour maximiser la confiance" },
+            { icon: "trending_up", text: "Utilisez les boosts pour gagner en visibilité" },
+            { icon: "verified", text: "Complétez votre profil pour maximiser la confiance" },
           ].map((item) => (
             <li key={item.icon} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">

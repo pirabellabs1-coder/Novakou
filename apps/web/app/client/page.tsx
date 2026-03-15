@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useClientStore } from "@/store/client";
@@ -8,6 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 // ── Skeleton for loading states ──
 function KPISkeleton() {
@@ -36,27 +37,33 @@ function ChartSkeleton() {
 const PIE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 const PIE_STATUS_LABELS: Record<string, string> = {
   en_cours: "En cours",
-  termine: "Termine",
-  livre: "Livre",
-  revision: "Revision",
+  termine: "Terminé",
+  livre: "Livré",
+  revision: "Révision",
   litige: "Litige",
-  annule: "Annule",
+  annule: "Annulé",
 };
 
 export default function ClientDashboard() {
   const store = useClientStore();
+  const [error, setError] = useState<string | null>(null);
 
   // Sync all data on mount
   useEffect(() => {
-    store.syncAll();
+    try {
+      store.syncAll();
+    } catch {
+      setError("Impossible de charger les donnees du dashboard client.");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-refresh stats every 60s
+  // Auto-refresh stats (5min en dev, 60s en prod)
   useEffect(() => {
+    const pollMs = process.env.NODE_ENV === "development" ? 300_000 : 60_000;
     const interval = setInterval(() => {
       store.syncStats();
-    }, 60_000);
+    }, pollMs);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -90,7 +97,7 @@ export default function ClientDashboard() {
         icon: p.progress >= 80 ? "rocket_launch" : p.progress >= 50 ? "hub" : "edit",
         iconBg: p.progress >= 80 ? "bg-orange-500/20" : p.progress >= 50 ? "bg-primary/20" : "bg-blue-500/20",
         iconColor: p.progress >= 80 ? "text-orange-400" : p.progress >= 50 ? "text-primary" : "text-blue-400",
-        statusLabel: p.status === "actif" ? "En cours" : p.status === "termine" ? "Termine" : "Brouillon",
+        statusLabel: p.status === "actif" ? "En cours" : p.status === "termine" ? "Terminé" : "Brouillon",
         statusColor: p.progress >= 80 ? "text-orange-400" : p.progress >= 50 ? "text-primary" : "text-blue-400",
         barColor: p.progress >= 80 ? "bg-orange-400" : p.progress >= 50 ? "bg-primary" : "bg-blue-400",
       }));
@@ -111,14 +118,14 @@ export default function ClientDashboard() {
     {
       label: "Projets Actifs",
       value: activeProjectsCount.toString(),
-      variation: `${completedOrders} termines`,
+      variation: `${completedOrders} terminés`,
       variationColor: "text-primary",
       icon: "folder_copy",
       iconBg: "bg-primary/10",
       iconColor: "text-primary",
     },
     {
-      label: "Depenses Totales",
+      label: "Dépenses Totales",
       value: `${totalSpent.toLocaleString("fr-FR")} \u20AC`,
       variation: `${store.orders.length} commandes`,
       variationColor: "text-emerald-400",
@@ -129,14 +136,14 @@ export default function ClientDashboard() {
     {
       label: "Commandes en cours",
       value: activeOrdersCount.toString(),
-      variation: `${completedOrders} livrees`,
+      variation: `${completedOrders} livrées`,
       variationColor: "text-blue-400",
       icon: "shopping_bag",
       iconBg: "bg-blue-500/10",
       iconColor: "text-blue-400",
     },
     {
-      label: "Freelances Engages",
+      label: "Freelances Engagés",
       value: uniqueFreelances.toString(),
       variation: "Freelances uniques",
       variationColor: "text-slate-400",
@@ -146,12 +153,27 @@ export default function ClientDashboard() {
     },
   ];
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
+          <span className="material-symbols-outlined text-3xl text-red-400">error</span>
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">Erreur de chargement</h3>
+        <p className="text-sm text-slate-400 max-w-sm text-center mb-6">{error}</p>
+        <button onClick={() => { setError(null); store.syncAll(); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:brightness-110 transition-all">
+          Reessayer
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white">Tableau de Bord</h1>
-        <p className="text-primary/60 mt-1">Bienvenue, voici un apercu de votre activite actuelle.</p>
+        <p className="text-slate-400 mt-1">Bienvenue, voici un aperçu de votre activité actuelle.</p>
       </div>
 
       {/* Stats Cards */}
@@ -161,7 +183,7 @@ export default function ClientDashboard() {
           : STATS.map((s) => (
               <div key={s.label} className="bg-neutral-dark rounded-xl p-5 border border-border-dark">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-primary/60 text-sm font-medium">{s.label}</p>
+                  <p className="text-slate-400 text-sm font-medium">{s.label}</p>
                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", s.iconBg)}>
                     <span className={cn("material-symbols-outlined text-xl", s.iconColor)}>{s.icon}</span>
                   </div>
@@ -179,23 +201,19 @@ export default function ClientDashboard() {
           <ChartSkeleton />
         ) : (
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-            <h2 className="text-base font-bold text-white mb-4">Depenses Mensuelles</h2>
+            <h2 className="text-base font-bold text-white mb-4">Dépenses Mensuelles</h2>
             {store.stats?.monthlyRevenue && store.stats.monthlyRevenue.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <BarChart data={store.stats.monthlyRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} width={50} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: "8px", color: "#fff" }}
-                    labelStyle={{ color: "#94a3b8" }}
-                    formatter={(value: number) => [`${value.toLocaleString("fr-FR")} \u20AC`, "Depenses"]}
-                  />
+                  <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString("fr-FR")} \u20AC`} />} />
                   <Bar dataKey="revenue" fill="rgb(var(--color-primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="h-60 flex items-center justify-center text-slate-500 text-sm">
-                Aucune donnee de depenses disponible
+                Aucune donnée de dépenses disponible
               </div>
             )}
           </div>
@@ -206,7 +224,7 @@ export default function ClientDashboard() {
           <ChartSkeleton />
         ) : (
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-            <h2 className="text-base font-bold text-white mb-4">Repartition des Commandes</h2>
+            <h2 className="text-base font-bold text-white mb-4">Répartition des Commandes</h2>
             {orderStatusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
                 <PieChart>
@@ -225,9 +243,7 @@ export default function ClientDashboard() {
                       <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: "8px", color: "#fff" }}
-                  />
+                  <Tooltip content={<ChartTooltip />} />
                   <Legend
                     verticalAlign="bottom"
                     iconType="circle"
@@ -315,9 +331,9 @@ export default function ClientDashboard() {
 
         {/* Right Panel */}
         <div className="space-y-4">
-          {/* Dernieres Commandes */}
+          {/* Dernières Commandes */}
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-            <h3 className="text-base font-bold text-white mb-4">Dernieres Commandes</h3>
+            <h3 className="text-base font-bold text-white mb-4">Dernières Commandes</h3>
             <div className="space-y-3">
               {recentOrders.length > 0 ? (
                 recentOrders.map((o) => (
@@ -343,11 +359,11 @@ export default function ClientDashboard() {
 
           {/* Resume financier */}
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-5 relative overflow-hidden">
-            <p className="text-primary font-bold text-sm mb-2">Total depense</p>
+            <p className="text-primary font-bold text-sm mb-2">Total dépensé</p>
             <p className="text-4xl font-bold text-white">{totalSpent.toLocaleString("fr-FR")} \u20AC</p>
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Commandes terminees</span>
+                <span className="text-slate-500">Commandes terminées</span>
                 <span className="font-bold text-emerald-400">{completedOrders}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
@@ -355,7 +371,7 @@ export default function ClientDashboard() {
                 <span className="font-bold text-blue-400">{activeProjectsCount}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Freelances engages</span>
+                <span className="text-slate-500">Freelances engagés</span>
                 <span className="font-bold text-violet-400">{uniqueFreelances}</span>
               </div>
             </div>
@@ -364,10 +380,10 @@ export default function ClientDashboard() {
             <div className="absolute -bottom-2 -right-1 w-16 h-16 bg-slate-600/10 rounded-full" />
           </div>
 
-          {/* Activite recente */}
+          {/* Activité récente */}
           {store.activities.length > 0 && (
             <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-              <h3 className="text-base font-bold text-white mb-4">Activite Recente</h3>
+              <h3 className="text-base font-bold text-white mb-4">Activité Récente</h3>
               <div className="space-y-3">
                 {store.activities.slice(0, 6).map((a) => (
                   <Link key={a.id} href={a.link} className="flex items-center gap-3 group">

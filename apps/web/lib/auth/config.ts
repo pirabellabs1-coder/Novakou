@@ -41,6 +41,19 @@ declare module "next-auth/jwt" {
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
 
+// Securite : le secret DOIT etre defini en production
+function getAuthSecret(): string {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("NEXTAUTH_SECRET est obligatoire en production. Impossible de demarrer sans.");
+  }
+  if (!secret) {
+    console.warn("[AUTH] NEXTAUTH_SECRET non defini — utilisation d'un secret de dev uniquement");
+    return "dev-only-secret-not-for-production";
+  }
+  return secret;
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -86,7 +99,7 @@ export const authOptions: NextAuthOptions = {
               if (!twoFactorToken) {
                 throw new Error("REQUIRES_2FA");
               }
-              const secret = process.env.NEXTAUTH_SECRET || "fallback-secret";
+              const secret = getAuthSecret();
               const now = Date.now().toString().slice(0, -4);
               const prev = (Date.now() - 10000).toString().slice(0, -4);
               const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
@@ -156,7 +169,7 @@ export const authOptions: NextAuthOptions = {
             if (!twoFactorToken) {
               throw new Error("REQUIRES_2FA");
             }
-            const secret = process.env.NEXTAUTH_SECRET || "fallback-secret";
+            const secret = getAuthSecret();
             const now = Date.now().toString().slice(0, -4);
             const prev = (Date.now() - 10000).toString().slice(0, -4);
             const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");

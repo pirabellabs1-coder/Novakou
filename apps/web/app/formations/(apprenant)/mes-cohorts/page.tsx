@@ -102,30 +102,30 @@ export default function MesCohortsPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-xl border p-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
             <Users className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-900">{cohorts.length}</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{cohorts.length}</p>
             <p className="text-xs text-slate-500">{fr ? "Total" : "Total"}</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border p-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center flex-shrink-0">
             <Play className="w-5 h-5 text-yellow-600" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-900">{activeCount}</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{activeCount}</p>
             <p className="text-xs text-slate-500">{fr ? "En cours" : "Active"}</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border p-4 flex items-center gap-3">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center flex-shrink-0">
             <Award className="w-5 h-5 text-green-600" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-900">{completedCount}</p>
+            <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{completedCount}</p>
             <p className="text-xs text-slate-500">{fr ? "Terminées" : "Completed"}</p>
           </div>
         </div>
@@ -138,7 +138,7 @@ export default function MesCohortsPage() {
             key={key}
             onClick={() => setTab(key as typeof tab)}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === key ? "bg-white dark:bg-neutral-dark text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             {label}
@@ -150,7 +150,7 @@ export default function MesCohortsPage() {
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-xl border p-4 animate-pulse flex gap-4">
+            <div key={i} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 animate-pulse flex gap-4">
               <div className="w-40 h-24 bg-slate-100 rounded-lg flex-shrink-0" />
               <div className="flex-1 space-y-2">
                 <div className="h-4 bg-slate-100 rounded w-3/4" />
@@ -160,7 +160,7 @@ export default function MesCohortsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border">
+        <div className="text-center py-16 bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
           <div className="text-5xl mb-4">👥</div>
           <p className="text-slate-500 mb-4">{fr ? "Aucune cohorte" : "No cohorts"}</p>
           <Link href="/formations/mes-cohorts" className="bg-primary text-white font-medium px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors inline-block">
@@ -179,7 +179,7 @@ export default function MesCohortsPage() {
               <Link
                 key={item.enrollmentId}
                 href={`/formations/mes-cohorts/${item.cohort.id}`}
-                className="block bg-white rounded-xl border hover:border-primary/20 hover:shadow-sm transition-all p-4"
+                className="block bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:border-primary/20 hover:shadow-sm transition-all p-4"
               >
                 <div className="flex gap-4">
                   {/* Thumbnail */}

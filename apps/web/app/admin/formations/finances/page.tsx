@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { DollarSign, TrendingUp, ArrowDownLeft, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 interface AdminFinancesData {
   totalRevenue: number;
@@ -106,10 +107,7 @@ export default function AdminFormationsFinancesPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3a" />
                   <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                   <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#1e1e1e", border: "1px solid #333", color: "#fff" }}
-                    formatter={(v: number, name: string) => [`${v}€`, name === "revenue" ? "CA brut" : "Commissions (30%)"]}
-                  />
+                  <Tooltip content={<ChartTooltip formatter={(v, name) => `${v.toLocaleString("fr-FR")}€ (${name === "revenue" ? "CA brut" : "Commissions (30%)"})`} />} />
                   <Bar dataKey="revenue" fill="#6C2BD9" radius={[4, 4, 0, 0]} name="revenue" />
                   <Bar dataKey="commission" fill="#10b981" radius={[4, 4, 0, 0]} name="commission" />
                 </BarChart>

@@ -151,7 +151,7 @@ export default function PaiementsPage() {
     a.download = "transactions-freelancehigh.csv";
     a.click();
     URL.revokeObjectURL(url);
-    addToast("success", "Export CSV telecharge !");
+    addToast("success", "Export CSV téléchargé !");
   }
 
   return (

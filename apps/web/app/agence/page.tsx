@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useAgencyStore } from "@/store/agency";
@@ -8,6 +8,9 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area,
   XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
+import { RankProgress } from "@/components/dashboard/RankProgress";
+import { CHART_COLORS } from "@/lib/design-tokens";
 
 const PERIOD_OPTIONS = [
   { label: "7j", value: "7d" as const },
@@ -17,15 +20,22 @@ const PERIOD_OPTIONS = [
   { label: "1an", value: "1y" as const },
 ];
 
-const COLORS = ["#14B835", "#0EA5E9", "#8B5CF6", "#F59E0B", "#EF4444", "#EC4899"];
+const COLORS = CHART_COLORS.series;
 
 export default function AgencyDashboard() {
   const {
     syncAll, isLoading, stats, financeSummary, services, orders, reviews,
     reviewSummary, activities, members, timePeriod, setTimePeriod,
   } = useAgencyStore();
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { syncAll(); }, [syncAll]);
+  useEffect(() => {
+    try {
+      syncAll();
+    } catch {
+      setError("Impossible de charger les donnees du dashboard agence.");
+    }
+  }, [syncAll]);
 
   // Auto-refresh stats every 60 seconds
   useEffect(() => {
@@ -78,6 +88,38 @@ export default function AgencyDashboard() {
   }, [stats]);
 
   const fmt = (n: number) => `\u20AC${n.toLocaleString("fr-FR")}`;
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
+          <span className="material-symbols-outlined text-3xl text-red-400">error</span>
+        </div>
+        <h3 className="text-lg font-bold text-white mb-2">Erreur de chargement</h3>
+        <p className="text-sm text-slate-400 max-w-sm text-center mb-6">{error}</p>
+        <button onClick={() => { setError(null); syncAll(); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:brightness-110 transition-all">
+          Reessayer
+        </button>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-10 bg-neutral-dark rounded-lg w-1/3" />
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-4 h-24" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="bg-neutral-dark rounded-xl border border-border-dark h-72" />
+          <div className="bg-neutral-dark rounded-xl border border-border-dark h-72" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -141,16 +183,13 @@ export default function AgencyDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="month" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip
-                  contentStyle={{ background: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: 8, color: "#fff" }}
-                  formatter={(value: number) => [fmt(value), "CA"]}
-                />
+                <Tooltip content={<ChartTooltip formatter={(v) => fmt(v)} />} />
                 <Bar dataKey="revenue" fill="rgb(20, 184, 53)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-[220px] flex items-center justify-center text-slate-500 text-sm">
-              Pas encore de donnees
+              Pas encore de données
             </div>
           )}
         </div>
@@ -164,13 +203,13 @@ export default function AgencyDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="week" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: 8, color: "#fff" }} />
+                <Tooltip content={<ChartTooltip />} />
                 <Line type="monotone" dataKey="orders" stroke="#0EA5E9" strokeWidth={2.5} dot={{ r: 4, fill: "#0EA5E9" }} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
             <div className="h-[220px] flex items-center justify-center text-slate-500 text-sm">
-              Pas encore de donnees
+              Pas encore de données
             </div>
           )}
         </div>
@@ -178,9 +217,9 @@ export default function AgencyDashboard() {
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Repartition services par categorie - PieChart */}
+        {/* Répartition services par catégorie - PieChart */}
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Services par categorie</h2>
+          <h2 className="font-bold text-white mb-4">Services par catégorie</h2>
           {categoryDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -189,7 +228,7 @@ export default function AgencyDashboard() {
                     <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: 8, color: "#fff" }} />
+                <Tooltip content={<ChartTooltip />} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -218,7 +257,7 @@ export default function AgencyDashboard() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="date" tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: "#64748b", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: 8, color: "#fff" }} />
+                <Tooltip content={<ChartTooltip />} />
                 <defs>
                   <linearGradient id="viewsGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#14B835" stopOpacity={0.3} />
@@ -230,15 +269,18 @@ export default function AgencyDashboard() {
             </ResponsiveContainer>
           ) : (
             <div className="h-[200px] flex items-center justify-center text-slate-500 text-sm">
-              Pas encore de donnees
+              Pas encore de données
             </div>
           )}
         </div>
       </div>
 
+      {/* Rank Progress */}
+      <RankProgress completedSales={stats?.completedOrders ?? 0} />
+
       {/* Activity Feed */}
       <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-        <h2 className="font-bold text-white mb-4">Activite recente</h2>
+        <h2 className="font-bold text-white mb-4">Activité récente</h2>
         {activities.length > 0 ? (
           <div className="space-y-4">
             {activities.map((a) => (

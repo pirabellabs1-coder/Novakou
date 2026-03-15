@@ -8,23 +8,39 @@ import {
 } from "recharts";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { RankProgress } from "@/components/dashboard/RankProgress";
+import { formatTrend, getTrendStyle } from "@/lib/design-tokens";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   en_cours: { label: "En cours", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300" },
-  livre: { label: "Livre", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
+  livre: { label: "Livré", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
   en_attente: { label: "En attente", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300" },
-  revision: { label: "Revision", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
-  termine: { label: "Termine", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
-  annule: { label: "Annule", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
+  revision: { label: "Révision", color: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300" },
+  termine: { label: "Terminé", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300" },
+  annule: { label: "Annulé", color: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
 };
 
 export default function DashboardPage() {
   const { services, orders, transactions, conversations, stats: apiStats, syncStats } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [chartPeriod, setChartPeriod] = useState("6 derniers mois");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    syncStats();
+    setLoading(true);
+    setError(null);
+    try {
+      syncStats();
+    } catch {
+      setError("Impossible de charger les donnees du dashboard.");
+    } finally {
+      // Le store gere le chargement async — on desactive le skeleton apres un court delai
+      const timer = setTimeout(() => setLoading(false), 600);
+      return () => clearTimeout(timer);
+    }
   }, [syncStats]);
 
   const stats = useMemo(() => {
@@ -56,6 +72,18 @@ export default function DashboardPage() {
     return { totalRevenue, pendingRevenue, activeOrders, unreadMessages, completionRate };
   }, [transactions, orders, conversations, apiStats]);
 
+  // Calculer la tendance des revenus a partir des donnees mensuelles
+  const revenueTrend = useMemo(() => {
+    const mr = apiStats?.monthlyRevenue ?? [];
+    if (mr.length < 2) return 0;
+    const current = mr[mr.length - 1]?.revenue ?? 0;
+    const previous = mr[mr.length - 2]?.revenue ?? 0;
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  }, [apiStats]);
+
+  const trendStyle = getTrendStyle(revenueTrend);
+
   const recentOrders = useMemo(
     () => [...orders].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 5),
     [orders]
@@ -84,7 +112,39 @@ export default function DashboardPage() {
     a.download = "revenus-freelancehigh.csv";
     a.click();
     URL.revokeObjectURL(url);
-    addToast("success", "Export CSV telecharge !");
+    addToast("success", "Export CSV téléchargé !");
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-full flex flex-col items-center justify-center py-20">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
+          <span className="material-symbols-outlined text-3xl text-red-400">error</span>
+        </div>
+        <h3 className="text-lg font-bold mb-2">Erreur de chargement</h3>
+        <p className="text-sm text-slate-400 max-w-sm text-center mb-6">{error}</p>
+        <button onClick={() => { setError(null); setLoading(true); syncStats(); setTimeout(() => setLoading(false), 600); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:brightness-110 transition-all">
+          Reessayer
+        </button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-full space-y-8 animate-pulse">
+        <div className="h-10 bg-slate-200 dark:bg-neutral-dark rounded-lg w-1/3" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 h-32" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl h-80" />
+          <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl h-80" />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -92,8 +152,8 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight">Apercu du Tableau de bord</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">Bienvenue, gerez vos revenus et vos projets en un coup d&apos;oeil.</p>
+          <h2 className="text-3xl font-extrabold tracking-tight">Aperçu du Tableau de bord</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Bienvenue, gérez vos revenus et vos projets en un coup d&apos;œil.</p>
         </div>
         <div className="flex gap-3">
           <button
@@ -120,7 +180,7 @@ export default function DashboardPage() {
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <span className="material-symbols-outlined">trending_up</span>
             </div>
-            <span className="text-emerald-500 text-xs font-bold bg-emerald-500/10 px-2 py-1 rounded">+12.5%</span>
+            <span className={`${trendStyle.color} text-xs font-bold ${trendStyle.bg} px-2 py-1 rounded`}>{formatTrend(revenueTrend)}</span>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenus totaux</p>
           <AnimatedCounter value={stats.totalRevenue} prefix="€" className="text-2xl font-bold mt-1 block" />
@@ -171,7 +231,7 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold leading-tight">Revenus mensuels</h3>
               <div className="flex items-center gap-2 mt-1">
                 <AnimatedCounter value={stats.totalRevenue} prefix="€" className="text-3xl font-black" />
-                <span className="text-primary text-sm font-bold">+8% vs mois dernier</span>
+                <span className={`text-sm font-bold ${trendStyle.color}`}>{formatTrend(revenueTrend)} vs mois dernier</span>
               </div>
             </div>
             <select
@@ -180,7 +240,7 @@ export default function DashboardPage() {
               className="bg-slate-50 dark:bg-primary/5 border border-slate-200 dark:border-primary/20 rounded-lg text-sm font-medium px-3 py-1.5 outline-none focus:ring-1 focus:ring-primary"
             >
               <option>6 derniers mois</option>
-              <option>Annee 2026</option>
+              <option>Année 2026</option>
             </select>
           </div>
           <ResponsiveContainer width="100%" height={240}>
@@ -188,11 +248,7 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v}`} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px", fontSize: "13px" }}
-                labelStyle={{ color: "#94a3b8" }}
-                formatter={(value: number) => [`€${value}`, "Revenus"]}
-              />
+              <Tooltip content={<ChartTooltip formatter={(v) => `€${v.toLocaleString("fr-FR")}`} />} />
               <Bar dataKey="revenue" fill="#0e7c66" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -216,9 +272,7 @@ export default function DashboardPage() {
                   <Cell key={i} fill={entry.color} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px", fontSize: "13px" }}
-              />
+              <Tooltip content={<ChartTooltip />} />
             </PieChart>
           </ResponsiveContainer>
           <div className="space-y-2 mt-2">
@@ -245,9 +299,7 @@ export default function DashboardPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="week" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px", fontSize: "13px" }}
-              />
+              <Tooltip content={<ChartTooltip />} />
               <Line type="monotone" dataKey="orders" stroke="#f2b705" strokeWidth={2.5} dot={{ fill: "#f2b705", r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -268,7 +320,7 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Projets termines</span>
+                <span className="font-medium">Projets terminés</span>
                 <span className="text-blue-500 font-bold">4/6</span>
               </div>
               <div className="w-full bg-slate-100 dark:bg-primary/10 h-2 rounded-full overflow-hidden">
@@ -277,7 +329,7 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Taux de completion</span>
+                <span className="font-medium">Taux de complétion</span>
                 <span className="text-amber-500 font-bold">{stats.completionRate}%</span>
               </div>
               <div className="w-full bg-slate-100 dark:bg-primary/10 h-2 rounded-full overflow-hidden">
@@ -292,16 +344,19 @@ export default function DashboardPage() {
               Conseil du jour
             </p>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 italic">
-              Repondez aux messages en moins de 15 minutes pour augmenter votre visibilite de 20%.
+              Répondez aux messages en moins de 15 minutes pour augmenter votre visibilité de 20%.
             </p>
           </div>
         </div>
       </div>
 
+      {/* Rank Progress */}
+      <RankProgress completedSales={apiStats?.completedOrders ?? 0} />
+
       {/* Recent Orders Table */}
       <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-100 dark:border-primary/10 flex justify-between items-center">
-          <h3 className="text-lg font-bold">Commandes recentes</h3>
+          <h3 className="text-lg font-bold">Commandes récentes</h3>
           <Link href="/dashboard/commandes" className="text-primary text-sm font-bold hover:underline">Voir tout</Link>
         </div>
         <div className="overflow-x-auto">
@@ -317,6 +372,19 @@ export default function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-primary/10">
+              {recentOrders.length === 0 && (
+                <tr>
+                  <td colSpan={6}>
+                    <EmptyState
+                      icon="shopping_cart"
+                      title="Aucune commande"
+                      description="Vos commandes recentes apparaitront ici une fois que vous aurez recu des commandes."
+                      actionLabel="Creer un service"
+                      actionHref="/dashboard/services/creer"
+                    />
+                  </td>
+                </tr>
+              )}
               {recentOrders.map((order) => {
                 const s = STATUS_CONFIG[order.status];
                 return (

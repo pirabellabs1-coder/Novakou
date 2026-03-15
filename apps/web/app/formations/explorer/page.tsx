@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, X, ChevronDown, Star, Clock, Users, Award } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Search, X, Star, Clock, Users, Award, ChevronUp, ChevronDown } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -42,11 +42,10 @@ interface Formation {
 interface FiltersState {
   search: string;
   categorySlug: string;
-  level: string[];
+  level: string;
   priceRange: string;
   durationRange: string;
-  minRating: string;
-  language: string[];
+  language: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -61,7 +60,7 @@ function formatDuration(minutes: number): string {
 
 function formatPrice(price: number, isFree: boolean, freeLabel: string): string {
   if (isFree) return freeLabel;
-  return `${price.toFixed(0)}€`;
+  return `${price.toFixed(0)}\u00A0\u20AC`;
 }
 
 function isNew(createdAt: string): boolean {
@@ -69,6 +68,8 @@ function isNew(createdAt: string): boolean {
   const now = new Date();
   return (now.getTime() - d.getTime()) < 30 * 24 * 60 * 60 * 1000;
 }
+
+const ITEMS_PER_PAGE = 100;
 
 // ── Components ─────────────────────────────────────────────────
 
@@ -78,7 +79,7 @@ function StarRating({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((s) => (
         <Star
           key={s}
-          className={`w-3 h-3 ${s <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-slate-300"}`}
+          className={`w-3.5 h-3.5 ${s <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-slate-600"}`}
         />
       ))}
     </span>
@@ -87,7 +88,6 @@ function StarRating({ rating }: { rating: number }) {
 
 function FormationCard({ formation, locale, t }: { formation: Formation; locale: string; t: ReturnType<typeof useTranslations> }) {
   const title = locale === "fr" ? formation.titleFr : (formation.titleEn || formation.titleFr);
-  const desc = locale === "fr" ? formation.shortDescFr : (formation.shortDescEn || formation.shortDescFr);
   const catName = locale === "fr" ? formation.category.nameFr : (formation.category.nameEn || formation.category.nameFr);
   const instructorName = formation.instructeur?.user?.name ?? "Instructeur";
   const avatarUrl = formation.instructeur?.user?.avatar || formation.instructeur?.user?.image;
@@ -99,26 +99,32 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
     : null;
 
   return (
-    <Link href={`/formations/${formation.slug}`} className="group block bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/30 hover:shadow-lg transition-all duration-200 overflow-hidden">
+    <Link
+      href={`/formations/${formation.slug}`}
+      className="group block rounded-xl border border-white/5 hover:border-emerald-500/30 transition-all duration-200 overflow-hidden"
+      style={{ backgroundColor: "#111827" }}
+    >
       {/* Thumbnail */}
-      <div className="relative aspect-video bg-gradient-to-br from-primary/10 to-slate-100 dark:to-slate-700 overflow-hidden">
+      <div className="relative aspect-video overflow-hidden" style={{ backgroundColor: "#1a2332" }}>
         {thumbnail ? (
           <img src={thumbnail} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl opacity-30">🎓</div>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-4xl opacity-20">🎓</span>
+          </div>
         )}
         {showBestseller && (
-          <span className="absolute top-2 left-2 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-0.5 rounded">
+          <span className="absolute top-2.5 left-2.5 bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 rounded-md">
             {t("bestseller")}
           </span>
         )}
-        {showNew && !showBestseller && (
-          <span className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+        {showNew && (
+          <span className="absolute top-2.5 left-2.5 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-md">
             {t("new")}
           </span>
         )}
         {discountPct && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded">
+          <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-md">
             -{discountPct}%
           </span>
         )}
@@ -127,69 +133,66 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
       {/* Body */}
       <div className="p-4">
         {/* Category badge */}
-        <span
-          className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2"
-          style={{ backgroundColor: `${formation.category.color || "#0e7c66"}20`, color: formation.category.color || "#0e7c66" }}
-        >
+        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2 bg-emerald-500/10 text-emerald-400">
           {catName}
         </span>
 
         {/* Title */}
-        <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1 line-clamp-2 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-white text-sm leading-snug mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
           {title}
         </h3>
 
         {/* Instructor */}
-        <div className="flex items-center gap-1.5 mb-2">
-          <div className="w-5 h-5 rounded-full bg-primary/10 overflow-hidden flex-shrink-0">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-5 h-5 rounded-full bg-emerald-500/20 overflow-hidden flex-shrink-0">
             {avatarUrl ? (
               <img src={avatarUrl} alt={instructorName} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-xs flex items-center justify-center h-full text-primary font-medium">
+              <span className="text-xs flex items-center justify-center h-full text-emerald-400 font-medium">
                 {instructorName.charAt(0)}
               </span>
             )}
           </div>
-          <span className="text-xs text-slate-500 truncate">{instructorName}</span>
+          <span className="text-xs text-slate-400 truncate">{instructorName}</span>
         </div>
 
         {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-2">
-          <span className="text-xs font-bold text-amber-600">{formation.rating.toFixed(1)}</span>
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="text-sm font-bold text-amber-400">{formation.rating.toFixed(1)}</span>
           <StarRating rating={formation.rating} />
-          <span className="text-xs text-slate-400">({formation.reviewsCount.toLocaleString()})</span>
+          <span className="text-xs text-slate-500">({formation.reviewsCount.toLocaleString()})</span>
         </div>
 
         {/* Meta */}
-        <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
+        <div className="flex items-center gap-3 text-xs text-slate-500 mb-4">
           <span className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+            <Clock className="w-3.5 h-3.5" />
             {formatDuration(formation.duration)}
           </span>
           <span className="flex items-center gap-1">
-            <Users className="w-3 h-3" />
+            <Users className="w-3.5 h-3.5" />
             {formation.studentsCount.toLocaleString()}
           </span>
           {formation.hasCertificate && (
-            <span className="flex items-center gap-1">
-              <Award className="w-3 h-3 text-green-500" />
+            <span className="flex items-center gap-1 text-emerald-400">
+              <Award className="w-3.5 h-3.5" />
             </span>
           )}
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-3 border-t border-white/5">
           <div className="flex items-center gap-2">
-            <span className={`font-bold text-base ${formation.isFree ? "text-green-600" : "text-slate-900"}`}>
+            <span className={`font-bold text-lg ${formation.isFree ? "text-emerald-400" : "text-white"}`}>
               {formatPrice(formation.price, formation.isFree, t("free"))}
             </span>
             {formation.originalPrice && formation.originalPrice > formation.price && (
-              <span className="text-xs text-slate-400 line-through">
-                {formation.originalPrice.toFixed(0)}€
+              <span className="text-xs text-slate-500 line-through">
+                {formation.originalPrice.toFixed(0)}&nbsp;&euro;
               </span>
             )}
           </div>
-          <span className="text-xs text-primary font-medium">
+          <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded bg-white/5">
             {t("level_" + formation.level.toLowerCase().replace("tous_niveaux", "tous").replace("débutant", "debutant").replace("intermédiaire", "intermediaire").replace("avancé", "avance"))}
           </span>
         </div>
@@ -198,12 +201,129 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
   );
 }
 
+// ── Empty State ─────────────────────────────────────────────────
+
+function EmptyState({
+  onReset,
+  categories,
+  locale,
+  t,
+}: {
+  onReset: () => void;
+  categories: Category[];
+  locale: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const popularCategories = categories.slice(0, 6);
+
+  return (
+    <div className="text-center py-16">
+      <div className="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+        <Search className="w-8 h-8 text-emerald-400" />
+      </div>
+      <h3 className="text-xl font-bold text-white mb-2">
+        {locale === "fr" ? "Aucune formation trouvee" : "No courses found"}
+      </h3>
+      <p className="text-slate-400 mb-6 max-w-md mx-auto">
+        {locale === "fr"
+          ? "Essayez de modifier vos filtres ou explorez nos categories populaires."
+          : "Try adjusting your filters or explore our popular categories."}
+      </p>
+      <button
+        onClick={onReset}
+        className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors mb-10"
+      >
+        {t("filter_reset")}
+      </button>
+
+      {/* Suggested categories */}
+      {popularCategories.length > 0 && (
+        <div className="mt-8 pt-8 border-t border-white/5">
+          <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            {locale === "fr" ? "Categories populaires" : "Popular categories"}
+          </h4>
+          <div className="flex flex-wrap justify-center gap-3">
+            {popularCategories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/formations/explorer?category=${cat.slug}`}
+                className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:border-emerald-500/40 hover:text-emerald-400 transition-all"
+                style={{ backgroundColor: "#111827" }}
+              >
+                {locale === "fr" ? cat.nameFr : (cat.nameEn || cat.nameFr)}
+                {cat._count && (
+                  <span className="ml-1.5 text-slate-500">({cat._count.formations})</span>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Back to Top Button ──────────────────────────────────────────
+
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    function onScroll() {
+      setVisible(window.scrollY > 600);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 flex items-center justify-center transition-all"
+      aria-label="Retour en haut"
+    >
+      <ChevronUp className="w-5 h-5" />
+    </button>
+  );
+}
+
+// ── Filter Dropdown ─────────────────────────────────────────────
+
+function FilterDropdown({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (val: string) => void;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="appearance-none text-sm font-medium px-4 py-2 pr-8 rounded-lg border border-white/10 text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 cursor-pointer transition-all"
+        style={{ backgroundColor: "#111827" }}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+      <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+    </div>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────────────────
 
 export default function ExplorerFormationsPage() {
   const t = useTranslations("formations");
   const locale = useLocale();
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -213,21 +333,19 @@ export default function ExplorerFormationsPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [sort, setSort] = useState(searchParams.get("sort") || "populaire");
 
   const [filters, setFilters] = useState<FiltersState>({
     search: searchParams.get("q") || "",
     categorySlug: searchParams.get("category") || "",
-    level: [],
-    priceRange: "",
-    durationRange: "",
-    minRating: "",
-    language: [],
+    level: searchParams.get("level") || "",
+    priceRange: searchParams.get("price") || "",
+    durationRange: searchParams.get("duration") || "",
+    language: searchParams.get("language") || "",
   });
-  const [pendingFilters, setPendingFilters] = useState<FiltersState>(filters);
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [searchInput, setSearchInput] = useState(filters.search);
 
   const fetchFormations = useCallback(async (f: FiltersState, s: string, p: number, append = false) => {
     if (p === 1) setLoading(true); else setLoadingMore(true);
@@ -235,14 +353,13 @@ export default function ExplorerFormationsPage() {
     const params = new URLSearchParams();
     if (f.search) params.set("q", f.search);
     if (f.categorySlug) params.set("category", f.categorySlug);
-    if (f.level.length) params.set("level", f.level.join(","));
+    if (f.level) params.set("level", f.level);
     if (f.priceRange) params.set("price", f.priceRange);
     if (f.durationRange) params.set("duration", f.durationRange);
-    if (f.minRating) params.set("rating", f.minRating);
-    if (f.language.length) params.set("language", f.language.join(","));
+    if (f.language) params.set("language", f.language);
     params.set("sort", s);
     params.set("page", String(p));
-    params.set("limit", "12");
+    params.set("limit", String(ITEMS_PER_PAGE));
 
     try {
       const res = await fetch(`/api/formations?${params.toString()}`);
@@ -259,15 +376,19 @@ export default function ExplorerFormationsPage() {
       }
       setTotal(tot);
       setHasMore(p < totalPages);
-    } catch {}
-    finally {
+    } catch {
+      // API error — keep current state
+    } finally {
       setLoading(false);
       setLoadingMore(false);
     }
   }, []);
 
   useEffect(() => {
-    fetch("/api/formations/categories").then((r) => r.json()).then((d) => setCategories(Array.isArray(d) ? d : []));
+    fetch("/api/formations/categories")
+      .then((r) => r.json())
+      .then((d) => setCategories(Array.isArray(d) ? d : []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -276,29 +397,21 @@ export default function ExplorerFormationsPage() {
   }, [filters, sort, fetchFormations]);
 
   const handleSearchChange = (val: string) => {
-    setPendingFilters((prev) => ({ ...prev, search: val }));
+    setSearchInput(val);
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
       setFilters((prev) => ({ ...prev, search: val }));
-    }, 300);
+    }, 400);
   };
 
-  const applyFilters = () => {
-    setFilters(pendingFilters);
-    setShowMobileFilters(false);
+  const updateFilter = (key: keyof FiltersState, val: string) => {
+    setFilters((prev) => ({ ...prev, [key]: val }));
   };
 
   const resetFilters = () => {
-    const fresh: FiltersState = { search: "", categorySlug: "", level: [], priceRange: "", durationRange: "", minRating: "", language: [] };
-    setPendingFilters(fresh);
+    const fresh: FiltersState = { search: "", categorySlug: "", level: "", priceRange: "", durationRange: "", language: "" };
     setFilters(fresh);
-  };
-
-  const toggleArrayFilter = (key: "level" | "language", val: string) => {
-    setPendingFilters((prev) => ({
-      ...prev,
-      [key]: prev[key].includes(val) ? prev[key].filter((x) => x !== val) : [...prev[key], val],
-    }));
+    setSearchInput("");
   };
 
   const loadMore = () => {
@@ -307,11 +420,13 @@ export default function ExplorerFormationsPage() {
     fetchFormations(filters, sort, next, true);
   };
 
+  const hasActiveFilters = filters.search || filters.categorySlug || filters.level || filters.priceRange || filters.durationRange || filters.language;
+
   const levelOptions = [
-    { value: "DEBUTANT", label: locale === "fr" ? "Débutant" : "Beginner" },
-    { value: "INTERMEDIAIRE", label: locale === "fr" ? "Intermédiaire" : "Intermediate" },
-    { value: "AVANCE", label: locale === "fr" ? "Avancé" : "Advanced" },
-    { value: "TOUS_NIVEAUX", label: locale === "fr" ? "Tous niveaux" : "All Levels" },
+    { value: "", label: locale === "fr" ? "Tous les niveaux" : "All levels" },
+    { value: "DEBUTANT", label: locale === "fr" ? "Debutant" : "Beginner" },
+    { value: "INTERMEDIAIRE", label: locale === "fr" ? "Intermediaire" : "Intermediate" },
+    { value: "AVANCE", label: locale === "fr" ? "Avance" : "Advanced" },
   ];
 
   const priceOptions = [
@@ -319,7 +434,7 @@ export default function ExplorerFormationsPage() {
     { value: "free", label: t("price_free") },
     { value: "paid", label: t("price_paid") },
     { value: "under20", label: t("price_under20") },
-    { value: "20to50", label: "20€ - 50€" },
+    { value: "20to50", label: "20 - 50 EUR" },
     { value: "over50", label: t("price_over50") },
   ];
 
@@ -331,10 +446,10 @@ export default function ExplorerFormationsPage() {
     { value: "over10h", label: t("duration_over10h") },
   ];
 
-  const ratingOptions = [
-    { value: "4.5", label: "4.5★ " + (locale === "fr" ? "et plus" : "and up") },
-    { value: "4.0", label: "4.0★ " + (locale === "fr" ? "et plus" : "and up") },
-    { value: "3.5", label: "3.5★ " + (locale === "fr" ? "et plus" : "and up") },
+  const languageOptions = [
+    { value: "", label: locale === "fr" ? "Toutes les langues" : "All languages" },
+    { value: "fr", label: "Francais" },
+    { value: "en", label: "English" },
   ];
 
   const sortOptions = [
@@ -345,280 +460,203 @@ export default function ExplorerFormationsPage() {
     { value: "prix_desc", label: t("sort_price_desc") },
   ];
 
-  const SidebarFilters = ({ forMobile = false }: { forMobile?: boolean }) => (
-    <aside className={forMobile ? "p-4" : "w-64 flex-shrink-0"}>
-      {/* Categories */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-slate-900 text-sm mb-3">{t("filter_category")}</h3>
-        <button
-          onClick={() => setPendingFilters((p) => ({ ...p, categorySlug: "" }))}
-          className={`block w-full text-left text-sm px-2 py-1.5 rounded-lg mb-1 transition-colors ${
-            !pendingFilters.categorySlug ? "bg-primary/10 text-primary font-medium" : "text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          {locale === "fr" ? "Toutes les catégories" : "All Categories"}
-          {" "}
-          <span className="text-slate-400">({categories.reduce((s, c) => s + (c._count?.formations ?? 0), 0)})</span>
-        </button>
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setPendingFilters((p) => ({ ...p, categorySlug: cat.slug }))}
-            className={`block w-full text-left text-sm px-2 py-1.5 rounded-lg mb-0.5 transition-colors ${
-              pendingFilters.categorySlug === cat.slug ? "bg-primary/10 text-primary font-medium" : "text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {locale === "fr" ? cat.nameFr : (cat.nameEn || cat.nameFr)}
-            {cat._count && <span className="text-slate-400 ml-1">({cat._count.formations})</span>}
-          </button>
-        ))}
-      </div>
-
-      {/* Level */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-slate-900 text-sm mb-3">{t("filter_level")}</h3>
-        {levelOptions.map((opt) => (
-          <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={pendingFilters.level.includes(opt.value)}
-              onChange={() => toggleArrayFilter("level", opt.value)}
-              className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
-            />
-            <span className="text-sm text-slate-700">{opt.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Price */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-slate-900 text-sm mb-3">{t("filter_price")}</h3>
-        {priceOptions.map((opt) => (
-          <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer">
-            <input
-              type="radio"
-              name="price"
-              checked={pendingFilters.priceRange === opt.value}
-              onChange={() => setPendingFilters((p) => ({ ...p, priceRange: opt.value }))}
-              className="w-4 h-4 text-primary border-slate-300 focus:ring-primary"
-            />
-            <span className="text-sm text-slate-700">{opt.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Duration */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-slate-900 text-sm mb-3">{t("filter_duration")}</h3>
-        {durationOptions.map((opt) => (
-          <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer">
-            <input
-              type="radio"
-              name="duration"
-              checked={pendingFilters.durationRange === opt.value}
-              onChange={() => setPendingFilters((p) => ({ ...p, durationRange: opt.value }))}
-              className="w-4 h-4 text-primary border-slate-300 focus:ring-primary"
-            />
-            <span className="text-sm text-slate-700">{opt.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Rating */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-slate-900 text-sm mb-3">{t("filter_rating")}</h3>
-        {ratingOptions.map((opt) => (
-          <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={pendingFilters.minRating === opt.value}
-              onChange={() => setPendingFilters((p) => ({ ...p, minRating: p.minRating === opt.value ? "" : opt.value }))}
-              className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
-            />
-            <span className="text-sm text-slate-700">{opt.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Language */}
-      <div className="mb-6">
-        <h3 className="font-semibold text-slate-900 text-sm mb-3">{t("filter_language")}</h3>
-        {[{ value: "fr", label: "Français" }, { value: "en", label: "English" }].map((opt) => (
-          <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={pendingFilters.language.includes(opt.value)}
-              onChange={() => toggleArrayFilter("language", opt.value)}
-              className="w-4 h-4 text-primary rounded border-slate-300 focus:ring-primary"
-            />
-            <span className="text-sm text-slate-700">{opt.label}</span>
-          </label>
-        ))}
-      </div>
-
-      {/* Buttons */}
-      <div className="flex gap-2 pt-2 border-t">
-        <button
-          onClick={applyFilters}
-          className="flex-1 bg-primary text-white text-sm font-medium py-2 rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          {t("filter_apply")}
-        </button>
-        <button
-          onClick={resetFilters}
-          className="px-3 border border-slate-300 text-slate-600 text-sm rounded-lg hover:bg-slate-50 transition-colors"
-        >
-          {t("filter_reset")}
-        </button>
-      </div>
-    </aside>
-  );
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Top search bar */}
-      <div className="bg-white border-b sticky top-0 z-20 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-4">
-            {/* Search input */}
-            <div className="flex-1 relative max-w-2xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={pendingFilters.search}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder={t("hero_search_placeholder")}
-                className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-              />
-              {pendingFilters.search && (
-                <button
-                  onClick={() => handleSearchChange("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+    <div className="min-h-screen" style={{ backgroundColor: "#0F172A" }}>
+      <BackToTop />
 
-            {/* Sort */}
-            <div className="relative hidden sm:block">
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="appearance-none bg-white border border-slate-200 rounded-lg px-4 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+      {/* ── Header / Search ─────────────────────────────────────── */}
+      <div className="border-b border-white/5" style={{ backgroundColor: "#111827" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h1 className="text-2xl font-bold text-white mb-1">
+            {locale === "fr" ? "Explorer les formations" : "Explore courses"}
+          </h1>
+          <p className="text-slate-400 text-sm mb-6">
+            {locale === "fr"
+              ? "Developpez vos competences avec nos formations professionnelles"
+              : "Build your skills with our professional courses"}
+          </p>
+
+          {/* Search bar */}
+          <div className="relative max-w-2xl">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder={t("hero_search_placeholder")}
+              className="w-full pl-12 pr-10 py-3 rounded-xl border border-white/10 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all"
+              style={{ backgroundColor: "#0F172A" }}
+            />
+            {searchInput && (
+              <button
+                onClick={() => handleSearchChange("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
               >
-                {sortOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-            </div>
-
-            {/* Mobile filters toggle */}
-            <button
-              onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden flex items-center gap-2 border border-slate-200 rounded-lg px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              {locale === "fr" ? "Filtres" : "Filters"}
-            </button>
-          </div>
-
-          {/* Results count */}
-          <div className="mt-2 text-xs text-slate-500">
-            {!loading && (
-              <span>
-                {t("courses_found", { count: total })}
-                {filters.search && <span className="ml-1">pour <strong>&quot;{filters.search}&quot;</strong></span>}
-              </span>
+                <X className="w-4 h-4" />
+              </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Mobile filters overlay */}
-      {showMobileFilters && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowMobileFilters(false)} />
-          <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
-              <h2 className="font-semibold text-slate-900">{locale === "fr" ? "Filtres" : "Filters"}</h2>
-              <button onClick={() => setShowMobileFilters(false)}>
-                <X className="w-5 h-5 text-slate-500" />
+      {/* ── Categories (horizontal) ─────────────────────────────── */}
+      <div className="border-b border-white/5" style={{ backgroundColor: "#0F172A" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
+            <button
+              onClick={() => updateFilter("categorySlug", "")}
+              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                !filters.categorySlug
+                  ? "bg-emerald-500 text-white"
+                  : "text-slate-400 hover:text-white border border-white/10 hover:border-white/20"
+              }`}
+              style={filters.categorySlug ? { backgroundColor: "#111827" } : undefined}
+            >
+              {locale === "fr" ? "Toutes" : "All"}
+            </button>
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => updateFilter("categorySlug", filters.categorySlug === cat.slug ? "" : cat.slug)}
+                className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  filters.categorySlug === cat.slug
+                    ? "bg-emerald-500 text-white"
+                    : "text-slate-400 hover:text-white border border-white/10 hover:border-white/20"
+                }`}
+                style={filters.categorySlug !== cat.slug ? { backgroundColor: "#111827" } : undefined}
+              >
+                {locale === "fr" ? cat.nameFr : (cat.nameEn || cat.nameFr)}
+                {cat._count && <span className="ml-1 opacity-60">({cat._count.formations})</span>}
               </button>
-            </div>
-            <SidebarFilters forMobile />
+            ))}
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-6">
-          {/* Desktop sidebar */}
-          <div className="hidden lg:block">
-            <div className="sticky top-24 bg-white rounded-xl border p-5 w-64">
-              <SidebarFilters />
-            </div>
-          </div>
+      {/* ── Filters (horizontal) ────────────────────────────────── */}
+      <div className="border-b border-white/5" style={{ backgroundColor: "#0F172A" }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 py-3 overflow-x-auto scrollbar-hide">
+            <FilterDropdown
+              label={locale === "fr" ? "Niveau" : "Level"}
+              value={filters.level}
+              options={levelOptions}
+              onChange={(v) => updateFilter("level", v)}
+            />
+            <FilterDropdown
+              label={locale === "fr" ? "Prix" : "Price"}
+              value={filters.priceRange}
+              options={priceOptions}
+              onChange={(v) => updateFilter("priceRange", v)}
+            />
+            <FilterDropdown
+              label={locale === "fr" ? "Duree" : "Duration"}
+              value={filters.durationRange}
+              options={durationOptions}
+              onChange={(v) => updateFilter("durationRange", v)}
+            />
+            <FilterDropdown
+              label={locale === "fr" ? "Langue" : "Language"}
+              value={filters.language}
+              options={languageOptions}
+              onChange={(v) => updateFilter("language", v)}
+            />
 
-          {/* Grid */}
-          <div className="flex-1 min-w-0">
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl border overflow-hidden animate-pulse">
-                    <div className="aspect-video bg-slate-100" />
-                    <div className="p-4 space-y-2">
-                      <div className="h-3 bg-slate-100 rounded w-1/3" />
-                      <div className="h-4 bg-slate-100 rounded w-4/5" />
-                      <div className="h-3 bg-slate-100 rounded w-1/2" />
-                      <div className="h-3 bg-slate-100 rounded w-2/3" />
-                      <div className="h-5 bg-slate-100 rounded w-1/4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : formations.length === 0 ? (
-              <div className="text-center py-20">
-                <div className="text-5xl mb-4">🔍</div>
-                <p className="text-slate-500">{t("no_courses")}</p>
-                <button onClick={resetFilters} className="mt-4 text-primary text-sm hover:underline">
-                  {t("filter_reset")}
-                </button>
-              </div>
-            ) : (
+            <div className="w-px h-8 bg-white/10 flex-shrink-0" />
+
+            <FilterDropdown
+              label={locale === "fr" ? "Trier" : "Sort"}
+              value={sort}
+              options={sortOptions}
+              onChange={setSort}
+            />
+
+            {hasActiveFilters && (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                  {formations.map((f) => (
-                    <FormationCard key={f.id} formation={f} locale={locale} t={t} />
-                  ))}
-                </div>
-
-                {/* Load more */}
-                {hasMore && (
-                  <div className="mt-8 text-center">
-                    <button
-                      onClick={loadMore}
-                      disabled={loadingMore}
-                      className="bg-white border border-slate-200 text-slate-700 font-medium px-8 py-3 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50"
-                    >
-                      {loadingMore
-                        ? (locale === "fr" ? "Chargement..." : "Loading...")
-                        : (locale === "fr" ? "Voir plus" : "Load more")}
-                    </button>
-                  </div>
-                )}
-
-                {!hasMore && formations.length > 0 && (
-                  <p className="text-center text-sm text-slate-400 mt-8">
-                    {locale === "fr" ? `${total} formation${total > 1 ? "s" : ""} au total` : `${total} course${total > 1 ? "s" : ""} total`}
-                  </p>
-                )}
+                <div className="w-px h-8 bg-white/10 flex-shrink-0" />
+                <button
+                  onClick={resetFilters}
+                  className="flex-shrink-0 flex items-center gap-1 text-sm text-red-400 hover:text-red-300 font-medium px-3 py-2 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  {locale === "fr" ? "Reinitialiser" : "Clear"}
+                </button>
               </>
             )}
           </div>
         </div>
+      </div>
+
+      {/* ── Results ──────────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Results count */}
+        {!loading && (
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-sm text-slate-400">
+              {t("courses_found", { count: total })}
+              {filters.search && (
+                <span className="ml-1">
+                  {locale === "fr" ? "pour" : "for"} <strong className="text-white">&quot;{filters.search}&quot;</strong>
+                </span>
+              )}
+            </p>
+          </div>
+        )}
+
+        {/* Grid */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-white/5 overflow-hidden animate-pulse"
+                style={{ backgroundColor: "#111827" }}
+              >
+                <div className="aspect-video" style={{ backgroundColor: "#1a2332" }} />
+                <div className="p-4 space-y-3">
+                  <div className="h-3 rounded w-1/3" style={{ backgroundColor: "#1a2332" }} />
+                  <div className="h-4 rounded w-4/5" style={{ backgroundColor: "#1a2332" }} />
+                  <div className="h-3 rounded w-1/2" style={{ backgroundColor: "#1a2332" }} />
+                  <div className="h-3 rounded w-2/3" style={{ backgroundColor: "#1a2332" }} />
+                  <div className="h-5 rounded w-1/4" style={{ backgroundColor: "#1a2332" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : formations.length === 0 ? (
+          <EmptyState onReset={resetFilters} categories={categories} locale={locale} t={t} />
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {formations.map((f) => (
+                <FormationCard key={f.id} formation={f} locale={locale} t={t} />
+              ))}
+            </div>
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="mt-10 text-center">
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+                >
+                  {loadingMore
+                    ? (locale === "fr" ? "Chargement..." : "Loading...")
+                    : (locale === "fr" ? "Charger plus de formations" : "Load more courses")}
+                </button>
+              </div>
+            )}
+
+            {!hasMore && formations.length > 0 && (
+              <p className="text-center text-sm text-slate-500 mt-10">
+                {locale === "fr"
+                  ? `${total} formation${total > 1 ? "s" : ""} au total`
+                  : `${total} course${total > 1 ? "s" : ""} total`}
+              </p>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

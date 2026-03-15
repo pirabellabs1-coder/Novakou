@@ -5,6 +5,13 @@ import { prisma, IS_DEV } from "@/lib/prisma";
 import { orderStore, serviceStore, transactionStore, notificationStore, conversationStore } from "@/lib/dev/data-store";
 import { sendOrderConfirmationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/api-rate-limit";
+import { z } from "zod";
+
+const createOrderSchema = z.object({
+  serviceId: z.string().min(1, "serviceId est requis"),
+  packageType: z.enum(["basic", "standard", "premium"], { error: "Type de forfait invalide" }),
+  requirements: z.string().max(5000, "Les exigences ne doivent pas depasser 5000 caracteres").optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -100,26 +107,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { serviceId, packageType, requirements } = body as {
-      serviceId: string;
-      packageType: "basic" | "standard" | "premium";
-      requirements?: string;
-    };
-
-    // Validate required fields
-    if (!serviceId || !packageType) {
+    const result = createOrderSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
-        { error: "serviceId et packageType sont requis" },
+        { error: "Donnees invalides", details: z.treeifyError(result.error) },
         { status: 400 }
       );
     }
-
-    if (!["basic", "standard", "premium"].includes(packageType)) {
-      return NextResponse.json(
-        { error: "packageType doit etre basic, standard ou premium" },
-        { status: 400 }
-      );
-    }
+    const { serviceId, packageType, requirements } = result.data;
 
     if (IS_DEV) {
       // Look up the service

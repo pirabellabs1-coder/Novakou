@@ -118,10 +118,10 @@ export default function ApiDocsPage() {
               Documentation API
             </h1>
             <p className="text-lg text-slate-400 leading-relaxed max-w-2xl">
-              Bienvenue sur la documentation officielle de l&apos;API FreelanceHigh. Integrez
-              les fonctionnalites de notre marketplace directement dans vos applications,
-              automatisez vos processus de recrutement et gerez vos transactions en toute
-              securite.
+              Bienvenue sur la documentation officielle de l&apos;API FreelanceHigh. Intégrez
+              les fonctionnalités de notre marketplace directement dans vos applications,
+              automatisez vos processus de recrutement et gérez vos transactions en toute
+              sécurité.
             </p>
           </header>
 
@@ -356,7 +356,7 @@ export default function ApiDocsPage() {
             </div>
             <div className="flex items-center gap-4">
               <span className="text-xs text-slate-500">
-                Derniere mise a jour le 15 Octobre 2025
+                Dernière mise à jour le 15 Octobre 2025
               </span>
             </div>
           </div>

@@ -15,6 +15,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -353,7 +354,7 @@ export default function AgenceAvis() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Star distribution */}
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Repartition des notes</h2>
+          <h2 className="font-bold text-white mb-4">Répartition des notes</h2>
 
           {/* Big rating display */}
           <div className="flex items-center gap-4 mb-5">
@@ -445,19 +446,7 @@ export default function AgenceAvis() {
                   tickLine={false}
                   width={30}
                 />
-                <Tooltip
-                  contentStyle={{
-                    background: "#1e1e2e",
-                    border: "1px solid #334155",
-                    borderRadius: "8px",
-                    color: "#fff",
-                    fontSize: "13px",
-                  }}
-                  formatter={(value: number) => [
-                    `${value.toFixed(1)}/5`,
-                    "Note",
-                  ]}
-                />
+                <Tooltip content={<ChartTooltip formatter={(v) => `${v.toFixed(1)}/5`} />} />
                 <Line
                   type="monotone"
                   dataKey="note"
@@ -471,7 +460,7 @@ export default function AgenceAvis() {
           ) : (
             <div className="flex items-center justify-center h-[280px]">
               <p className="text-slate-500 text-sm">
-                Pas assez de donnees pour afficher le graphique.
+                Pas assez de données pour afficher le graphique.
               </p>
             </div>
           )}

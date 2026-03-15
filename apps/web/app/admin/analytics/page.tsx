@@ -5,6 +5,7 @@ import { useToastStore } from "@/store/dashboard";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 const COLORS = ["#6C2BD9", "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#F97316", "#D946EF"];
 
@@ -170,7 +171,7 @@ export default function AdminAnalytics() {
               </defs>
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => `EUR${(v / 1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 12 }} formatter={(v: number) => [`EUR${v.toLocaleString()}`, ""]} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `EUR${v.toLocaleString()}`} />} />
               <Area type="monotone" dataKey="revenue" stroke="#6C2BD9" strokeWidth={2} fill="url(#revGrad)" name="Revenus" />
               <Area type="monotone" dataKey="commissions" stroke="#10B981" strokeWidth={2} fill="url(#commGrad)" name="Commissions" />
             </AreaChart>
@@ -188,7 +189,7 @@ export default function AdminAnalytics() {
                       <Cell key={i} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 12 }} />
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex justify-center gap-4 mt-2">
@@ -201,7 +202,7 @@ export default function AdminAnalytics() {
               </div>
             </>
           ) : (
-            <p className="text-slate-500 text-sm text-center py-8">Aucune donnee disponible</p>
+            <p className="text-slate-500 text-sm text-center py-8">Aucune donnée disponible</p>
           )}
         </div>
       </div>
@@ -214,7 +215,7 @@ export default function AdminAnalytics() {
             <BarChart data={registrationBarData}>
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 12 }} />
+              <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="value" fill="#6C2BD9" radius={[6, 6, 0, 0]} name="Inscriptions" />
             </BarChart>
           </ResponsiveContainer>
@@ -246,7 +247,7 @@ export default function AdminAnalytics() {
             <BarChart data={revenueByCategory} layout="vertical">
               <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => `EUR${(v / 1000).toFixed(0)}k`} />
               <YAxis type="category" dataKey="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} width={130} />
-              <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 12 }} formatter={(v: number) => [`EUR${v.toLocaleString()}`, "Revenus"]} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `EUR${v.toLocaleString()}`} />} />
               <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
                 {revenueByCategory.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -288,7 +289,7 @@ export default function AdminAnalytics() {
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip contentStyle={{ background: "#1e1e2e", border: "1px solid #2d2d3f", borderRadius: 12, color: "#fff", fontSize: 12 }} />
+              <Tooltip content={<ChartTooltip />} />
             </PieChart>
           </ResponsiveContainer>
           {analytics.reviewStats.reported > 0 && (
@@ -299,7 +300,7 @@ export default function AdminAnalytics() {
 
       {/* Top countries */}
       <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-        <h2 className="font-bold text-white mb-4">Activite par pays</h2>
+        <h2 className="font-bold text-white mb-4">Activité par pays</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

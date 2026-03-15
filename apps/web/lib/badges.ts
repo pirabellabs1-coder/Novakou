@@ -9,6 +9,9 @@ export interface BadgeInput {
   avgRating: number; // 0-5
   kycLevel: number; // 1-4
   plan: string; // "free" | "pro" | "business" | "agence"
+  role?: string; // "freelance" | "client" | "agence"
+  isInstructor?: boolean;
+  totalRevenue?: number; // Revenus totaux en EUR
 }
 
 export interface Badge {
@@ -55,6 +58,27 @@ const BADGE_DEFINITIONS: Badge[] = [
     color: "text-amber-300",
     description: "Freelance d'élite avec une expertise reconnue",
   },
+  {
+    id: "high-seller",
+    label: "High Seller",
+    icon: "local_fire_department",
+    color: "text-orange-400",
+    description: "Vendeur avec un volume de ventes eleve",
+  },
+  {
+    id: "certified-instructor",
+    label: "Instructeur Certifié",
+    icon: "school",
+    color: "text-indigo-400",
+    description: "Instructeur verifie et certifie par la plateforme",
+  },
+  {
+    id: "verified-agency",
+    label: "Agence Vérifiée",
+    icon: "domain",
+    color: "text-cyan-400",
+    description: "Agence avec des documents de verification valides",
+  },
 ];
 
 export function computeBadges(input: BadgeInput): string[] {
@@ -83,6 +107,21 @@ export function computeBadges(input: BadgeInput): string[] {
   // Elite: KYC ≥ 4 ET ≥100 commandes terminées ET ≥4.5 note
   if (input.kycLevel >= 4 && input.completedOrders >= 100 && input.avgRating >= 4.5) {
     badges.push("Elite");
+  }
+
+  // High Seller: ≥200 commandes ou ≥10 000€ de CA
+  if (input.completedOrders >= 200 || (input.totalRevenue && input.totalRevenue >= 10000)) {
+    badges.push("High Seller");
+  }
+
+  // Instructeur Certifié: est instructeur avec KYC ≥ 3
+  if (input.isInstructor && input.kycLevel >= 3) {
+    badges.push("Instructeur Certifié");
+  }
+
+  // Agence Vérifiée: role agence avec KYC ≥ 3
+  if (input.role === "agence" && input.kycLevel >= 3) {
+    badges.push("Agence Vérifiée");
   }
 
   return badges;

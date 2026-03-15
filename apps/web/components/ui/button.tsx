@@ -8,12 +8,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-purple-600 text-white hover:bg-purple-700 focus-visible:ring-purple-500",
-        outline: "border-2 border-purple-600 text-purple-600 bg-transparent hover:bg-purple-50",
+        default: "bg-primary text-white hover:brightness-110 focus-visible:ring-primary",
+        outline: "border-2 border-primary text-primary bg-transparent hover:bg-primary/5",
         ghost: "text-gray-600 hover:bg-gray-100",
         secondary: "bg-sky-500 text-white hover:bg-sky-600",
         destructive: "bg-red-500 text-white hover:bg-red-600",
-        link: "text-purple-600 underline-offset-4 hover:underline",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-5 py-2",

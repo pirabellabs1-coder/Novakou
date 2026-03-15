@@ -250,11 +250,12 @@ export const useAgencyStore = create<AgencyState>()((set, get) => ({
 
   syncFinances: async () => {
     try {
-      const [summary, txRes] = await Promise.all([
+      const [summaryRes, txRes] = await Promise.allSettled([
         financesApi.summary(),
         financesApi.transactions(),
       ]);
-      set({ financeSummary: summary, transactions: txRes.transactions });
+      if (summaryRes.status === "fulfilled") set({ financeSummary: summaryRes.value });
+      if (txRes.status === "fulfilled") set({ transactions: txRes.value.transactions });
     } catch { /* silently fail */ }
   },
 

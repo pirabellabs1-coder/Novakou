@@ -12,10 +12,10 @@ import { reviewsApi } from "@/lib/api-client";
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   en_attente: { label: "En attente", color: "bg-amber-500/10 text-amber-400", icon: "schedule" },
   en_cours: { label: "En cours", color: "bg-blue-500/10 text-blue-400", icon: "play_circle" },
-  livre: { label: "Livre", color: "bg-emerald-500/10 text-emerald-400", icon: "local_shipping" },
-  revision: { label: "Revision", color: "bg-orange-500/10 text-orange-400", icon: "edit_note" },
-  termine: { label: "Termine", color: "bg-emerald-500/10 text-emerald-400", icon: "check_circle" },
-  annule: { label: "Annule", color: "bg-red-500/10 text-red-400", icon: "cancel" },
+  livre: { label: "Livré", color: "bg-emerald-500/10 text-emerald-400", icon: "local_shipping" },
+  revision: { label: "Révision", color: "bg-orange-500/10 text-orange-400", icon: "edit_note" },
+  termine: { label: "Terminé", color: "bg-emerald-500/10 text-emerald-400", icon: "check_circle" },
+  annule: { label: "Annulé", color: "bg-red-500/10 text-red-400", icon: "cancel" },
 };
 
 const TIMELINE_ICONS: Record<string, { icon: string; color: string }> = {

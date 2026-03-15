@@ -154,7 +154,7 @@ export default function InstructeurCohortsPage({ params }: { params: Promise<{ i
 
       {/* Create form */}
       {showForm && (
-        <form onSubmit={createCohort} className="bg-white border rounded-xl p-6 mb-6 space-y-4">
+        <form onSubmit={createCohort} className="bg-white dark:bg-neutral-dark border dark:border-border-dark rounded-xl p-6 mb-6 space-y-4">
           <h2 className="font-bold text-lg">{fr ? "Créer une cohorte" : "Create a Cohort"}</h2>
 
           {error && <p className="text-red-600 text-sm bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
@@ -252,14 +252,14 @@ export default function InstructeurCohortsPage({ params }: { params: Promise<{ i
       {loading ? (
         <div className="space-y-3">
           {[1, 2].map((i) => (
-            <div key={i} className="bg-white rounded-xl border p-5 animate-pulse">
+            <div key={i} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-5 animate-pulse">
               <div className="h-5 bg-slate-100 rounded w-1/3 mb-3" />
               <div className="h-4 bg-slate-100 rounded w-1/2" />
             </div>
           ))}
         </div>
       ) : cohorts.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border">
+        <div className="text-center py-16 bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
           <div className="text-5xl mb-4">👥</div>
           <p className="text-slate-500 mb-4">{fr ? "Aucune cohorte pour l'instant" : "No cohorts yet"}</p>
           <button onClick={() => setShowForm(true)}
@@ -275,7 +275,7 @@ export default function InstructeurCohortsPage({ params }: { params: Promise<{ i
             const placesLeft = c.maxParticipants - c.currentCount;
 
             return (
-              <div key={c.id} className="bg-white rounded-xl border hover:border-slate-300 transition-colors p-5">
+              <div key={c.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:border-slate-300 transition-colors p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">

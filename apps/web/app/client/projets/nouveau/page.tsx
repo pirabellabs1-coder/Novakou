@@ -7,26 +7,26 @@ import { useToastStore } from "@/store/dashboard";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { label: "Details", sub: "Titre & Description", icon: "sort" },
-  { label: "Categorie", sub: "Expertise requise", icon: "category" },
-  { label: "Budget", sub: "Tarifs & Delais", icon: "payments" },
-  { label: "Revision", sub: "Confirmation finale", icon: "verified" },
+  { label: "Détails", sub: "Titre & Description", icon: "sort" },
+  { label: "Catégorie", sub: "Expertise requise", icon: "category" },
+  { label: "Budget", sub: "Tarifs & Délais", icon: "payments" },
+  { label: "Révision", sub: "Confirmation finale", icon: "verified" },
 ];
 
 const CATEGORIES = [
-  "Developpement Web & Mobile",
+  "Développement Web & Mobile",
   "Design UI/UX",
   "Marketing Digital",
-  "Redaction & Traduction",
-  "Video & Animation",
+  "Rédaction & Traduction",
+  "Vidéo & Animation",
   "IA & Data Science",
-  "SEO & Referencement",
-  "Cybersecurite",
+  "SEO & Référencement",
+  "Cybersécurité",
 ];
 
 const URGENCY_OPTIONS = [
   { key: "normale", label: "Normale", desc: "Pas de contrainte de temps", icon: "pace" },
-  { key: "urgente", label: "Urgente", desc: "Reponse sous 48h souhaitee", icon: "speed" },
+  { key: "urgente", label: "Urgente", desc: "Réponse sous 48h souhaitée", icon: "speed" },
   { key: "tres_urgente", label: "Tres urgente", desc: "Besoin immediat", icon: "bolt" },
 ];
 
@@ -590,11 +590,11 @@ export default function NewProjectPage() {
             </div>
           )}
 
-          {/* Step 4: Revision */}
+          {/* Step 4: Révision */}
           {step === 3 && (
             <div className="space-y-6">
-              <h3 className="text-lg font-bold text-white">Recapitulatif du projet</h3>
-              <p className="text-sm text-slate-400">Verifiez les informations avant de publier.</p>
+              <h3 className="text-lg font-bold text-white">Récapitulatif du projet</h3>
+              <p className="text-sm text-slate-400">Vérifiez les informations avant de publier.</p>
 
               <div className="bg-background-dark rounded-xl p-6 border border-border-dark space-y-4">
                 <h4 className="font-bold text-white text-xl">{form.title || "Sans titre"}</h4>

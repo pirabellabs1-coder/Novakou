@@ -7,14 +7,15 @@ import { ToastContainer } from "@/components/ui/toast";
 import { useClientStore } from "@/store/client";
 
 const CLIENT_CSS_VARS = {
-  "--color-primary": "25 230 66",
-  "--color-bg-light": "246 248 246",
-  "--color-bg-dark": "17 33 20",
-  "--color-neutral-dark": "26 47 30",
-  "--color-border-dark": "42 63 46",
+  "--color-primary": "34 197 94",
+  "--color-bg-light": "248 250 252",
+  "--color-bg-dark": "15 23 42",
+  "--color-neutral-dark": "17 24 39",
+  "--color-border-dark": "31 41 55",
 } as React.CSSProperties;
 
-const NOTIFICATION_POLL_INTERVAL = 30_000; // 30 seconds
+const IS_DEV = process.env.NODE_ENV === "development";
+const NOTIFICATION_POLL_INTERVAL = IS_DEV ? 300_000 : 30_000; // 5min en dev, 30s en prod
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,7 +38,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
   }, [syncNotifications]);
 
   return (
-    <div style={CLIENT_CSS_VARS} className="flex h-screen overflow-hidden bg-background-light dark:bg-background-dark font-sans">
+    <div style={CLIENT_CSS_VARS} className="flex h-screen overflow-hidden bg-background-dark text-slate-100 font-sans">
       <ToastContainer />
 
       {/* Desktop Sidebar */}
@@ -59,7 +60,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       <div className="flex-1 flex flex-col overflow-hidden">
         <ClientHeader onMenuClick={() => setMobileOpen(true)} />
 
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

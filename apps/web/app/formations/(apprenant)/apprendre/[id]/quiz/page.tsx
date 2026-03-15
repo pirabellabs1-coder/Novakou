@@ -128,7 +128,7 @@ export default function QuizPage({ params }: { params: Promise<{ id: string }> }
   if (submitted && result) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center py-12 px-4">
-        <div className="max-w-lg w-full bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="max-w-lg w-full bg-white dark:bg-neutral-dark rounded-2xl shadow-lg overflow-hidden">
           {/* Result header */}
           <div className={`p-8 text-center ${result.passed ? "bg-gradient-to-br from-green-500 to-emerald-600" : "bg-gradient-to-br from-orange-500 to-red-500"}`}>
             <div className="flex justify-center mb-4">
@@ -205,7 +205,7 @@ export default function QuizPage({ params }: { params: Promise<{ id: string }> }
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-sm border p-6 mb-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-2xl shadow-sm border dark:border-border-dark p-6 mb-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="font-bold text-slate-900">{fr ? quiz.titleFr : (quiz.titleEn || quiz.titleFr)}</h1>
             {timeLeft !== null && (
@@ -231,7 +231,7 @@ export default function QuizPage({ params }: { params: Promise<{ id: string }> }
         </div>
 
         {/* Question */}
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
+        <div className="bg-white dark:bg-neutral-dark rounded-2xl shadow-sm border dark:border-border-dark p-6">
           <p className="font-semibold text-slate-900 mb-6 leading-relaxed">{qText}</p>
 
           {/* Answer options */}

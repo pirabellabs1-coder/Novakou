@@ -168,7 +168,7 @@ function ClientDetailPanel({
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">Derniere commande</span>
+                <span className="text-slate-400">Dernière commande</span>
                 <span className="text-white font-medium">
                   {client.lastOrderAt ? formatDate(client.lastOrderAt) : "—"}
                 </span>
@@ -401,7 +401,7 @@ export default function AgenceClients() {
               1ere commande
             </p>
             <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">
-              Derniere commande
+              Dernière commande
             </p>
             <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider text-right">
               Commandes

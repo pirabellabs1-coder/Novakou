@@ -7,6 +7,28 @@ import {
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
+// Magic bytes pour valider le type reel du fichier (pas seulement l'extension client)
+const MAGIC_BYTES: Record<string, number[][]> = {
+  pdf: [[0x25, 0x50, 0x44, 0x46]], // %PDF
+  png: [[0x89, 0x50, 0x4E, 0x47]], // .PNG
+  jpg: [[0xFF, 0xD8, 0xFF]],
+  jpeg: [[0xFF, 0xD8, 0xFF]],
+  gif: [[0x47, 0x49, 0x46, 0x38]], // GIF8
+  webp: [[0x52, 0x49, 0x46, 0x46]], // RIFF (WebP)
+  zip: [[0x50, 0x4B, 0x03, 0x04], [0x50, 0x4B, 0x05, 0x06]], // PK
+  doc: [[0xD0, 0xCF, 0x11, 0xE0]], // OLE2
+  docx: [[0x50, 0x4B, 0x03, 0x04]], // ZIP (OOXML)
+};
+
+function validateMagicBytes(buffer: Buffer, extension: string): boolean {
+  const signatures = MAGIC_BYTES[extension];
+  // txt n'a pas de magic bytes — on accepte tout fichier texte
+  if (!signatures) return extension === "txt";
+  return signatures.some((sig) =>
+    sig.every((byte, i) => buffer.length > i && buffer[i] === byte)
+  );
+}
+
 const VALID_BUCKETS: StorageBucket[] = [
   "kyc-documents",
   "order-deliveries",
@@ -64,6 +86,14 @@ export async function POST(req: NextRequest) {
     const extension = (file.name.split(".").pop() || "").toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       return NextResponse.json({ error: "Extension de fichier non autorisee" }, { status: 400 });
+    }
+
+    // Valider les magic bytes pour empecher les fichiers deguises
+    if (!validateMagicBytes(buffer, extension)) {
+      return NextResponse.json(
+        { error: "Le contenu du fichier ne correspond pas a son extension. Upload refuse." },
+        { status: 400 }
+      );
     }
 
     // Build a unique path scoped to the user

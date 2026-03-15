@@ -333,7 +333,7 @@ export default function ClientReviews() {
                       <div>
                         <p className="font-bold text-white">{order.serviceTitle}</p>
                         <p className="text-xs text-slate-500">
-                          Freelance : {order.clientName} &middot; Terminee le {new Date(order.completedAt || order.updatedAt).toLocaleDateString("fr-FR")}
+                          Freelance : {order.clientName} &middot; Terminée le {new Date(order.completedAt || order.updatedAt).toLocaleDateString("fr-FR")}
                         </p>
                       </div>
                     </div>

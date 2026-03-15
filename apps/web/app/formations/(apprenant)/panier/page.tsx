@@ -154,7 +154,7 @@ export default function PanierPage() {
               const title = fr ? item.formation.titleFr : (item.formation.titleEn || item.formation.titleFr);
               const h = Math.floor(item.formation.duration / 60);
               return (
-                <div key={item.id} className="bg-white rounded-xl border p-4 flex gap-4">
+                <div key={item.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex gap-4">
                   {/* Thumbnail */}
                   <div className="w-32 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden">
                     {item.formation.thumbnail ? (
@@ -209,8 +209,8 @@ export default function PanierPage() {
 
           {/* Summary */}
           <div className="lg:w-80 flex-shrink-0">
-            <div className="bg-white rounded-xl border p-6 sticky top-8">
-              <h2 className="font-bold text-slate-900 mb-4">{fr ? "Récapitulatif" : "Summary"}</h2>
+            <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 sticky top-8">
+              <h2 className="font-bold text-slate-900 dark:text-slate-100 mb-4">{fr ? "Récapitulatif" : "Summary"}</h2>
 
               {/* Promo code */}
               <div className="mb-4">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 // POST: Reset du mot de passe d'un utilisateur (admin only)
 export async function POST(request: Request) {
@@ -11,10 +12,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
-    const { userId } = await request.json() as { userId: string };
+    const body = await request.json() as { userId: string };
+    const { userId } = body;
     if (!userId) {
       return NextResponse.json({ error: "userId requis" }, { status: 400 });
     }
+
+    // Rate limit: 5 attempts per 15 min per token/userId
+    const rateLimitKey = `reset-password:${userId}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
+        { status: 429 }
+      );
+    }
+    recordFailedAttempt(rateLimitKey);
 
     // Generer un mot de passe temporaire securise
     const tempPassword = crypto.randomBytes(6).toString("base64url").slice(0, 12) + "!A1";

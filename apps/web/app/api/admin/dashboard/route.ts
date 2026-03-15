@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { serviceStore, orderStore, transactionStore, reviewStore } from "@/lib/dev/data-store";
 import { devStore } from "@/lib/dev/dev-store";
@@ -7,6 +9,12 @@ import { trackingStore } from "@/lib/tracking/tracking-store";
 // GET /api/admin/dashboard — Aggregated platform stats for admin dashboard
 export async function GET() {
   try {
+    // Authentification et verification role admin obligatoire
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     if (IS_DEV) {
       const users = devStore.getAll();
       const orders = orderStore.getAll();
@@ -14,11 +22,14 @@ export async function GET() {
       const transactions = transactionStore.getAll();
       const reviews = reviewStore.getAll();
 
-      // ── User Stats ──
-      const totalUsers = users.filter((u) => u.role !== "admin").length;
-      const freelances = users.filter((u) => u.role === "freelance").length;
-      const clients = users.filter((u) => u.role === "client").length;
-      const agencies = users.filter((u) => u.role === "agence").length;
+      // ── User Stats (exclure admin, suspendus et bannis du comptage actif) ──
+      const activeUsers = users.filter((u) => u.role !== "admin" && u.status === "ACTIF");
+      const totalUsers = activeUsers.length;
+      const freelances = activeUsers.filter((u) => u.role === "freelance").length;
+      const clients = activeUsers.filter((u) => u.role === "client").length;
+      const agencies = activeUsers.filter((u) => u.role === "agence").length;
+      const suspendedUsers = users.filter((u) => u.status === "suspendu").length;
+      const bannedUsers = users.filter((u) => u.status === "banni").length;
 
       // ── Order Stats ──
       const totalOrders = orders.length;
@@ -152,6 +163,8 @@ export async function GET() {
           freelances,
           clients,
           agencies,
+          suspended: suspendedUsers,
+          banned: bannedUsers,
         },
         orders: {
           total: totalOrders,
@@ -215,10 +228,10 @@ export async function GET() {
       recentOrdersRaw,
       recentUsersRaw,
     ] = await Promise.all([
-      prisma.user.count({ where: { role: { not: "ADMIN" } } }),
-      prisma.user.count({ where: { role: "FREELANCE" } }),
-      prisma.user.count({ where: { role: "CLIENT" } }),
-      prisma.user.count({ where: { role: "AGENCE" } }),
+      prisma.user.count({ where: { role: { not: "ADMIN" }, status: "ACTIF" } }),
+      prisma.user.count({ where: { role: "FREELANCE", status: "ACTIF" } }),
+      prisma.user.count({ where: { role: "CLIENT", status: "ACTIF" } }),
+      prisma.user.count({ where: { role: "AGENCE", status: "ACTIF" } }),
       prisma.order.count(),
       prisma.order.count({ where: { status: { in: ["EN_ATTENTE", "EN_COURS", "REVISION"] } } }),
       prisma.order.count({ where: { status: "TERMINE" } }),

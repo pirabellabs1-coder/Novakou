@@ -8,13 +8,14 @@ import { useAdminStore } from "@/store/admin";
 
 const ADMIN_CSS_VARS = {
   "--color-primary": "220 38 38",
-  "--color-bg-light": "248 246 246",
-  "--color-bg-dark": "18 14 14",
-  "--color-neutral-dark": "30 24 24",
-  "--color-border-dark": "50 38 38",
+  "--color-bg-light": "248 250 252",
+  "--color-bg-dark": "15 23 42",
+  "--color-neutral-dark": "17 24 39",
+  "--color-border-dark": "31 41 55",
 } as React.CSSProperties;
 
-const ADMIN_POLL_INTERVAL = 30_000; // 30 seconds
+const IS_DEV = process.env.NODE_ENV === "development";
+const ADMIN_POLL_INTERVAL = IS_DEV ? 300_000 : 30_000; // 5min en dev, 30s en prod
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [syncDashboard]);
 
   return (
-    <div style={ADMIN_CSS_VARS} className="flex h-screen overflow-hidden bg-background-dark">
+    <div style={ADMIN_CSS_VARS} className="flex h-screen overflow-hidden bg-background-dark text-slate-100">
       <ToastContainer />
       {/* Desktop sidebar */}
       <div className="hidden lg:flex flex-shrink-0 relative">
@@ -45,13 +46,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile sidebar overlay */}
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <div className="relative z-50"><AdminSidebar collapsed={false} onToggle={() => setMobileOpen(false)} /></div>
         </div>
       )}
       <div className="flex-1 flex flex-col overflow-hidden">
         <AdminHeader onMobileMenu={() => setMobileOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
       </div>

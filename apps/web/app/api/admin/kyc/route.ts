@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { notificationStore } from "@/lib/dev/data-store";
 import { devStore } from "@/lib/dev/dev-store";
@@ -6,6 +8,10 @@ import { devStore } from "@/lib/dev/dev-store";
 // GET /api/admin/kyc — KYC verification queue
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
     if (IS_DEV) {
       const users = devStore.getAll();
 
@@ -130,6 +136,11 @@ export async function GET() {
 // POST /api/admin/kyc — Approve or refuse KYC verification
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { action, userId, level, reason, requestId } = body;
 

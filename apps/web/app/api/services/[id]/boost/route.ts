@@ -6,6 +6,15 @@ import {
   boostStore,
   BOOST_TIERS,
 } from "@/lib/dev/data-store";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
+
+// Anti-abuse: limites de boosts par plan par mois
+const BOOST_LIMITS_BY_PLAN: Record<string, number> = {
+  gratuit: 0,
+  pro: 1,
+  business: 5,
+  agence: 10,
+};
 
 // POST /api/services/[id]/boost — Activate a boost on a service
 export async function POST(
@@ -60,6 +69,48 @@ export async function POST(
           },
         },
         { status: 409 }
+      );
+    }
+
+    // Anti-abus : rate limiting (max 3 tentatives de boost par heure)
+    const rateLimitKey = `boost:${session.user.id}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives de boost. Veuillez patienter." },
+        { status: 429 }
+      );
+    }
+    recordFailedAttempt(rateLimitKey);
+
+    // Anti-abus : limite de boosts par plan par mois
+    const userPlan = (session.user.plan ?? "gratuit").toLowerCase();
+    const monthlyLimit = BOOST_LIMITS_BY_PLAN[userPlan] ?? 0;
+    if (monthlyLimit === 0) {
+      return NextResponse.json(
+        {
+          error: "Le plan Gratuit ne permet pas de booster des services. Passez au plan Pro ou superieur.",
+          code: "PLAN_REQUIRED",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Compter les boosts actives ce mois-ci par cet utilisateur
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const userBoostsThisMonth = boostStore.getByUser(session.user.id)
+      .filter((b) => b.startedAt >= monthStart).length;
+
+    if (userBoostsThisMonth >= monthlyLimit) {
+      return NextResponse.json(
+        {
+          error: `Vous avez atteint la limite de ${monthlyLimit} boost(s) par mois pour le plan ${userPlan}. Passez a un plan superieur pour plus de boosts.`,
+          code: "BOOST_LIMIT_REACHED",
+          limit: monthlyLimit,
+          used: userBoostsThisMonth,
+        },
+        { status: 403 }
       );
     }
 

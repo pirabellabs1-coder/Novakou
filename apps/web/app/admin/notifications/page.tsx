@@ -221,7 +221,7 @@ export default function AdminNotifications() {
             {/* Preview */}
             {form.title && (
               <div className="p-4 rounded-lg border border-border-dark bg-background-dark/50">
-                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Apercu</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-2">Aperçu</p>
                 <div className="flex items-start gap-3">
                   <span className={cn("material-symbols-outlined text-lg mt-0.5", TYPE_MAP[form.type]?.cls.split(" ")[1])}>{TYPE_MAP[form.type]?.icon}</span>
                   <div>

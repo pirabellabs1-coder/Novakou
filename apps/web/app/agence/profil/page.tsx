@@ -174,7 +174,7 @@ export default function AgenceProfilPage() {
         </div>)}
 
         <div className="grid grid-cols-3 gap-4">
-          {[{ icon: "verified", value: `${form.completionPercent}%`, label: "Profil complete", color: "text-[#14B835]" },
+          {[{ icon: "verified", value: `${form.completionPercent}%`, label: "Profil complété", color: "text-[#14B835]" },
             { icon: "groups", value: form.taille || "—", label: "Membres", color: "text-emerald-400" },
             { icon: "location_on", value: form.ville || "—", label: form.pays || "Localisation", color: "text-blue-400" },
           ].map((s) => (

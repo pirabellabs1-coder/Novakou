@@ -139,9 +139,9 @@ export default function DeveloperPage() {
             <table className="w-full text-left text-sm">
               <thead className="bg-white/5 text-slate-500 font-bold border-b border-primary/10">
                 <tr>
-                  <th className="px-6 py-4">Nom de la cle</th>
-                  <th className="px-6 py-4">Cle API</th>
-                  <th className="px-6 py-4 hidden md:table-cell">Derniere utilisation</th>
+                  <th className="px-6 py-4">Nom de la clé</th>
+                  <th className="px-6 py-4">Clé API</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Dernière utilisation</th>
                   <th className="px-6 py-4">Actions</th>
                 </tr>
               </thead>

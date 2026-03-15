@@ -84,6 +84,29 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // ── Maintenance mode check ──
+  // Check maintenance via internal API (edge-compatible)
+  if (pathname !== "/maintenance" && !pathname.startsWith("/admin")) {
+    try {
+      const maintenanceRes = await fetch(new URL("/api/public/maintenance", req.url), {
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (maintenanceRes.ok) {
+        const data = await maintenanceRes.json();
+        if (data.enabled) {
+          // Allow admin users through even during maintenance
+          const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+          const userRole = token?.role as string | undefined;
+          if (userRole !== "admin") {
+            return NextResponse.redirect(new URL("/maintenance", req.url));
+          }
+        }
+      }
+    } catch {
+      // If maintenance check fails, allow access (fail open)
+    }
+  }
+
   // --- i18n : set locale cookie from Accept-Language if absent ---
   const localeCookie = req.cookies.get("locale")?.value;
   let needsLocaleCookie = false;

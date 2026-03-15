@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 const TX_ICONS: Record<string, { icon: string; color: string }> = {
   vente: { icon: "payments", color: "text-emerald-400 bg-emerald-500/10" },
@@ -32,9 +33,20 @@ const WITHDRAWAL_METHODS = [
 
 export default function FinancesPage() {
   const { transactions, addTransaction, apiRequestWithdrawal, stats: apiStats, syncStats } = useDashboardStore();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    syncStats();
+    setLoading(true);
+    setError(null);
+    try {
+      syncStats();
+    } catch {
+      setError("Impossible de charger les donnees financieres.");
+    } finally {
+      const timer = setTimeout(() => setLoading(false), 600);
+      return () => clearTimeout(timer);
+    }
   }, [syncStats]);
 
   const monthlyRevenue = apiStats?.monthlyRevenue ?? [];
@@ -122,7 +134,36 @@ export default function FinancesPage() {
     a.download = "transactions-freelancehigh.csv";
     a.click();
     URL.revokeObjectURL(url);
-    addToast("success", "Export CSV telecharge !");
+    addToast("success", "Export CSV téléchargé !");
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-full flex flex-col items-center justify-center py-20">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-5">
+          <span className="material-symbols-outlined text-3xl text-red-400">error</span>
+        </div>
+        <h3 className="text-lg font-bold mb-2">Erreur de chargement</h3>
+        <p className="text-sm text-slate-400 max-w-sm text-center mb-6">{error}</p>
+        <button onClick={() => { setError(null); setLoading(true); syncStats(); setTimeout(() => setLoading(false), 600); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:brightness-110 transition-all">
+          Reessayer
+        </button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="max-w-full space-y-8 animate-pulse">
+        <div className="h-10 bg-slate-200 dark:bg-neutral-dark rounded-lg w-1/3" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-background-dark/50 border border-border-dark rounded-xl p-6 h-32" />
+          ))}
+        </div>
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl h-72" />
+      </div>
+    );
   }
 
   return (
@@ -131,7 +172,7 @@ export default function FinancesPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight">Gains & Finances</h2>
-          <p className="text-slate-400 mt-1">Suivez vos revenus et gerez vos retraits.</p>
+          <p className="text-slate-400 mt-1">Suivez vos revenus et gérez vos retraits.</p>
         </div>
         <div className="flex gap-3">
           <button onClick={handleExportCSV}
@@ -223,10 +264,7 @@ export default function FinancesPage() {
             <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
             <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
             <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v}`} />
-            <Tooltip
-              contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px", fontSize: "13px" }}
-              formatter={(value: number) => [`€${value}`, "Revenus"]}
-            />
+            <Tooltip content={<ChartTooltip formatter={(v) => `€${v.toLocaleString("fr-FR")}`} />} />
             <Bar dataKey="revenue" fill="#0e7c66" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>

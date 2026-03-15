@@ -108,7 +108,7 @@ export default function ClientPayments() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-black text-white">Paiements & Facturation</h1>
-          <p className="text-slate-400 text-sm mt-1">Gerez vos methodes de paiement, consultez vos transactions et telechargez vos factures.</p>
+          <p className="text-slate-400 text-sm mt-1">Gérez vos méthodes de paiement, consultez vos transactions et téléchargez vos factures.</p>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500">Devise :</span>
@@ -144,7 +144,7 @@ export default function ClientPayments() {
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
                 </div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total depense</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total dépensé</p>
               </div>
               <p className="text-2xl font-black text-white">{formatAmount(totalSpent)}</p>
               {currency === "FCFA" && <p className="text-xs text-slate-500 mt-1">&asymp; {totalSpent.toFixed(2)} EUR</p>}
@@ -532,7 +532,7 @@ export default function ClientPayments() {
                 a.download = `transactions_${new Date().toISOString().slice(0, 10)}.csv`;
                 a.click();
                 URL.revokeObjectURL(url);
-                addToast("success", "Export CSV telecharge");
+                addToast("success", "Export CSV téléchargé");
               }}
               className="flex items-center gap-2 px-4 py-2 bg-neutral-dark border border-border-dark rounded-lg text-sm font-semibold text-white hover:bg-border-dark transition-colors"
             >

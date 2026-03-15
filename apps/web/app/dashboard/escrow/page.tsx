@@ -577,7 +577,7 @@ export default function EscrowPage() {
               <span className="material-symbols-outlined text-primary text-xl">
                 timeline
               </span>
-              Activite Recente
+              Activité Récente
             </h3>
             <div className="space-y-3">
               {[

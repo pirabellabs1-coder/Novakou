@@ -1,10 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { fullServiceSchema, SERVICES_LIMITS } from "@/lib/validations/service";
 
 export async function POST(request: NextRequest) {
   try {
+    // Authentification obligatoire
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    }
+    // Seuls les freelances et agences peuvent publier
+    if (!["freelance", "agence"].includes(session.user.role)) {
+      return NextResponse.json({ error: "Seuls les freelances et agences peuvent publier des services" }, { status: 403 });
+    }
+
+    // Verification KYC obligatoire (niveau 3 minimum pour publier)
+    if ((session.user.kyc ?? 1) < 3) {
+      return NextResponse.json(
+        {
+          error: "Verification d'identite requise pour publier un service. Completez votre KYC (niveau 3 minimum).",
+          code: "KYC_REQUIRED",
+          requiredLevel: 3,
+          currentLevel: session.user.kyc ?? 1,
+          redirectTo: "/dashboard/kyc",
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
-    const userPlan = body.userPlan || "GRATUIT";
+    const userPlan = session.user.plan?.toUpperCase() || "GRATUIT";
 
     // The frontend sends fields at root level
     const result = fullServiceSchema.safeParse(body);

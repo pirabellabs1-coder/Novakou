@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { orderStore, transactionStore } from "@/lib/dev/data-store";
 import { devStore } from "@/lib/dev/dev-store";
@@ -6,6 +8,10 @@ import { devStore } from "@/lib/dev/dev-store";
 // GET /api/admin/users — List all users with aggregated stats
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
     if (IS_DEV) {
       const allUsers = devStore.getAll();
       const allOrders = orderStore.getAll();
@@ -101,6 +107,11 @@ export async function GET() {
 // PATCH /api/admin/users — Update user status
 export async function PATCH(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
+    }
+
     const body = await request.json();
     const { id, status } = body;
 

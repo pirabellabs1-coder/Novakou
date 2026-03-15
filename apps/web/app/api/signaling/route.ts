@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 
 // In-memory signaling store with TTL
 interface Signal {
@@ -24,6 +26,11 @@ function cleanup() {
 // POST — Send a signal to another user
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { type, from, to, payload } = body;
 
@@ -53,6 +60,10 @@ export async function POST(req: NextRequest) {
 // GET — Poll for signals addressed to a user
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const afterId = searchParams.get("afterId");

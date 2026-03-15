@@ -243,7 +243,7 @@ export default function UserDetailPage() {
                 <span>KYC: Niveau {user.kycLevel}</span>
                 <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-semibold", planInfo.color)}>Plan {planInfo.label}</span>
                 <span>Inscrit le {new Date(user.createdAt).toLocaleDateString("fr-FR")}</span>
-                <span>Derniere connexion: {new Date(user.lastLoginAt).toLocaleDateString("fr-FR")}</span>
+                <span>Dernière connexion: {new Date(user.lastLoginAt).toLocaleDateString("fr-FR")}</span>
               </div>
             </div>
           </div>
@@ -304,7 +304,7 @@ export default function UserDetailPage() {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-white">{totalSpent.toLocaleString()} EUR</p>
-            <p className="text-xs text-slate-500">Total depense</p>
+            <p className="text-xs text-slate-500">Total dépensé</p>
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-white">{ordersCount}</p>
@@ -355,7 +355,7 @@ export default function UserDetailPage() {
               <div className="flex justify-between"><span className="text-slate-500">Pays</span><span className="text-white">{user.country}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">KYC</span><span className="text-white">Niveau {user.kycLevel}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Inscription</span><span className="text-white">{new Date(user.createdAt).toLocaleDateString("fr-FR")}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Derniere connexion</span><span className="text-white">{new Date(user.lastLoginAt).toLocaleDateString("fr-FR")}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Dernière connexion</span><span className="text-white">{new Date(user.lastLoginAt).toLocaleDateString("fr-FR")}</span></div>
             </div>
           </div>
 

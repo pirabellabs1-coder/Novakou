@@ -1019,6 +1019,40 @@ export const boostStore = {
 
     return boost;
   },
+
+  /**
+   * Nettoyer les boosts expires — desactiver isBoosted sur les services concernes.
+   * A appeler periodiquement (ex: dans un cron ou au chargement du dashboard).
+   */
+  cleanupExpired(): number {
+    const now = new Date();
+    let cleaned = 0;
+    const allBoosts = this.getAll();
+    const expiredServiceIds = new Set<string>();
+
+    for (const boost of allBoosts) {
+      if (new Date(boost.expiresAt) <= now) {
+        expiredServiceIds.add(boost.serviceId);
+      }
+    }
+
+    for (const serviceId of expiredServiceIds) {
+      // Verifier qu'il n'y a pas de boost actif pour ce service
+      const activeBoost = this.getActiveBoost(serviceId);
+      if (!activeBoost) {
+        const service = serviceStore.getById(serviceId);
+        if (service && service.isBoosted) {
+          serviceStore.update(serviceId, {
+            isBoosted: false,
+            boostTier: null,
+          });
+          cleaned++;
+        }
+      }
+    }
+
+    return cleaned;
+  },
 };
 
 // ── Profile Store ──────────────────────────────────────────────────────────
@@ -1184,6 +1218,19 @@ export function calculateStats(userId: string) {
       pending: services.filter((s) => s.status === "en_attente").length,
     },
     revenueThisMonth: monthlyRevenue[monthlyRevenue.length - 1]?.revenue ?? 0,
+    // Tendance : comparaison mois courant vs mois precedent
+    revenueTrend: (() => {
+      const current = monthlyRevenue[monthlyRevenue.length - 1]?.revenue ?? 0;
+      const previous = monthlyRevenue[monthlyRevenue.length - 2]?.revenue ?? 0;
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 1000) / 10;
+    })(),
+    ordersTrend: (() => {
+      const current = monthlyRevenue[monthlyRevenue.length - 1]?.orders ?? 0;
+      const previous = monthlyRevenue[monthlyRevenue.length - 2]?.orders ?? 0;
+      if (previous === 0) return current > 0 ? 100 : 0;
+      return Math.round(((current - previous) / previous) * 1000) / 10;
+    })(),
     totalReviews,
     avgQualite: Math.round(avgQualite * 10) / 10,
     avgCommunication: Math.round(avgCommunication * 10) / 10,
@@ -1741,6 +1788,52 @@ export const kycRequestStore = {
   },
 };
 
+// ── KYC Personal Info Store ───────────────────────────────────────────
+
+export interface StoredKycPersonalInfo {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  city: string;
+  address: string;
+  dateOfBirth: string;
+  updatedAt: string;
+}
+
+const KYC_PERSONAL_INFO_FILE = "kyc-personal-info.json";
+
+export const kycPersonalInfoStore = {
+  getAll(): StoredKycPersonalInfo[] {
+    return readJson<StoredKycPersonalInfo[]>(KYC_PERSONAL_INFO_FILE, []);
+  },
+
+  getByUser(userId: string): StoredKycPersonalInfo | null {
+    const all = this.getAll();
+    return all.find((p) => p.userId === userId) || null;
+  },
+
+  upsert(
+    userId: string,
+    data: Omit<StoredKycPersonalInfo, "userId" | "updatedAt">
+  ): StoredKycPersonalInfo {
+    const all = this.getAll();
+    const idx = all.findIndex((p) => p.userId === userId);
+    const entry: StoredKycPersonalInfo = {
+      ...data,
+      userId,
+      updatedAt: new Date().toISOString(),
+    };
+    if (idx >= 0) {
+      all[idx] = entry;
+    } else {
+      all.push(entry);
+    }
+    writeJson(KYC_PERSONAL_INFO_FILE, all);
+    return entry;
+  },
+};
+
 // ── Contact Store ─────────────────────────────────────────────────────
 
 export interface StoredContactMessage {
@@ -1771,6 +1864,166 @@ export const contactStore = {
     return msg;
   },
 };
+
+// ── Invoice Store ─────────────────────────────────────────────────────
+
+export interface StoredInvoice {
+  id: string;
+  invoiceNumber: string;
+  orderId: string;
+  transactionId: string;
+  buyerId: string;
+  buyerName: string;
+  buyerEmail: string;
+  sellerId: string;
+  sellerName: string;
+  sellerEmail: string;
+  type: "service" | "formation" | "produit" | "abonnement";
+  description: string;
+  amount: number;
+  currency: string;
+  commission: number;
+  commissionRate: number;
+  tax: number;
+  taxRate: number;
+  totalPaid: number;
+  netAmount: number;
+  paymentMethod: string;
+  status: "payee" | "en_attente" | "remboursee" | "annulee";
+  pdfUrl: string | null;
+  createdAt: string;
+}
+
+const INVOICES_FILE = "invoices.json";
+
+let invoiceCounter = 100;
+
+function getNextInvoiceNumber(): string {
+  invoiceCounter++;
+  return `INV-${String(invoiceCounter).padStart(6, "0")}`;
+}
+
+export const invoiceStore = {
+  getAll(): StoredInvoice[] {
+    return readJson<StoredInvoice[]>(INVOICES_FILE, []);
+  },
+
+  getByUser(userId: string): StoredInvoice[] {
+    const all = this.getAll();
+    return all.filter((inv) => inv.buyerId === userId || inv.sellerId === userId);
+  },
+
+  getByBuyer(buyerId: string): StoredInvoice[] {
+    const all = this.getAll();
+    return all.filter((inv) => inv.buyerId === buyerId);
+  },
+
+  getBySeller(sellerId: string): StoredInvoice[] {
+    const all = this.getAll();
+    return all.filter((inv) => inv.sellerId === sellerId);
+  },
+
+  getById(id: string): StoredInvoice | null {
+    const all = this.getAll();
+    return all.find((inv) => inv.id === id || inv.invoiceNumber === id) || null;
+  },
+
+  create(data: Omit<StoredInvoice, "id" | "invoiceNumber" | "createdAt" | "pdfUrl">): StoredInvoice {
+    const all = this.getAll();
+    const invoice: StoredInvoice = {
+      ...data,
+      id: `inv_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`,
+      invoiceNumber: getNextInvoiceNumber(),
+      pdfUrl: null,
+      createdAt: new Date().toISOString(),
+    };
+    all.unshift(invoice);
+    writeJson(INVOICES_FILE, all);
+    return invoice;
+  },
+
+  /**
+   * Auto-generer une facture a partir d'une commande completee.
+   */
+  createFromOrder(order: {
+    id: string;
+    serviceTitle: string;
+    amount: number;
+    commission: number;
+    clientId: string;
+    clientName: string;
+    freelanceId: string;
+    freelanceName: string;
+    paymentMethod?: string;
+  }): StoredInvoice {
+    const commissionRate = order.amount > 0 ? (order.commission / order.amount) * 100 : 0;
+    return this.create({
+      orderId: order.id,
+      transactionId: `TX-${Date.now().toString(36)}`,
+      buyerId: order.clientId,
+      buyerName: order.clientName,
+      buyerEmail: "",
+      sellerId: order.freelanceId,
+      sellerName: order.freelanceName,
+      sellerEmail: "",
+      type: "service",
+      description: order.serviceTitle,
+      amount: order.amount,
+      currency: "EUR",
+      commission: order.commission,
+      commissionRate: Math.round(commissionRate),
+      tax: 0,
+      taxRate: 0,
+      totalPaid: order.amount,
+      netAmount: order.amount - order.commission,
+      paymentMethod: order.paymentMethod || "carte_bancaire",
+      status: "payee",
+    });
+  },
+};
+
+// ── Rank System ──────────────────────────────────────────────────────
+
+export interface UserRank {
+  level: string;
+  label: string;
+  icon: string;
+  color: string;
+  minSales: number;
+}
+
+export const RANK_LEVELS: UserRank[] = [
+  { level: "new_seller", label: "Nouveau vendeur", icon: "storefront", color: "text-slate-400", minSales: 0 },
+  { level: "rising_talent", label: "Rising Talent", icon: "trending_up", color: "text-blue-400", minSales: 5 },
+  { level: "professional", label: "Professionnel", icon: "workspace_premium", color: "text-purple-400", minSales: 25 },
+  { level: "top_rated", label: "Top Rated", icon: "star", color: "text-amber-400", minSales: 50 },
+  { level: "elite_expert", label: "Elite Expert", icon: "diamond", color: "text-emerald-400", minSales: 100 },
+];
+
+export function getUserRank(completedSales: number): UserRank {
+  for (let i = RANK_LEVELS.length - 1; i >= 0; i--) {
+    if (completedSales >= RANK_LEVELS[i].minSales) {
+      return RANK_LEVELS[i];
+    }
+  }
+  return RANK_LEVELS[0];
+}
+
+export function getNextRank(completedSales: number): { nextRank: UserRank | null; salesNeeded: number; progress: number } {
+  const currentRank = getUserRank(completedSales);
+  const currentIdx = RANK_LEVELS.findIndex((r) => r.level === currentRank.level);
+  if (currentIdx >= RANK_LEVELS.length - 1) {
+    return { nextRank: null, salesNeeded: 0, progress: 100 };
+  }
+  const nextRank = RANK_LEVELS[currentIdx + 1];
+  const salesNeeded = nextRank.minSales - completedSales;
+  const rangeStart = currentRank.minSales;
+  const rangeEnd = nextRank.minSales;
+  const progress = rangeEnd > rangeStart
+    ? Math.round(((completedSales - rangeStart) / (rangeEnd - rangeStart)) * 100)
+    : 0;
+  return { nextRank, salesNeeded, progress };
+}
 
 // ── Export SEO score calculator for API use ──────────────────────────────
 

@@ -154,30 +154,30 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Ma progression" : "My Progress"}</p>
-          <p className={`text-xl font-bold ${isCompleted ? "text-green-600" : "text-slate-900"}`}>
+          <p className={`text-xl font-bold ${isCompleted ? "text-green-600" : "text-slate-900 dark:text-slate-100"}`}>
             {Math.round(data.enrollment.progress)}%
           </p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Moyenne groupe" : "Group Avg"}</p>
-          <p className="text-xl font-bold text-slate-900">{avgProgress}%</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{avgProgress}%</p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Classement" : "Ranking"}</p>
           <p className="text-xl font-bold text-primary">{myRank > 0 ? `#${myRank}` : "—"}/{data.participants.length}</p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Participants" : "Participants"}</p>
-          <p className="text-xl font-bold text-slate-900">{data.currentCount}/{data.maxParticipants}</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{data.currentCount}/{data.maxParticipants}</p>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="bg-white rounded-xl border p-4 mb-6">
+      <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 mb-6">
         <div className="flex items-center justify-between text-sm mb-2">
-          <span className="font-medium text-slate-900">{fr ? "Ma progression" : "My Progress"}</span>
+          <span className="font-medium text-slate-900 dark:text-slate-100">{fr ? "Ma progression" : "My Progress"}</span>
           <span className={`font-bold ${isCompleted ? "text-green-600" : "text-primary"}`}>
             {Math.round(data.enrollment.progress)}%
           </span>
@@ -208,7 +208,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
             key={key}
             onClick={() => setTab(key)}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-              tab === key ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === key ? "bg-white dark:bg-neutral-dark text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -229,7 +229,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Content tab */}
       {tab === "content" && (
-        <div className="bg-white rounded-xl border p-6 space-y-6">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 space-y-6">
           <div className="flex items-center gap-4">
             <div className="w-20 h-14 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden flex-shrink-0">
               {data.formation.thumbnail ? (
@@ -278,7 +278,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Schedule tab */}
       {tab === "schedule" && (
-        <div className="bg-white rounded-xl border p-6">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
           {schedule.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Calendar className="w-10 h-10 mx-auto mb-3 text-slate-300" />
@@ -321,8 +321,8 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
       {tab === "progress" && (
         <div className="space-y-6">
           {/* My progress card */}
-          <div className="bg-white rounded-xl border p-6">
-            <h3 className="font-semibold text-slate-900 mb-4">{fr ? "Ma progression" : "My Progress"}</h3>
+          <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
+            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">{fr ? "Ma progression" : "My Progress"}</h3>
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full border-4 border-primary flex items-center justify-center">
                 <span className="text-2xl font-bold text-primary">{Math.round(data.enrollment.progress)}%</span>
@@ -347,9 +347,9 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
           </div>
 
           {/* Leaderboard */}
-          <div className="bg-white rounded-xl border overflow-hidden">
-            <div className="px-4 py-3 bg-slate-50 border-b">
-              <h3 className="font-semibold text-slate-900 text-sm">{fr ? "Classement de la cohorte" : "Cohort Leaderboard"}</h3>
+          <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark overflow-hidden">
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b dark:border-border-dark">
+              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{fr ? "Classement de la cohorte" : "Cohort Leaderboard"}</h3>
             </div>
             <div className="divide-y">
               {sortedParticipants.map((p, idx) => {
@@ -391,8 +391,8 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Participants tab */}
       {tab === "participants" && (
-        <div className="bg-white rounded-xl border p-6">
-          <h3 className="font-semibold text-slate-900 mb-4">
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
             {data.participants.length} {fr ? "participants" : "participants"}
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

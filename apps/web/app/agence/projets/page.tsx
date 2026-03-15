@@ -24,8 +24,8 @@ interface Project {
 const COLUMNS: { key: ProjectStatus; label: string; color: string }[] = [
   { key: "a_faire", label: "A faire", color: "bg-slate-500" },
   { key: "en_cours", label: "En cours", color: "bg-blue-500" },
-  { key: "en_revision", label: "En revision", color: "bg-purple-500" },
-  { key: "termine", label: "Termine", color: "bg-emerald-500" },
+  { key: "en_revision", label: "En révision", color: "bg-purple-500" },
+  { key: "termine", label: "Terminé", color: "bg-emerald-500" },
 ];
 
 const PRIORITY_BADGES: Record<Priority, { label: string; cls: string }> = {

@@ -62,9 +62,9 @@ export default function AbonnementPage() {
         a.click();
         URL.revokeObjectURL(url);
       }
-      addToast("success", `Facture ${invoice.id} telechargee`);
+      addToast("success", `Facture ${invoice.id} téléchargée`);
     } catch {
-      addToast("error", "Erreur lors du telechargement de la facture");
+      addToast("error", "Erreur lors du téléchargement de la facture");
     }
   }
 

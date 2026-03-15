@@ -52,6 +52,15 @@ interface Review {
   reply?: string;
 }
 
+interface Certificate {
+  id: string;
+  code: string;
+  formationTitle: string;
+  instructorName: string;
+  score: number;
+  issuedAt: string;
+}
+
 interface FreelancerData {
   id: string;
   name: string;
@@ -78,6 +87,7 @@ interface FreelancerData {
   badge: string;
   services: ServiceCard[];
   reviews: Review[];
+  certificates?: Certificate[];
   stats: {
     completedOrders: number;
     totalOrders: number;
@@ -227,7 +237,7 @@ export default function FreelanceProfilePage() {
   const [notFound, setNotFound] = useState(false);
 
   const [contactOpen, setContactOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "reviews">("about");
+  const [activeTab, setActiveTab] = useState<"about" | "portfolio" | "reviews" | "certifications">("about");
   const [reviewPage, setReviewPage] = useState(0);
 
   useEffect(() => {
@@ -261,6 +271,7 @@ export default function FreelanceProfilePage() {
   const profile = freelancer.profile;
   const stats = freelancer.stats;
   const reviews = freelancer.reviews || [];
+  const certificates = freelancer.certificates || [];
   const services = freelancer.services || [];
   const skills = profile?.skills || [];
   const badges = profile?.badges || [];
@@ -483,7 +494,7 @@ export default function FreelanceProfilePage() {
             {/* Tabs: About / Portfolio / Reviews */}
             <section>
               <div className="flex border-b border-slate-200 dark:border-border-dark mb-6">
-                {(["about", "reviews"] as const).map((tab) => (
+                {(["about", "reviews", "certifications"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => {
@@ -499,6 +510,7 @@ export default function FreelanceProfilePage() {
                   >
                     {tab === "about" && t("tab_about")}
                     {tab === "reviews" && `${t("tab_reviews")} (${reviews.length})`}
+                    {tab === "certifications" && `Certifications${certificates.length > 0 ? ` (${certificates.length})` : ""}`}
                   </button>
                 ))}
               </div>
@@ -708,6 +720,55 @@ export default function FreelanceProfilePage() {
                     <div className="text-center py-12 text-slate-500">
                       <span className="material-symbols-outlined text-4xl mb-2 block">rate_review</span>
                       <p className="text-sm">{t("no_reviews")}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Certifications Tab */}
+              {activeTab === "certifications" && (
+                <div>
+                  {certificates.length > 0 ? (
+                    <div className="space-y-4">
+                      {certificates.map((cert) => (
+                        <div key={cert.id} className="bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-xl p-5 hover:shadow-sm transition-shadow">
+                          <div className="flex items-start gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="material-symbols-outlined text-primary text-2xl">workspace_premium</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-sm">{cert.formationTitle}</h4>
+                              <p className="text-xs text-slate-500 mt-0.5">
+                                Instructeur : {cert.instructorName}
+                              </p>
+                              <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
+                                <span className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-sm">calendar_today</span>
+                                  {new Date(cert.issuedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-sm">grade</span>
+                                  Score : {cert.score}%
+                                </span>
+                              </div>
+                            </div>
+                            <a
+                              href={`/formations/verification/${cert.code}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-sm">verified</span>
+                              Verifier
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12 text-slate-500">
+                      <span className="material-symbols-outlined text-4xl mb-2 block">school</span>
+                      <p className="text-sm">Aucune certification pour le moment</p>
                     </div>
                   )}
                 </div>

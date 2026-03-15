@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 
 // Sauvegarde/chargement de brouillon en DB
 // TODO: Remplacer par Prisma + auth en production
@@ -8,6 +10,10 @@ const drafts = new Map<string, { data: unknown; updatedAt: string }>();
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    }
     const body = await request.json();
     const { serviceId, draftData, userId } = body;
 
@@ -35,6 +41,10 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+    }
     const { searchParams } = new URL(request.url);
     const serviceId = searchParams.get("serviceId");
 

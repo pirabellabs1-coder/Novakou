@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
-import { orderStore, notificationStore, transactionStore, serviceStore } from "@/lib/dev/data-store";
+import { orderStore, notificationStore, transactionStore, serviceStore, invoiceStore } from "@/lib/dev/data-store";
 import { sendPaymentReceivedEmail } from "@/lib/email";
 
 export async function GET(
@@ -241,11 +241,21 @@ export async function PATCH(
               link: "/dashboard/finances",
             });
 
+            // Auto-generer la facture
+            invoiceStore.createFromOrder({
+              id: order.id,
+              serviceTitle: order.serviceTitle,
+              amount: order.amount,
+              commission: order.commission,
+              clientId: order.clientId,
+              clientName: order.clientName,
+              freelanceId: order.freelanceId,
+              freelanceName: order.freelanceName || "Freelance",
+            });
+
             // Send payment email to freelance (non-blocking)
-            // In production, we'd look up the freelance email from the DB
-            // For now, skip if we don't have it
             sendPaymentReceivedEmail(
-              "", // Will be resolved from user lookup in production
+              "",
               "Freelance",
               { amount: netAmount, serviceTitle: order.serviceTitle, orderId: order.id }
             ).catch(() => { /* email best-effort */ });

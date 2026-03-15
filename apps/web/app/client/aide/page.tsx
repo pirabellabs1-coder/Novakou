@@ -7,21 +7,21 @@ import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/client/EmptyState";
 
 const CATEGORIES = [
-  { icon: "payments", title: "Paiements & Facturation", value: "paiements", desc: "Retraits, depots, factures et litiges financiers." },
-  { icon: "task_alt", title: "Gestion des Projets", value: "projets", desc: "Suivi des commandes, livraisons et revisions." },
-  { icon: "shield_person", title: "Securite & Profil", value: "securite", desc: "Parametres, verification d'identite et securite." },
+  { icon: "payments", title: "Paiements & Facturation", value: "paiements", desc: "Retraits, dépôts, factures et litiges financiers." },
+  { icon: "task_alt", title: "Gestion des Projets", value: "projets", desc: "Suivi des commandes, livraisons et révisions." },
+  { icon: "shield_person", title: "Sécurité & Profil", value: "securite", desc: "Paramètres, vérification d'identité et sécurité." },
   { icon: "group", title: "Trouver un Freelance", value: "freelance", desc: "Recherche, filtres, favoris et recommandations." },
-  { icon: "gavel", title: "Litiges & Resolution", value: "litiges", desc: "Ouverture, suivi et resolution de litiges." },
-  { icon: "help", title: "Utiliser la Plateforme", value: "plateforme", desc: "Premiers pas, navigation et fonctionnalites." },
+  { icon: "gavel", title: "Litiges & Résolution", value: "litiges", desc: "Ouverture, suivi et résolution de litiges." },
+  { icon: "help", title: "Utiliser la Plateforme", value: "plateforme", desc: "Premiers pas, navigation et fonctionnalités." },
 ];
 
 const FAQS = [
-  { q: "Comment puis-je modifier mon adresse de paiement ?", a: "Rendez-vous dans Parametres > Paiements & Facturation pour modifier vos informations de paiement. Les changements sont effectifs immediatement." },
-  { q: "Que faire si un freelance ne repond plus a mes messages ?", a: "Si un freelance ne repond pas dans les 48h, vous pouvez nous contacter via le support ou ouvrir un litige depuis la page Commandes." },
-  { q: "Quels sont les frais de service de FreelanceHigh ?", a: "Les frais de service sont de 3% sur chaque transaction pour le client. Ce taux finance l'escrow, la mediation et la securite de la plateforme." },
-  { q: "Comment devenir un client verifie ?", a: "Completez votre profil entreprise, verifiez votre email et votre telephone. La verification KYC niveau 3 est optionnelle mais augmente votre credibilite." },
-  { q: "Comment fonctionne le systeme d'escrow ?", a: "Lorsque vous passez une commande, les fonds sont bloques en escrow. Ils ne sont liberes au freelance qu'apres votre validation de la livraison." },
-  { q: "Puis-je demander un remboursement ?", a: "Oui, vous pouvez demander un remboursement en ouvrant un litige. Notre equipe examinera votre demande et rendra une decision sous 48h a 7 jours." },
+  { q: "Comment puis-je modifier mon adresse de paiement ?", a: "Rendez-vous dans Paramètres > Paiements & Facturation pour modifier vos informations de paiement. Les changements sont effectifs immédiatement." },
+  { q: "Que faire si un freelance ne répond plus à mes messages ?", a: "Si un freelance ne répond pas dans les 48h, vous pouvez nous contacter via le support ou ouvrir un litige depuis la page Commandes." },
+  { q: "Quels sont les frais de service de FreelanceHigh ?", a: "Les frais de service sont de 3% sur chaque transaction pour le client. Ce taux finance l'escrow, la médiation et la sécurité de la plateforme." },
+  { q: "Comment devenir un client vérifié ?", a: "Complétez votre profil entreprise, vérifiez votre email et votre téléphone. La vérification KYC niveau 3 est optionnelle mais augmente votre crédibilité." },
+  { q: "Comment fonctionne le système d'escrow ?", a: "Lorsque vous passez une commande, les fonds sont bloqués en escrow. Ils ne sont libérés au freelance qu'après votre validation de la livraison." },
+  { q: "Puis-je demander un remboursement ?", a: "Oui, vous pouvez demander un remboursement en ouvrant un litige. Notre équipe examinera votre demande et rendra une décision sous 48h à 7 jours." },
 ];
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {

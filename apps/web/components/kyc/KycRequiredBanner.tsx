@@ -1,0 +1,57 @@
+"use client";
+
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { getKycStatusLabel, roleRequiresKyc } from "@/lib/auth/kyc-guard";
+
+/**
+ * Affiche un bandeau d'alerte si l'utilisateur doit completer sa verification KYC.
+ * A placer dans les layouts des espaces freelance, agence et instructeur.
+ * Ne s'affiche PAS pour les clients et apprenants.
+ */
+export function KycRequiredBanner() {
+  const { data: session } = useSession();
+
+  if (!session?.user) return null;
+
+  const role = session.user.role;
+  const kycLevel = session.user.kyc ?? 1;
+
+  // Ne pas afficher pour les roles exempts
+  if (!roleRequiresKyc(role)) return null;
+
+  // Deja verifie (niveau 3+)
+  if (kycLevel >= 3) return null;
+
+  const statusInfo = getKycStatusLabel(kycLevel);
+
+  return (
+    <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">
+      <span className="material-symbols-outlined text-amber-400 text-xl flex-shrink-0 mt-0.5">
+        warning
+      </span>
+      <div className="flex-1">
+        <p className="text-sm font-semibold text-amber-300">
+          Verification d&apos;identite requise
+        </p>
+        <p className="text-xs text-amber-400/80 mt-1">
+          {kycLevel < 2
+            ? "Completez votre verification d'identite pour pouvoir publier des services, creer des formations et recevoir des paiements."
+            : "Votre telephone est verifie. Soumettez une piece d'identite (niveau 3) pour debloquer toutes les fonctionnalites."}
+        </p>
+        <div className="flex items-center gap-3 mt-3">
+          <Link
+            href="/dashboard/kyc"
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 text-black text-xs font-bold rounded-lg hover:bg-amber-400 transition-colors"
+          >
+            <span className="material-symbols-outlined text-sm">verified_user</span>
+            Verifier mon identite
+          </Link>
+          <span className="text-xs text-amber-500/60">
+            Statut actuel : {statusInfo.label} (niveau {kycLevel}/4)
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}

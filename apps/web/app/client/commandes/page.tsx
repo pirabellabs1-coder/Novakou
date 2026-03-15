@@ -8,19 +8,19 @@ import { cn } from "@/lib/utils";
 const FILTERS = [
   { key: "all", label: "Toutes" },
   { key: "en_cours", label: "En cours" },
-  { key: "livre", label: "Livrees" },
-  { key: "termine", label: "Terminees" },
+  { key: "livre", label: "Livrées" },
+  { key: "termine", label: "Terminées" },
   { key: "litige", label: "Litige" },
 ];
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   en_attente: { label: "En attente", cls: "bg-slate-500/20 text-slate-400" },
   en_cours: { label: "En cours", cls: "bg-blue-500/20 text-blue-400" },
-  livre: { label: "Livre", cls: "bg-primary/20 text-primary" },
-  revision: { label: "Revision", cls: "bg-orange-500/20 text-orange-400" },
-  termine: { label: "Termine", cls: "bg-slate-500/20 text-slate-400" },
+  livre: { label: "Livré", cls: "bg-primary/20 text-primary" },
+  revision: { label: "Révision", cls: "bg-orange-500/20 text-orange-400" },
+  termine: { label: "Terminé", cls: "bg-slate-500/20 text-slate-400" },
   litige: { label: "Litige", cls: "bg-red-500/20 text-red-400" },
-  annule: { label: "Annule", cls: "bg-red-500/20 text-red-400" },
+  annule: { label: "Annulé", cls: "bg-red-500/20 text-red-400" },
 };
 
 function SkeletonRow() {
@@ -92,8 +92,8 @@ export default function ClientOrders() {
         {[
           { label: "Total", value: counts.all, icon: "receipt_long", color: "text-white" },
           { label: "En cours", value: counts.en_cours, icon: "construction", color: "text-blue-400" },
-          { label: "Livrees", value: counts.livre, icon: "local_shipping", color: "text-primary" },
-          { label: "Terminees", value: counts.termine, icon: "check_circle", color: "text-slate-400" },
+          { label: "Livrées", value: counts.livre, icon: "local_shipping", color: "text-primary" },
+          { label: "Terminées", value: counts.termine, icon: "check_circle", color: "text-slate-400" },
           { label: "Litiges", value: counts.litige, icon: "gavel", color: "text-red-400" },
         ].map((s) => (
           <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-3 flex items-center gap-3">

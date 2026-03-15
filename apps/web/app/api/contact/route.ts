@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { contactStore } from "@/lib/dev/data-store";
 import { Resend } from "resend";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "contact@freelancehigh.com";
@@ -25,6 +26,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Rate limit: 5 attempts per 15 min per email
+    const rateLimitKey = `contact:${email}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
+        { status: 429 }
+      );
+    }
+    recordFailedAttempt(rateLimitKey);
 
     // Save to dev-store (always, for backup/dev)
     const msg = contactStore.create({ name, email, subject, message });

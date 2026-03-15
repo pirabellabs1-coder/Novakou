@@ -80,7 +80,7 @@ export default function CertificateVerificationPage({ params }: { params: Promis
         </div>
 
         {/* Main card */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white dark:bg-neutral-dark rounded-2xl shadow-lg overflow-hidden">
           {/* Status header */}
           <div className={`p-6 text-center ${result?.valid ? "bg-gradient-to-r from-green-500 to-emerald-600" : "bg-gradient-to-r from-red-500 to-rose-600"}`}>
             <div className="flex justify-center mb-3">

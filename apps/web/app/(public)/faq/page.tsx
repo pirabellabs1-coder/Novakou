@@ -78,9 +78,9 @@ const FAQ_DATA: FaqCategory[] = [
     icon: "shield",
     color: "text-red-400",
     items: [
-      { q: "Mes donnees sont-elles protegees ?", a: "Oui. Nous utilisons le chiffrement SSL/TLS, le stockage securise des documents KYC, et nous sommes conformes au RGPD." },
-      { q: "Comment fonctionne le systeme de litiges ?", a: "En cas de desaccord, ouvrez un litige. Les fonds sont geles. Notre equipe examine les preuves et rend un verdict equitable." },
-      { q: "Puis-je activer la double authentification ?", a: "Oui, dans Parametres > Securite. Nous supportons Google Authenticator (TOTP) et les codes SMS." },
+      { q: "Mes données sont-elles protégées ?", a: "Oui. Nous utilisons le chiffrement SSL/TLS, le stockage sécurisé des documents KYC, et nous sommes conformes au RGPD." },
+      { q: "Comment fonctionne le système de litiges ?", a: "En cas de désaccord, ouvrez un litige. Les fonds sont gelés. Notre équipe examine les preuves et rend un verdict équitable." },
+      { q: "Puis-je activer la double authentification ?", a: "Oui, dans Paramètres > Sécurité. Nous supportons Google Authenticator (TOTP) et les codes SMS." },
     ],
   },
 ];

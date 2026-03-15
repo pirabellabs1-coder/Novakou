@@ -10,8 +10,10 @@ import {
   Bar, Line, Pie, Area,
 } from "recharts";
 
-const COLORS = ["#14B835", "#0EA5E9", "#8B5CF6", "#F59E0B", "#EF4444", "#EC4899"];
-const TOOLTIP_STYLE = { background: "#1a2f1e", border: "1px solid #2a3f2e", borderRadius: 8, color: "#fff" };
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
+import { CHART_COLORS } from "@/lib/design-tokens";
+
+const COLORS = CHART_COLORS.series;
 const PERIODS: { value: "7d" | "30d" | "3m" | "6m" | "1y"; label: string }[] = [
   { value: "7d", label: "7j" },
   { value: "30d", label: "30j" },
@@ -134,27 +136,27 @@ export default function AgenceAnalytics() {
 
   const exportMonthlyRevenue = useCallback(() => {
     downloadCsv("ca-par-mois.csv", ["Mois", "Revenu"], monthlyRevenue.map((r) => [r.month, String(r.revenue)]));
-    addToast("success", "Export CSV CA par mois telecharge");
+    addToast("success", "Export CSV CA par mois téléchargé");
   }, [monthlyRevenue, addToast]);
 
   const exportWeeklyOrders = useCallback(() => {
     downloadCsv("commandes-semaine.csv", ["Semaine", "Commandes"], weeklyOrders.map((w) => [w.week, String(w.orders)]));
-    addToast("success", "Export CSV commandes telecharge");
+    addToast("success", "Export CSV commandes téléchargé");
   }, [weeklyOrders, addToast]);
 
   const exportServicePerf = useCallback(() => {
     downloadCsv("performance-services.csv", ["Service", "Vues", "Commandes", "Revenu", "Note"], servicePerf.map((s) => [s.title, String(s.views), String(s.orderCount), String(s.revenue), String(s.rating)]));
-    addToast("success", "Export CSV services telecharge");
+    addToast("success", "Export CSV services téléchargé");
   }, [servicePerf, addToast]);
 
   const exportMemberRevenue = useCallback(() => {
     downloadCsv("performance-membres.csv", ["Membre", "Revenu"], memberRevenue.map((m) => [m.name, String(m.revenue)]));
-    addToast("success", "Export CSV membres telecharge");
+    addToast("success", "Export CSV membres téléchargé");
   }, [memberRevenue, addToast]);
 
   const exportRevenueByCategory = useCallback(() => {
-    downloadCsv("revenus-categorie.csv", ["Categorie", "Revenu"], revenueByCategory.map((c) => [c.name, String(c.revenue)]));
-    addToast("success", "Export CSV categories telecharge");
+    downloadCsv("revenus-categorie.csv", ["Catégorie", "Revenu"], revenueByCategory.map((c) => [c.name, String(c.revenue)]));
+    addToast("success", "Export CSV catégories téléchargé");
   }, [revenueByCategory, addToast]);
 
   if (isLoading) {
@@ -221,11 +223,11 @@ export default function AgenceAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Bar dataKey="revenue" fill="#14B835" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <EmptyState text="Aucune donnee de revenus" />}
+          ) : <EmptyState text="Aucune donnée de revenus" />}
         </div>
 
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
@@ -236,7 +238,7 @@ export default function AgenceAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis dataKey="week" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Line type="monotone" dataKey="orders" stroke="#0EA5E9" strokeWidth={2} dot={{ fill: "#0EA5E9" }} />
               </LineChart>
             </ResponsiveContainer>
@@ -285,7 +287,7 @@ export default function AgenceAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis type="number" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis dataKey="name" type="category" tick={{ fill: "#94a3b8", fontSize: 11 }} width={100} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Bar dataKey="revenue" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -295,7 +297,7 @@ export default function AgenceAnalytics() {
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
           <SectionHeader title="Vues profil" onExport={() => {
             downloadCsv("vues-profil.csv", ["Date", "Vues"], profileViews.map((v) => [v.date, String(v.views)]));
-            addToast("success", "Export CSV vues telecharge");
+            addToast("success", "Export CSV vues téléchargé");
           }} />
           {profileViews.length ? (
             <ResponsiveContainer width="100%" height={240}>
@@ -303,7 +305,7 @@ export default function AgenceAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Area type="monotone" dataKey="views" stroke="#14B835" fill="#14B835" fillOpacity={0.15} />
               </AreaChart>
             </ResponsiveContainer>
@@ -322,7 +324,7 @@ export default function AgenceAnalytics() {
                   <Pie data={trafficSources} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
                     {trafficSources.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                   </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex-1 space-y-2">
@@ -348,7 +350,7 @@ export default function AgenceAnalytics() {
                     <Cell fill="#14B835" />
                     <Cell fill="#0EA5E9" />
                   </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip content={<ChartTooltip />} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="flex-1 space-y-3">
@@ -379,22 +381,22 @@ export default function AgenceAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 10 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Area type="monotone" dataKey="views" stroke="#F59E0B" fill="#F59E0B" fillOpacity={0.12} />
               </AreaChart>
             </ResponsiveContainer>
-          ) : <EmptyState text="Aucune donnee" />}
+          ) : <EmptyState text="Aucune donnée" />}
         </div>
 
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Evolution note moyenne</h2>
+          <h2 className="font-bold text-white mb-4">Évolution note moyenne</h2>
           {ratingEvolution.length ? (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={ratingEvolution}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 10 }} />
                 <YAxis domain={[0, 5]} tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Line type="monotone" dataKey="avg" stroke="#F59E0B" strokeWidth={2} dot={{ fill: "#F59E0B" }} />
               </LineChart>
             </ResponsiveContainer>
@@ -412,7 +414,7 @@ export default function AgenceAnalytics() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a3f2e" />
                 <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} />
-                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Tooltip content={<ChartTooltip />} />
                 <Bar dataKey="revenue" radius={[4, 4, 0, 0]}>
                   {revenueByCategory.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>

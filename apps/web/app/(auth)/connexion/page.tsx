@@ -32,6 +32,7 @@ export default function ConnexionPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return; // Prevention double soumission
     setError("");
     setLoading(true);
 
@@ -310,7 +311,7 @@ export default function ConnexionPage() {
 
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-slate-900 dark:text-slate-100 mb-2">Bienvenue</h2>
-            <p className="text-slate-600 dark:text-slate-400">Veuillez entrer vos coordonnees pour continuer.</p>
+            <p className="text-slate-600 dark:text-slate-400">Veuillez entrer vos coordonnées pour continuer.</p>
           </div>
 
           {/* Role Selector */}
@@ -382,7 +383,7 @@ export default function ConnexionPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" suppressHydrationWarning>
             <div>
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Email</label>
               <div className="relative">
@@ -396,6 +397,7 @@ export default function ConnexionPage() {
                   onChange={handleChange}
                   placeholder="nom@exemple.com"
                   className="w-full pl-10 pr-4 py-3 bg-white dark:bg-neutral-dark border border-slate-200 dark:border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-slate-900 dark:text-slate-100"
+                  suppressHydrationWarning
                 />
               </div>
             </div>
@@ -416,6 +418,7 @@ export default function ConnexionPage() {
                   onChange={handleChange}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-12 py-3 bg-white dark:bg-neutral-dark border border-slate-200 dark:border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-slate-900 dark:text-slate-100"
+                  suppressHydrationWarning
                 />
                 <button
                   type="button"

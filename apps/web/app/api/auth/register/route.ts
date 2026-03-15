@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { sendWelcomeEmail, sendVerificationEmail } from "@/lib/email";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const registerSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -28,6 +29,18 @@ export async function POST(request: Request) {
     }
 
     const { email, password, name, role, formationsRole } = parsed.data;
+
+    // Rate limit: 5 attempts per 15 min per email
+    const rateLimitKey = `register:${email}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
+        { status: 429 }
+      );
+    }
+    recordFailedAttempt(rateLimitKey);
+
     const passwordHash = await bcrypt.hash(password, 12);
 
     // ── MODE DEV : stockage dans le fichier JSON local ────────────────

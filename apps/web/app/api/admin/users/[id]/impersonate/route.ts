@@ -12,6 +12,7 @@ export async function POST(
 
   const { id } = await params;
 
+  // L'audit log est OBLIGATOIRE pour l'impersonation — si l'enregistrement echoue, on refuse
   try {
     const { prisma } = await import("@freelancehigh/db");
     await prisma.auditLog.create({
@@ -21,8 +22,12 @@ export async function POST(
         targetUserId: id,
       },
     });
-  } catch {
-    // DB non connectee
+  } catch (err) {
+    console.error("[IMPERSONATE] Audit log echoue — impersonation refusee", err);
+    return NextResponse.json(
+      { error: "Impossible d'enregistrer l'audit log. Impersonation refusee pour raisons de securite." },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({
@@ -51,8 +56,9 @@ export async function DELETE(
         targetUserId: id,
       },
     });
-  } catch {
-    // DB non connectee
+  } catch (err) {
+    console.error("[IMPERSONATE] Audit log stop_impersonate echoue", err);
+    // On permet quand meme l'arret de l'impersonation mais on log l'erreur
   }
 
   return NextResponse.json({

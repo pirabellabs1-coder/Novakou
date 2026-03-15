@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth/config";
 import fs from "fs";
 import path from "path";
 
@@ -54,6 +56,11 @@ const ACTIONS = [
 ];
 
 export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+  }
+
   const scenarios = readScenarios();
   return NextResponse.json({
     triggers: TRIGGERS,
@@ -64,6 +71,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
+  }
+
   const body = await request.json();
 
   if (body.action === "create") {

@@ -99,8 +99,8 @@ export default function AgenceParametres() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white">Parametres</h1>
-        <p className="text-slate-400 text-sm mt-1">Configurez votre agence, les roles et les preferences.{members.length > 0 && <span className="ml-2 text-slate-500">({members.length} membres)</span>}</p>
+        <h1 className="text-3xl font-black text-white">Paramètres</h1>
+        <p className="text-slate-400 text-sm mt-1">Configurez votre agence, les rôles et les préférences.{members.length > 0 && <span className="ml-2 text-slate-500">({members.length} membres)</span>}</p>
       </div>
       <div className="flex gap-6">
         {/* Left menu */}
@@ -235,13 +235,13 @@ export default function AgenceParametres() {
               <h2 className="text-lg font-bold text-white mb-4">Zone danger</h2>
               <div className="p-5 bg-red-500/5 rounded-xl border border-red-500/20">
                 <h3 className="text-sm font-bold text-red-400 mb-2">Suspendre l&apos;agence</h3>
-                <p className="text-xs text-slate-400 mb-3">Mettre l&apos;agence en pause desactive tous les services et rend le profil invisible. Les commandes en cours seront maintenues.</p>
-                <button onClick={() => addToast("info", "Suspension en cours de developpement")} className="px-4 py-2 bg-red-500/10 text-red-400 rounded-xl text-xs font-bold border border-red-500/20 hover:bg-red-500/20 transition-colors">Suspendre l&apos;agence</button>
+                <p className="text-xs text-slate-400 mb-3">Mettre l&apos;agence en pause désactive tous les services et rend le profil invisible. Les commandes en cours seront maintenues.</p>
+                <button onClick={() => addToast("info", "Suspension en cours de développement")} className="px-4 py-2 bg-red-500/10 text-red-400 rounded-xl text-xs font-bold border border-red-500/20 hover:bg-red-500/20 transition-colors">Suspendre l&apos;agence</button>
               </div>
               <div className="p-5 bg-red-500/5 rounded-xl border border-red-500/20">
                 <h3 className="text-sm font-bold text-red-400 mb-2">Supprimer l&apos;agence</h3>
-                <p className="text-xs text-slate-400 mb-3">Cette action est irreversible. Toutes les donnees, services, historiques et acces des membres seront definitivement supprimes.</p>
-                <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors">Supprimer definitivement</button>
+                <p className="text-xs text-slate-400 mb-3">Cette action est irréversible. Toutes les données, services, historiques et accès des membres seront définitivement supprimés.</p>
+                <button onClick={() => setShowDeleteConfirm(true)} className="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors">Supprimer définitivement</button>
               </div>
             </div>
           )}

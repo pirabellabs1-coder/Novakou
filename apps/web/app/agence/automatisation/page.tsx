@@ -467,7 +467,7 @@ export default function AgenceAutomationPage() {
 
             {/* Step indicator */}
             <div className="flex items-center gap-2 mb-8">
-              {["Nom", "Declencheur", "Conditions", "Actions", "Apercu"].map((step, i) => (
+              {["Nom", "Déclencheur", "Conditions", "Actions", "Aperçu"].map((step, i) => (
                 <div key={step} className="flex items-center gap-2">
                   <button
                     onClick={() => setCreatorStep(i)}
@@ -692,7 +692,7 @@ export default function AgenceAutomationPage() {
                     disabled={selectedActions.length === 0}
                     className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-40"
                   >
-                    Apercu
+                    Aperçu
                   </button>
                 </div>
               </div>

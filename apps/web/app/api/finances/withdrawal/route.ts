@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { transactionStore, notificationStore } from "@/lib/dev/data-store";
+import { checkRateLimit, recordFailedAttempt, resetAttempts } from "@/lib/auth/rate-limiter";
 
 const VALID_METHODS = ["SEPA", "PayPal", "Wave", "Orange Money", "MTN Mobile Money"];
 const MINIMUM_WITHDRAWAL = 20;
@@ -11,6 +12,30 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    }
+
+    // Verification KYC obligatoire (niveau 3 minimum pour retirer des fonds)
+    if ((session.user.kyc ?? 1) < 3) {
+      return NextResponse.json(
+        {
+          error: "Verification d'identite requise pour retirer des fonds. Completez votre KYC (niveau 3 minimum).",
+          code: "KYC_REQUIRED",
+          requiredLevel: 3,
+          currentLevel: session.user.kyc ?? 1,
+          redirectTo: "/dashboard/kyc",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Rate limiting : 1 retrait par minute par utilisateur
+    const rateLimitKey = `withdrawal:${session.user.id}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de demandes de retrait. Veuillez patienter avant de reessayer." },
+        { status: 429 }
+      );
     }
 
     const body = await request.json();
@@ -40,6 +65,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Enregistrer la tentative pour le rate limiting
+    recordFailedAttempt(rateLimitKey);
 
     // Create the withdrawal transaction
     const transaction = transactionStore.add({

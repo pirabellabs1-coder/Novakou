@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useCurrencyStore } from "@/store/currency";
+import { BadgeDisplay } from "@/components/ui/BadgeDisplay";
 
 interface TopFreelance {
   id: string;
@@ -15,6 +16,7 @@ interface TopFreelance {
   skills: string[];
   dailyRateEur: number;
   badge: string;
+  badges?: string[];
   image: string;
   location: string;
 }
@@ -75,11 +77,15 @@ export function TopFreelancesSection() {
                     {f.location}
                   </div>
                 )}
-                {f.badge && (
+                {f.badges && f.badges.length > 0 ? (
+                  <div className="absolute top-4 right-4">
+                    <BadgeDisplay badges={f.badges} size="sm" maxDisplay={2} />
+                  </div>
+                ) : f.badge ? (
                   <div className="absolute top-4 right-4 bg-accent text-slate-900 text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
                     {f.badge}
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Content */}

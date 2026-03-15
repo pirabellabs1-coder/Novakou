@@ -251,7 +251,7 @@ export default function AutomationPage() {
 
             {/* Step indicator */}
             <div className="flex items-center gap-2 mb-8">
-              {["Nom", "Declencheur", "Conditions", "Actions", "Apercu"].map((step, i) => (
+              {["Nom", "Déclencheur", "Conditions", "Actions", "Aperçu"].map((step, i) => (
                 <div key={step} className="flex items-center gap-2">
                   <button onClick={() => setCreatorStep(i)}
                     className={cn("flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all",
@@ -402,7 +402,7 @@ export default function AutomationPage() {
                 <div className="flex gap-3 mt-6">
                   <button onClick={() => setCreatorStep(2)} className="px-4 py-2 border border-slate-200 dark:border-border-dark rounded-xl text-sm font-bold hover:bg-slate-50 dark:hover:bg-border-dark transition-all">Retour</button>
                   <button onClick={() => selectedActions.length > 0 && setCreatorStep(4)} disabled={selectedActions.length === 0}
-                    className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-40">Apercu</button>
+                    className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-40">Aperçu</button>
                 </div>
               </div>
             )}

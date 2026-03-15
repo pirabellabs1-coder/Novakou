@@ -100,7 +100,7 @@ export default function CohortsMarketplacePage() {
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white rounded-xl border animate-pulse">
+            <div key={i} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark animate-pulse">
               <div className="h-40 bg-slate-100 rounded-t-xl" />
               <div className="p-4 space-y-2">
                 <div className="h-4 bg-slate-100 rounded w-3/4" />
@@ -111,7 +111,7 @@ export default function CohortsMarketplacePage() {
           ))}
         </div>
       ) : cohorts.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-xl border">
+        <div className="text-center py-16 bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
           <div className="text-5xl mb-4">👥</div>
           <p className="text-slate-500 mb-4">{fr ? "Aucune cohorte disponible pour le moment" : "No cohorts available at the moment"}</p>
           <Link href="/formations" className="text-primary hover:underline text-sm">
@@ -128,7 +128,7 @@ export default function CohortsMarketplacePage() {
             const instrAvatar = c.formation.instructeur.user.avatar || c.formation.instructeur.user.image;
 
             return (
-              <div key={c.id} className="bg-white rounded-xl border hover:shadow-md transition-shadow overflow-hidden group">
+              <div key={c.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:shadow-md transition-shadow overflow-hidden group">
                 {/* Thumbnail */}
                 <Link href={`/formations/${c.formation.slug}`} className="block relative">
                   <div className="aspect-[16/9] bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden">

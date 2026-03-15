@@ -87,11 +87,11 @@ export default function FacturesPage() {
   }, []);
 
   function handleDownloadPDF(invoice: Invoice) {
-    addToast("success", `Facture ${invoice.id} telechargee en PDF`);
+    addToast("success", `Facture ${invoice.id} téléchargée en PDF`);
   }
 
   function handleSendEmail(invoice: Invoice) {
-    addToast("success", `Facture ${invoice.id} envoyee par email a ${invoice.client}`);
+    addToast("success", `Facture ${invoice.id} envoyée par email à ${invoice.client}`);
   }
 
   function handleViewDetails(invoice: Invoice) {
@@ -108,7 +108,7 @@ export default function FacturesPage() {
           </div>
           <div>
             <h2 className="text-3xl font-extrabold tracking-tight">Mes Factures</h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Consultez, telechargez et envoyez vos factures.</p>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">Consultez, téléchargez et envoyez vos factures.</p>
           </div>
         </div>
       </div>

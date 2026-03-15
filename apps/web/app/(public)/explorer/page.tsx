@@ -228,7 +228,13 @@ function ServiceCard({
           <div className={cn("absolute inset-0 bg-gradient-to-br flex items-center justify-center", gradient)}>
             <span className="material-symbols-outlined text-white/80 text-5xl">{catIcon}</span>
           </div>
-          <div className="absolute top-2 left-2">
+          {service.isBoosted && (
+            <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/90 text-white backdrop-blur-sm">
+              <span className="material-symbols-outlined text-xs">bolt</span>
+              Sponsorise
+            </span>
+          )}
+          <div className={cn("absolute top-2 left-2", service.isBoosted && "top-9")}>
             <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md">
               {service.category}
             </span>
@@ -291,7 +297,13 @@ function ServiceCard({
         <div className={cn("absolute inset-0 bg-gradient-to-br flex items-center justify-center group-hover:scale-105 transition-transform duration-300", gradient)}>
           <span className="material-symbols-outlined text-white/80 text-6xl">{catIcon}</span>
         </div>
-        <div className="absolute top-2.5 left-2.5">
+        {service.isBoosted && (
+          <span className="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/90 text-white backdrop-blur-sm">
+            <span className="material-symbols-outlined text-xs">bolt</span>
+            Sponsorise
+          </span>
+        )}
+        <div className={cn("absolute top-2.5 left-2.5", service.isBoosted && "top-9")}>
           <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-md">
             {service.category}
           </span>

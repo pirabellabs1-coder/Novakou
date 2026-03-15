@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { cn } from "@/lib/utils";
 import { useAgencyStore } from "@/store/agency";
 import { useToastStore } from "@/store/dashboard";
@@ -141,7 +142,7 @@ export default function AgenceFinances() {
     a.download = `transactions-agence-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    addToast("success", "Export CSV telecharge");
+    addToast("success", "Export CSV téléchargé");
   }, [sortedTransactions, addToast]);
 
   // ── Metric cards ──
@@ -185,7 +186,7 @@ export default function AgenceFinances() {
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-3xl font-black text-white">Finances</h1>
-            <p className="text-slate-400 text-sm mt-1">Chargement des donnees financieres...</p>
+            <p className="text-slate-400 text-sm mt-1">Chargement des données financières...</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -270,18 +271,7 @@ export default function AgenceFinances() {
                 axisLine={false}
                 tickFormatter={(v: number) => `${v}\u00A0\u20AC`}
               />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#11211e",
-                  border: "1px solid #293835",
-                  borderRadius: "12px",
-                  fontSize: "13px",
-                  color: "#e2e8f0",
-                }}
-                labelStyle={{ color: "#94a3b8" }}
-                formatter={(value: number, _name: string) => [fmtEur(value), "Revenus"]}
-                cursor={{ fill: "rgba(14,124,102,0.1)" }}
-              />
+              <Tooltip content={<ChartTooltip formatter={(v) => fmtEur(v)} />} cursor={{ fill: "rgba(14,124,102,0.1)" }} />
               <Bar
                 dataKey="revenue"
                 fill="#0e7c66"
@@ -293,7 +283,7 @@ export default function AgenceFinances() {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-slate-500">
             <span className="material-symbols-outlined text-4xl mb-2">bar_chart</span>
-            <p className="text-sm">Aucune donnee de revenus disponible</p>
+            <p className="text-sm">Aucune donnée de revenus disponible</p>
           </div>
         )}
       </div>

@@ -5,6 +5,18 @@ import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
 
+function getAuthSecret(): string {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret && process.env.NODE_ENV === "production") {
+    throw new Error("NEXTAUTH_SECRET est obligatoire en production.");
+  }
+  if (!secret) {
+    console.warn("[2FA] NEXTAUTH_SECRET non defini — utilisation d'un secret de dev uniquement");
+    return "dev-only-secret-not-for-production";
+  }
+  return secret;
+}
+
 // POST: Verifier le code 2FA lors du login
 export async function POST(request: Request) {
   try {
@@ -91,7 +103,7 @@ export async function POST(request: Request) {
 
     // Generer un token HMAC signe cote serveur pour prouver la verification 2FA
     const twoFactorToken = crypto
-      .createHmac("sha256", process.env.NEXTAUTH_SECRET || "fallback-secret")
+      .createHmac("sha256", getAuthSecret())
       .update(`${email}:${Date.now().toString().slice(0, -4)}`)
       .digest("hex");
 

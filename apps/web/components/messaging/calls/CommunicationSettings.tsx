@@ -131,8 +131,8 @@ export function CommunicationSettings() {
   return (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-bold text-white mb-1">Parametres de communication</h3>
-        <p className="text-sm text-slate-500">Configurez vos peripheriques audio et video pour les appels</p>
+        <h3 className="text-lg font-bold text-white mb-1">Paramètres de communication</h3>
+        <p className="text-sm text-slate-500">Configurez vos périphériques audio et vidéo pour les appels</p>
       </div>
 
       {/* Microphone */}

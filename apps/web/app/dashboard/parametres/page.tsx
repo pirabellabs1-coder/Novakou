@@ -9,7 +9,7 @@ import { ConfirmModal } from "@/components/ui/confirm-modal";
 
 const TABS = [
   { id: "profil", label: "Profil Public", icon: "person" },
-  { id: "securite", label: "Securite", icon: "shield" },
+  { id: "securite", label: "Sécurité", icon: "shield" },
   { id: "paiements", label: "Paiements & Facturation", icon: "payments" },
   { id: "langues", label: "Langues & Devises", icon: "language" },
   { id: "notifications", label: "Notifications", icon: "notifications" },
@@ -52,7 +52,7 @@ export default function ParametresPage() {
     setTimeout(() => {
       updateProfile(profileForm);
       setSaving(false);
-      addToast("success", "Profil mis a jour avec succes !");
+      addToast("success", "Profil mis à jour avec succès !");
     }, 500);
   }
 
@@ -66,25 +66,25 @@ export default function ParametresPage() {
       return;
     }
     if (passwordForm.new.length < 8) {
-      addToast("error", "Le mot de passe doit faire au moins 8 caracteres");
+      addToast("error", "Le mot de passe doit faire au moins 8 caractères");
       return;
     }
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
       setPasswordForm({ current: "", new: "", confirm: "" });
-      addToast("success", "Mot de passe modifie avec succes !");
+      addToast("success", "Mot de passe modifié avec succès !");
     }, 600);
   }
 
   function handleDeleteAccount() {
     setShowDeleteConfirm(false);
-    addToast("info", "Votre demande de suppression a ete enregistree. Vous recevrez un email de confirmation.");
+    addToast("info", "Votre demande de suppression a été enregistrée. Vous recevrez un email de confirmation.");
   }
 
   function handleDisableAccount() {
     setShowDisableConfirm(false);
-    addToast("info", "Votre compte a ete desactive. Il sera cache de la plateforme jusqu'a votre prochaine connexion.");
+    addToast("info", "Votre compte a été désactivé. Il sera caché de la plateforme jusqu'à votre prochaine connexion.");
   }
 
   const categories = [...new Set(notificationSettings.map((n) => n.category))];
@@ -92,16 +92,16 @@ export default function ParametresPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <ConfirmModal open={showDeleteConfirm} title="Supprimer le compte" variant="danger"
-        message="Cette action est definitive. Toutes vos donnees, services et historique seront supprimees."
-        confirmLabel="Supprimer definitivement" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteConfirm(false)} />
-      <ConfirmModal open={showDisableConfirm} title="Desactiver le compte" variant="danger"
-        message="Votre profil sera cache de la plateforme jusqu'a votre prochaine connexion."
-        confirmLabel="Desactiver" onConfirm={handleDisableAccount} onCancel={() => setShowDisableConfirm(false)} />
+        message="Cette action est définitive. Toutes vos données, services et historique seront supprimées."
+        confirmLabel="Supprimer définitivement" onConfirm={handleDeleteAccount} onCancel={() => setShowDeleteConfirm(false)} />
+      <ConfirmModal open={showDisableConfirm} title="Désactiver le compte" variant="danger"
+        message="Votre profil sera caché de la plateforme jusqu'à votre prochaine connexion."
+        confirmLabel="Désactiver" onConfirm={handleDisableAccount} onCancel={() => setShowDisableConfirm(false)} />
 
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-3xl font-extrabold tracking-tight">Parametres du compte</h2>
-        <p className="text-slate-400 mt-1">Gerez vos informations personnelles, votre securite et vos preferences de paiement.</p>
+        <h2 className="text-3xl font-extrabold tracking-tight">Paramètres du compte</h2>
+        <p className="text-slate-400 mt-1">Gérez vos informations personnelles, votre sécurité et vos préférences de paiement.</p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
@@ -155,7 +155,7 @@ export default function ParametresPage() {
                   <div>
                     <h3 className="text-xl font-bold">{profile.firstName} {profile.lastName}</h3>
                     <p className="text-sm text-slate-400">{profile.title} &bull; {profile.city}, {profile.country}</p>
-                    <p className="text-xs text-primary mt-1">Profil complete a {profile.completionPercent}%</p>
+                    <p className="text-xs text-primary mt-1">Profil complété à {profile.completionPercent}%</p>
                   </div>
                   <button onClick={handleSaveProfile} disabled={saving}
                     className="ml-auto px-5 py-2.5 bg-primary text-white font-bold rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 transition-all hidden sm:flex items-center gap-2">
@@ -301,11 +301,11 @@ export default function ParametresPage() {
                     Supprimer le compte
                   </h3>
                   <p className="text-sm text-slate-400">
-                    La suppression de votre compte est definitive et irreversible. Toutes vos donnees seront perdues.
+                    La suppression de votre compte est définitive et irréversible. Toutes vos données seront perdues.
                   </p>
                   <button onClick={() => setShowDeleteConfirm(true)}
                     className="px-5 py-2.5 bg-red-500 text-white font-bold rounded-lg text-sm hover:bg-red-600 transition-all">
-                    Supprimer definitivement
+                    Supprimer définitivement
                   </button>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import Script from "next/script";
 import { Providers } from "./providers";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { TrackingProvider } from "@/components/tracking/TrackingProvider";
+import { FontLoader } from "@/components/FontLoader";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -38,8 +39,9 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"}>
-      <body suppressHydrationWarning className="bg-background-light text-slate-900 font-display">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="dark">
+      <body suppressHydrationWarning className="bg-background-dark text-slate-100 font-display">
+        <FontLoader />
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <TrackingProvider>

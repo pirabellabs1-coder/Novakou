@@ -100,7 +100,7 @@ export function firePixelEvent(
   // Facebook Pixel
   if (typeof w.fbq === "function") {
     const fbEvent = eventType === "InitiateCheckout" ? "InitiateCheckout" : eventType;
-    (w.fbq as Function)("track", fbEvent, {
+    (w.fbq as (...args: unknown[]) => void)("track", fbEvent, {
       value: data?.value,
       currency: data?.currency || "EUR",
       content_ids: data?.content_id ? [data.content_id] : undefined,
@@ -116,7 +116,7 @@ export function firePixelEvent(
       InitiateCheckout: "begin_checkout",
       PageView: "page_view",
     };
-    (w.gtag as Function)("event", gtagEvents[eventType] || eventType, {
+    (w.gtag as (...args: unknown[]) => void)("event", gtagEvents[eventType] || eventType, {
       value: data?.value,
       currency: data?.currency || "EUR",
       items: data?.content_id ? [{ id: data.content_id, name: data.content_name }] : undefined,
@@ -131,7 +131,7 @@ export function firePixelEvent(
       InitiateCheckout: "InitiateCheckout",
       PageView: "ViewContent",
     };
-    (w.ttq as { track: Function }).track(ttqEvents[eventType] || eventType, {
+    (w.ttq as { track: (...args: unknown[]) => void }).track(ttqEvents[eventType] || eventType, {
       value: data?.value,
       currency: data?.currency || "EUR",
       content_id: data?.content_id,

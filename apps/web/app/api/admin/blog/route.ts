@@ -299,8 +299,9 @@ export async function PATCH(request: NextRequest) {
       if (updates.excerpt !== undefined) post.excerpt = updates.excerpt;
       if (updates.category !== undefined) post.category = updates.category;
       if (updates.tags !== undefined) post.tags = updates.tags;
-      if (updates.featuredImage !== undefined) post.coverImage = updates.featuredImage;
-      if (updates.scheduledAt !== undefined) post.scheduledAt = updates.scheduledAt;
+      const raw = updates as Record<string, unknown>;
+      if (raw.featuredImage !== undefined) post.coverImage = raw.featuredImage as string;
+      if (raw.scheduledAt !== undefined) post.scheduledAt = raw.scheduledAt as string;
 
       if (updates.status) {
         post.status = mapStatusToPrisma(updates.status);

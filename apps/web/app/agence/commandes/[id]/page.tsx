@@ -12,10 +12,10 @@ import { OrderPhasePipeline } from "@/components/ui/order-phase-pipeline";
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   en_attente: { label: "En attente", color: "bg-amber-500/20 text-amber-400", icon: "schedule" },
   en_cours: { label: "En cours", color: "bg-blue-500/20 text-blue-400", icon: "play_circle" },
-  livre: { label: "Livree", color: "bg-emerald-500/20 text-emerald-400", icon: "local_shipping" },
-  revision: { label: "Revision", color: "bg-orange-500/20 text-orange-400", icon: "edit_note" },
-  termine: { label: "Termine", color: "bg-emerald-500/20 text-emerald-400", icon: "check_circle" },
-  annule: { label: "Annule", color: "bg-red-500/20 text-red-400", icon: "cancel" },
+  livre: { label: "Livrée", color: "bg-emerald-500/20 text-emerald-400", icon: "local_shipping" },
+  revision: { label: "Révision", color: "bg-orange-500/20 text-orange-400", icon: "edit_note" },
+  termine: { label: "Terminé", color: "bg-emerald-500/20 text-emerald-400", icon: "check_circle" },
+  annule: { label: "Annulé", color: "bg-red-500/20 text-red-400", icon: "cancel" },
   litige: { label: "En litige", color: "bg-red-500/20 text-red-400", icon: "gavel" },
 };
 

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { storeOTP, verifyOTP } from "@/lib/auth/otp";
 import { sendVerificationEmail } from "@/lib/email";
+import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
 
@@ -28,6 +29,17 @@ export async function POST(request: Request) {
     }
 
     const { email, name } = parsed.data;
+
+    // Rate limit (auth rate-limiter): 5 attempts per 15 min per email
+    const rateLimitKey = `verify-email:${email}`;
+    const rateCheck = checkRateLimit(rateLimitKey);
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Veuillez patienter avant de reessayer." },
+        { status: 429 }
+      );
+    }
+    recordFailedAttempt(rateLimitKey);
 
     // Rate limit: 3 req/min per email
     const rl = rateLimit(`verify-send:${email.toLowerCase()}`, 3, 60_000);

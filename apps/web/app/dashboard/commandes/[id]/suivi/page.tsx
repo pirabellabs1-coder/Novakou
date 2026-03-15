@@ -31,28 +31,28 @@ const STATUS_CONFIG: Record<
     barColor: "bg-primary",
   },
   livre: {
-    label: "Livre",
+    label: "Livré",
     color: "text-emerald-400",
     bgColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     icon: "local_shipping",
     barColor: "bg-emerald-500",
   },
   revision: {
-    label: "Revision",
+    label: "Révision",
     color: "text-orange-400",
     bgColor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
     icon: "edit_note",
     barColor: "bg-orange-400",
   },
   termine: {
-    label: "Termine",
+    label: "Terminé",
     color: "text-emerald-400",
     bgColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
     icon: "check_circle",
     barColor: "bg-emerald-500",
   },
   annule: {
-    label: "Annule",
+    label: "Annulé",
     color: "text-red-400",
     bgColor: "bg-red-500/10 text-red-400 border-red-500/20",
     icon: "cancel",
@@ -787,7 +787,7 @@ export default function OrderTrackingPage() {
               {/* Delivered */}
               {order.deliveredAt && (
                 <div>
-                  <p className="text-xs text-slate-500 font-semibold mb-1">Livree le</p>
+                  <p className="text-xs text-slate-500 font-semibold mb-1">Livrée le</p>
                   <p className="text-sm font-bold text-emerald-400">
                     {new Date(order.deliveredAt).toLocaleDateString("fr-FR", {
                       day: "numeric",

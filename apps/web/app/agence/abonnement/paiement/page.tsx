@@ -225,9 +225,9 @@ function PaiementContent() {
           <div className="flex items-start gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/5">
             <span className="material-symbols-outlined text-emerald-400 text-lg flex-shrink-0 mt-0.5">verified_user</span>
             <div>
-              <p className="text-xs font-semibold text-slate-300">Paiement securise</p>
+              <p className="text-xs font-semibold text-slate-300">Paiement sécurisé</p>
               <p className="text-xs text-slate-500 mt-0.5">
-                Vos informations de paiement sont chiffrees et protegees. Aucune donnee bancaire n&apos;est stockee sur nos serveurs.
+                Vos informations de paiement sont chiffrées et protégées. Aucune donnée bancaire n&apos;est stockée sur nos serveurs.
               </p>
             </div>
           </div>

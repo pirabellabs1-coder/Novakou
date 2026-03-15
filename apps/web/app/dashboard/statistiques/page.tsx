@@ -5,6 +5,7 @@ import {
   LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 import { cn } from "@/lib/utils";
 import { useDashboardStore } from "@/store/dashboard";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
@@ -119,7 +120,7 @@ export default function StatistiquesPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} tickFormatter={(v) => `€${v}`} />
-              <Tooltip contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px" }} />
+              <Tooltip content={<ChartTooltip />} />
               <Line type="monotone" dataKey="revenue" stroke="#0e7c66" strokeWidth={2.5} dot={{ fill: "#0e7c66", r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -133,7 +134,7 @@ export default function StatistiquesPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px" }} />
+              <Tooltip content={<ChartTooltip />} />
               <Area type="monotone" dataKey="views" stroke="#0EA5E9" fill="#0EA5E9" fillOpacity={0.1} strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
@@ -147,7 +148,7 @@ export default function StatistiquesPage() {
               <Pie data={TRAFFIC_SOURCES} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" paddingAngle={3}>
                 {TRAFFIC_SOURCES.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
-              <Tooltip contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px" }} />
+              <Tooltip content={<ChartTooltip />} />
             </PieChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-6 mt-4">
@@ -168,7 +169,7 @@ export default function StatistiquesPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
               <XAxis dataKey="week" stroke="#64748b" fontSize={12} />
               <YAxis stroke="#64748b" fontSize={12} />
-              <Tooltip contentStyle={{ backgroundColor: "#11211e", border: "1px solid #293835", borderRadius: "12px" }} />
+              <Tooltip content={<ChartTooltip />} />
               <Bar dataKey="orders" fill="#f2b705" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

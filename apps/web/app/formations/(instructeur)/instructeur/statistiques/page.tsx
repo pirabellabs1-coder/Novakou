@@ -6,6 +6,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 interface InstructeurStats {
   revenueByMonth: { month: string; revenue: number; net: number }[];
@@ -115,7 +116,7 @@ export default function InstructeurStatistiquesPage() {
                 <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} tickFormatter={(v) => `${v}€`} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: "#1e1e1e", border: "1px solid #333", color: "#fff" }}
+                  content={<ChartTooltip />}
                   formatter={(v: number, name: string) => [`${v}€`, name === "revenue" ? "Brut" : "Net (70%)"]}
                 />
                 <Bar dataKey="revenue" fill="#6C2BD9" radius={[4, 4, 0, 0]} name="revenue" />
@@ -132,7 +133,7 @@ export default function InstructeurStatistiquesPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3a" />
                 <XAxis dataKey="week" tick={{ fill: "#94a3b8", fontSize: 10 }} />
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} allowDecimals={false} />
-                <Tooltip contentStyle={{ backgroundColor: "#1e1e1e", border: "1px solid #333", color: "#fff" }} />
+                <Tooltip content={<ChartTooltip />} />
                 <Line type="monotone" dataKey="students" stroke="#6C2BD9" strokeWidth={2} dot={{ fill: "#6C2BD9", r: 3 }} />
               </LineChart>
             </ResponsiveContainer>
@@ -147,7 +148,7 @@ export default function InstructeurStatistiquesPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3a" horizontal={false} />
                   <XAxis type="number" tick={{ fill: "#94a3b8", fontSize: 11 }} />
                   <YAxis type="category" dataKey="name" tick={{ fill: "#94a3b8", fontSize: 10 }} width={120} />
-                  <Tooltip contentStyle={{ backgroundColor: "#1e1e1e", border: "1px solid #333", color: "#fff" }} />
+                  <Tooltip content={<ChartTooltip />} />
                   <Bar dataKey="students" fill="#6C2BD9" radius={[0, 4, 4, 0]} name="Apprenants" />
                 </BarChart>
               </ResponsiveContainer>
@@ -173,7 +174,7 @@ export default function InstructeurStatistiquesPage() {
                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: "#1e1e1e", border: "1px solid #333", color: "#fff" }} />
+                    <Tooltip content={<ChartTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-2">

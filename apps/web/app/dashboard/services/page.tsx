@@ -326,7 +326,15 @@ export default function ServicesPage() {
                           <img src={s.image} alt={s.title} className="w-full h-full object-cover" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-slate-100 line-clamp-1 group-hover:text-primary transition-colors">{s.title}</p>
+                          <p className="text-sm font-bold text-slate-100 line-clamp-1 group-hover:text-primary transition-colors">
+                            {s.title}
+                            {s.isBoosted && (
+                              <span className="ml-2 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-400">
+                                <span className="material-symbols-outlined text-xs">bolt</span>
+                                Boost
+                              </span>
+                            )}
+                          </p>
                           <p className="text-xs text-primary/50 mt-0.5">A partir de {s.price}€ · {s.category}</p>
                         </div>
                       </div>

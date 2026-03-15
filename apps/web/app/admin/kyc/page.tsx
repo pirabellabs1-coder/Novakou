@@ -120,11 +120,12 @@ export default function AdminKYC() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: "Total demandes", value: stats.total, color: "text-primary", icon: "assignment" },
-          { label: "Niveau 2", value: stats.byLevel["2"] ?? 0, color: "text-blue-400", icon: "phone_android" },
-          { label: "Niveau 3", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
+          { label: "Niveau 2 (telephone)", value: stats.byLevel["2"] ?? 0, color: "text-blue-400", icon: "phone_android" },
+          { label: "Niveau 3 (identite)", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
+          { label: "Niveau 4 (pro)", value: stats.byLevel["4"] ?? 0, color: "text-emerald-400", icon: "workspace_premium" },
         ].map(s => (
           <div key={s.label} className="bg-neutral-dark rounded-xl p-5 border border-border-dark">
             <div className="flex items-center gap-3 mb-2">
@@ -210,8 +211,32 @@ export default function AdminKYC() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setRejectUserId(null)}>
           <div onClick={e => e.stopPropagation()} className="bg-neutral-dark rounded-2xl p-6 w-full max-w-md border border-border-dark shadow-2xl">
             <h3 className="font-bold text-lg text-white mb-4">Motif de refus</h3>
-            <p className="text-sm text-slate-400 mb-3">Ce motif sera communique a l&apos;utilisateur.</p>
-            <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} placeholder="Expliquez le motif du refus..." className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-background-dark text-sm text-white placeholder:text-slate-500 outline-none resize-none mb-4 focus:ring-2 focus:ring-primary/30" />
+            <p className="text-sm text-slate-400 mb-3">Ce motif sera communique a l&apos;utilisateur par email et notification.</p>
+            {/* Presets de motifs de refus */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {[
+                "Document non lisible",
+                "Identite ne correspond pas",
+                "Document invalide ou expire",
+                "Informations incompletes",
+                "Selfie ne correspond pas au document",
+                "Document non accepte",
+              ].map((reason) => (
+                <button
+                  key={reason}
+                  onClick={() => setRejectReason(reason)}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors",
+                    rejectReason === reason
+                      ? "border-red-500/50 bg-red-500/10 text-red-400"
+                      : "border-border-dark text-slate-400 hover:text-white hover:border-slate-500"
+                  )}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} placeholder="Expliquez le motif du refus ou selectionnez un motif ci-dessus..." className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-background-dark text-sm text-white placeholder:text-slate-500 outline-none resize-none mb-4 focus:ring-2 focus:ring-primary/30" />
             <div className="flex gap-3">
               <button onClick={() => setRejectUserId(null)} className="flex-1 py-2.5 border border-border-dark rounded-lg text-sm font-semibold text-slate-300 hover:bg-background-dark/50 transition-colors">Annuler</button>
               <button onClick={handleRefuse} disabled={actionLoading !== null} className="flex-1 py-2.5 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-50">Confirmer le refus</button>

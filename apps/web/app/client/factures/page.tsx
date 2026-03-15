@@ -119,13 +119,13 @@ export default function ClientInvoices() {
     a.download = `factures_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    addToast("success", "Export CSV telecharge");
+    addToast("success", "Export CSV téléchargé");
   }
 
   async function handleSendEmail(invoiceId: string) {
     const success = await sendInvoiceByEmail(invoiceId);
     if (success) {
-      addToast("success", "Facture envoyee par email");
+      addToast("success", "Facture envoyée par email");
     } else {
       addToast("error", "Erreur lors de l'envoi de la facture par email");
     }
@@ -137,7 +137,7 @@ export default function ClientInvoices() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-black text-white">Factures</h1>
-          <p className="text-slate-400 text-sm mt-1">Consultez, telechargez et exportez toutes vos factures.</p>
+          <p className="text-slate-400 text-sm mt-1">Consultez, téléchargez et exportez toutes vos factures.</p>
         </div>
         <button
           onClick={exportCSV}

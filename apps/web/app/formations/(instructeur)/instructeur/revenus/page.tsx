@@ -12,6 +12,7 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 interface Revenue {
   totalEarned: number;
@@ -142,7 +143,7 @@ export default function InstructeurRevenusPage() {
       </div>
 
       {/* Nav */}
-      <div className="flex gap-1 mb-6 bg-white border rounded-xl p-1 w-fit">
+      <div className="flex gap-1 mb-6 bg-white dark:bg-neutral-dark border dark:border-border-dark rounded-xl p-1 w-fit">
         {(["dashboard", "mes-formations", "apprenants", "revenus", "statistiques"] as const).map((path) => (
           <Link
             key={path}
@@ -168,7 +169,7 @@ export default function InstructeurRevenusPage() {
           { label: fr ? "En attente (30j)" : "Pending (30d)", value: `${(revenue?.pending ?? 0).toFixed(2)}€`, icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50" },
           { label: fr ? "Retiré" : "Withdrawn", value: `${(revenue?.withdrawn ?? 0).toFixed(2)}€`, icon: ArrowDownCircle, color: "text-purple-600", bg: "bg-purple-50" },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-xl border p-4">
+          <div key={s.label} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
             <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
               <s.icon className={`w-5 h-5 ${s.color}`} />
             </div>
@@ -188,14 +189,14 @@ export default function InstructeurRevenusPage() {
 
       {/* Revenue chart */}
       {revenue?.monthlyRevenue && revenue.monthlyRevenue.length > 0 && (
-        <div className="bg-white rounded-xl border p-6 mb-6">
-          <h2 className="font-semibold text-slate-900 mb-4">{fr ? "Revenus mensuels" : "Monthly revenue"}</h2>
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 mb-6">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">{fr ? "Revenus mensuels" : "Monthly revenue"}</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={revenue.monthlyRevenue}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="month" tick={{ fontSize: 12 }} />
               <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `${v}€`} />
-              <Tooltip formatter={(v: number, name: string) => [`${v}€`, name === "gross" ? (fr ? "Brut" : "Gross") : (fr ? "Net (70%)" : "Net (70%)")]} />
+              <Tooltip content={<ChartTooltip formatter={(v, name) => `${v}€ ${name === "gross" ? (fr ? "Brut" : "Gross") : (fr ? "Net (70%)" : "Net (70%)")}`} />} />
               <Bar dataKey="gross" fill="#e5e7eb" name="gross" radius={[4, 4, 0, 0]} />
               <Bar dataKey="net" fill="#6C2BD9" name="net" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -204,9 +205,9 @@ export default function InstructeurRevenusPage() {
       )}
 
       {/* Transactions */}
-      <div className="bg-white rounded-xl border mb-6">
-        <div className="p-5 border-b flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">{fr ? "Transactions récentes" : "Recent transactions"}</h2>
+      <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark mb-6">
+        <div className="p-5 border-b dark:border-border-dark flex items-center justify-between">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">{fr ? "Transactions récentes" : "Recent transactions"}</h2>
           <button className="flex items-center gap-1 text-xs text-primary hover:underline">
             <Download className="w-3.5 h-3.5" />
             CSV
@@ -243,9 +244,9 @@ export default function InstructeurRevenusPage() {
 
       {/* Withdrawal history */}
       {revenue?.withdrawals && revenue.withdrawals.length > 0 && (
-        <div className="bg-white rounded-xl border">
-          <div className="p-5 border-b">
-            <h2 className="font-semibold text-slate-900">{fr ? "Historique des retraits" : "Withdrawal history"}</h2>
+        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
+          <div className="p-5 border-b dark:border-border-dark">
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">{fr ? "Historique des retraits" : "Withdrawal history"}</h2>
           </div>
           <div className="divide-y">
             {revenue.withdrawals.map((w) => (
@@ -270,8 +271,8 @@ export default function InstructeurRevenusPage() {
       {showWithdrawModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowWithdrawModal(false)} />
-          <div className="relative bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-bold text-slate-900 mb-4">
+          <div className="relative bg-white dark:bg-neutral-dark rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-4">
               {fr ? "Demander un retrait" : "Request withdrawal"}
             </h2>
 

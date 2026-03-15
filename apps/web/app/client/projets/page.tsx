@@ -116,7 +116,7 @@ export default function ClientProjects() {
         {[
           { label: "Total", value: counts.all, icon: "folder_open", color: "text-white" },
           { label: "Actifs", value: counts.actif, icon: "play_circle", color: "text-primary" },
-          { label: "Termines", value: counts.termine, icon: "check_circle", color: "text-slate-400" },
+          { label: "Terminés", value: counts.termine, icon: "check_circle", color: "text-slate-400" },
           { label: "Brouillons", value: counts.brouillon, icon: "edit_note", color: "text-amber-400" },
         ].map((s) => (
           <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">

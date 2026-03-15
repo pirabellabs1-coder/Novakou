@@ -10,19 +10,19 @@ const TABS = [
   { label: "Toutes", filter: null },
   { label: "En attente", filter: "en_attente" },
   { label: "En cours", filter: "en_cours" },
-  { label: "Livrees", filter: "livre" },
-  { label: "Revision", filter: "revision" },
-  { label: "Terminees", filter: "termine" },
-  { label: "Annulees", filter: "annule" },
+  { label: "Livrées", filter: "livre" },
+  { label: "Révision", filter: "revision" },
+  { label: "Terminées", filter: "termine" },
+  { label: "Annulées", filter: "annule" },
 ];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   en_attente: { label: "En attente", color: "bg-amber-500/10 text-amber-400 border-amber-500/20", icon: "schedule" },
   en_cours: { label: "En cours", color: "bg-blue-500/10 text-blue-400 border-blue-500/20", icon: "play_circle" },
-  livre: { label: "Livre", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: "local_shipping" },
-  revision: { label: "Revision", color: "bg-orange-500/10 text-orange-400 border-orange-500/20", icon: "edit_note" },
-  termine: { label: "Termine", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: "check_circle" },
-  annule: { label: "Annule", color: "bg-red-500/10 text-red-400 border-red-500/20", icon: "cancel" },
+  livre: { label: "Livré", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: "local_shipping" },
+  revision: { label: "Révision", color: "bg-orange-500/10 text-orange-400 border-orange-500/20", icon: "edit_note" },
+  termine: { label: "Terminé", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", icon: "check_circle" },
+  annule: { label: "Annulé", color: "bg-red-500/10 text-red-400 border-red-500/20", icon: "cancel" },
   litige: { label: "Litige", color: "bg-red-500/10 text-red-400 border-red-500/20", icon: "gavel" },
 };
 
@@ -90,7 +90,7 @@ export default function CommandesPage() {
           <p className="text-2xl font-extrabold mt-1">{stats.active}</p>
         </div>
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
-          <p className="text-xs font-bold text-emerald-400 uppercase">Terminees</p>
+          <p className="text-xs font-bold text-emerald-400 uppercase">Terminées</p>
           <p className="text-2xl font-extrabold mt-1">{stats.completed}</p>
         </div>
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">

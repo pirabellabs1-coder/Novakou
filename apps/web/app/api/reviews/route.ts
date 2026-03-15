@@ -3,6 +3,15 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { reviewStore, orderStore } from "@/lib/dev/data-store";
 import { prisma, IS_DEV } from "@/lib/prisma";
+import { z } from "zod";
+
+const createReviewSchema = z.object({
+  orderId: z.string().min(1),
+  qualite: z.number().int().min(1).max(5),
+  communication: z.number().int().min(1).max(5),
+  delai: z.number().int().min(1).max(5),
+  comment: z.string().max(2000).optional(),
+});
 
 // Helper to compute summary stats from a list of reviews
 function computeReviewSummary(reviews: Array<{ rating: number; qualite: number; communication: number; delai: number }>) {
@@ -128,22 +137,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { orderId, qualite, communication, delai, comment } = body;
-
-    if (!orderId || !qualite || !communication || !delai) {
+    const result = createReviewSchema.safeParse(body);
+    if (!result.success) {
       return NextResponse.json(
-        { error: "Champs requis manquants: orderId, qualite, communication, delai" },
+        { error: "Donnees invalides", details: z.treeifyError(result.error) },
         { status: 400 }
       );
     }
-
-    // Validate ratings are 1-5
-    if ([qualite, communication, delai].some((r) => r < 1 || r > 5)) {
-      return NextResponse.json(
-        { error: "Les notes doivent etre entre 1 et 5" },
-        { status: 400 }
-      );
-    }
+    const { orderId, qualite, communication, delai, comment } = result.data;
 
     if (IS_DEV) {
       // Get the order

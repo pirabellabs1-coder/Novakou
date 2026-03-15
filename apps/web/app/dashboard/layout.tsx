@@ -4,9 +4,11 @@ import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ToastContainer } from "@/components/ui/toast";
 import { DashboardNotificationBell } from "@/components/dashboard/DashboardNotificationBell";
+import { KycRequiredBanner } from "@/components/kyc/KycRequiredBanner";
 import { useDashboardStore } from "@/store/dashboard";
 
-const NOTIFICATION_POLL_INTERVAL = 30_000; // 30 seconds
+const IS_DEV = process.env.NODE_ENV === "development";
+const NOTIFICATION_POLL_INTERVAL = IS_DEV ? 300_000 : 30_000; // 5min en dev, 30s en prod
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -32,7 +34,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [refreshNotifications]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background-dark">
+    <div className="flex h-screen overflow-hidden bg-background-dark text-slate-100">
       <ToastContainer />
 
       {/* Desktop Sidebar */}
@@ -76,6 +78,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <DashboardNotificationBell />
         </div>
 
+        <KycRequiredBanner />
         {children}
       </main>
     </div>

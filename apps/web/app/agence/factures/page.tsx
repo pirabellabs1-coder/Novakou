@@ -164,9 +164,9 @@ async function downloadPdf(
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    addToast("success", `Facture ${invoiceNumber} telechargee en PDF`);
+    addToast("success", `Facture ${invoiceNumber} téléchargée en PDF`);
   } catch {
-    addToast("error", `Erreur lors du telechargement de la facture ${invoiceNumber}`);
+    addToast("error", `Erreur lors du téléchargement de la facture ${invoiceNumber}`);
   }
 }
 
@@ -284,7 +284,7 @@ export default function AgenceFacturesPage() {
               Factures
             </h1>
             <p className="text-slate-400 text-sm mt-1">
-              Consultez et gerez les factures de l&apos;agence.
+              Consultez et gérez les factures de l&apos;agence.
             </p>
           </div>
         </div>

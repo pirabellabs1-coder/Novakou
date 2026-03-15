@@ -763,7 +763,7 @@ export default function AgenceLitigesPage() {
           <div>
             <h1 className="text-3xl font-extrabold tracking-tight">Litiges</h1>
             <p className="text-slate-400 mt-1">
-              Suivez et gerez les litiges lies aux commandes de l&apos;agence.
+              Suivez et gérez les litiges liés aux commandes de l&apos;agence.
             </p>
           </div>
         </div>
@@ -782,7 +782,7 @@ export default function AgenceLitigesPage() {
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight">Litiges</h1>
           <p className="text-slate-400 mt-1">
-            Suivez et gerez les litiges lies aux commandes de l&apos;agence.
+            Suivez et gérez les litiges liés aux commandes de l&apos;agence.
           </p>
         </div>
       </div>

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { serviceStore } from "@/lib/dev/data-store";
+import { serviceStore, boostStore } from "@/lib/dev/data-store";
 
 export async function GET(req: NextRequest) {
+  // Nettoyer les boosts expires a chaque listing
+  boostStore.cleanupExpired();
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.toLowerCase() || "";
   const category = searchParams.get("category") || "";

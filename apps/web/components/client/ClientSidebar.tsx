@@ -52,7 +52,7 @@ const BOTTOM_ITEMS = [
   { label: "Notifications", href: "/client/notifications", icon: "notifications", badgeKey: "notifications" as const },
   { label: "Aide", href: "/client/aide", icon: "help" },
   { label: "Profil", href: "/client/profil", icon: "person" },
-  { label: "Parametres", href: "/client/parametres", icon: "settings" },
+  { label: "Paramètres", href: "/client/parametres", icon: "settings" },
 ];
 
 interface ClientSidebarProps {

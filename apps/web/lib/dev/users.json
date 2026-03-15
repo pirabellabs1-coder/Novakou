@@ -8,36 +8,10 @@
     "plan": "business",
     "kyc": 4,
     "status": "ACTIF",
-    "createdAt": "2026-03-11T00:00:00.000Z",
-    "loginCount": 0,
-    "adminRole": "super_admin"
-  },
-  {
-    "email": "gildaslissanon0@gmail.com",
-    "passwordHash": "$2b$12$BZ5Vx5hFX5PzPrGzajTfP.QWcZW1UitqH24/6y8N2hakQlSvJvcWG",
-    "name": "Gildas LISSANON",
-    "role": "freelance",
-    "plan": "gratuit",
-    "kyc": 1,
-    "status": "ACTIF",
-    "id": "dev-1773299214975",
-    "createdAt": "2026-03-12T07:06:54.975Z",
-    "loginCount": 3,
-    "lastLoginAt": "2026-03-12T15:50:11.584Z",
-    "formationsRole": "instructeur"
-  },
-  {
-    "email": "masgarage7@gmail.com",
-    "passwordHash": "$2b$12$1rwHGE013X6xD.EkyWOM5O8SOjMAMdIchZDZE0cZnDI0OhaHXRxPC",
-    "name": "Gildas LISSANON",
-    "role": "client",
-    "plan": "gratuit",
-    "kyc": 1,
-    "status": "ACTIF",
-    "id": "dev-1773366800521",
-    "createdAt": "2026-03-13T01:53:20.521Z",
+    "createdAt": "2026-03-14T18:47:16.178Z",
     "loginCount": 1,
-    "lastLoginAt": "2026-03-13T01:53:41.007Z"
+    "adminRole": "super_admin",
+    "lastLoginAt": "2026-03-15T05:39:07.622Z"
   },
   {
     "id": "dev-apprenant-1",
@@ -48,9 +22,10 @@
     "plan": "gratuit",
     "kyc": 2,
     "status": "ACTIF",
-    "createdAt": "2026-03-13T00:00:00.000Z",
-    "loginCount": 0,
-    "formationsRole": "apprenant"
+    "createdAt": "2026-03-14T18:47:16.178Z",
+    "loginCount": 2,
+    "formationsRole": "apprenant",
+    "lastLoginAt": "2026-03-15T05:37:08.380Z"
   },
   {
     "id": "dev-instructeur-1",
@@ -61,22 +36,47 @@
     "plan": "pro",
     "kyc": 3,
     "status": "ACTIF",
-    "createdAt": "2026-03-13T00:00:00.000Z",
+    "createdAt": "2026-03-14T18:47:16.178Z",
     "loginCount": 0,
     "formationsRole": "instructeur"
   },
   {
-    "email": "lechamanpro@gmail.com",
-    "passwordHash": "$2b$12$C5QAEr1HV6nJIJge8CfLBucQB3/3eKRBFxgj5p7n920RXsyFMUf.O",
-    "name": "gildas lissanon",
+    "id": "dev-freelance-1",
+    "email": "freelance@test.com",
+    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
+    "name": "Marie Diallo",
     "role": "freelance",
-    "plan": "gratuit",
-    "kyc": 1,
+    "plan": "pro",
+    "kyc": 3,
     "status": "ACTIF",
-    "formationsRole": "instructeur",
-    "id": "dev-1773424256784",
-    "createdAt": "2026-03-13T17:50:56.784Z",
-    "loginCount": 2,
-    "lastLoginAt": "2026-03-13T17:52:21.744Z"
+    "createdAt": "2026-03-14T18:47:16.178Z",
+    "loginCount": 0,
+    "country": "SN"
+  },
+  {
+    "id": "dev-client-1",
+    "email": "client@test.com",
+    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
+    "name": "Jean Dupont",
+    "role": "client",
+    "plan": "gratuit",
+    "kyc": 2,
+    "status": "ACTIF",
+    "createdAt": "2026-03-14T18:47:16.178Z",
+    "loginCount": 0,
+    "country": "FR"
+  },
+  {
+    "id": "dev-agence-1",
+    "email": "agence@test.com",
+    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
+    "name": "Studio Digital Abidjan",
+    "role": "agence",
+    "plan": "agence",
+    "kyc": 3,
+    "status": "ACTIF",
+    "createdAt": "2026-03-14T18:47:16.178Z",
+    "loginCount": 0,
+    "country": "CI"
   }
 ]

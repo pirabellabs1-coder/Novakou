@@ -4,6 +4,24 @@ import { authOptions } from "@/lib/auth/config";
 import { profileStore, orderStore, reviewStore } from "@/lib/dev/data-store";
 import { computeBadges } from "@/lib/badges";
 import { prisma, IS_DEV } from "@/lib/prisma";
+import { z } from "zod";
+
+const updateProfileSchema = z.looseObject({
+  name: z.string().min(2).max(100).optional(),
+  bio: z.string().max(2000).optional(),
+  title: z.string().max(200).optional(),
+  hourlyRate: z.number().min(0).max(10000).optional(),
+  city: z.string().max(100).optional(),
+  country: z.string().max(100).optional(),
+  skills: z.array(z.string().max(50)).max(30).optional(),
+  languages: z.array(z.object({ name: z.string(), level: z.string() })).max(10).optional(),
+  links: z.object({
+    linkedin: z.string().url().optional().or(z.literal("")),
+    github: z.string().url().optional().or(z.literal("")),
+    portfolio: z.string().url().optional().or(z.literal("")),
+    behance: z.string().url().optional().or(z.literal("")),
+  }).optional(),
+});
 
 export async function GET() {
   try {
@@ -103,12 +121,20 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
-    const updates = await request.json();
+    const body = await request.json();
+    const result = updateProfileSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "Donnees invalides", details: z.treeifyError(result.error) },
+        { status: 400 }
+      );
+    }
+    const updates = result.data;
 
     // Remove fields that should not be updated directly
-    delete updates.userId;
-    delete updates.completionPercent;
-    delete updates.badges;
+    delete (updates as Record<string, unknown>).userId;
+    delete (updates as Record<string, unknown>).completionPercent;
+    delete (updates as Record<string, unknown>).badges;
 
     if (IS_DEV) {
       const profile = profileStore.update(session.user.id, updates);

@@ -29,6 +29,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Compte instructeur non approuvé" }, { status: 403 });
     }
 
+    // Verification KYC obligatoire pour retirer des fonds (niveau 3 minimum)
+    if ((session.user.kyc ?? 1) < 3) {
+      return NextResponse.json(
+        {
+          error: "Verification d'identite requise pour retirer des fonds. Completez votre KYC (niveau 3 minimum).",
+          code: "KYC_REQUIRED",
+          requiredLevel: 3,
+          currentLevel: session.user.kyc ?? 1,
+          redirectTo: "/dashboard/kyc",
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { amount, method, accountDetails } = withdrawSchema.parse(body);
 

@@ -258,12 +258,12 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-neutral-dark">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-slate-100 rounded w-3/4" />
-            <div className="h-4 bg-slate-100 rounded w-1/2" />
-            <div className="h-4 bg-slate-100 rounded w-2/3" />
+            <div className="h-8 bg-slate-100 dark:bg-slate-700 rounded w-3/4" />
+            <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-1/2" />
+            <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-2/3" />
           </div>
         </div>
       </div>
@@ -310,7 +310,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const displayedReviews = showAllReviews ? formation.reviews : formation.reviews.slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-neutral-dark">
       {/* Hero Header */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -375,7 +375,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
           {/* Left column (65%) */}
           <div className="flex-1 min-w-0 lg:max-w-[65%]">
             {/* Tabs */}
-            <div className="sticky top-0 bg-white z-10 border-b mb-6">
+            <div className="sticky top-0 bg-white dark:bg-neutral-dark z-10 border-b dark:border-border-dark mb-6">
               <div className="flex gap-6">
                 {(["overview", "curriculum", "instructor", "reviews", ...(formation.isGroupFormation && formation.cohorts?.length ? ["cohorts" as const] : [])] as const).map((tab) => (
                   <button
@@ -738,7 +738,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
           {/* Right column — Sticky purchase card */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-8">
-              <div className="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-2xl shadow-xl overflow-hidden">
                 {/* Preview thumbnail / video */}
                 <div className="aspect-video bg-slate-100 relative">
                   {formation.thumbnail ? (
@@ -911,7 +911,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
         </div>
 
         {/* Mobile purchase bar */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex items-center gap-3 shadow-lg z-30">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-dark border-t dark:border-border-dark p-4 flex items-center gap-3 shadow-lg z-30">
           <div className="flex-1">
             {formation.isFree ? (
               <span className="font-bold text-green-600">{t("free")}</span>
