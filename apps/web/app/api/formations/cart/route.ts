@@ -77,7 +77,15 @@ export async function GET(req: NextRequest) {
       });
 
       if (promo && (promo.maxUsage === null || promo.usageCount < promo.maxUsage)) {
-        discount = Math.round(subtotal * (promo.discountPct / 100) * 100) / 100;
+        // Respect formationIds targeting: only discount applicable formations
+        const applicableItems = promo.formationIds.length > 0
+          ? activeItems.filter((item) => promo.formationIds.includes(item.formationId))
+          : activeItems;
+        const applicableSubtotal = applicableItems.reduce(
+          (acc, item) => acc + item.formation.price,
+          0
+        );
+        discount = Math.round(applicableSubtotal * (promo.discountPct / 100) * 100) / 100;
         promoDetails = { code: promo.code, discountPct: promo.discountPct };
       }
     }
@@ -156,12 +164,19 @@ export async function DELETE(req: NextRequest) {
     const formationId = searchParams.get("formationId");
 
     if (!formationId) {
-      return NextResponse.json({ error: "formationId requis" }, { status: 400 });
+      return NextResponse.json({ error: "formationId requis (ou 'all' pour vider le panier)" }, { status: 400 });
     }
 
-    await prisma.cartItem.deleteMany({
-      where: { userId: session.user.id, formationId },
-    });
+    // Support clearing entire cart with ?formationId=all
+    if (formationId === "all") {
+      await prisma.cartItem.deleteMany({
+        where: { userId: session.user.id },
+      });
+    } else {
+      await prisma.cartItem.deleteMany({
+        where: { userId: session.user.id, formationId },
+      });
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

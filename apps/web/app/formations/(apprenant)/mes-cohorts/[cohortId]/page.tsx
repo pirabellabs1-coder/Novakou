@@ -68,7 +68,7 @@ const STATUS_COLORS: Record<string, string> = {
   OUVERT: "bg-green-100 text-green-700",
   COMPLET: "bg-blue-100 text-blue-700",
   EN_COURS: "bg-yellow-100 text-yellow-700",
-  TERMINE: "bg-slate-100 text-slate-600",
+  TERMINE: "bg-slate-100 dark:bg-slate-800 text-slate-600",
   ANNULE: "bg-red-100 text-red-600",
 };
 
@@ -103,9 +103,9 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-100 rounded w-1/3" />
-          <div className="h-4 bg-slate-100 rounded w-1/2" />
-          <div className="h-64 bg-slate-100 rounded-xl" />
+          <div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+          <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+          <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-xl" />
         </div>
       </div>
     );
@@ -138,12 +138,12 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/formations/mes-cohorts" className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+        <Link href="/formations/mes-cohorts" className="p-2 rounded-lg hover:bg-slate-100 dark:bg-slate-800 transition-colors">
           <ChevronLeft className="w-5 h-5 text-slate-600" />
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-slate-900 truncate">{cohortTitle}</h1>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white truncate">{cohortTitle}</h1>
             <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_COLORS[data.status]}`}>
               {fr ? STATUS_FR[data.status] : STATUS_EN[data.status]}
             </span>
@@ -154,35 +154,35 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Stats row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Ma progression" : "My Progress"}</p>
-          <p className={`text-xl font-bold ${isCompleted ? "text-green-600" : "text-slate-900 dark:text-slate-100"}`}>
+          <p className={`text-xl font-bold ${isCompleted ? "text-green-600" : "text-slate-900 dark:text-white dark:text-slate-100"}`}>
             {Math.round(data.enrollment.progress)}%
           </p>
         </div>
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Moyenne groupe" : "Group Avg"}</p>
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{avgProgress}%</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{avgProgress}%</p>
         </div>
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Classement" : "Ranking"}</p>
           <p className="text-xl font-bold text-primary">{myRank > 0 ? `#${myRank}` : "—"}/{data.participants.length}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Participants" : "Participants"}</p>
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{data.currentCount}/{data.maxParticipants}</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{data.currentCount}/{data.maxParticipants}</p>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 mb-6">
+      <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 mb-6">
         <div className="flex items-center justify-between text-sm mb-2">
-          <span className="font-medium text-slate-900 dark:text-slate-100">{fr ? "Ma progression" : "My Progress"}</span>
+          <span className="font-medium text-slate-900 dark:text-white dark:text-slate-100">{fr ? "Ma progression" : "My Progress"}</span>
           <span className={`font-bold ${isCompleted ? "text-green-600" : "text-primary"}`}>
             {Math.round(data.enrollment.progress)}%
           </span>
         </div>
-        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
           <div
             className={`h-full rounded-full transition-all ${isCompleted ? "bg-green-500" : "bg-primary"}`}
             style={{ width: `${data.enrollment.progress}%` }}
@@ -192,7 +192,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
           <div className="mt-3 flex items-center gap-2">
             <Award className="w-4 h-4 text-green-600" />
             <Link
-              href={`/formations/certificats/${data.enrollment.certificate.code}`}
+              href={`/formations/certificats/${data.enrollment.certificate.id}`}
               className="text-sm text-green-600 hover:underline font-medium"
             >
               {fr ? "Voir mon certificat" : "View my certificate"}
@@ -202,13 +202,13 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-6 overflow-x-auto">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit mb-6 overflow-x-auto">
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => setTab(key)}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-              tab === key ? "bg-white dark:bg-neutral-dark text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === key ? "bg-white dark:bg-slate-900 dark:bg-neutral-dark text-slate-900 dark:text-white dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -229,7 +229,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Content tab */}
       {tab === "content" && (
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 space-y-6">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 space-y-6">
           <div className="flex items-center gap-4">
             <div className="w-20 h-14 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden flex-shrink-0">
               {data.formation.thumbnail ? (
@@ -239,7 +239,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-slate-900 text-sm">{formationTitle}</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white text-sm">{formationTitle}</h3>
               <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -252,7 +252,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
           {desc && (
             <div>
-              <h4 className="text-sm font-semibold text-slate-900 mb-2">{fr ? "Description" : "Description"}</h4>
+              <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">{fr ? "Description" : "Description"}</h4>
               <p className="text-sm text-slate-600 leading-relaxed">{desc}</p>
             </div>
           )}
@@ -278,7 +278,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Schedule tab */}
       {tab === "schedule" && (
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
           {schedule.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Calendar className="w-10 h-10 mx-auto mb-3 text-slate-300" />
@@ -286,14 +286,14 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
             </div>
           ) : (
             <div className="space-y-4">
-              <h3 className="font-semibold text-slate-900">{fr ? "Programme de la cohorte" : "Cohort Schedule"}</h3>
+              <h3 className="font-semibold text-slate-900 dark:text-white">{fr ? "Programme de la cohorte" : "Cohort Schedule"}</h3>
               {schedule.map((item, i) => (
                 <div key={i} className="flex gap-4 items-start">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <span className="text-sm font-bold text-primary">{item.week ?? i + 1}</span>
                   </div>
                   <div className="flex-1 border-b pb-4 last:border-0">
-                    <h4 className="font-medium text-slate-900 text-sm">
+                    <h4 className="font-medium text-slate-900 dark:text-white text-sm">
                       {item.title ?? `${fr ? "Semaine" : "Week"} ${item.week ?? i + 1}`}
                     </h4>
                     {item.description && (
@@ -321,8 +321,8 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
       {tab === "progress" && (
         <div className="space-y-6">
           {/* My progress card */}
-          <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">{fr ? "Ma progression" : "My Progress"}</h3>
+          <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
+            <h3 className="font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-4">{fr ? "Ma progression" : "My Progress"}</h3>
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-full border-4 border-primary flex items-center justify-center">
                 <span className="text-2xl font-bold text-primary">{Math.round(data.enrollment.progress)}%</span>
@@ -334,7 +334,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
                 </div>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="text-slate-500">{fr ? "Moyenne du groupe" : "Group average"}</span>
-                  <span className="font-medium text-slate-900">{avgProgress}%</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{avgProgress}%</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-slate-500">{fr ? "Statut" : "Status"}</span>
@@ -347,16 +347,16 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
           </div>
 
           {/* Leaderboard */}
-          <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark overflow-hidden">
-            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 border-b dark:border-border-dark">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100 text-sm">{fr ? "Classement de la cohorte" : "Cohort Leaderboard"}</h3>
+          <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark overflow-hidden">
+            <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800 border-b dark:border-border-dark">
+              <h3 className="font-semibold text-slate-900 dark:text-white dark:text-slate-100 text-sm">{fr ? "Classement de la cohorte" : "Cohort Leaderboard"}</h3>
             </div>
             <div className="divide-y">
               {sortedParticipants.map((p, idx) => {
                 const isMe = p.id === data.enrollment.id;
                 const avatar = p.user.avatar || p.user.image;
                 return (
-                  <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${isMe ? "bg-primary/5" : "hover:bg-slate-50"}`}>
+                  <div key={p.id} className={`flex items-center gap-3 px-4 py-3 ${isMe ? "bg-primary/5" : "hover:bg-slate-50 dark:bg-slate-800/50"}`}>
                     <span className={`w-6 text-center text-xs font-bold ${idx < 3 ? "text-primary" : "text-slate-400"}`}>
                       {idx + 1}
                     </span>
@@ -369,11 +369,11 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
                         </div>
                       )}
                     </div>
-                    <span className={`flex-1 text-sm ${isMe ? "font-bold text-primary" : "text-slate-900"}`}>
+                    <span className={`flex-1 text-sm ${isMe ? "font-bold text-primary" : "text-slate-900 dark:text-white"}`}>
                       {p.user.name} {isMe ? (fr ? "(vous)" : "(you)") : ""}
                     </span>
                     <div className="flex items-center gap-2 w-32">
-                      <div className="flex-1 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full ${p.progress >= 100 ? "bg-green-500" : "bg-primary"}`}
                           style={{ width: `${p.progress}%` }}
@@ -391,8 +391,8 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
 
       {/* Participants tab */}
       {tab === "participants" && (
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
-          <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6">
+          <h3 className="font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-4">
             {data.participants.length} {fr ? "participants" : "participants"}
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -411,11 +411,11 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-medium truncate ${isMe ? "text-primary" : "text-slate-900"}`}>
+                    <p className={`text-sm font-medium truncate ${isMe ? "text-primary" : "text-slate-900 dark:text-white"}`}>
                       {p.user.name} {isMe ? (fr ? "(vous)" : "(you)") : ""}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      <div className="flex-1 bg-slate-100 rounded-full h-1 overflow-hidden">
+                      <div className="flex-1 bg-slate-100 dark:bg-slate-800 rounded-full h-1 overflow-hidden">
                         <div
                           className={`h-full rounded-full ${p.progress >= 100 ? "bg-green-500" : "bg-primary"}`}
                           style={{ width: `${p.progress}%` }}

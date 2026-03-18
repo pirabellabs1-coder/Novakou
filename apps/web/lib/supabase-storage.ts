@@ -13,7 +13,9 @@ export type StorageBucket =
   | "kyc-documents"
   | "order-deliveries"
   | "agency-resources"
-  | "contracts";
+  | "contracts"
+  | "message-attachments"
+  | "certificates";
 
 // Upload a file to a private Supabase Storage bucket
 export async function uploadFile(

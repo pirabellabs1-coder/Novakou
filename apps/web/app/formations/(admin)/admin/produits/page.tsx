@@ -17,11 +17,11 @@ interface Product {
 }
 
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
-  ACTIF: { label: "Actif", color: "bg-green-100 text-green-700" },
-  EN_ATTENTE: { label: "En attente", color: "bg-amber-100 text-amber-700" },
-  BROUILLON: { label: "Brouillon", color: "bg-slate-100 text-slate-600" },
-  ARCHIVE: { label: "Archivé", color: "bg-red-100 text-red-600" },
-  REFUSE: { label: "Refusé", color: "bg-red-100 text-red-700" },
+  ACTIF: { label: "Actif", color: "bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400" },
+  EN_ATTENTE: { label: "En attente", color: "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400" },
+  BROUILLON: { label: "Brouillon", color: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400" },
+  ARCHIVE: { label: "Archivé", color: "bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400" },
+  REFUSE: { label: "Refusé", color: "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400" },
 };
 
 export default function AdminProduitsPage() {
@@ -59,7 +59,7 @@ export default function AdminProduitsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Produits numériques</h1>
+      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Produits numériques</h1>
 
       {/* Filters */}
       <div className="flex gap-2 mb-4">
@@ -68,7 +68,7 @@ export default function AdminProduitsPage() {
             key={s}
             onClick={() => setStatusFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-              statusFilter === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 hover:bg-slate-200"
+              statusFilter === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600"
             }`}
           >
             {s ? (STATUS_MAP[s]?.label || s) : "Tous"}
@@ -84,7 +84,7 @@ export default function AdminProduitsPage() {
           <p className="text-sm text-slate-400">Aucun produit trouvé</p>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+        <div className="overflow-x-auto bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
           <table className="w-full min-w-[700px]">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700 text-xs text-slate-500 uppercase">
@@ -100,17 +100,17 @@ export default function AdminProduitsPage() {
               {products.map((product) => {
                 const status = STATUS_MAP[product.status] || STATUS_MAP.BROUILLON;
                 return (
-                  <tr key={product.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                  <tr key={product.id} className="border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700/30">
                     <td className="px-4 py-3">
-                      <p className="text-sm font-semibold">{product.titleFr}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{product.titleFr}</p>
                       <p className="text-xs text-slate-400">{product.category?.nameFr}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-sm">{product.instructeur?.user?.name}</p>
+                      <p className="text-sm text-slate-700 dark:text-slate-300">{product.instructeur?.user?.name}</p>
                       <p className="text-xs text-slate-400">{product.instructeur?.user?.email}</p>
                     </td>
-                    <td className="px-4 py-3 text-sm">{product.productType}</td>
-                    <td className="px-4 py-3 text-sm text-right font-semibold">{product.price.toFixed(0)}€</td>
+                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{product.productType}</td>
+                    <td className="px-4 py-3 text-sm text-right font-semibold text-slate-900 dark:text-white">{product.price.toFixed(0)}€</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${status.color}`}>
                         {status.label}
@@ -140,7 +140,7 @@ export default function AdminProduitsPage() {
                           href={`/formations/produits/${product.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors"
                         >
                           <Eye className="w-4 h-4" />
                         </a>
@@ -152,7 +152,7 @@ export default function AdminProduitsPage() {
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             placeholder="Motif de rejet..."
-                            className="flex-1 px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700"
+                            className="flex-1 px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
                           />
                           <button
                             onClick={() => handleReject(product.id)}

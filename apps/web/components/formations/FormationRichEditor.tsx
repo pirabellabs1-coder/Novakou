@@ -40,6 +40,7 @@ export function FormationRichEditor({
   const [showLinkInput, setShowLinkInput] = useState(false);
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
@@ -64,7 +65,7 @@ export function FormationRichEditor({
     },
     editorProps: {
       attributes: {
-        class: `prose prose-sm dark:prose-invert max-w-none focus:outline-none p-4 [&_table]:border-collapse [&_table]:w-full [&_th]:border [&_th]:border-slate-300 [&_th]:dark:border-slate-600 [&_th]:bg-slate-100 [&_th]:dark:bg-slate-800 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-slate-200 [&_td]:dark:border-slate-700 [&_td]:px-3 [&_td]:py-2`,
+        class: `prose prose-sm dark:prose-invert max-w-none focus:outline-none p-4 [&_table]:border-collapse [&_table]:w-full [&_th]:border [&_th]:border-slate-300 [&_th]:dark:border-slate-600 [&_th]:bg-slate-100 dark:bg-slate-800 [&_th]:dark:bg-slate-800 [&_th]:px-3 [&_th]:py-2 [&_td]:border [&_td]:border-slate-200 dark:border-slate-700 [&_td]:dark:border-slate-700 [&_td]:px-3 [&_td]:py-2`,
         style: `min-height: ${minHeight}px`,
       },
     },
@@ -172,13 +173,13 @@ export function FormationRichEditor({
         <div className="relative">
           <ToolBtn icon="format_color_text" onClick={() => setShowColorPicker(!showColorPicker)} />
           {showColorPicker && (
-            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 z-50 shadow-xl">
+            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 z-50 shadow-xl">
               <div className="grid grid-cols-4 gap-1.5">
                 {COLOR_PRESETS.map((c) => (
                   <button
                     key={c}
                     onClick={() => { editor.chain().focus().setColor(c).run(); setShowColorPicker(false); }}
-                    className="w-6 h-6 rounded border border-slate-200 dark:border-slate-600 hover:scale-110 transition-transform"
+                    className="w-6 h-6 rounded border border-slate-200 dark:border-slate-700 dark:border-slate-600 hover:scale-110 transition-transform"
                     style={{ backgroundColor: c }}
                   />
                 ))}
@@ -205,12 +206,12 @@ export function FormationRichEditor({
         <div className="relative">
           <ToolBtn icon="link" active={editor.isActive("link")} onClick={() => setShowLinkInput(!showLinkInput)} />
           {showLinkInput && (
-            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 z-50 shadow-xl flex gap-2">
+            <div className="absolute top-full left-0 mt-1 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 z-50 shadow-xl flex gap-2">
               <input
                 value={linkUrl}
                 onChange={(e) => setLinkUrl(e.target.value)}
                 placeholder="https://..."
-                className="text-xs bg-slate-100 dark:bg-slate-700 rounded px-2 py-1 w-48 focus:outline-none"
+                className="text-xs bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded px-2 py-1 w-48 focus:outline-none"
                 onKeyDown={(e) => e.key === "Enter" && insertLink()}
                 autoFocus
               />
@@ -262,7 +263,7 @@ function ToolBtn({
       className={`${size === "sm" ? "p-0.5" : "p-1.5"} rounded-lg transition-colors ${
         active
           ? "bg-primary/10 text-primary"
-          : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200"
+          : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200"
       }`}
     >
       <span className={`material-symbols-outlined ${size === "sm" ? "text-sm" : "text-base"}`}>{icon}</span>

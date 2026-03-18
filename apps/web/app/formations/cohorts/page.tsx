@@ -75,9 +75,9 @@ export default function CohortsMarketplacePage() {
         <nav className="flex items-center gap-2 text-xs text-slate-500 mb-4">
           <Link href="/formations" className="hover:text-primary">{fr ? "Formations" : "Courses"}</Link>
           <ChevronRight className="w-3 h-3" />
-          <span className="text-slate-900 font-medium">{fr ? "Formations en groupe" : "Group Courses"}</span>
+          <span className="text-slate-900 dark:text-white font-medium">{fr ? "Formations en groupe" : "Group Courses"}</span>
         </nav>
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">{fr ? "Formations en groupe" : "Group Courses"}</h1>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">{fr ? "Formations en groupe" : "Group Courses"}</h1>
         <p className="text-slate-500">{fr ? "Apprenez ensemble avec un instructeur et un groupe motivé" : "Learn together with an instructor and a motivated group"}</p>
       </div>
 
@@ -100,18 +100,18 @@ export default function CohortsMarketplacePage() {
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark animate-pulse">
-              <div className="h-40 bg-slate-100 rounded-t-xl" />
+            <div key={i} className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark animate-pulse">
+              <div className="h-40 bg-slate-100 dark:bg-slate-800 rounded-t-xl" />
               <div className="p-4 space-y-2">
-                <div className="h-4 bg-slate-100 rounded w-3/4" />
-                <div className="h-3 bg-slate-100 rounded w-1/2" />
-                <div className="h-3 bg-slate-100 rounded w-1/3" />
+                <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-3/4" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
               </div>
             </div>
           ))}
         </div>
       ) : cohorts.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
           <div className="text-5xl mb-4">👥</div>
           <p className="text-slate-500 mb-4">{fr ? "Aucune cohorte disponible pour le moment" : "No cohorts available at the moment"}</p>
           <Link href="/formations" className="text-primary hover:underline text-sm">
@@ -128,7 +128,7 @@ export default function CohortsMarketplacePage() {
             const instrAvatar = c.formation.instructeur.user.avatar || c.formation.instructeur.user.image;
 
             return (
-              <div key={c.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:shadow-md transition-shadow overflow-hidden group">
+              <div key={c.id} className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:shadow-md transition-shadow overflow-hidden group">
                 {/* Thumbnail */}
                 <Link href={`/formations/${c.formation.slug}`} className="block relative">
                   <div className="aspect-[16/9] bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden">
@@ -154,7 +154,7 @@ export default function CohortsMarketplacePage() {
 
                 <div className="p-4">
                   <p className="text-xs text-primary font-medium mb-1">{catName}</p>
-                  <h3 className="font-semibold text-slate-900 text-sm mb-1 line-clamp-2">{cohortTitle}</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white text-sm mb-1 line-clamp-2">{cohortTitle}</h3>
                   <p className="text-xs text-slate-500 mb-3 line-clamp-1">{formationTitle}</p>
 
                   {/* Instructor */}
@@ -190,7 +190,7 @@ export default function CohortsMarketplacePage() {
                   {/* Price + CTA */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="text-lg font-bold text-slate-900">{c.price}€</span>
+                      <span className="text-lg font-bold text-slate-900 dark:text-white">{c.price}€</span>
                       {c.originalPrice && c.originalPrice > c.price && (
                         <span className="ml-2 text-sm text-slate-400 line-through">{c.originalPrice}€</span>
                       )}
@@ -218,7 +218,7 @@ export default function CohortsMarketplacePage() {
               key={p}
               onClick={() => setPage(p)}
               className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${
-                page === p ? "bg-primary text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                page === p ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200"
               }`}
             >
               {p}

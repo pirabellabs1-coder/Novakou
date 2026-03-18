@@ -39,8 +39,20 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="dark">
-      <body suppressHydrationWarning className="bg-background-dark text-slate-100 font-display">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="dark" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            try {
+              var t = localStorage.getItem('theme');
+              if (t === 'light') {
+                document.documentElement.classList.remove('dark');
+              }
+            } catch(e){}
+          })();
+        `}} />
+      </head>
+      <body suppressHydrationWarning className="bg-white dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
         <FontLoader />
         <NextIntlClientProvider messages={messages}>
           <Providers>

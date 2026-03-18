@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { conversationStore } from "@/lib/dev/data-store";
+import { conversationStore, notificationStore } from "@/lib/dev/data-store";
 
 export async function GET(
   _request: NextRequest,
@@ -93,6 +93,30 @@ export async function POST(
         { error: "Impossible d'envoyer le message" },
         { status: 400 }
       );
+    }
+
+    // Create notification for other participants
+    const senderName = session.user.name || "Utilisateur";
+    const isFile = type === "file" || type === "image";
+    const otherParticipants = updatedConversation.participants.filter(
+      (pid) => pid !== session.user!.id
+    );
+
+    for (const participantId of otherParticipants) {
+      const notifTitle = isFile
+        ? `${senderName} a partage un fichier`
+        : "Nouveau message";
+      const notifMessage = isFile
+        ? `${senderName} a partage : ${fileName || "fichier"}`
+        : `${senderName} : ${content.trim().slice(0, 50)}${content.trim().length > 50 ? "..." : ""}`;
+
+      notificationStore.add({
+        userId: participantId,
+        title: notifTitle,
+        message: notifMessage,
+        type: "message",
+        link: `/dashboard/messages`,
+      });
     }
 
     return NextResponse.json({

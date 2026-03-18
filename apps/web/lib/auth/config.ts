@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
               recordFailedAttempt(email);
               return null;
             }
-            if (user.status !== "ACTIF") {
+            if (user.status.toUpperCase() !== "ACTIF") {
               throw new Error("Votre compte est desactive.");
             }
             const valid = await bcrypt.compare(password, user.passwordHash);
@@ -231,9 +231,9 @@ export const authOptions: NextAuthOptions = {
     maxAge: 8 * 60 * 60, // 8 hours for financial platform security
   },
   pages: {
-    signIn: "/connexion",
-    newUser: "/inscription",
-    error: "/connexion",
+    signIn: "/formations/connexion",
+    newUser: "/formations/inscription",
+    error: "/formations/connexion",
   },
   callbacks: {
     async signIn({ user, account }) {

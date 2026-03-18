@@ -63,26 +63,41 @@ export async function GET(req: NextRequest) {
       where.id = { in: matchingIds };
     }
 
+    // When searching with FTS and using default sort, preserve relevance ordering
+    const hasFtsSearch = filters.q && filters.q.trim() && where.id;
+    const useRelevanceOrder = hasFtsSearch && sort === "populaire";
+
     const [formations, total] = await Promise.all([
       prisma.formation.findMany({
         where,
         include: formationCardInclude,
-        orderBy: buildFormationOrderBy(sort),
+        // When using FTS relevance, don't override with a different orderBy
+        // The IDs are already ordered by relevance from the raw query
+        ...(!useRelevanceOrder ? { orderBy: buildFormationOrderBy(sort) } : {}),
         skip: (page - 1) * limit,
         take: limit,
       }),
       prisma.formation.count({ where }),
     ]);
 
+    // If using relevance ordering, sort results to match the FTS-ranked ID order
+    let sortedFormations = formations;
+    if (useRelevanceOrder && where.id && "in" in where.id) {
+      const idOrder = where.id.in as string[];
+      sortedFormations = [...formations].sort(
+        (a, b) => idOrder.indexOf(a.id) - idOrder.indexOf(b.id)
+      );
+    }
+
     return NextResponse.json({
-      formations,
+      formations: sortedFormations,
       total,
       page,
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     console.error("[GET /api/formations]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ formations: [], total: 0, page: 1, totalPages: 0 });
   }
 }
 

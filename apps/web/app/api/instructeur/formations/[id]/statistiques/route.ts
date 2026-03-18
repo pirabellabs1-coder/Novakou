@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { INSTRUCTOR_COMMISSION } from "@/lib/formations/prisma-helpers";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -68,7 +69,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     const monthMap = new Map<string, number>();
     for (const e of formation.enrollments) {
       const key = `${e.createdAt.getFullYear()}-${String(e.createdAt.getMonth() + 1).padStart(2, "0")}`;
-      monthMap.set(key, (monthMap.get(key) ?? 0) + e.paidAmount * 0.7);
+      monthMap.set(key, (monthMap.get(key) ?? 0) + e.paidAmount * INSTRUCTOR_COMMISSION);
     }
 
     const revenueByMonth = [];

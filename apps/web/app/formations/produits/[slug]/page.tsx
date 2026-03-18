@@ -217,7 +217,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 <span className="material-symbols-outlined text-sm">{typeBadge.icon}</span>
                 {typeBadge.label}
               </span>
-              {catName && <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-full">{catName}</span>}
+              {catName && <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 px-2.5 py-1 rounded-full">{catName}</span>}
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{title}</h1>
 
@@ -242,7 +242,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           </div>
 
           {/* Description */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
             <h2 className="text-lg font-bold mb-4">Description</h2>
             {description ? (
               <TiptapRenderer content={description} />
@@ -255,7 +255,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           {product.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {product.tags.map((tag) => (
-                <span key={tag} className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-medium">
+                <span key={tag} className="bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-xs font-medium">
                   #{tag}
                 </span>
               ))}
@@ -263,7 +263,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           )}
 
           {/* Reviews */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+          <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
             <h2 className="text-lg font-bold mb-4">
               Avis ({product.reviewsCount})
             </h2>
@@ -319,7 +319,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         <div className="lg:col-span-1">
           <div className="sticky top-24 space-y-4">
             {/* Price card */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+            <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
               {/* Flash promo countdown */}
               {activePromo && (
                 <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-3 border border-red-200 dark:border-red-800">
@@ -389,7 +389,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                   href={`/api/produits/${product.id}/preview`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition-colors"
                 >
                   <Eye className="w-4 h-4" />
                   Aperçu gratuit ({product.previewPages} pages)
@@ -423,7 +423,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
             {/* Instructor card */}
             {instructor && (
-              <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
+              <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
                     {instructor.user.avatar || instructor.user.image ? (
@@ -454,7 +454,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             {/* Share */}
             <button
               onClick={() => navigator.clipboard.writeText(window.location.href)}
-              className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition-colors"
             >
               <Share2 className="w-4 h-4" />
               Partager

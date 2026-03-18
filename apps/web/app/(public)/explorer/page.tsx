@@ -40,6 +40,16 @@ interface ApiResponse {
   totalPages: number;
 }
 
+interface FilterState {
+  search: string;
+  category: string;
+  priceMin: string;
+  priceMax: string;
+  delivery: string;
+  minRating: number;
+  country: string;
+}
+
 // ============================================================
 // Constants
 // ============================================================
@@ -60,8 +70,6 @@ const CATEGORIES = [
 const DELIVERY_VALUES = ["all", "1-3", "3-7", "7-14", "14-30"] as const;
 
 const RATING_OPTIONS = [4, 3, 2] as const;
-
-const SELLER_LEVEL_KEYS = ["nouveau", "confirme", "top_rated", "elite"] as const;
 
 const COUNTRY_KEYS = [
   "tous",
@@ -93,15 +101,23 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
   "cybersecurite": "from-slate-600/80 to-zinc-800/80",
 };
 
+const defaultFilters: FilterState = {
+  search: "",
+  category: "",
+  priceMin: "",
+  priceMax: "",
+  delivery: "all",
+  minRating: 0,
+  country: "tous",
+};
+
 // ============================================================
-// Category slug lookup for gradient/icon mapping
+// Utility functions
 // ============================================================
 
 function getCategorySlug(categoryName: string): string {
-  // Try direct slug map first
   const normalized = categoryName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   if (CATEGORY_GRADIENTS[normalized]) return normalized;
-  // Try matching from CATEGORIES
   const match = CATEGORIES.find((c) => c.slug === normalized);
   return match?.slug ?? normalized;
 }
@@ -114,7 +130,7 @@ function getBadgeLevel(badges: string[]): string {
 }
 
 // ============================================================
-// Loading Skeleton
+// Sub-components
 // ============================================================
 
 function ServiceCardSkeleton({ view }: { view: "grid" | "list" }) {
@@ -158,10 +174,6 @@ function ServiceCardSkeleton({ view }: { view: "grid" | "list" }) {
     </div>
   );
 }
-
-// ============================================================
-// Sub-components
-// ============================================================
 
 function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
   const iconSize = size === "sm" ? "text-sm" : "text-base";
@@ -325,7 +337,6 @@ function ServiceCard({
 
       {/* Content */}
       <div className="flex flex-col flex-1 p-4">
-        {/* Freelancer */}
         <div className="flex items-center gap-2 mb-2">
           <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold flex-shrink-0">
             {service.vendorAvatar ? service.vendorAvatar.slice(0, 2).toUpperCase() : "??"}
@@ -334,19 +345,16 @@ function ServiceCard({
           <LevelBadge level={vendorLevel} />
         </div>
 
-        {/* Title */}
         <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2 mb-3 flex-1">
           {service.title}
         </h3>
 
-        {/* Rating */}
         <div className="flex items-center gap-2 mb-3">
           <StarRating rating={service.rating} />
           <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{service.rating}</span>
           <span className="text-xs text-slate-500">({service.ratingCount})</span>
         </div>
 
-        {/* Divider + Price */}
         <div className="border-t border-slate-100 dark:border-border-dark pt-3 flex items-center justify-between">
           <div className="flex items-center gap-1 text-xs text-slate-500">
             <span className="material-symbols-outlined text-sm">schedule</span>
@@ -360,209 +368,6 @@ function ServiceCard({
     </Link>
   );
 }
-
-// ============================================================
-// Filter Sidebar (Desktop + Mobile Drawer)
-// ============================================================
-
-interface FilterState {
-  categories: string[];
-  priceMin: string;
-  priceMax: string;
-  delivery: string;
-  minRating: number;
-  sellerLevels: string[];
-  country: string;
-  search: string;
-}
-
-const defaultFilters: FilterState = {
-  categories: [],
-  priceMin: "",
-  priceMax: "",
-  delivery: "all",
-  minRating: 0,
-  sellerLevels: [],
-  country: "Tous",
-  search: "",
-};
-
-function FilterSidebar({
-  filters,
-  onChange,
-  onReset,
-  className,
-}: {
-  filters: FilterState;
-  onChange: (f: FilterState) => void;
-  onReset: () => void;
-  className?: string;
-}) {
-  const t = useTranslations("explorer");
-
-  const toggleCategory = (slug: string) => {
-    const next = filters.categories.includes(slug)
-      ? filters.categories.filter((c) => c !== slug)
-      : [...filters.categories, slug];
-    onChange({ ...filters, categories: next });
-  };
-
-  const toggleSellerLevel = (level: string) => {
-    const next = filters.sellerLevels.includes(level)
-      ? filters.sellerLevels.filter((l) => l !== level)
-      : [...filters.sellerLevels, level];
-    onChange({ ...filters, sellerLevels: next });
-  };
-
-  const hasFilters =
-    filters.categories.length > 0 ||
-    filters.priceMin !== "" ||
-    filters.priceMax !== "" ||
-    filters.delivery !== "all" ||
-    filters.minRating > 0 ||
-    filters.sellerLevels.length > 0 ||
-    filters.country !== "Tous";
-
-  return (
-    <div className={cn("flex flex-col gap-6", className)}>
-      {/* Categories */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t("filter_categories")}</h4>
-        <div className="space-y-1.5">
-          {CATEGORIES.map((cat) => (
-            <label key={cat.slug} className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={filters.categories.includes(cat.slug)}
-                onChange={() => toggleCategory(cat.slug)}
-                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary/30 accent-primary"
-              />
-              <span className="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400 group-hover:text-primary transition-colors">{cat.icon}</span>
-              <span className="text-sm text-slate-700 dark:text-slate-300 group-hover:text-primary transition-colors">{t(`cat.${cat.slug}`)}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Price Range */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t("filter_price_range")}</h4>
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            placeholder={t("filter_min")}
-            value={filters.priceMin}
-            onChange={(e) => onChange({ ...filters, priceMin: e.target.value })}
-            className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-          />
-          <span className="text-slate-400 text-xs">-</span>
-          <input
-            type="number"
-            placeholder={t("filter_max")}
-            value={filters.priceMax}
-            onChange={(e) => onChange({ ...filters, priceMax: e.target.value })}
-            className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-          />
-        </div>
-      </div>
-
-      {/* Delivery Time */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t("filter_delivery")}</h4>
-        <select
-          value={filters.delivery}
-          onChange={(e) => onChange({ ...filters, delivery: e.target.value })}
-          className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-        >
-          {DELIVERY_VALUES.map((val) => (
-            <option key={val} value={val}>{t(`delivery.${val}`)}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Rating */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t("filter_min_rating")}</h4>
-        <div className="space-y-1.5">
-          <label className="flex items-center gap-2.5 cursor-pointer group">
-            <input
-              type="radio"
-              name="rating"
-              checked={filters.minRating === 0}
-              onChange={() => onChange({ ...filters, minRating: 0 })}
-              className="w-4 h-4 border-slate-300 dark:border-slate-600 text-primary focus:ring-primary/30 accent-primary"
-            />
-            <span className="text-sm text-slate-700 dark:text-slate-300">{t("filter_all_ratings")}</span>
-          </label>
-          {RATING_OPTIONS.map((value) => (
-            <label key={value} className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="radio"
-                name="rating"
-                checked={filters.minRating === value}
-                onChange={() => onChange({ ...filters, minRating: value })}
-                className="w-4 h-4 border-slate-300 dark:border-slate-600 text-primary focus:ring-primary/30 accent-primary"
-              />
-              <div className="flex items-center gap-1">
-                {Array.from({ length: value }).map((_, i) => (
-                  <span key={i} className="material-symbols-outlined text-sm text-accent" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                ))}
-                <span className="text-sm text-slate-700 dark:text-slate-300 ml-1">{t("filter_and_more")}</span>
-              </div>
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Seller Level */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t("filter_seller_level")}</h4>
-        <div className="space-y-1.5">
-          {SELLER_LEVEL_KEYS.map((key) => (
-            <label key={key} className="flex items-center gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={filters.sellerLevels.includes(t(`level.${key}`))}
-                onChange={() => toggleSellerLevel(t(`level.${key}`))}
-                className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary/30 accent-primary"
-              />
-              <LevelBadge level={t(`level.${key}`)} />
-            </label>
-          ))}
-        </div>
-      </div>
-
-      {/* Country */}
-      <div>
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">{t("filter_country")}</h4>
-        <select
-          value={filters.country}
-          onChange={(e) => onChange({ ...filters, country: e.target.value })}
-          className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-        >
-          {COUNTRY_KEYS.map((key) => (
-            <option key={key} value={t(`country.${key}`)}>{t(`country.${key}`)}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Reset */}
-      {hasFilters && (
-        <button
-          onClick={onReset}
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-slate-200 dark:border-border-dark text-sm font-semibold text-slate-600 dark:text-slate-400 hover:border-red-400 hover:text-red-500 transition-colors"
-        >
-          <span className="material-symbols-outlined text-sm">restart_alt</span>
-          {t("reset_filters")}
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ============================================================
-// Pagination
-// ============================================================
 
 function Pagination({
   current,
@@ -628,6 +433,248 @@ function Pagination({
 }
 
 // ============================================================
+// Inline filter dropdown component
+// ============================================================
+
+function FilterDropdown({
+  label,
+  icon,
+  isActive,
+  children,
+}: {
+  label: string;
+  icon: string;
+  isActive: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    if (open) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className={cn(
+          "flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors whitespace-nowrap",
+          isActive
+            ? "border-primary bg-primary/5 text-primary"
+            : "border-slate-200 dark:border-border-dark text-slate-700 dark:text-slate-300 hover:border-primary/50"
+        )}
+      >
+        <span className="material-symbols-outlined text-base">{icon}</span>
+        {label}
+        <span className={cn("material-symbols-outlined text-sm transition-transform", open && "rotate-180")}>
+          expand_more
+        </span>
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1.5 z-40 bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark shadow-xl p-4 min-w-[220px]">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// Mobile filters bottom sheet
+// ============================================================
+
+function MobileFiltersSheet({
+  filters,
+  sort,
+  onChangeFilters,
+  onChangeSort,
+  onClose,
+  totalResults,
+  t,
+}: {
+  filters: FilterState;
+  sort: string;
+  onChangeFilters: (f: FilterState) => void;
+  onChangeSort: (s: string) => void;
+  onClose: () => void;
+  totalResults: number;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const [localFilters, setLocalFilters] = useState(filters);
+  const [localSort, setLocalSort] = useState(sort);
+
+  const handleApply = () => {
+    onChangeFilters(localFilters);
+    onChangeSort(localSort);
+    onClose();
+  };
+
+  const handleReset = () => {
+    setLocalFilters(defaultFilters);
+    setLocalSort("pertinence");
+  };
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden"
+        onClick={onClose}
+      />
+      {/* Bottom sheet */}
+      <div className="fixed inset-x-0 bottom-0 z-50 md:hidden bg-white dark:bg-neutral-dark rounded-t-2xl shadow-2xl max-h-[85vh] flex flex-col animate-slide-up">
+        {/* Handle bar */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-slate-300 dark:bg-slate-600" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 dark:border-border-dark">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg">tune</span>
+            {t("filters")}
+          </h3>
+          <button
+            onClick={handleReset}
+            className="text-sm text-primary font-semibold hover:underline"
+          >
+            {t("reset_filters")}
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          {/* Sort */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">
+              Tri
+            </label>
+            <select
+              value={localSort}
+              onChange={(e) => setLocalSort(e.target.value)}
+              className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            >
+              {SORT_VALUES.map((val) => (
+                <option key={val} value={val}>{t(`sort.${val}`)}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Price range */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">
+              {t("filter_price_range")}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder={t("filter_min")}
+                value={localFilters.priceMin}
+                onChange={(e) => setLocalFilters({ ...localFilters, priceMin: e.target.value })}
+                className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              />
+              <span className="text-slate-400 text-xs flex-shrink-0">-</span>
+              <input
+                type="number"
+                placeholder={t("filter_max")}
+                value={localFilters.priceMax}
+                onChange={(e) => setLocalFilters({ ...localFilters, priceMax: e.target.value })}
+                className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              />
+            </div>
+          </div>
+
+          {/* Delivery */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">
+              {t("filter_delivery")}
+            </label>
+            <select
+              value={localFilters.delivery}
+              onChange={(e) => setLocalFilters({ ...localFilters, delivery: e.target.value })}
+              className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            >
+              {DELIVERY_VALUES.map((val) => (
+                <option key={val} value={val}>{t(`delivery.${val}`)}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Rating */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">
+              {t("filter_min_rating")}
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setLocalFilters({ ...localFilters, minRating: 0 })}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors",
+                  localFilters.minRating === 0
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-slate-200 dark:border-border-dark text-slate-600 dark:text-slate-400"
+                )}
+              >
+                {t("filter_all_ratings")}
+              </button>
+              {RATING_OPTIONS.map((val) => (
+                <button
+                  key={val}
+                  onClick={() => setLocalFilters({ ...localFilters, minRating: val })}
+                  className={cn(
+                    "flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors",
+                    localFilters.minRating === val
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-slate-200 dark:border-border-dark text-slate-600 dark:text-slate-400"
+                  )}
+                >
+                  {val}
+                  <span className="material-symbols-outlined text-sm text-accent" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  {t("filter_and_more")}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Country */}
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2 block">
+              {t("filter_country")}
+            </label>
+            <select
+              value={localFilters.country}
+              onChange={(e) => setLocalFilters({ ...localFilters, country: e.target.value })}
+              className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            >
+              {COUNTRY_KEYS.map((key) => (
+                <option key={key} value={key}>{t(`country.${key}`)}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 border-t border-slate-200 dark:border-border-dark">
+          <button
+            onClick={handleApply}
+            className="w-full py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
+          >
+            {t("see_results", { count: totalResults })}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ============================================================
 // Main Page Component
 // ============================================================
 
@@ -651,7 +698,6 @@ export default function ExplorerPage() {
 
   // Debounce timer for search input
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Track the search value independently for the input, debouncing API calls
   const [searchInput, setSearchInput] = useState("");
 
   // ---- Fetch services from API ----
@@ -666,19 +712,16 @@ export default function ExplorerPage() {
     try {
       const params = new URLSearchParams();
 
-      // Search query
       if (currentFilters.search.trim()) {
         params.set("q", currentFilters.search.trim());
       }
 
-      // Category filter — the API accepts category name
-      if (currentFilters.categories.length === 1) {
-        const catSlug = currentFilters.categories[0];
-        const cat = CATEGORIES.find((c) => c.slug === catSlug);
+      // Single category filter
+      if (currentFilters.category) {
+        const cat = CATEGORIES.find((c) => c.slug === currentFilters.category);
         if (cat) params.set("category", t(`cat.${cat.slug}`));
       }
 
-      // Price range
       if (currentFilters.priceMin !== "") {
         params.set("minPrice", currentFilters.priceMin);
       }
@@ -686,10 +729,7 @@ export default function ExplorerPage() {
         params.set("maxPrice", currentFilters.priceMax);
       }
 
-      // Sort
       params.set("sort", currentSort === "recent" ? "nouveau" : currentSort);
-
-      // Pagination
       params.set("page", String(currentPage));
       params.set("limit", String(ITEMS_PER_PAGE));
 
@@ -700,19 +740,10 @@ export default function ExplorerPage() {
 
       const data: ApiResponse = await res.json();
 
-      // Apply client-side filters that the API does not support
       let filtered = data.services.map((s) => ({
         ...s,
         favorited: favoriteIds.has(s.id),
       }));
-
-      // Multi-category filter (API only supports single category)
-      if (currentFilters.categories.length > 1) {
-        filtered = filtered.filter((s) => {
-          const slug = getCategorySlug(s.category);
-          return currentFilters.categories.includes(slug);
-        });
-      }
 
       // Delivery time filter (client-side)
       if (currentFilters.delivery !== "all") {
@@ -727,17 +758,10 @@ export default function ExplorerPage() {
         filtered = filtered.filter((s) => s.rating >= currentFilters.minRating);
       }
 
-      // Seller level filter (client-side)
-      if (currentFilters.sellerLevels.length > 0) {
-        filtered = filtered.filter((s) => {
-          const level = getBadgeLevel(s.vendorBadges || []);
-          return currentFilters.sellerLevels.includes(level);
-        });
-      }
-
       // Country filter (client-side)
-      if (currentFilters.country !== "Tous") {
-        filtered = filtered.filter((s) => s.vendorCountry === currentFilters.country);
+      if (currentFilters.country !== "tous") {
+        const countryName = t(`country.${currentFilters.country}`);
+        filtered = filtered.filter((s) => s.vendorCountry === countryName);
       }
 
       setServices(filtered);
@@ -772,57 +796,66 @@ export default function ExplorerPage() {
     );
   }, []);
 
-  // Reset page when filters change (with debounce for search)
-  const updateFilters = useCallback((f: FilterState) => {
-    // If only search changed, debounce the API call
-    if (f.search !== filters.search) {
-      setSearchInput(f.search);
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
-        setFilters(f);
-        setPage(1);
-      }, 400);
-      return;
-    }
-    setFilters(f);
+  // ---- Debounced search ----
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: value }));
+      setPage(1);
+    }, 400);
+  }, []);
+
+  // ---- Category pill selection ----
+  const handleCategoryChange = useCallback((slug: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      category: prev.category === slug ? "" : slug,
+    }));
     setPage(1);
-  }, [filters.search]);
+  }, []);
+
+  // ---- Update a single filter field ----
+  const updateFilter = useCallback(<K extends keyof FilterState>(key: K, value: FilterState[K]) => {
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPage(1);
+  }, []);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
+    setSearchInput("");
+    setSort("pertinence");
     setPage(1);
   }, []);
 
   const activeFilterCount =
-    filters.categories.length +
+    (filters.category ? 1 : 0) +
     (filters.priceMin !== "" ? 1 : 0) +
     (filters.priceMax !== "" ? 1 : 0) +
     (filters.delivery !== "all" ? 1 : 0) +
     (filters.minRating > 0 ? 1 : 0) +
-    filters.sellerLevels.length +
-    (filters.country !== "Tous" ? 1 : 0);
+    (filters.country !== "tous" ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-background-light dark:bg-background-dark">
-      {/* ---- Header ---- */}
+    <div className="min-h-screen bg-white dark:bg-slate-900">
+      {/* ---- Header with search ---- */}
       <div className="border-b border-slate-200 dark:border-border-dark bg-white dark:bg-neutral-dark">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4">
             {t("title")}
           </h1>
-          {/* Search bar */}
           <div className="relative max-w-2xl">
             <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
             <input
               type="text"
               placeholder={t("search_placeholder")}
               value={searchInput}
-              onChange={(e) => updateFilters({ ...filters, search: e.target.value })}
-              className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-border-dark text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-11 pr-10 py-3 rounded-xl bg-slate-50 dark:bg-background-dark border border-slate-200 dark:border-border-dark text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
             />
             {searchInput && (
               <button
-                onClick={() => { setSearchInput(""); updateFilters({ ...filters, search: "" }); }}
+                onClick={() => { setSearchInput(""); setFilters((prev) => ({ ...prev, search: "" })); setPage(1); }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
               >
                 <span className="material-symbols-outlined text-sm">close</span>
@@ -832,200 +865,311 @@ export default function ExplorerPage() {
         </div>
       </div>
 
-      {/* ---- Main content ---- */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex gap-6">
-          {/* ---- Filter Sidebar (Desktop) ---- */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24 bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark p-5 max-h-[calc(100vh-7rem)] overflow-y-auto">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-5 flex items-center gap-2">
-                <span className="material-symbols-outlined text-base">filter_list</span>
-                {t("filters")}
-                {activeFilterCount > 0 && (
-                  <span className="ml-auto bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </h3>
-              <FilterSidebar
-                filters={filters}
-                onChange={updateFilters}
-                onReset={resetFilters}
-              />
-            </div>
-          </aside>
-
-          {/* ---- Results area ---- */}
-          <div className="flex-1 min-w-0">
-            {/* Sort bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-              <div className="flex items-center gap-3">
-                {/* Mobile filter toggle */}
-                <button
-                  onClick={() => setMobileFiltersOpen(true)}
-                  className="lg:hidden flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-200 dark:border-border-dark text-sm font-semibold hover:border-primary transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">filter_list</span>
-                  {t("filters")}
-                  {activeFilterCount > 0 && (
-                    <span className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </button>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  <span className="font-bold text-slate-800 dark:text-white">{loading ? "..." : totalResults}</span> {t("services_found")}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {/* Sort */}
-                <select
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value)}
-                  className="bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-                >
-                  {SORT_VALUES.map((val) => (
-                    <option key={val} value={val}>{t(`sort.${val}`)}</option>
-                  ))}
-                </select>
-
-                {/* View toggle */}
-                <div className="hidden sm:flex items-center border border-slate-200 dark:border-border-dark rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setView("grid")}
-                    className={cn(
-                      "p-2 transition-colors",
-                      view === "grid" ? "bg-primary text-white" : "text-slate-500 hover:text-primary"
-                    )}
-                  >
-                    <span className="material-symbols-outlined text-sm">grid_view</span>
-                  </button>
-                  <button
-                    onClick={() => setView("list")}
-                    className={cn(
-                      "p-2 transition-colors",
-                      view === "list" ? "bg-primary text-white" : "text-slate-500 hover:text-primary"
-                    )}
-                  >
-                    <span className="material-symbols-outlined text-sm">view_list</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Service grid / list */}
-            {loading ? (
-              <div
+      {/* ---- Categories: horizontal scrollable pills ---- */}
+      <div className="border-b border-slate-200 dark:border-border-dark bg-white dark:bg-neutral-dark">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-2 overflow-x-auto py-4 scrollbar-hide -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+            {/* "All" pill */}
+            <button
+              onClick={() => setFilters((prev) => ({ ...prev, category: "" }))}
+              className={cn(
+                "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0",
+                filters.category === ""
+                  ? "bg-primary text-white shadow-md shadow-primary/25"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+              )}
+            >
+              <span className="material-symbols-outlined text-base">apps</span>
+              {t("all_categories")}
+            </button>
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.slug}
+                onClick={() => handleCategoryChange(cat.slug)}
                 className={cn(
-                  view === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5"
-                    : "flex flex-col gap-4"
+                  "flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0",
+                  filters.category === cat.slug
+                    ? "bg-primary text-white shadow-md shadow-primary/25"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                 )}
               >
-                {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
-                  <ServiceCardSkeleton key={`skeleton-${i}`} view={view} />
-                ))}
-              </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
-                  <span className="material-symbols-outlined text-3xl text-red-400">error</span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t("error_title")}</h3>
-                <p className="text-sm text-slate-500 max-w-md mb-5">{t("error_description")}</p>
-                <button
-                  onClick={() => fetchServices(filters, sort, page)}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">refresh</span>
-                  {t("retry")}
-                </button>
-              </div>
-            ) : services.length > 0 ? (
-              <div
-                className={cn(
-                  view === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5"
-                    : "flex flex-col gap-4"
-                )}
-              >
-                {services.map((service) => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    view={view}
-                    format={format}
-                    onToggleFavorite={toggleFavorite}
-                    t={t}
-                  />
-                ))}
-              </div>
-            ) : (
-              /* Empty state */
-              <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-border-dark flex items-center justify-center mb-4">
-                  <span className="material-symbols-outlined text-3xl text-slate-400">search_off</span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t("empty_title")}</h3>
-                <p className="text-sm text-slate-500 max-w-md mb-5">
-                  {t("empty_description")}
-                </p>
-                <button
-                  onClick={resetFilters}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">restart_alt</span>
-                  {t("reset_filters")}
-                </button>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {!loading && <Pagination current={page} total={totalPages} onChange={setPage} />}
+                <span className="material-symbols-outlined text-base">{cat.icon}</span>
+                {t(`cat.${cat.slug}`)}
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* ---- Mobile Filter Drawer ---- */}
-      {mobileFiltersOpen && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
-            onClick={() => setMobileFiltersOpen(false)}
-          />
-          {/* Drawer */}
-          <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-white dark:bg-neutral-dark border-r border-slate-200 dark:border-border-dark shadow-2xl lg:hidden animate-slide-in overflow-y-auto">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-border-dark">
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-base">filter_list</span>
-                {t("filters")}
-              </h3>
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-border-dark transition-colors"
+      {/* ---- Main content ---- */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* ---- Filters row (desktop) + mobile filter button ---- */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-2">
+            {/* Mobile: "Filtres" button */}
+            <button
+              onClick={() => setMobileFiltersOpen(true)}
+              className="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-border-dark text-sm font-semibold hover:border-primary transition-colors"
+            >
+              <span className="material-symbols-outlined text-base">tune</span>
+              {t("filters")}
+              {activeFilterCount > 0 && (
+                <span className="bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+
+            {/* Desktop: inline filter dropdowns */}
+            <div className="hidden md:flex items-center gap-2">
+              {/* Price filter */}
+              <FilterDropdown
+                label={t("filter_price_range")}
+                icon="payments"
+                isActive={filters.priceMin !== "" || filters.priceMax !== ""}
               >
-                <span className="material-symbols-outlined text-lg">close</span>
+                <div className="flex items-center gap-2 min-w-[240px]">
+                  <input
+                    type="number"
+                    placeholder={t("filter_min")}
+                    value={filters.priceMin}
+                    onChange={(e) => updateFilter("priceMin", e.target.value)}
+                    className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                  <span className="text-slate-400 text-xs flex-shrink-0">-</span>
+                  <input
+                    type="number"
+                    placeholder={t("filter_max")}
+                    value={filters.priceMax}
+                    onChange={(e) => updateFilter("priceMax", e.target.value)}
+                    className="w-full bg-white dark:bg-background-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                  />
+                </div>
+              </FilterDropdown>
+
+              {/* Delivery filter */}
+              <FilterDropdown
+                label={t("filter_delivery")}
+                icon="schedule"
+                isActive={filters.delivery !== "all"}
+              >
+                <div className="flex flex-col gap-1 min-w-[180px]">
+                  {DELIVERY_VALUES.map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => updateFilter("delivery", val)}
+                      className={cn(
+                        "text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                        filters.delivery === val
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      )}
+                    >
+                      {t(`delivery.${val}`)}
+                    </button>
+                  ))}
+                </div>
+              </FilterDropdown>
+
+              {/* Rating filter */}
+              <FilterDropdown
+                label={t("filter_min_rating")}
+                icon="star"
+                isActive={filters.minRating > 0}
+              >
+                <div className="flex flex-col gap-1 min-w-[180px]">
+                  <button
+                    onClick={() => updateFilter("minRating", 0)}
+                    className={cn(
+                      "text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                      filters.minRating === 0
+                        ? "bg-primary/10 text-primary font-semibold"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    )}
+                  >
+                    {t("filter_all_ratings")}
+                  </button>
+                  {RATING_OPTIONS.map((val) => (
+                    <button
+                      key={val}
+                      onClick={() => updateFilter("minRating", val)}
+                      className={cn(
+                        "flex items-center gap-1.5 text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                        filters.minRating === val
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      )}
+                    >
+                      <span className="flex items-center gap-0.5">
+                        {Array.from({ length: val }).map((_, i) => (
+                          <span key={i} className="material-symbols-outlined text-sm text-accent" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                        ))}
+                      </span>
+                      {t("filter_and_more")}
+                    </button>
+                  ))}
+                </div>
+              </FilterDropdown>
+
+              {/* Country filter */}
+              <FilterDropdown
+                label={t("filter_country")}
+                icon="public"
+                isActive={filters.country !== "tous"}
+              >
+                <div className="flex flex-col gap-1 min-w-[180px] max-h-[280px] overflow-y-auto">
+                  {COUNTRY_KEYS.map((key) => (
+                    <button
+                      key={key}
+                      onClick={() => updateFilter("country", key)}
+                      className={cn(
+                        "text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                        filters.country === key
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      )}
+                    >
+                      {t(`country.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              </FilterDropdown>
+
+              {/* Reset button (visible when filters are active) */}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={resetFilters}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">restart_alt</span>
+                  {t("reset_filters")}
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Results count */}
+            <p className="text-sm text-slate-500 dark:text-slate-400 mr-2">
+              <span className="font-bold text-slate-800 dark:text-white">{loading ? "..." : totalResults}</span> {t("services_found")}
+            </p>
+
+            {/* Sort dropdown (desktop) */}
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="hidden md:block bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+            >
+              {SORT_VALUES.map((val) => (
+                <option key={val} value={val}>{t(`sort.${val}`)}</option>
+              ))}
+            </select>
+
+            {/* View toggle */}
+            <div className="hidden sm:flex items-center border border-slate-200 dark:border-border-dark rounded-lg overflow-hidden">
+              <button
+                onClick={() => setView("grid")}
+                className={cn(
+                  "p-2 transition-colors",
+                  view === "grid" ? "bg-primary text-white" : "text-slate-500 hover:text-primary"
+                )}
+              >
+                <span className="material-symbols-outlined text-sm">grid_view</span>
               </button>
-            </div>
-            <div className="p-5">
-              <FilterSidebar
-                filters={filters}
-                onChange={updateFilters}
-                onReset={resetFilters}
-              />
-            </div>
-            <div className="sticky bottom-0 p-5 bg-white dark:bg-neutral-dark border-t border-slate-200 dark:border-border-dark">
               <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
+                onClick={() => setView("list")}
+                className={cn(
+                  "p-2 transition-colors",
+                  view === "list" ? "bg-primary text-white" : "text-slate-500 hover:text-primary"
+                )}
               >
-                {t("see_results", { count: totalResults })}
+                <span className="material-symbols-outlined text-sm">view_list</span>
               </button>
             </div>
           </div>
-        </>
+        </div>
+
+        {/* ---- Service grid / list ---- */}
+        {loading ? (
+          <div
+            className={cn(
+              view === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
+                : "flex flex-col gap-4"
+            )}
+          >
+            {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+              <ServiceCardSkeleton key={`skeleton-${i}`} view={view} />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-3xl text-red-400">error</span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t("error_title")}</h3>
+            <p className="text-sm text-slate-500 max-w-md mb-5">{t("error_description")}</p>
+            <button
+              onClick={() => fetchServices(filters, sort, page)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">refresh</span>
+              {t("retry")}
+            </button>
+          </div>
+        ) : services.length > 0 ? (
+          <div
+            className={cn(
+              view === "grid"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
+                : "flex flex-col gap-4"
+            )}
+          >
+            {services.map((service) => (
+              <ServiceCard
+                key={service.id}
+                service={service}
+                view={view}
+                format={format}
+                onToggleFavorite={toggleFavorite}
+                t={t}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-border-dark flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-3xl text-slate-400">search_off</span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t("empty_title")}</h3>
+            <p className="text-sm text-slate-500 max-w-md mb-5">
+              {t("empty_description")}
+            </p>
+            <button
+              onClick={resetFilters}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">restart_alt</span>
+              {t("reset_filters")}
+            </button>
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && <Pagination current={page} total={totalPages} onChange={setPage} />}
+      </div>
+
+      {/* ---- Mobile Filter Bottom Sheet ---- */}
+      {mobileFiltersOpen && (
+        <MobileFiltersSheet
+          filters={filters}
+          sort={sort}
+          onChangeFilters={(f) => { setFilters(f); setPage(1); }}
+          onChangeSort={setSort}
+          onClose={() => setMobileFiltersOpen(false)}
+          totalResults={totalResults}
+          t={t}
+        />
       )}
     </div>
   );

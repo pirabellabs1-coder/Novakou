@@ -56,6 +56,7 @@ interface DashboardState {
   // Notifications (from API)
   apiNotifications: ApiNotification[];
   unreadCount: number;
+  unreadMessages: number;
   refreshNotifications: () => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
@@ -180,16 +181,16 @@ export const useDashboardStore = create<DashboardState>()(
           };
 
           if (servicesRes.status === "fulfilled") {
-            updates.services = servicesRes.value.map(mapApiServiceToLocal);
+            updates.services = (servicesRes.value ?? []).map(mapApiServiceToLocal);
           }
           if (ordersRes.status === "fulfilled") {
-            updates.orders = ordersRes.value.orders.map(mapApiOrderToLocal);
+            updates.orders = (ordersRes.value?.orders ?? []).map(mapApiOrderToLocal);
           }
           if (transactionsRes.status === "fulfilled") {
-            updates.transactions = transactionsRes.value.transactions.map(mapApiTransactionToLocal);
+            updates.transactions = (transactionsRes.value?.transactions ?? []).map(mapApiTransactionToLocal);
           }
           if (conversationsRes.status === "fulfilled") {
-            updates.conversations = conversationsRes.value.conversations.map(mapApiConversationToLocal);
+            updates.conversations = (conversationsRes.value?.conversations ?? []).map(mapApiConversationToLocal);
           }
           if (profileRes.status === "fulfilled") {
             const p = profileRes.value;
@@ -220,15 +221,15 @@ export const useDashboardStore = create<DashboardState>()(
             }
           }
           if (notificationsRes.status === "fulfilled") {
-            updates.apiNotifications = notificationsRes.value.notifications as ApiNotification[];
-            updates.unreadCount = notificationsRes.value.unreadCount;
+            updates.apiNotifications = (notificationsRes.value?.notifications ?? []) as ApiNotification[];
+            updates.unreadCount = notificationsRes.value?.unreadCount ?? 0;
           }
           if (statsRes.status === "fulfilled") {
             updates.stats = statsRes.value;
           }
           if (reviewsRes.status === "fulfilled") {
-            updates.reviews = reviewsRes.value.reviews;
-            updates.reviewSummary = reviewsRes.value.summary;
+            updates.reviews = reviewsRes.value?.reviews ?? [];
+            updates.reviewSummary = reviewsRes.value?.summary ?? null;
           }
 
           set(updates);
@@ -241,10 +242,19 @@ export const useDashboardStore = create<DashboardState>()(
       // Notifications (API)
       apiNotifications: [],
       unreadCount: 0,
+      unreadMessages: 0,
       refreshNotifications: async () => {
         try {
           const data = await notificationsApi.list();
-          set({ apiNotifications: data.notifications as ApiNotification[], unreadCount: data.unreadCount });
+          const notifications = (data?.notifications ?? []) as ApiNotification[];
+          const messageNotifs = notifications.filter(
+            (n) => n.type === "message" && !n.read
+          ).length;
+          set({
+            apiNotifications: notifications,
+            unreadCount: data?.unreadCount ?? 0,
+            unreadMessages: messageNotifs,
+          });
         } catch (err) {
           console.error("[Notifications] Error:", err);
         }
@@ -612,7 +622,7 @@ export const useDashboardStore = create<DashboardState>()(
       syncReviews: async () => {
         try {
           const data = await reviewsApi.getByFreelance();
-          set({ reviews: data.reviews, reviewSummary: data.summary });
+          set({ reviews: data?.reviews ?? [], reviewSummary: data?.summary ?? null });
         } catch (err) {
           console.error("[Reviews sync] Error:", err);
         }

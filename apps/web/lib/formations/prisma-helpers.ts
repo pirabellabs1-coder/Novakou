@@ -1,9 +1,9 @@
 // FreelanceHigh — Prisma helpers for formations
 import prisma from "@freelancehigh/db";
 import type { FormationsFilters, FormationsSort } from "@freelancehigh/types";
+import { INSTRUCTOR_COMMISSION, PLATFORM_COMMISSION } from "@/lib/formations/config";
 
-export const INSTRUCTOR_COMMISSION = 0.70; // 70% pour l'instructeur
-export const PLATFORM_COMMISSION = 0.30;  // 30% pour la plateforme
+export { INSTRUCTOR_COMMISSION, PLATFORM_COMMISSION };
 
 // Include pour les cards de formation
 export const formationCardInclude = {

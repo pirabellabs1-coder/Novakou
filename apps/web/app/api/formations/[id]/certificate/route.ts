@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { generateCertificatePDF } from "@/lib/formations/certificate-generator";
+import { getSignedUrl } from "@/lib/supabase-storage";
 
 export async function GET(
   req: NextRequest,
@@ -43,7 +44,15 @@ export async function GET(
       return NextResponse.json({ error: "Certificat révoqué ou introuvable" }, { status: 404 });
     }
 
-    // If we have a stored PDF (base64), decode and return it
+    // If stored in Supabase Storage, redirect to signed URL
+    if (cert.pdfStoragePath) {
+      const signedUrl = await getSignedUrl("certificates", cert.pdfStoragePath, 3600);
+      if (signedUrl) {
+        return NextResponse.redirect(signedUrl);
+      }
+    }
+
+    // Legacy: if stored as base64, decode and return it
     if (cert.pdfUrl?.startsWith("data:application/pdf;base64,")) {
       const base64 = cert.pdfUrl.replace("data:application/pdf;base64,", "");
       const buffer = Buffer.from(base64, "base64");

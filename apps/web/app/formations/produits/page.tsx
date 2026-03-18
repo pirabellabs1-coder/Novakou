@@ -133,7 +133,7 @@ export default function ProduitsMarketplacePage() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder={t("search_placeholder")}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none"
           />
           {search && (
             <button onClick={() => { setSearch(""); setPage(1); }} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -143,7 +143,7 @@ export default function ProduitsMarketplacePage() {
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-800 text-sm font-medium transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
           {t("filters")}
@@ -151,7 +151,7 @@ export default function ProduitsMarketplacePage() {
         <select
           value={sort}
           onChange={(e) => { setSort(e.target.value); setPage(1); }}
-          className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
+          className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-sm"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -161,12 +161,12 @@ export default function ProduitsMarketplacePage() {
 
       {/* Filters panel */}
       {showFilters && (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6">
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-6">
           <h3 className="text-sm font-semibold mb-3">{t("type_filter")}</h3>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => { setType(""); setPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${!type ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${!type ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}
             >
               {t("all_types")}
             </button>
@@ -174,7 +174,7 @@ export default function ProduitsMarketplacePage() {
               <button
                 key={pt.value}
                 onClick={() => { setType(type === pt.value ? "" : pt.value); setPage(1); }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${type === pt.value ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${type === pt.value ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}
               >
                 <span className="material-symbols-outlined text-sm">{pt.icon}</span>
                 {pt.label}
@@ -193,7 +193,7 @@ export default function ProduitsMarketplacePage() {
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-pulse">
+            <div key={i} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-pulse">
               <div className="h-48 bg-slate-200 dark:bg-slate-700" />
               <div className="p-4 space-y-3">
                 <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
@@ -222,7 +222,7 @@ export default function ProduitsMarketplacePage() {
               <Link
                 key={product.id}
                 href={`/formations/produits/${product.slug}`}
-                className="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all"
+                className="group bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all"
               >
                 {/* Banner */}
                 <div className="relative h-48 bg-gradient-to-br from-primary/10 to-blue-500/10">
@@ -335,7 +335,7 @@ export default function ProduitsMarketplacePage() {
               className={`w-10 h-10 rounded-xl text-sm font-semibold transition-colors ${
                 p === page
                   ? "bg-primary text-white"
-                  : "bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  : "bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700"
               }`}
             >
               {p}

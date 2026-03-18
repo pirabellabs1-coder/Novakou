@@ -1,15 +1,11 @@
-// POST /api/formations/checkout — Créer une session Stripe Checkout
+// POST /api/formations/checkout — Créer une session de paiement (Stripe ou mock)
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
-import Stripe from "stripe";
 import { z } from "zod";
-
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" });
-}
+import { PaymentService } from "@/lib/payments/service";
 
 const checkoutSchema = z.object({
   promoCode: z.string().optional(),
@@ -36,6 +32,7 @@ export async function POST(req: NextRequest) {
             titleFr: true,
             titleEn: true,
             price: true,
+            isFree: true,
             thumbnail: true,
             status: true,
           },
@@ -52,6 +49,7 @@ export async function POST(req: NextRequest) {
     // Calculer la réduction promo
     let discountPct = 0;
     let promoId: string | undefined;
+    let promoTargetedFormationIds: string[] = [];
 
     if (promoCode) {
       const promo = await prisma.promoCode.findFirst({
@@ -63,12 +61,21 @@ export async function POST(req: NextRequest) {
       });
 
       if (promo) {
-        discountPct = promo.discountPct;
-        promoId = promo.id;
+        const isExhausted = promo.maxUsage != null && promo.usageCount >= promo.maxUsage;
+        const cartFormationIds = activeItems.map((i) => i.formationId);
+        const isScopedAndInvalid =
+          promo.formationIds.length > 0 &&
+          !cartFormationIds.some((fid) => promo.formationIds.includes(fid));
+
+        if (!isExhausted && !isScopedAndInvalid) {
+          discountPct = promo.discountPct;
+          promoId = promo.id;
+          promoTargetedFormationIds = promo.formationIds;
+        }
       }
     }
 
-    // Check for active flash promotions on each formation
+    // Check for active flash promotions
     const now = new Date();
     const flashPromos = await prisma.flashPromotion.findMany({
       where: {
@@ -82,47 +89,151 @@ export async function POST(req: NextRequest) {
       flashPromos.filter((p) => !p.maxUsage || p.usageCount < p.maxUsage).map((p) => [p.formationId, p])
     );
 
+    // Calculate total amount
+    let totalAmount = 0;
+    for (const item of activeItems) {
+      const promoApplies =
+        promoTargetedFormationIds.length === 0 ||
+        promoTargetedFormationIds.includes(item.formationId);
+      const itemPromoPct = promoApplies ? discountPct : 0;
+      const flashPromo = flashPromoByFormation.get(item.formationId);
+      const effectiveDiscount = flashPromo
+        ? Math.max(flashPromo.discountPct, itemPromoPct)
+        : itemPromoPct;
+
+      const price = item.formation.isFree ? 0 : item.formation.price;
+      totalAmount += Math.max(0, price * (1 - effectiveDiscount / 100));
+    }
+
     const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3450";
+    const formationIds = activeItems.map((i) => i.formationId);
 
-    // Créer la session Stripe Checkout
-    const stripe = getStripe();
-    const stripeSession = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
-      locale: locale === "fr" ? "fr" : "en",
-      line_items: activeItems.map((item) => {
-        // Use flash promo if it gives a better discount than promo code
-        const flashPromo = flashPromoByFormation.get(item.formationId);
-        const effectiveDiscount = flashPromo
-          ? Math.max(flashPromo.discountPct, discountPct)
-          : discountPct;
+    // All free items → skip payment, create enrollments directly
+    if (totalAmount === 0) {
+      const mockSessionId = `mock_free_${Date.now()}`;
 
-        return {
-          price_data: {
-            currency: "eur",
-            product_data: {
-              name: locale === "fr" ? item.formation.titleFr : item.formation.titleEn,
-              images: item.formation.thumbnail ? [item.formation.thumbnail] : [],
-              metadata: { formationId: item.formation.id },
+      // Create enrollments for free formations
+      for (const item of activeItems) {
+        const existing = await prisma.enrollment.findUnique({
+          where: { userId_formationId: { userId: session.user.id, formationId: item.formationId } },
+        });
+        if (!existing) {
+          await prisma.enrollment.create({
+            data: {
+              userId: session.user.id,
+              formationId: item.formationId,
+              paidAmount: 0,
+              stripeSessionId: mockSessionId,
             },
-            unit_amount: Math.round(item.formation.price * (1 - effectiveDiscount / 100) * 100),
-          },
-          quantity: 1,
-        };
-      }),
-      customer_email: session.user.email,
+          });
+          await prisma.formation.update({
+            where: { id: item.formationId },
+            data: { studentsCount: { increment: 1 } },
+          });
+        }
+      }
+
+      // Clear cart
+      await prisma.cartItem.deleteMany({ where: { userId: session.user.id } });
+
+      // Increment promo usage if applicable
+      if (promoId) {
+        await prisma.promoCode.update({
+          where: { id: promoId },
+          data: { usageCount: { increment: 1 } },
+        });
+      }
+
+      return NextResponse.json({
+        url: `${baseUrl}/formations/succes?session_id=${mockSessionId}`,
+        sessionId: mockSessionId,
+        mock: true,
+      });
+    }
+
+    // Use PaymentService for paid checkout
+    const description = activeItems.length === 1
+      ? (locale === "fr" ? activeItems[0].formation.titleFr : activeItems[0].formation.titleEn)
+      : `${activeItems.length} formations`;
+
+    const payment = await PaymentService.createPayment({
+      userId: session.user.id,
+      amount: Math.round(totalAmount * 100) / 100,
+      currency: "EUR",
+      description,
+      type: "formation",
       metadata: {
         type: "formation",
         userId: session.user.id,
-        formationIds: JSON.stringify(activeItems.map((i) => i.formationId)),
+        formationIds: JSON.stringify(formationIds),
         promoId: promoId ?? "",
         flashPromoIds: JSON.stringify(flashPromos.map((p) => p.id)),
       },
-      success_url: `${baseUrl}/formations/succes?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/formations/panier?cancelled=true`,
+      successUrl: `${baseUrl}/formations/succes?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${baseUrl}/formations/panier?cancelled=true`,
     });
 
-    return NextResponse.json({ url: stripeSession.url, sessionId: stripeSession.id });
+    // If mock payment (instant success), create enrollments immediately
+    if (payment.provider === "mock" && payment.status === "paid") {
+      for (const item of activeItems) {
+        const promoApplies =
+          promoTargetedFormationIds.length === 0 ||
+          promoTargetedFormationIds.includes(item.formationId);
+        const itemPromoPct = promoApplies ? discountPct : 0;
+        const flashPromo = flashPromoByFormation.get(item.formationId);
+        const effectiveDiscount = flashPromo
+          ? Math.max(flashPromo.discountPct, itemPromoPct)
+          : itemPromoPct;
+        const finalPrice = Math.max(0, item.formation.price * (1 - effectiveDiscount / 100));
+
+        const existing = await prisma.enrollment.findUnique({
+          where: { userId_formationId: { userId: session.user.id, formationId: item.formationId } },
+        });
+        if (!existing) {
+          await prisma.enrollment.create({
+            data: {
+              userId: session.user.id,
+              formationId: item.formationId,
+              paidAmount: Math.round(finalPrice * 100) / 100,
+              stripeSessionId: payment.sessionId,
+            },
+          });
+          await prisma.formation.update({
+            where: { id: item.formationId },
+            data: { studentsCount: { increment: 1 } },
+          });
+        }
+      }
+
+      // Clear cart
+      await prisma.cartItem.deleteMany({ where: { userId: session.user.id } });
+
+      // Increment promo/flash usage
+      if (promoId) {
+        await prisma.promoCode.update({
+          where: { id: promoId },
+          data: { usageCount: { increment: 1 } },
+        });
+      }
+      for (const fp of flashPromos) {
+        await prisma.flashPromotion.update({
+          where: { id: fp.id },
+          data: { usageCount: { increment: 1 } },
+        }).catch(() => {});
+      }
+
+      return NextResponse.json({
+        url: `${baseUrl}/formations/succes?session_id=${payment.sessionId}`,
+        sessionId: payment.sessionId,
+        mock: true,
+      });
+    }
+
+    // Real Stripe checkout → redirect to Stripe
+    return NextResponse.json({
+      url: payment.checkoutUrl,
+      sessionId: payment.sessionId,
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Données invalides", details: error.issues }, { status: 400 });

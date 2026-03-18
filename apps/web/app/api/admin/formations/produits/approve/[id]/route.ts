@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { logAuditAction, getRequestIp } from "@/lib/formations/audit";
 
 export async function POST(
   req: NextRequest,
@@ -12,7 +13,7 @@ export async function POST(
   try {
     const { id } = await params;
     const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as { role?: string }).role !== "ADMIN") {
+    if (!session?.user || session.user.role !== "admin") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -24,6 +25,18 @@ export async function POST(
     const updated = await prisma.digitalProduct.update({
       where: { id },
       data: { status: "ACTIF" },
+    });
+
+    await logAuditAction({
+      userId: session.user.id,
+      action: "product_approved",
+      targetType: "digitalProduct",
+      targetId: id,
+      metadata: {
+        productTitle: product.titleFr,
+        previousStatus: product.status,
+      },
+      ipAddress: getRequestIp(req),
     });
 
     return NextResponse.json({ product: updated });

@@ -41,9 +41,11 @@ export default function PanierPage() {
 
   const [cart, setCart] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [promoCode, setPromoCode] = useState("");
   const [promoError, setPromoError] = useState("");
   const [promoApplied, setPromoApplied] = useState<string | null>(null);
+  const [applyingPromo, setApplyingPromo] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
@@ -53,40 +55,59 @@ export default function PanierPage() {
   }, [status, router]);
 
   const fetchCart = async () => {
-    const res = await fetch("/api/formations/cart");
-    const data = await res.json();
-    setCart(data);
-    setLoading(false);
+    try {
+      setError(null);
+      const res = await fetch("/api/formations/cart");
+      if (!res.ok) throw new Error("Failed to fetch cart");
+      const data = await res.json();
+      setCart(data);
+    } catch {
+      setError(fr ? "Impossible de charger le panier" : "Failed to load cart");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const removeItem = async (formationId: string) => {
-    await fetch(`/api/formations/cart?formationId=${formationId}`, { method: "DELETE" });
-    fetchCart();
+    try {
+      await fetch(`/api/formations/cart?formationId=${formationId}`, { method: "DELETE" });
+      fetchCart();
+    } catch {
+      // Silently fail, user can retry
+    }
   };
 
   const applyPromo = async () => {
+    if (!promoCode.trim() || applyingPromo) return;
     setPromoError("");
-    const res = await fetch("/api/formations/promo/validate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: promoCode }),
-    });
-    const data = await res.json();
-    if (!data.valid) {
-      setPromoError(data.error || (fr ? "Code invalide" : "Invalid code"));
-    } else {
-      setPromoApplied(data.code);
-      setCart((prev) =>
-        prev
-          ? {
-              ...prev,
-              discount: prev.subtotal - (data.discountedPrice ?? prev.subtotal),
-              total: data.discountedPrice ?? prev.total,
-              promoCode: data.code,
-            }
-          : prev
-      );
-      setPromoCode("");
+    setApplyingPromo(true);
+    try {
+      const res = await fetch("/api/formations/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode }),
+      });
+      const data = await res.json();
+      if (!data.valid) {
+        setPromoError(data.error || (fr ? "Code invalide" : "Invalid code"));
+      } else {
+        setPromoApplied(data.code);
+        setCart((prev) =>
+          prev
+            ? {
+                ...prev,
+                discount: prev.subtotal - (data.discountedPrice ?? prev.subtotal),
+                total: data.discountedPrice ?? prev.total,
+                promoCode: data.code,
+              }
+            : prev
+        );
+        setPromoCode("");
+      }
+    } catch {
+      setPromoError(fr ? "Erreur de validation" : "Validation error");
+    } finally {
+      setApplyingPromo(false);
     }
   };
 
@@ -120,10 +141,22 @@ export default function PanierPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-100 rounded w-1/3" />
-          <div className="h-32 bg-slate-100 rounded-xl" />
-          <div className="h-32 bg-slate-100 rounded-xl" />
+          <div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+          <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl" />
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="text-4xl mb-4">⚠️</div>
+        <p className="text-slate-700 dark:text-slate-300 font-medium mb-2">{error}</p>
+        <button onClick={() => { setLoading(true); fetchCart(); }} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm">
+          {fr ? "Réessayer" : "Retry"}
+        </button>
       </div>
     );
   }
@@ -132,7 +165,7 @@ export default function PanierPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
         <ShoppingCart className="w-6 h-6" />
         {fr ? "Mon panier" : "My Cart"}
         {items.length > 0 && <span className="text-slate-400 font-normal text-base">({items.length})</span>}
@@ -154,9 +187,9 @@ export default function PanierPage() {
               const title = fr ? item.formation.titleFr : (item.formation.titleEn || item.formation.titleFr);
               const h = Math.floor(item.formation.duration / 60);
               return (
-                <div key={item.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex gap-4">
+                <div key={item.id} className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex gap-4">
                   {/* Thumbnail */}
-                  <div className="w-32 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden">
+                  <div className="w-32 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 dark:from-primary/20 dark:to-blue-900/20 overflow-hidden">
                     {item.formation.thumbnail ? (
                       <img src={item.formation.thumbnail} alt={title} className="w-full h-full object-cover" />
                     ) : (
@@ -166,7 +199,7 @@ export default function PanierPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <Link href={`/formations/${item.formation.slug}`} className="font-semibold text-slate-900 text-sm hover:text-primary line-clamp-2">
+                    <Link href={`/formations/${item.formation.slug}`} className="font-semibold text-slate-900 dark:text-white text-sm hover:text-primary line-clamp-2">
                       {title}
                     </Link>
                     <p className="text-xs text-slate-500 mt-0.5">{item.formation.instructeur.user.name}</p>
@@ -194,7 +227,7 @@ export default function PanierPage() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                     <div className="text-right">
-                      <p className={`font-bold ${item.formation.isFree ? "text-green-600" : "text-slate-900"}`}>
+                      <p className={`font-bold ${item.formation.isFree ? "text-green-600" : "text-slate-900 dark:text-white"}`}>
                         {item.formation.isFree ? (fr ? "Gratuit" : "Free") : `${item.formation.price.toFixed(0)}€`}
                       </p>
                       {item.formation.originalPrice && item.formation.originalPrice > item.formation.price && (
@@ -209,8 +242,8 @@ export default function PanierPage() {
 
           {/* Summary */}
           <div className="lg:w-80 flex-shrink-0">
-            <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 sticky top-8">
-              <h2 className="font-bold text-slate-900 dark:text-slate-100 mb-4">{fr ? "Récapitulatif" : "Summary"}</h2>
+            <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 sticky top-8">
+              <h2 className="font-bold text-slate-900 dark:text-white dark:text-slate-100 mb-4">{fr ? "Récapitulatif" : "Summary"}</h2>
 
               {/* Promo code */}
               <div className="mb-4">
@@ -226,7 +259,7 @@ export default function PanierPage() {
                   </div>
                 ) : (
                   <div>
-                    <label className="text-xs font-medium text-slate-700 mb-1.5 block">
+                    <label className="text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5 block">
                       {fr ? "Code promo" : "Promo code"}
                     </label>
                     <div className="flex gap-2">
@@ -235,13 +268,14 @@ export default function PanierPage() {
                         value={promoCode}
                         onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                         placeholder="CODE"
-                        className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        className="flex-1 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
                       />
                       <button
                         onClick={applyPromo}
-                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
+                        disabled={applyingPromo || !promoCode.trim()}
+                        className="bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 text-xs font-medium px-3 py-2 rounded-lg transition-colors disabled:opacity-50"
                       >
-                        {fr ? "Appliquer" : "Apply"}
+                        {applyingPromo ? "..." : (fr ? "Appliquer" : "Apply")}
                       </button>
                     </div>
                     {promoError && <p className="text-red-500 text-xs mt-1">{promoError}</p>}
@@ -251,7 +285,7 @@ export default function PanierPage() {
 
               {/* Totals */}
               <div className="space-y-2 mb-4 text-sm">
-                <div className="flex justify-between text-slate-600">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
                   <span>{fr ? "Sous-total" : "Subtotal"}</span>
                   <span>{(cart?.subtotal ?? 0).toFixed(2)}€</span>
                 </div>
@@ -261,7 +295,7 @@ export default function PanierPage() {
                     <span>-{cart!.discount.toFixed(2)}€</span>
                   </div>
                 )}
-                <div className="flex justify-between font-bold text-slate-900 text-base pt-2 border-t">
+                <div className="flex justify-between font-bold text-slate-900 dark:text-white text-base pt-2 border-t border-slate-200 dark:border-slate-700">
                   <span>Total</span>
                   <span>{(cart?.total ?? 0).toFixed(2)}€</span>
                 </div>
@@ -272,7 +306,12 @@ export default function PanierPage() {
                 disabled={checkingOut}
                 className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {checkingOut ? "..." : (fr ? "Passer la commande" : "Checkout")}
+                {checkingOut ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    {fr ? "Redirection..." : "Redirecting..."}
+                  </span>
+                ) : (fr ? "Passer la commande" : "Checkout")}
                 <ArrowRight className="w-4 h-4" />
               </button>
 

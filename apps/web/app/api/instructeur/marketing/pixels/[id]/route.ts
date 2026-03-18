@@ -12,6 +12,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
@@ -55,6 +56,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });

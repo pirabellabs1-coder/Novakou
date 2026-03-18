@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { useInstructorFormations, instructorKeys } from "@/lib/formations/hooks";
 import {
   Plus, Eye, Edit, BarChart2, Trash2, Copy, Archive,
   Star, Users, DollarSign, Clock, ChevronRight,
@@ -28,7 +30,7 @@ interface InstructorFormation {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  BROUILLON: "bg-slate-100 text-slate-600",
+  BROUILLON: "bg-slate-100 dark:bg-slate-800 text-slate-600",
   EN_ATTENTE: "bg-yellow-100 text-yellow-700",
   ACTIF: "bg-green-100 text-green-700",
   ARCHIVE: "bg-red-100 text-red-700",
@@ -54,45 +56,68 @@ export default function InstructeurMesFormationsPage() {
   const router = useRouter();
   const fr = locale === "fr";
 
-  const [formations, setFormations] = useState<InstructorFormation[]>([]);
-  const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (status === "unauthenticated") { router.replace("/formations/connexion"); return; }
-    if (status !== "authenticated") return;
-    fetchFormations();
-  }, [status, router]);
+  const queryClient = useQueryClient();
+  const { data: formationsData, isLoading: loading, isError: fetchError, refetch: refetchFormations } = useInstructorFormations();
+  const formations: InstructorFormation[] = Array.isArray(formationsData)
+    ? (formationsData as InstructorFormation[])
+    : ((formationsData as { formations?: InstructorFormation[] })?.formations ?? []);
 
-  const fetchFormations = async () => {
-    const res = await fetch("/api/instructeur/formations");
-    const data = await res.json();
-    setFormations(data.formations ?? []);
-    setLoading(false);
-  };
+  useEffect(() => {
+    if (status === "loading") return;
+    if (status === "unauthenticated") { router.replace("/formations/connexion"); return; }
+  }, [status, router]);
 
   const deleteFormation = async (id: string) => {
     if (!confirm(fr ? "Supprimer cette formation ?" : "Delete this course?")) return;
     setDeleting(id);
-    await fetch(`/api/formations/${id}`, { method: "DELETE" });
-    fetchFormations();
+    try {
+      const res = await fetch(`/api/instructeur/formations/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || (fr ? "Erreur lors de la suppression" : "Error deleting course"));
+      } else {
+        refetchFormations();
+      }
+    } catch {
+      alert(fr ? "Erreur réseau" : "Network error");
+    }
     setDeleting(null);
   };
 
   const duplicateFormation = async (id: string) => {
-    const res = await fetch(`/api/instructeur/formations/${id}/duplicate`, { method: "POST" });
-    if (res.ok) fetchFormations();
+    try {
+      const res = await fetch(`/api/instructeur/formations/${id}/duplicate`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || (fr ? "Erreur lors de la duplication" : "Error duplicating course"));
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: instructorKeys.formations() });
+    } catch {
+      alert(fr ? "Erreur réseau" : "Network error");
+    }
   };
 
   const archiveFormation = async (id: string, currentStatus: string) => {
     const newStatus = currentStatus === "ARCHIVE" ? "BROUILLON" : "ARCHIVE";
-    await fetch(`/api/formations/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    fetchFormations();
+    try {
+      const res = await fetch(`/api/instructeur/formations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || (fr ? "Erreur lors de l'archivage" : "Error archiving course"));
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: instructorKeys.formations() });
+    } catch {
+      alert(fr ? "Erreur réseau" : "Network error");
+    }
   };
 
   const filtered = formations.filter((f) => !filterStatus || f.status === filterStatus);
@@ -101,7 +126,7 @@ export default function InstructeurMesFormationsPage() {
     <div className="max-w-6xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">{fr ? "Mes formations" : "My Courses"}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{fr ? "Mes formations" : "My Courses"}</h1>
         <Link
           href="/formations/instructeur/creer"
           className="flex items-center gap-2 bg-primary text-white font-medium px-4 py-2.5 rounded-xl hover:bg-primary/90 transition-colors text-sm"
@@ -111,27 +136,6 @@ export default function InstructeurMesFormationsPage() {
         </Link>
       </div>
 
-      {/* Nav */}
-      <div className="flex gap-1 mb-6 bg-white dark:bg-neutral-dark border dark:border-border-dark rounded-xl p-1 w-fit">
-        {([
-          ["dashboard", fr ? "Dashboard" : "Dashboard"],
-          ["mes-formations", fr ? "Mes formations" : "My Courses"],
-          ["apprenants", fr ? "Apprenants" : "Students"],
-          ["revenus", fr ? "Revenus" : "Revenue"],
-          ["statistiques", fr ? "Statistiques" : "Statistics"],
-        ] as [string, string][]).map(([path, label]) => (
-          <Link
-            key={path}
-            href={`/formations/instructeur/${path}`}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              path === "mes-formations" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
-
       {/* Filter */}
       <div className="flex gap-2 mb-4">
         {(["", "ACTIF", "BROUILLON", "EN_ATTENTE", "ARCHIVE"] as const).map((s) => (
@@ -139,7 +143,7 @@ export default function InstructeurMesFormationsPage() {
             key={s}
             onClick={() => setFilterStatus(s)}
             className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-              filterStatus === s ? "bg-primary text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              filterStatus === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
             }`}
           >
             {s === "" ? (fr ? "Toutes" : "All") : (fr ? STATUS_LABELS_FR[s] : STATUS_LABELS_EN[s])}
@@ -151,17 +155,27 @@ export default function InstructeurMesFormationsPage() {
       {loading ? (
         <div className="space-y-3">
           {[1,2,3].map((i) => (
-            <div key={i} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 animate-pulse flex gap-4">
-              <div className="w-28 h-20 bg-slate-100 rounded-lg flex-shrink-0" />
+            <div key={i} className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 animate-pulse flex gap-4">
+              <div className="w-28 h-20 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded-lg flex-shrink-0" />
               <div className="flex-1 space-y-2">
-                <div className="h-4 bg-slate-100 rounded w-2/3" />
-                <div className="h-3 bg-slate-100 rounded w-1/3" />
+                <div className="h-4 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded w-2/3" />
+                <div className="h-3 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded w-1/3" />
               </div>
             </div>
           ))}
         </div>
+      ) : fetchError ? (
+        <div className="text-center py-16 bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-slate-700 dark:text-slate-300 font-medium mb-2">
+            {fr ? "Impossible de charger vos formations" : "Failed to load your courses"}
+          </p>
+          <button onClick={() => refetchFormations()} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm">
+            {fr ? "Réessayer" : "Retry"}
+          </button>
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark">
           <div className="text-5xl mb-4">📚</div>
           <p className="text-slate-500 mb-4">{fr ? "Aucune formation pour l'instant" : "No courses yet"}</p>
           <Link href="/formations/instructeur/creer" className="bg-primary text-white font-medium px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors inline-block">
@@ -173,7 +187,7 @@ export default function InstructeurMesFormationsPage() {
           {filtered.map((f) => {
             const title = fr ? f.titleFr : (f.titleEn || f.titleFr);
             return (
-              <div key={f.id} className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:border-slate-300 transition-colors p-4">
+              <div key={f.id} className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark hover:border-slate-300 transition-colors p-4">
                 <div className="flex gap-4">
                   {/* Thumbnail */}
                   <div className="w-28 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 overflow-hidden">
@@ -187,7 +201,7 @@ export default function InstructeurMesFormationsPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start gap-2 mb-1">
-                      <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 flex-1">{title}</h3>
+                      <h3 className="font-semibold text-slate-900 dark:text-white text-sm line-clamp-2 flex-1">{title}</h3>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${STATUS_COLORS[f.status]}`}>
                         {fr ? STATUS_LABELS_FR[f.status] : STATUS_LABELS_EN[f.status]}
                       </span>

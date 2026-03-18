@@ -142,24 +142,24 @@ export default function AdminPromoCodesPage() {
 
       {/* Form */}
       {showForm && (
-        <div className="bg-white dark:bg-slate-800 border border-primary/30 rounded-xl p-6 space-y-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 border border-primary/30 rounded-xl p-6 space-y-4">
           <h2 className="font-semibold">{editingId ? t("promo_edit") : t("promo_create")}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="text-xs text-slate-500 mb-1 block">{t("promo_code_label")} *</label>
-              <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-1 focus:ring-primary" placeholder="EX: PROMO2026" />
+              <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm font-mono uppercase focus:outline-none focus:ring-1 focus:ring-primary" placeholder="EX: PROMO2026" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">{t("promo_discount_pct")} *</label>
-              <input type="number" min={1} max={100} value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: Number(e.target.value) })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input type="number" min={1} max={100} value={form.discountPct} onChange={(e) => setForm({ ...form, discountPct: Number(e.target.value) })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">{t("promo_max_usage")}</label>
-              <input type="number" min={1} value={form.maxUsage} onChange={(e) => setForm({ ...form, maxUsage: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Illimité" />
+              <input type="number" min={1} value={form.maxUsage} onChange={(e) => setForm({ ...form, maxUsage: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Illimité" />
             </div>
             <div>
               <label className="text-xs text-slate-500 mb-1 block">{t("promo_expiry")}</label>
-              <input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+              <input type="date" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="flex items-end">
               <label className="flex items-center gap-2 cursor-pointer">
@@ -169,7 +169,7 @@ export default function AdminPromoCodesPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={cancel} className="flex items-center gap-1.5 text-sm border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors">
+            <button onClick={cancel} className="flex items-center gap-1.5 text-sm border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors">
               <span className="material-symbols-outlined text-lg">close</span> {t("cancel")}
             </button>
             <button onClick={save} disabled={!form.code || !form.discountPct || saving} className="flex items-center gap-1.5 text-sm bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-xl transition-colors disabled:opacity-50">
@@ -180,7 +180,7 @@ export default function AdminPromoCodesPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="border-b border-slate-200 dark:border-slate-700">
             <tr className="text-slate-500 text-xs uppercase">
@@ -199,7 +199,7 @@ export default function AdminPromoCodesPage() {
               <tr><td colSpan={6} className="p-8 text-center text-slate-400">{t("promo_no_codes")}</td></tr>
             ) : (
               filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                <tr key={c.id} className="hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700/30 transition-colors">
                   <td className="p-4 font-mono font-bold text-primary">{c.code}</td>
                   <td className="p-4">{c.discountPct}%</td>
                   <td className="p-4">{c.usageCount} / {c.maxUsage ?? "∞"}</td>
@@ -229,11 +229,11 @@ export default function AdminPromoCodesPage() {
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
-          <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-xl">
+          <div className="relative bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-xl">
             <h2 className="font-bold mb-2">{t("admin_delete")} ?</h2>
             <p className="text-sm text-slate-500 mb-4">{t("admin_delete_irreversible")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">{t("cancel")}</button>
+              <button onClick={() => setDeleteId(null)} className="flex-1 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors text-sm">{t("cancel")}</button>
               <button onClick={() => deleteCode(deleteId)} className="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl hover:bg-red-700 transition-colors text-sm">{t("admin_delete")}</button>
             </div>
           </div>

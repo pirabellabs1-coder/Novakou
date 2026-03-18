@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
-import { ArrowLeft, ArrowRight, Check, Upload, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, AlertCircle } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const FormationRichEditor = dynamic(
@@ -98,7 +98,7 @@ export default function CreerProduitPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/produits", {
+      const res = await fetch("/api/instructeur/produits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,7 +141,7 @@ export default function CreerProduitPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Créer un produit numérique</h1>
+      <h1 className="text-2xl font-bold mb-6 text-slate-900 dark:text-white">Créer un produit numérique</h1>
 
       {/* Steps indicator */}
       <div className="flex items-center gap-2 mb-8">
@@ -154,7 +154,7 @@ export default function CreerProduitPage() {
                   ? "bg-primary text-white"
                   : i < step
                     ? "bg-green-100 text-green-700"
-                    : "bg-slate-100 dark:bg-slate-700 text-slate-400"
+                    : "bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-slate-400"
               }`}
             >
               {i < step ? <Check className="w-4 h-4" /> : <span className="material-symbols-outlined text-sm">{s.icon}</span>}
@@ -164,12 +164,12 @@ export default function CreerProduitPage() {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
         {/* Step 1: Information */}
         {step === 0 && (
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold mb-1">Type de produit *</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Type de produit *</label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {PRODUCT_TYPES.map((pt) => (
                   <button
@@ -183,7 +183,7 @@ export default function CreerProduitPage() {
                   >
                     <span className="material-symbols-outlined">{pt.icon}</span>
                     <div>
-                      <p className="text-sm font-semibold">{pt.label}</p>
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">{pt.label}</p>
                       <p className="text-xs text-slate-500">{pt.desc}</p>
                     </div>
                   </button>
@@ -193,7 +193,7 @@ export default function CreerProduitPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-1">Titre (Français) *</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Titre (Français) *</label>
                 <input
                   type="text" value={titleFr} onChange={(e) => setTitleFr(e.target.value)}
                   placeholder="Mon e-book génial"
@@ -201,7 +201,7 @@ export default function CreerProduitPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-1">Titre (Anglais) *</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Titre (Anglais) *</label>
                 <input
                   type="text" value={titleEn} onChange={(e) => setTitleEn(e.target.value)}
                   placeholder="My awesome e-book"
@@ -211,7 +211,7 @@ export default function CreerProduitPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Catégorie *</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Catégorie *</label>
               <select
                 value={categoryId} onChange={(e) => setCategoryId(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
@@ -226,7 +226,7 @@ export default function CreerProduitPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Tags</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Tags</label>
               <div className="flex items-center gap-2">
                 <input
                   type="text" value={tagInput}
@@ -240,7 +240,7 @@ export default function CreerProduitPage() {
               {tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
                   {tags.map((tag) => (
-                    <span key={tag} className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-700 text-xs px-2 py-1 rounded-full">
+                    <span key={tag} className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 text-xs px-2 py-1 rounded-full">
                       #{tag}
                       <button onClick={() => setTags(tags.filter((t) => t !== tag))} className="text-slate-400 hover:text-red-500">&times;</button>
                     </span>
@@ -255,7 +255,7 @@ export default function CreerProduitPage() {
         {step === 1 && (
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold mb-1">Description (Français)</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Description (Français)</label>
               <FormationRichEditor
                 content={descriptionFr}
                 onChange={setDescriptionFr}
@@ -264,7 +264,7 @@ export default function CreerProduitPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-1">Description (Anglais)</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Description (Anglais)</label>
               <FormationRichEditor
                 content={descriptionEn}
                 onChange={setDescriptionEn}
@@ -279,7 +279,7 @@ export default function CreerProduitPage() {
         {step === 2 && (
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold mb-1">Image de couverture (URL)</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Image de couverture (URL)</label>
               <input
                 type="url" value={banner} onChange={(e) => setBanner(e.target.value)}
                 placeholder="https://..."
@@ -288,7 +288,7 @@ export default function CreerProduitPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Fichier du produit (URL)</label>
+              <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Fichier du produit (URL)</label>
               <input
                 type="url" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)}
                 placeholder="https://..."
@@ -299,14 +299,14 @@ export default function CreerProduitPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-1">Taille (octets)</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Taille (octets)</label>
                 <input
                   type="number" value={fileSize || ""} onChange={(e) => setFileSize(e.target.value ? parseInt(e.target.value) : undefined)}
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-1">Type MIME</label>
+                <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Type MIME</label>
                 <input
                   type="text" value={fileMimeType} onChange={(e) => setFileMimeType(e.target.value)}
                   placeholder="application/pdf"
@@ -316,11 +316,11 @@ export default function CreerProduitPage() {
             </div>
 
             <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
-              <h3 className="text-sm font-bold mb-3">Aperçu & Protection</h3>
+              <h3 className="text-sm font-bold mb-3 text-slate-900 dark:text-white">Aperçu & Protection</h3>
 
               <label className="flex items-center gap-3 mb-3 cursor-pointer">
                 <input type="checkbox" checked={previewEnabled} onChange={(e) => setPreviewEnabled(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary" />
-                <span className="text-sm">Activer l&apos;aperçu (premières pages visibles gratuitement)</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300">Activer l&apos;aperçu (premières pages visibles gratuitement)</span>
               </label>
 
               {previewEnabled && (
@@ -334,14 +334,14 @@ export default function CreerProduitPage() {
                   </div>
                   <label className="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" checked={watermarkEnabled} onChange={(e) => setWatermarkEnabled(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary" />
-                    <span className="text-sm">Filigrane sur l&apos;aperçu (&quot;APERÇU - FreelanceHigh&quot;)</span>
+                    <span className="text-sm text-slate-700 dark:text-slate-300">Filigrane sur l&apos;aperçu (&quot;APERÇU - FreelanceHigh&quot;)</span>
                   </label>
                 </div>
               )}
             </div>
 
             <div className="border-t border-slate-200 dark:border-slate-700 pt-5">
-              <h3 className="text-sm font-bold mb-3">Stock limité</h3>
+              <h3 className="text-sm font-bold mb-3 text-slate-900 dark:text-white">Stock limité</h3>
               <label className="flex items-center gap-3 mb-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -349,7 +349,7 @@ export default function CreerProduitPage() {
                   onChange={(e) => setMaxBuyers(e.target.checked ? 100 : undefined)}
                   className="w-4 h-4 rounded border-slate-300 text-primary"
                 />
-                <span className="text-sm">Limiter le nombre d&apos;acheteurs</span>
+                <span className="text-sm text-slate-700 dark:text-slate-300">Limiter le nombre d&apos;acheteurs</span>
               </label>
               {maxBuyers !== undefined && (
                 <div className="ml-7">
@@ -369,20 +369,20 @@ export default function CreerProduitPage() {
           <div className="space-y-5">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={isFree} onChange={(e) => setIsFree(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-primary" />
-              <span className="text-sm font-semibold">Produit gratuit</span>
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Produit gratuit</span>
             </label>
 
             {!isFree && (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Prix (€) *</label>
+                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Prix (€) *</label>
                   <input
                     type="number" min={0} step={0.01} value={price} onChange={(e) => setPrice(parseFloat(e.target.value) || 0)}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1">Prix original (€)</label>
+                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Prix original (€)</label>
                   <input
                     type="number" min={0} step={0.01} value={originalPrice || ""} onChange={(e) => setOriginalPrice(e.target.value ? parseFloat(e.target.value) : undefined)}
                     placeholder="Prix barré"
@@ -394,8 +394,8 @@ export default function CreerProduitPage() {
             )}
 
             {/* Summary */}
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4 mt-6 border border-slate-200 dark:border-slate-700">
-              <h3 className="text-sm font-bold mb-3">Récapitulatif</h3>
+            <div className="bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl p-4 mt-6 border border-slate-200 dark:border-slate-700">
+              <h3 className="text-sm font-bold mb-3 text-slate-900 dark:text-white">Récapitulatif</h3>
               <div className="text-sm space-y-1 text-slate-600 dark:text-slate-300">
                 <p><strong>Titre FR :</strong> {titleFr || "—"}</p>
                 <p><strong>Titre EN :</strong> {titleEn || "—"}</p>
@@ -420,7 +420,7 @@ export default function CreerProduitPage() {
           {step > 0 ? (
             <button
               onClick={() => setStep(step - 1)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-medium hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700"
             >
               <ArrowLeft className="w-4 h-4" />
               Précédent

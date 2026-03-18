@@ -20,6 +20,13 @@ export interface MessageParticipant {
   online: boolean;
 }
 
+export interface LinkPreviewData {
+  title: string;
+  description: string;
+  image?: string;
+  domain: string;
+}
+
 export interface UnifiedMessage {
   id: string;
   senderId: string;
@@ -29,12 +36,18 @@ export interface UnifiedMessage {
   type: MessageContentType;
   fileName?: string;
   fileSize?: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSizeBytes?: number;
   createdAt: string;
   readBy: string[];
   audioUrl?: string;
   audioDuration?: number;
   callDuration?: number;
   transcription?: string;
+  editedAt?: string;
+  deletedAt?: string;
+  linkPreview?: LinkPreviewData;
 }
 
 export interface UnifiedConversation {
@@ -64,9 +77,15 @@ interface MessagingState {
   getAllConversations: () => UnifiedConversation[];
   addSystemMessage: (convId: string, content: string) => void;
 
+  // Edit & Delete
+  editMessage: (convId: string, messageId: string, newContent: string) => void;
+  deleteMessage: (convId: string, messageId: string) => void;
+
   // API sync
   syncFromApi: () => Promise<void>;
   apiSendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string) => Promise<void>;
+  apiEditMessage: (convId: string, messageId: string, newContent: string) => Promise<boolean>;
+  apiDeleteMessage: (convId: string, messageId: string) => Promise<boolean>;
 }
 
 // ── Demo Data ──
@@ -438,6 +457,40 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
     }
   },
 
+  editMessage: (convId, messageId, newContent) => {
+    set((s) => ({
+      conversations: s.conversations.map((conv) =>
+        conv.id === convId
+          ? {
+              ...conv,
+              messages: conv.messages.map((m) =>
+                m.id === messageId
+                  ? { ...m, content: newContent, editedAt: new Date().toISOString() }
+                  : m
+              ),
+            }
+          : conv
+      ),
+    }));
+  },
+
+  deleteMessage: (convId, messageId) => {
+    set((s) => ({
+      conversations: s.conversations.map((conv) =>
+        conv.id === convId
+          ? {
+              ...conv,
+              messages: conv.messages.map((m) =>
+                m.id === messageId
+                  ? { ...m, content: "Ce message a ete supprime", deletedAt: new Date().toISOString() }
+                  : m
+              ),
+            }
+          : conv
+      ),
+    }));
+  },
+
   apiSendMessage: async (convId, content, type = "text", fileName, fileSize) => {
     const { currentUserId, currentUserRole } = get();
     const participant = DEMO_PARTICIPANTS[currentUserId];
@@ -485,6 +538,47 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       setTimeout(() => get().syncFromApi(), 3000);
     } catch (err) {
       console.error("[MessagingStore apiSendMessage]", err);
+    }
+  },
+
+  apiEditMessage: async (convId, messageId, newContent) => {
+    // Optimistic update
+    get().editMessage(convId, messageId, newContent);
+    try {
+      const res = await fetch(`/api/conversations/${convId}/messages/${messageId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newContent }),
+      });
+      if (!res.ok) {
+        // Revert on failure — re-sync from API
+        await get().syncFromApi();
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("[MessagingStore apiEditMessage]", err);
+      await get().syncFromApi();
+      return false;
+    }
+  },
+
+  apiDeleteMessage: async (convId, messageId) => {
+    // Optimistic update
+    get().deleteMessage(convId, messageId);
+    try {
+      const res = await fetch(`/api/conversations/${convId}/messages/${messageId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        await get().syncFromApi();
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error("[MessagingStore apiDeleteMessage]", err);
+      await get().syncFromApi();
+      return false;
     }
   },
 }));

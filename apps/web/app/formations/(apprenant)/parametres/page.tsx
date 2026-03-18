@@ -36,9 +36,11 @@ export default function ApprenantParametresPage() {
       .catch(() => setLoading(false));
   }, [status, router]);
 
+  const [saveError, setSaveError] = useState(false);
   const handleSave = async () => {
     setSaving(true);
     setSuccess(false);
+    setSaveError(false);
     try {
       const res = await fetch("/api/apprenant/profil", {
         method: "PUT",
@@ -46,16 +48,20 @@ export default function ApprenantParametresPage() {
         body: JSON.stringify(form),
       });
       if (res.ok) setSuccess(true);
-    } catch { /* ignored */ }
+      else setSaveError(true);
+    } catch {
+      setSaveError(true);
+    }
     setSaving(false);
   };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-extrabold tracking-tight">{t("settings")}</h1>
+      <div className="space-y-6 max-w-2xl">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t("settings")}</h1>
         <div className="animate-pulse space-y-4">
-          <div className="h-40 bg-slate-100 rounded-2xl" />
+          <div className="h-40 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
+          <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
         </div>
       </div>
     );
@@ -63,11 +69,11 @@ export default function ApprenantParametresPage() {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-extrabold tracking-tight">{t("settings")}</h1>
+      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t("settings")}</h1>
 
       {/* Photo de profil */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-        <h2 className="font-semibold mb-4">{fr ? "Photo de profil" : "Profile photo"}</h2>
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+        <h2 className="font-semibold text-slate-900 dark:text-white mb-4">{fr ? "Photo de profil" : "Profile photo"}</h2>
         <div className="flex items-start gap-6">
           <div className="w-32">
             <ImageUpload
@@ -89,14 +95,14 @@ export default function ApprenantParametresPage() {
       </div>
 
       {/* Nom */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
-        <h2 className="font-semibold">{fr ? "Informations personnelles" : "Personal information"}</h2>
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+        <h2 className="font-semibold text-slate-900 dark:text-white">{fr ? "Informations personnelles" : "Personal information"}</h2>
         <div>
           <label className="text-xs text-slate-500 mb-1 block">{fr ? "Nom complet" : "Full name"}</label>
           <input
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div>
@@ -121,6 +127,11 @@ export default function ApprenantParametresPage() {
         {success && (
           <span className="text-green-600 text-sm font-medium">
             {fr ? "Modifications enregistrées" : "Changes saved"}
+          </span>
+        )}
+        {saveError && (
+          <span className="text-red-500 text-sm font-medium">
+            {fr ? "Erreur lors de l'enregistrement" : "Error saving changes"}
           </span>
         )}
       </div>

@@ -214,6 +214,10 @@ export interface StoredProfile {
   badges: string[];
   availability: { day: number; dayName: string; available: boolean; startTime: string; endTime: string }[];
   vacationMode: boolean;
+  portfolio?: { id: string; title: string; description: string; image: string; link?: string; skills: string[]; featured: boolean }[];
+  team?: { id: string; name: string; role: string; avatar: string; skills: string[]; freelanceUsername?: string }[];
+  caseStudies?: { id: string; title: string; description: string; image: string; category: string }[];
+  workProcess?: { step: number; title: string; description: string }[];
 }
 
 export interface StoredProject {
@@ -285,10 +289,19 @@ export interface ChatMsg {
   sender: "me" | "them";
   content: string;
   timestamp: string;
-  type: "text" | "image" | "file";
+  type: "text" | "image" | "file" | "voice" | "call_audio" | "call_video" | "call_missed" | "system";
   fileName?: string;
   fileSize?: string;
+  fileUrl?: string;
+  fileType?: string;
+  fileSizeBytes?: number;
+  audioUrl?: string;
+  audioDuration?: number;
+  callDuration?: number;
   read: boolean;
+  editedAt?: string;
+  deletedAt?: string;
+  linkPreviewData?: { title: string; description: string; image?: string; domain: string };
 }
 
 export interface StoredReview {
@@ -384,11 +397,174 @@ export function getSubCategoryName(catId: string, subId: string): string {
 
 const SERVICES_FILE = "services.json";
 
+const SEED_VENDORS = [
+  { name: "Moussa Diallo", avatar: "/images/avatars/default.png", username: "moussa-diallo", country: "SN" },
+  { name: "Aminata Koné", avatar: "/images/avatars/default.png", username: "aminata-kone", country: "CI" },
+  { name: "Jean-Baptiste Nguema", avatar: "/images/avatars/default.png", username: "jb-nguema", country: "CM" },
+  { name: "Fatou Sow", avatar: "/images/avatars/default.png", username: "fatou-sow", country: "SN" },
+  { name: "Kofi Asante", avatar: "/images/avatars/default.png", username: "kofi-asante", country: "GH" },
+  { name: "Claire Dubois", avatar: "/images/avatars/default.png", username: "claire-dubois", country: "FR" },
+  { name: "Ibrahim Traoré", avatar: "/images/avatars/default.png", username: "ibrahim-traore", country: "BF" },
+  { name: "Nadia Benali", avatar: "/images/avatars/default.png", username: "nadia-benali", country: "MA" },
+  { name: "Ousmane Barry", avatar: "/images/avatars/default.png", username: "ousmane-barry", country: "GN" },
+  { name: "Awa Diop", avatar: "/images/avatars/default.png", username: "awa-diop", country: "SN" },
+  { name: "Pierre Kamga", avatar: "/images/avatars/default.png", username: "pierre-kamga", country: "CM" },
+  { name: "Mariame Coulibaly", avatar: "/images/avatars/default.png", username: "mariame-coulibaly", country: "ML" },
+  { name: "Yves Mensah", avatar: "/images/avatars/default.png", username: "yves-mensah", country: "TG" },
+  { name: "Léa Fontaine", avatar: "/images/avatars/default.png", username: "lea-fontaine", country: "FR" },
+  { name: "Abdoulaye Ndiaye", avatar: "/images/avatars/default.png", username: "abdoulaye-ndiaye", country: "SN" },
+  { name: "Rachida El Amrani", avatar: "/images/avatars/default.png", username: "rachida-elamrani", country: "MA" },
+  { name: "Sékou Camara", avatar: "/images/avatars/default.png", username: "sekou-camara", country: "GN" },
+  { name: "Bintou Sangaré", avatar: "/images/avatars/default.png", username: "bintou-sangare", country: "CI" },
+];
+
 function getDefaultServices(): StoredService[] {
-  return [];
+  return []; // No seed data — platform starts empty
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _getDefaultServicesOriginal(): StoredService[] {
+  return [
+    // ── Développement Web (3) ──
+    createSeedService(
+      "srv-seed-001", "user-freelance-001",
+      "Création de site web React & Next.js sur mesure",
+      "cat-dev-web", "sub-frontend",
+      250, 7, "actif", 3200, 87, 87 * 250,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-002", "user-freelance-002",
+      "Développement API REST & GraphQL avec Node.js",
+      "cat-dev-web", "sub-backend",
+      180, 5, "actif", 1800, 52, 52 * 180,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-003", "user-freelance-003",
+      "Site e-commerce complet avec Shopify ou WooCommerce",
+      "cat-dev-web", "sub-ecommerce",
+      400, 14, "actif", 2500, 35, 35 * 400,
+      "/images/placeholder-service.jpg"
+    ),
+    // ── Design & Graphisme (3) ──
+    createSeedService(
+      "srv-seed-004", "user-freelance-004",
+      "Création de logo professionnel et charte graphique",
+      "cat-design", "sub-logo",
+      80, 3, "actif", 4800, 195, 195 * 80,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-005", "user-freelance-005",
+      "Design UI/UX complet pour application mobile",
+      "cat-design", "sub-ui-ux",
+      350, 10, "actif", 2100, 42, 42 * 350,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-006", "user-freelance-006",
+      "Illustration personnalisée pour livre ou projet digital",
+      "cat-design", "sub-illustration",
+      120, 5, "actif", 1500, 68, 68 * 120,
+      "/images/placeholder-service.jpg"
+    ),
+    // ── Rédaction & Contenu (3) ──
+    createSeedService(
+      "srv-seed-007", "user-freelance-007",
+      "Rédaction d'articles SEO optimisés en français",
+      "cat-redaction", "sub-redaction-web",
+      45, 2, "actif", 3600, 180, 180 * 45,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-008", "user-freelance-008",
+      "Copywriting persuasif pour pages de vente",
+      "cat-redaction", "sub-copywriting",
+      100, 3, "actif", 2800, 95, 95 * 100,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-009", "user-freelance-009",
+      "Traduction professionnelle français-anglais",
+      "cat-redaction", "sub-traduction",
+      35, 1, "actif", 4200, 200, 200 * 35,
+      "/images/placeholder-service.jpg"
+    ),
+    // ── Marketing Digital (3) ──
+    createSeedService(
+      "srv-seed-010", "user-freelance-010",
+      "Audit SEO complet et plan d'optimisation",
+      "cat-marketing", "sub-seo",
+      150, 5, "actif", 2600, 73, 73 * 150,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-011", "user-freelance-011",
+      "Gestion de réseaux sociaux pendant 30 jours",
+      "cat-marketing", "sub-social-media",
+      200, 7, "actif", 3100, 110, 110 * 200,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-012", "user-freelance-012",
+      "Campagne publicitaire Facebook & Instagram Ads",
+      "cat-marketing", "sub-pub",
+      300, 5, "actif", 1900, 48, 48 * 300,
+      "/images/placeholder-service.jpg"
+    ),
+    // ── Vidéo & Animation (3) ──
+    createSeedService(
+      "srv-seed-013", "user-freelance-013",
+      "Montage vidéo professionnel YouTube ou corporate",
+      "cat-video", "sub-montage",
+      90, 3, "actif", 3500, 145, 145 * 90,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-014", "user-freelance-014",
+      "Animation 2D explicative pour votre entreprise",
+      "cat-video", "sub-animation-2d",
+      250, 7, "actif", 1700, 38, 38 * 250,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-015", "user-freelance-015",
+      "Motion graphics pour publicité et réseaux sociaux",
+      "cat-video", "sub-motion-graphics",
+      180, 5, "actif", 2200, 62, 62 * 180,
+      "/images/placeholder-service.jpg"
+    ),
+    // ── Formation & Coaching (3) ──
+    createSeedService(
+      "srv-seed-016", "user-freelance-016",
+      "Formation complète React & Next.js en visio",
+      "cat-formation", "sub-dev-formation",
+      500, 14, "actif", 1200, 25, 25 * 500,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-017", "user-freelance-017",
+      "Coaching design Figma pour débutants",
+      "cat-formation", "sub-design-formation",
+      75, 3, "actif", 2900, 130, 130 * 75,
+      "/images/placeholder-service.jpg"
+    ),
+    createSeedService(
+      "srv-seed-018", "user-freelance-018",
+      "Stratégie marketing digital pour PME africaines",
+      "cat-formation", "sub-business",
+      200, 7, "actif", 1600, 55, 55 * 200,
+      "/images/placeholder-service.jpg"
+    ),
+  ].map((svc, i) => ({
+    ...svc,
+    vendorName: SEED_VENDORS[i % SEED_VENDORS.length].name,
+    vendorAvatar: SEED_VENDORS[i % SEED_VENDORS.length].avatar,
+    vendorUsername: SEED_VENDORS[i % SEED_VENDORS.length].username,
+    vendorCountry: SEED_VENDORS[i % SEED_VENDORS.length].country,
+  }));
+}
+
 function createSeedService(
   id: string, userId: string, title: string, catId: string, subId: string,
   price: number, days: number, status: StoredService["status"],

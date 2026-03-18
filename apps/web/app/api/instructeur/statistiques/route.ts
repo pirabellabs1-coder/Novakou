@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { INSTRUCTOR_COMMISSION } from "@/lib/formations/prisma-helpers";
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
       revenueByMonth.push({
         month: d.toLocaleString("fr-FR", { month: "short" }),
         revenue: Math.round(rev),
-        net: Math.round(rev * 0.7),
+        net: Math.round(rev * INSTRUCTOR_COMMISSION),
       });
     }
 
@@ -73,10 +74,16 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Formation performance
+    // Formation performance with real revenue
     const formations = await prisma.formation.findMany({
       where: { instructeurId: instructeur.id, status: "ACTIF" },
-      select: { titleFr: true, studentsCount: true, rating: true },
+      select: {
+        id: true,
+        titleFr: true,
+        studentsCount: true,
+        rating: true,
+        enrollments: { select: { paidAmount: true } },
+      },
       orderBy: { studentsCount: "desc" },
       take: 5,
     });
@@ -85,7 +92,7 @@ export async function GET(req: NextRequest) {
       name: f.titleFr.length > 20 ? f.titleFr.substring(0, 20) + "..." : f.titleFr,
       students: f.studentsCount,
       rating: f.rating,
-      revenue: 0, // simplified
+      revenue: Math.round(f.enrollments.reduce((acc, e) => acc + e.paidAmount, 0) * INSTRUCTOR_COMMISSION * 100) / 100,
     }));
 
     // Completion rate
@@ -94,7 +101,7 @@ export async function GET(req: NextRequest) {
       select: { progress: true },
     });
     const completionRate = allEnrollments.length > 0
-      ? (allEnrollments.filter((e) => e.progress >= 1).length / allEnrollments.length) * 100
+      ? (allEnrollments.filter((e) => e.progress >= 100).length / allEnrollments.length) * 100
       : 0;
 
     // Avg quiz score
@@ -137,6 +144,16 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("[GET /api/instructeur/statistiques]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({
+      stats: {
+        revenueByMonth: [],
+        enrollmentsByWeek: [],
+        formationPerformance: [],
+        completionRate: 0,
+        avgQuizScore: 0,
+        topCountries: [],
+        conversionData: [],
+      },
+    });
   }
 }

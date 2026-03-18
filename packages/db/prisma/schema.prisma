@@ -99,6 +99,10 @@ enum MessageType {
   FILE
   IMAGE
   SYSTEM
+  VOICE
+  CALL_AUDIO
+  CALL_VIDEO
+  CALL_MISSED
 }
 
 enum NotificationType {
@@ -217,6 +221,17 @@ model User {
   courseDiscussions   CourseDiscussion[]       @relation("UserDiscussions")
   discussionReplies  CourseDiscussionReply[]  @relation("UserDiscussionReplies")
   cohortMessages     CohortMessage[]         @relation("UserCohortMessages")
+
+  // Relations marketing
+  affiliateProfile     AffiliateProfile?       @relation("UserAffiliateProfile")
+  affiliateClicks      AffiliateClick[]        @relation("UserAffiliateClicks")
+  emailSeqEnrollments  EmailSequenceEnrollment[] @relation("UserEmailSeqEnrollments")
+  funnelEvents         FunnelEvent[]           @relation("UserFunnelEvents")
+  popupImpressions     PopupImpression[]       @relation("UserPopupImpressions")
+  campaignEvents       CampaignEvent[]         @relation("UserCampaignEvents")
+  userTags             UserTag[]               @relation("UserTags")
+  refundRequests       RefundRequest[]          @relation("UserRefundRequests")
+  discussionReports    DiscussionReport[]       @relation("UserDiscussionReports")
 
   @@index([email])
   @@index([role])
@@ -699,6 +714,8 @@ model AuditLog {
   id            String   @id @default(cuid())
   actorId       String
   action        String
+  targetType    String?
+  targetId      String?
   targetUserId  String?
   details       Json?
   ipAddress     String?
@@ -712,6 +729,7 @@ model AuditLog {
   @@index([targetUserId])
   @@index([action])
   @@index([createdAt])
+  @@index([targetType, targetId])
 }
 
 model Conversation {
@@ -750,6 +768,16 @@ model Message {
   type            MessageType  @default(TEXT)
   fileName        String?
   fileUrl         String?
+  fileType        String?
+  fileSizeBytes   Int?
+  audioUrl        String?
+  audioDuration   Int?
+  callDuration    Int?
+  read            Boolean      @default(false)
+
+  editedAt        DateTime?
+  deletedAt       DateTime?
+  linkPreviewData Json?
 
   createdAt       DateTime     @default(now())
 
@@ -880,6 +908,15 @@ model InstructeurProfile {
   digitalProducts  DigitalProduct[]  @relation("InstructeurProducts")
   marketingPixels  MarketingPixel[]  @relation("InstructeurPixels")
 
+  // Marketing relations
+  affiliatePrograms  AffiliateProgram[]   @relation("InstructeurAffiliatePrograms")
+  discountCodes      DiscountCode[]       @relation("InstructeurDiscountCodes")
+  emailSequences     EmailSequence[]      @relation("InstructeurEmailSequences")
+  salesFunnels       SalesFunnel[]        @relation("InstructeurSalesFunnels")
+  smartPopups        SmartPopup[]         @relation("InstructeurSmartPopups")
+  campaignTrackers   CampaignTracker[]    @relation("InstructeurCampaignTrackers")
+  automationWorkflows AutomationWorkflow[] @relation("InstructeurAutomationWorkflows")
+
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
@@ -954,11 +991,12 @@ model Formation {
 
   // Relations
   instructeurId   String
-  instructeur     InstructeurProfile @relation(fields: [instructeurId], references: [id])
+  instructeur     InstructeurProfile @relation(fields: [instructeurId], references: [id], onDelete: Cascade)
   category        FormationCategory   @relation(fields: [categoryId], references: [id])
   sections        Section[]
   enrollments     Enrollment[]
   reviews         FormationReview[]
+  certificates    Certificate[]
   cartItems       CartItem[]
   flashPromotions FlashPromotion[]    @relation("FormationFlashPromos")
   marketingEvents MarketingEvent[]    @relation("FormationMarketingEvents")
@@ -974,6 +1012,9 @@ model Formation {
   @@index([status])
   @@index([rating])
   @@index([createdAt])
+  @@index([studentsCount])
+  @@index([price])
+  @@index([isFree])
 }
 
 model Section {
@@ -1017,6 +1058,7 @@ model Lesson {
   resources        LessonResource[]
   quiz             Quiz?
   progress         LessonProgress[]
+  notes            LessonNote[]
 
   @@index([sectionId, order])
 }
@@ -1076,11 +1118,12 @@ model Enrollment {
   refundedAt      DateTime?
 
   user            User            @relation("UserEnrollments", fields: [userId], references: [id], onDelete: Cascade)
-  formation       Formation       @relation(fields: [formationId], references: [id])
-  cohort          FormationCohort? @relation(fields: [cohortId], references: [id])
+  formation       Formation       @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  cohort          FormationCohort? @relation(fields: [cohortId], references: [id], onDelete: SetNull)
   lessonProgress  LessonProgress[]
   certificate     Certificate?
   notes           LessonNote[]
+  refundRequests  RefundRequest[]
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -1118,6 +1161,7 @@ model LessonNote {
   updatedAt    DateTime   @updatedAt
 
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([enrollmentId, lessonId])
 }
@@ -1137,6 +1181,7 @@ model Certificate {
 
   enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   user         User       @relation("UserCertificates", fields: [userId], references: [id], onDelete: Cascade)
+  formation    Formation  @relation(fields: [formationId], references: [id], onDelete: Cascade)
 
   @@index([code])
   @@index([userId])
@@ -1306,7 +1351,7 @@ model DigitalProduct {
   // Relations
   instructeurId     String
   categoryId        String
-  instructeur       InstructeurProfile   @relation("InstructeurProducts", fields: [instructeurId], references: [id])
+  instructeur       InstructeurProfile   @relation("InstructeurProducts", fields: [instructeurId], references: [id], onDelete: Cascade)
   category          FormationCategory    @relation("CategoryProducts", fields: [categoryId], references: [id])
   purchases         DigitalProductPurchase[]
   reviews           DigitalProductReview[]
@@ -1323,6 +1368,8 @@ model DigitalProduct {
   @@index([productType])
   @@index([rating])
   @@index([createdAt])
+  @@index([salesCount])
+  @@index([price])
 }
 
 model DigitalProductPurchase {
@@ -1336,7 +1383,7 @@ model DigitalProductPurchase {
   maxDownloads    Int            @default(5)
 
   user            User           @relation("UserProductPurchases", fields: [userId], references: [id], onDelete: Cascade)
-  product         DigitalProduct @relation(fields: [productId], references: [id])
+  product         DigitalProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   createdAt       DateTime       @default(now())
 
@@ -1457,27 +1504,35 @@ model CourseDiscussion {
   content     String   @db.Text
   isPinned    Boolean  @default(false)
   isResolved  Boolean  @default(false)
+  status      String   @default("active") // active, locked, deleted
+  reportCount Int      @default(0)
 
   formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
   user        User      @relation("UserDiscussions", fields: [userId], references: [id], onDelete: Cascade)
   replies     CourseDiscussionReply[]
+  reports     DiscussionReport[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([formationId, createdAt])
   @@index([userId])
+  @@index([reportCount])
+  @@index([status])
 }
 
 model CourseDiscussionReply {
-  id           String @id @default(cuid())
+  id           String  @id @default(cuid())
   discussionId String
   userId       String
-  content      String @db.Text
+  content      String  @db.Text
   isInstructor Boolean @default(false)
+  status       String  @default("active") // active, deleted
+  reportCount  Int     @default(0)
 
   discussion   CourseDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
   user         User             @relation("UserDiscussionReplies", fields: [userId], references: [id], onDelete: Cascade)
+  reports      DiscussionReport[] @relation("ReplyReports")
 
   createdAt    DateTime @default(now())
 
@@ -1550,4 +1605,677 @@ model CohortMessage {
   @@index([cohortId, createdAt])
   @@index([userId])
   @@index([cohortId, isPinned])
+}
+
+// ══════════════════════════════════════════════════════════════
+// MARKETING SYSTEM — Affiliate, Discounts, Email Automation,
+// Funnels, Popups, Campaigns, Analytics, Automation Engine
+// ══════════════════════════════════════════════════════════════
+
+// ── Enums ─────────────────────────────────────────────────────
+
+enum AffiliateStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  CANCELLED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+}
+
+enum DiscountScope {
+  ALL
+  FORMATIONS
+  PRODUCTS
+  SPECIFIC
+}
+
+enum EmailSequenceTrigger {
+  PURCHASE
+  ENROLLMENT
+  ABANDONED_CART
+  USER_INACTIVITY
+  COURSE_COMPLETION
+  SIGNUP
+  MANUAL
+  TAG_ADDED
+}
+
+enum EmailStepType {
+  EMAIL
+  DELAY
+  CONDITION
+  TAG_ACTION
+}
+
+enum SequenceEnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum FunnelStepType {
+  LANDING
+  PRODUCT
+  CHECKOUT
+  UPSELL
+  DOWNSELL
+  CONFIRMATION
+  THANK_YOU
+}
+
+enum PopupTrigger {
+  EXIT_INTENT
+  TIME_DELAY
+  SCROLL_PERCENT
+  PAGE_VIEW_COUNT
+  MANUAL
+}
+
+enum PopupType {
+  DISCOUNT
+  EMAIL_CAPTURE
+  ANNOUNCEMENT
+  UPSELL
+  COUNTDOWN
+}
+
+enum AutomationTriggerType {
+  PURCHASE
+  ENROLLMENT
+  CART_ABANDONED
+  COURSE_COMPLETED
+  LESSON_COMPLETED
+  QUIZ_PASSED
+  QUIZ_FAILED
+  USER_SIGNUP
+  USER_INACTIVE
+  TAG_ADDED
+  TAG_REMOVED
+  AFFILIATE_SALE
+  FUNNEL_STEP_REACHED
+  CUSTOM_EVENT
+}
+
+enum AutomationActionType {
+  SEND_EMAIL
+  ADD_TAG
+  REMOVE_TAG
+  ENROLL_SEQUENCE
+  CANCEL_SEQUENCE
+  GRANT_ACCESS
+  REVOKE_ACCESS
+  SEND_NOTIFICATION
+  WEBHOOK
+  DELAY
+  CONDITION_CHECK
+  CREATE_DISCOUNT
+  TRIGGER_UPSELL
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+// ── Affiliate System ──────────────────────────────────────────
+
+model AffiliateProgram {
+  id               String             @id @default(cuid())
+  instructeurId    String
+  name             String
+  description      String?            @db.Text
+  commissionPct    Float              @default(20)    // default 20%
+  cookieDays       Int                @default(30)    // tracking cookie duration
+  isActive         Boolean            @default(true)
+  minPayoutAmount  Float              @default(20)    // minimum €20 for payout
+  autoApprove      Boolean            @default(true)  // auto-approve affiliates
+  // Scope: which products/courses
+  applyToAll       Boolean            @default(true)
+  formationIds     String[]           @default([])
+  productIds       String[]           @default([])
+
+  instructeur      InstructeurProfile @relation("InstructeurAffiliatePrograms", fields: [instructeurId], references: [id], onDelete: Cascade)
+  affiliates       AffiliateProfile[]
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([instructeurId])
+  @@index([isActive])
+}
+
+model AffiliateProfile {
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  programId        String
+  affiliateCode    String           @unique  // unique code for links
+  status           AffiliateStatus  @default(PENDING)
+  totalClicks      Int              @default(0)
+  totalConversions Int              @default(0)
+  totalEarned      Float            @default(0)
+  pendingEarnings  Float            @default(0)
+  paidEarnings     Float            @default(0)
+  conversionRate   Float            @default(0)
+  paypalEmail      String?
+  bankDetails      Json?
+
+  user             User             @relation("UserAffiliateProfile", fields: [userId], references: [id], onDelete: Cascade)
+  program          AffiliateProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clicks           AffiliateClick[]
+  commissions      AffiliateCommission[]
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([programId])
+  @@index([affiliateCode])
+  @@index([status])
+}
+
+model AffiliateClick {
+  id            String           @id @default(cuid())
+  affiliateId   String
+  visitorId     String?          // anonymous visitor ID (cookie)
+  userId        String?          // if visitor is logged in
+  ip            String?
+  userAgent     String?
+  referer       String?
+  landingPage   String?
+  converted     Boolean          @default(false)
+  conversionId  String?          // link to commission
+
+  affiliate     AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  user          User?            @relation("UserAffiliateClicks", fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime         @default(now())
+
+  @@index([affiliateId])
+  @@index([visitorId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([converted])
+}
+
+model AffiliateCommission {
+  id              String          @id @default(cuid())
+  affiliateId     String
+  orderId         String?         // enrollment or purchase reference
+  orderType       String          // "formation" or "product"
+  orderAmount     Float           // total sale amount
+  commissionPct   Float           // % at time of sale
+  commissionAmount Float          // calculated amount
+  status          CommissionStatus @default(PENDING)
+  paidAt          DateTime?
+  payoutRef       String?         // payout transaction reference
+
+  affiliate       AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([affiliateId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ── Discount System ───────────────────────────────────────────
+
+model DiscountCode {
+  id              String           @id @default(cuid())
+  instructeurId   String
+  code            String           @unique
+  discountType    DiscountType     @default(PERCENTAGE)
+  discountValue   Float            // percentage (0-100) or fixed amount
+  scope           DiscountScope    @default(ALL)
+  formationIds    String[]         @default([])
+  productIds      String[]         @default([])
+  maxUses         Int?             // null = unlimited
+  usedCount       Int              @default(0)
+  maxUsesPerUser  Int?             // null = unlimited
+  minOrderAmount  Float?           // minimum order value
+  expiresAt       DateTime?
+  isActive        Boolean          @default(true)
+  // Tracking
+  totalDiscounted Float            @default(0) // total amount discounted
+  revenue         Float            @default(0) // total revenue from discounted sales
+
+  instructeur     InstructeurProfile @relation("InstructeurDiscountCodes", fields: [instructeurId], references: [id], onDelete: Cascade)
+  usages          DiscountUsage[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([code])
+  @@index([instructeurId])
+  @@index([isActive])
+  @@index([expiresAt])
+}
+
+model DiscountUsage {
+  id            String       @id @default(cuid())
+  discountId    String
+  userId        String
+  orderType     String       // "formation" or "product"
+  orderId       String
+  originalAmount Float
+  discountAmount Float
+  finalAmount   Float
+
+  discount      DiscountCode @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime     @default(now())
+
+  @@index([discountId])
+  @@index([userId])
+  @@unique([discountId, userId, orderId])
+}
+
+// ── Email Automation System ───────────────────────────────────
+
+model EmailSequence {
+  id              String              @id @default(cuid())
+  instructeurId   String
+  name            String
+  description     String?             @db.Text
+  trigger         EmailSequenceTrigger
+  triggerConfig   Json?               // additional trigger config (e.g., days of inactivity)
+  isActive        Boolean             @default(false)
+  totalEnrolled   Int                 @default(0)
+  totalCompleted  Int                 @default(0)
+
+  instructeur     InstructeurProfile  @relation("InstructeurEmailSequences", fields: [instructeurId], references: [id], onDelete: Cascade)
+  steps           EmailSequenceStep[]
+  enrollments     EmailSequenceEnrollment[]
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([instructeurId])
+  @@index([trigger])
+  @@index([isActive])
+}
+
+model EmailSequenceStep {
+  id            String        @id @default(cuid())
+  sequenceId    String
+  stepOrder     Int
+  stepType      EmailStepType @default(EMAIL)
+  // For EMAIL type
+  subjectFr     String?
+  subjectEn     String?
+  bodyFr        String?       @db.Text
+  bodyEn        String?       @db.Text
+  // For DELAY type
+  delayMinutes  Int?          // delay in minutes (1440 = 1 day)
+  // For CONDITION type
+  conditionField String?      // e.g., "course_progress", "has_purchased"
+  conditionOp    String?      // "gte", "eq", "contains"
+  conditionValue String?
+  // For TAG_ACTION type
+  tagAction     String?       // "add" or "remove"
+  tagName       String?
+
+  sequence      EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([sequenceId])
+  @@index([stepOrder])
+}
+
+model EmailSequenceEnrollment {
+  id              String                   @id @default(cuid())
+  sequenceId      String
+  userId          String
+  currentStepIdx  Int                      @default(0)
+  status          SequenceEnrollmentStatus @default(ACTIVE)
+  nextStepAt      DateTime?                // when to execute next step
+  completedAt     DateTime?
+  metadata        Json?                    // user-specific context data
+
+  sequence        EmailSequence            @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  user            User                     @relation("UserEmailSeqEnrollments", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@unique([sequenceId, userId])
+  @@index([sequenceId])
+  @@index([userId])
+  @@index([status, nextStepAt])
+}
+
+// ── Sales Funnel System ───────────────────────────────────────
+
+model SalesFunnel {
+  id              String             @id @default(cuid())
+  instructeurId   String
+  name            String
+  slug            String             @unique
+  description     String?            @db.Text
+  isActive        Boolean            @default(false)
+  totalViews      Int                @default(0)
+  totalConversions Int               @default(0)
+  totalRevenue    Float              @default(0)
+
+  instructeur     InstructeurProfile @relation("InstructeurSalesFunnels", fields: [instructeurId], references: [id], onDelete: Cascade)
+  steps           FunnelStep[]
+  events          FunnelEvent[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([instructeurId])
+  @@index([slug])
+  @@index([isActive])
+}
+
+model FunnelStep {
+  id              String         @id @default(cuid())
+  funnelId        String
+  stepOrder       Int
+  stepType        FunnelStepType @default(PRODUCT)
+  title           String
+  // Product reference
+  formationId     String?
+  productId       String?
+  // Config
+  discountPct     Float?         // optional discount at this step
+  headlineFr      String?
+  headlineEn      String?
+  descriptionFr   String?        @db.Text
+  descriptionEn   String?        @db.Text
+  ctaTextFr       String?
+  ctaTextEn       String?
+  // Tracking
+  views           Int            @default(0)
+  conversions     Int            @default(0)
+
+  funnel          SalesFunnel    @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([funnelId])
+  @@index([stepOrder])
+}
+
+model FunnelEvent {
+  id            String      @id @default(cuid())
+  funnelId      String
+  stepId        String?
+  userId        String?
+  visitorId     String?
+  eventType     String      // "view", "click", "purchase", "skip"
+  metadata      Json?
+
+  funnel        SalesFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+  user          User?       @relation("UserFunnelEvents", fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime    @default(now())
+
+  @@index([funnelId])
+  @@index([stepId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+// ── Smart Popups & Conversion Tools ───────────────────────────
+
+model SmartPopup {
+  id              String             @id @default(cuid())
+  instructeurId   String
+  name            String
+  popupType       PopupType          @default(DISCOUNT)
+  trigger         PopupTrigger       @default(TIME_DELAY)
+  // Trigger config
+  delaySeconds    Int?               // for TIME_DELAY
+  scrollPercent   Int?               // for SCROLL_PERCENT (0-100)
+  pageViewCount   Int?               // for PAGE_VIEW_COUNT
+  // Content
+  headlineFr      String?
+  headlineEn      String?
+  bodyFr          String?            @db.Text
+  bodyEn          String?            @db.Text
+  ctaTextFr       String?
+  ctaTextEn       String?
+  imageBanner     String?
+  // Discount link
+  discountCodeId  String?
+  // Email capture
+  emailListTag    String?            // tag to add when email captured
+  // Targeting
+  showOnPages     String[]           @default([]) // empty = all pages
+  excludePages    String[]           @default([])
+  showToNewOnly   Boolean            @default(false)
+  maxShowsPerUser Int                @default(1)
+  // State
+  isActive        Boolean            @default(false)
+  // Stats
+  totalImpressions Int               @default(0)
+  totalClicks     Int                @default(0)
+  totalConversions Int               @default(0)
+
+  instructeur     InstructeurProfile @relation("InstructeurSmartPopups", fields: [instructeurId], references: [id], onDelete: Cascade)
+  impressions     PopupImpression[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([instructeurId])
+  @@index([isActive])
+  @@index([popupType])
+}
+
+model PopupImpression {
+  id            String     @id @default(cuid())
+  popupId       String
+  userId        String?
+  visitorId     String?
+  action        String     // "view", "click", "close", "convert"
+  metadata      Json?
+
+  popup         SmartPopup @relation(fields: [popupId], references: [id], onDelete: Cascade)
+  user          User?      @relation("UserPopupImpressions", fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime   @default(now())
+
+  @@index([popupId])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ── Campaign Tracking ─────────────────────────────────────────
+
+model CampaignTracker {
+  id              String             @id @default(cuid())
+  instructeurId   String
+  name            String
+  slug            String             @unique // used in URLs
+  // UTM parameters
+  utmSource       String?
+  utmMedium       String?
+  utmCampaign     String?
+  utmContent      String?
+  // Target
+  destinationUrl  String
+  // Stats
+  totalClicks     Int                @default(0)
+  totalConversions Int               @default(0)
+  totalRevenue    Float              @default(0)
+  isActive        Boolean            @default(true)
+
+  instructeur     InstructeurProfile @relation("InstructeurCampaignTrackers", fields: [instructeurId], references: [id], onDelete: Cascade)
+  events          CampaignEvent[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([instructeurId])
+  @@index([slug])
+  @@index([isActive])
+}
+
+model CampaignEvent {
+  id            String          @id @default(cuid())
+  campaignId    String
+  userId        String?
+  visitorId     String?
+  eventType     String          // "click", "conversion", "purchase"
+  ip            String?
+  userAgent     String?
+  referer       String?
+  revenue       Float?
+  metadata      Json?
+
+  campaign      CampaignTracker @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user          User?           @relation("UserCampaignEvents", fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt     DateTime        @default(now())
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([eventType])
+  @@index([createdAt])
+}
+
+// ── Automation Engine ─────────────────────────────────────────
+
+model AutomationWorkflow {
+  id              String             @id @default(cuid())
+  instructeurId   String
+  name            String
+  description     String?            @db.Text
+  status          WorkflowStatus     @default(DRAFT)
+  // Trigger
+  triggerType     AutomationTriggerType
+  triggerConfig   Json?              // e.g., { "formationId": "xxx", "minProgress": 80 }
+  // Actions (ordered list)
+  actions         Json               // AutomationActionType[] with config
+  // Stats
+  totalExecutions Int                @default(0)
+  lastExecutedAt  DateTime?
+  // Conditions
+  conditions      Json?              // optional filter conditions
+
+  instructeur     InstructeurProfile @relation("InstructeurAutomationWorkflows", fields: [instructeurId], references: [id], onDelete: Cascade)
+  logs            AutomationLog[]
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@index([instructeurId])
+  @@index([status])
+  @@index([triggerType])
+}
+
+model AutomationLog {
+  id            String             @id @default(cuid())
+  workflowId    String
+  userId        String?            // user that triggered this
+  triggerEvent  String             // what triggered it
+  actionsRun    Json               // list of actions executed
+  success       Boolean            @default(true)
+  error         String?            @db.Text
+  executionMs   Int?               // execution time
+
+  workflow      AutomationWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime           @default(now())
+
+  @@index([workflowId])
+  @@index([createdAt])
+  @@index([success])
+}
+
+// ── User Tags ─────────────────────────────────────────────────
+
+model UserTag {
+  id        String   @id @default(cuid())
+  userId    String
+  tag       String
+  source    String?  // "automation", "manual", "email_sequence"
+
+  user      User     @relation("UserTags", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tag])
+  @@index([userId])
+  @@index([tag])
+}
+
+// ── Refund Requests ──
+
+model RefundRequest {
+  id           String    @id @default(cuid())
+  userId       String
+  enrollmentId String
+  amount       Float
+  reason       String    @db.Text
+  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  adminNote    String?   @db.Text
+  resolvedAt   DateTime?
+  resolvedBy   String?
+
+  user         User       @relation("UserRefundRequests", fields: [userId], references: [id], onDelete: Cascade)
+  enrollment   Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime   @default(now())
+
+  @@index([userId])
+  @@index([enrollmentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ── Discussion Reports ──
+
+model DiscussionReport {
+  id           String  @id @default(cuid())
+  userId       String
+  discussionId String?
+  replyId      String?
+  reason       String  // spam, harassment, inappropriate, off-topic
+
+  user         User                  @relation("UserDiscussionReports", fields: [userId], references: [id], onDelete: Cascade)
+  discussion   CourseDiscussion?     @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  reply        CourseDiscussionReply? @relation("ReplyReports", fields: [replyId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, discussionId])
+  @@index([discussionId])
+  @@index([replyId])
+  @@index([createdAt])
+}
+
+// ── Formations Config ──
+
+model FormationsConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+  label String?
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }

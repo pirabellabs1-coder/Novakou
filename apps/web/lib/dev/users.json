@@ -8,37 +8,11 @@
     "plan": "business",
     "kyc": 4,
     "status": "ACTIF",
-    "createdAt": "2026-03-14T18:47:16.178Z",
+    "createdAt": "2026-01-01T00:00:00.000Z",
     "loginCount": 1,
+    "country": "FR",
     "adminRole": "super_admin",
-    "lastLoginAt": "2026-03-15T05:39:07.622Z"
-  },
-  {
-    "id": "dev-apprenant-1",
-    "email": "apprenant@test.com",
-    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
-    "name": "Apprenant Test",
-    "role": "freelance",
-    "plan": "gratuit",
-    "kyc": 2,
-    "status": "ACTIF",
-    "createdAt": "2026-03-14T18:47:16.178Z",
-    "loginCount": 2,
-    "formationsRole": "apprenant",
-    "lastLoginAt": "2026-03-15T05:37:08.380Z"
-  },
-  {
-    "id": "dev-instructeur-1",
-    "email": "instructeur@test.com",
-    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
-    "name": "Instructeur Test",
-    "role": "freelance",
-    "plan": "pro",
-    "kyc": 3,
-    "status": "ACTIF",
-    "createdAt": "2026-03-14T18:47:16.178Z",
-    "loginCount": 0,
-    "formationsRole": "instructeur"
+    "lastLoginAt": "2026-03-18T20:33:12.048Z"
   },
   {
     "id": "dev-freelance-1",
@@ -49,7 +23,7 @@
     "plan": "pro",
     "kyc": 3,
     "status": "ACTIF",
-    "createdAt": "2026-03-14T18:47:16.178Z",
+    "createdAt": "2026-01-01T00:00:00.000Z",
     "loginCount": 0,
     "country": "SN"
   },
@@ -62,7 +36,7 @@
     "plan": "gratuit",
     "kyc": 2,
     "status": "ACTIF",
-    "createdAt": "2026-03-14T18:47:16.178Z",
+    "createdAt": "2026-01-01T00:00:00.000Z",
     "loginCount": 0,
     "country": "FR"
   },
@@ -75,8 +49,35 @@
     "plan": "agence",
     "kyc": 3,
     "status": "ACTIF",
-    "createdAt": "2026-03-14T18:47:16.178Z",
+    "createdAt": "2026-01-01T00:00:00.000Z",
     "loginCount": 0,
     "country": "CI"
+  },
+  {
+    "id": "dev-instructeur-1",
+    "email": "instructeur@test.com",
+    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
+    "name": "Instructeur FreelanceHigh",
+    "role": "freelance",
+    "plan": "pro",
+    "kyc": 3,
+    "status": "ACTIF",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "loginCount": 1,
+    "formationsRole": "instructeur",
+    "lastLoginAt": "2026-03-18T20:38:40.402Z"
+  },
+  {
+    "id": "dev-apprenant-1",
+    "email": "apprenant@test.com",
+    "passwordHash": "$2b$12$eZw2Zre.jn/hIW2ufWpkfuGOzpur/UE/lOFHUam3kazRFvyjU75vS",
+    "name": "Apprenant FreelanceHigh",
+    "role": "freelance",
+    "plan": "gratuit",
+    "kyc": 2,
+    "status": "ACTIF",
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "loginCount": 0,
+    "formationsRole": "apprenant"
   }
 ]

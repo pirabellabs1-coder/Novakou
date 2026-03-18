@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useCurrencyStore, CURRENCIES, type Currency } from "@/store/currency";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -34,6 +35,9 @@ export function Navbar() {
 
         {/* Actions desktop */}
         <div className="flex items-center gap-6">
+          {/* Theme toggle */}
+          <ThemeToggle className="hidden lg:block" />
+
           {/* Locale switcher */}
           <LocaleSwitcher className="hidden lg:flex" />
 
@@ -99,11 +103,14 @@ export function Navbar() {
             <Link href="/tarifs" className="px-3 py-2 text-sm font-semibold hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" onClick={() => setMobileOpen(false)}>{t("tarifs")}</Link>
           </nav>
 
-          {/* Locale switcher mobile */}
+          {/* Theme + Locale mobile */}
           <div className="pt-2 border-t border-primary/20">
-            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2 px-3">{t("devise")}</p>
-            <div className="flex items-center gap-3 px-3 mb-3">
-              <LocaleSwitcher />
+            <div className="flex items-center justify-between px-3 mb-3">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">{t("devise")}</p>
+                <LocaleSwitcher />
+              </div>
+              <ThemeToggle />
             </div>
           </div>
 

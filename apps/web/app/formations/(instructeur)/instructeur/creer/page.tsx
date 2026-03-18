@@ -725,7 +725,7 @@ export default function CreateFormationPage() {
                   onClick={() => setIsFree(!isFree)}
                   className={`w-12 h-6 rounded-full transition-colors relative ${isFree ? "bg-primary" : "bg-border-dark"}`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${isFree ? "translate-x-6" : "translate-x-0.5"}`} />
+                  <div className={`w-5 h-5 bg-white dark:bg-slate-900 rounded-full absolute top-0.5 transition-transform ${isFree ? "translate-x-6" : "translate-x-0.5"}`} />
                 </button>
               </div>
 
@@ -791,7 +791,7 @@ export default function CreateFormationPage() {
                     onClick={() => { setHasMaxStudents(!hasMaxStudents); if (!hasMaxStudents) setMaxStudents(100); }}
                     className={`w-12 h-6 rounded-full transition-colors relative ${hasMaxStudents ? "bg-primary" : "bg-border-dark"}`}
                   >
-                    <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${hasMaxStudents ? "translate-x-6" : "translate-x-0.5"}`} />
+                    <div className={`w-5 h-5 bg-white dark:bg-slate-900 rounded-full absolute top-0.5 transition-transform ${hasMaxStudents ? "translate-x-6" : "translate-x-0.5"}`} />
                   </button>
                 </div>
                 {hasMaxStudents && (
@@ -820,7 +820,7 @@ export default function CreateFormationPage() {
                     onClick={() => setHasCertificate(!hasCertificate)}
                     className={`w-12 h-6 rounded-full transition-colors relative ${hasCertificate ? "bg-primary" : "bg-border-dark"}`}
                   >
-                    <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${hasCertificate ? "translate-x-6" : "translate-x-0.5"}`} />
+                    <div className={`w-5 h-5 bg-white dark:bg-slate-900 rounded-full absolute top-0.5 transition-transform ${hasCertificate ? "translate-x-6" : "translate-x-0.5"}`} />
                   </button>
                 </div>
 
@@ -1084,12 +1084,11 @@ export default function CreateFormationPage() {
                                         )}
 
                                         {lesson.type === "TEXTE" && (
-                                          <textarea
-                                            value={lesson.content ?? ""}
-                                            onChange={(e) => updateLesson(section.id, lesson.id, { content: e.target.value })}
-                                            rows={3}
-                                            className="w-full bg-neutral-dark border border-border-dark/60 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                                          <FormationRichEditor
+                                            content={lesson.content ?? ""}
+                                            onChange={(html) => updateLesson(section.id, lesson.id, { content: html })}
                                             placeholder="Contenu texte de la leçon..."
+                                            minHeight={150}
                                           />
                                         )}
 

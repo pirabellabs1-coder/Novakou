@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
       select: { paidAmount: true, createdAt: true },
     });
 
-    const revenueByMonth: { month: string; amount: number }[] = [];
+    const revenueByMonth: { month: string; revenue: number }[] = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const nextD = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
 
       revenueByMonth.push({
         month: d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }),
-        amount: Math.round(monthRevenue * INSTRUCTOR_COMMISSION * 100) / 100,
+        revenue: Math.round(monthRevenue * INSTRUCTOR_COMMISSION * 100) / 100,
       });
     }
 
@@ -126,19 +126,87 @@ export async function GET(req: NextRequest) {
         ) / 10
       : 0;
 
+    // Trend calculation: compare current month vs previous month
+    const prevMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevMonthEnd = firstOfMonth;
+    const prevMonthEnrollments = await prisma.enrollment.findMany({
+      where: {
+        formationId: { in: formationIds },
+        createdAt: { gte: prevMonthStart, lt: prevMonthEnd },
+      },
+      select: { paidAmount: true },
+    });
+    const revenuePrevMonth = prevMonthEnrollments.reduce((acc, e) => acc + e.paidAmount, 0);
+    const revenueTrend = revenuePrevMonth > 0
+      ? Math.round(((revenueThisMonth - revenuePrevMonth) / revenuePrevMonth) * 1000) / 10
+      : revenueThisMonth > 0 ? 100 : 0;
+
+    // Students trend
+    const studentsThisMonth = enrollments.filter((e) => new Date(e.createdAt) >= firstOfMonth).length;
+    const studentsPrevMonth = prevMonthEnrollments.length;
+    const studentsTrend = studentsPrevMonth > 0
+      ? Math.round(((studentsThisMonth - studentsPrevMonth) / studentsPrevMonth) * 1000) / 10
+      : studentsThisMonth > 0 ? 100 : 0;
+
+    // Recent enrollments
+    const recentEnrollments = await prisma.enrollment.findMany({
+      where: { formationId: { in: formationIds } },
+      select: {
+        id: true,
+        createdAt: true,
+        user: { select: { name: true, avatar: true, image: true } },
+        formation: { select: { titleFr: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    // Recent reviews
+    const recentReviews = await prisma.formationReview.findMany({
+      where: { formationId: { in: formationIds } },
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        createdAt: true,
+        user: { select: { name: true } },
+        formation: { select: { titleFr: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
     return NextResponse.json({
       totalRevenue: Math.round(totalRevenue * INSTRUCTOR_COMMISSION * 100) / 100,
       revenueThisMonth: Math.round(revenueThisMonth * INSTRUCTOR_COMMISSION * 100) / 100,
-      pendingRevenue: 0, // Calculé à partir des enrollments < 30 jours
+      pendingRevenue: 0,
       netRevenue,
       totalStudents,
       activeFormations: formations.filter((f) => f.status === "ACTIF").length,
-      avgRating,
+      averageRating: avgRating,
+      revenueTrend,
+      studentsTrend,
       revenueByMonth,
       topFormations: formationStats,
+      recentEnrollments,
+      recentReviews,
     });
   } catch (error) {
     console.error("[GET /api/instructeur/dashboard]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({
+      totalRevenue: 0,
+      revenueThisMonth: 0,
+      pendingRevenue: 0,
+      netRevenue: 0,
+      totalStudents: 0,
+      activeFormations: 0,
+      averageRating: 0,
+      revenueTrend: 0,
+      studentsTrend: 0,
+      revenueByMonth: [],
+      topFormations: [],
+      recentEnrollments: [],
+      recentReviews: [],
+    });
   }
 }

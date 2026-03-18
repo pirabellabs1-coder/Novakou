@@ -17,7 +17,7 @@ export async function GET(
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    // Find the product
+    // Find the product (include instructeurId for owner check)
     const product = await prisma.digitalProduct.findFirst({
       where: { OR: [{ id }, { slug: id }] },
       select: {
@@ -28,6 +28,7 @@ export async function GET(
         fileSize: true,
         titleFr: true,
         isFree: true,
+        instructeur: { select: { userId: true } },
       },
     });
 
@@ -42,8 +43,11 @@ export async function GET(
       );
     }
 
-    // For free products, no purchase check needed
-    if (!product.isFree) {
+    // Allow the product's own instructor to download (for testing/verification)
+    const isOwner = product.instructeur?.userId === session.user.id;
+
+    // For free products or product owner, no purchase check needed
+    if (!product.isFree && !isOwner) {
       // Verify the user has purchased this product
       const purchase = await prisma.digitalProductPurchase.findUnique({
         where: {

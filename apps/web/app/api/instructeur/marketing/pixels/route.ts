@@ -13,7 +13,9 @@ const PIXEL_REGEXES: Record<string, RegExp> = {
   TIKTOK: /^[A-Z0-9]{20,}$/,
 };
 
-export async function GET(req: NextRequest) {
+// ── GET ──────────────────────────────────────────────────────────────────────
+
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -39,6 +41,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// ── POST ─────────────────────────────────────────────────────────────────────
+
 const createPixelSchema = z.object({
   type: z.enum(["FACEBOOK", "GOOGLE", "TIKTOK"]),
   pixelId: z.string().min(1),
@@ -47,6 +51,9 @@ const createPixelSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
+    const data = createPixelSchema.parse(body);
+
     const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
@@ -58,9 +65,6 @@ export async function POST(req: NextRequest) {
     if (!instructeur) {
       return NextResponse.json({ error: "Instructeur non trouvé" }, { status: 403 });
     }
-
-    const body = await req.json();
-    const data = createPixelSchema.parse(body);
 
     // Validate pixel ID format
     const regex = PIXEL_REGEXES[data.type];
@@ -82,7 +86,6 @@ export async function POST(req: NextRequest) {
     });
 
     if (existing) {
-      // Update existing instead
       const pixel = await prisma.marketingPixel.update({
         where: { id: existing.id },
         data: { pixelId: data.pixelId, isActive: data.isActive },

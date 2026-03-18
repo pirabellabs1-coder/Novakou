@@ -1,31 +1,71 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, DragEvent } from "react";
 import { cn } from "@/lib/utils";
 import { MessageBubble } from "./MessageBubble";
 import { VoiceRecorder } from "./voice/VoiceRecorder";
+import { ImageLightbox } from "./ImageLightbox";
 import type { UnifiedConversation, MessageContentType } from "@/store/messaging";
+
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
+const ALLOWED_EXTENSIONS = [
+  "jpg", "jpeg", "png", "gif", "webp",
+  "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt",
+  "mp4", "webm", "mov",
+  "zip", "rar", "7z",
+];
 
 interface ChatPanelProps {
   conversation: UnifiedConversation | null;
   currentUserId: string;
-  onSendMessage: (content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number) => void;
+  onSendMessage: (content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number, fileUrl?: string, fileType?: string) => void;
   onMarkRead: () => void;
+  onEditMessage?: (messageId: string, newContent: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
   showAdminActions?: boolean;
   onSendSystemMessage?: (content: string) => void;
   onStartAudioCall?: () => void;
   onStartVideoCall?: () => void;
 }
 
-// Simulated Cloudinary upload (demo mode)
-async function uploadAudioToCloudinary(blob: Blob): Promise<string> {
-  // In production, this would upload to Cloudinary via an API route:
-  // const formData = new FormData();
-  // formData.append("file", blob);
-  // formData.append("upload_preset", "voice_messages");
-  // const res = await fetch("https://api.cloudinary.com/v1_1/<cloud>/auto/upload", { method: "POST", body: formData });
-  // return (await res.json()).secure_url;
-  return URL.createObjectURL(blob);
+async function uploadFileToServer(file: File, onProgress?: (pct: number) => void): Promise<{ url: string; name: string; size: number; type: string } | null> {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("bucket", "message-attachments");
+
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload/file");
+
+    if (onProgress) {
+      xhr.upload.addEventListener("progress", (e) => {
+        if (e.lengthComputable) {
+          onProgress(Math.round((e.loaded / e.total) * 100));
+        }
+      });
+    }
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        const data = JSON.parse(xhr.responseText);
+        if (data.success && data.file) {
+          resolve({ url: data.file.url, name: data.file.name, size: data.file.size, type: data.file.type });
+        } else {
+          reject(new Error(data.error || "Upload echoue"));
+        }
+      } else {
+        try {
+          const errData = JSON.parse(xhr.responseText);
+          reject(new Error(errData.error || "Upload echoue"));
+        } catch {
+          reject(new Error("Upload echoue"));
+        }
+      }
+    };
+
+    xhr.onerror = () => reject(new Error("Erreur reseau"));
+    xhr.send(formData);
+  });
 }
 
 export function ChatPanel({
@@ -33,6 +73,8 @@ export function ChatPanel({
   currentUserId,
   onSendMessage,
   onMarkRead,
+  onEditMessage,
+  onDeleteMessage,
   showAdminActions = false,
   onSendSystemMessage,
   onStartAudioCall,
@@ -41,8 +83,13 @@ export function ChatPanel({
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [messageFilter, setMessageFilter] = useState<"all" | "voice" | "calls" | "files">("all");
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ fileName: string; progress: number } | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,28 +99,105 @@ export function ChatPanel({
     if (conversation) onMarkRead();
   }, [conversation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Auto-dismiss error
+  useEffect(() => {
+    if (uploadError) {
+      const timer = setTimeout(() => setUploadError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [uploadError]);
+
   function handleSend() {
     if (!input.trim()) return;
     onSendMessage(input.trim());
     setInput("");
   }
 
-  function handleFileUpload(files: FileList | null) {
+  function validateFile(file: File): string | null {
+    if (file.size > MAX_FILE_SIZE) {
+      return `Le fichier "${file.name}" depasse la taille maximale de 25 MB`;
+    }
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return `Le type de fichier "${ext}" n'est pas autorise`;
+    }
+    return null;
+  }
+
+  async function handleFileUpload(files: FileList | null) {
     if (!files) return;
-    Array.from(files).forEach((f) => {
-      onSendMessage(f.name, "file", f.name, `${(f.size / (1024 * 1024)).toFixed(1)} MB`);
-    });
+
+    for (const file of Array.from(files)) {
+      const error = validateFile(file);
+      if (error) {
+        setUploadError(error);
+        continue;
+      }
+
+      setUploadProgress({ fileName: file.name, progress: 0 });
+
+      try {
+        const result = await uploadFileToServer(file, (pct) => {
+          setUploadProgress({ fileName: file.name, progress: pct });
+        });
+
+        if (result) {
+          const isImage = file.type.startsWith("image/");
+          const msgType: MessageContentType = isImage ? "image" : "file";
+          const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+          onSendMessage(file.name, msgType, file.name, sizeStr, undefined, undefined, result.url, file.type);
+        }
+      } catch (err) {
+        setUploadError(err instanceof Error ? err.message : "Upload echoue");
+      }
+
+      setUploadProgress(null);
+    }
   }
 
   const handleVoiceSend = useCallback(async (blob: Blob, duration: number) => {
     setIsRecording(false);
     try {
-      const url = await uploadAudioToCloudinary(blob);
-      onSendMessage("Message vocal", "voice", undefined, undefined, url, duration);
+      const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+      const result = await uploadFileToServer(file);
+      const audioUrl = result?.url || URL.createObjectURL(blob);
+      onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration);
     } catch {
-      // Upload failed — silently handle in demo
+      // Fallback to local URL in case of upload failure
+      const audioUrl = URL.createObjectURL(blob);
+      onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration);
     }
   }, [onSendMessage]);
+
+  // Drag and drop handlers
+  function handleDragEnter(e: DragEvent) {
+    e.preventDefault();
+    dragCounterRef.current++;
+    if (e.dataTransfer.types.includes("Files")) {
+      setIsDragging(true);
+    }
+  }
+
+  function handleDragLeave(e: DragEvent) {
+    e.preventDefault();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault();
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragging(false);
+    if (e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files);
+    }
+  }
 
   if (!conversation) {
     return (
@@ -103,7 +227,23 @@ export function ChatPanel({
   });
 
   return (
-    <div className="flex-1 flex flex-col min-w-0">
+    <div
+      className="flex-1 flex flex-col min-w-0 relative"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {/* Drag overlay */}
+      {isDragging && (
+        <div className="absolute inset-0 z-30 bg-primary/5 border-2 border-dashed border-primary/40 rounded-lg flex items-center justify-center pointer-events-none">
+          <div className="text-center">
+            <span className="material-symbols-outlined text-4xl text-primary/60">cloud_upload</span>
+            <p className="text-sm text-primary/80 font-medium mt-2">Deposez vos fichiers ici</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-border-dark flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -135,7 +275,6 @@ export function ChatPanel({
             </a>
           )}
 
-          {/* Call buttons */}
           <button
             onClick={onStartAudioCall}
             className="p-2 text-slate-400 hover:text-emerald-400 rounded-lg hover:bg-emerald-500/10 transition-colors"
@@ -210,11 +349,44 @@ export function ChatPanel({
               message={msg}
               isOwn={isOwn}
               showSenderInfo={showSenderInfo}
+              onEdit={onEditMessage}
+              onDelete={onDeleteMessage}
+              onImageClick={(url) => setLightboxImage(url)}
             />
           );
         })}
         <div ref={chatEndRef} />
       </div>
+
+      {/* Upload progress / error */}
+      {(uploadProgress || uploadError) && (
+        <div className="px-4 py-2 border-t border-border-dark/50">
+          {uploadProgress && (
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-sm text-primary animate-spin">progress_activity</span>
+              <div className="flex-1">
+                <p className="text-xs text-slate-400 truncate">{uploadProgress.fileName}</p>
+                <div className="w-full h-1.5 bg-border-dark rounded-full mt-1">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${uploadProgress.progress}%` }}
+                  />
+                </div>
+              </div>
+              <span className="text-xs text-slate-500">{uploadProgress.progress}%</span>
+            </div>
+          )}
+          {uploadError && (
+            <div className="flex items-center gap-2 text-red-400">
+              <span className="material-symbols-outlined text-sm">error</span>
+              <p className="text-xs">{uploadError}</p>
+              <button onClick={() => setUploadError(null)} className="ml-auto text-slate-500 hover:text-slate-300">
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Input */}
       <div className="border-t border-border-dark p-4 flex-shrink-0">
@@ -222,6 +394,7 @@ export function ChatPanel({
           <button
             onClick={() => fileRef.current?.click()}
             className="p-2.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
+            aria-label="Joindre un fichier"
           >
             <span className="material-symbols-outlined">attach_file</span>
           </button>
@@ -229,6 +402,7 @@ export function ChatPanel({
             ref={fileRef}
             type="file"
             multiple
+            accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",")}
             className="hidden"
             onChange={(e) => handleFileUpload(e.target.files)}
           />
@@ -267,6 +441,14 @@ export function ChatPanel({
           )}
         </div>
       </div>
+
+      {/* Image lightbox */}
+      {lightboxImage && (
+        <ImageLightbox
+          imageUrl={lightboxImage}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
     </div>
   );
 }

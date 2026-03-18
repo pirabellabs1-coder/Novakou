@@ -61,13 +61,13 @@ export default function AdminFormationsCertificatsPage() {
       <div className="flex gap-3">
         <div className="relative flex-1 max-w-md">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("admin_search_certificates")} className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
+          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("admin_search_certificates")} className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary" />
         </div>
         <div className="text-sm text-slate-500 flex items-center">{filtered.length} {t("admin_certificates_count")}</div>
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="border-b border-slate-200 dark:border-slate-700">
             <tr className="text-slate-500 text-xs uppercase">
@@ -87,7 +87,7 @@ export default function AdminFormationsCertificatsPage() {
               <tr><td colSpan={7} className="p-8 text-center text-slate-400">{t("admin_no_certificates")}</td></tr>
             ) : (
               filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                <tr key={c.id} className="hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700/30 transition-colors">
                   <td className="p-4"><Link href={`/formations/verification/${c.code}`} target="_blank" className="font-mono text-xs text-primary hover:underline">{c.code}</Link></td>
                   <td className="p-4">
                     <p className="text-sm">{c.user.name}</p>
@@ -127,13 +127,13 @@ export default function AdminFormationsCertificatsPage() {
       {revokeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setRevokeModal(null)} />
-          <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-xl">
+          <div className="relative bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-xl">
             <h2 className="font-bold mb-2">{t("admin_revoke_certificate_title")}</h2>
             <p className="text-sm text-slate-500 mb-1">{revokeModal.user.name} — {revokeModal.formation.titleFr}</p>
             <p className="font-mono text-xs text-slate-400 mb-4">{revokeModal.code}</p>
             <p className="text-sm text-red-600 mb-4">{t("admin_revoke_warning")}</p>
             <div className="flex gap-3">
-              <button onClick={() => setRevokeModal(null)} className="flex-1 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">{t("cancel")}</button>
+              <button onClick={() => setRevokeModal(null)} className="flex-1 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors text-sm">{t("cancel")}</button>
               <button onClick={() => revoke(revokeModal.id)} disabled={!!actionLoading} className="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl hover:bg-red-700 transition-colors text-sm disabled:opacity-50">{t("admin_revoke")}</button>
             </div>
           </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Users, MessageSquare, Settings, Award } from "lucide-react";
+import { ChevronLeft, Users, MessageSquare, Settings, Award, AlertCircle } from "lucide-react";
 import CohortChat from "@/components/formations/CohortChat";
 
 interface Participant {
@@ -72,30 +72,49 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
   const updateStatus = async (newStatus: string) => {
     if (!confirm(fr ? `Passer la cohorte en "${newStatus}" ?` : `Set cohort status to "${newStatus}"?`)) return;
     setUpdating(true);
-    const res = await fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setCohort(data);
+    try {
+      const res = await fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCohort(data);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || (fr ? "Erreur lors de la mise à jour du statut" : "Error updating cohort status"));
+      }
+    } catch {
+      alert(fr ? "Erreur réseau" : "Network error");
+    } finally {
+      setUpdating(false);
     }
-    setUpdating(false);
   };
 
   if (loading) {
     return (
       <div className="max-w-5xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-slate-100 rounded w-1/3" />
-          <div className="h-4 bg-slate-100 rounded w-1/2" />
+          <div className="h-8 bg-slate-100 dark:bg-slate-800 rounded w-1/3" />
+          <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
         </div>
       </div>
     );
   }
 
-  if (!cohort) return null;
+  if (!cohort) return (
+    <div className="flex flex-col items-center justify-center py-20 gap-4">
+      <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+        <AlertCircle className="w-8 h-8 text-slate-400" />
+      </div>
+      <h2 className="text-lg font-semibold text-slate-700">Cohorte introuvable</h2>
+      <p className="text-sm text-slate-500">Cette cohorte n&apos;existe pas ou a ete supprimee.</p>
+      <Link href={`/formations/instructeur/${id}/cohorts`} className="text-sm text-primary font-medium hover:underline">
+        Retour aux cohortes
+      </Link>
+    </div>
+  );
 
   const title = fr ? cohort.titleFr : (cohort.titleEn || cohort.titleFr);
   const avgProgress = participants.length > 0
@@ -106,11 +125,11 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href={`/formations/instructeur/${id}/cohorts`} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+        <Link href={`/formations/instructeur/${id}/cohorts`} className="p-2 rounded-lg hover:bg-slate-100 dark:bg-slate-800 transition-colors">
           <ChevronLeft className="w-5 h-5 text-slate-600" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
           <p className="text-sm text-slate-500">
             {fr ? STATUS_LABELS_FR[cohort.status] : STATUS_LABELS_EN[cohort.status]} — {cohort.currentCount}/{cohort.maxParticipants} {fr ? "participants" : "participants"}
           </p>
@@ -119,26 +138,26 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Participants" : "Participants"}</p>
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{cohort.currentCount}/{cohort.maxParticipants}</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{cohort.currentCount}/{cohort.maxParticipants}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Progression moyenne" : "Avg Progress"}</p>
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{avgProgress}%</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{avgProgress}%</p>
         </div>
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Messages" : "Messages"}</p>
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{cohort._count?.messages ?? 0}</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{cohort._count?.messages ?? 0}</p>
         </div>
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4">
           <p className="text-xs text-slate-500">{fr ? "Revenus" : "Revenue"}</p>
           <p className="text-xl font-bold text-primary">{(cohort.price * cohort.currentCount * 0.7).toFixed(0)}€</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 w-fit mb-6">
+      <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit mb-6">
         {([
           ["participants", fr ? "Participants" : "Participants", Users],
           ["chat", fr ? "Chat" : "Chat", MessageSquare],
@@ -148,7 +167,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
             key={key}
             onClick={() => setTab(key as typeof tab)}
             className={`flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === key ? "bg-white dark:bg-neutral-dark text-slate-900 dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === key ? "bg-white dark:bg-slate-900 dark:bg-neutral-dark text-slate-900 dark:text-white dark:text-slate-100 shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             <Icon className="w-4 h-4" />
@@ -159,7 +178,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
 
       {/* Participants tab */}
       {tab === "participants" && (
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark overflow-hidden">
           {participants.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
               <Users className="w-10 h-10 mx-auto mb-3 text-slate-300" />
@@ -168,7 +187,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b bg-slate-50 text-xs text-slate-500 uppercase">
+                <tr className="border-b bg-slate-50 dark:bg-slate-800/50 text-xs text-slate-500 uppercase">
                   <th className="text-left px-4 py-3">{fr ? "Participant" : "Participant"}</th>
                   <th className="text-left px-4 py-3">{fr ? "Progression" : "Progress"}</th>
                   <th className="text-left px-4 py-3">{fr ? "Inscrit le" : "Enrolled"}</th>
@@ -177,7 +196,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
               </thead>
               <tbody>
                 {participants.map((p) => (
-                  <tr key={p.id} className="border-b last:border-0 hover:bg-slate-50">
+                  <tr key={p.id} className="border-b last:border-0 hover:bg-slate-50 dark:bg-slate-800/50">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 overflow-hidden flex-shrink-0">
@@ -190,14 +209,14 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-slate-900">{p.user.name}</p>
+                          <p className="text-sm font-medium text-slate-900 dark:text-white">{p.user.name}</p>
                           {p.user.country && <p className="text-xs text-slate-400">{p.user.country}</p>}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div className="w-24 bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
                           <div className={`h-full rounded-full ${p.progress >= 100 ? "bg-green-500" : "bg-primary"}`}
                             style={{ width: `${p.progress}%` }} />
                         </div>
@@ -238,9 +257,9 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
 
       {/* Settings tab */}
       {tab === "settings" && (
-        <div className="bg-white dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 space-y-6">
+        <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 space-y-6">
           <div>
-            <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-3">{fr ? "Informations" : "Details"}</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white dark:text-slate-100 mb-3">{fr ? "Informations" : "Details"}</h3>
             <div className="grid sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-slate-500">{fr ? "Début" : "Start"}</span>
@@ -262,13 +281,21 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="font-semibold text-slate-900 mb-3">{fr ? "Actions" : "Actions"}</h3>
+            <h3 className="font-semibold text-slate-900 dark:text-white mb-3">{fr ? "Actions" : "Actions"}</h3>
             <div className="flex flex-wrap gap-2">
               {cohort.status === "OUVERT" && (
-                <button onClick={() => updateStatus("ANNULE")} disabled={updating}
-                  className="px-4 py-2 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50">
-                  {fr ? "Annuler la cohorte" : "Cancel Cohort"}
-                </button>
+                <>
+                  {cohort.currentCount > 0 && (
+                    <button onClick={() => updateStatus("EN_COURS")} disabled={updating}
+                      className="px-4 py-2 text-sm bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg hover:bg-yellow-100 transition-colors disabled:opacity-50">
+                      {fr ? "Démarrer maintenant" : "Start Now"}
+                    </button>
+                  )}
+                  <button onClick={() => updateStatus("ANNULE")} disabled={updating}
+                    className="px-4 py-2 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50">
+                    {fr ? "Annuler la cohorte" : "Cancel Cohort"}
+                  </button>
+                </>
               )}
               {cohort.status === "COMPLET" && (
                 <button onClick={() => updateStatus("EN_COURS")} disabled={updating}

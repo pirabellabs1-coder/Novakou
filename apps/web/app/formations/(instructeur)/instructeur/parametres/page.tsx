@@ -30,6 +30,7 @@ export default function InstructeurParametresPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [form, setForm] = useState({
     name: "",
     avatar: "",
@@ -41,6 +42,7 @@ export default function InstructeurParametresPage() {
   });
 
   useEffect(() => {
+    if (status === "loading") return;
     if (status === "unauthenticated") { router.replace("/formations/connexion"); return; }
     if (status !== "authenticated") return;
 
@@ -67,14 +69,22 @@ export default function InstructeurParametresPage() {
   const handleSave = async () => {
     setSaving(true);
     setSuccess(false);
+    setSaveError("");
     try {
       const res = await fetch("/api/instructeur/profil", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (res.ok) setSuccess(true);
-    } catch { /* ignored */ }
+      if (res.ok) {
+        setSuccess(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSaveError(data.error || (fr ? "Erreur lors de la sauvegarde" : "Error saving changes"));
+      }
+    } catch {
+      setSaveError(fr ? "Erreur réseau, veuillez réessayer" : "Network error, please try again");
+    }
     setSaving(false);
   };
 
@@ -83,8 +93,8 @@ export default function InstructeurParametresPage() {
       <div className="space-y-6">
         <h1 className="text-2xl font-extrabold tracking-tight">{t("settings")}</h1>
         <div className="animate-pulse space-y-4">
-          <div className="h-40 bg-slate-100 rounded-2xl" />
-          <div className="h-32 bg-slate-100 rounded-2xl" />
+          <div className="h-40 bg-slate-100 dark:bg-slate-800 dark:bg-white/5 rounded-2xl" />
+          <div className="h-32 bg-slate-100 dark:bg-slate-800 dark:bg-white/5 rounded-2xl" />
         </div>
       </div>
     );
@@ -95,7 +105,7 @@ export default function InstructeurParametresPage() {
       <h1 className="text-2xl font-extrabold tracking-tight">{t("settings")}</h1>
 
       {/* Photo de profil */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
         <h2 className="font-semibold mb-4">{fr ? "Photo de profil" : "Profile photo"}</h2>
         <div className="flex items-start gap-6">
           <div className="w-32">
@@ -118,14 +128,14 @@ export default function InstructeurParametresPage() {
       </div>
 
       {/* Nom */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
         <h2 className="font-semibold">{fr ? "Informations personnelles" : "Personal information"}</h2>
         <div>
           <label className="text-xs text-slate-500 mb-1 block">{fr ? "Nom complet" : "Full name"}</label>
           <input
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div>
@@ -134,7 +144,7 @@ export default function InstructeurParametresPage() {
             value={form.bioFr}
             onChange={(e) => setForm((p) => ({ ...p, bioFr: e.target.value }))}
             rows={3}
-            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           />
         </div>
         <div>
@@ -143,13 +153,13 @@ export default function InstructeurParametresPage() {
             value={form.bioEn}
             onChange={(e) => setForm((p) => ({ ...p, bioEn: e.target.value }))}
             rows={3}
-            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           />
         </div>
       </div>
 
       {/* Liens */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
         <h2 className="font-semibold">{fr ? "Liens professionnels" : "Professional links"}</h2>
         {[
           { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/in/..." },
@@ -162,7 +172,7 @@ export default function InstructeurParametresPage() {
               value={form[key as keyof typeof form]}
               onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
               placeholder={placeholder}
-              className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         ))}
@@ -180,6 +190,11 @@ export default function InstructeurParametresPage() {
         {success && (
           <span className="text-green-600 text-sm font-medium">
             {fr ? "Modifications enregistrées" : "Changes saved"}
+          </span>
+        )}
+        {saveError && (
+          <span className="text-red-600 text-sm font-medium">
+            {saveError}
           </span>
         )}
       </div>

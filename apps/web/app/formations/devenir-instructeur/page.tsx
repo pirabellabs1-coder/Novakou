@@ -5,16 +5,7 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import {
-  CheckCircle, Star, ChevronRight, Send, Loader2,
-} from "lucide-react";
-
-const EXPERTISE_OPTIONS = [
-  "Développement Web", "App Mobile", "Design", "Marketing Digital",
-  "Intelligence Artificielle", "Data & Analytics", "Cybersécurité",
-  "Rédaction & Contenu", "Vidéo & Animation", "Langues",
-  "Freelancing & Business", "Développement Personnel",
-];
+import { Star, ChevronRight } from "lucide-react";
 
 export default function DevenirInstructeurPage() {
   const t = useTranslations("instructor_landing");
@@ -22,21 +13,7 @@ export default function DevenirInstructeurPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const [step, setStep] = useState<"landing" | "form" | "success">("landing");
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
-
-  const [form, setForm] = useState({
-    expertise: [] as string[],
-    bioFr: "",
-    bioEn: "",
-    linkedin: "",
-    website: "",
-    youtube: "",
-    motivation: "",
-    experience: "",
-  });
 
   const [platformStats, setPlatformStats] = useState<{ instructeurs: number; apprenants: number } | null>(null);
   useEffect(() => {
@@ -50,55 +27,12 @@ export default function DevenirInstructeurPage() {
   };
 
   const goToForm = () => {
-    if (!session?.user) { router.push("/formations/connexion"); return; }
-    setStep("form");
-  };
-
-  const toggleExpertise = (val: string) => {
-    setForm((prev) => ({
-      ...prev,
-      expertise: prev.expertise.includes(val)
-        ? prev.expertise.filter((e) => e !== val)
-        : [...prev.expertise, val],
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!session?.user) { router.push("/formations/connexion"); return; }
-    if (form.expertise.length === 0) {
-      setError(t("form_error_expertise"));
-      return;
-    }
-    if (!form.bioFr.trim() || form.bioFr.length < 50) {
-      setError(t("form_error_bio"));
-      return;
-    }
-    setError("");
-    setSubmitting(true);
-    try {
-      const res = await fetch("/api/instructeur/candidature", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          expertise: form.expertise,
-          bioFr: form.bioFr,
-          bioEn: form.bioEn || form.bioFr,
-          linkedin: form.linkedin || undefined,
-          website: form.website || undefined,
-          youtube: form.youtube || undefined,
-        }),
-      });
-      if (res.ok) {
-        setStep("success");
-      } else {
-        const data = await res.json();
-        setError(data.error || t("form_error_submit"));
-      }
-    } catch {
-      setError(t("form_error_network"));
-    } finally {
-      setSubmitting(false);
+    if (session?.user) {
+      // Already logged in — redirect to instructor dashboard
+      router.push("/formations/instructeur/dashboard");
+    } else {
+      // Not logged in — redirect to inscription with instructor role pre-selected
+      router.push("/formations/inscription?role=instructeur");
     }
   };
 
@@ -107,152 +41,6 @@ export default function DevenirInstructeurPage() {
     q: t(`faq_${i + 1}_q`),
     a: t(`faq_${i + 1}_a`),
   }));
-
-  // ── Success ──
-  if (step === "success") {
-    return (
-      <div className="min-h-screen bg-white dark:bg-slate-900 flex items-center justify-center py-12 px-4">
-        <div className="max-w-lg text-center">
-          <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-500" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-            {t("success_title")}
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 mb-6">
-            {t("success_desc")}
-          </p>
-          <Link href="/formations" className="inline-flex items-center gap-2 bg-primary text-white font-medium px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors">
-            {t("success_cta")}
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Form ──
-  if (step === "form") {
-    return (
-      <div className="min-h-screen bg-white dark:bg-slate-900 py-12 px-4">
-        <div className="max-w-2xl mx-auto">
-          <button onClick={() => setStep("landing")} className="text-sm text-slate-500 hover:text-primary mb-6 flex items-center gap-1">
-            ← {t("form_back")}
-          </button>
-
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
-              {t("form_title")}
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mb-8">
-              {t("form_subtitle")}
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Expertise */}
-              <div>
-                <label className="block font-medium text-slate-900 dark:text-white mb-3">
-                  {t("form_expertise_label")} *
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {EXPERTISE_OPTIONS.map((exp) => (
-                    <button
-                      key={exp}
-                      type="button"
-                      onClick={() => toggleExpertise(exp)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                        form.expertise.includes(exp)
-                          ? "bg-primary text-white border-primary"
-                          : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary"
-                      }`}
-                    >
-                      {exp}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-slate-400 mt-2">{form.expertise.length} {t("form_expertise_count")}</p>
-              </div>
-
-              {/* Bio FR */}
-              <div>
-                <label className="block font-medium text-slate-900 dark:text-white mb-2">
-                  {t("form_bio_fr_label")} *
-                </label>
-                <textarea
-                  value={form.bioFr}
-                  onChange={(e) => setForm((p) => ({ ...p, bioFr: e.target.value }))}
-                  rows={4}
-                  required
-                  minLength={50}
-                  placeholder={t("form_bio_fr_placeholder")}
-                  className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none placeholder:text-slate-400"
-                />
-                <p className="text-xs text-slate-400 mt-1">{form.bioFr.length}/50 min</p>
-              </div>
-
-              {/* Bio EN */}
-              <div>
-                <label className="block font-medium text-slate-900 dark:text-white mb-2">
-                  {t("form_bio_en_label")}
-                  <span className="text-slate-400 text-xs ml-2">{t("form_bio_en_optional")}</span>
-                </label>
-                <textarea
-                  value={form.bioEn}
-                  onChange={(e) => setForm((p) => ({ ...p, bioEn: e.target.value }))}
-                  rows={3}
-                  placeholder={t("form_bio_en_placeholder")}
-                  className="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none placeholder:text-slate-400"
-                />
-              </div>
-
-              {/* Links */}
-              <div className="space-y-3">
-                <label className="block font-medium text-slate-900 dark:text-white">{t("form_links_label")}</label>
-                {[
-                  { key: "linkedin", label: "LinkedIn", placeholder: "https://linkedin.com/in/..." },
-                  { key: "website", label: t("form_link_website"), placeholder: "https://..." },
-                  { key: "youtube", label: "YouTube", placeholder: "https://youtube.com/..." },
-                ].map(({ key, label, placeholder }) => (
-                  <div key={key} className="flex items-center gap-3">
-                    <label className="w-36 text-sm text-slate-600 dark:text-slate-400 flex-shrink-0">{label}</label>
-                    <input
-                      type="url"
-                      value={form[key as keyof typeof form] as string}
-                      onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
-                      placeholder={placeholder}
-                      className="flex-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-slate-400"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {error && (
-                <div className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm rounded-lg px-4 py-3">
-                  {error}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {submitting ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> {t("form_sending")}</>
-                ) : (
-                  <><Send className="w-4 h-4" /> {t("form_submit")}</>
-                )}
-              </button>
-
-              <p className="text-xs text-center text-slate-400">
-                {t("form_disclaimer")}
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   // ── Landing page ──
   return (
@@ -306,7 +94,7 @@ export default function DevenirInstructeurPage() {
             { value: "70%", label: t("stat_revenue") },
             { value: "15+", label: t("stat_countries") },
           ].map((stat) => (
-            <div key={stat.label} className="text-center bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-200 dark:border-slate-700">
+            <div key={stat.label} className="text-center bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-200 dark:border-slate-700">
               <div className="text-2xl font-extrabold text-primary mb-1">{stat.value}</div>
               <div className="text-xs text-slate-500 font-semibold">{stat.label}</div>
             </div>
@@ -327,7 +115,7 @@ export default function DevenirInstructeurPage() {
               { icon: "📈", title: t("benefit_passive_title"), desc: t("benefit_passive_desc"), color: "bg-purple-500/10 text-purple-500" },
               { icon: "🛠️", title: t("benefit_tools_title"), desc: t("benefit_tools_desc"), color: "bg-orange-500/10 text-orange-500" },
             ].map((b) => (
-              <div key={b.title} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-primary/30 transition-all duration-300">
+              <div key={b.title} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-primary/30 transition-all duration-300">
                 <div className={`w-12 h-12 rounded-xl ${b.color} flex items-center justify-center mb-4 text-2xl`}>
                   {b.icon}
                 </div>
@@ -435,7 +223,7 @@ export default function DevenirInstructeurPage() {
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+              <div key={i} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-1 mb-3">
                   {[1, 2, 3, 4, 5].map((s) => (
                     <Star key={s} className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -473,7 +261,7 @@ export default function DevenirInstructeurPage() {
                   key={idx}
                   className={`border rounded-xl overflow-hidden transition-all duration-200 ${
                     isOpen
-                      ? "bg-white dark:bg-slate-800 border-primary/30"
+                      ? "bg-white dark:bg-slate-900 dark:bg-slate-800 border-primary/30"
                       : "bg-white/60 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                   }`}
                 >

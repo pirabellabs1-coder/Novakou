@@ -7,13 +7,14 @@ import { useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useCurrencyStore, CURRENCIES, type Currency } from "@/store/currency";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/formations/explorer", labelKey: "explore" },
   { href: "/formations/categories", labelKey: "categories" },
   { href: "/formations/produits", labelKey: "digital_products" },
-  { href: "/formations/devenir-instructeur", labelKey: "become_instructor" },
+  { href: "/formations/inscription?role=instructeur", labelKey: "become_instructor" },
 ] as const;
 
 export function FormationsHeader() {
@@ -64,6 +65,9 @@ export function FormationsHeader() {
 
         {/* Actions desktop */}
         <div className="flex items-center gap-6">
+          {/* Theme toggle */}
+          <ThemeToggle className="hidden lg:block" />
+
           {/* Locale switcher */}
           <LocaleSwitcher className="hidden lg:flex" />
 
@@ -74,7 +78,7 @@ export function FormationsHeader() {
               {currency} ({CURRENCIES.find((c) => c.code === currency)?.symbol})
               <span className="material-symbols-outlined text-xs">expand_more</span>
             </button>
-            <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
+            <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 p-2">
               {CURRENCIES.map((c) => (
                 <button
                   key={c.code}
@@ -163,11 +167,14 @@ export function FormationsHeader() {
             ))}
           </nav>
 
-          {/* Locale switcher mobile */}
+          {/* Theme + Locale mobile */}
           <div className="pt-2 border-t border-primary/20">
-            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2 px-3">{t("language")}</p>
-            <div className="flex items-center gap-3 px-3 mb-3">
-              <LocaleSwitcher />
+            <div className="flex items-center justify-between px-3 mb-3">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-2">{t("language")}</p>
+                <LocaleSwitcher />
+              </div>
+              <ThemeToggle />
             </div>
           </div>
 

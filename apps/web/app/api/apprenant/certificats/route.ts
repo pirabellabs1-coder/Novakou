@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const certificates = await prisma.certificate.findMany({
+    const raw = await prisma.certificate.findMany({
       where: { userId: session.user.id, revokedAt: null },
       include: {
         enrollment: {
@@ -32,9 +32,27 @@ export async function GET(_req: NextRequest) {
       orderBy: { issuedAt: "desc" },
     });
 
+    // Reshape: page accesses cert.enrollment.formation.titleFr and cert.enrollment.formation.instructeur.user.name
+    const certificates = raw.map((cert) => ({
+      id: cert.id,
+      code: cert.code,
+      score: cert.score,
+      issuedAt: cert.issuedAt,
+      pdfUrl: cert.pdfUrl,
+      enrollment: {
+        formation: {
+          titleFr: cert.enrollment.formation.titleFr,
+          titleEn: cert.enrollment.formation.titleEn,
+          slug: cert.enrollment.formation.slug,
+          thumbnail: cert.enrollment.formation.thumbnail,
+          instructeur: cert.enrollment.formation.instructeur,
+        },
+      },
+    }));
+
     return NextResponse.json({ certificates });
   } catch (error) {
     console.error("[GET /api/apprenant/certificats]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ certificates: [] });
   }
 }

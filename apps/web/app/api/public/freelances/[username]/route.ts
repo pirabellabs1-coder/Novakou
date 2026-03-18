@@ -97,6 +97,9 @@ export async function GET(
     // DB not connected or no certificates — return empty array
   }
 
+  // Portfolio projects from profile
+  const portfolio = profile?.portfolio ?? [];
+
   return NextResponse.json({
     freelance: {
       id: user.id,
@@ -104,6 +107,7 @@ export async function GET(
       role: user.role,
       status: user.status,
       memberSince: user.createdAt,
+      portfolio,
       profile: profile
         ? {
             title: profile.title,

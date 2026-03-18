@@ -42,11 +42,11 @@ export default function StatusPage() {
   const isDev = process.env.DEV_MODE === "true" || process.env.NODE_ENV === "development";
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="max-w-3xl mx-auto px-6 py-20">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">Statut des services</h1>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4">Statut des services</h1>
           <p className="text-lg text-slate-500">
             Etat de l&apos;infrastructure FreelanceHigh.
           </p>
@@ -82,11 +82,11 @@ export default function StatusPage() {
           {SERVICES.map((service) => (
             <div key={service.name} className="p-5 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                   <span className="material-symbols-outlined text-slate-500">{service.icon}</span>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">{service.name}</p>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{service.name}</p>
                   <p className="text-xs text-slate-500">{service.description}</p>
                 </div>
               </div>

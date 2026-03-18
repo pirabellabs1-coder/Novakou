@@ -19,7 +19,13 @@ export function IncomingCallPopup({
   onAcceptAudioOnly,
   onReject,
 }: IncomingCallPopupProps) {
-  // Ringtone is handled by useWebRTC via sounds.ts — no inline audio here
+  // Auto-timeout after 30 seconds — trigger missed call
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      onReject();
+    }, 30000);
+    return () => clearTimeout(timeout);
+  }, [onReject]);
 
   // Send browser notification if tab is not active
   useEffect(() => {

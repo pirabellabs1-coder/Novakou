@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { getUserRank, getNextRank, RANK_LEVELS } from "@/lib/dev/data-store";
+import { getUserRank, getNextRank, RANK_LEVELS } from "@/lib/rank-utils";
 
 interface RankProgressProps {
   completedSales: number;

@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { useSearchParams } from "next/navigation";
-import { Search, X, Star, Clock, Users, Award, ChevronUp, ChevronDown } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { Search, X, Star, Clock, Users, Award, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -69,7 +69,7 @@ function isNew(createdAt: string): boolean {
   return (now.getTime() - d.getTime()) < 30 * 24 * 60 * 60 * 1000;
 }
 
-const ITEMS_PER_PAGE = 100;
+const ITEMS_PER_PAGE = 12;
 
 // ── Components ─────────────────────────────────────────────────
 
@@ -101,11 +101,10 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
   return (
     <Link
       href={`/formations/${formation.slug}`}
-      className="group block rounded-xl border border-white/5 hover:border-emerald-500/30 transition-all duration-200 overflow-hidden"
-      style={{ backgroundColor: "#111827" }}
+      className="group block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 hover:border-emerald-500/30 transition-all duration-200 overflow-hidden"
     >
       {/* Thumbnail */}
-      <div className="relative aspect-video overflow-hidden" style={{ backgroundColor: "#1a2332" }}>
+      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800 dark:bg-slate-700">
         {thumbnail ? (
           <img src={thumbnail} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
@@ -138,7 +137,7 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
         </span>
 
         {/* Title */}
-        <h3 className="font-semibold text-white text-sm leading-snug mb-2 line-clamp-2 group-hover:text-emerald-400 transition-colors">
+        <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-snug mb-2 line-clamp-2 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
           {title}
         </h3>
 
@@ -181,9 +180,9 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between pt-3 border-t border-white/5">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-2">
-            <span className={`font-bold text-lg ${formation.isFree ? "text-emerald-400" : "text-white"}`}>
+            <span className={`font-bold text-lg ${formation.isFree ? "text-emerald-500 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
               {formatPrice(formation.price, formation.isFree, t("free"))}
             </span>
             {formation.originalPrice && formation.originalPrice > formation.price && (
@@ -192,7 +191,7 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
               </span>
             )}
           </div>
-          <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded bg-white/5">
+          <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 dark:bg-slate-700">
             {t("level_" + formation.level.toLowerCase().replace("tous_niveaux", "tous").replace("débutant", "debutant").replace("intermédiaire", "intermediaire").replace("avancé", "avance"))}
           </span>
         </div>
@@ -221,12 +220,12 @@ function EmptyState({
       <div className="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
         <Search className="w-8 h-8 text-emerald-400" />
       </div>
-      <h3 className="text-xl font-bold text-white mb-2">
-        {locale === "fr" ? "Aucune formation trouvee" : "No courses found"}
+      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+        {locale === "fr" ? "Aucune formation trouvée" : "No courses found"}
       </h3>
       <p className="text-slate-400 mb-6 max-w-md mx-auto">
         {locale === "fr"
-          ? "Essayez de modifier vos filtres ou explorez nos categories populaires."
+          ? "Essayez de modifier vos filtres ou explorez nos catégories populaires."
           : "Try adjusting your filters or explore our popular categories."}
       </p>
       <button
@@ -238,17 +237,16 @@ function EmptyState({
 
       {/* Suggested categories */}
       {popularCategories.length > 0 && (
-        <div className="mt-8 pt-8 border-t border-white/5">
+        <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
           <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-            {locale === "fr" ? "Categories populaires" : "Popular categories"}
+            {locale === "fr" ? "Catégories populaires" : "Popular categories"}
           </h4>
           <div className="flex flex-wrap justify-center gap-3">
             {popularCategories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/formations/explorer?category=${cat.slug}`}
-                className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-slate-300 hover:border-emerald-500/40 hover:text-emerald-400 transition-all"
-                style={{ backgroundColor: "#111827" }}
+                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-sm font-medium text-slate-600 dark:text-slate-300 hover:border-emerald-500/40 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all"
               >
                 {locale === "fr" ? cat.nameFr : (cat.nameEn || cat.nameFr)}
                 {cat._count && (
@@ -307,8 +305,7 @@ function FilterDropdown({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none text-sm font-medium px-4 py-2 pr-8 rounded-lg border border-white/10 text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 cursor-pointer transition-all"
-        style={{ backgroundColor: "#111827" }}
+        className="appearance-none text-sm font-medium px-4 py-2 pr-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 cursor-pointer transition-all"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -325,14 +322,19 @@ export default function ExplorerFormationsPage() {
   const t = useTranslations("formations");
   const locale = useLocale();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [formations, setFormations] = useState<Formation[]>([]);
   const [total, setTotal] = useState(0);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(() => {
+    const p = parseInt(searchParams.get("page") || "1", 10);
+    return p > 0 ? p : 1;
+  });
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const [sort, setSort] = useState(searchParams.get("sort") || "populaire");
 
   const [filters, setFilters] = useState<FiltersState>({
@@ -345,10 +347,26 @@ export default function ExplorerFormationsPage() {
   });
 
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef(true);
   const [searchInput, setSearchInput] = useState(filters.search);
 
-  const fetchFormations = useCallback(async (f: FiltersState, s: string, p: number, append = false) => {
-    if (p === 1) setLoading(true); else setLoadingMore(true);
+  // Helper to sync filters/sort/page to URL
+  const updateURL = useCallback((newFilters: FiltersState, newSort: string, newPage: number) => {
+    const params = new URLSearchParams();
+    if (newFilters.search) params.set("q", newFilters.search);
+    if (newFilters.categorySlug) params.set("category", newFilters.categorySlug);
+    if (newFilters.level) params.set("level", newFilters.level);
+    if (newFilters.priceRange) params.set("price", newFilters.priceRange);
+    if (newFilters.durationRange) params.set("duration", newFilters.durationRange);
+    if (newFilters.language) params.set("language", newFilters.language);
+    if (newSort !== "populaire") params.set("sort", newSort);
+    if (newPage > 1) params.set("page", String(newPage));
+    const qs = params.toString();
+    router.replace(`${pathname}${qs ? `?${qs}` : ""}`, { scroll: false });
+  }, [router, pathname]);
+
+  const fetchFormations = useCallback(async (f: FiltersState, s: string, p: number) => {
+    setLoading(true);
 
     const params = new URLSearchParams();
     if (f.search) params.set("q", f.search);
@@ -362,25 +380,21 @@ export default function ExplorerFormationsPage() {
     params.set("limit", String(ITEMS_PER_PAGE));
 
     try {
+      setFetchError(false);
       const res = await fetch(`/api/formations?${params.toString()}`);
-      if (!res.ok) return;
+      if (!res.ok) throw new Error("API error");
       const data = await res.json();
       const items: Formation[] = data.formations ?? [];
       const tot: number = data.total ?? 0;
-      const totalPages: number = data.totalPages ?? 1;
+      const tp: number = data.totalPages ?? 1;
 
-      if (append) {
-        setFormations((prev) => [...prev, ...items]);
-      } else {
-        setFormations(items);
-      }
+      setFormations(items);
       setTotal(tot);
-      setHasMore(p < totalPages);
+      setTotalPages(tp);
     } catch {
-      // API error — keep current state
+      setFetchError(true);
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   }, []);
 
@@ -392,9 +406,18 @@ export default function ExplorerFormationsPage() {
   }, []);
 
   useEffect(() => {
-    setPage(1);
-    fetchFormations(filters, sort, 1, false);
-  }, [filters, sort, fetchFormations]);
+    if (isInitialMount.current) {
+      // On initial mount, use page from URL
+      isInitialMount.current = false;
+      fetchFormations(filters, sort, page);
+    } else {
+      // On subsequent filter/sort changes, reset to page 1
+      setPage(1);
+      fetchFormations(filters, sort, 1);
+      updateURL(filters, sort, 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, sort]);
 
   const handleSearchChange = (val: string) => {
     setSearchInput(val);
@@ -412,21 +435,24 @@ export default function ExplorerFormationsPage() {
     const fresh: FiltersState = { search: "", categorySlug: "", level: "", priceRange: "", durationRange: "", language: "" };
     setFilters(fresh);
     setSearchInput("");
+    setSort("populaire");
   };
 
-  const loadMore = () => {
-    const next = page + 1;
-    setPage(next);
-    fetchFormations(filters, sort, next, true);
+  const goToPage = (newPage: number) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setPage(newPage);
+    fetchFormations(filters, sort, newPage);
+    updateURL(filters, sort, newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const hasActiveFilters = filters.search || filters.categorySlug || filters.level || filters.priceRange || filters.durationRange || filters.language;
 
   const levelOptions = [
     { value: "", label: locale === "fr" ? "Tous les niveaux" : "All levels" },
-    { value: "DEBUTANT", label: locale === "fr" ? "Debutant" : "Beginner" },
-    { value: "INTERMEDIAIRE", label: locale === "fr" ? "Intermediaire" : "Intermediate" },
-    { value: "AVANCE", label: locale === "fr" ? "Avance" : "Advanced" },
+    { value: "DEBUTANT", label: locale === "fr" ? "Débutant" : "Beginner" },
+    { value: "INTERMEDIAIRE", label: locale === "fr" ? "Intermédiaire" : "Intermediate" },
+    { value: "AVANCE", label: locale === "fr" ? "Avancé" : "Advanced" },
   ];
 
   const priceOptions = [
@@ -448,7 +474,7 @@ export default function ExplorerFormationsPage() {
 
   const languageOptions = [
     { value: "", label: locale === "fr" ? "Toutes les langues" : "All languages" },
-    { value: "fr", label: "Francais" },
+    { value: "fr", label: "Français" },
     { value: "en", label: "English" },
   ];
 
@@ -461,18 +487,18 @@ export default function ExplorerFormationsPage() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#0F172A" }}>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900">
       <BackToTop />
 
       {/* ── Header / Search ─────────────────────────────────────── */}
-      <div className="border-b border-white/5" style={{ backgroundColor: "#111827" }}>
+      <div className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-2xl font-bold text-white mb-1">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
             {locale === "fr" ? "Explorer les formations" : "Explore courses"}
           </h1>
           <p className="text-slate-400 text-sm mb-6">
             {locale === "fr"
-              ? "Developpez vos competences avec nos formations professionnelles"
+              ? "Développez vos compétences avec nos formations professionnelles"
               : "Build your skills with our professional courses"}
           </p>
 
@@ -484,8 +510,7 @@ export default function ExplorerFormationsPage() {
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={t("hero_search_placeholder")}
-              className="w-full pl-12 pr-10 py-3 rounded-xl border border-white/10 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all"
-              style={{ backgroundColor: "#0F172A" }}
+              className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all"
             />
             {searchInput && (
               <button
@@ -500,7 +525,7 @@ export default function ExplorerFormationsPage() {
       </div>
 
       {/* ── Categories (horizontal) ─────────────────────────────── */}
-      <div className="border-b border-white/5" style={{ backgroundColor: "#0F172A" }}>
+      <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
             <button
@@ -508,9 +533,8 @@ export default function ExplorerFormationsPage() {
               className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 !filters.categorySlug
                   ? "bg-emerald-500 text-white"
-                  : "text-slate-400 hover:text-white border border-white/10 hover:border-white/20"
+                  : "bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
               }`}
-              style={filters.categorySlug ? { backgroundColor: "#111827" } : undefined}
             >
               {locale === "fr" ? "Toutes" : "All"}
             </button>
@@ -521,9 +545,8 @@ export default function ExplorerFormationsPage() {
                 className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   filters.categorySlug === cat.slug
                     ? "bg-emerald-500 text-white"
-                    : "text-slate-400 hover:text-white border border-white/10 hover:border-white/20"
+                    : "bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                 }`}
-                style={filters.categorySlug !== cat.slug ? { backgroundColor: "#111827" } : undefined}
               >
                 {locale === "fr" ? cat.nameFr : (cat.nameEn || cat.nameFr)}
                 {cat._count && <span className="ml-1 opacity-60">({cat._count.formations})</span>}
@@ -534,7 +557,7 @@ export default function ExplorerFormationsPage() {
       </div>
 
       {/* ── Filters (horizontal) ────────────────────────────────── */}
-      <div className="border-b border-white/5" style={{ backgroundColor: "#0F172A" }}>
+      <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 py-3 overflow-x-auto scrollbar-hide">
             <FilterDropdown
@@ -550,7 +573,7 @@ export default function ExplorerFormationsPage() {
               onChange={(v) => updateFilter("priceRange", v)}
             />
             <FilterDropdown
-              label={locale === "fr" ? "Duree" : "Duration"}
+              label={locale === "fr" ? "Durée" : "Duration"}
               value={filters.durationRange}
               options={durationOptions}
               onChange={(v) => updateFilter("durationRange", v)}
@@ -562,7 +585,7 @@ export default function ExplorerFormationsPage() {
               onChange={(v) => updateFilter("language", v)}
             />
 
-            <div className="w-px h-8 bg-white/10 flex-shrink-0" />
+            <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
 
             <FilterDropdown
               label={locale === "fr" ? "Trier" : "Sort"}
@@ -573,13 +596,13 @@ export default function ExplorerFormationsPage() {
 
             {hasActiveFilters && (
               <>
-                <div className="w-px h-8 bg-white/10 flex-shrink-0" />
+                <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
                 <button
                   onClick={resetFilters}
                   className="flex-shrink-0 flex items-center gap-1 text-sm text-red-400 hover:text-red-300 font-medium px-3 py-2 transition-colors"
                 >
                   <X className="w-3.5 h-3.5" />
-                  {locale === "fr" ? "Reinitialiser" : "Clear"}
+                  {locale === "fr" ? "Réinitialiser" : "Clear"}
                 </button>
               </>
             )}
@@ -596,7 +619,7 @@ export default function ExplorerFormationsPage() {
               {t("courses_found", { count: total })}
               {filters.search && (
                 <span className="ml-1">
-                  {locale === "fr" ? "pour" : "for"} <strong className="text-white">&quot;{filters.search}&quot;</strong>
+                  {locale === "fr" ? "pour" : "for"} <strong className="text-slate-900 dark:text-white">&quot;{filters.search}&quot;</strong>
                 </span>
               )}
             </p>
@@ -609,19 +632,31 @@ export default function ExplorerFormationsPage() {
             {Array.from({ length: 12 }).map((_, i) => (
               <div
                 key={i}
-                className="rounded-xl border border-white/5 overflow-hidden animate-pulse"
-                style={{ backgroundColor: "#111827" }}
+                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 overflow-hidden animate-pulse"
               >
-                <div className="aspect-video" style={{ backgroundColor: "#1a2332" }} />
+                <div className="aspect-video bg-slate-200 dark:bg-slate-700" />
                 <div className="p-4 space-y-3">
-                  <div className="h-3 rounded w-1/3" style={{ backgroundColor: "#1a2332" }} />
-                  <div className="h-4 rounded w-4/5" style={{ backgroundColor: "#1a2332" }} />
-                  <div className="h-3 rounded w-1/2" style={{ backgroundColor: "#1a2332" }} />
-                  <div className="h-3 rounded w-2/3" style={{ backgroundColor: "#1a2332" }} />
-                  <div className="h-5 rounded w-1/4" style={{ backgroundColor: "#1a2332" }} />
+                  <div className="h-3 rounded w-1/3 bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-4 rounded w-4/5 bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 rounded w-1/2 bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-3 rounded w-2/3 bg-slate-200 dark:bg-slate-700" />
+                  <div className="h-5 rounded w-1/4 bg-slate-200 dark:bg-slate-700" />
                 </div>
               </div>
             ))}
+          </div>
+        ) : fetchError ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-4">⚠️</div>
+            <p className="text-slate-700 dark:text-slate-300 font-medium mb-2">
+              {locale === "fr" ? "Impossible de charger les formations" : "Failed to load courses"}
+            </p>
+            <button
+              onClick={() => fetchFormations(filters, sort, page)}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
+            >
+              {locale === "fr" ? "Réessayer" : "Retry"}
+            </button>
           </div>
         ) : formations.length === 0 ? (
           <EmptyState onReset={resetFilters} categories={categories} locale={locale} t={t} />
@@ -633,28 +668,70 @@ export default function ExplorerFormationsPage() {
               ))}
             </div>
 
-            {/* Load more */}
-            {hasMore && (
-              <div className="mt-10 text-center">
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <nav className="mt-10 flex items-center justify-center gap-1" aria-label="Pagination">
+                {/* Previous button */}
                 <button
-                  onClick={loadMore}
-                  disabled={loadingMore}
-                  className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-semibold px-8 py-3 rounded-xl transition-colors shadow-lg shadow-emerald-500/20"
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page <= 1}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
-                  {loadingMore
-                    ? (locale === "fr" ? "Chargement..." : "Loading...")
-                    : (locale === "fr" ? "Charger plus de formations" : "Load more courses")}
+                  <ChevronLeft className="w-4 h-4" />
+                  {locale === "fr" ? "Prec." : "Prev"}
                 </button>
-              </div>
+
+                {/* Page numbers */}
+                {(() => {
+                  const pages: (number | "ellipsis")[] = [];
+                  if (totalPages <= 7) {
+                    for (let i = 1; i <= totalPages; i++) pages.push(i);
+                  } else {
+                    pages.push(1);
+                    if (page > 3) pages.push("ellipsis");
+                    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+                      pages.push(i);
+                    }
+                    if (page < totalPages - 2) pages.push("ellipsis");
+                    pages.push(totalPages);
+                  }
+                  return pages.map((p, idx) =>
+                    p === "ellipsis" ? (
+                      <span key={`ellipsis-${idx}`} className="px-2 py-2 text-sm text-slate-500">...</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => goToPage(p)}
+                        className={`min-w-[2.25rem] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                          p === page
+                            ? "bg-emerald-500 text-white shadow-sm"
+                            : "text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  );
+                })()}
+
+                {/* Next button */}
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page >= totalPages}
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  {locale === "fr" ? "Suiv." : "Next"}
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </nav>
             )}
 
-            {!hasMore && formations.length > 0 && (
-              <p className="text-center text-sm text-slate-500 mt-10">
-                {locale === "fr"
-                  ? `${total} formation${total > 1 ? "s" : ""} au total`
-                  : `${total} course${total > 1 ? "s" : ""} total`}
-              </p>
-            )}
+            {/* Total count */}
+            <p className="text-center text-sm text-slate-500 mt-4">
+              {locale === "fr"
+                ? `${total} formation${total > 1 ? "s" : ""} au total`
+                : `${total} course${total > 1 ? "s" : ""} total`}
+            </p>
           </>
         )}
       </div>

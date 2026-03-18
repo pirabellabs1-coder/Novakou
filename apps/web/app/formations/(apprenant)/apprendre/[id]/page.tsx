@@ -7,9 +7,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import DOMPurify from "isomorphic-dompurify";
 import {
-  Play, FileText, BookOpen, CheckCircle, Circle,
+  Play, FileText, CheckCircle, Circle,
   ChevronDown, ChevronUp, X, StickyNote, MessageCircle,
-  Award, List, Volume2, Maximize, AlignLeft,
+  Award, Volume2, AlignLeft,
+  ChevronLeft, ChevronRight, User,
 } from "lucide-react";
 import { VideoPlayer } from "@/components/formations/VideoPlayer";
 import { DiscussionThread } from "@/components/formations/DiscussionThread";
@@ -55,6 +56,14 @@ interface Formation {
   titleEn: string;
   hasCertificate: boolean;
   sections: Section[];
+  instructeur?: {
+    id: string;
+    user: {
+      name: string | null;
+      image: string | null;
+      avatar: string | null;
+    };
+  };
 }
 
 interface Note {
@@ -96,9 +105,13 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
   const [noteText, setNoteText] = useState("");
   const [savingNote, setSavingNote] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
+  const markingRef = useRef(false);
   const [globalProgress, setGlobalProgress] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [autoAdvanceCountdown, setAutoAdvanceCountdown] = useState<number | null>(null);
+  const autoAdvanceTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const markCompleteTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track current video time for note timestamps (updated by VideoPlayer onProgress)
+  const currentVideoTime = useRef<number>(0);
 
   useEffect(() => {
     if (status === "unauthenticated") { router.replace("/formations/connexion"); return; }
@@ -106,19 +119,27 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
 
     // Load formation + enrollment
     Promise.all([
-      fetch(`/api/formations/${id}`).then((r) => r.json()),
-      fetch(`/api/formations/${id}/progress`).then((r) => r.json()),
+      fetch(`/api/formations/${id}`).then((r) => {
+        if (!r.ok) throw new Error("Formation not found");
+        return r.json();
+      }),
+      fetch(`/api/formations/${id}/progress`).then((r) => {
+        if (!r.ok) return null; // Not enrolled or error
+        return r.json();
+      }),
     ]).then(([formData, progressData]) => {
-      if (!progressData.enrollment) {
+      // The progress API returns the enrollment object directly (with lessonProgress nested)
+      // or null if the request failed (not enrolled)
+      if (!progressData || progressData.error) {
         // Not enrolled — redirect to formation page
         router.replace(`/formations/${formData.slug || id}`);
         return;
       }
       setFormation(formData);
-      setEnrollment(progressData.enrollment);
+      setEnrollment({ id: progressData.id, progress: progressData.progress ?? 0 });
       setIsInstructor(progressData.isInstructor ?? false);
       setLessonProgress(progressData.lessonProgress ?? []);
-      setGlobalProgress(progressData.enrollment.progress ?? 0);
+      setGlobalProgress(progressData.progress ?? 0);
 
       // Open all sections
       if (formData.sections) {
@@ -145,10 +166,11 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
   }, [currentLesson, enrollment]);
 
   const markLessonComplete = useCallback(async (lessonId: string) => {
-    if (!enrollment || markingComplete) return;
+    if (!enrollment || markingRef.current) return;
     const alreadyDone = lessonProgress.find((p) => p.lessonId === lessonId)?.completed;
     if (alreadyDone) return;
 
+    markingRef.current = true;
     setMarkingComplete(true);
     try {
       const res = await fetch(`/api/formations/${id}/progress`, {
@@ -156,29 +178,24 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lessonId, completed: true }),
       });
+      if (!res.ok) return;
       const data = await res.json();
-      setLessonProgress(data.lessonProgress ?? []);
-      setGlobalProgress(data.progress ?? globalProgress);
-      // Check if certificate was generated
-      if (data.certificateGenerated) {
-        // Show congrats notification
+      if (data.success) {
+        setLessonProgress((prev) => {
+          const existing = prev.find((p) => p.lessonId === lessonId);
+          if (existing) {
+            return prev.map((p) => p.lessonId === lessonId ? { ...p, completed: true } : p);
+          }
+          return [...prev, { lessonId, completed: true }];
+        });
+        setGlobalProgress(data.progress ?? globalProgress);
       }
-    } catch {}
-    finally { setMarkingComplete(false); }
-  }, [enrollment, id, lessonProgress, globalProgress, markingComplete]);
-
-  const handleVideoProgress = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    if (!currentLesson) return;
-    const pct = video.duration ? (video.currentTime / video.duration) * 100 : 0;
-    if (pct >= 90) {
-      if (markCompleteTimer.current) return;
-      markCompleteTimer.current = setTimeout(() => {
-        markLessonComplete(currentLesson.id);
-        markCompleteTimer.current = null;
-      }, 1000);
+    } catch { /* network error — silently fail */ }
+    finally {
+      markingRef.current = false;
+      setMarkingComplete(false);
     }
-  };
+  }, [enrollment, id, lessonProgress, globalProgress]);
 
   const saveNote = async () => {
     if (!noteText.trim() || !currentLesson) return;
@@ -190,7 +207,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
         body: JSON.stringify({
           lessonId: currentLesson.id,
           content: noteText,
-          timestamp: videoRef.current ? Math.floor(videoRef.current.currentTime) : null,
+          timestamp: currentVideoTime.current > 0 ? Math.floor(currentVideoTime.current) : null,
         }),
       });
       const data = await res.json();
@@ -201,6 +218,80 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
     } catch {}
     finally { setSavingNote(false); }
   };
+
+  // ── Auto-advance helpers ──────────────────────────────────────
+  const cancelAutoAdvance = useCallback(() => {
+    if (autoAdvanceTimer.current) {
+      clearInterval(autoAdvanceTimer.current);
+      autoAdvanceTimer.current = null;
+    }
+    setAutoAdvanceCountdown(null);
+  }, []);
+
+  const startAutoAdvance = useCallback(() => {
+    // Cancel any existing timer
+    cancelAutoAdvance();
+    setAutoAdvanceCountdown(3);
+    let count = 3;
+    autoAdvanceTimer.current = setInterval(() => {
+      count -= 1;
+      if (count <= 0) {
+        cancelAutoAdvance();
+        // Navigate to next lesson (need allLessons computed at call time)
+        setCurrentLesson((prev) => {
+          if (!prev || !formation) return prev;
+          const all = formation.sections
+            .slice()
+            .sort((a, b) => a.order - b.order)
+            .flatMap((s) => s.lessons.slice().sort((a, b) => a.order - b.order));
+          const idx = all.findIndex((l) => l.id === prev.id);
+          return idx < all.length - 1 ? all[idx + 1] : prev;
+        });
+      } else {
+        setAutoAdvanceCountdown(count);
+      }
+    }, 1000);
+  }, [cancelAutoAdvance, formation]);
+
+  // Clean up auto-advance and mark-complete timer on lesson change or unmount
+  useEffect(() => {
+    return () => {
+      cancelAutoAdvance();
+      // Clear pending mark-complete timer to prevent marking the wrong lesson
+      if (markCompleteTimer.current) {
+        clearTimeout(markCompleteTimer.current);
+        markCompleteTimer.current = null;
+      }
+      // Reset video time tracking for notes
+      currentVideoTime.current = 0;
+    };
+  }, [currentLesson, cancelAutoAdvance]);
+
+  // ── Keyboard shortcuts: N → next, P → previous ──────────────
+  useEffect(() => {
+    if (!formation || !currentLesson) return;
+    const all = formation.sections
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .flatMap((s) => s.lessons.slice().sort((a, b) => a.order - b.order));
+    const idx = all.findIndex((l) => l.id === currentLesson.id);
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select" || (e.target as HTMLElement)?.isContentEditable) return;
+      // Use Shift+N / Shift+P to avoid conflict with VideoPlayer's "p" (PiP) shortcut
+      if (e.shiftKey && (e.key === "N")) {
+        e.preventDefault();
+        if (idx < all.length - 1) setCurrentLesson(all[idx + 1]);
+      } else if (e.shiftKey && (e.key === "P")) {
+        e.preventDefault();
+        if (idx > 0) setCurrentLesson(all[idx - 1]);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [formation, currentLesson]);
 
   if (loading) {
     return (
@@ -213,13 +304,40 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
     );
   }
 
-  if (!formation || !currentLesson) return null;
+  if (!formation || !currentLesson) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-slate-900">
+        <div className="text-center">
+          <p className="text-white font-semibold mb-2">
+            {fr ? "Formation introuvable" : "Course not found"}
+          </p>
+          <p className="text-sm text-slate-400 mb-4">
+            {fr ? "Cette formation n'existe pas ou vous n'y avez pas accès." : "This course does not exist or you don't have access."}
+          </p>
+          <Link href="/formations/mes-formations" className="text-primary hover:underline text-sm">
+            {fr ? "Retour aux formations" : "Back to my courses"}
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const formationTitle = fr ? formation.titleFr : (formation.titleEn || formation.titleFr);
   const lessonTitle = fr ? currentLesson.titleFr : (currentLesson.titleEn || currentLesson.titleFr);
   const totalLessons = formation.sections.reduce((s, sec) => s + sec.lessons.length, 0);
   const completedLessons = lessonProgress.filter((p) => p.completed).length;
   const isCurrentComplete = lessonProgress.find((p) => p.lessonId === currentLesson.id)?.completed ?? false;
+
+  // ── Flat lesson list & navigation helpers ──
+  const allLessons = formation.sections
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .flatMap((s) => s.lessons.slice().sort((a, b) => a.order - b.order));
+  const currentIndex = allLessons.findIndex((l) => l.id === currentLesson.id);
+  const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
+  const isLastLesson = currentIndex === allLessons.length - 1;
+  const computedProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   return (
     <div className="h-screen flex flex-col bg-slate-950 text-white overflow-hidden">
@@ -297,6 +415,8 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                     subtitleLabel={currentLesson.subtitleLabel ?? undefined}
                     chapters={currentLesson.chapters ?? []}
                     onProgress={(currentTime, duration) => {
+                      // Track time for note timestamps
+                      currentVideoTime.current = currentTime;
                       if (duration > 0 && (currentTime / duration) >= 0.9) {
                         if (!markCompleteTimer.current) {
                           markCompleteTimer.current = setTimeout(() => {
@@ -306,7 +426,12 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                         }
                       }
                     }}
-                    onEnded={() => markLessonComplete(currentLesson.id)}
+                    onEnded={() => {
+                      markLessonComplete(currentLesson.id);
+                      if (!isLastLesson) {
+                        startAutoAdvance();
+                      }
+                    }}
                     autoPlay
                   />
                 );
@@ -344,7 +469,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                   <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mb-4 mx-auto">
                     <AlignLeft className="w-10 h-10 text-purple-400" />
                   </div>
-                  <p className="text-xl font-bold mb-2">{fr ? currentLesson.quiz.titleFr : currentLesson.titleEn}</p>
+                  <p className="text-xl font-bold mb-2">{fr ? currentLesson.quiz.titleFr : (currentLesson.titleEn || currentLesson.quiz.titleFr)}</p>
                   <p className="text-slate-400 text-sm mb-6">
                     {fr ? `Score minimum : ${currentLesson.quiz.passingScore}%` : `Passing score: ${currentLesson.quiz.passingScore}%`}
                   </p>
@@ -355,6 +480,37 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                     {fr ? "Commencer le quiz" : "Start quiz"}
                   </Link>
                 </div>
+              </div>
+            )}
+
+            {/* Auto-advance countdown overlay */}
+            {autoAdvanceCountdown !== null && (
+              <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-20">
+                <div className="text-center">
+                  <p className="text-xl font-bold text-white mb-2">
+                    {nextLesson
+                      ? `${fr ? "Prochaine leçon dans" : "Next lesson in"} ${autoAdvanceCountdown}...`
+                      : (fr ? "Formation terminée !" : "Course completed!")}
+                  </p>
+                  {nextLesson && (
+                    <p className="text-sm text-slate-300 mb-4 max-w-xs mx-auto truncate">
+                      {fr ? nextLesson.titleFr : (nextLesson.titleEn || nextLesson.titleFr)}
+                    </p>
+                  )}
+                  <button
+                    onClick={cancelAutoAdvance}
+                    className="px-6 py-2 rounded-lg border border-slate-500 text-sm font-medium text-slate-200 hover:bg-slate-700 transition-colors"
+                  >
+                    {fr ? "Annuler" : "Cancel"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Formation completed overlay (last lesson, no next) */}
+            {autoAdvanceCountdown === null && isLastLesson && isCurrentComplete && currentLesson.type === "VIDEO" && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-green-600/90 text-white text-sm font-medium px-4 py-2 rounded-lg z-20 pointer-events-none">
+                {fr ? "Formation terminée !" : "Course completed!"}
               </div>
             )}
           </div>
@@ -397,6 +553,36 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                   {fr ? "Complétée" : "Completed"}
                 </span>
               )}
+            </div>
+          </div>
+
+          {/* Previous / Next lesson navigation */}
+          <div className="bg-slate-900 border-t border-slate-800 px-6 py-3 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => prevLesson && setCurrentLesson(prevLesson)}
+                disabled={!prevLesson}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 text-sm font-medium transition-colors hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-1/2 justify-start"
+              >
+                <ChevronLeft className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate text-left">
+                  {prevLesson
+                    ? `${fr ? "Leçon précédente" : "Previous lesson"}: ${fr ? prevLesson.titleFr : (prevLesson.titleEn || prevLesson.titleFr)}`
+                    : (fr ? "Leçon précédente" : "Previous lesson")}
+                </span>
+              </button>
+              <button
+                onClick={() => nextLesson && setCurrentLesson(nextLesson)}
+                disabled={!nextLesson}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 text-sm font-medium transition-colors hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed w-full sm:w-1/2 justify-end"
+              >
+                <span className="truncate text-right">
+                  {nextLesson
+                    ? `${fr ? "Leçon suivante" : "Next lesson"}: ${fr ? nextLesson.titleFr : (nextLesson.titleEn || nextLesson.titleFr)}`
+                    : (fr ? "Leçon suivante" : "Next lesson")}
+                </span>
+                <ChevronRight className="w-4 h-4 flex-shrink-0" />
+              </button>
             </div>
           </div>
         </div>
@@ -471,12 +657,57 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
             <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">
               {fr ? "Contenu du cours" : "Course content"}
             </p>
-            <p className="text-sm text-slate-300">
-              {completedLessons}/{totalLessons} {fr ? "leçons" : "lessons"}
-            </p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-slate-300">
+                {completedLessons}/{totalLessons} {fr ? "leçons" : "lessons"}
+              </p>
+              <span className="text-xs text-primary font-medium">{computedProgress}% {fr ? "complété" : "completed"}</span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+              <div
+                className="bg-primary h-full rounded-full transition-all duration-500"
+                style={{ width: `${computedProgress}%` }}
+              />
+            </div>
           </div>
+          {/* Instructor link */}
+          {formation.instructeur && (
+            <Link
+              href={`/formations/instructeurs/${formation.instructeur.id}`}
+              className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-800 hover:bg-slate-800 transition-colors group"
+            >
+              {formation.instructeur.user.image || formation.instructeur.user.avatar ? (
+                <img
+                  src={formation.instructeur.user.image || formation.instructeur.user.avatar || ""}
+                  alt={formation.instructeur.user.name || ""}
+                  className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  {formation.instructeur.user.name ? (
+                    <span className="text-xs font-semibold text-primary">
+                      {formation.instructeur.user.name.charAt(0).toUpperCase()}
+                    </span>
+                  ) : (
+                    <User className="w-3.5 h-3.5 text-primary" />
+                  )}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-slate-400 leading-none mb-0.5">
+                  {fr ? "Instructeur" : "Instructor"}
+                </p>
+                <p className="text-sm text-slate-200 font-medium truncate group-hover:text-primary transition-colors">
+                  {formation.instructeur.user.name || (fr ? "Instructeur" : "Instructor")}
+                </p>
+              </div>
+              <span className="text-xs text-slate-500 group-hover:text-primary transition-colors flex-shrink-0">
+                {fr ? "Voir le profil" : "View profile"}
+              </span>
+            </Link>
+          )}
           <div className="flex-1 overflow-y-auto">
-            {formation.sections.sort((a, b) => a.order - b.order).map((section) => {
+            {formation.sections.slice().sort((a, b) => a.order - b.order).map((section) => {
               const sTitle = fr ? section.titleFr : (section.titleEn || section.titleFr);
               const isExpanded = expandedSections.has(section.id);
               const sCompleted = section.lessons.filter((l) => lessonProgress.find((p) => p.lessonId === l.id)?.completed).length;
@@ -499,7 +730,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                   </button>
                   {isExpanded && (
                     <div>
-                      {section.lessons.sort((a, b) => a.order - b.order).map((lesson) => {
+                      {section.lessons.slice().sort((a, b) => a.order - b.order).map((lesson) => {
                         const lTitle = fr ? lesson.titleFr : (lesson.titleEn || lesson.titleFr);
                         const isDone = lessonProgress.find((p) => p.lessonId === lesson.id)?.completed ?? false;
                         const isCurrent = currentLesson?.id === lesson.id;
@@ -538,6 +769,15 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
             })}
           </div>
         </div>
+      </div>
+
+      {/* Keyboard shortcuts hint */}
+      <div className="hidden lg:flex items-center justify-center gap-4 px-4 py-1.5 bg-slate-900 border-t border-slate-800 flex-shrink-0">
+        <p className="text-xs text-slate-600">
+          {fr
+            ? "Raccourcis : Shift+N suivante, Shift+P précédente"
+            : "Shortcuts: Shift+N next, Shift+P previous"}
+        </p>
       </div>
     </div>
   );

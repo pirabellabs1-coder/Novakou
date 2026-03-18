@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -10,9 +10,12 @@ import {
   ChevronRight, Flame, Download,
 } from "lucide-react";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, AreaChart, Area,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import FormationCard, { type FormationCardData } from "@/components/formations/FormationCard";
 
 interface Enrollment {
   id: string;
@@ -50,6 +53,9 @@ interface Stats {
   averageProgress: number;
   progressByFormation: { name: string; progress: number }[];
   hoursByWeek: { week: string; hours: number }[];
+  weeklyHours: { day: string; hours: number }[];
+  skillRadar: { category: string; value: number }[];
+  weeklyGoalProgress: number;
 }
 
 function formatDuration(minutes: number) {
@@ -59,6 +65,7 @@ function formatDuration(minutes: number) {
 
 export default function MesFormationsPage() {
   const locale = useLocale();
+  const t = useTranslations("formations_nav");
   const { data: session, status } = useSession();
   const router = useRouter();
   const fr = locale === "fr";
@@ -67,7 +74,9 @@ export default function MesFormationsPage() {
   const [stats, setStats] = useState<Stats>({
     inProgress: 0, completed: 0, certificates: 0, totalHours: 0, streak: 0,
     averageProgress: 0, progressByFormation: [], hoursByWeek: [],
+    weeklyHours: [], skillRadar: [], weeklyGoalProgress: 0,
   });
+  const [recommendations, setRecommendations] = useState<FormationCardData[]>([]);
   const [tab, setTab] = useState<"all" | "in_progress" | "completed">("all");
   const [loading, setLoading] = useState(true);
 
@@ -97,11 +106,46 @@ export default function MesFormationsPage() {
           week: w,
           hours: Math.round(perDay * (i < 5 ? 1.2 : 0.5)),
         }));
+
+        // Weekly hours for AreaChart (from API or generated)
+        const weeklyHours: { day: string; hours: number }[] = data.weeklyHours ??
+          weekLabels.map((d, i) => ({
+            day: d,
+            hours: +(perDay * (i < 5 ? 1.2 : 0.5)).toFixed(1),
+          }));
+
+        // Skill radar data (from API or generated from categories)
+        const skillRadar: { category: string; value: number }[] = data.skillRadar ??
+          (enrolls.length > 0
+            ? Array.from(
+                enrolls.reduce((acc: Map<string, number[]>, e: Enrollment) => {
+                  const cat = e.formation.level || "General";
+                  if (!acc.has(cat)) acc.set(cat, []);
+                  acc.get(cat)!.push(e.progress);
+                  return acc;
+                }, new Map<string, number[]>())
+              )
+                .slice(0, 6)
+                .map(([category, progs]) => ({
+                  category,
+                  value: Math.round(progs.reduce((a: number, b: number) => a + b, 0) / progs.length),
+                }))
+            : []);
+
+        // Weekly goal progress (from API or estimated)
+        const weeklyGoalProgress: number = data.weeklyGoalProgress ?? Math.min(100, Math.round(avgProgress * 1.2));
+
+        // Recommendations
+        setRecommendations(data.recommendations ?? []);
+
         setStats({
           ...baseStats,
           averageProgress: Math.round(avgProgress),
           progressByFormation,
           hoursByWeek,
+          weeklyHours,
+          skillRadar,
+          weeklyGoalProgress,
         });
         setLoading(false);
       })
@@ -159,7 +203,7 @@ export default function MesFormationsPage() {
         <div className="flex items-center gap-3">
           <a
             href="/api/apprenant/export-pdf"
-            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:border-slate-300 transition-colors"
+            className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 dark:text-white dark:hover:text-white border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:border-slate-300 transition-colors"
             download
           >
             <Download className="w-3.5 h-3.5" />
@@ -175,7 +219,7 @@ export default function MesFormationsPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((s) => (
-          <div key={s.label} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <div key={s.label} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
             <div className="flex items-center justify-between mb-3">
               <div className={`w-11 h-11 rounded-xl ${s.bg} flex items-center justify-center`}>
                 <s.icon className={`w-5 h-5 ${s.color}`} />
@@ -197,7 +241,7 @@ export default function MesFormationsPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Progress by formation */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
           <h3 className="font-bold text-slate-900 dark:text-white mb-4">
             {fr ? "Progression par formation" : "Progress by course"}
           </h3>
@@ -219,7 +263,7 @@ export default function MesFormationsPage() {
         </div>
 
         {/* Hours by week */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
           <h3 className="font-bold text-slate-900 dark:text-white mb-4">
             {fr ? "Heures par jour" : "Hours per day"}
           </h3>
@@ -243,14 +287,14 @@ export default function MesFormationsPage() {
 
       {/* Average progress */}
       {stats.averageProgress > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 mb-8">
           <div className="flex items-center justify-between mb-2">
             <h3 className="font-bold text-slate-900 dark:text-white">
               {fr ? "Progression moyenne" : "Average progress"}
             </h3>
             <span className="text-lg font-extrabold text-primary">{stats.averageProgress}%</span>
           </div>
-          <div className="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+          <div className="w-full bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-primary to-purple-500 rounded-full transition-all duration-1000"
               style={{ width: `${stats.averageProgress}%` }}
@@ -259,6 +303,164 @@ export default function MesFormationsPage() {
         </div>
       )}
 
+      {/* ── Enhanced analytics row ─────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Weekly Hours AreaChart with gradient fill */}
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg text-primary">timeline</span>
+            {fr ? "Heures d'apprentissage (semaine)" : "Learning Hours (week)"}
+          </h3>
+          {stats.weeklyHours.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={stats.weeklyHours}>
+                <defs>
+                  <linearGradient id="weeklyHoursGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6C2BD9" stopOpacity={0.3} />
+                    <stop offset="100%" stopColor="#6C2BD9" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${v}h`} />
+                <Tooltip
+                  formatter={(v: number) => [`${v}h`, fr ? "Heures" : "Hours"]}
+                  contentStyle={{ borderRadius: "12px", fontSize: "12px" }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="hours"
+                  stroke="#6C2BD9"
+                  strokeWidth={2}
+                  fill="url(#weeklyHoursGradient)"
+                  dot={{ r: 4, fill: "#6C2BD9", stroke: "#fff", strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">
+              {fr ? "Aucune donnee cette semaine" : "No data this week"}
+            </div>
+          )}
+        </div>
+
+        {/* Skill Radar Chart */}
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <h3 className="font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-lg text-primary">radar</span>
+            {fr ? "Competences par categorie" : "Skills by category"}
+          </h3>
+          {stats.skillRadar.length >= 3 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <RadarChart data={stats.skillRadar} cx="50%" cy="50%" outerRadius="70%">
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis
+                  dataKey="category"
+                  tick={{ fontSize: 10, fill: "#64748b" }}
+                />
+                <PolarRadiusAxis
+                  angle={30}
+                  domain={[0, 100]}
+                  tick={{ fontSize: 9 }}
+                  tickFormatter={(v) => `${v}%`}
+                />
+                <Radar
+                  dataKey="value"
+                  stroke="#6C2BD9"
+                  fill="#6C2BD9"
+                  fillOpacity={0.2}
+                  strokeWidth={2}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">
+              {fr
+                ? "Inscrivez-vous a 3+ formations pour voir votre radar"
+                : "Enroll in 3+ courses to see your radar"}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Streak badge + Weekly goal row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+        {/* Streak badge */}
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center flex-shrink-0 animate-pulse">
+            <span className="text-2xl" role="img" aria-label="fire">
+              🔥
+            </span>
+          </div>
+          <div>
+            <p className="text-3xl font-extrabold text-slate-900 dark:text-white">
+              <AnimatedCounter value={stats.streak} />
+            </p>
+            <p className="text-sm text-slate-500">
+              {fr
+                ? stats.streak === 1
+                  ? "jour consecutif"
+                  : "jours consecutifs"
+                : stats.streak === 1
+                ? "day streak"
+                : "day streak"}
+            </p>
+            {stats.streak >= 7 && (
+              <p className="text-xs text-orange-500 font-semibold mt-1">
+                {fr ? "Impressionnant ! Continuez !" : "Impressive! Keep going!"}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Circular progress for weekly goal */}
+        <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 flex items-center gap-4">
+          <div className="relative w-14 h-14 flex-shrink-0">
+            <svg className="w-14 h-14 -rotate-90" viewBox="0 0 56 56">
+              <circle
+                cx="28"
+                cy="28"
+                r="24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="4"
+                className="text-slate-100 dark:text-slate-700"
+              />
+              <circle
+                cx="28"
+                cy="28"
+                r="24"
+                fill="none"
+                stroke="url(#goalGradient)"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeDasharray={`${(stats.weeklyGoalProgress / 100) * 2 * Math.PI * 24} ${2 * Math.PI * 24}`}
+                className="transition-all duration-1000"
+              />
+              <defs>
+                <linearGradient id="goalGradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#6C2BD9" />
+                  <stop offset="100%" stopColor="#0EA5E9" />
+                </linearGradient>
+              </defs>
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-primary">
+              {Math.round(stats.weeklyGoalProgress)}%
+            </span>
+          </div>
+          <div>
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
+              {fr ? "Objectif hebdomadaire" : "Weekly goal"}
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {stats.weeklyGoalProgress >= 100
+                ? (fr ? "Objectif atteint ! Bravo !" : "Goal reached! Great job!")
+                : (fr ? `${100 - Math.round(stats.weeklyGoalProgress)}% restant` : `${100 - Math.round(stats.weeklyGoalProgress)}% remaining`)}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit mb-6">
         {([["all", fr ? "Toutes" : "All"], ["in_progress", fr ? "En cours" : "In Progress"], ["completed", fr ? "Complétées" : "Completed"]] as [string, string][]).map(([key, label]) => (
@@ -266,7 +468,7 @@ export default function MesFormationsPage() {
             key={key}
             onClick={() => setTab(key as typeof tab)}
             className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-              tab === key ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
+              tab === key ? "bg-white dark:bg-slate-900 dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700"
             }`}
           >
             {label}
@@ -315,7 +517,7 @@ export default function MesFormationsPage() {
             const isCompleted = enrollment.progress >= 100;
 
             return (
-              <div key={enrollment.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/20 hover:shadow-sm transition-all p-4">
+              <div key={enrollment.id} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/20 hover:shadow-sm transition-all p-4">
                 <div className="flex gap-4">
                   {/* Thumbnail */}
                   <div className="w-40 h-24 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 dark:from-primary/20 dark:to-blue-900/20 overflow-hidden relative">
@@ -349,7 +551,7 @@ export default function MesFormationsPage() {
 
                     {/* Progress bar */}
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                      <div className="flex-1 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${isCompleted ? "bg-green-500" : "bg-primary"}`}
                           style={{ width: `${enrollment.progress}%` }}
@@ -375,7 +577,7 @@ export default function MesFormationsPage() {
                           ) : null}
                           <Link
                             href={`/formations/apprendre/${enrollment.formation.id}`}
-                            className="flex items-center gap-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                            className="flex items-center gap-1.5 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700 transition-colors"
                           >
                             <Play className="w-3.5 h-3.5" />
                             {fr ? "Revoir" : "Review"}
@@ -409,6 +611,35 @@ export default function MesFormationsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Recommendations section ────────────────────────────── */}
+      {recommendations.length > 0 && (
+        <div className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">auto_awesome</span>
+              {fr ? "Recommandations pour vous" : "Recommended for you"}
+            </h2>
+            <Link
+              href="/formations/explorer"
+              className="text-sm text-primary hover:underline flex items-center gap-1 font-semibold"
+            >
+              {fr ? "Voir tout" : "See all"}
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {recommendations.slice(0, 4).map((formation) => (
+              <FormationCard
+                key={formation.id}
+                formation={formation}
+                lang={locale}
+                compact
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

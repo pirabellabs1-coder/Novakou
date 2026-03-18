@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { z } from "zod";
+
+const updateProfilSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  avatar: z.string().url().max(2048).optional().or(z.literal("")),
+});
 
 export async function GET() {
   try {
@@ -24,7 +30,7 @@ export async function GET() {
     return NextResponse.json({ profile: user });
   } catch (error) {
     console.error("[GET /api/apprenant/profil]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ profile: { name: "", email: "", avatar: "" } });
   }
 }
 
@@ -35,7 +41,13 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const { name, avatar } = await req.json();
+    const body = await req.json();
+    const parsed = updateProfilSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Données invalides" }, { status: 400 });
+    }
+
+    const { name, avatar } = parsed.data;
 
     await prisma.user.update({
       where: { id: session.user.id },

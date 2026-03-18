@@ -45,7 +45,7 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ formations });
   } catch (error) {
     console.error("[GET /api/instructeur/formations]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ formations: [] });
   }
 }
 

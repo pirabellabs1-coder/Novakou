@@ -58,7 +58,7 @@ export function FormationsFooter() {
             <li><Link href="/formations/explorer" className="hover:text-primary transition-colors">{t("explore")}</Link></li>
             <li><Link href="/formations/categories" className="hover:text-primary transition-colors">{t("categories")}</Link></li>
             <li><Link href="/formations/produits" className="hover:text-primary transition-colors">{t("digital_products")}</Link></li>
-            <li><Link href="/formations/devenir-instructeur" className="hover:text-primary transition-colors">{t("become_instructor")}</Link></li>
+            <li><Link href="/formations/inscription?role=instructeur" className="hover:text-primary transition-colors">{t("become_instructor")}</Link></li>
             <li><Link href="/" className="hover:text-primary transition-colors">{t("back_to_freelancehigh")}</Link></li>
           </ul>
         </div>
@@ -94,6 +94,8 @@ export function FormationsFooter() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t("footer_newsletter_placeholder")}
                   required
+                  autoComplete="email"
+                  suppressHydrationWarning
                   className="bg-transparent border-none outline-none text-sm text-white w-full px-3 placeholder:text-slate-500"
                 />
                 <button

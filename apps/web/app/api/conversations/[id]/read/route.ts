@@ -33,7 +33,14 @@ export async function POST(
 
     conversationStore.markRead(id);
 
-    return NextResponse.json({ success: true });
+    // Return updated readBy for all messages
+    const updated = conversationStore.getById(id);
+    const readBy = updated?.messages.map((m) => ({
+      messageId: m.id,
+      readBy: m.read ? [session.user!.id, m.senderId] : [m.senderId],
+    })) || [];
+
+    return NextResponse.json({ success: true, readBy });
   } catch (error) {
     console.error("[API /conversations/[id]/read POST]", error);
     return NextResponse.json(

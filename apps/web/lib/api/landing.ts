@@ -148,6 +148,8 @@ function computeServiceScore(s: ServiceRecord): number {
  * above the average for all services.
  */
 function computeTrendingStatus(service: ServiceRecord, allServices: ServiceRecord[]): boolean {
+  if (allServices.length === 0) return false;
+
   const avgWeeklyOrders =
     allServices.reduce((sum, s) => sum + s.ordersLast7d, 0) / allServices.length;
 
@@ -183,7 +185,9 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   const totalOrders = categories.reduce((sum, c) => sum + c.totalOrders, 0);
 
   const avgRating =
-    freelancers.reduce((sum, f) => sum + f.rating, 0) / freelancers.length;
+    freelancers.length > 0
+      ? freelancers.reduce((sum, f) => sum + f.rating, 0) / freelancers.length
+      : 0;
 
   const totalReviews = freelancers.reduce((sum, f) => sum + f.reviewCount, 0) +
     services.reduce((sum, s) => sum + s.reviewCount, 0);
@@ -197,7 +201,6 @@ export async function getPlatformStats(): Promise<PlatformStats> {
     );
   }).length;
 
-  // Scale up to realistic platform numbers
   return {
     totalFreelancers,
     totalClients: Math.round(totalFreelancers * 0.71),
@@ -207,24 +210,28 @@ export async function getPlatformStats(): Promise<PlatformStats> {
     totalRevenueEur: Math.round(totalOrders * 185),
     avgSatisfactionRating: Math.round(avgRating * 100) / 100,
     totalReviews,
-    countriesCovered: 47,
+    countriesCovered: 0,
     avgResponseTimeHours:
-      Math.round(
-        (freelancers.reduce((sum, f) => sum + f.responseTimeHours, 0) /
-          freelancers.length) *
-          10
-      ) / 10,
+      freelancers.length > 0
+        ? Math.round(
+            (freelancers.reduce((sum, f) => sum + f.responseTimeHours, 0) /
+              freelancers.length) *
+              10
+          ) / 10
+        : 0,
     avgDeliveryOnTimePercent:
-      Math.round(
-        (freelancers.reduce((sum, f) => sum + f.completionRate, 0) /
-          freelancers.length) *
-          10
-      ) / 10,
-    newFreelancersThisMonth: newFreelancersThisMonth > 0 ? newFreelancersThisMonth : 1247,
+      freelancers.length > 0
+        ? Math.round(
+            (freelancers.reduce((sum, f) => sum + f.completionRate, 0) /
+              freelancers.length) *
+              10
+          ) / 10
+        : 0,
+    newFreelancersThisMonth,
     newProjectsThisMonth: services.reduce((sum, s) => sum + s.ordersLast30d, 0),
     totalPayoutsEur: Math.round(totalOrders * 148),
     activeMissions: services.reduce((sum, s) => sum + s.ordersLast7d, 0) * 12,
-    repeatClientPercent: 73,
+    repeatClientPercent: 0,
   };
 }
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState } from "react";
+import { useLocale } from "next-intl";
 import { Users, Search, Download } from "lucide-react";
+import { useInstructorStudents } from "@/lib/formations/hooks";
 
 interface InstructeurApprenant {
   id: string;
@@ -15,16 +16,13 @@ interface InstructeurApprenant {
 }
 
 export default function InstructeurApprenantsPage() {
-  const [apprenants, setApprenants] = useState<InstructeurApprenant[]>([]);
-  const [loading, setLoading] = useState(true);
+  const locale = useLocale();
+  const fr = locale === "fr";
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetch("/api/instructeur/apprenants")
-      .then((r) => r.json())
-      .then((d) => { setApprenants(d.apprenants ?? []); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading, error: queryError, refetch } = useInstructorStudents();
+  const apprenants: InstructeurApprenant[] = (data as { apprenants?: InstructeurApprenant[] } | null)?.apprenants ?? [];
+  const error = queryError ? (queryError as Error).message || (fr ? "Erreur lors du chargement des apprenants" : "Error loading students") : "";
 
   const filtered = apprenants.filter((a) =>
     !search ||
@@ -35,15 +33,17 @@ export default function InstructeurApprenantsPage() {
 
   const exportCSV = () => {
     const rows = [
-      ["Nom", "Email", "Formation", "Progression (%)", "Paiement (€)", "Date inscription", "Complété"],
+      fr
+        ? ["Nom", "Email", "Formation", "Progression (%)", "Paiement (€)", "Date inscription", "Complété"]
+        : ["Name", "Email", "Course", "Progress (%)", "Payment (€)", "Enrollment date", "Completed"],
       ...filtered.map((a) => [
         a.user.name,
         a.user.email,
         a.formation.titleFr,
         Math.round(a.progress * 100).toString(),
         a.paidAmount.toFixed(2),
-        new Date(a.createdAt).toLocaleDateString("fr-FR"),
-        a.completedAt ? "Oui" : "Non",
+        new Date(a.createdAt).toLocaleDateString(fr ? "fr-FR" : "en-US"),
+        a.completedAt ? (fr ? "Oui" : "Yes") : (fr ? "Non" : "No"),
       ]),
     ];
     const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
@@ -56,41 +56,17 @@ export default function InstructeurApprenantsPage() {
     URL.revokeObjectURL(url);
   };
 
-  const INSTRUCTOR_NAV = [
-    ["/formations/instructeur/dashboard", "Dashboard"],
-    ["/formations/instructeur/mes-formations", "Formations"],
-    ["/formations/instructeur/apprenants", "Apprenants"],
-    ["/formations/instructeur/revenus", "Revenus"],
-    ["/formations/instructeur/avis", "Avis"],
-    ["/formations/instructeur/statistiques", "Statistiques"],
-  ] as [string, string][];
-
   return (
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Mes apprenants</h1>
+        <h1 className="text-xl font-bold text-slate-900 dark:text-white">{fr ? "Mes apprenants" : "My students"}</h1>
         <button
           onClick={exportCSV}
-          className="flex items-center gap-2 text-sm text-slate-300 hover:text-white border border-border-dark hover:bg-border-dark/50 px-3 py-2 rounded-xl transition-colors"
+          className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-white dark:hover:text-white border border-slate-200 dark:border-slate-700 dark:border-border-dark hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-border-dark/50 px-3 py-2 rounded-xl transition-colors"
         >
           <Download className="w-4 h-4" />
           Export CSV
         </button>
-      </div>
-
-      {/* Sub-nav */}
-      <div className="flex gap-1 bg-border-dark/30 rounded-xl p-1 w-fit overflow-x-auto">
-        {INSTRUCTOR_NAV.map(([href, label]) => (
-          <Link
-            key={href}
-            href={href}
-            className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
-              href.includes("apprenants") ? "bg-primary text-white" : "text-slate-400 hover:text-white hover:bg-border-dark/50"
-            }`}
-          >
-            {label}
-          </Link>
-        ))}
       </div>
 
       {/* Search + count */}
@@ -101,38 +77,51 @@ export default function InstructeurApprenantsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par nom, email ou formation..."
-            className="w-full pl-9 pr-4 py-2 bg-neutral-dark border border-border-dark rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary"
+            placeholder={fr ? "Rechercher par nom, email ou formation..." : "Search by name, email or course..."}
+            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 dark:bg-neutral-dark border border-slate-200 dark:border-slate-700 dark:border-border-dark rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
           <Users className="w-4 h-4" />
-          {filtered.length} apprenant{filtered.length > 1 ? "s" : ""}
+          {filtered.length} {fr ? `apprenant${filtered.length > 1 ? "s" : ""}` : `student${filtered.length > 1 ? "s" : ""}`}
         </div>
       </div>
 
+      {/* Error */}
+      {error && (
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400">
+          <span>{error}</span>
+          <button
+            onClick={() => refetch()}
+            className="ml-4 px-3 py-1.5 bg-red-100 dark:bg-red-800/40 hover:bg-red-200 dark:hover:bg-red-800/60 rounded-lg font-medium transition-colors whitespace-nowrap"
+          >
+            {fr ? "Réessayer" : "Retry"}
+          </button>
+        </div>
+      )}
+
       {/* Table */}
-      <div className="bg-neutral-dark border border-border-dark rounded-xl overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark border border-slate-200 dark:border-slate-700 dark:border-border-dark rounded-xl overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="border-b border-border-dark">
-            <tr className="text-slate-400 text-xs uppercase">
-              <th className="p-4 text-left">Apprenant</th>
-              <th className="p-4 text-left">Formation</th>
-              <th className="p-4 text-left">Progression</th>
-              <th className="p-4 text-left">Paiement</th>
+          <thead className="border-b border-slate-200 dark:border-slate-700 dark:border-border-dark">
+            <tr className="text-slate-500 dark:text-slate-400 text-xs uppercase">
+              <th className="p-4 text-left">{fr ? "Apprenant" : "Student"}</th>
+              <th className="p-4 text-left">{fr ? "Formation" : "Course"}</th>
+              <th className="p-4 text-left">{fr ? "Progression" : "Progress"}</th>
+              <th className="p-4 text-left">{fr ? "Paiement" : "Payment"}</th>
               <th className="p-4 text-left">Date</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border-dark">
+          <tbody className="divide-y divide-slate-100 dark:divide-border-dark">
             {loading ? (
-              <tr><td colSpan={5} className="p-8 text-center text-slate-400">Chargement...</td></tr>
+              <tr><td colSpan={5} className="p-8 text-center text-slate-400">{fr ? "Chargement..." : "Loading..."}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} className="p-8 text-center text-slate-400">Aucun apprenant trouvé</td></tr>
+              <tr><td colSpan={5} className="p-8 text-center text-slate-400">{fr ? "Aucun apprenant trouvé" : "No students found"}</td></tr>
             ) : (
               filtered.map((a) => {
                 const avatar = a.user.avatar || a.user.image;
                 return (
-                  <tr key={a.id} className="hover:bg-border-dark/30 transition-colors">
+                  <tr key={a.id} className="hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-border-dark/30 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex-shrink-0 overflow-hidden flex items-center justify-center">
@@ -143,33 +132,33 @@ export default function InstructeurApprenantsPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-white text-sm">{a.user.name}</p>
+                          <p className="text-slate-900 dark:text-white text-sm">{a.user.name}</p>
                           <p className="text-xs text-slate-500">{a.user.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="p-4">
-                      <p className="text-slate-300 text-sm line-clamp-1 max-w-xs">{a.formation.titleFr}</p>
+                      <p className="text-slate-700 dark:text-slate-300 text-sm line-clamp-1 max-w-xs">{a.formation.titleFr}</p>
                     </td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-1.5 bg-border-dark rounded-full overflow-hidden">
+                        <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 dark:bg-border-dark rounded-full overflow-hidden">
                           <div
                             className="h-full bg-primary rounded-full"
                             style={{ width: `${Math.round(a.progress * 100)}%` }}
                           />
                         </div>
-                        <span className="text-xs text-slate-400">{Math.round(a.progress * 100)}%</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">{Math.round(a.progress * 100)}%</span>
                       </div>
-                      {a.completedAt && <span className="text-xs text-green-400">✓ Terminé</span>}
+                      {a.completedAt && <span className="text-xs text-green-500 dark:text-green-400">{fr ? "Terminé" : "Completed"}</span>}
                     </td>
                     <td className="p-4">
-                      <span className="text-sm text-white">
-                        {a.paidAmount === 0 ? "Gratuit" : `${a.paidAmount.toFixed(0)}€`}
+                      <span className="text-sm text-slate-900 dark:text-white">
+                        {a.paidAmount === 0 ? (fr ? "Gratuit" : "Free") : `${a.paidAmount.toFixed(0)}\u20AC`}
                       </span>
                     </td>
                     <td className="p-4">
-                      <p className="text-xs text-slate-400">{new Date(a.createdAt).toLocaleDateString("fr-FR")}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{new Date(a.createdAt).toLocaleDateString("fr-FR")}</p>
                     </td>
                   </tr>
                 );

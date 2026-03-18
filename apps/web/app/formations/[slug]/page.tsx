@@ -258,12 +258,12 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-neutral-dark">
+      <div className="min-h-screen bg-white dark:bg-slate-900 dark:bg-neutral-dark">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-slate-100 dark:bg-slate-700 rounded w-3/4" />
-            <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-1/2" />
-            <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded w-2/3" />
+            <div className="h-8 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded w-3/4" />
+            <div className="h-4 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded w-1/2" />
+            <div className="h-4 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded w-2/3" />
           </div>
         </div>
       </div>
@@ -310,7 +310,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const displayedReviews = showAllReviews ? formation.reviews : formation.reviews.slice(0, 4);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-dark">
+    <div className="min-h-screen bg-white dark:bg-slate-900 dark:bg-neutral-dark">
       {/* Hero Header */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -375,7 +375,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
           {/* Left column (65%) */}
           <div className="flex-1 min-w-0 lg:max-w-[65%]">
             {/* Tabs */}
-            <div className="sticky top-0 bg-white dark:bg-neutral-dark z-10 border-b dark:border-border-dark mb-6">
+            <div className="sticky top-0 bg-white dark:bg-slate-900 dark:bg-neutral-dark z-10 border-b dark:border-border-dark mb-6">
               <div className="flex gap-6">
                 {(["overview", "curriculum", "instructor", "reviews", ...(formation.isGroupFormation && formation.cohorts?.length ? ["cohorts" as const] : [])] as const).map((tab) => (
                   <button
@@ -413,12 +413,12 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                 {/* What you'll learn */}
                 {learnPoints.length > 0 && (
                   <div className="border rounded-xl p-6">
-                    <h2 className="text-lg font-bold text-slate-900 mb-4">{t("what_you_learn")}</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">{t("what_you_learn")}</h2>
                     <div className="grid sm:grid-cols-2 gap-2">
                       {learnPoints.map((point, i) => (
                         <div key={i} className="flex items-start gap-2">
                           <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-slate-700">{point}</span>
+                          <span className="text-sm text-slate-700 dark:text-slate-300">{point}</span>
                         </div>
                       ))}
                     </div>
@@ -428,10 +428,10 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                 {/* Requirements */}
                 {requirements.length > 0 && (
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900 mb-3">{t("requirements")}</h2>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{t("requirements")}</h2>
                     <ul className="space-y-1.5">
                       {requirements.map((req, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
+                        <li key={i} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300">
                           <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0" />
                           {req}
                         </li>
@@ -443,16 +443,16 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                 {/* Target audience */}
                 {targetAudience && (
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900 mb-3">{t("target_audience")}</h2>
-                    <p className="text-sm text-slate-700 leading-relaxed">{targetAudience}</p>
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{t("target_audience")}</h2>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{targetAudience}</p>
                   </div>
                 )}
 
                 {/* Description */}
                 {desc && (
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900 mb-3">{locale === "fr" ? "Description" : "Description"}</h2>
-                    <TiptapRenderer content={desc} className="text-slate-700" />
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{locale === "fr" ? "Description" : "Description"}</h2>
+                    <TiptapRenderer content={desc} className="text-slate-700 dark:text-slate-300" />
                   </div>
                 )}
               </div>
@@ -462,7 +462,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
             {activeTab === "curriculum" && (
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     {formation.sections.length} {t("sections")} · {totalLessons} {t("lessons")} · {formatDuration(formation.duration)}
                     {freeLessons > 0 && (
                       <span className="ml-2 text-primary">({freeLessons} {locale === "fr" ? "gratuites" : "free"})</span>
@@ -498,11 +498,11 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                             if (isExpanded) next.delete(section.id); else next.add(section.id);
                             setExpandedSections(next);
                           }}
-                          className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                          className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors text-left"
                         >
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
-                            <span className="font-medium text-slate-900 text-sm">{sectionTitle}</span>
+                            <span className="font-medium text-slate-900 dark:text-white text-sm">{sectionTitle}</span>
                           </div>
                           <span className="text-xs text-slate-500 flex-shrink-0">
                             {section.lessons.length} {locale === "fr" ? "leçons" : "lessons"} · {formatDuration(sectionDuration)}
@@ -514,9 +514,9 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                             {section.lessons.sort((a, b) => a.order - b.order).map((lesson) => {
                               const lessonTitle = locale === "fr" ? lesson.titleFr : (lesson.titleEn || lesson.titleFr);
                               return (
-                                <div key={lesson.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50">
+                                <div key={lesson.id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-800/50">
                                   <LessonTypeIcon type={lesson.type} />
-                                  <span className="flex-1 text-sm text-slate-700">{lessonTitle}</span>
+                                  <span className="flex-1 text-sm text-slate-700 dark:text-slate-300">{lessonTitle}</span>
                                   {lesson.isFree && !isEnrolled && (
                                     <span className="text-xs text-primary font-medium px-2 py-0.5 bg-primary/5 rounded">
                                       {locale === "fr" ? "Gratuit" : "Free"}
@@ -551,7 +551,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                     )}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">{formation.instructeur.user.name}</h2>
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">{formation.instructeur.user.name}</h2>
                     {formation.instructeur.expertise.length > 0 && (
                       <p className="text-sm text-slate-500 mt-0.5">{formation.instructeur.expertise.join(", ")}</p>
                     )}
@@ -570,7 +570,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
                 {instrBio && (
                   <div>
-                    <h3 className="font-semibold text-slate-900 mb-2">{locale === "fr" ? "À propos" : "About"}</h3>
+                    <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{locale === "fr" ? "À propos" : "About"}</h3>
                     <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{instrBio}</p>
                   </div>
                 )}
@@ -589,9 +589,9 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
             {activeTab === "reviews" && (
               <div className="space-y-6">
                 {/* Global rating */}
-                <div className="flex items-center gap-8 p-6 bg-slate-50 rounded-xl">
+                <div className="flex items-center gap-8 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
                   <div className="text-center">
-                    <p className="text-5xl font-bold text-slate-900">{formation.rating.toFixed(1)}</p>
+                    <p className="text-5xl font-bold text-slate-900 dark:text-white">{formation.rating.toFixed(1)}</p>
                     <StarRating rating={formation.rating} size="lg" />
                     <p className="text-xs text-slate-500 mt-1">{t("tab_reviews")} ({formation.reviewsCount.toLocaleString()})</p>
                   </div>
@@ -630,7 +630,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm text-slate-900">{review.user.name}</span>
+                            <span className="font-medium text-sm text-slate-900 dark:text-white">{review.user.name}</span>
                             <StarRating rating={review.rating} />
                             <span className="text-xs text-slate-400">
                               {new Date(review.createdAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-US")}
@@ -681,7 +681,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                     <div key={c.id} className="border rounded-xl p-5 hover:border-primary/20 hover:shadow-sm transition-all">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-semibold text-slate-900 text-sm">{cTitle}</h3>
+                          <h3 className="font-semibold text-slate-900 dark:text-white text-sm">{cTitle}</h3>
                           <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                             <span className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
@@ -698,7 +698,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-slate-900">{c.price}€</p>
+                          <p className="text-lg font-bold text-slate-900 dark:text-white">{c.price}€</p>
                           {c.originalPrice && c.originalPrice > c.price && (
                             <p className="text-xs text-slate-400 line-through">{c.originalPrice}€</p>
                           )}
@@ -738,9 +738,9 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
           {/* Right column — Sticky purchase card */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-8">
-              <div className="bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-2xl shadow-xl overflow-hidden">
+              <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark border border-slate-200 dark:border-slate-700 dark:border-border-dark rounded-2xl shadow-xl overflow-hidden">
                 {/* Preview thumbnail / video */}
-                <div className="aspect-video bg-slate-100 relative">
+                <div className="aspect-video bg-slate-100 dark:bg-slate-800 relative">
                   {formation.thumbnail ? (
                     <img src={formation.thumbnail} alt={title} className="w-full h-full object-cover" />
                   ) : (
@@ -750,7 +750,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                   )}
                   {formation.previewVideo && (
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                      <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform">
+                      <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform">
                         <Play className="w-5 h-5 text-primary ml-0.5" />
                       </div>
                     </div>
@@ -775,7 +775,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                       <span className="text-2xl font-bold text-green-600">{t("free")}</span>
                     ) : (
                       <>
-                        <span className="text-3xl font-bold text-slate-900">
+                        <span className="text-3xl font-bold text-slate-900 dark:text-white">
                           {finalPrice.toFixed(0)}€
                         </span>
                         {(flashDiscountedPrice || formation.originalPrice) && finalPrice < formation.price && (
@@ -819,7 +819,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                       <button
                         onClick={addToCart}
                         disabled={addingToCart}
-                        className="w-full border border-slate-300 text-slate-700 font-medium py-2.5 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full border border-slate-300 text-slate-700 font-medium py-2.5 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         <ShoppingCart className="w-4 h-4" />
                         {t("add_to_cart")}
@@ -827,7 +827,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                       <button
                         onClick={() => setIsFavorite(!isFavorite)}
                         className={`w-full border py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors ${
-                          isFavorite ? "border-red-300 text-red-500 bg-red-50" : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                          isFavorite ? "border-red-300 text-red-500 bg-red-50" : "border-slate-300 text-slate-600 hover:bg-slate-50 dark:bg-slate-800/50"
                         }`}
                       >
                         <Heart className={`w-4 h-4 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
@@ -840,7 +840,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
                   {/* Includes */}
                   <div className="mt-4 pt-4 border-t space-y-2">
-                    <h3 className="font-semibold text-sm text-slate-900">{t("includes")}</h3>
+                    <h3 className="font-semibold text-sm text-slate-900 dark:text-white">{t("includes")}</h3>
                     <div className="space-y-1.5 text-xs text-slate-600">
                       <div className="flex items-center gap-2">
                         <Clock className="w-4 h-4 text-slate-400" />
@@ -879,11 +879,11 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                           value={promoCode}
                           onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
                           placeholder="CODE"
-                          className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          className="flex-1 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
                         />
                         <button
                           onClick={applyPromo}
-                          className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-lg transition-colors"
+                          className="text-xs bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-lg transition-colors"
                         >
                           {t("promo_apply")}
                         </button>
@@ -911,13 +911,13 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
         </div>
 
         {/* Mobile purchase bar */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-dark border-t dark:border-border-dark p-4 flex items-center gap-3 shadow-lg z-30">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 dark:bg-neutral-dark border-t dark:border-border-dark p-4 flex items-center gap-3 shadow-lg z-30">
           <div className="flex-1">
             {formation.isFree ? (
               <span className="font-bold text-green-600">{t("free")}</span>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="font-bold text-xl text-slate-900">{finalPrice.toFixed(0)}€</span>
+                <span className="font-bold text-xl text-slate-900 dark:text-white">{finalPrice.toFixed(0)}€</span>
                 {formation.originalPrice && <span className="text-sm text-slate-400 line-through">{formation.originalPrice.toFixed(0)}€</span>}
               </div>
             )}

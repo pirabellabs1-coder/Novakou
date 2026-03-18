@@ -5,7 +5,7 @@ import {
   type StorageBucket,
 } from "@/lib/supabase-storage";
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 25 * 1024 * 1024; // 25MB
 
 // Magic bytes pour valider le type reel du fichier (pas seulement l'extension client)
 const MAGIC_BYTES: Record<string, number[][]> = {
@@ -34,6 +34,7 @@ const VALID_BUCKETS: StorageBucket[] = [
   "order-deliveries",
   "agency-resources",
   "contracts",
+  "message-attachments",
 ];
 
 function isValidBucket(bucket: string): bucket is StorageBucket {
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: "Fichier trop volumineux (max 10 Mo)" },
+        { error: "Le fichier depasse la taille maximale de 25 MB" },
         { status: 400 }
       );
     }
@@ -82,7 +83,12 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     // Validate file extension
-    const ALLOWED_EXTENSIONS = ["pdf", "doc", "docx", "txt", "zip", "png", "jpg", "jpeg", "gif", "webp"];
+    const ALLOWED_EXTENSIONS = [
+      "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt",
+      "zip", "rar", "7z",
+      "png", "jpg", "jpeg", "gif", "webp",
+      "mp4", "webm", "mov",
+    ];
     const extension = (file.name.split(".").pop() || "").toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       return NextResponse.json({ error: "Extension de fichier non autorisee" }, { status: 400 });

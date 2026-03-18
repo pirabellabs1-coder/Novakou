@@ -247,8 +247,8 @@ export default function SecuritePage() {
                 </p>
 
                 {/* QR Code display - rendered as otpauth URL for manual entry */}
-                <div className="bg-white rounded-xl p-6 flex flex-col items-center gap-4">
-                  <div className="w-48 h-48 bg-slate-100 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300">
+                <div className="bg-white dark:bg-slate-900 rounded-xl p-6 flex flex-col items-center gap-4">
+                  <div className="w-48 h-48 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600">
                     <div className="text-center p-3">
                       <span className="material-symbols-outlined text-4xl text-slate-400 mb-2">qr_code_2</span>
                       <p className="text-xs text-slate-500 font-medium">

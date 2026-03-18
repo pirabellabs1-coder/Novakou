@@ -80,7 +80,9 @@ export interface MockReview {
 
 // ─── Vendors ────────────────────────────────────────────────────────────────
 
-export const MOCK_VENDORS: MockVendor[] = [
+export const MOCK_VENDORS: MockVendor[] = [];
+
+const _REMOVED_VENDORS = [
   {
     id: "v1",
     username: "alex-dev",
@@ -376,7 +378,7 @@ export const MOCK_VENDORS: MockVendor[] = [
       "https://picsum.photos/seed/hub2/800/500",
     ],
   },
-];
+]; // end _REMOVED_VENDORS
 
 export function getVendorById(id: string): MockVendor | undefined {
   return MOCK_VENDORS.find((v) => v.id === id);
@@ -388,7 +390,9 @@ export function getVendorByUsername(username: string): MockVendor | undefined {
 
 // ─── Services ───────────────────────────────────────────────────────────────
 
-export const MOCK_SERVICES: MockService[] = [
+export const MOCK_SERVICES: MockService[] = [];
+
+const _REMOVED_SERVICES = [
   {
     id: "srv1",
     slug: "site-web-nextjs-react",
@@ -1091,7 +1095,7 @@ Processus : brief → storyboard → animation → son → livraison`,
   { id: "srv38", slug: "conseils-juridiques-contrat", title: "Je vais rédiger vos contrats freelance et CGV professionnels", shortDesc: "Contrats de prestation, CGV, NDA et mentions légales conformes au droit français.", description: "Protégez-vous juridiquement avec des contrats solides.", category: "Business", categorySlug: "business", tags: ["Contrat", "CGV", "Juridique", "NDA", "Freelance"], images: ["https://picsum.photos/seed/srv38/800/500"], packages: { basic: { name: "Basique", description: "Contrat de prestation simple", price: 80, deliveryDays: 3, revisions: 1, features: ["Contrat prestations type", "Conforme droit FR", "Format Word"] }, standard: { name: "Standard", description: "Pack juridique freelance", price: 200, deliveryDays: 5, revisions: 2, features: ["Contrat + CGV + CGU", "NDA", "Mentions légales", "Personnalisé"] }, premium: { name: "Premium", description: "Dossier juridique complet", price: 450, deliveryDays: 10, revisions: 3, features: ["Tous documents", "Consultation 1h avocat", "Mise à jour légale", "Archivage sécurisé"] } }, vendorId: "v5", rating: 4.5, reviewCount: 34, orderCount: 76, featured: false, createdAt: "2023-08-01", faq: [] },
   { id: "srv39", slug: "photo-evenement-reportage", title: "Je vais photographier votre événement professionnel ou soirée corporate", shortDesc: "Reportage photo événementiel complet : conférences, soirées, team building, salons.", description: "Immortalisez vos moments importants avec des photos de qualité.", category: "Photographie", categorySlug: "photo", tags: ["Événementiel", "Reportage", "Corporate", "Conférence", "Soirée"], images: ["https://picsum.photos/seed/srv39/800/500", "https://picsum.photos/seed/srv39b/800/500"], packages: { basic: { name: "Basique", description: "3h de reportage", price: 200, deliveryDays: 5, revisions: 1, features: ["3 heures", "100 photos HD", "Retouche légère", "Galerie en ligne"] }, standard: { name: "Standard", description: "Journée complète", price: 450, deliveryDays: 7, revisions: 2, features: ["Journée entière", "250 photos HD", "Retouche pro", "Galerie + clé USB"] }, premium: { name: "Premium", description: "Événement + vidéo highlights", price: 900, deliveryDays: 10, revisions: 3, features: ["Journée + vidéo 3min", "Photos illimitées", "Drone si possible", "Rapport média"] } }, vendorId: "v11", rating: 4.9, reviewCount: 29, orderCount: 65, featured: false, createdAt: "2023-11-01", faq: [] },
   { id: "srv40", slug: "machine-learning-model", title: "Je vais développer et entraîner votre modèle de machine learning", shortDesc: "Modèle ML custom : classification, prédiction, NLP ou vision par ordinateur.", description: "L'IA au service de votre business, sans jargon superflu.", category: "Data & IA", categorySlug: "data-ia", tags: ["Machine Learning", "Python", "TensorFlow", "NLP", "IA", "Prédiction"], images: ["https://picsum.photos/seed/srv40/800/500"], packages: { basic: { name: "Basique", description: "Modèle de classification", price: 200, deliveryDays: 7, revisions: 2, features: ["Modèle entraîné", "Rapport performances", "Notebook commenté"] }, standard: { name: "Standard", description: "Modèle + API REST", price: 500, deliveryDays: 14, revisions: 3, features: ["Modèle custom", "API REST déployée", "Documentation", "Tests intégration"] }, premium: { name: "Premium", description: "Solution ML production-ready", price: 1200, deliveryDays: 30, revisions: 5, features: ["ML pipeline complet", "Monitoring drift", "Dashboard métriques", "Formation équipe", "Support 3 mois"] } }, vendorId: "v10", rating: 4.7, reviewCount: 15, orderCount: 32, featured: false, createdAt: "2024-03-10", faq: [] },
-];
+]; // end _REMOVED_SERVICES
 
 export function getServiceById(id: string): MockService | undefined {
   return MOCK_SERVICES.find((s) => s.id === id);
@@ -1113,7 +1117,9 @@ export function getSimilarServices(service: MockService, limit = 4): MockService
 
 // ─── Reviews ────────────────────────────────────────────────────────────────
 
-export const MOCK_REVIEWS: MockReview[] = [
+export const MOCK_REVIEWS: MockReview[] = [];
+
+const _REMOVED_REVIEWS = [
   {
     id: "r1",
     serviceId: "srv1",
@@ -1199,7 +1205,7 @@ export const MOCK_REVIEWS: MockReview[] = [
     date: "2024-11-25",
     helpful: 7,
   },
-];
+]; // end _REMOVED_REVIEWS
 
 export function getReviewsByService(serviceId: string): MockReview[] {
   return MOCK_REVIEWS.filter((r) => r.serviceId === serviceId);

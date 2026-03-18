@@ -1,4 +1,5 @@
 // POST /api/instructeur/candidature — Postuler comme instructeur
+// GET  /api/instructeur/candidature — Récupérer le profil instructeur
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -25,6 +26,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
+    const body = await req.json();
+    const data = applicationSchema.parse(body);
+
     const existing = await prisma.instructeurProfile.findUnique({
       where: { userId: session.user.id },
     });
@@ -35,9 +39,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    const body = await req.json();
-    const data = applicationSchema.parse(body);
 
     const profile = await prisma.instructeurProfile.create({
       data: {
@@ -81,7 +82,7 @@ export async function GET(req: NextRequest) {
       where: { userId: session.user.id },
     });
 
-    return NextResponse.json(profile);
+    return NextResponse.json({ profile: profile ?? null });
   } catch (error) {
     console.error("[GET /api/instructeur/candidature]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

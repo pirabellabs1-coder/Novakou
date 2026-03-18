@@ -48,14 +48,14 @@ export default function AdminApprenantsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("admin_search_students")}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary"
           />
         </div>
         <div className="text-sm text-slate-500 flex items-center">{filtered.length} {t("admin_enrollments")}</div>
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[640px]">
           <thead className="border-b border-slate-200 dark:border-slate-700">
             <tr className="text-slate-500 text-xs uppercase">
@@ -76,14 +76,14 @@ export default function AdminApprenantsPage() {
               filtered.map((e) => {
                 const avatar = e.user.avatar || e.user.image;
                 return (
-                  <tr key={e.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                  <tr key={e.id} className="hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700/30 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex-shrink-0 overflow-hidden flex items-center justify-center">
                           {avatar ? <img src={avatar} alt={e.user.name} className="w-full h-full object-cover" /> : <span className="text-primary font-bold text-sm">{e.user.name.charAt(0)}</span>}
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{e.user.name}</p>
+                          <p className="text-sm font-medium text-slate-900 dark:text-white">{e.user.name}</p>
                           <p className="text-xs text-slate-500">{e.user.email}</p>
                         </div>
                       </div>
@@ -91,14 +91,14 @@ export default function AdminApprenantsPage() {
                     <td className="p-4"><p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-1 max-w-xs">{e.formation.titleFr}</p></td>
                     <td className="p-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded-full overflow-hidden">
                           <div className="h-full bg-primary rounded-full" style={{ width: `${Math.round(e.progress * 100)}%` }} />
                         </div>
                         <span className="text-xs text-slate-500">{Math.round(e.progress * 100)}%</span>
                       </div>
                       {e.completedAt && <span className="text-xs text-green-600">{t("admin_completed")}</span>}
                     </td>
-                    <td className="p-4 text-sm">{e.paidAmount === 0 ? t("free") : `${e.paidAmount.toFixed(0)}€`}</td>
+                    <td className="p-4 text-sm text-slate-700 dark:text-slate-300">{e.paidAmount === 0 ? t("free") : `${e.paidAmount.toFixed(0)}€`}</td>
                     <td className="p-4 text-xs text-slate-500">{new Date(e.createdAt).toLocaleDateString("fr-FR")}</td>
                     <td className="p-4">
                       {e.certificate ? (

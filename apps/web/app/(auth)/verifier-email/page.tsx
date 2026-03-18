@@ -185,8 +185,8 @@ export default function VerifierEmailPage() {
   // Redirect if no email param
   if (!email) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-8 max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 p-8 max-w-md w-full text-center">
           <h2 className="text-xl font-bold text-slate-800 mb-4">Email manquant</h2>
           <p className="text-slate-600 mb-6">
             Aucune adresse email n&apos;a ete fournie pour la verification.
@@ -203,8 +203,8 @@ export default function VerifierEmailPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-8 max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900 px-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-lg border border-slate-100 dark:border-slate-700 p-8 max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
@@ -235,7 +235,7 @@ export default function VerifierEmailPage() {
               onChange={(e) => handleDigitChange(i, e.target.value)}
               onKeyDown={(e) => handleKeyDown(i, e)}
               disabled={loading || success}
-              className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-200 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-200 dark:border-slate-700 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           ))}
         </div>
@@ -264,14 +264,14 @@ export default function VerifierEmailPage() {
 
         {/* Success */}
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 rounded-xl px-4 py-3 mb-4 text-sm text-center">
+          <div className="bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl px-4 py-3 mb-4 text-sm text-center">
             Email verifie avec succes ! Redirection...
           </div>
         )}
 
         {/* Resend message */}
         {resendMessage && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 rounded-xl px-4 py-3 mb-4 text-sm text-center">
+          <div className="bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl px-4 py-3 mb-4 text-sm text-center">
             {resendMessage}
           </div>
         )}

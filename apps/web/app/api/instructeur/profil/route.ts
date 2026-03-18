@@ -4,6 +4,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { z } from "zod";
+
+const updateSchema = z.object({
+  name: z.string().min(2).max(100).optional(),
+  avatar: z.string().url().or(z.literal("")).optional(),
+  bioFr: z.string().max(2000).optional(),
+  bioEn: z.string().max(2000).optional(),
+  linkedin: z.string().url().or(z.literal("")).optional(),
+  website: z.string().url().or(z.literal("")).optional(),
+  youtube: z.string().url().or(z.literal("")).optional(),
+}).strict();
 
 export async function GET() {
   try {
@@ -46,7 +57,8 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { name, avatar, bioFr, bioEn, linkedin, website, youtube } = body;
+    const parsed = updateSchema.parse(body);
+    const { name, avatar, bioFr, bioEn, linkedin, website, youtube } = parsed;
 
     // Mettre à jour le user (nom + avatar)
     if (name !== undefined || avatar !== undefined) {
@@ -79,6 +91,9 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Données invalides", details: error.issues }, { status: 400 });
+    }
     console.error("[PUT /api/instructeur/profil]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

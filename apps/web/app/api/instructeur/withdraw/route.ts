@@ -8,10 +8,19 @@ import { INSTRUCTOR_COMMISSION } from "@/lib/formations/prisma-helpers";
 import { z } from "zod";
 import { sendWithdrawalRequestEmail } from "@/lib/email/formations";
 
+const METHOD_MAP: Record<string, string> = {
+  "Virement IBAN": "virement",
+  "PayPal": "paypal",
+  "Wave": "wave",
+  "Orange Money": "orange_money",
+  "MTN Mobile Money": "mtn",
+};
+
 const withdrawSchema = z.object({
   amount: z.number().min(20).max(10000),
-  method: z.enum(["virement", "paypal", "wave", "orange_money", "mtn"]),
-  accountDetails: z.record(z.string(), z.string()),
+  method: z.string().min(1),
+  details: z.string().optional(),
+  accountDetails: z.record(z.string(), z.string()).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -44,7 +53,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { amount, method, accountDetails } = withdrawSchema.parse(body);
+    const parsed = withdrawSchema.parse(body);
+    const amount = parsed.amount;
+    // Normalize method label to DB enum value
+    const method = METHOD_MAP[parsed.method] ?? parsed.method;
+    // Accept both `details` (frontend) and `accountDetails` (legacy) formats
+    const accountDetails = parsed.accountDetails ?? (parsed.details ? { info: parsed.details } : {});
 
     // Calculer le solde disponible
     const formations = await prisma.formation.findMany({

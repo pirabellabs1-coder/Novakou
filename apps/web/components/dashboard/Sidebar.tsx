@@ -134,11 +134,14 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const userInitials = userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
   // Augment nav items with dynamic badges
+  const unreadMessages = useDashboardStore((s) => s.unreadMessages ?? 0);
   const sections = SECTIONS.map((section) => ({
     ...section,
-    items: section.items.map((item) =>
-      item.href === "/dashboard/notifications" ? { ...item, badge: unreadCount } : item
-    ),
+    items: section.items.map((item) => {
+      if (item.href === "/dashboard/notifications") return { ...item, badge: unreadCount };
+      if (item.href === "/dashboard/messages") return { ...item, badge: unreadMessages };
+      return item;
+    }),
   }));
 
   // All sections start expanded

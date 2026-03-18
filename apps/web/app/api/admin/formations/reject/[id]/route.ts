@@ -6,8 +6,12 @@ import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { z } from "zod";
 import { sendFormationRejectedEmail } from "@/lib/email/formations";
+import { logAuditAction, getRequestIp } from "@/lib/formations/audit";
 
-const rejectSchema = z.object({ reason: z.string().min(10) });
+const rejectSchema = z.object({
+  reason: z.string().min(10),
+  status: z.enum(["BROUILLON", "ARCHIVE"]).optional().default("BROUILLON"),
+});
 
 export async function POST(
   req: NextRequest,
@@ -21,14 +25,28 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { reason } = rejectSchema.parse(body);
+    const { reason, status } = rejectSchema.parse(body);
 
     const formation = await prisma.formation.update({
       where: { id },
-      data: { status: "BROUILLON", refuseReason: reason },
+      data: { status, refuseReason: reason },
       include: {
-        instructeur: { include: { user: { select: { email: true, name: true } } } },
+        instructeur: { include: { user: { select: { id: true, email: true, name: true } } } },
       },
+    });
+
+    await logAuditAction({
+      userId: session.user.id,
+      action: "formation_rejected",
+      targetType: "formation",
+      targetId: id,
+      targetUserId: formation.instructeur?.userId,
+      metadata: {
+        formationTitle: formation.titleFr,
+        reason,
+        newStatus: status,
+      },
+      ipAddress: getRequestIp(req),
     });
 
     // Notifier l'instructeur

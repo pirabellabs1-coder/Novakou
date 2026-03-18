@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { calculateProgress, generateCertificateCode } from "@/lib/formations/prisma-helpers";
+import { sendCertificateIssuedEmail } from "@/lib/email/formations";
 import { z } from "zod";
 
 export async function GET(
@@ -135,6 +136,22 @@ export async function PUT(
                 score: avgScore,
               },
             });
+
+            // Send certificate email (fire-and-forget)
+            const formationDetails = await prisma.formation.findUnique({
+              where: { id },
+              select: { titleFr: true },
+            });
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+            sendCertificateIssuedEmail({
+              email: session.user.email ?? "",
+              name: session.user.name ?? "Apprenant",
+              formationTitle: formationDetails?.titleFr ?? "Formation",
+              certificateCode: code,
+              pdfUrl: `${baseUrl}/api/formations/${id}/certificate`,
+              score: avgScore,
+              locale: "fr",
+            }).catch((err) => console.error("[Email] sendCertificateIssuedEmail:", err));
           }
         }
       }

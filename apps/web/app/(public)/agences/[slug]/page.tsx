@@ -32,6 +32,29 @@ interface AgencyReview {
   reply?: string;
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  avatar: string;
+  skills: string[];
+  freelanceUsername?: string;
+}
+
+interface CaseStudy {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  category: string;
+}
+
+interface WorkProcessStep {
+  step: number;
+  title: string;
+  description: string;
+}
+
 interface AgencyData {
   id: string;
   name: string;
@@ -39,6 +62,9 @@ interface AgencyData {
   kyc: number;
   memberSince: string;
   isVerified: boolean;
+  team?: TeamMember[];
+  caseStudies?: CaseStudy[];
+  workProcess?: WorkProcessStep[];
   profile: {
     title: string;
     bio: string;
@@ -485,6 +511,27 @@ export default function AgencyProfilePage() {
                       <p className="text-xs text-slate-500">{t("team_members")}</p>
                     </div>
                   </div>
+
+                  {/* Work Process */}
+                  {agency.workProcess && agency.workProcess.length > 0 && (
+                    <div>
+                      <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold mb-6 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">timeline</span>
+                        Notre Processus
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {agency.workProcess.map((step) => (
+                          <div key={step.step} className="relative bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark p-5 text-center">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                              <span className="text-primary font-black text-lg">{step.step}</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-1">{step.title}</h4>
+                            <p className="text-xs text-slate-500">{step.description}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -759,6 +806,84 @@ export default function AgencyProfilePage() {
       </div>
 
       {/* ============================================================ */}
+      {/* Notre Equipe                                                   */}
+      {agency.team && agency.team.length > 0 && (
+        <div className="w-full max-w-[1100px] px-4 md:px-10 pb-8">
+          <h2 className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold flex items-center gap-3 mb-6">
+            <span className="material-symbols-outlined text-primary text-3xl">groups</span>
+            Notre Equipe
+            <span className="ml-1 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
+              {agency.team.length}
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {agency.team.map((member) => {
+              const card = (
+                <div className="bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 text-primary font-bold text-lg">
+                    {member.avatar || member.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                  </div>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">{member.name}</h4>
+                  <p className="text-xs text-primary font-semibold mb-3">{member.role}</p>
+                  {member.skills.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-1.5">
+                      {member.skills.slice(0, 3).map((skill) => (
+                        <span key={skill} className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-semibold rounded-md">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+              if (member.freelanceUsername) {
+                return (
+                  <Link key={member.id} href={`/freelances/${member.freelanceUsername}`}>
+                    {card}
+                  </Link>
+                );
+              }
+              return <div key={member.id}>{card}</div>;
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Nos Realisations                                               */}
+      {agency.caseStudies && agency.caseStudies.length > 0 && (
+        <div className="w-full max-w-[1100px] px-4 md:px-10 pb-8">
+          <h2 className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold flex items-center gap-3 mb-6">
+            <span className="material-symbols-outlined text-primary text-3xl">palette</span>
+            Nos Realisations
+            <span className="ml-1 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
+              {agency.caseStudies.length}
+            </span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {agency.caseStudies.map((project) => (
+              <div key={project.id} className="group bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="aspect-video bg-slate-100 dark:bg-background-dark relative overflow-hidden">
+                  {project.image ? (
+                    <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="material-symbols-outlined text-4xl text-slate-300">image</span>
+                    </div>
+                  )}
+                  <span className="absolute top-3 left-3 px-2.5 py-1 bg-primary/90 text-white text-[11px] font-bold rounded-full backdrop-blur-sm">
+                    {project.category}
+                  </span>
+                </div>
+                <div className="p-5">
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">{project.title}</h4>
+                  <p className="text-xs text-slate-500 line-clamp-2">{project.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Nos services -- visible section for all visitors              */}
       {/* ============================================================ */}
       {services.length > 0 && (

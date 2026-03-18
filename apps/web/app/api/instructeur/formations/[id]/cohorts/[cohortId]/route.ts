@@ -90,6 +90,24 @@ export async function PUT(
     const body = await req.json();
     const data = updateCohortSchema.parse(body);
 
+    // Validate status transitions
+    if (data.status !== undefined) {
+      const validTransitions: Record<string, string[]> = {
+        OUVERT: ["COMPLET", "EN_COURS", "ANNULE"],
+        COMPLET: ["EN_COURS", "ANNULE"],
+        EN_COURS: ["TERMINE"],
+        TERMINE: [],
+        ANNULE: [],
+      };
+      const allowed = validTransitions[cohort.status] ?? [];
+      if (!allowed.includes(data.status)) {
+        return NextResponse.json(
+          { error: `Transition de statut invalide : ${cohort.status} → ${data.status}` },
+          { status: 400 }
+        );
+      }
+    }
+
     const updateData: Record<string, unknown> = {};
 
     if (data.titleFr !== undefined) updateData.titleFr = data.titleFr;
@@ -102,7 +120,13 @@ export async function PUT(
       }
       updateData.maxParticipants = data.maxParticipants;
     }
-    if (data.price !== undefined) updateData.price = data.price;
+    if (data.price !== undefined) {
+      // Prevent price changes if students are already enrolled
+      if (cohort.currentCount > 0) {
+        return NextResponse.json({ error: "Impossible de modifier le prix avec des participants inscrits" }, { status: 400 });
+      }
+      updateData.price = data.price;
+    }
     if (data.originalPrice !== undefined) updateData.originalPrice = data.originalPrice;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.schedule !== undefined) updateData.schedule = data.schedule;

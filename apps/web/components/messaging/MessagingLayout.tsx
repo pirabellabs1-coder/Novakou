@@ -45,6 +45,10 @@ export function MessagingLayout({
     syncFromApi,
     apiSendMessage,
     isSynced,
+    editMessage,
+    deleteMessage,
+    apiEditMessage,
+    apiDeleteMessage,
   } = useMessagingStore();
 
   const callStore = useCallStore();
@@ -186,6 +190,24 @@ export function MessagingLayout({
                 apiSendMessage(selectedId, content, type, fileName, fileSize);
               } else {
                 sendMessage(selectedId, content, type, fileName, fileSize, audioUrl, audioDuration);
+              }
+            }
+          }}
+          onEditMessage={(messageId, newContent) => {
+            if (selectedId) {
+              if (isSynced) {
+                apiEditMessage(selectedId, messageId, newContent);
+              } else {
+                editMessage(selectedId, messageId, newContent);
+              }
+            }
+          }}
+          onDeleteMessage={(messageId) => {
+            if (selectedId) {
+              if (isSynced) {
+                apiDeleteMessage(selectedId, messageId);
+              } else {
+                deleteMessage(selectedId, messageId);
               }
             }
           }}

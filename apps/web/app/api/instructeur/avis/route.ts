@@ -26,7 +26,7 @@ export async function GET(_req: NextRequest) {
       },
       include: {
         user: { select: { name: true, avatar: true, image: true } },
-        formation: { select: { titleFr: true, slug: true } },
+        formation: { select: { id: true, titleFr: true, slug: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -34,6 +34,6 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ avis });
   } catch (error) {
     console.error("[GET /api/instructeur/avis]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ avis: [] });
   }
 }

@@ -4,8 +4,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import prisma from "@freelancehigh/db";
-import { sendEnrollmentConfirmedEmail, sendNewStudentNotificationEmail, sendCohortEnrollmentEmail } from "@/lib/email/formations";
+import { sendEnrollmentConfirmedEmail, sendNewStudentNotificationEmail, sendCohortEnrollmentEmail, sendDigitalProductDeliveryEmail, sendLicenseKeyEmail } from "@/lib/email/formations";
 import { stripe } from "@/lib/stripe";
+import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" });
@@ -192,6 +193,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     await handleDigitalProductCheckout(session);
   } else if (type === "subscription") {
     await handleSubscriptionCheckout(session);
+  } else if (type === "funnel_purchase") {
+    await handleFunnelCheckout(session);
   }
 }
 
@@ -392,6 +395,16 @@ async function handleFormationCheckout(session: Stripe.Checkout.Session) {
     }
   }
 
+  // Fire marketing hooks for each formation purchase (fire-and-forget)
+  for (const formation of formations) {
+    const paidAmount = formation.price * (1 - discountPct / 100);
+    onFormationPurchase(userId, formation.id, paidAmount, {
+      sessionId: session.id,
+      source: promoId ? "promo" : "direct",
+      formationTitle: formation.titleFr,
+    }).catch((err) => console.error("[Marketing Hooks] Formation purchase hook error:", err));
+  }
+
   console.log(
     `[Stripe Webhook] ${formations.length} enrollment(s) créé(s) pour userId=${userId}, session=${session.id}`
   );
@@ -529,6 +542,15 @@ async function handleCohortCheckout(session: Stripe.Checkout.Session) {
     }
   }
 
+  // Fire marketing hook for cohort purchase (fire-and-forget)
+  onFormationPurchase(userId, formationId, paidAmount, {
+    sessionId: session.id,
+    cohortId,
+    source: "cohort",
+    formationTitle: cohort.formation.titleFr,
+    cohortTitle: cohort.titleFr,
+  }).catch((err) => console.error("[Marketing Hooks] Cohort purchase hook error:", err));
+
   console.log(
     `[Stripe Webhook] Cohort enrollment créé: userId=${userId}, cohortId=${cohortId}, session=${session.id}`
   );
@@ -645,6 +667,58 @@ async function handleDigitalProductCheckout(session: Stripe.Checkout.Session) {
     where: { userId, status: { not: "CONVERTI" } },
     data: { status: "CONVERTI" },
   }).catch(() => {});
+
+  // Send delivery email to buyer (fire-and-forget)
+  const buyer = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true, name: true },
+  });
+
+  if (buyer?.email) {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+    const downloadUrl = `${baseUrl}/formations/produits/${product.slug}?purchased=true`;
+
+    if (licenseKey) {
+      // License key product — send license key email
+      sendLicenseKeyEmail({
+        email: buyer.email,
+        name: buyer.name ?? "Utilisateur",
+        productTitle: product.titleFr,
+        licenseKey,
+        downloadUrl,
+        locale: "fr",
+      }).catch((err) => console.error("[Email] sendLicenseKeyEmail:", err));
+    } else {
+      // Standard digital product — send delivery email
+      sendDigitalProductDeliveryEmail({
+        email: buyer.email,
+        name: buyer.name ?? "Utilisateur",
+        productTitle: product.titleFr,
+        downloadUrl,
+        locale: "fr",
+      }).catch((err) => console.error("[Email] sendDigitalProductDeliveryEmail:", err));
+    }
+
+    // Notify instructor of new sale
+    const instrEmail = product.instructeur?.user?.email;
+    if (instrEmail) {
+      sendNewStudentNotificationEmail({
+        instructeurEmail: instrEmail,
+        instructeurName: product.instructeur?.user?.name ?? "Instructeur",
+        studentName: buyer.name ?? "Utilisateur",
+        formationTitle: `[Produit] ${product.titleFr}`,
+        paidAmount,
+      }).catch((err) => console.error("[Email] sendNewStudentNotificationEmail (product):", err));
+    }
+  }
+
+  // Fire marketing hook for product purchase (fire-and-forget)
+  onProductPurchase(userId, productId, paidAmount, {
+    sessionId: session.id,
+    source: flashPromoId ? "flash_promo" : "direct",
+    productTitle: product.titleFr,
+    productType: product.productType,
+  }).catch((err) => console.error("[Marketing Hooks] Product purchase hook error:", err));
 
   console.log(
     `[Stripe Webhook] Achat produit ${productId} par userId=${userId}, session=${session.id}`
@@ -797,4 +871,124 @@ function generateLicenseKey(): string {
     parts.push(part);
   }
   return parts.join("-"); // e.g. "AB3K-X9F2-M7PQ-1ZYC"
+}
+
+// ── Funnel checkout ─────────────────────────────────────────────────────────
+
+async function handleFunnelCheckout(session: Stripe.Checkout.Session) {
+  const { funnelId, funnelSlug, visitorId, acceptedItemIds } = session.metadata ?? {};
+
+  if (!funnelId || !acceptedItemIds) {
+    console.error("[Stripe Webhook] Funnel metadata manquantes:", session.id);
+    return;
+  }
+
+  const itemIds = acceptedItemIds.split(",").filter(Boolean);
+  const totalAmount = session.amount_total ? session.amount_total / 100 : 0;
+  const customerEmail = session.customer_details?.email ?? session.customer_email ?? null;
+
+  console.log(
+    `[Stripe Webhook] Funnel purchase: funnelId=${funnelId}, items=${itemIds.length}, total=${totalAmount}€, session=${session.id}`
+  );
+
+  try {
+    // 1. Track the purchase event in funnel analytics
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = prisma as any;
+      if (db.salesFunnelEvent) {
+        await db.salesFunnelEvent.create({
+          data: {
+            funnelId,
+            type: "purchase",
+            stepIndex: -1,
+            stepType: "CHECKOUT",
+            visitorId: visitorId || "anonymous",
+            revenue: totalAmount,
+            metadata: { sessionId: session.id, items: itemIds },
+          },
+        });
+      }
+
+      // Update funnel aggregate stats
+      if (db.salesFunnel) {
+        await db.salesFunnel.update({
+          where: { id: funnelId },
+          data: {
+            totalPurchases: { increment: 1 },
+            totalRevenue: { increment: totalAmount },
+          },
+        });
+      }
+    } catch (funnelErr) {
+      console.error("[Stripe Webhook] Funnel event tracking error:", funnelErr);
+    }
+
+    // 2. Enroll the user in purchased formations
+    // Try to find the user by email
+    let userId: string | null = null;
+    if (customerEmail) {
+      const user = await prisma.user.findUnique({
+        where: { email: customerEmail },
+        select: { id: true, name: true },
+      });
+      if (user) userId = user.id;
+    }
+
+    if (userId) {
+      for (const itemId of itemIds) {
+        // Check if it's a formation
+        const formation = await prisma.formation.findUnique({
+          where: { id: itemId },
+          select: { id: true, instructeurId: true, titleFr: true, studentsCount: true },
+        });
+
+        if (formation) {
+          // Create enrollment if not already enrolled
+          const existing = await prisma.enrollment.findFirst({
+            where: { userId, formationId: formation.id },
+          });
+
+          if (!existing) {
+            await prisma.enrollment.create({
+              data: {
+                userId,
+                formationId: formation.id,
+                paidAmount: totalAmount / itemIds.length,
+                stripeSessionId: session.id,
+              },
+            });
+
+            // Increment students count
+            await prisma.formation.update({
+              where: { id: formation.id },
+              data: { studentsCount: { increment: 1 } },
+            });
+          }
+
+          // Trigger marketing hooks
+          try {
+            await onFormationPurchase(formation.id, userId, totalAmount / itemIds.length);
+          } catch { /* non-blocking */ }
+
+          continue;
+        }
+
+        // Check if it's a digital product
+        try {
+          const product = await prisma.digitalProduct.findUnique({
+            where: { id: itemId },
+            select: { id: true },
+          });
+          if (product) {
+            await onProductPurchase(product.id, userId, totalAmount / itemIds.length);
+          }
+        } catch { /* non-blocking */ }
+      }
+    }
+
+    console.log(`[Stripe Webhook] Funnel checkout processed: ${session.id}, ${itemIds.length} items enrolled`);
+  } catch (error) {
+    console.error("[Stripe Webhook] Funnel checkout error:", error);
+  }
 }

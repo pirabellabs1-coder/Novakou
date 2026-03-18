@@ -14,7 +14,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const { id } = await params;
 
-    const certificate = await prisma.certificate.findFirst({
+    const raw = await prisma.certificate.findFirst({
       where: { id, userId: session.user.id },
       include: {
         user: { select: { name: true } },
@@ -34,9 +34,30 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       },
     });
 
-    if (!certificate) {
+    if (!raw) {
       return NextResponse.json({ error: "Certificat introuvable" }, { status: 404 });
     }
+
+    // Reshape: page expects cert.formation, cert.user, cert.enrollment.formation.instructeur
+    const certificate = {
+      id: raw.id,
+      code: raw.code,
+      score: raw.score,
+      issuedAt: raw.issuedAt,
+      pdfUrl: raw.pdfUrl,
+      user: raw.user,
+      formation: {
+        titleFr: raw.enrollment.formation.titleFr,
+        titleEn: raw.enrollment.formation.titleEn,
+        slug: raw.enrollment.formation.slug,
+        duration: raw.enrollment.formation.duration,
+      },
+      enrollment: {
+        formation: {
+          instructeur: raw.enrollment.formation.instructeur,
+        },
+      },
+    };
 
     return NextResponse.json({ certificate });
   } catch (error) {

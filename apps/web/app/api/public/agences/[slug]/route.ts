@@ -56,6 +56,11 @@ export async function GET(
       ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
       : 0;
 
+  // Team members, case studies, work process from profile
+  const team = profile?.team ?? [];
+  const caseStudies = profile?.caseStudies ?? [];
+  const workProcess = profile?.workProcess ?? [];
+
   return NextResponse.json({
     agency: {
       id: agency.id,
@@ -63,6 +68,9 @@ export async function GET(
       plan: agency.plan,
       kyc: agency.kyc,
       memberSince: agency.createdAt,
+      team,
+      caseStudies,
+      workProcess,
       profile: profile
         ? {
             title: profile.title,

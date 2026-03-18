@@ -61,12 +61,23 @@ interface Certificate {
   issuedAt: string;
 }
 
+interface PortfolioProject {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  link?: string;
+  skills: string[];
+  featured: boolean;
+}
+
 interface FreelancerData {
   id: string;
   name: string;
   role: string;
   status: string;
   memberSince: string;
+  portfolio?: PortfolioProject[];
   profile: {
     title: string;
     bio: string;
@@ -788,20 +799,32 @@ export default function FreelanceProfilePage() {
                   {t("skills")}
                 </h3>
                 <div className="space-y-5">
-                  {skills.slice(0, 5).map((skill) => (
-                    <div key={skill.name}>
-                      <div className="flex justify-between text-sm mb-1.5">
-                        <span className="font-medium">{skill.name}</span>
-                        <span className="text-primary font-bold">{skill.level}</span>
+                  {skills.slice(0, 5).map((skill) => {
+                    const levelColor =
+                      skill.level === "Expert" ? "bg-emerald-500" :
+                      skill.level === "Avance" || skill.level === "Avancé" ? "bg-blue-500" :
+                      skill.level === "Intermediaire" || skill.level === "Intermédiaire" ? "bg-amber-500" :
+                      "bg-slate-400";
+                    const levelTextColor =
+                      skill.level === "Expert" ? "text-emerald-500" :
+                      skill.level === "Avance" || skill.level === "Avancé" ? "text-blue-500" :
+                      skill.level === "Intermediaire" || skill.level === "Intermédiaire" ? "text-amber-500" :
+                      "text-slate-400";
+                    return (
+                      <div key={skill.name}>
+                        <div className="flex justify-between text-sm mb-1.5">
+                          <span className="font-medium">{skill.name}</span>
+                          <span className={cn("font-bold", levelTextColor)}>{skill.level}</span>
+                        </div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full transition-all duration-700", levelColor)}
+                            style={{ width: `${skill.percent}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                        <div
-                          className="bg-primary h-full rounded-full transition-all duration-700"
-                          style={{ width: `${skill.percent}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 {tags.length > 0 && (
                   <div className="mt-8 pt-6 border-t border-primary/10 flex flex-wrap gap-2">
@@ -886,6 +909,93 @@ export default function FreelanceProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* ============================================================ */}
+      {/* Portfolio                                                      */}
+      {/* ============================================================ */}
+      {freelancer.portfolio && freelancer.portfolio.length > 0 && (
+        <div className="w-full max-w-[1100px] px-4 md:px-10 pb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary text-3xl">palette</span>
+              Portfolio
+              <span className="ml-1 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
+                {freelancer.portfolio.length}
+              </span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {[...freelancer.portfolio]
+              .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
+              .map((project) => (
+                <div
+                  key={project.id}
+                  className="group bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 relative"
+                >
+                  {/* Featured badge */}
+                  {project.featured && (
+                    <div className="absolute top-3 right-3 z-10 flex items-center gap-1 px-2.5 py-1 bg-amber-500/90 text-white text-[11px] font-bold rounded-full backdrop-blur-sm">
+                      <span className="material-symbols-outlined text-xs">star</span>
+                      Coup de coeur
+                    </div>
+                  )}
+
+                  {/* Image */}
+                  <div className="aspect-video bg-slate-100 dark:bg-background-dark relative overflow-hidden">
+                    {project.image ? (
+                      <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-4xl text-slate-300">image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">
+                      {project.title}
+                    </h4>
+                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">{project.description}</p>
+
+                    {/* Skills tags */}
+                    {project.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-3">
+                        {project.skills.slice(0, 4).map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-semibold rounded-md"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Link */}
+                    {project.link && (
+                      <a
+                        href={project.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary font-semibold hover:underline"
+                      >
+                        <span className="material-symbols-outlined text-sm">open_in_new</span>
+                        Voir le projet
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* ============================================================ */}
       {/* Mes services -- visible section for ALL visitors              */}

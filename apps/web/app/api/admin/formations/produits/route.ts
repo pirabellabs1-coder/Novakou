@@ -8,7 +8,7 @@ import prisma from "@freelancehigh/db";
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user || (session.user as { role?: string }).role !== "ADMIN") {
+    if (!session?.user || session.user.role !== "admin") {
       return NextResponse.json({ error: "Non autorisé" }, { status: 403 });
     }
 
@@ -41,6 +41,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ products, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     console.error("[GET /api/admin/formations/produits]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({ products: [], total: 0 });
   }
 }

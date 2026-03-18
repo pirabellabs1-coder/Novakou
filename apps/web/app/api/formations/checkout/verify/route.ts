@@ -1,14 +1,10 @@
-// GET /api/formations/checkout/verify?session_id=xxx — Vérifier une session Stripe post-paiement
+// GET /api/formations/checkout/verify?session_id=xxx — Vérifier un paiement post-checkout
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import Stripe from "stripe";
 import prisma from "@freelancehigh/db";
-
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" });
-}
+import { PaymentService } from "@/lib/payments/service";
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,21 +18,19 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "session_id manquant" }, { status: 400 });
     }
 
-    // Vérifier la session Stripe
-    const stripe = getStripe();
-    const stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
+    // Verify payment via PaymentService (handles both mock and Stripe)
+    const verification = await PaymentService.verifyPayment(sessionId);
 
-    if (stripeSession.payment_status !== "paid") {
-      return NextResponse.json({ paid: false, status: stripeSession.payment_status });
+    if (!verification.paid) {
+      return NextResponse.json({ paid: false, status: "unpaid" });
     }
 
-    // Vérifier que la session appartient bien à cet utilisateur
-    const metadata = stripeSession.metadata ?? {};
-    if (metadata.userId !== session.user.id) {
+    // Verify session belongs to this user (for real Stripe sessions)
+    if (verification.userId && verification.userId !== session.user.id) {
       return NextResponse.json({ error: "Session non autorisée" }, { status: 403 });
     }
 
-    // Récupérer les enrollments créés pour cette session
+    // Fetch enrollments created for this session
     const enrollments = await prisma.enrollment.findMany({
       where: {
         userId: session.user.id,
@@ -47,10 +41,30 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    // Fire marketing hooks (fire-and-forget, safe to call even if not available)
+    try {
+      const { onFormationPurchase } = await import("@/lib/marketing/hooks");
+      for (const enrollment of enrollments) {
+        onFormationPurchase(
+          session.user.id,
+          enrollment.formation.id,
+          enrollment.paidAmount ?? 0,
+          {
+            sessionId: sessionId,
+            source: "checkout_verify",
+            formationTitle: enrollment.formation.titleFr,
+          }
+        ).catch(() => {});
+      }
+    } catch {
+      // Marketing hooks module not available — ignore
+    }
+
     return NextResponse.json({
       paid: true,
       enrollments,
       formationCount: enrollments.length,
+      provider: verification.provider,
     });
   } catch (error) {
     console.error("[GET /api/formations/checkout/verify]", error);

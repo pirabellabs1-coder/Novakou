@@ -53,51 +53,100 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
-    const totalRevenue = enrollments.reduce((acc, e) => acc + e.paidAmount, 0);
-    const withdrawnAmount = withdrawals
-      .filter((w) => w.status === "TRAITE")
-      .reduce((acc, w) => acc + w.amount, 0);
-
-    const availableBalance = Math.round(
-      (totalRevenue * INSTRUCTOR_COMMISSION - withdrawnAmount) * 100
-    ) / 100;
-
-    // Montant en attente (enrollments < 30 jours)
+    // Use ALL enrollments for total computation (not just paginated)
     const allEnrollments = await prisma.enrollment.findMany({
       where: { formationId: { in: formationIds } },
       select: { paidAmount: true, createdAt: true },
     });
 
+    const totalGross = allEnrollments.reduce((acc, e) => acc + e.paidAmount, 0);
+    const totalEarned = Math.round(totalGross * INSTRUCTOR_COMMISSION * 100) / 100;
+
+    const withdrawnAmount = withdrawals
+      .filter((w) => w.status === "TRAITE")
+      .reduce((acc, w) => acc + w.amount, 0);
+
     const pendingRevenue = allEnrollments
       .filter((e) => new Date(e.createdAt) > thirtyDaysAgo)
       .reduce((acc, e) => acc + e.paidAmount * INSTRUCTOR_COMMISSION, 0);
 
+    const available = Math.round((totalEarned - pendingRevenue - withdrawnAmount) * 100) / 100;
+
+    // Map frontend status from French API statuses
+    const statusMap: Record<string, string> = {
+      EN_ATTENTE: "PENDING",
+      TRAITE: "COMPLETED",
+      REFUSE: "FAILED",
+      EN_COURS: "PROCESSING",
+    };
+
+    // Transactions in the shape the frontend expects
     const transactions = enrollments.map((e) => ({
       id: e.id,
-      formationTitleFr: e.formation.titleFr,
-      formationTitleEn: e.formation.titleEn,
-      studentName: e.user.name,
-      amount: e.paidAmount,
-      net: Math.round(e.paidAmount * INSTRUCTOR_COMMISSION * 100) / 100,
-      commission: Math.round(e.paidAmount * PLATFORM_COMMISSION * 100) / 100,
-      status:
-        new Date(e.createdAt) > thirtyDaysAgo ? "EN_ATTENTE" : "DISPONIBLE",
+      type: "SALE",
+      amount: Math.round(e.paidAmount * INSTRUCTOR_COMMISSION * 100) / 100,
+      status: new Date(e.createdAt) > thirtyDaysAgo ? "PENDING" : "COMPLETED",
       createdAt: e.createdAt,
+      description: e.formation.titleFr,
+      formation: { titleFr: e.formation.titleFr, titleEn: e.formation.titleEn },
+    }));
+
+    // Monthly revenue (last 6 months)
+    const monthlyRevenue: { month: string; gross: number; net: number }[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthStart = new Date(d.getFullYear(), d.getMonth(), 1);
+      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+
+      const monthGross = allEnrollments
+        .filter((e) => {
+          const created = new Date(e.createdAt);
+          return created >= monthStart && created < monthEnd;
+        })
+        .reduce((acc, e) => acc + e.paidAmount, 0);
+
+      monthlyRevenue.push({
+        month: d.toLocaleString("fr-FR", { month: "short" }),
+        gross: Math.round(monthGross),
+        net: Math.round(monthGross * INSTRUCTOR_COMMISSION),
+      });
+    }
+
+    // Withdrawals in the shape the frontend expects
+    const formattedWithdrawals = withdrawals.map((w) => ({
+      id: w.id,
+      amount: w.amount,
+      method: w.method,
+      status: statusMap[w.status] ?? w.status,
+      requestedAt: w.createdAt,
     }));
 
     return NextResponse.json({
-      totalRevenue: Math.round(totalRevenue * INSTRUCTOR_COMMISSION * 100) / 100,
-      availableBalance,
-      pendingRevenue: Math.round(pendingRevenue * 100) / 100,
-      withdrawnAmount,
+      totalEarned: totalEarned,
+      available: Math.max(0, available),
+      pending: Math.round(pendingRevenue * 100) / 100,
+      withdrawn: withdrawnAmount,
       transactions,
+      monthlyRevenue,
+      withdrawals: formattedWithdrawals,
       total,
       page,
       totalPages: Math.ceil(total / limit),
-      withdrawals,
     });
   } catch (error) {
     console.error("[GET /api/instructeur/revenus]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({
+      totalEarned: 0,
+      available: 0,
+      pending: 0,
+      withdrawn: 0,
+      transactions: [],
+      monthlyRevenue: [],
+      withdrawals: [],
+      total: 0,
+      page: 1,
+      totalPages: 0,
+    });
   }
 }

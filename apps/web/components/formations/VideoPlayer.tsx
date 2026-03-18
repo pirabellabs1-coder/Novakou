@@ -53,6 +53,12 @@ export function VideoPlayer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [buffered, setBuffered] = useState(0);
+  const [isPiP, setIsPiP] = useState(false);
+  const [pipSupported, setPipSupported] = useState(false);
+  const [showMiniPlayer, setShowMiniPlayer] = useState(false);
+  const [quality, setQuality] = useState<string | null>(null);
+  const miniPlayerRef = useRef<HTMLDivElement>(null);
+  const miniProgressRef = useRef<HTMLDivElement>(null);
 
   const resetHideTimer = useCallback(() => {
     setShowControls(true);
@@ -92,6 +98,15 @@ export function VideoPlayer({
     const v = videoRef.current;
     if (!v) return;
     setDuration(v.duration);
+    // Determine video quality from height
+    const h = v.videoHeight;
+    if (h >= 2160) setQuality("4K");
+    else if (h >= 1080) setQuality("1080p");
+    else if (h >= 720) setQuality("720p");
+    else if (h >= 480) setQuality("480p");
+    else if (h >= 360) setQuality("360p");
+    else if (h > 0) setQuality(`${h}p`);
+    else setQuality(null);
   }, []);
 
   const handleEnded = useCallback(() => {
@@ -112,6 +127,11 @@ export function VideoPlayer({
     if (videoRef.current) videoRef.current.playbackRate = s;
     setSpeed(s);
     setShowSpeedMenu(false);
+    try {
+      localStorage.setItem("fh-video-speed", s.toString());
+    } catch {
+      // localStorage may be unavailable
+    }
   }, []);
 
   const toggleMute = useCallback(() => {
@@ -147,6 +167,60 @@ export function VideoPlayer({
     return () => document.removeEventListener("fullscreenchange", handleFSChange);
   }, []);
 
+  // Restore saved playback speed from localStorage
+  useEffect(() => {
+    try {
+      const savedSpeed = localStorage.getItem("fh-video-speed");
+      if (savedSpeed) {
+        const parsed = parseFloat(savedSpeed);
+        if (SPEEDS.includes(parsed)) {
+          setSpeed(parsed);
+          if (videoRef.current) videoRef.current.playbackRate = parsed;
+        }
+      }
+    } catch {
+      // localStorage may be unavailable
+    }
+  }, []);
+
+  // Detect PiP support (client-side only)
+  useEffect(() => {
+    setPipSupported(!!document.pictureInPictureEnabled);
+  }, []);
+
+  // PiP event listeners
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const onEnterPiP = () => setIsPiP(true);
+    const onLeavePiP = () => setIsPiP(false);
+    v.addEventListener("enterpictureinpicture", onEnterPiP);
+    v.addEventListener("leavepictureinpicture", onLeavePiP);
+    return () => {
+      v.removeEventListener("enterpictureinpicture", onEnterPiP);
+      v.removeEventListener("leavepictureinpicture", onLeavePiP);
+    };
+  }, []);
+
+  // IntersectionObserver for mini-player
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show mini-player when video is out of view and currently playing
+        if (!entry.isIntersecting && playing) {
+          setShowMiniPlayer(true);
+        } else {
+          setShowMiniPlayer(false);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [playing]);
+
   const seekToChapter = useCallback((timestamp: number) => {
     if (videoRef.current) {
       videoRef.current.currentTime = timestamp;
@@ -161,6 +235,35 @@ export function VideoPlayer({
     v.textTracks[0].mode = newState ? "showing" : "hidden";
     setSubtitlesOn(newState);
   }, [subtitlesOn]);
+
+  const togglePiP = useCallback(async () => {
+    const v = videoRef.current;
+    if (!v) return;
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      } else if (document.pictureInPictureEnabled) {
+        await v.requestPictureInPicture();
+      }
+    } catch {
+      // PiP may not be supported or may fail
+    }
+  }, []);
+
+  const miniSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const v = videoRef.current;
+    const bar = miniProgressRef.current;
+    if (!v || !bar) return;
+    const rect = bar.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    v.currentTime = pct * v.duration;
+  }, []);
+
+  const closeMiniPlayer = useCallback(() => {
+    setShowMiniPlayer(false);
+    // Scroll back to the video
+    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -177,11 +280,12 @@ export function VideoPlayer({
         case "f": e.preventDefault(); toggleFullscreen(); break;
         case "m": e.preventDefault(); toggleMute(); break;
         case "c": if (subtitleUrl) { e.preventDefault(); toggleSubtitles(); } break;
+        case "p": e.preventDefault(); togglePiP(); break;
       }
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [togglePlay, toggleFullscreen, toggleMute, toggleSubtitles, subtitleUrl]);
+  }, [togglePlay, toggleFullscreen, toggleMute, toggleSubtitles, subtitleUrl, togglePiP]);
 
   // Current chapter
   const currentChapter = chapters.length > 0
@@ -228,6 +332,15 @@ export function VideoPlayer({
               <path d="M8 5v14l11-7z" />
             </svg>
           </div>
+        </div>
+      )}
+
+      {/* Video quality badge */}
+      {quality && (
+        <div className="absolute top-3 right-3 pointer-events-none z-10">
+          <span className="bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+            {quality}
+          </span>
         </div>
       )}
 
@@ -377,6 +490,19 @@ export function VideoPlayer({
             </div>
           )}
 
+          {/* Picture-in-Picture */}
+          {pipSupported && (
+            <button
+              onClick={togglePiP}
+              className={`hover:text-purple-400 transition-colors ${isPiP ? "text-purple-400" : ""}`}
+              title="Picture-in-Picture (p)"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M19 7h-8v6h8V7zm2-4H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14z" />
+              </svg>
+            </button>
+          )}
+
           {/* Fullscreen */}
           <button onClick={toggleFullscreen} className="hover:text-purple-400 transition-colors" title="Plein écran (f)">
             {isFullscreen ? (
@@ -387,6 +513,64 @@ export function VideoPlayer({
           </button>
         </div>
       </div>
+      {/* Mini-player (sticky at bottom-right when scrolling away from video) */}
+      {showMiniPlayer && (
+        <div
+          ref={miniPlayerRef}
+          className="fixed bottom-4 right-4 w-80 rounded-xl shadow-2xl z-50 overflow-hidden bg-black border border-white/10"
+          style={{ aspectRatio: "16/9" }}
+          data-controls
+        >
+          {/* Mini-player overlay with controls */}
+          <div className="absolute inset-0 flex flex-col justify-end">
+            {/* Video mirror: show a thumbnail-like view */}
+            <div className="absolute inset-0 bg-black flex items-center justify-center text-white/40 text-xs">
+              <span className="text-white/60 text-[10px]">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </span>
+            </div>
+
+            {/* Mini controls */}
+            <div className="relative z-10 bg-gradient-to-t from-black/90 to-transparent px-3 py-2 flex items-center gap-2">
+              {/* Play/Pause */}
+              <button
+                onClick={togglePlay}
+                className="text-white hover:text-purple-400 transition-colors"
+                title={playing ? "Pause" : "Play"}
+              >
+                {playing ? (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" /></svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                )}
+              </button>
+
+              {/* Mini progress bar */}
+              <div
+                ref={miniProgressRef}
+                className="flex-1 h-1 bg-white/20 rounded-full cursor-pointer relative"
+                onClick={miniSeek}
+              >
+                <div
+                  className="absolute inset-y-0 left-0 bg-purple-500 rounded-full"
+                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                />
+              </div>
+
+              {/* Close mini-player */}
+              <button
+                onClick={closeMiniPlayer}
+                className="text-white hover:text-red-400 transition-colors"
+                title="Fermer le mini-lecteur"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

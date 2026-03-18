@@ -95,7 +95,7 @@ export default function AdminFormationsListPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
+      <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden overflow-x-auto">
         <table className="w-full text-sm min-w-[700px]">
           <thead className="border-b border-slate-200 dark:border-slate-700">
             <tr className="text-slate-500 text-xs uppercase">
@@ -114,7 +114,7 @@ export default function AdminFormationsListPage() {
               <tr><td colSpan={6} className="p-8 text-center text-slate-400">{t("admin_no_formations")}</td></tr>
             ) : (
               filtered.map((f) => (
-                <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                <tr key={f.id} className="hover:bg-slate-50 dark:bg-slate-800/50 dark:hover:bg-slate-700/30 transition-colors">
                   <td className="p-4">
                     <p className="font-medium text-sm line-clamp-2 max-w-xs">{f.titleFr}</p>
                     <p className="text-xs text-slate-500 mt-0.5">{f.category.nameFr} · {f.isFree ? "Gratuit" : `${f.price.toFixed(0)}€`}</p>
@@ -151,7 +151,7 @@ export default function AdminFormationsListPage() {
                         <button
                           onClick={async () => {
                             setActionLoading(f.id);
-                            await fetch(`/api/admin/formations/reject/${f.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: "Archivé par l'admin" }) });
+                            await fetch(`/api/admin/formations/reject/${f.id}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reason: "Archivé par l'admin", status: "ARCHIVE" }) });
                             fetchFormations();
                             setActionLoading(null);
                           }}
@@ -175,7 +175,7 @@ export default function AdminFormationsListPage() {
       {rejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setRejectModal(null)} />
-          <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-xl">
+          <div className="relative bg-white dark:bg-slate-900 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-xl">
             <h2 className="font-bold mb-2">{t("admin_reject_formation")}</h2>
             <p className="text-sm text-slate-500 mb-4 line-clamp-2">{rejectModal.title}</p>
             <textarea
@@ -184,10 +184,10 @@ export default function AdminFormationsListPage() {
               rows={4}
               minLength={10}
               placeholder={t("admin_reject_reason_placeholder")}
-              className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none mb-4"
+              className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none mb-4"
             />
             <div className="flex gap-3">
-              <button onClick={() => setRejectModal(null)} className="flex-1 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">{t("cancel")}</button>
+              <button onClick={() => setRejectModal(null)} className="flex-1 border border-slate-200 dark:border-slate-700 py-2.5 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors text-sm">{t("cancel")}</button>
               <button onClick={reject} disabled={rejectReason.length < 10 || !!actionLoading} className="flex-1 bg-red-600 text-white font-bold py-2.5 rounded-xl hover:bg-red-700 transition-colors text-sm disabled:opacity-50">{t("admin_reject")}</button>
             </div>
           </div>

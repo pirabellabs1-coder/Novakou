@@ -30,6 +30,16 @@ export async function GET(
       return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
     }
 
+    // Non-ACTIF formations are only visible to their owner or admin
+    if (formation.status !== "ACTIF") {
+      const session = await getServerSession(authOptions);
+      const isAdmin = session?.user?.role === "admin";
+      const isOwner = session?.user?.id && formation.instructeur?.userId === session.user.id;
+      if (!isAdmin && !isOwner) {
+        return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
+      }
+    }
+
     // Incrémenter les vues (fire-and-forget)
     if (formation.status === "ACTIF") {
       prisma.formation.update({

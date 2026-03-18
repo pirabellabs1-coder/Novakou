@@ -6,47 +6,74 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { z } from "zod";
 
-const productDetailInclude = {
-  instructeur: {
-    select: {
-      id: true,
-      bioFr: true,
-      bioEn: true,
-      user: { select: { name: true, avatar: true, image: true } },
+const updateProductSchema = z.object({
+  titleFr: z.string().min(3).optional(),
+  titleEn: z.string().min(3).optional(),
+  descriptionFr: z.string().optional().nullable(),
+  descriptionEn: z.string().optional().nullable(),
+  descriptionFormat: z.enum(["text", "tiptap"]).optional(),
+  productType: z.enum(["EBOOK", "PDF", "TEMPLATE", "LICENCE", "AUDIO", "VIDEO", "AUTRE"]).optional(),
+  categoryId: z.string().optional(),
+  price: z.number().min(0).optional(),
+  originalPrice: z.number().min(0).optional().nullable(),
+  isFree: z.boolean().optional(),
+  banner: z.string().optional().nullable(),
+  fileUrl: z.string().optional().nullable(),
+  fileStoragePath: z.string().optional().nullable(),
+  fileSize: z.number().optional().nullable(),
+  fileMimeType: z.string().optional().nullable(),
+  previewEnabled: z.boolean().optional(),
+  previewPages: z.number().min(1).max(50).optional(),
+  watermarkEnabled: z.boolean().optional(),
+  maxBuyers: z.number().int().min(1).optional().nullable(),
+  tags: z.array(z.string()).optional(),
+}).strict();
+
+function getProductDetailInclude() {
+  const now = new Date();
+  return {
+    instructeur: {
+      select: {
+        id: true,
+        bioFr: true,
+        bioEn: true,
+        user: { select: { name: true, avatar: true, image: true } },
+      },
     },
-  },
-  category: { select: { id: true, nameFr: true, nameEn: true, slug: true } },
-  reviews: {
-    take: 10,
-    orderBy: { createdAt: "desc" as const },
-    select: {
-      id: true,
-      rating: true,
-      comment: true,
-      response: true,
-      respondedAt: true,
-      createdAt: true,
-      user: { select: { name: true, avatar: true, image: true } },
+    category: { select: { id: true, nameFr: true, nameEn: true, slug: true } },
+    reviews: {
+      take: 10,
+      orderBy: { createdAt: "desc" as const },
+      select: {
+        id: true,
+        rating: true,
+        comment: true,
+        response: true,
+        respondedAt: true,
+        createdAt: true,
+        user: { select: { name: true, avatar: true, image: true } },
+      },
     },
-  },
-  flashPromotions: {
-    where: {
-      isActive: true,
-      startsAt: { lte: new Date() },
-      endsAt: { gt: new Date() },
+    flashPromotions: {
+      where: {
+        isActive: true,
+        startsAt: { lte: now },
+        endsAt: { gt: now },
+      },
+      take: 1,
+      select: {
+        id: true,
+        discountPct: true,
+        startsAt: true,
+        endsAt: true,
+        maxUsage: true,
+        usageCount: true,
+      },
     },
-    take: 1,
-    select: {
-      id: true,
-      discountPct: true,
-      startsAt: true,
-      endsAt: true,
-      maxUsage: true,
-      usageCount: true,
-    },
-  },
-} as const;
+  } as const;
+}
 
 export async function GET(
   req: NextRequest,
@@ -60,7 +87,7 @@ export async function GET(
         OR: [{ slug: id }, { id }],
         status: "ACTIF",
       },
-      include: productDetailInclude,
+      include: getProductDetailInclude(),
     });
 
     if (!product) {
@@ -106,41 +133,26 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const {
-      titleFr, titleEn, descriptionFr, descriptionEn, descriptionFormat,
-      price, originalPrice, isFree, banner, fileUrl, fileStoragePath,
-      fileSize, fileMimeType, previewEnabled, previewPages, watermarkEnabled,
-      maxBuyers, tags, productType, categoryId,
-    } = body;
+    const data = updateProductSchema.parse(body);
+
+    // Build update payload from only provided fields
+    const updateData: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        updateData[key] = value;
+      }
+    }
 
     const product = await prisma.digitalProduct.update({
       where: { id: existing.id },
-      data: {
-        ...(titleFr !== undefined && { titleFr }),
-        ...(titleEn !== undefined && { titleEn }),
-        ...(descriptionFr !== undefined && { descriptionFr }),
-        ...(descriptionEn !== undefined && { descriptionEn }),
-        ...(descriptionFormat !== undefined && { descriptionFormat }),
-        ...(price !== undefined && { price: Number(price) }),
-        ...(originalPrice !== undefined && { originalPrice: originalPrice ? Number(originalPrice) : null }),
-        ...(isFree !== undefined && { isFree }),
-        ...(banner !== undefined && { banner }),
-        ...(fileUrl !== undefined && { fileUrl }),
-        ...(fileStoragePath !== undefined && { fileStoragePath }),
-        ...(fileSize !== undefined && { fileSize }),
-        ...(fileMimeType !== undefined && { fileMimeType }),
-        ...(previewEnabled !== undefined && { previewEnabled }),
-        ...(previewPages !== undefined && { previewPages }),
-        ...(watermarkEnabled !== undefined && { watermarkEnabled }),
-        ...(maxBuyers !== undefined && { maxBuyers: maxBuyers ? Number(maxBuyers) : null }),
-        ...(tags !== undefined && { tags }),
-        ...(productType !== undefined && { productType }),
-        ...(categoryId !== undefined && { categoryId }),
-      },
+      data: updateData,
     });
 
     return NextResponse.json({ product });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Données invalides", details: error.issues }, { status: 400 });
+    }
     console.error("[PUT /api/produits/[id]]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

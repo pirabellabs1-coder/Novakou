@@ -6,6 +6,8 @@ import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { z } from "zod";
 import { generateCertificateCode, generateCertificatePDF } from "@/lib/formations/certificate-generator";
+import { sendCertificateIssuedEmail } from "@/lib/email/formations";
+import { uploadFile } from "@/lib/supabase-storage";
 
 const submitSchema = z.object({
   quizId: z.string(),
@@ -65,15 +67,20 @@ export async function POST(
 
     // Calculate score
     let correct = 0;
-    const details: { questionId: string; correct: boolean; explanation: string | null }[] = [];
+    const details: { questionId: string; correct: boolean; correctAnswer?: string | string[]; explanation: string | null }[] = [];
+
+    // Map for normalizing VRAI_FAUX values (creation stores "Vrai"/"Faux", quiz page sends "true"/"false")
+    const vraiMap: Record<string, string> = { "vrai": "true", "faux": "false", "true": "true", "false": "false" };
 
     for (const question of quiz.questions) {
       const userAnswer = answers[question.id];
       let isCorrect = false;
+      let normalizedCorrectAnswer: string | string[] = question.correctAnswer;
 
       if (question.type === "CHOIX_MULTIPLE") {
         // Multiple choice: compare sorted arrays
         const correctArr = question.correctAnswer.split(",").map((s) => s.trim()).sort();
+        normalizedCorrectAnswer = correctArr;
         const userArr = Array.isArray(userAnswer)
           ? [...userAnswer].sort()
           : (String(userAnswer ?? "")).split(",").map((s: string) => s.trim()).sort();
@@ -83,13 +90,26 @@ export async function POST(
         const expected = question.correctAnswer.toLowerCase().trim();
         const given = (typeof userAnswer === "string" ? userAnswer : "").toLowerCase().trim();
         isCorrect = given.includes(expected) || expected.includes(given);
+        normalizedCorrectAnswer = question.correctAnswer;
+      } else if (question.type === "VRAI_FAUX") {
+        // Normalize both sides: "Vrai"/"Faux" from DB and "true"/"false" from client
+        const normalizedCorrect = vraiMap[question.correctAnswer.toLowerCase()] ?? question.correctAnswer;
+        const normalizedUser = vraiMap[String(userAnswer).toLowerCase()] ?? String(userAnswer);
+        isCorrect = normalizedCorrect === normalizedUser;
+        normalizedCorrectAnswer = normalizedCorrect;
       } else {
-        // Single choice / true-false
+        // Single choice
         isCorrect = String(userAnswer) === String(question.correctAnswer);
+        normalizedCorrectAnswer = question.correctAnswer;
       }
 
       if (isCorrect) correct++;
-      details.push({ questionId: question.id, correct: isCorrect, explanation: question.explanationFr ?? null });
+      details.push({
+        questionId: question.id,
+        correct: isCorrect,
+        correctAnswer: normalizedCorrectAnswer,
+        explanation: question.explanationFr ?? null,
+      });
     }
 
     const score = quiz.questions.length > 0 ? Math.round((correct / quiz.questions.length) * 100) : 0;
@@ -152,7 +172,7 @@ export async function POST(
           if (!existing) {
             certificateCode = generateCertificateCode();
 
-            // Generate PDF
+            // Generate PDF and upload to Supabase Storage
             try {
               const pdfBuffer = await generateCertificatePDF({
                 studentName: session.user.name ?? "Apprenant",
@@ -164,7 +184,15 @@ export async function POST(
                 locale: "fr",
               });
 
-              // Store certificate in DB (pdfUrl will be set when uploaded to storage)
+              // Upload PDF to Supabase Storage
+              const storagePath = `${session.user.id}/${certificateCode}.pdf`;
+              const uploadResult = await uploadFile(
+                "certificates",
+                storagePath,
+                pdfBuffer,
+                "application/pdf"
+              );
+
               await prisma.certificate.create({
                 data: {
                   code: certificateCode,
@@ -172,8 +200,8 @@ export async function POST(
                   userId: session.user.id,
                   formationId: id,
                   score,
-                  // PDF stored as base64 in pdfUrl field for now (until Supabase Storage buckets are created)
-                  pdfUrl: `data:application/pdf;base64,${pdfBuffer.toString("base64")}`,
+                  pdfStoragePath: uploadResult?.path ?? null,
+                  pdfUrl: uploadResult?.url ?? null,
                 },
               });
             } catch (pdfErr) {
@@ -189,6 +217,18 @@ export async function POST(
                 },
               });
             }
+
+            // Send certificate email (fire-and-forget)
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+            sendCertificateIssuedEmail({
+              email: session.user.email ?? "",
+              name: session.user.name ?? "Apprenant",
+              formationTitle: formation.titleFr,
+              certificateCode,
+              pdfUrl: `${baseUrl}/api/formations/${id}/certificate`,
+              score,
+              locale: "fr",
+            }).catch((err) => console.error("[Email] sendCertificateIssuedEmail:", err));
           }
         }
       }

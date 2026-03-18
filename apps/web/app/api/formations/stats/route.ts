@@ -9,18 +9,18 @@ export async function GET() {
   try {
     const [
       formationsCount,
-      enrollmentsAgg,
+      apprenantsResult,
       instructeursCount,
       reviewsAgg,
     ] = await Promise.all([
       // Nombre de formations actives
       prisma.formation.count({ where: { status: "ACTIF" } }),
 
-      // Nombre d'apprenants uniques (distinct userId sur Enrollment)
-      prisma.enrollment.groupBy({
-        by: ["userId"],
-        _count: true,
-      }),
+      // Nombre d'apprenants uniques — raw SQL COUNT(DISTINCT) instead of
+      // groupBy which fetches all rows into memory
+      prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(DISTINCT "userId") as count FROM "Enrollment"
+      `,
 
       // Nombre d'instructeurs approuvés
       prisma.instructeurProfile.count({ where: { status: "APPROUVE" } }),
@@ -34,7 +34,7 @@ export async function GET() {
 
     return NextResponse.json({
       formations: formationsCount,
-      apprenants: enrollmentsAgg.length,
+      apprenants: Number(apprenantsResult[0]?.count ?? 0),
       instructeurs: instructeursCount,
       averageRating: reviewsAgg._avg.rating
         ? Math.round(reviewsAgg._avg.rating * 10) / 10
@@ -43,6 +43,12 @@ export async function GET() {
     });
   } catch (error) {
     console.error("[GET /api/formations/stats]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({
+      formations: 0,
+      apprenants: 0,
+      instructeurs: 0,
+      averageRating: 0,
+      totalReviews: 0,
+    });
   }
 }

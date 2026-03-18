@@ -48,10 +48,10 @@ export default function FormationsConnexionPage() {
         return;
       }
 
-      redirectAfterLogin();
+      // Don't reset loading on success — keep spinner until redirect completes
+      await redirectAfterLogin();
     } catch {
       setError("Erreur de connexion");
-    } finally {
       setLoading(false);
     }
   }
@@ -95,6 +95,20 @@ export default function FormationsConnexionPage() {
         return;
       }
 
+      // Complete the sign-in using the 2FA token returned by the verify endpoint
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        twoFactorToken: data.twoFactorToken,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        setError("Erreur lors de la connexion après vérification 2FA.");
+        setVerifying2FA(false);
+        return;
+      }
+
       await redirectAfterLogin();
     } catch {
       setError("Erreur de vérification. Veuillez réessayer.");
@@ -113,7 +127,7 @@ export default function FormationsConnexionPage() {
                 <span className="material-symbols-outlined text-3xl text-primary">verified_user</span>
               </div>
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight">Vérification 2FA</h1>
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Vérification 2FA</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm">
               Ouvrez votre application authenticator et entrez le code à 6 chiffres.
             </p>
@@ -127,7 +141,7 @@ export default function FormationsConnexionPage() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-semibold mb-1.5">Code de vérification</label>
+              <label className="block text-sm font-semibold mb-1.5 text-slate-900 dark:text-white">Code de vérification</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -140,7 +154,7 @@ export default function FormationsConnexionPage() {
                   setError("");
                 }}
                 placeholder="000000"
-                className="w-full text-center text-3xl tracking-[0.5em] font-mono py-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                className="w-full text-center text-3xl tracking-[0.5em] font-mono py-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
                 autoFocus
               />
             </div>
@@ -186,7 +200,7 @@ export default function FormationsConnexionPage() {
               <span className="material-symbols-outlined text-3xl text-primary">school</span>
             </div>
           </div>
-          <h1 className="text-2xl font-extrabold tracking-tight">{t("login_title")}</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">{t("login_title")}</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">{t("login_subtitle")}</p>
         </div>
 
@@ -195,7 +209,7 @@ export default function FormationsConnexionPage() {
           <button
             type="button"
             onClick={() => signIn("google", { callbackUrl: "/formations/mes-formations" })}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all text-sm font-semibold bg-white dark:bg-slate-800"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all text-sm font-semibold bg-white dark:bg-slate-900 dark:bg-slate-800"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
             {t("login_google")}
@@ -203,7 +217,7 @@ export default function FormationsConnexionPage() {
           <button
             type="button"
             onClick={() => signIn("linkedin", { callbackUrl: "/formations/mes-formations" })}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all text-sm font-semibold bg-white dark:bg-slate-800"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:border-primary/50 transition-all text-sm font-semibold bg-white dark:bg-slate-900 dark:bg-slate-800"
           >
             <svg className="w-5 h-5" fill="#0A66C2" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
             {t("login_linkedin")}
@@ -225,21 +239,21 @@ export default function FormationsConnexionPage() {
           )}
 
           <div>
-            <label className="block text-sm font-semibold mb-1.5">{t("login_email")}</label>
+            <label className="block text-sm font-semibold mb-1.5 text-slate-900 dark:text-white">{t("login_email")}</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
               placeholder="nom@example.com"
             />
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm font-semibold">{t("login_password")}</label>
-              <Link href="/mot-de-passe-oublie" className="text-xs text-primary hover:underline">
+              <label className="block text-sm font-semibold text-slate-900 dark:text-white">{t("login_password")}</label>
+              <Link href="/formations/mot-de-passe-oublie" className="text-xs text-primary hover:underline">
                 {t("login_forgot")}
               </Link>
             </div>
@@ -248,7 +262,7 @@ export default function FormationsConnexionPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
             />
           </div>
 

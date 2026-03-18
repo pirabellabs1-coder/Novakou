@@ -51,21 +51,26 @@ export async function GET(
     }
 
     const { searchParams } = new URL(req.url);
+    const after = searchParams.get("after");
     const page = parseInt(searchParams.get("page") ?? "1");
     const limit = Math.min(parseInt(searchParams.get("limit") ?? "50"), 100);
     const skip = (page - 1) * limit;
 
+    // If `after` param is provided (polling for new messages), only return messages created after that timestamp
+    const whereClause = after
+      ? { cohortId, createdAt: { gt: new Date(after) } }
+      : { cohortId };
+
     const [messages, total] = await Promise.all([
       prisma.cohortMessage.findMany({
-        where: { cohortId },
+        where: whereClause,
         include: {
           user: {
             select: { id: true, name: true, avatar: true, image: true },
           },
         },
-        orderBy: { createdAt: "desc" },
-        skip,
-        take: limit,
+        orderBy: { createdAt: after ? "asc" as const : "desc" as const },
+        ...(after ? {} : { skip, take: limit }),
       }),
       prisma.cohortMessage.count({ where: { cohortId } }),
     ]);
@@ -82,7 +87,7 @@ export async function GET(
     });
 
     return NextResponse.json({
-      messages: messages.reverse(),
+      messages: after ? messages : messages.reverse(),
       pinned,
       total,
       page,

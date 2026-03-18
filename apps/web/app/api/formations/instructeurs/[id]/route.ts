@@ -46,11 +46,60 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
           ratings.reduce((acc, f) => acc + f.reviewsCount, 0)
         : 0;
 
+    // Fetch reviews across all active formations for this instructor
+    const formationIds = instructeur.formations.map((f) => f.id);
+    const reviews = formationIds.length > 0
+      ? await prisma.formationReview.findMany({
+          where: { formationId: { in: formationIds } },
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: { select: { name: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        })
+      : [];
+
+    // Calculate completion rate from enrollments across all formations
+    let completionRate = 0;
+    if (formationIds.length > 0) {
+      const enrollmentStats = await prisma.enrollment.aggregate({
+        where: { formationId: { in: formationIds } },
+        _count: { id: true },
+        _avg: { progress: true },
+      });
+      // completionRate = average progress across all enrollments (0-100)
+      completionRate = enrollmentStats._avg.progress
+        ? Math.round(enrollmentStats._avg.progress)
+        : 0;
+    }
+
+    // Determine badges based on real data
+    const badges: string[] = [];
+    if (instructeur.status === "APPROUVE") badges.push("verified");
+    if (totalStudents >= 100 && avgRating >= 4.5) badges.push("top_instructor");
+    // If instructor has few formations and few students, they're likely new
+    if (instructeur._count.formations <= 2 && totalStudents < 50) {
+      badges.push("new");
+    }
+
     return NextResponse.json({
       instructeur: {
         ...instructeur,
         avgRating: Math.round(avgRating * 10) / 10,
         totalStudents,
+        completionRate,
+        badges,
+        reviews: reviews.map((r) => ({
+          id: r.id,
+          studentName: r.user?.name ?? "Apprenant",
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt.toISOString(),
+        })),
       },
     });
   } catch (error) {
