@@ -231,9 +231,9 @@ export const authOptions: NextAuthOptions = {
     maxAge: 8 * 60 * 60, // 8 hours for financial platform security
   },
   pages: {
-    signIn: "/formations/connexion",
-    newUser: "/formations/inscription",
-    error: "/formations/connexion",
+    signIn: "/connexion",
+    newUser: "/inscription",
+    error: "/connexion",
   },
   callbacks: {
     async signIn({ user, account }) {
