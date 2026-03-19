@@ -35,9 +35,10 @@ export default function FormationsCallbackPage() {
         console.error("[CALLBACK] Error updating formations role:", err);
       }
 
-      // Clean up localStorage
+      // Clean up localStorage and cookie
       if (typeof window !== "undefined") {
         localStorage.removeItem("pendingFormationsRole");
+        document.cookie = "pendingFormationsRole=;path=/;max-age=0";
       }
 
       // Redirect based on role

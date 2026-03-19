@@ -5,10 +5,11 @@ import { Resend } from "resend";
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const resend = new Resend(RESEND_API_KEY || "re_placeholder");
-const FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
+const CUSTOM_FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
+const FALLBACK_FROM = "FreelanceHigh <onboarding@resend.dev>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
 
-// Helper: send email or log to console if Resend is not configured
+// Helper: send email via Resend with fallback FROM address
 async function sendEmail(params: { from: string; to: string; subject: string; html: string }) {
   if (!RESEND_API_KEY) {
     console.log(`\n========== EMAIL (DEV MODE — Resend non configure) ==========`);
@@ -17,7 +18,29 @@ async function sendEmail(params: { from: string; to: string; subject: string; ht
     console.log(`=============================================================\n`);
     return { data: { id: "dev-" + Date.now() }, error: null };
   }
-  return resend.emails.send(params);
+
+  // Try with configured FROM address
+  const result = await resend.emails.send(params);
+
+  if (result.error) {
+    console.error(`[EMAIL] Resend error with ${params.from}:`, result.error);
+
+    // Retry with Resend's test address if custom domain fails
+    if (params.from !== FALLBACK_FROM) {
+      console.log(`[EMAIL] Retrying with fallback address: ${FALLBACK_FROM}`);
+      const retryResult = await resend.emails.send({ ...params, from: FALLBACK_FROM });
+      if (retryResult.error) {
+        console.error("[EMAIL] Fallback also failed:", retryResult.error);
+      } else {
+        console.log(`[EMAIL] Sent via fallback to ${params.to} (id: ${retryResult.data?.id})`);
+      }
+      return retryResult;
+    }
+  } else {
+    console.log(`[EMAIL] Sent to ${params.to} (id: ${result.data?.id})`);
+  }
+
+  return result;
 }
 
 // ── Layout HTML commun ──
@@ -87,7 +110,7 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
     <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— Lissanon Gildas, Fondateur</p>
   `);
 
-  return sendEmail({ from: FROM, to: email, subject: "Bienvenue sur FreelanceHigh !", html });
+  return sendEmail({ from: CUSTOM_FROM, to: email, subject: "Bienvenue sur FreelanceHigh !", html });
 }
 
 // ── 2. Verification email (OTP) ──
@@ -110,7 +133,7 @@ export async function sendVerificationEmail(email: string, name: string, code: s
     </p>
   `);
 
-  return sendEmail({ from: FROM, to: email, subject: `${code} — Code de verification FreelanceHigh`, html });
+  return sendEmail({ from: CUSTOM_FROM, to: email, subject: `${code} — Code de verification FreelanceHigh`, html });
 }
 
 // ── 3. Mot de passe oublie ──
@@ -131,7 +154,7 @@ export async function sendPasswordResetEmail(email: string, name: string, resetT
     </p>
   `);
 
-  return sendEmail({ from: FROM, to: email, subject: "Reinitialiser votre mot de passe — FreelanceHigh", html });
+  return sendEmail({ from: CUSTOM_FROM, to: email, subject: "Reinitialiser votre mot de passe — FreelanceHigh", html });
 }
 
 // ── 4. Confirmation de commande ──
@@ -160,7 +183,7 @@ export async function sendOrderConfirmationEmail(
     </p>
   `);
 
-  return sendEmail({ from: FROM, to: email, subject: `Commande confirmee — ${order.serviceTitle}`, html });
+  return sendEmail({ from: CUSTOM_FROM, to: email, subject: `Commande confirmee — ${order.serviceTitle}`, html });
 }
 
 // ── 5. Nouveau message ──
@@ -180,7 +203,7 @@ export async function sendNewMessageEmail(
     ${button("Repondre", conversationUrl)}
   `);
 
-  return sendEmail({ from: FROM, to: email, subject: `Message de ${senderName} — FreelanceHigh`, html });
+  return sendEmail({ from: CUSTOM_FROM, to: email, subject: `Message de ${senderName} — FreelanceHigh`, html });
 }
 
 // ── 6. Paiement recu (freelance) ──
@@ -202,5 +225,5 @@ export async function sendPaymentReceivedEmail(
     ${button("Voir mes finances", `${APP_URL}/dashboard/finances`)}
   `);
 
-  return sendEmail({ from: FROM, to: email, subject: `Paiement de ${payment.amount.toFixed(2)} EUR recu`, html });
+  return sendEmail({ from: CUSTOM_FROM, to: email, subject: `Paiement de ${payment.amount.toFixed(2)} EUR recu`, html });
 }

@@ -253,6 +253,7 @@ export default function FormationsConnexionPage() {
             onClick={() => {
               if (typeof window !== "undefined") {
                 localStorage.setItem("pendingFormationsRole", role);
+                document.cookie = `pendingFormationsRole=${role};path=/;max-age=600;SameSite=Lax`;
               }
               signIn("google", { callbackUrl: `/formations/callback?role=${role}` });
             }}

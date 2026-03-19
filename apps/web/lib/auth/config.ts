@@ -242,12 +242,25 @@ export const authOptions: NextAuthOptions = {
         const email = user.email;
         if (!email) return false;
 
+        // Read pending formations role from cookie (set before OAuth redirect)
+        let pendingFormationsRole: string | undefined;
+        try {
+          const { cookies } = await import("next/headers");
+          const cookieStore = await cookies();
+          pendingFormationsRole = cookieStore.get("pendingFormationsRole")?.value;
+          if (pendingFormationsRole) {
+            cookieStore.delete("pendingFormationsRole");
+          }
+        } catch {
+          // cookies() may not be available in all contexts
+        }
+
         if (IS_DEV_MODE) {
           try {
             const { devStore } = await import("./../../lib/dev/dev-store");
             const existing = devStore.findByEmail(email);
             if (!existing) {
-              // Create a new user for OAuth
+              // Create a new user for OAuth with formationsRole from cookie
               const newUser = devStore.create({
                 email,
                 passwordHash: "", // OAuth users don't have a password
@@ -256,11 +269,13 @@ export const authOptions: NextAuthOptions = {
                 plan: "gratuit",
                 kyc: 1,
                 status: "ACTIF",
+                ...(pendingFormationsRole ? { formationsRole: pendingFormationsRole } : {}),
               });
               user.id = newUser.id;
               user.role = "freelance";
               user.kyc = 1;
               user.plan = "gratuit";
+              if (pendingFormationsRole) user.formationsRole = pendingFormationsRole;
 
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
@@ -273,7 +288,13 @@ export const authOptions: NextAuthOptions = {
               user.role = existing.role;
               user.kyc = existing.kyc;
               user.plan = existing.plan;
-              user.formationsRole = (existing as unknown as Record<string, unknown>).formationsRole as string | undefined;
+              const existingRecord = existing as unknown as Record<string, unknown>;
+              // Use pending role if no formationsRole set yet, or update to new role
+              const effectiveRole = pendingFormationsRole || (existingRecord.formationsRole as string | undefined);
+              user.formationsRole = effectiveRole;
+              if (pendingFormationsRole && existingRecord.formationsRole !== pendingFormationsRole) {
+                devStore.update(existing.id, { formationsRole: pendingFormationsRole } as Record<string, unknown>);
+              }
             }
           } catch (err) {
             console.error("[AUTH OAuth DEV]", err);
@@ -284,7 +305,7 @@ export const authOptions: NextAuthOptions = {
             let dbUser = await prisma.user.findUnique({ where: { email } });
 
             if (!dbUser) {
-              // Create user
+              // Create user with formationsRole from cookie
               dbUser = await prisma.user.create({
                 data: {
                   email,
@@ -292,6 +313,7 @@ export const authOptions: NextAuthOptions = {
                   passwordHash: "", // OAuth users don't have a password
                   image: user.image,
                   emailVerified: new Date(),
+                  ...(pendingFormationsRole ? { formationsRole: pendingFormationsRole } : {}),
                 },
               });
 
@@ -300,6 +322,12 @@ export const authOptions: NextAuthOptions = {
                 sendWelcomeEmail(email, user.name || email.split("@")[0]).catch((err) =>
                   console.error("[AUTH OAuth] Erreur envoi email bienvenue:", err)
                 );
+              });
+            } else if (pendingFormationsRole && dbUser.formationsRole !== pendingFormationsRole) {
+              // Update formationsRole if user exists but role is different
+              dbUser = await prisma.user.update({
+                where: { id: dbUser.id },
+                data: { formationsRole: pendingFormationsRole },
               });
             }
 
@@ -334,6 +362,7 @@ export const authOptions: NextAuthOptions = {
             user.role = dbUser.role.toLowerCase();
             user.kyc = dbUser.kyc;
             user.plan = dbUser.plan.toLowerCase();
+            user.formationsRole = dbUser.formationsRole?.toLowerCase();
           } catch (err) {
             console.error("[AUTH OAuth]", err);
             return false;

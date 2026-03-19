@@ -90,9 +90,10 @@ export default function FormationsInscriptionPage() {
           <button
             type="button"
             onClick={() => {
-              // Store formations role before OAuth redirect so callback can read it
+              // Store formations role before OAuth redirect via cookie + localStorage
               if (typeof window !== "undefined") {
                 localStorage.setItem("pendingFormationsRole", role);
+                document.cookie = `pendingFormationsRole=${role};path=/;max-age=600;SameSite=Lax`;
               }
               signIn("google", { callbackUrl: `/formations/callback?role=${role}` });
             }}
