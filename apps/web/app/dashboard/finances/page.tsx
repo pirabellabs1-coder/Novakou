@@ -154,9 +154,9 @@ export default function FinancesPage() {
 
   if (loading) {
     return (
-      <div className="max-w-full space-y-8 animate-pulse">
+      <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8 animate-pulse">
         <div className="h-10 bg-slate-200 dark:bg-neutral-dark rounded-lg w-1/3" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
           {[...Array(3)].map((_, i) => (
             <div key={i} className="bg-background-dark/50 border border-border-dark rounded-xl p-6 h-32" />
           ))}
@@ -167,11 +167,11 @@ export default function FinancesPage() {
   }
 
   return (
-    <div className="max-w-full space-y-8">
+    <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
         <div>
-          <h2 className="text-3xl font-extrabold tracking-tight">Gains & Finances</h2>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Gains & Finances</h2>
           <p className="text-slate-400 mt-1">Suivez vos revenus et gérez vos retraits.</p>
         </div>
         <div className="flex gap-3">
@@ -187,36 +187,36 @@ export default function FinancesPage() {
       </div>
 
       {/* Balance Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-background-dark/50 border border-primary/30 rounded-xl p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        <div className="bg-background-dark/50 border border-primary/30 rounded-xl p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold text-primary uppercase tracking-wider">Solde disponible</p>
             <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
           </div>
-          <AnimatedCounter value={balances.available} prefix="€" className="text-3xl font-extrabold block" />
+          <AnimatedCounter value={balances.available} prefix="€" className="text-2xl sm:text-3xl font-extrabold block" />
           <p className="text-xs text-slate-500 mt-1">Pret a retirer</p>
         </div>
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">En attente</p>
             <span className="material-symbols-outlined text-amber-400">schedule</span>
           </div>
-          <AnimatedCounter value={balances.pending} prefix="€" className="text-3xl font-extrabold block" />
+          <AnimatedCounter value={balances.pending} prefix="€" className="text-2xl sm:text-3xl font-extrabold block" />
           <p className="text-xs text-slate-500 mt-1">En cours de traitement</p>
         </div>
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Total gagne</p>
             <span className="material-symbols-outlined text-emerald-400">trending_up</span>
           </div>
-          <AnimatedCounter value={balances.totalEarned} prefix="€" className="text-3xl font-extrabold block" />
+          <AnimatedCounter value={balances.totalEarned} prefix="€" className="text-2xl sm:text-3xl font-extrabold block" />
           <p className="text-xs text-slate-500 mt-1">Depuis le debut</p>
         </div>
       </div>
 
       {/* Withdraw Form */}
       {showWithdraw && (
-        <div className="bg-background-dark/50 border border-primary/30 rounded-xl p-6 space-y-5 animate-scale-in">
+        <div className="bg-background-dark/50 border border-primary/30 rounded-xl p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 animate-scale-in">
           <h3 className="font-bold text-lg flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
             Demande de retrait
@@ -257,8 +257,8 @@ export default function FinancesPage() {
       )}
 
       {/* Revenue Chart */}
-      <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
-        <h3 className="font-bold text-lg mb-6">Revenus mensuels</h3>
+      <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-6">
+        <h3 className="font-bold text-lg mb-4 sm:mb-6">Revenus mensuels</h3>
         <ResponsiveContainer width="100%" height={250}>
           <BarChart data={monthlyRevenue}>
             <CartesianGrid strokeDasharray="3 3" stroke="#293835" />
@@ -291,7 +291,7 @@ export default function FinancesPage() {
 
       {/* Transactions List */}
       <div className="bg-background-dark/50 border border-border-dark rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-border-dark">
+        <div className="px-4 sm:px-6 py-4 border-b border-border-dark">
           <h3 className="font-bold">Historique des transactions ({filtered.length})</h3>
         </div>
         <div className="divide-y divide-border-dark">
@@ -302,7 +302,7 @@ export default function FinancesPage() {
             const icon = TX_ICONS[tx.type] ?? TX_ICONS.vente;
             const status = STATUS_LABELS[tx.status];
             return (
-              <div key={tx.id} className="flex items-center gap-4 px-6 py-4 hover:bg-primary/5 transition-colors">
+              <div key={tx.id} className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4 hover:bg-primary/5 transition-colors">
                 <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", icon.color)}>
                   <span className="material-symbols-outlined">{icon.icon}</span>
                 </div>

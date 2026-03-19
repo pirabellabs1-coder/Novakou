@@ -38,12 +38,12 @@ export function PopularServicesSection() {
   if (services.length === 0) return null;
 
   return (
-    <section className="py-32 px-6 lg:px-20">
+    <section className="py-12 sm:py-20 lg:py-32 px-4 sm:px-6 lg:px-20">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16 gap-4">
-          <div className="space-y-4">
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">{t("title")}</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-lg">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-12 lg:mb-16 gap-3 sm:gap-4">
+          <div className="space-y-2 sm:space-y-4">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">{t("title")}</h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base lg:text-lg">
               {t("subtitle")}
             </p>
           </div>
@@ -55,7 +55,7 @@ export function PopularServicesSection() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {services.map((service) => (
             <Link
               key={service.id}

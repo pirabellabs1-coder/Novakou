@@ -18,9 +18,9 @@ export default function AdminDashboard() {
   // Loading skeleton
   if (loading.dashboard || !dashboardStats) {
     return (
-      <div className="space-y-6 animate-pulse">
+      <div className="space-y-4 sm:space-y-6 animate-pulse">
         {/* Header skeleton */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div>
             <div className="h-8 w-48 bg-neutral-dark rounded-lg" />
             <div className="h-4 w-72 bg-neutral-dark rounded-lg mt-2" />
@@ -29,15 +29,15 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats grid skeleton */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-4 h-24" />
+            <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 h-24" />
           ))}
         </div>
 
         {/* Chart + alerts skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 bg-neutral-dark rounded-xl border border-border-dark h-72" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          <div className="md:col-span-2 lg:col-span-2 bg-neutral-dark rounded-xl border border-border-dark h-72" />
           <div className="bg-neutral-dark rounded-xl border border-border-dark h-72" />
         </div>
 
@@ -45,14 +45,13 @@ export default function AdminDashboard() {
         <div className="bg-neutral-dark rounded-xl border border-border-dark h-48" />
 
         {/* Bottom row skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-neutral-dark rounded-xl border border-border-dark h-56" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div className="bg-neutral-dark rounded-xl border border-border-dark h-56" />
           <div className="bg-neutral-dark rounded-xl border border-border-dark h-56" />
         </div>
 
         {/* Quick links skeleton */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark h-16" />
           ))}
@@ -121,8 +120,8 @@ export default function AdminDashboard() {
   const avgOrderValue = orders.total > 0 ? Math.round(orders.gmv / orders.total) : 0;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-3xl font-black text-white">Administration</h1>
           <p className="text-slate-400 text-sm mt-1">Vue globale de la plateforme FreelanceHigh.</p>
@@ -134,13 +133,13 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats clickable */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
         {STATS.map(s => (
-          <Link key={s.label} href={s.link} className="bg-neutral-dark rounded-xl border border-border-dark p-4 hover:border-primary/30 transition-all group">
+          <Link key={s.label} href={s.link} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 hover:border-primary/30 transition-all group">
             <div className="flex items-center gap-2 mb-2">
               <span className={cn("material-symbols-outlined text-lg", s.color)}>{s.icon}</span>
             </div>
-            <p className="text-xl font-black text-white group-hover:text-primary transition-colors">{s.value}</p>
+            <p className="text-lg sm:text-xl font-black text-white group-hover:text-primary transition-colors">{s.value}</p>
             <div className="flex items-center justify-between mt-1">
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">{s.label}</p>
               {s.trend && <span className="text-[10px] text-emerald-400 font-bold">{s.trend}</span>}
@@ -151,26 +150,26 @@ export default function AdminDashboard() {
 
       {/* Traffic en direct */}
       {traffic && (
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h2 className="font-bold text-white mb-3 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">monitoring</span>
             Trafic en direct
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div>
-              <p className="text-2xl font-black text-emerald-400">{traffic.activeSessions}</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-black text-emerald-400">{traffic.activeSessions}</p>
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Sessions actives</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-white">{traffic.todayPageViews.toLocaleString()}</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-black text-white">{traffic.todayPageViews.toLocaleString()}</p>
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Pages vues (24h)</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-blue-400">{traffic.todayUniques.toLocaleString()}</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-black text-blue-400">{traffic.todayUniques.toLocaleString()}</p>
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Visiteurs uniques</p>
             </div>
             <div>
-              <p className="text-2xl font-black text-amber-400">{traffic.avgSessionDuration}s</p>
+              <p className="text-lg sm:text-xl lg:text-2xl font-black text-amber-400">{traffic.avgSessionDuration}s</p>
               <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Durée moy. session</p>
             </div>
           </div>
@@ -189,9 +188,9 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Revenue chart with recharts */}
-        <div className="lg:col-span-2 bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="md:col-span-2 lg:col-span-2 bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-bold text-white">Revenus plateforme</h2>
             <div className="flex bg-border-dark rounded-lg p-0.5">
@@ -220,7 +219,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Dynamic Alerts */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h2 className="font-bold text-white mb-4 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">notifications_active</span>
             Alertes ({alerts.length})
@@ -249,7 +248,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Activity feed */}
-      <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+      <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
         <h2 className="font-bold text-white mb-4">Activité récente</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {activities.map((a, i) => (
@@ -265,9 +264,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {/* Users by role */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h3 className="font-bold text-white text-sm mb-3">Utilisateurs par rôle</h3>
           <ResponsiveContainer width="100%" height={120}>
             <PieChart>
@@ -286,7 +285,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Key metrics */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h3 className="font-bold text-white text-sm mb-3">Métriques clés</h3>
           {[
             { label: "Taux de complétion", value: `${completionRate}%` },
@@ -304,14 +303,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick links */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {[
           { label: "Catégories", icon: "category", link: "/admin/categories", color: "text-primary" },
           { label: "Blog", icon: "article", link: "/admin/blog", color: "text-blue-400" },
           { label: "KYC", icon: "verified", link: "/admin/kyc", color: "text-amber-400" },
           { label: "Configuration", icon: "settings", link: "/admin/configuration", color: "text-slate-400" },
         ].map(q => (
-          <Link key={q.label} href={q.link} className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3 hover:border-primary/30 transition-all group">
+          <Link key={q.label} href={q.link} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 flex items-center gap-3 hover:border-primary/30 transition-all group">
             <span className={cn("material-symbols-outlined text-2xl", q.color)}>{q.icon}</span>
             <div className="flex-1">
               <p className="text-sm font-bold text-white group-hover:text-primary transition-colors">{q.label}</p>

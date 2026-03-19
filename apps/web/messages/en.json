@@ -81,7 +81,14 @@
         "video": "Video & Animation",
         "musique": "Music & Audio",
         "business": "Business & Consulting",
-        "ia-data": "AI & Data Science"
+        "ia-data": "AI & Data Science",
+        "formation-coaching": "Training & Coaching",
+        "photographie": "Photography",
+        "architecture": "Architecture & Engineering",
+        "secretariat": "Admin & Secretarial",
+        "cybersecurite": "Cybersecurity",
+        "finance": "Finance & Accounting",
+        "lifestyle": "Lifestyle & Wellness"
       }
     },
     "stats": {
@@ -129,6 +136,34 @@
         "ia-data": {
           "title": "AI & Data Science",
           "description": "Machine Learning, Data Analysis, Chatbots, Automation."
+        },
+        "formation-coaching": {
+          "title": "Training & Coaching",
+          "description": "Professional Coaching, Mentoring, Course Creation, E-learning."
+        },
+        "photographie": {
+          "title": "Photography",
+          "description": "Photo Editing, Product Shooting, Portrait, Events."
+        },
+        "architecture": {
+          "title": "Architecture & Engineering",
+          "description": "CAD, 3D Modeling, BIM, Technical Plans."
+        },
+        "secretariat": {
+          "title": "Admin & Secretarial",
+          "description": "Virtual Assistant, Data Entry, Transcription."
+        },
+        "cybersecurite": {
+          "title": "Cybersecurity",
+          "description": "Security Audit, Pentest, GDPR, Compliance."
+        },
+        "finance": {
+          "title": "Finance & Accounting",
+          "description": "Accounting, Tax, Invoicing, Financial Analysis."
+        },
+        "lifestyle": {
+          "title": "Lifestyle & Wellness",
+          "description": "Nutrition, Fitness, Personal Development, Meditation."
         }
       }
     },
@@ -659,10 +694,22 @@
     "cat_ia_data_desc": "Artificial intelligence, machine learning, data analysis",
     "cat_mobile": "Mobile",
     "cat_mobile_desc": "iOS, Android, React Native and Flutter applications",
-    "cat_seo": "SEO",
-    "cat_seo_desc": "Search engine optimization, SEO audit, technical optimization",
+    "cat_musique_audio": "Music & Audio",
+    "cat_musique_audio_desc": "Voice-over, music production, podcast, sound design",
+    "cat_formation_coaching": "Training & Coaching",
+    "cat_formation_coaching_desc": "Professional coaching, mentoring, online course creation",
+    "cat_photographie": "Photography",
+    "cat_photographie_desc": "Photo editing, product shooting, portrait, events",
+    "cat_architecture_ingenierie": "Architecture & Engineering",
+    "cat_architecture_ingenierie_desc": "CAD, 3D modeling, BIM, technical plans",
+    "cat_secretariat_admin": "Admin & Secretarial",
+    "cat_secretariat_admin_desc": "Virtual assistant, data entry, transcription",
     "cat_cybersecurite": "Cybersecurity",
-    "cat_cybersecurite_desc": "Security audit, penetration testing, data protection"
+    "cat_cybersecurite_desc": "Security audit, penetration testing, GDPR, compliance",
+    "cat_finance_comptabilite": "Finance & Accounting",
+    "cat_finance_comptabilite_desc": "Accounting, tax, invoicing, financial analysis",
+    "cat_lifestyle_bien_etre": "Lifestyle & Wellness",
+    "cat_lifestyle_bien_etre_desc": "Nutrition, fitness, personal development, meditation"
   },
   "freelance_profile": {
     "not_found_title": "Freelancer not found",
@@ -746,8 +793,14 @@
       "video-animation": "Video & Animation",
       "ia-data": "AI & Data",
       "mobile": "Mobile",
-      "seo": "SEO",
-      "cybersecurite": "Cybersecurity"
+      "musique-audio": "Music & Audio",
+      "formation-coaching": "Training & Coaching",
+      "photographie": "Photography",
+      "architecture-ingenierie": "Architecture & Engineering",
+      "secretariat-admin": "Admin & Secretarial",
+      "cybersecurite": "Cybersecurity",
+      "finance-comptabilite": "Finance & Accounting",
+      "lifestyle-bien-etre": "Lifestyle & Wellness"
     },
     "delivery": {
       "all": "All",

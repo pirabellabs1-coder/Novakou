@@ -96,9 +96,9 @@ export default function AdminKYC() {
 
   if (loading.kyc) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
             <span className="material-symbols-outlined text-primary">verified</span>
             Verifications KYC
           </h1>
@@ -110,9 +110,9 @@ export default function AdminKYC() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
           <span className="material-symbols-outlined text-primary">verified</span>
           Verifications KYC
         </h1>
@@ -120,17 +120,17 @@ export default function AdminKYC() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {[
           { label: "Total demandes", value: stats.total, color: "text-primary", icon: "assignment" },
           { label: "Niveau 2 (telephone)", value: stats.byLevel["2"] ?? 0, color: "text-blue-400", icon: "phone_android" },
           { label: "Niveau 3 (identite)", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
           { label: "Niveau 4 (pro)", value: stats.byLevel["4"] ?? 0, color: "text-emerald-400", icon: "workspace_premium" },
         ].map(s => (
-          <div key={s.label} className="bg-neutral-dark rounded-xl p-5 border border-border-dark">
-            <div className="flex items-center gap-3 mb-2">
+          <div key={s.label} className="bg-neutral-dark rounded-xl p-3 sm:p-4 lg:p-5 border border-border-dark">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2">
               <span className={cn("material-symbols-outlined", s.color)}>{s.icon}</span>
-              <p className={cn("text-2xl font-bold", s.color)}>{s.value}</p>
+              <p className={cn("text-xl sm:text-2xl font-bold", s.color)}>{s.value}</p>
             </div>
             <p className="text-xs text-slate-500">{s.label}</p>
           </div>
@@ -153,11 +153,11 @@ export default function AdminKYC() {
       </div>
 
       {/* Liste */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filtered.map(r => {
           const levelInfo = LEVEL_MAP[r.nextLevel];
           return (
-            <div key={r.userId} className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+            <div key={r.userId} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">

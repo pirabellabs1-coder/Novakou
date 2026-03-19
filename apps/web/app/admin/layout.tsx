@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="relative z-50"><AdminSidebar collapsed={false} onToggle={() => setMobileOpen(false)} /></div>
+          <div className="relative z-50 max-w-[min(85vw,288px)]"><AdminSidebar collapsed={false} onToggle={() => setMobileOpen(false)} /></div>
         </div>
       )}
       <div className="flex-1 flex flex-col overflow-hidden">

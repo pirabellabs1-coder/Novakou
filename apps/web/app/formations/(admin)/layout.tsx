@@ -42,7 +42,7 @@ export default function AdminFormationsLayout({ children }: { children: React.Re
     .filter(Boolean);
 
   return (
-    <div className="flex min-h-[calc(100vh-200px)]">
+    <div className="flex min-h-0 flex-1">
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -128,7 +128,7 @@ export default function AdminFormationsLayout({ children }: { children: React.Re
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <aside className="relative z-50 w-72 bg-white dark:bg-slate-900 dark:bg-neutral-dark border-r border-slate-200 dark:border-slate-700 dark:border-border-dark flex flex-col">
+          <aside className="relative z-50 w-72 max-w-[min(85vw,288px)] bg-white dark:bg-slate-900 dark:bg-neutral-dark border-r border-slate-200 dark:border-slate-700 dark:border-border-dark flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 dark:border-border-dark">
               <span className="font-bold text-sm">{t("admin_subtitle")}</span>
               <button onClick={() => setMobileOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-white/5">
@@ -178,14 +178,14 @@ export default function AdminFormationsLayout({ children }: { children: React.Re
           </button>
 
           {/* Breadcrumb */}
-          <nav className="flex items-center text-sm text-slate-500">
-            <Link href="/formations" className="hover:text-primary transition-colors">{t("breadcrumb_home")}</Link>
-            <span className="material-symbols-outlined text-xs mx-1">chevron_right</span>
-            <Link href="/formations/admin/dashboard" className="hover:text-primary transition-colors">{t("breadcrumb_admin")}</Link>
+          <nav className="flex items-center text-xs sm:text-sm text-slate-500 min-w-0 overflow-x-auto whitespace-nowrap">
+            <Link href="/formations" className="hover:text-primary transition-colors flex-shrink-0">{t("breadcrumb_home")}</Link>
+            <span className="material-symbols-outlined text-xs mx-1 flex-shrink-0">chevron_right</span>
+            <Link href="/formations/admin/dashboard" className="hover:text-primary transition-colors flex-shrink-0">{t("breadcrumb_admin")}</Link>
             {rawSegments.map((segment, i) => (
-              <span key={i} className="flex items-center">
+              <span key={i} className="flex items-center flex-shrink-0">
                 <span className="material-symbols-outlined text-xs mx-1">chevron_right</span>
-                <span className={i === rawSegments.length - 1 ? "font-semibold text-slate-900 dark:text-white dark:text-slate-100" : ""}>
+                <span className={`truncate max-w-[120px] sm:max-w-none ${i === rawSegments.length - 1 ? "font-semibold text-slate-900 dark:text-white dark:text-slate-100" : ""}`}>
                   {segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")}
                 </span>
               </span>
@@ -193,7 +193,7 @@ export default function AdminFormationsLayout({ children }: { children: React.Re
           </nav>
         </div>
 
-        <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-800/50 dark:bg-background-dark min-h-[calc(100vh-280px)]">
+        <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 dark:bg-slate-800/50 dark:bg-background-dark min-h-0 flex-1">
           {children}
         </div>
       </div>

@@ -110,9 +110,9 @@ export default function AdminDisputes() {
 
   if (loading.disputes) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-black text-white flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
             <span className="material-symbols-outlined text-primary">gavel</span>
             Litiges
           </h1>
@@ -124,9 +124,9 @@ export default function AdminDisputes() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
           <span className="material-symbols-outlined text-primary">gavel</span>
           Litiges
         </h1>
@@ -134,7 +134,7 @@ export default function AdminDisputes() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: "Ouverts", value: stats.ouvert, color: "text-red-400", icon: "error" },
           { label: "En examen", value: stats.en_examen, color: "text-amber-400", icon: "pending" },
@@ -152,14 +152,14 @@ export default function AdminDisputes() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-border-dark">
+      <div className="flex gap-2 border-b border-border-dark overflow-x-auto">
         {[
           { key: "ouvert", label: "Ouverts", count: stats.ouvert },
           { key: "en_examen", label: "En examen", count: stats.en_examen },
           { key: "resolu", label: "Resolus", count: stats.resolu },
           { key: "all", label: "Tous", count: stats.total },
         ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} className={cn("px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors flex items-center gap-1.5", tab === t.key ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-white")}>
+          <button key={t.key} onClick={() => setTab(t.key)} className={cn("px-3 sm:px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap flex items-center gap-1.5", tab === t.key ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-white")}>
             {t.label}
             <span className="text-[10px] bg-border-dark px-1.5 py-0.5 rounded-full">{t.count}</span>
           </button>
@@ -167,9 +167,9 @@ export default function AdminDisputes() {
       </div>
 
       {/* Dispute list */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filtered.map(d => (
-          <div key={d.id} className={cn("bg-neutral-dark rounded-xl border p-5 transition-colors", d.status === "resolu" ? "border-border-dark/50 opacity-75" : "border-border-dark hover:border-border-dark/80")}>
+          <div key={d.id} className={cn("bg-neutral-dark rounded-xl border p-3 sm:p-4 lg:p-5 transition-colors", d.status === "resolu" ? "border-border-dark/50 opacity-75" : "border-border-dark hover:border-border-dark/80")}>
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -266,7 +266,7 @@ export default function AdminDisputes() {
 
             {/* Choix du verdict */}
             <label className="text-xs font-semibold text-slate-400 mb-2 block">Verdict</label>
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
               {([
                 { key: "freelance" as const, label: "Freelance", desc: "Fonds liberes au freelance", icon: "person", color: "border-primary text-primary bg-primary/10" },
                 { key: "client" as const, label: "Client", desc: "Remboursement total au client", icon: "person", color: "border-blue-500 text-blue-400 bg-blue-500/10" },

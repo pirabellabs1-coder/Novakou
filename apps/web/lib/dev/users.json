@@ -9,10 +9,10 @@
     "kyc": 4,
     "status": "ACTIF",
     "createdAt": "2026-01-01T00:00:00.000Z",
-    "loginCount": 1,
+    "loginCount": 2,
     "country": "FR",
     "adminRole": "super_admin",
-    "lastLoginAt": "2026-03-18T20:33:12.048Z"
+    "lastLoginAt": "2026-03-18T23:52:36.509Z"
   },
   {
     "id": "dev-freelance-1",

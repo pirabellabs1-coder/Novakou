@@ -106,14 +106,14 @@ export default function AgencyDashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 animate-pulse">
+      <div className="space-y-4 sm:space-y-6 animate-pulse">
         <div className="h-10 bg-neutral-dark rounded-lg w-1/3" />
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-4 h-24" />
+            <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 h-24" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           <div className="bg-neutral-dark rounded-xl border border-border-dark h-72" />
           <div className="bg-neutral-dark rounded-xl border border-border-dark h-72" />
         </div>
@@ -122,9 +122,9 @@ export default function AgencyDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-3xl font-black text-white">Tableau de bord</h1>
           <p className="text-slate-400 text-sm mt-1">Vue globale de votre agence</p>
@@ -160,22 +160,22 @@ export default function AgencyDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
         {STATS_CARDS.map((s) => (
-          <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-4">
+          <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4">
             <div className="flex items-center justify-between mb-2">
               <span className={cn("material-symbols-outlined text-xl", s.color)}>{s.icon}</span>
             </div>
-            <p className="text-xl font-black text-white">{isLoading ? "..." : s.value}</p>
+            <p className="text-lg sm:text-xl font-black text-white">{isLoading ? "..." : s.value}</p>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mt-1">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {/* CA par mois - BarChart */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h2 className="font-bold text-white mb-4">CA par mois</h2>
           {monthlyRevenue.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -195,7 +195,7 @@ export default function AgencyDashboard() {
         </div>
 
         {/* Commandes par semaine - LineChart */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h2 className="font-bold text-white mb-4">Commandes par semaine</h2>
           {weeklyOrders.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
@@ -216,9 +216,9 @@ export default function AgencyDashboard() {
       </div>
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Répartition services par catégorie - PieChart */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h2 className="font-bold text-white mb-4">Services par catégorie</h2>
           {categoryDistribution.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
@@ -249,7 +249,7 @@ export default function AgencyDashboard() {
         </div>
 
         {/* Taux de conversion - AreaChart */}
-        <div className="lg:col-span-2 bg-neutral-dark rounded-xl border border-border-dark p-5">
+        <div className="md:col-span-1 lg:col-span-2 bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
           <h2 className="font-bold text-white mb-4">Vues du profil</h2>
           {profileViews.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
@@ -279,7 +279,7 @@ export default function AgencyDashboard() {
       <RankProgress completedSales={stats?.completedOrders ?? 0} />
 
       {/* Activity Feed */}
-      <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+      <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
         <h2 className="font-bold text-white mb-4">Activité récente</h2>
         {activities.length > 0 ? (
           <div className="space-y-4">

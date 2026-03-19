@@ -63,8 +63,14 @@ const CATEGORIES = [
   { slug: "video-animation", icon: "videocam" },
   { slug: "ia-data", icon: "smart_toy" },
   { slug: "mobile", icon: "smartphone" },
-  { slug: "seo", icon: "travel_explore" },
+  { slug: "musique-audio", icon: "music_note" },
+  { slug: "formation-coaching", icon: "school" },
+  { slug: "photographie", icon: "photo_camera" },
+  { slug: "architecture-ingenierie", icon: "architecture" },
+  { slug: "secretariat-admin", icon: "support_agent" },
   { slug: "cybersecurite", icon: "security" },
+  { slug: "finance-comptabilite", icon: "account_balance" },
+  { slug: "lifestyle-bien-etre", icon: "spa" },
 ] as const;
 
 const DELIVERY_VALUES = ["all", "1-3", "3-7", "7-14", "14-30"] as const;
@@ -97,8 +103,14 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
   "video-animation": "from-rose-500/80 to-purple-600/80",
   "ia-data": "from-violet-600/80 to-indigo-800/80",
   "mobile": "from-sky-500/80 to-blue-700/80",
-  "seo": "from-lime-500/80 to-green-700/80",
+  "musique-audio": "from-amber-500/80 to-orange-700/80",
+  "formation-coaching": "from-teal-500/80 to-emerald-700/80",
+  "photographie": "from-fuchsia-500/80 to-pink-700/80",
+  "architecture-ingenierie": "from-stone-500/80 to-stone-800/80",
+  "secretariat-admin": "from-sky-400/80 to-cyan-700/80",
   "cybersecurite": "from-slate-600/80 to-zinc-800/80",
+  "finance-comptabilite": "from-green-500/80 to-emerald-800/80",
+  "lifestyle-bien-etre": "from-pink-400/80 to-rose-600/80",
 };
 
 const defaultFilters: FilterState = {
@@ -840,8 +852,8 @@ export default function ExplorerPage() {
     <div className="min-h-screen bg-white dark:bg-slate-900">
       {/* ---- Header with search ---- */}
       <div className="border-b border-slate-200 dark:border-border-dark bg-white dark:bg-neutral-dark">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-4">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3 sm:mb-4">
             {t("title")}
           </h1>
           <div className="relative max-w-2xl">
@@ -902,7 +914,7 @@ export default function ExplorerPage() {
       </div>
 
       {/* ---- Main content ---- */}
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* ---- Filters row (desktop) + mobile filter button ---- */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
@@ -1094,8 +1106,8 @@ export default function ExplorerPage() {
           <div
             className={cn(
               view === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
-                : "flex flex-col gap-4"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5"
+                : "flex flex-col gap-3 sm:gap-4"
             )}
           >
             {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
@@ -1121,8 +1133,8 @@ export default function ExplorerPage() {
           <div
             className={cn(
               view === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5"
-                : "flex flex-col gap-4"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5"
+                : "flex flex-col gap-3 sm:gap-4"
             )}
           >
             {services.map((service) => (

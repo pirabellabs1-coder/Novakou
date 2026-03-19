@@ -53,3 +53,4 @@ Thumbs.db
 apps/web/lib/dev/tracking-events.json
 apps/web/lib/dev/tracking-sessions.json
 apps/web/lib/dev/automations.json
+.vercel

@@ -81,7 +81,14 @@
         "video": "Vidéo & Animation",
         "musique": "Musique & Audio",
         "business": "Business & Conseil",
-        "ia-data": "IA & Data Science"
+        "ia-data": "IA & Data Science",
+        "formation-coaching": "Formation & Coaching",
+        "photographie": "Photographie",
+        "architecture": "Architecture & Ingénierie",
+        "secretariat": "Secrétariat & Admin",
+        "cybersecurite": "Cybersécurité",
+        "finance": "Finance & Comptabilité",
+        "lifestyle": "Lifestyle & Bien-être"
       }
     },
     "stats": {
@@ -129,6 +136,34 @@
         "ia-data": {
           "title": "IA & Data Science",
           "description": "Machine Learning, Analyse de données, Chatbots, Automatisation."
+        },
+        "formation-coaching": {
+          "title": "Formation & Coaching",
+          "description": "Coaching pro, Mentorat, Création de cours, E-learning."
+        },
+        "photographie": {
+          "title": "Photographie",
+          "description": "Retouche, Shooting produit, Portrait, Événementiel."
+        },
+        "architecture": {
+          "title": "Architecture & Ingénierie",
+          "description": "CAO/DAO, Modélisation 3D, BIM, Plans techniques."
+        },
+        "secretariat": {
+          "title": "Secrétariat & Admin",
+          "description": "Assistanat virtuel, Saisie de données, Transcription."
+        },
+        "cybersecurite": {
+          "title": "Cybersécurité",
+          "description": "Audit sécurité, Pentest, RGPD, Conformité."
+        },
+        "finance": {
+          "title": "Finance & Comptabilité",
+          "description": "Comptabilité, Fiscalité, Facturation, Analyse financière."
+        },
+        "lifestyle": {
+          "title": "Lifestyle & Bien-être",
+          "description": "Nutrition, Fitness, Développement personnel, Méditation."
         }
       }
     },
@@ -659,10 +694,22 @@
     "cat_ia_data_desc": "Intelligence artificielle, machine learning, analyse de données",
     "cat_mobile": "Mobile",
     "cat_mobile_desc": "Applications iOS, Android, React Native et Flutter",
-    "cat_seo": "SEO",
-    "cat_seo_desc": "Référencement naturel, audit SEO, optimisation technique",
+    "cat_musique_audio": "Musique & Audio",
+    "cat_musique_audio_desc": "Voix-off, production musicale, podcast, sound design",
+    "cat_formation_coaching": "Formation & Coaching",
+    "cat_formation_coaching_desc": "Coaching professionnel, mentorat, création de cours en ligne",
+    "cat_photographie": "Photographie",
+    "cat_photographie_desc": "Retouche photo, shooting produit, portrait, événementiel",
+    "cat_architecture_ingenierie": "Architecture & Ingénierie",
+    "cat_architecture_ingenierie_desc": "CAO/DAO, modélisation 3D, BIM, plans techniques",
+    "cat_secretariat_admin": "Secrétariat & Admin",
+    "cat_secretariat_admin_desc": "Assistanat virtuel, saisie de données, transcription",
     "cat_cybersecurite": "Cybersécurité",
-    "cat_cybersecurite_desc": "Audit de sécurité, pentest, protection des données"
+    "cat_cybersecurite_desc": "Audit de sécurité, pentest, RGPD, conformité",
+    "cat_finance_comptabilite": "Finance & Comptabilité",
+    "cat_finance_comptabilite_desc": "Comptabilité, fiscalité, facturation, analyse financière",
+    "cat_lifestyle_bien_etre": "Lifestyle & Bien-être",
+    "cat_lifestyle_bien_etre_desc": "Nutrition, fitness, développement personnel, méditation"
   },
   "freelance_profile": {
     "not_found_title": "Freelance non trouvé",
@@ -748,8 +795,14 @@
       "video-animation": "Vidéo & Animation",
       "ia-data": "IA & Data",
       "mobile": "Mobile",
-      "seo": "SEO",
-      "cybersecurite": "Cybersécurité"
+      "musique-audio": "Musique & Audio",
+      "formation-coaching": "Formation & Coaching",
+      "photographie": "Photographie",
+      "architecture-ingenierie": "Architecture & Ingénierie",
+      "secretariat-admin": "Secrétariat & Admin",
+      "cybersecurite": "Cybersécurité",
+      "finance-comptabilite": "Finance & Comptabilité",
+      "lifestyle-bien-etre": "Lifestyle & Bien-être"
     },
     "delivery": {
       "all": "Tous",

@@ -72,30 +72,30 @@ export default function CommandesPage() {
   }
 
   return (
-    <div className="max-w-full space-y-8">
+    <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
       <div>
-        <h2 className="text-3xl font-extrabold tracking-tight">Commandes</h2>
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Commandes</h2>
         <p className="text-slate-400 mt-1">Gerez et suivez toutes vos commandes en cours.</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-5">
           <p className="text-xs font-bold text-slate-500 uppercase">Total</p>
-          <p className="text-2xl font-extrabold mt-1">{stats.total}</p>
+          <p className="text-xl sm:text-2xl font-extrabold mt-1">{stats.total}</p>
         </div>
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-5">
           <p className="text-xs font-bold text-blue-400 uppercase">Actives</p>
-          <p className="text-2xl font-extrabold mt-1">{stats.active}</p>
+          <p className="text-xl sm:text-2xl font-extrabold mt-1">{stats.active}</p>
         </div>
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-5">
           <p className="text-xs font-bold text-emerald-400 uppercase">Terminées</p>
-          <p className="text-2xl font-extrabold mt-1">{stats.completed}</p>
+          <p className="text-xl sm:text-2xl font-extrabold mt-1">{stats.completed}</p>
         </div>
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
+        <div className="bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-5">
           <p className="text-xs font-bold text-primary uppercase">Revenus</p>
-          <p className="text-2xl font-extrabold mt-1">€{stats.revenue.toLocaleString("fr-FR")}</p>
+          <p className="text-xl sm:text-2xl font-extrabold mt-1">€{stats.revenue.toLocaleString("fr-FR")}</p>
         </div>
       </div>
 
@@ -136,9 +136,9 @@ export default function CommandesPage() {
       </div>
 
       {/* Orders List */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {filtered.length === 0 && (
-          <div className="bg-background-dark/50 border border-border-dark rounded-xl p-12 text-center">
+          <div className="bg-background-dark/50 border border-border-dark rounded-xl p-8 sm:p-12 text-center">
             <span className="material-symbols-outlined text-4xl text-slate-600 mb-3">inbox</span>
             <p className="text-slate-500">Aucune commande trouvee.</p>
           </div>
@@ -148,7 +148,7 @@ export default function CommandesPage() {
           const daysLeft = getDaysLeft(order.deadline);
           return (
             <Link key={order.id} href={`/dashboard/commandes/${order.id}`}
-              className="block bg-background-dark/50 border border-border-dark rounded-xl p-5 hover:border-primary/30 transition-all group">
+              className="block bg-background-dark/50 border border-border-dark rounded-xl p-3 sm:p-4 lg:p-5 hover:border-primary/30 transition-all group">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary flex-shrink-0">

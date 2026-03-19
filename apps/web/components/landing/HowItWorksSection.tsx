@@ -13,8 +13,8 @@ export function HowItWorksSection() {
   ];
 
   return (
-    <section className="py-32 px-6 lg:px-20">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+    <section className="py-12 sm:py-20 lg:py-32 px-4 sm:px-6 lg:px-20">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 lg:gap-24 items-center">
         {/* Visual */}
         <div className="relative order-2 lg:order-1 overflow-hidden">
           <div className="bg-accent/10 rounded-[3rem] w-full aspect-square absolute -rotate-6 z-0 border border-accent/20"></div>
@@ -38,7 +38,7 @@ export function HowItWorksSection() {
         {/* Content */}
         <div className="space-y-12 order-1 lg:order-2">
           <div className="space-y-6">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-3xl lg:text-5xl font-extrabold tracking-tight leading-tight">
               {t("title_1")} <span className="text-primary">{t("title_highlight")}</span>
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-lg">
@@ -62,7 +62,7 @@ export function HowItWorksSection() {
 
           <Link
             href="/inscription"
-            className="inline-flex items-center gap-4 bg-primary hover:bg-primary/90 text-white rounded-2xl px-10 py-5 text-xl font-bold shadow-2xl shadow-primary/20 transition-all group"
+            className="inline-flex items-center gap-3 sm:gap-4 bg-primary hover:bg-primary/90 text-white rounded-xl sm:rounded-2xl px-6 sm:px-10 py-3 sm:py-5 text-base sm:text-xl font-bold shadow-2xl shadow-primary/20 transition-all group"
           >
             {t("cta")}
             <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>

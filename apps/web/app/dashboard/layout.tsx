@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="relative z-50">
+          <div className="relative z-50 max-w-[min(85vw,288px)]">
             <Sidebar />
             {/* Close button on mobile overlay */}
             <button

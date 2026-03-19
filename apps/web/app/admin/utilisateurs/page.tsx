@@ -153,9 +153,9 @@ export default function AdminUsers() {
   }), [users]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
           <span className="material-symbols-outlined text-primary">people</span>
           Utilisateurs
         </h1>
@@ -163,14 +163,14 @@ export default function AdminUsers() {
       </div>
 
       {/* Stats rapides */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: "Total", value: stats.total, icon: "people", color: "text-primary" },
           { label: "Actifs", value: stats.actifs, icon: "check_circle", color: "text-emerald-400" },
           { label: "Suspendus", value: stats.suspendus, icon: "block", color: "text-amber-400" },
           { label: "Bannis", value: stats.bannis, icon: "gavel", color: "text-red-400" },
         ].map(s => (
-          <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-4">
+          <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-1">
               <span className={cn("material-symbols-outlined text-lg", s.color)}>{s.icon}</span>
               <p className="text-xl font-black text-white">{s.value}</p>
@@ -181,7 +181,7 @@ export default function AdminUsers() {
       </div>
 
       {/* Filtres */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-wrap sm:flex-row gap-2 sm:gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg">search</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher par nom ou email..." className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border-dark bg-neutral-dark text-sm text-white placeholder:text-slate-500 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all" />

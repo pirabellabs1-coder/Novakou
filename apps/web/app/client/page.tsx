@@ -13,7 +13,7 @@ import { ChartTooltip } from "@/components/ui/ChartTooltip";
 // ── Skeleton for loading states ──
 function KPISkeleton() {
   return (
-    <div className="bg-neutral-dark rounded-xl p-5 border border-border-dark animate-pulse">
+    <div className="bg-neutral-dark rounded-xl p-3 sm:p-4 lg:p-5 border border-border-dark animate-pulse">
       <div className="flex items-center justify-between mb-3">
         <div className="h-4 w-24 bg-border-dark rounded" />
         <div className="w-10 h-10 bg-border-dark rounded-lg" />
@@ -26,7 +26,7 @@ function KPISkeleton() {
 
 function ChartSkeleton() {
   return (
-    <div className="bg-neutral-dark rounded-xl border border-border-dark p-5 animate-pulse">
+    <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5 animate-pulse">
       <div className="h-5 w-40 bg-border-dark rounded mb-4" />
       <div className="h-56 bg-border-dark rounded" />
     </div>
@@ -169,7 +169,7 @@ export default function ClientDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white">Tableau de Bord</h1>
@@ -177,30 +177,30 @@ export default function ClientDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
         {isLoadingStats
           ? Array.from({ length: 4 }).map((_, i) => <KPISkeleton key={i} />)
           : STATS.map((s) => (
-              <div key={s.label} className="bg-neutral-dark rounded-xl p-5 border border-border-dark">
+              <div key={s.label} className="bg-neutral-dark rounded-xl p-3 sm:p-4 lg:p-5 border border-border-dark">
                 <div className="flex items-center justify-between mb-3">
                   <p className="text-slate-400 text-sm font-medium">{s.label}</p>
                   <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", s.iconBg)}>
                     <span className={cn("material-symbols-outlined text-xl", s.iconColor)}>{s.icon}</span>
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-white">{s.value}</p>
+                <p className="text-lg sm:text-xl lg:text-3xl font-bold text-white">{s.value}</p>
                 <p className={cn("text-xs mt-1", s.variationColor)}>{s.variation}</p>
               </div>
             ))}
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
         {/* Bar Chart — Monthly Revenue */}
         {isLoadingStats ? (
           <ChartSkeleton />
         ) : (
-          <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+          <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
             <h2 className="text-base font-bold text-white mb-4">Dépenses Mensuelles</h2>
             {store.stats?.monthlyRevenue && store.stats.monthlyRevenue.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
@@ -223,7 +223,7 @@ export default function ClientDashboard() {
         {isLoadingStats ? (
           <ChartSkeleton />
         ) : (
-          <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+          <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
             <h2 className="text-base font-bold text-white mb-4">Répartition des Commandes</h2>
             {orderStatusData.length > 0 ? (
               <ResponsiveContainer width="100%" height={240}>
@@ -261,9 +261,9 @@ export default function ClientDashboard() {
       </div>
 
       {/* Projects + Right Panel */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
         {/* Projets Actifs */}
-        <div className="xl:col-span-2">
+        <div className="md:col-span-2 xl:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-white">Projets Actifs</h2>
             <Link href="/client/projets" className="text-sm text-primary font-semibold hover:underline">Voir tout</Link>
@@ -332,7 +332,7 @@ export default function ClientDashboard() {
         {/* Right Panel */}
         <div className="space-y-4">
           {/* Dernières Commandes */}
-          <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+          <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
             <h3 className="text-base font-bold text-white mb-4">Dernières Commandes</h3>
             <div className="space-y-3">
               {recentOrders.length > 0 ? (
@@ -358,9 +358,9 @@ export default function ClientDashboard() {
           </div>
 
           {/* Resume financier */}
-          <div className="bg-neutral-dark rounded-xl border border-border-dark p-5 relative overflow-hidden">
+          <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5 relative overflow-hidden">
             <p className="text-primary font-bold text-sm mb-2">Total dépensé</p>
-            <p className="text-4xl font-bold text-white">{totalSpent.toLocaleString("fr-FR")} \u20AC</p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{totalSpent.toLocaleString("fr-FR")} \u20AC</p>
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-500">Commandes terminées</span>
@@ -382,7 +382,7 @@ export default function ClientDashboard() {
 
           {/* Activité récente */}
           {store.activities.length > 0 && (
-            <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+            <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
               <h3 className="text-base font-bold text-white mb-4">Activité Récente</h3>
               <div className="space-y-3">
                 {store.activities.slice(0, 6).map((a) => (

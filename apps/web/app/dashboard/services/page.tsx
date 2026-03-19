@@ -104,7 +104,7 @@ export default function ServicesPage() {
   const statsService = services.find((s) => s.id === statsModal);
 
   return (
-    <div className="max-w-full space-y-8">
+    <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Delete Confirm Modal */}
       <ConfirmModal
         open={!!deleteModal}
@@ -201,7 +201,7 @@ export default function ServicesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Mes Services</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">Mes Services</h1>
           <p className="text-primary/60 mt-1">Gerez, analysez et optimisez vos offres pour maximiser vos revenus.</p>
         </div>
         <Link
@@ -214,38 +214,38 @@ export default function ServicesPage() {
       </div>
 
       {/* Stats Cards — 3 cards matching mockup */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-primary/60 text-sm font-semibold uppercase tracking-wider">Total Vues</p>
             <span className="material-symbols-outlined text-primary">visibility</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <AnimatedCounter value={totals.views} className="text-3xl font-black block" />
+            <AnimatedCounter value={totals.views} className="text-2xl sm:text-3xl font-black block" />
             <p className="text-primary text-sm font-bold flex items-center gap-0.5">
               <span className="material-symbols-outlined text-sm">trending_up</span> {trends.views}%
             </p>
           </div>
         </div>
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-6">
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-primary/60 text-sm font-semibold uppercase tracking-wider">Total Clics</p>
             <span className="material-symbols-outlined text-primary">ads_click</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <AnimatedCounter value={totals.clicks} className="text-3xl font-black block" />
+            <AnimatedCounter value={totals.clicks} className="text-2xl sm:text-3xl font-black block" />
             <p className="text-primary text-sm font-bold flex items-center gap-0.5">
               <span className="material-symbols-outlined text-sm">trending_up</span> {trends.clicks}%
             </p>
           </div>
         </div>
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-6">
+        <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6">
           <div className="flex items-center justify-between mb-3">
             <p className="text-primary/60 text-sm font-semibold uppercase tracking-wider">Revenus Estimes</p>
             <span className="material-symbols-outlined text-primary">payments</span>
           </div>
           <div className="flex items-baseline gap-2">
-            <AnimatedCounter value={totals.revenue} suffix=" €" className="text-3xl font-black block" />
+            <AnimatedCounter value={totals.revenue} suffix=" €" className="text-2xl sm:text-3xl font-black block" />
             {trends.revenue > 0 ? (
               <p className="text-primary text-sm font-bold flex items-center gap-0.5">
                 <span className="material-symbols-outlined text-sm">trending_up</span> {trends.revenue}%
@@ -262,7 +262,7 @@ export default function ServicesPage() {
       {/* Services Table Card */}
       <div className="bg-primary/5 border border-primary/20 rounded-2xl overflow-hidden shadow-xl">
         {/* Tabs */}
-        <div className="px-6 flex gap-8 border-b border-primary/20">
+        <div className="px-4 sm:px-6 flex gap-4 sm:gap-6 lg:gap-8 border-b border-primary/20 overflow-x-auto">
           {TABS.map((tab) => {
             const count = services.filter((s) => s.status === STATUS_MAP[tab]).length;
             const isActive = activeTab === tab;
@@ -461,7 +461,7 @@ export default function ServicesPage() {
 
         {/* Pagination */}
         {filtered.length > 0 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t border-primary/20">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-primary/20">
             <p className="text-sm text-primary/60">
               Affichage de {(currentPage - 1) * perPage + 1} a{" "}
               {Math.min(currentPage * perPage, filtered.length)} sur {filtered.length} services {activeTab.toLowerCase()}
@@ -487,8 +487,8 @@ export default function ServicesPage() {
       </div>
 
       {/* Tips / Upsell Section — from mockup */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gradient-to-br from-primary/10 to-transparent p-8 rounded-2xl border border-primary/20">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
+        <div className="bg-gradient-to-br from-primary/10 to-transparent p-4 sm:p-6 lg:p-8 rounded-2xl border border-primary/20">
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-white mb-4">
             <span className="material-symbols-outlined">lightbulb</span>
           </div>
@@ -500,7 +500,7 @@ export default function ServicesPage() {
             En savoir plus <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
-        <div className="bg-primary/5 p-8 rounded-2xl border border-primary/20">
+        <div className="bg-primary/5 p-4 sm:p-6 lg:p-8 rounded-2xl border border-primary/20">
           <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center text-primary mb-4">
             <span className="material-symbols-outlined">analytics</span>
           </div>

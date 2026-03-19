@@ -174,9 +174,9 @@ export default function AdminServices() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white flex items-center gap-3">
+        <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
           <span className="material-symbols-outlined text-primary">work</span>
           Modération des Services
         </h1>
@@ -184,7 +184,7 @@ export default function AdminServices() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-2 sm:gap-3">
         {isLoading ? (
           Array.from({ length: 5 }).map((_, i) => <StatSkeleton key={i} />)
         ) : (
@@ -224,7 +224,7 @@ export default function AdminServices() {
       </div>
 
       {/* Service cards */}
-      <div className="space-y-3">
+      <div className="space-y-2 sm:space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
         ) : (
@@ -232,7 +232,7 @@ export default function AdminServices() {
             {filtered.map(s => {
               const cat = categories.find(c => c.name === s.category);
               return (
-                <div key={s.id} className="bg-neutral-dark rounded-xl border border-border-dark p-5">
+                <div key={s.id} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
                   <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">

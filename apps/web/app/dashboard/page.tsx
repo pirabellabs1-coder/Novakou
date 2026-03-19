@@ -132,14 +132,14 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="max-w-full space-y-8 animate-pulse">
+      <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8 animate-pulse">
         <div className="h-10 bg-slate-200 dark:bg-neutral-dark rounded-lg w-1/3" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 h-32" />
+            <div key={i} className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 h-32" />
           ))}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           <div className="lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl h-80" />
           <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl h-80" />
         </div>
@@ -148,9 +148,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-full space-y-8">
+    <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 sm:gap-4">
         <div>
           <h2 className="text-3xl font-extrabold tracking-tight">Aperçu du Tableau de bord</h2>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Bienvenue, gérez vos revenus et vos projets en un coup d&apos;œil.</p>
@@ -174,8 +174,8 @@ export default function DashboardPage() {
       </header>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
               <span className="material-symbols-outlined">trending_up</span>
@@ -183,10 +183,10 @@ export default function DashboardPage() {
             <span className={`${trendStyle.color} text-xs font-bold ${trendStyle.bg} px-2 py-1 rounded`}>{formatTrend(revenueTrend)}</span>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenus totaux</p>
-          <AnimatedCounter value={stats.totalRevenue} prefix="€" className="text-2xl font-bold mt-1 block" />
+          <AnimatedCounter value={stats.totalRevenue} prefix="€" className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 block" />
         </div>
 
-        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
               <span className="material-symbols-outlined">schedule</span>
@@ -194,10 +194,10 @@ export default function DashboardPage() {
             <span className="text-amber-500 text-xs font-bold bg-amber-500/10 px-2 py-1 rounded">en attente</span>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">En attente</p>
-          <AnimatedCounter value={stats.pendingRevenue} prefix="€" className="text-2xl font-bold mt-1 block" />
+          <AnimatedCounter value={stats.pendingRevenue} prefix="€" className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 block" />
         </div>
 
-        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
               <span className="material-symbols-outlined">list_alt</span>
@@ -205,10 +205,10 @@ export default function DashboardPage() {
             <span className="text-blue-500 text-xs font-bold bg-blue-500/10 px-2 py-1 rounded">actives</span>
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Commandes en cours</p>
-          <AnimatedCounter value={stats.activeOrders} className="text-2xl font-bold mt-1 block" />
+          <AnimatedCounter value={stats.activeOrders} className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 block" />
         </div>
 
-        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-500">
               <span className="material-symbols-outlined">mail</span>
@@ -218,14 +218,14 @@ export default function DashboardPage() {
             )}
           </div>
           <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Messages non lus</p>
-          <AnimatedCounter value={stats.unreadMessages} className="text-2xl font-bold mt-1 block" />
+          <AnimatedCounter value={stats.unreadMessages} className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 block" />
         </div>
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Revenue Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="md:col-span-2 lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-bold leading-tight">Revenus mensuels</h3>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Conversion donut */}
-        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-4">Taux de conversion</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
@@ -290,9 +290,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Orders Chart + Objectives */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
         {/* Weekly orders */}
-        <div className="lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="md:col-span-2 lg:col-span-2 bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-6">Commandes par semaine</h3>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={weeklyOrders}>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Objectives */}
-        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-6 shadow-sm">
+        <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
           <h3 className="text-lg font-bold mb-6">Objectifs de la semaine</h3>
           <div className="space-y-6">
             <div className="space-y-2">
@@ -355,7 +355,7 @@ export default function DashboardPage() {
 
       {/* Recent Orders Table */}
       <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-primary/20 rounded-xl shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100 dark:border-primary/10 flex justify-between items-center">
+        <div className="p-4 sm:p-6 border-b border-slate-100 dark:border-primary/10 flex justify-between items-center">
           <h3 className="text-lg font-bold">Commandes récentes</h3>
           <Link href="/dashboard/commandes" className="text-primary text-sm font-bold hover:underline">Voir tout</Link>
         </div>

@@ -38,20 +38,20 @@ export function TopFreelancesSection() {
   if (freelances.length === 0) return null;
 
   return (
-    <section className="bg-primary/5 dark:bg-primary/5 py-32 px-6 lg:px-20">
+    <section className="bg-primary/5 dark:bg-primary/5 py-12 sm:py-20 lg:py-32 px-4 sm:px-6 lg:px-20">
       <div className="max-w-7xl mx-auto">
         {/* Header centre */}
-        <div className="text-center space-y-6 mb-20">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
+        <div className="text-center space-y-3 sm:space-y-6 mb-10 sm:mb-16 lg:mb-20">
+          <h2 className="text-xl sm:text-3xl lg:text-5xl font-extrabold tracking-tight">
             {t("title")}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg">
+          <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-sm sm:text-base lg:text-lg">
             {t("subtitle")}
           </p>
         </div>
 
         {/* Grid cards verticales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {freelances.map((f) => (
             <Link
               key={f.id}

@@ -44,9 +44,9 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative px-6 lg:px-20 pt-12 pb-20">
+    <section className="relative px-4 sm:px-6 lg:px-20 pt-6 sm:pt-12 pb-10 sm:pb-20">
       <div className="max-w-7xl mx-auto">
-        <div className="relative overflow-hidden rounded-3xl bg-slate-900 min-h-[600px] flex flex-col justify-center px-8 lg:px-16 py-12">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900 min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] flex flex-col justify-center px-5 sm:px-8 lg:px-16 py-8 sm:py-12">
           {/* Background image */}
           <div className="absolute inset-0 z-0 opacity-50">
             <img
@@ -58,25 +58,25 @@ export function HeroSection() {
           </div>
 
           {/* Content */}
-          <div className="relative z-10 max-w-3xl space-y-8">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-accent/20 text-accent text-xs font-bold uppercase tracking-wider border border-accent/30">
+          <div className="relative z-10 max-w-3xl space-y-4 sm:space-y-6 lg:space-y-8">
+            <span className="inline-block px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-accent/20 text-accent text-[10px] sm:text-xs font-bold uppercase tracking-wider border border-accent/30">
               {t("badge")}
             </span>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-white leading-[1.05] tracking-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-white leading-[1.1] tracking-tight">
               {t("title_1")}{" "}
               <span className="text-primary">{t("title_highlight")}</span> {t("title_2")}{" "}
               <span className="text-accent">{t("title_accent")}</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-slate-300 max-w-xl leading-relaxed">
+            <p className="text-sm sm:text-lg md:text-xl text-slate-300 max-w-xl leading-relaxed">
               {t("subtitle")}
             </p>
 
             {/* Search & Filter bar */}
             <form
               onSubmit={handleSearch}
-              className="flex flex-col sm:flex-row w-full max-w-2xl bg-white dark:bg-slate-800 rounded-2xl p-2 shadow-2xl border border-white/10 gap-2"
+              className="flex flex-col sm:flex-row w-full max-w-2xl bg-white dark:bg-slate-800 rounded-xl sm:rounded-2xl p-1.5 sm:p-2 shadow-2xl border border-white/10 gap-1.5 sm:gap-2"
             >
               {/* Category filter */}
               <div className="relative flex items-center shrink-0">
@@ -86,7 +86,7 @@ export function HeroSection() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="appearance-none bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl pl-10 pr-8 py-4 text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 ring-primary/50 cursor-pointer w-full sm:w-[200px]"
+                  className="appearance-none bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg sm:rounded-xl pl-10 pr-8 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 ring-primary/50 cursor-pointer w-full sm:w-[200px]"
                 >
                   <option value="">{t("all_categories")}</option>
                   {HERO_CATEGORY_SLUGS.map((slug) => (
@@ -106,7 +106,7 @@ export function HeroSection() {
                   search
                 </span>
                 <input
-                  className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-base py-4 min-w-0"
+                  className="flex-1 bg-transparent border-none outline-none text-slate-900 dark:text-white placeholder:text-slate-400 text-sm sm:text-base py-3 sm:py-4 min-w-0"
                   placeholder={t("search_placeholder")}
                   type="text"
                   value={search}
@@ -116,14 +116,14 @@ export function HeroSection() {
 
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg whitespace-nowrap"
+                className="bg-primary hover:bg-primary/90 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl text-sm sm:text-base font-bold transition-all shadow-lg whitespace-nowrap"
               >
                 {t("search_button")}
               </button>
             </form>
 
             {/* Popular searches */}
-            <div className="flex items-center gap-3 flex-wrap pt-2">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap pt-1 sm:pt-2">
               <span className="text-xs text-slate-400 font-semibold">
                 {t("popular_label")}
               </span>
