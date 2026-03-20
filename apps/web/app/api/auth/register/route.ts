@@ -147,6 +147,6 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[REGISTER]", err);
     const message = err instanceof Error ? err.message : "Erreur serveur";
-    return NextResponse.json({ error: "Erreur serveur", debug: message }, { status: 500 });
+    return NextResponse.json({ error: "Erreur serveur", debug: message, envCheck: { hasResendKey: !!process.env.RESEND_API_KEY, devMode: process.env.DEV_MODE, domainVerified: process.env.RESEND_DOMAIN_VERIFIED } }, { status: 500 });
   }
 }
