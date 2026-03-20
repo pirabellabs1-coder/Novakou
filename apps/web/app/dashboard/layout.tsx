@@ -6,6 +6,7 @@ import { ToastContainer } from "@/components/ui/toast";
 import { DashboardNotificationBell } from "@/components/dashboard/DashboardNotificationBell";
 import { KycRequiredBanner } from "@/components/kyc/KycRequiredBanner";
 import { useDashboardStore } from "@/store/dashboard";
+import { signOut } from "next-auth/react";
 
 const IS_DEV = process.env.NODE_ENV === "development";
 const NOTIFICATION_POLL_INTERVAL = IS_DEV ? 300_000 : 30_000; // 5min en dev, 30s en prod
@@ -70,12 +71,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               <span className="material-symbols-outlined">menu</span>
             </button>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">rocket_launch</span>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="material-symbols-outlined text-primary hidden sm:block">rocket_launch</span>
               <span className="font-bold text-lg text-white">FreelanceHigh</span>
             </div>
           </div>
           <DashboardNotificationBell />
+          <button
+            onClick={() => signOut({ callbackUrl: "/connexion" })}
+            className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            title="Se déconnecter"
+          >
+            <span className="material-symbols-outlined text-lg">logout</span>
+          </button>
         </div>
 
         <KycRequiredBanner />
