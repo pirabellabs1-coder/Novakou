@@ -116,9 +116,10 @@ export function HeroSection() {
 
               <button
                 type="submit"
-                className="bg-primary hover:bg-primary/90 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl text-sm sm:text-base font-bold transition-all shadow-lg whitespace-nowrap"
+                className="bg-primary hover:bg-primary/90 text-white p-3 sm:p-4 rounded-lg sm:rounded-xl transition-all shadow-lg flex-shrink-0"
+                aria-label="Rechercher"
               >
-                {t("search_button")}
+                <span className="material-symbols-outlined text-xl sm:text-2xl">search</span>
               </button>
             </form>
 

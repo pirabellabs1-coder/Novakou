@@ -161,9 +161,10 @@ export default function FormationsLandingPage() {
                 </div>
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg whitespace-nowrap"
+                  className="bg-primary hover:bg-primary/90 text-white p-3 sm:p-4 rounded-xl transition-all shadow-lg flex-shrink-0"
+                  aria-label="Rechercher"
                 >
-                  {t("search_btn")}
+                  <DynamicIcon name="search" className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
               </form>
 

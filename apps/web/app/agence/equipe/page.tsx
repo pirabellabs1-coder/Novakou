@@ -113,16 +113,29 @@ export default function AgenceEquipe() {
 
   // ── Handlers ──
 
-  function handleInvite() {
+  async function handleInvite() {
     if (!inviteEmail.trim()) {
       addToast("warning", "Veuillez entrer une adresse email.");
       return;
     }
-    // In production this would call an API
-    addToast("success", `Invitation envoyee a ${inviteEmail} en tant que ${ROLE_MAP[inviteRole].label}.`);
-    setInviteEmail("");
-    setInviteRole("freelance");
-    setShowInvite(false);
+    try {
+      const res = await fetch("/api/agence/equipe/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        addToast("error", data.error || "Erreur lors de l'envoi");
+        return;
+      }
+      addToast("success", `Invitation envoyée à ${inviteEmail} en tant que ${ROLE_MAP[inviteRole].label}.`);
+      setInviteEmail("");
+      setInviteRole("freelance");
+      setShowInvite(false);
+    } catch {
+      addToast("error", "Erreur réseau. Veuillez réessayer.");
+    }
   }
 
   function handleRemoveMember(member: AgencyMember) {
