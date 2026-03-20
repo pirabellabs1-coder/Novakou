@@ -11,7 +11,7 @@ interface AdminCertificate {
   issuedAt: string;
   revokedAt: string | null;
   user: { name: string; email: string };
-  formation: { titleFr: string; slug: string };
+  formation: { title: string; slug: string };
 }
 
 export default function AdminFormationsCertificatsPage() {
@@ -50,7 +50,7 @@ export default function AdminFormationsCertificatsPage() {
     c.code.toLowerCase().includes(search.toLowerCase()) ||
     c.user.name.toLowerCase().includes(search.toLowerCase()) ||
     c.user.email.toLowerCase().includes(search.toLowerCase()) ||
-    c.formation.titleFr.toLowerCase().includes(search.toLowerCase())
+    c.formation.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -137,7 +137,7 @@ export default function AdminFormationsCertificatsPage() {
                     <p className="text-xs text-slate-500">{c.user.email}</p>
                   </td>
                   <td className="p-4">
-                    <p className="text-slate-300 text-sm line-clamp-1 max-w-xs">{c.formation.titleFr}</p>
+                    <p className="text-slate-300 text-sm line-clamp-1 max-w-xs">{c.formation.title}</p>
                   </td>
                   <td className="p-4">
                     <span className="text-sm font-medium text-white">{c.score}%</span>
@@ -193,7 +193,7 @@ export default function AdminFormationsCertificatsPage() {
           <div className="absolute inset-0 bg-black/60" onClick={() => setRevokeModal(null)} />
           <div className="relative bg-neutral-dark border border-border-dark rounded-2xl p-6 w-full max-w-md">
             <h2 className="font-bold text-white mb-2">Révoquer ce certificat ?</h2>
-            <p className="text-sm text-slate-400 mb-1">{revokeModal.user.name} — {revokeModal.formation.titleFr}</p>
+            <p className="text-sm text-slate-400 mb-1">{revokeModal.user.name} — {revokeModal.formation.title}</p>
             <p className="font-mono text-xs text-slate-500 mb-4">{revokeModal.code}</p>
             <p className="text-sm text-red-400 mb-4">
               ⚠️ Le certificat sera marqué comme invalide sur la page de vérification publique.

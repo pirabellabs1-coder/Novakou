@@ -16,9 +16,9 @@ interface DashboardStats {
   studentsTrend: number;
   revenueByMonth: { month: string; revenue: number }[];
   enrollmentsByDay?: { date: string; count: number }[];
-  topFormations: { id: string; titleFr: string; titleEn: string; students: number; revenue: number; rating: number }[];
-  recentEnrollments: { id: string; createdAt: string; user: { name: string }; formation: { titleFr: string } }[];
-  recentReviews: { id: string; rating: number; comment: string; createdAt: string; user: { name: string }; formation: { titleFr: string } }[];
+  topFormations: { id: string; title: string; students: number; revenue: number; rating: number }[];
+  recentEnrollments: { id: string; createdAt: string; user: { name: string }; formation: { title: string } }[];
+  recentReviews: { id: string; rating: number; comment: string; createdAt: string; user: { name: string }; formation: { title: string } }[];
 }
 
 interface ProductStats {
@@ -27,7 +27,7 @@ interface ProductStats {
   totalClients: number;
   totalSales: number;
   revenueByMonth: { month: string; revenue: number }[];
-  topProducts: { id: string; titleFr: string; sales: number; revenue: number }[];
+  topProducts: { id: string; title: string; sales: number; revenue: number }[];
   recentPurchases: { id: string; product: string; buyer: string; amount: number; date: string }[];
 }
 

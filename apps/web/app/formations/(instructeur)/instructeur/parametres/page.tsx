@@ -11,8 +11,7 @@ interface Profile {
   email: string;
   avatar: string | null;
   image: string | null;
-  bioFr: string;
-  bioEn: string;
+  bio: string;
   expertise: string[];
   linkedin: string | null;
   website: string | null;
@@ -34,8 +33,7 @@ export default function InstructeurParametresPage() {
   const [form, setForm] = useState({
     name: "",
     avatar: "",
-    bioFr: "",
-    bioEn: "",
+    bio: "",
     linkedin: "",
     website: "",
     youtube: "",
@@ -54,8 +52,7 @@ export default function InstructeurParametresPage() {
           setForm({
             name: data.profile.name ?? "",
             avatar: data.profile.avatar ?? data.profile.image ?? "",
-            bioFr: data.profile.bioFr ?? "",
-            bioEn: data.profile.bioEn ?? "",
+            bio: data.profile.bio ?? "",
             linkedin: data.profile.linkedin ?? "",
             website: data.profile.website ?? "",
             youtube: data.profile.youtube ?? "",
@@ -139,19 +136,10 @@ export default function InstructeurParametresPage() {
           />
         </div>
         <div>
-          <label className="text-xs text-slate-500 mb-1 block">{fr ? "Bio (Français)" : "Bio (French)"}</label>
+          <label className="text-xs text-slate-500 mb-1 block">{fr ? "Bio" : "Bio"}</label>
           <textarea
-            value={form.bioFr}
-            onChange={(e) => setForm((p) => ({ ...p, bioFr: e.target.value }))}
-            rows={3}
-            className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-          />
-        </div>
-        <div>
-          <label className="text-xs text-slate-500 mb-1 block">{fr ? "Bio (Anglais)" : "Bio (English)"}</label>
-          <textarea
-            value={form.bioEn}
-            onChange={(e) => setForm((p) => ({ ...p, bioEn: e.target.value }))}
+            value={form.bio}
+            onChange={(e) => setForm((p) => ({ ...p, bio: e.target.value }))}
             rows={3}
             className="w-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           />

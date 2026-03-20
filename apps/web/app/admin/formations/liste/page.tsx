@@ -8,15 +8,15 @@ import { CheckCircle, XCircle, Archive, Trash2, Eye, Star, Users, Filter } from 
 interface AdminFormation {
   id: string;
   slug: string;
-  titleFr: string;
-  titleEn: string;
+  title: string;
+  title: string;
   status: string;
   price: number;
   isFree: boolean;
   rating: number;
   studentsCount: number;
   reviewsCount: number;
-  category: { nameFr: string };
+  category: { name: string };
   instructeur: { user: { name: string } };
   createdAt: string;
   publishedAt: string | null;
@@ -145,8 +145,8 @@ export default function AdminFormationsListePage() {
                 <tr key={f.id} className="hover:bg-border-dark/30 transition-colors">
                   <td className="p-4">
                     <div>
-                      <p className="text-white font-medium text-sm line-clamp-2 max-w-xs">{f.titleFr}</p>
-                      <p className="text-xs text-slate-500 mt-0.5">{f.category.nameFr} · {f.isFree ? "Gratuit" : `${f.price.toFixed(0)}€`}</p>
+                      <p className="text-white font-medium text-sm line-clamp-2 max-w-xs">{f.title}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">{f.category.name} · {f.isFree ? "Gratuit" : `${f.price.toFixed(0)}€`}</p>
                     </div>
                   </td>
                   <td className="p-4">
@@ -184,7 +184,7 @@ export default function AdminFormationsListePage() {
                             <CheckCircle className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setRejectModal({ id: f.id, title: f.titleFr })}
+                            onClick={() => setRejectModal({ id: f.id, title: f.title })}
                             className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                             title="Refuser"
                           >

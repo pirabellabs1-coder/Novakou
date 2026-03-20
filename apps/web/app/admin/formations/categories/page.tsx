@@ -6,8 +6,7 @@ import { Plus, Pencil, Trash2, GripVertical, X, Check } from "lucide-react";
 
 interface AdminCategory {
   id: string;
-  nameFr: string;
-  nameEn: string;
+  name: string;
   slug: string;
   icon: string;
   color: string;
@@ -15,7 +14,7 @@ interface AdminCategory {
   _count: { formations: number };
 }
 
-const DEFAULT_FORM = { nameFr: "", nameEn: "", slug: "", icon: "📚", color: "#6C2BD9" };
+const DEFAULT_FORM = { name: "", slug: "", icon: "📚", color: "#6C2BD9" };
 
 export default function AdminFormationsCategoriesPage() {
   const [categories, setCategories] = useState<AdminCategory[]>([]);
@@ -37,7 +36,7 @@ export default function AdminFormationsCategoriesPage() {
 
   const startEdit = (cat: AdminCategory) => {
     setEditingId(cat.id);
-    setForm({ nameFr: cat.nameFr, nameEn: cat.nameEn, slug: cat.slug, icon: cat.icon, color: cat.color });
+    setForm({ name: cat.name, slug: cat.slug, icon: cat.icon, color: cat.color });
     setShowForm(true);
   };
 
@@ -67,8 +66,8 @@ export default function AdminFormationsCategoriesPage() {
     fetchCategories();
   };
 
-  const autoSlug = (nameFr: string) => {
-    return nameFr
+  const autoSlug = (name: string) => {
+    return name
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
@@ -120,19 +119,10 @@ export default function AdminFormationsCategoriesPage() {
             <div>
               <label className="text-xs text-slate-400 mb-1 block">Nom FR *</label>
               <input
-                value={form.nameFr}
-                onChange={(e) => setForm({ ...form, nameFr: e.target.value, slug: autoSlug(e.target.value) })}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value, slug: autoSlug(e.target.value) })}
                 className="w-full bg-border-dark border border-border-dark/60 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="ex: Développement Web"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Nom EN *</label>
-              <input
-                value={form.nameEn}
-                onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
-                className="w-full bg-border-dark border border-border-dark/60 text-white rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="ex: Web Development"
               />
             </div>
             <div>
@@ -177,7 +167,7 @@ export default function AdminFormationsCategoriesPage() {
             </button>
             <button
               onClick={save}
-              disabled={!form.nameFr || !form.nameEn || saving}
+              disabled={!form.name || saving}
               className="flex items-center gap-1.5 text-sm bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-xl transition-colors disabled:opacity-50"
             >
               <Check className="w-4 h-4" /> {saving ? "Sauvegarde..." : "Sauvegarder"}
@@ -204,8 +194,7 @@ export default function AdminFormationsCategoriesPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="font-medium text-white">{cat.nameFr}</p>
-                  <span className="text-slate-500 text-sm">/ {cat.nameEn}</span>
+                  <p className="font-medium text-white">{cat.name}</p>
                 </div>
                 <p className="text-xs text-slate-500 font-mono">/formations/categories/{cat.slug}</p>
               </div>

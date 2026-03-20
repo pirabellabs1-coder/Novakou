@@ -27,7 +27,7 @@ interface Category {
 interface QuizQuestion {
   type: "CHOIX_UNIQUE" | "CHOIX_MULTIPLE" | "VRAI_FAUX" | "TEXTE_LIBRE";
   text: string;
-  options: { fr: string; en: string }[];
+  options: string[];
   correctAnswer: string;
   explanation: string;
 }

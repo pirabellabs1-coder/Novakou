@@ -15,10 +15,8 @@ import {
 export interface FormationCardData {
   id: string;
   slug: string;
-  titleFr: string;
-  titleEn: string;
-  shortDescFr?: string | null;
-  shortDescEn?: string | null;
+  title: string;
+  shortDesc?: string | null;
   thumbnail: string | null;
   price: number;
   originalPrice: number | null;
@@ -31,8 +29,7 @@ export interface FormationCardData {
   hasCertificate: boolean;
   createdAt: string;
   category: {
-    nameFr: string;
-    nameEn: string;
+    name: string;
     color: string | null;
     slug?: string;
   };
@@ -50,7 +47,6 @@ export interface FormationCardData {
 interface FormationCardProps {
   formation: FormationCardData;
   lang: string;
-  /** When true, renders a more compact variant (no description, tighter spacing) */
   compact?: boolean;
 }
 
@@ -61,14 +57,8 @@ export default function FormationCard({
   lang,
   compact = false,
 }: FormationCardProps) {
-  const title =
-    lang === "en"
-      ? formation.titleEn || formation.titleFr
-      : formation.titleFr;
-  const catName =
-    lang === "en"
-      ? formation.category.nameEn || formation.category.nameFr
-      : formation.category.nameFr;
+  const title = formation.title;
+  const catName = formation.category.name;
   const instructorName = formation.instructeur?.user?.name ?? "Instructeur";
   const avatarUrl =
     formation.instructeur?.user?.avatar || formation.instructeur?.user?.image;
@@ -85,7 +75,6 @@ export default function FormationCard({
       href={`/formations/${formation.slug}`}
       className="group bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-xl hover:border-primary/30 transition-all duration-300 flex flex-col"
     >
-      {/* ── Thumbnail ──────────────────────────────────────────── */}
       <div className="relative overflow-hidden aspect-video bg-slate-100 dark:bg-slate-800 dark:bg-slate-700">
         {formation.thumbnail ? (
           <img
@@ -105,7 +94,6 @@ export default function FormationCard({
           </div>
         )}
 
-        {/* Badges */}
         <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
           {isBestseller && (
             <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded-full">
@@ -126,9 +114,7 @@ export default function FormationCard({
         )}
       </div>
 
-      {/* ── Content ────────────────────────────────────────────── */}
       <div className={`flex flex-col flex-1 ${compact ? "p-3" : "p-4"}`}>
-        {/* Category badge */}
         <span
           className="text-xs font-bold px-2 py-0.5 rounded-full mb-2 self-start"
           style={{
@@ -140,7 +126,6 @@ export default function FormationCard({
           {catName}
         </span>
 
-        {/* Title */}
         <h3
           className={`font-bold line-clamp-2 mb-1 group-hover:text-primary transition-colors ${
             compact ? "text-xs" : "text-sm"
@@ -149,7 +134,6 @@ export default function FormationCard({
           {title}
         </h3>
 
-        {/* Instructor */}
         <div className="flex items-center gap-2 mb-2">
           <div className="w-5 h-5 rounded-full bg-primary/10 overflow-hidden flex-shrink-0">
             {avatarUrl ? (
@@ -169,7 +153,6 @@ export default function FormationCard({
           </span>
         </div>
 
-        {/* Rating */}
         {formation.rating > 0 && (
           <div className="flex items-center gap-1 mb-2">
             <span className="text-yellow-500 text-sm font-bold">
@@ -182,7 +165,6 @@ export default function FormationCard({
           </div>
         )}
 
-        {/* Meta row */}
         <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-auto pt-2 border-t border-slate-100 dark:border-slate-700">
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
@@ -199,7 +181,6 @@ export default function FormationCard({
           )}
         </div>
 
-        {/* Price */}
         <div className="mt-3 flex items-center justify-between">
           <div>
             {formation.isFree ? (

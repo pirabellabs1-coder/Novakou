@@ -8,7 +8,7 @@ export { INSTRUCTOR_COMMISSION, PLATFORM_COMMISSION };
 // Include pour les cards de formation
 export const formationCardInclude = {
   category: {
-    select: { id: true, nameFr: true, nameEn: true, slug: true, icon: true, color: true },
+    select: { id: true, name: true, slug: true, icon: true, color: true },
   },
   instructeur: {
     select: {
@@ -33,8 +33,7 @@ export const formationDetailInclude = {
         orderBy: { order: "asc" as const },
         select: {
           id: true,
-          titleFr: true,
-          titleEn: true,
+          title: true,
           type: true,
           duration: true,
           order: true,

@@ -6,7 +6,7 @@
    - Environments: .env.local
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 9.8min
+ ✓ Compiled successfully in 5.9min
    Skipping validation of types
    Skipping linting
    Collecting page data ...
@@ -14,8 +14,9 @@
 [Cloudinary] CLOUDINARY_URL not configured
    Generating static pages (0/360) ...
    Generating static pages (90/360) 
-[Stripe] STRIPE_SECRET_KEY not configured
 [Cloudinary] CLOUDINARY_URL not configured
+[Stripe] STRIPE_SECRET_KEY not configured
+   Generating static pages (180/360) 
 prisma:error 
 Invalid `prisma.service.findMany()` invocation:
 
@@ -35,27 +36,6 @@ Invalid `prisma.service.findMany()` invocation:
 }
 
 Invalid value for argument `status`. Expected ServiceStatus.
-prisma:error 
-Invalid `prisma.user.findMany()` invocation:
-
-{
-  where: {
-    role: "FREELANCE",
-    status: "ACTIVE"
-            ~~~~~~~~
-  },
-  select: {
-    username: true,
-    updatedAt: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  take: 5000
-}
-
-Invalid value for argument `status`. Expected UserStatus.
-   Generating static pages (180/360) 
 [sitemap] Erreur chargement services: Error [PrismaClientValidationError]: 
 Invalid `prisma.service.findMany()` invocation:
 
@@ -84,6 +64,26 @@ Invalid value for argument `status`. Expected ServiceStatus.
     at async C (.next/server/app/sitemap.xml/route.js:16:3177) {
   clientVersion: '5.22.0'
 }
+prisma:error 
+Invalid `prisma.user.findMany()` invocation:
+
+{
+  where: {
+    role: "FREELANCE",
+    status: "ACTIVE"
+            ~~~~~~~~
+  },
+  select: {
+    username: true,
+    updatedAt: true
+  },
+  orderBy: {
+    createdAt: "desc"
+  },
+  take: 5000
+}
+
+Invalid value for argument `status`. Expected UserStatus.
 [sitemap] Erreur chargement profils: Error [PrismaClientValidationError]: 
 Invalid `prisma.user.findMany()` invocation:
 
