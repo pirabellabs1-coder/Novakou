@@ -348,7 +348,7 @@ export default function FreelanceProfilePage() {
               >
                 {!profile?.photo && (
                   <div className="w-full h-full flex items-center justify-center text-white text-4xl font-bold">
-                    {freelancer.name.charAt(0)}
+                    {(freelancer.name || "?").charAt(0)}
                   </div>
                 )}
               </div>

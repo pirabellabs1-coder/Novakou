@@ -211,7 +211,7 @@ export default function AdminAuditLogPage() {
                             />
                           ) : (
                             <span className="text-primary font-bold text-sm">
-                              {entry.adminName.charAt(0)}
+                              {(entry.adminName || "?").charAt(0)}
                             </span>
                           )}
                         </div>

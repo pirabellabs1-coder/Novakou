@@ -673,15 +673,15 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
               href={`/formations/instructeurs/${formation.instructeur.id}`}
               className="flex items-center gap-2.5 px-4 py-3 border-b border-slate-800 hover:bg-slate-800 transition-colors group"
             >
-              {formation.instructeur.user.image || formation.instructeur.user.avatar ? (
+              {formation.instructeur?.user?.image || formation.instructeur?.user?.avatar ? (
                 <img
-                  src={formation.instructeur.user.image || formation.instructeur.user.avatar || ""}
-                  alt={formation.instructeur.user.name || ""}
+                  src={formation.instructeur?.user?.image || formation.instructeur?.user?.avatar || ""}
+                  alt={formation.instructeur?.user?.name || ""}
                   className="w-7 h-7 rounded-full object-cover flex-shrink-0"
                 />
               ) : (
                 <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  {formation.instructeur.user.name ? (
+                  {formation.instructeur?.user?.name ? (
                     <span className="text-xs font-semibold text-primary">
                       {formation.instructeur.user.name.charAt(0).toUpperCase()}
                     </span>

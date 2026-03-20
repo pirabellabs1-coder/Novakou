@@ -154,7 +154,7 @@ export default function InstructeurAvisPage() {
                     {avatar ? (
                       <img src={avatar} alt={a.user.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="text-primary font-bold text-sm">{a.user.name.charAt(0)}</span>
+                      <span className="text-primary font-bold text-sm">{(a.user?.name || "?").charAt(0)}</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">

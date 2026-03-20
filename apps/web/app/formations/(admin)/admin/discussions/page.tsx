@@ -173,7 +173,7 @@ export default function AdminDiscussionsPage() {
                             />
                           ) : (
                             <span className="text-primary font-bold text-xs">
-                              {disc.authorName.charAt(0)}
+                              {(disc.authorName || "?").charAt(0)}
                             </span>
                           )}
                         </div>

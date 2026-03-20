@@ -161,7 +161,7 @@ export default function AdminKYC() {
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0">
-                    {r.name.charAt(0).toUpperCase()}
+                    {(r.name || "?").charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">

@@ -202,7 +202,7 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
                             <img src={p.user.avatar || p.user.image!} alt={p.user.name} className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-primary text-xs font-bold">
-                              {p.user.name.charAt(0)}
+                              {(p.user?.name || "?").charAt(0)}
                             </div>
                           )}
                         </div>

@@ -109,7 +109,7 @@ export default function AdminApprenantsFomationsPage() {
                           {avatar ? (
                             <img src={avatar} alt={e.user.name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-primary font-bold text-sm">{e.user.name.charAt(0)}</span>
+                            <span className="text-primary font-bold text-sm">{(e.user?.name || "?").charAt(0)}</span>
                           )}
                         </div>
                         <div>

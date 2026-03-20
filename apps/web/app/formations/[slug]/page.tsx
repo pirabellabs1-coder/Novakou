@@ -538,7 +538,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                       <img src={instrAvatar} alt={formation.instructeur.user.name} className="w-full h-full object-cover" />
                     ) : (
                       <span className="w-full h-full flex items-center justify-center text-2xl text-primary font-bold">
-                        {formation.instructeur.user.name.charAt(0)}
+                        {(formation.instructeur?.user?.name || "?").charAt(0)}
                       </span>
                     )}
                   </div>
@@ -616,7 +616,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                             <img src={review.user.avatar || review.user.image!} alt={review.user.name} className="w-full h-full object-cover" />
                           ) : (
                             <span className="w-full h-full flex items-center justify-center text-primary font-bold">
-                              {review.user.name.charAt(0)}
+                              {(review.user?.name || "?").charAt(0)}
                             </span>
                           )}
                         </div>

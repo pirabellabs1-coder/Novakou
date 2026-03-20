@@ -146,7 +146,7 @@ function FormationCard({ formation, locale, t }: { formation: Formation; locale:
               <img src={avatarUrl} alt={instructorName} className="w-full h-full object-cover" />
             ) : (
               <span className="text-xs flex items-center justify-center h-full text-emerald-400 font-medium">
-                {instructorName.charAt(0)}
+                {(instructorName || "?").charAt(0)}
               </span>
             )}
           </div>

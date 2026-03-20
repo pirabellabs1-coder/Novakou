@@ -309,7 +309,7 @@ export default function AgencyProfilePage() {
               >
                 {!profile?.photo && (
                   <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold">
-                    {agency.name.charAt(0)}
+                    {(agency.name || "A").charAt(0)}
                   </div>
                 )}
               </div>

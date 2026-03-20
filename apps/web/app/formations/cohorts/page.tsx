@@ -163,7 +163,7 @@ export default function CohortsMarketplacePage() {
                         <img src={instrAvatar} alt="" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-primary text-[10px] font-bold">
-                          {c.formation.instructeur.user.name.charAt(0)}
+                          {(c.formation?.instructeur?.user?.name || "?").charAt(0)}
                         </div>
                       )}
                     </div>

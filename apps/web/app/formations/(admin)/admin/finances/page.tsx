@@ -270,7 +270,7 @@ export default function AdminFormationsFinancesPage() {
                                 />
                               ) : (
                                 <span className="text-primary font-bold text-sm">
-                                  {refund.studentName.charAt(0)}
+                                  {(refund.studentName || "?").charAt(0)}
                                 </span>
                               )}
                             </div>

@@ -214,7 +214,7 @@ export default function AffiliationPage() {
             </div>
             <div className="flex items-end gap-3 mb-1">
               <span className="text-5xl font-extrabold">{affiliation.progressToNext}%</span>
-              <span className="text-slate-400 text-sm font-semibold mb-2">Vers le niveau {affiliation.nextTier.charAt(0).toUpperCase() + affiliation.nextTier.slice(1)}</span>
+              <span className="text-slate-400 text-sm font-semibold mb-2">Vers le niveau {(affiliation.nextTier || "").charAt(0).toUpperCase() + (affiliation.nextTier || "").slice(1)}</span>
             </div>
             <div className="w-full h-3 bg-background-dark/80 rounded-full overflow-hidden mt-3 mb-5">
               <div className="h-full rounded-full transition-all duration-1000"
@@ -225,21 +225,21 @@ export default function AffiliationPage() {
                 <span className="material-symbols-outlined text-primary text-lg">verified</span>
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Niveau actuel</p>
-                  <p className="text-sm font-bold">{affiliation.currentTier.charAt(0).toUpperCase() + affiliation.currentTier.slice(1)} ({affiliation.totalReferrals} parrainages)</p>
+                  <p className="text-sm font-bold">{(affiliation.currentTier || "").charAt(0).toUpperCase() + (affiliation.currentTier || "").slice(1)} ({affiliation.totalReferrals} parrainages)</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 bg-background-dark/50 rounded-lg px-4 py-3">
                 <span className="material-symbols-outlined text-accent text-lg">arrow_forward</span>
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Distance</p>
-                  <p className="text-sm font-bold">Plus que {affiliation.nextTierThreshold - affiliation.totalReferrals} parrainages pour atteindre {affiliation.nextTier.charAt(0).toUpperCase() + affiliation.nextTier.slice(1)}</p>
+                  <p className="text-sm font-bold">Plus que {affiliation.nextTierThreshold - affiliation.totalReferrals} parrainages pour atteindre {(affiliation.nextTier || "").charAt(0).toUpperCase() + (affiliation.nextTier || "").slice(1)}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 bg-background-dark/50 rounded-lg px-4 py-3">
                 <span className="material-symbols-outlined text-slate-500 text-lg">lock</span>
                 <div>
                   <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Prochain palier</p>
-                  <p className="text-sm font-bold">{affiliation.nextTier.charAt(0).toUpperCase() + affiliation.nextTier.slice(1)} ({affiliation.nextTierThreshold} parrainages)</p>
+                  <p className="text-sm font-bold">{(affiliation.nextTier || "").charAt(0).toUpperCase() + (affiliation.nextTier || "").slice(1)} ({affiliation.nextTierThreshold} parrainages)</p>
                 </div>
               </div>
             </div>

@@ -137,7 +137,7 @@ export default function CategoryPage() {
                 </div>
                 <div className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">{s.seller.charAt(0)}</div>
+                    <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">{(s.seller || "?").charAt(0)}</div>
                     <span className="text-xs text-slate-500">{s.seller}</span>
                     <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded font-semibold">{s.level}</span>
                   </div>

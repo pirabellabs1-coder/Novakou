@@ -397,7 +397,7 @@ export default function InstructeurDashboardPage() {
                 <div key={i} className="flex items-center gap-4 p-4 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-sm font-bold">
-                      {name.charAt(0).toUpperCase()}
+                      {(name || "?").charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">

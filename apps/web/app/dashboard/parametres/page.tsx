@@ -37,14 +37,14 @@ export default function ParametresPage() {
 
   // Profile form state
   const [profileForm, setProfileForm] = useState({
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    email: profile.email,
-    phone: profile.phone,
-    title: profile.title,
-    bio: profile.bio,
-    city: profile.city,
-    country: profile.country,
+    firstName: profile?.firstName ?? "",
+    lastName: profile?.lastName ?? "",
+    email: profile?.email ?? "",
+    phone: profile?.phone ?? "",
+    title: profile?.title ?? "",
+    bio: profile?.bio ?? "",
+    city: profile?.city ?? "",
+    country: profile?.country ?? "",
   });
 
   function handleSaveProfile() {
@@ -124,7 +124,7 @@ export default function ParametresPage() {
           ))}
 
           <div className="pt-4 mt-4 border-t border-border-dark">
-            <Link href={`/freelances/${profile.username}`}
+            <Link href={`/freelances/${profile?.username || ""}`}
               className="flex items-center gap-2 px-4 py-3 border border-border-dark rounded-lg text-sm font-semibold text-slate-400 hover:border-primary/50 hover:text-primary transition-all">
               <span className="material-symbols-outlined text-lg">visibility</span>
               Voir mon profil public
@@ -145,7 +145,7 @@ export default function ParametresPage() {
                     onMouseEnter={() => setAvatarHover(true)}
                     onMouseLeave={() => setAvatarHover(false)}
                   >
-                    {profile.firstName[0]}{profile.lastName[0]}
+                    {(profile.firstName || "")[0] || ""}{(profile.lastName || "")[0] || ""}
                     {avatarHover && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="material-symbols-outlined text-white text-xl">photo_camera</span>
@@ -153,9 +153,9 @@ export default function ParametresPage() {
                     )}
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold">{profile.firstName} {profile.lastName}</h3>
-                    <p className="text-sm text-slate-400">{profile.title} &bull; {profile.city}, {profile.country}</p>
-                    <p className="text-xs text-primary mt-1">Profil complété à {profile.completionPercent}%</p>
+                    <h3 className="text-xl font-bold">{profile?.firstName} {profile?.lastName}</h3>
+                    <p className="text-sm text-slate-400">{profile?.title} &bull; {profile?.city}, {profile?.country}</p>
+                    <p className="text-xs text-primary mt-1">Profil complété à {profile?.completionPercent ?? 0}%</p>
                   </div>
                   <button onClick={handleSaveProfile} disabled={saving}
                     className="ml-auto px-5 py-2.5 bg-primary text-white font-bold rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 transition-all hidden sm:flex items-center gap-2">

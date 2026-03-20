@@ -299,7 +299,7 @@ export default function AdminCohortsPage() {
                                     />
                                   ) : (
                                     <span className="text-primary font-bold text-sm">
-                                      {p.name.charAt(0)}
+                                      {(p.name || "?").charAt(0)}
                                     </span>
                                   )}
                                 </div>

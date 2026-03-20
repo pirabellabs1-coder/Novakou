@@ -118,7 +118,7 @@ export default function ApprenantPublicPage({ params }: { params: Promise<{ id: 
                 <img src={apprenant.avatar} alt={apprenant.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-primary font-bold text-4xl">
-                  {apprenant.name.charAt(0)}
+                  {(apprenant.name || "?").charAt(0)}
                 </div>
               )}
             </div>

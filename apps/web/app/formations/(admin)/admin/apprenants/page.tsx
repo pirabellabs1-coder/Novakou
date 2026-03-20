@@ -80,7 +80,7 @@ export default function AdminApprenantsPage() {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                          {avatar ? <img src={avatar} alt={e.user.name} className="w-full h-full object-cover" /> : <span className="text-primary font-bold text-sm">{e.user.name.charAt(0)}</span>}
+                          {avatar ? <img src={avatar} alt={e.user.name} className="w-full h-full object-cover" /> : <span className="text-primary font-bold text-sm">{(e.user?.name || "?").charAt(0)}</span>}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-slate-900 dark:text-white">{e.user.name}</p>

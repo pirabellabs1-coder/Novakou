@@ -475,7 +475,7 @@ export default function AffiliateManagementPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-700 dark:text-amber-400 text-sm font-bold">
-                    {aff.userName.charAt(0)}
+                    {(aff.userName || "?").charAt(0)}
                   </div>
                   <div>
                     <p className="text-sm font-semibold">{aff.userName}</p>
@@ -537,7 +537,7 @@ export default function AffiliateManagementPage() {
                     <td className="py-3 px-2">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold flex-shrink-0">
-                          {aff.userName.charAt(0)}
+                          {(aff.userName || "?").charAt(0)}
                         </div>
                         <div>
                           <p className="font-semibold text-sm">{aff.userName}</p>
@@ -588,7 +588,7 @@ export default function AffiliateManagementPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-slate-500 text-xs font-bold">
-                    {aff.userName.charAt(0)}
+                    {(aff.userName || "?").charAt(0)}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-slate-500">{aff.userName}</p>

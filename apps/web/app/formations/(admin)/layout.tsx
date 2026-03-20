@@ -186,7 +186,7 @@ export default function AdminFormationsLayout({ children }: { children: React.Re
               <span key={i} className="flex items-center flex-shrink-0">
                 <span className="material-symbols-outlined text-xs mx-1">chevron_right</span>
                 <span className={`truncate max-w-[120px] sm:max-w-none ${i === rawSegments.length - 1 ? "font-semibold text-slate-900 dark:text-white dark:text-slate-100" : ""}`}>
-                  {segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ")}
+                  {(segment || "").charAt(0).toUpperCase() + (segment || "").slice(1).replace(/-/g, " ")}
                 </span>
               </span>
             ))}

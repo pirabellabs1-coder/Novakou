@@ -162,7 +162,7 @@ export default function InstructeurPublicPage({ params }: { params: Promise<{ id
                 <img src={avatar} alt={instructeur.user.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-primary font-bold text-4xl">
-                  {instructeur.user.name.charAt(0)}
+                  {(instructeur.user?.name || "?").charAt(0)}
                 </div>
               )}
             </div>

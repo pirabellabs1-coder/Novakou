@@ -239,7 +239,7 @@ export default function ProductDashboardPage() {
             {(stats.recentPurchases ?? []).slice(0, 8).map((p, i) => (
               <div key={i} className="flex items-center gap-4 p-4">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xs font-bold">{p.buyerName.charAt(0).toUpperCase()}</span>
+                  <span className="text-white text-xs font-bold">{(p.buyerName || "?").charAt(0).toUpperCase()}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{p.buyerName}</p>

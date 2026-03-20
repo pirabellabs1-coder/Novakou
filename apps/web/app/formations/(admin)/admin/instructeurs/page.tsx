@@ -102,7 +102,7 @@ export default function AdminInstructeursPage() {
                     {avatar ? (
                       <img src={avatar} alt={instr.user.name} className="w-full h-full object-cover" />
                     ) : (
-                      <span className="w-full h-full flex items-center justify-center text-primary font-bold text-lg">{instr.user.name.charAt(0)}</span>
+                      <span className="w-full h-full flex items-center justify-center text-primary font-bold text-lg">{(instr.user?.name || "?").charAt(0)}</span>
                     )}
                   </div>
 

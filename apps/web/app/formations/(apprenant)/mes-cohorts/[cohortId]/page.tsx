@@ -363,7 +363,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
                         <img src={avatar} alt={p.user.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-primary text-xs font-bold">
-                          {p.user.name.charAt(0)}
+                          {(p.user?.name || "?").charAt(0)}
                         </div>
                       )}
                     </div>
@@ -404,7 +404,7 @@ export default function ApprenantCohortDetailPage({ params }: { params: Promise<
                       <img src={avatar} alt={p.user.name} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-primary text-sm font-bold">
-                        {p.user.name.charAt(0)}
+                        {(p.user?.name || "?").charAt(0)}
                       </div>
                     )}
                   </div>
