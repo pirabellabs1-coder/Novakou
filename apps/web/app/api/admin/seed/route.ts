@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Non autorise" }, { status: 403 });
     }
 
-    const email = process.env.ADMIN_EMAIL;
-    const password = process.env.ADMIN_PASSWORD;
+    const email = process.env.ADMIN_EMAIL?.trim();
+    const password = process.env.ADMIN_PASSWORD?.trim();
 
     if (!email || !password) {
       return NextResponse.json({ error: "ADMIN_EMAIL ou ADMIN_PASSWORD non defini" }, { status: 500 });
@@ -35,6 +35,17 @@ export async function POST(req: NextRequest) {
     // Try Prisma first
     try {
       const { prisma } = await import("@freelancehigh/db");
+
+      // Clean up any existing admin with trailing whitespace in email
+      const existingDirty = await prisma.user.findFirst({
+        where: { email: { startsWith: email } },
+      });
+      if (existingDirty && existingDirty.email !== email) {
+        await prisma.user.update({
+          where: { id: existingDirty.id },
+          data: { email },
+        });
+      }
 
       const existing = await prisma.user.findUnique({ where: { email } });
 
