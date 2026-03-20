@@ -1,18 +1,18 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "cd packages/db && npx prisma generate && cd ../../apps/web && next build",
+  "buildCommand": "cd packages/db && npx prisma generate && cd ../.. && pnpm --filter=@freelancehigh/web build",
   "installCommand": "pnpm install",
   "outputDirectory": "apps/web/.next",
   "regions": ["cdg1"],
   "crons": [
     {
       "path": "/api/cron/cohort-status",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/deadline-reminder",
-      "schedule": "0 */6 * * *"
+      "schedule": "0 0 * * *"
     }
   ],
   "headers": [
