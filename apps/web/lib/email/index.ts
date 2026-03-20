@@ -1,25 +1,33 @@
 // FreelanceHigh — Service d'envoi d'emails via Resend
 // Tous les emails transactionnels de la plateforme
 
-import { Resend } from "resend";
-
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const resend = new Resend(RESEND_API_KEY || "re_placeholder");
-const CUSTOM_FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
 const RESEND_SANDBOX_FROM = "FreelanceHigh <onboarding@resend.dev>";
-const DOMAIN_VERIFIED = process.env.RESEND_DOMAIN_VERIFIED === "true";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
 
-// Determine the FROM address: use custom domain only if verified, otherwise use Resend sandbox
+// Lazy init — env vars may not be available at module load time on Vercel
+let _resend: InstanceType<typeof import("resend").Resend> | null = null;
+function getResend() {
+  if (!_resend) {
+    const { Resend } = require("resend") as typeof import("resend");
+    _resend = new Resend(process.env.RESEND_API_KEY || "re_placeholder");
+  }
+  return _resend;
+}
+
 function getFromAddress(): string {
-  return DOMAIN_VERIFIED ? CUSTOM_FROM : RESEND_SANDBOX_FROM;
+  const domainVerified = process.env.RESEND_DOMAIN_VERIFIED === "true";
+  const customFrom = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
+  return domainVerified ? customFrom : RESEND_SANDBOX_FROM;
+}
+
+function getAppUrl(): string {
+  return process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
 }
 
 // Helper: send email via Resend
 async function sendEmail(params: { from?: string; to: string; subject: string; html: string }) {
   const from = params.from ?? getFromAddress();
 
-  if (!RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY) {
     console.log(`\n========== EMAIL (DEV MODE — Resend non configure) ==========`);
     console.log(`To: ${params.to}`);
     console.log(`Subject: ${params.subject}`);
@@ -29,6 +37,7 @@ async function sendEmail(params: { from?: string; to: string; subject: string; h
   }
 
   try {
+    const resend = getResend();
     const result = await resend.emails.send({ ...params, from });
 
     if (result.error) {
@@ -37,7 +46,7 @@ async function sendEmail(params: { from?: string; to: string; subject: string; h
       // If custom domain failed, retry with sandbox
       if (from !== RESEND_SANDBOX_FROM) {
         console.log(`[EMAIL] Retrying with sandbox: ${RESEND_SANDBOX_FROM}`);
-        const retryResult = await resend.emails.send({ ...params, from: RESEND_SANDBOX_FROM });
+        const retryResult = await getResend().emails.send({ ...params, from: RESEND_SANDBOX_FROM });
         if (retryResult.error) {
           console.error("[EMAIL FAIL] Sandbox retry also failed:", retryResult.error);
         } else {
@@ -78,9 +87,9 @@ function emailLayout(content: string): string {
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
       <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'equipe FreelanceHigh</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        <a href="${APP_URL}/cgu" style="color:#6C2BD9;text-decoration:none;">CGU</a> ·
-        <a href="${APP_URL}/confidentialite" style="color:#6C2BD9;text-decoration:none;">Confidentialite</a> ·
-        <a href="${APP_URL}/contact" style="color:#6C2BD9;text-decoration:none;">Contact</a>
+        <a href="${getAppUrl()}/cgu" style="color:#6C2BD9;text-decoration:none;">CGU</a> ·
+        <a href="${getAppUrl()}/confidentialite" style="color:#6C2BD9;text-decoration:none;">Confidentialite</a> ·
+        <a href="${getAppUrl()}/contact" style="color:#6C2BD9;text-decoration:none;">Contact</a>
       </p>
       <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 FreelanceHigh — Fondee par Lissanon Gildas</p>
     </div>
@@ -96,8 +105,8 @@ function button(text: string, url: string): string {
 // ── 1. Email de bienvenue ──
 
 export async function sendWelcomeEmail(email: string, name: string, dashboardUrl?: string) {
-  const profileUrl = dashboardUrl || `${APP_URL}/dashboard/profil`;
-  const kycUrl = `${APP_URL}/dashboard/kyc`;
+  const profileUrl = dashboardUrl || `${getAppUrl()}/dashboard/profil`;
+  const kycUrl = `${getAppUrl()}/dashboard/kyc`;
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Bienvenue sur FreelanceHigh, ${name} !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
@@ -130,7 +139,7 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
 
 export async function sendVerificationEmail(email: string, name: string, code: string) {
   // Always log the code in dev for easy testing
-  if (!RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY) {
     console.log(`\n🔑 CODE DE VERIFICATION pour ${email}: ${code}\n`);
   }
   const html = emailLayout(`
@@ -152,7 +161,7 @@ export async function sendVerificationEmail(email: string, name: string, code: s
 // ── 3. Mot de passe oublie ──
 
 export async function sendPasswordResetEmail(email: string, name: string, resetToken: string) {
-  const resetUrl = `${APP_URL}/reinitialiser-mot-de-passe?token=${resetToken}`;
+  const resetUrl = `${getAppUrl()}/reinitialiser-mot-de-passe?token=${resetToken}`;
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Reinitialiser votre mot de passe</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
@@ -190,7 +199,7 @@ export async function sendOrderConfirmationEmail(
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Reference</td><td style="color:#111827;text-align:right;font-size:14px;">${order.id}</td></tr>
       </table>
     </div>
-    ${button("Voir ma commande", `${APP_URL}/client/commandes`)}
+    ${button("Voir ma commande", `${getAppUrl()}/client/commandes`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
       Les fonds sont securises en escrow jusqu'a la livraison et votre validation.
     </p>
@@ -235,7 +244,7 @@ export async function sendPaymentReceivedEmail(
       <p style="color:#16a34a;font-size:32px;font-weight:800;margin:0;">+${payment.amount.toFixed(2)} EUR</p>
       <p style="color:#4ade80;font-size:14px;margin:4px 0 0;">${payment.serviceTitle}</p>
     </div>
-    ${button("Voir mes finances", `${APP_URL}/dashboard/finances`)}
+    ${button("Voir mes finances", `${getAppUrl()}/dashboard/finances`)}
   `);
 
   return sendEmail({ to: email, subject: `Paiement de ${payment.amount.toFixed(2)} EUR recu`, html });
@@ -260,7 +269,7 @@ export async function sendNewOrderFreelanceEmail(
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Client</td><td style="color:#111827;text-align:right;font-size:14px;">${order.clientName}</td></tr>
       </table>
     </div>
-    ${button("Voir la commande", `${APP_URL}/dashboard/commandes`)}
+    ${button("Voir la commande", `${getAppUrl()}/dashboard/commandes`)}
   `);
 
   return sendEmail({ to: email, subject: `Nouvelle commande — ${order.serviceTitle}`, html });
@@ -280,7 +289,7 @@ export async function sendKycApprovedEmail(email: string, name: string, level: n
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       De nouvelles fonctionnalites sont maintenant disponibles sur votre compte.
     </p>
-    ${button("Voir mon profil", `${APP_URL}/dashboard/profil`)}
+    ${button("Voir mon profil", `${getAppUrl()}/dashboard/profil`)}
   `);
 
   return sendEmail({ to: email, subject: `Verification KYC niveau ${level} approuvee`, html });
@@ -301,7 +310,7 @@ export async function sendKycRejectedEmail(email: string, name: string, level: n
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       Vous pouvez soumettre une nouvelle demande apres avoir corrige les elements mentionnes.
     </p>
-    ${button("Soumettre a nouveau", `${APP_URL}/dashboard/kyc`)}
+    ${button("Soumettre a nouveau", `${getAppUrl()}/dashboard/kyc`)}
   `);
 
   return sendEmail({ to: email, subject: "Verification KYC refusee — FreelanceHigh", html });
@@ -316,7 +325,7 @@ export async function sendServiceApprovedEmail(email: string, name: string, serv
       Bonjour ${name}, votre service <strong>"${serviceTitle}"</strong> a ete approuve par notre equipe
       et est maintenant visible sur la marketplace.
     </p>
-    ${button("Voir mon service", `${APP_URL}/dashboard/services`)}
+    ${button("Voir mon service", `${getAppUrl()}/dashboard/services`)}
     <p style="color:#9ca3af;font-size:13px;margin:16px 0 0;">
       Pensez a partager votre service sur les reseaux sociaux pour attirer vos premiers clients !
     </p>
@@ -337,7 +346,7 @@ export async function sendServiceRejectedEmail(email: string, name: string, serv
       <p style="color:#dc2626;font-weight:600;margin:0 0 4px;">Motif :</p>
       <p style="color:#991b1b;margin:0;">${reason}</p>
     </div>
-    ${button("Modifier mon service", `${APP_URL}/dashboard/services`)}
+    ${button("Modifier mon service", `${getAppUrl()}/dashboard/services`)}
   `);
 
   return sendEmail({ to: email, subject: `Service non approuve — ${serviceTitle}`, html });
@@ -359,7 +368,7 @@ export async function sendDeliveryNotificationEmail(
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       Veuillez verifier la livraison et la valider ou demander une revision.
     </p>
-    ${button("Voir la livraison", `${APP_URL}/client/commandes`)}
+    ${button("Voir la livraison", `${getAppUrl()}/client/commandes`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
       Si vous ne validez pas dans les 3 jours, la livraison sera automatiquement acceptee.
     </p>
