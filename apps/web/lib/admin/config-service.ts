@@ -17,10 +17,10 @@ export interface PlatformConfig {
     agence: number;
   };
   plans: {
-    gratuit: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number };
-    pro: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number };
-    business: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number };
-    agence: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; maxMembers: number; storageGB: number };
+    gratuit: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType?: string; commissionValue?: number };
+    pro: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType?: string; commissionValue?: number };
+    business: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType?: string; commissionValue?: number };
+    agence: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; maxMembers: number; storageGB: number; commissionType?: string; commissionValue?: number };
   };
   announcementBanner: {
     enabled: boolean;
@@ -59,16 +59,16 @@ const DEFAULT_CONFIG: PlatformConfig = {
     "virement_sepa",
   ],
   commissions: {
-    gratuit: 20,
-    pro: 15,
-    business: 10,
-    agence: 8,
+    gratuit: 12,
+    pro: 0,
+    business: 0,
+    agence: 0,
   },
   plans: {
-    gratuit: { price: 0, maxServices: 3, maxCandidatures: 5, boostsPerMonth: 0 },
-    pro: { price: 15, maxServices: 15, maxCandidatures: 20, boostsPerMonth: 1 },
-    business: { price: 45, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 5 },
-    agence: { price: 99, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, maxMembers: 20, storageGB: 50 },
+    gratuit: { price: 0, maxServices: 7, maxCandidatures: 10, boostsPerMonth: 0, commissionType: "percentage", commissionValue: 12 },
+    pro: { price: 15, maxServices: -1, maxCandidatures: 20, boostsPerMonth: 5, commissionType: "fixed", commissionValue: 1 },
+    business: { price: 45, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, commissionType: "fixed", commissionValue: 1 },
+    agence: { price: 99, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, maxMembers: 20, storageGB: 50, commissionType: "fixed", commissionValue: 1 },
   },
   announcementBanner: {
     enabled: false,

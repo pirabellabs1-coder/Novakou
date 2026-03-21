@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { IS_DEV } from "@/lib/prisma";
 import { devStore } from "@/lib/dev/dev-store";
 import {
   serviceStore,
@@ -67,34 +68,36 @@ export async function GET(
   else if (avgRating >= 4.0) badge = "TOP RATED";
   else if (completedOrders >= 1) badge = "RISING TALENT";
 
-  // Fetch formation certificates (query Prisma if available)
+  // Fetch formation certificates (only in production mode with Prisma)
   let certificates: { id: string; code: string; formationTitle: string; instructorName: string; score: number; issuedAt: string }[] = [];
-  try {
-    const prisma = (await import("@freelancehigh/db")).default;
-    const certs = await prisma.certificate.findMany({
-      where: { userId: user.id, revokedAt: null },
-      include: {
-        enrollment: {
-          include: {
-            formation: {
-              select: { title: true, instructeur: { select: { user: { select: { name: true } } } } },
+  if (!IS_DEV) {
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const certs = await prisma.certificate.findMany({
+        where: { userId: user.id, revokedAt: null },
+        include: {
+          enrollment: {
+            include: {
+              formation: {
+                select: { title: true, instructeur: { select: { user: { select: { name: true } } } } },
+              },
             },
           },
         },
-      },
-      orderBy: { issuedAt: "desc" },
-      take: 20,
-    });
-    certificates = certs.map((c) => ({
-      id: c.id,
-      code: c.code,
-      formationTitle: c.enrollment?.formation?.title ?? "Formation",
-      instructorName: c.enrollment?.formation?.instructeur?.user?.name ?? "Instructeur",
-      score: c.score,
-      issuedAt: c.issuedAt.toISOString(),
-    }));
-  } catch {
-    // DB not connected or no certificates — return empty array
+        orderBy: { issuedAt: "desc" },
+        take: 20,
+      });
+      certificates = certs.map((c) => ({
+        id: c.id,
+        code: c.code,
+        formationTitle: c.enrollment?.formation?.title ?? "Formation",
+        instructorName: c.enrollment?.formation?.instructeur?.user?.name ?? "Instructeur",
+        score: c.score,
+        issuedAt: c.issuedAt.toISOString(),
+      }));
+    } catch {
+      // DB not connected or no certificates — return empty array
+    }
   }
 
   // Portfolio projects from profile
@@ -108,25 +111,23 @@ export async function GET(
       status: user.status,
       memberSince: user.createdAt,
       portfolio,
-      profile: profile
-        ? {
-            title: profile.title,
-            bio: profile.bio,
-            photo: profile.photo,
-            coverPhoto: profile.coverPhoto,
-            city: profile.city,
-            country: profile.country,
-            hourlyRate: profile.hourlyRate,
-            skills: profile.skills,
-            languages: profile.languages,
-            education: profile.education,
-            links: profile.links,
-            completionPercent: profile.completionPercent,
-            badges: profile.badges,
-            availability: profile.availability,
-            vacationMode: profile.vacationMode,
-          }
-        : null,
+      profile: {
+        title: profile?.title || "",
+        bio: profile?.bio || "",
+        photo: profile?.photo || null,
+        coverPhoto: profile?.coverPhoto || null,
+        city: profile?.city || user.country || "",
+        country: profile?.country || user.country || "",
+        hourlyRate: profile?.hourlyRate || null,
+        skills: profile?.skills || [],
+        languages: profile?.languages || [],
+        education: profile?.education || [],
+        links: profile?.links || {},
+        completionPercent: profile?.completionPercent || 0,
+        badges: profile?.badges || [],
+        availability: profile?.availability || { availableNow: true },
+        vacationMode: profile?.vacationMode || false,
+      },
       badge,
       services,
       reviews: reviews.slice(0, 10),

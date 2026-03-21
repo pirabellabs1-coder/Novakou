@@ -43,12 +43,13 @@ export default function AdminPlans() {
 
   const [editPlan, setEditPlan] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{
-    commission: number;
+    commissionType: string;
+    commissionValue: number;
     price: number;
     maxServices: number;
     maxCandidatures: number;
     boostsPerMonth: number;
-  }>({ commission: 0, price: 0, maxServices: 0, maxCandidatures: 0, boostsPerMonth: 0 });
+  }>({ commissionType: "percentage", commissionValue: 0, price: 0, maxServices: 0, maxCandidatures: 0, boostsPerMonth: 0 });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -59,12 +60,14 @@ export default function AdminPlans() {
     if (!config) return [];
     return PLAN_KEYS.map((key) => {
       const plan = config.plans[key];
-      const commission = config.commissions[key] ?? plan?.commission ?? 0;
+      const commissionType = (plan as Record<string, unknown>)?.commissionType as string || "percentage";
+      const commissionValue = (plan as Record<string, unknown>)?.commissionValue as number ?? config.commissions[key] ?? 0;
       return {
         key,
         name: PLAN_LABELS[key] ?? key,
         price: plan?.price ?? 0,
-        commission,
+        commissionType,
+        commissionValue,
         maxServices: plan?.maxServices ?? 0,
         maxCandidatures: plan?.maxCandidatures ?? 0,
         boostsPerMonth: plan?.boostsPerMonth ?? 0,
@@ -77,7 +80,8 @@ export default function AdminPlans() {
     if (!plan) return;
     setEditPlan(key);
     setEditValues({
-      commission: plan.commission,
+      commissionType: plan.commissionType,
+      commissionValue: plan.commissionValue,
       price: plan.price,
       maxServices: plan.maxServices,
       maxCandidatures: plan.maxCandidatures,
@@ -94,7 +98,8 @@ export default function AdminPlans() {
       [editPlan]: {
         ...config.plans[editPlan],
         price: editValues.price,
-        commission: editValues.commission,
+        commissionType: editValues.commissionType,
+        commissionValue: editValues.commissionValue,
         maxServices: editValues.maxServices,
         maxCandidatures: editValues.maxCandidatures,
         boostsPerMonth: editValues.boostsPerMonth,
@@ -102,7 +107,7 @@ export default function AdminPlans() {
     };
     const updatedCommissions = {
       ...config.commissions,
-      [editPlan]: editValues.commission,
+      [editPlan]: editValues.commissionType === "percentage" ? editValues.commissionValue : 0,
     };
 
     const ok = await updateConfig({ plans: updatedPlans, commissions: updatedCommissions });
@@ -147,15 +152,17 @@ export default function AdminPlans() {
             <div className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-400">Commission</span>
-                <span className="font-bold text-white">{p.commission}%</span>
+                <span className="font-bold text-white">
+                  {p.commissionType === "fixed" ? `${p.commissionValue}\u20AC/vente` : `${p.commissionValue}%`}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Services</span>
-                <span className="font-bold text-white">{p.maxServices === 0 ? "Illimit\u00e9" : p.maxServices}</span>
+                <span className="font-bold text-white">{p.maxServices === 0 || p.maxServices === -1 ? "Illimit\u00e9" : p.maxServices}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Candidatures/mois</span>
-                <span className="font-bold text-white">{p.maxCandidatures === 0 ? "Illimit\u00e9" : p.maxCandidatures}</span>
+                <span className="font-bold text-white">{p.maxCandidatures === 0 || p.maxCandidatures === -1 ? "Illimit\u00e9" : p.maxCandidatures}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Boosts/mois</span>
@@ -194,16 +201,35 @@ export default function AdminPlans() {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
-                  Taux de commission (%)
+                  Type de commission
                 </label>
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    onClick={() => setEditValues((v) => ({ ...v, commissionType: "percentage" }))}
+                    className={cn("py-2 rounded-lg text-sm font-bold border-2 transition-all", editValues.commissionType === "percentage" ? "border-primary bg-primary/10 text-primary" : "border-border-dark text-slate-400")}
+                  >
+                    Pourcentage (%)
+                  </button>
+                  <button
+                    onClick={() => setEditValues((v) => ({ ...v, commissionType: "fixed" }))}
+                    className={cn("py-2 rounded-lg text-sm font-bold border-2 transition-all", editValues.commissionType === "fixed" ? "border-primary bg-primary/10 text-primary" : "border-border-dark text-slate-400")}
+                  >
+                    Fixe (EUR/vente)
+                  </button>
+                </div>
                 <input
                   type="number"
-                  value={editValues.commission}
-                  onChange={(e) => setEditValues((v) => ({ ...v, commission: Number(e.target.value) }))}
-                  min={1}
-                  max={50}
+                  value={editValues.commissionValue}
+                  onChange={(e) => setEditValues((v) => ({ ...v, commissionValue: Number(e.target.value) }))}
+                  min={0}
+                  max={editValues.commissionType === "percentage" ? 50 : 100}
+                  step={editValues.commissionType === "fixed" ? 0.5 : 1}
+                  placeholder={editValues.commissionType === "percentage" ? "Ex: 12" : "Ex: 1"}
                   className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-background-dark text-white text-sm outline-none focus:border-primary"
                 />
+                <p className="text-xs text-slate-500 mt-1">
+                  {editValues.commissionType === "percentage" ? `${editValues.commissionValue}% preleve sur chaque vente` : `${editValues.commissionValue}\u20AC preleve par vente`}
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-2">
