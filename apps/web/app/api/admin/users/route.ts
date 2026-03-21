@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { orderStore, transactionStore } from "@/lib/dev/data-store";
 import { devStore } from "@/lib/dev/dev-store";
+import { createAuditLog } from "@/lib/admin/audit";
 
 // GET /api/admin/users — List all users with aggregated stats + server-side filtering
 export async function GET(request: NextRequest) {
@@ -47,8 +48,9 @@ export async function GET(request: NextRequest) {
         const totalSpent = allOrders.filter((o) => o.clientId === u.id && o.status === "termine").reduce((sum, o) => sum + o.amount, 0);
 
         return {
-          id: u.id, name: u.name, email: u.email, role: u.role, plan: u.plan,
-          status: u.status, kycLevel: u.kyc, country: u.country || null,
+          id: u.id, name: u.name, email: u.email,
+          role: u.role.toLowerCase(), plan: u.plan.toLowerCase(),
+          status: u.status.toLowerCase(), kycLevel: u.kyc, country: u.country || null,
           createdAt: u.createdAt, lastLoginAt: u.lastLoginAt ?? null,
           loginCount: u.loginCount, ordersCount: userOrders.length,
           revenue: Math.round(revenue * 100) / 100, totalSpent: Math.round(totalSpent * 100) / 100,
@@ -104,9 +106,9 @@ export async function GET(request: NextRequest) {
       id: u.id,
       name: u.name,
       email: u.email,
-      role: u.role,
-      plan: u.plan,
-      status: u.status,
+      role: u.role.toLowerCase(),
+      plan: u.plan.toLowerCase(),
+      status: u.status.toLowerCase(),
       kycLevel: u.kyc,
       country: u.country ?? null,
       createdAt: u.createdAt,
@@ -149,6 +151,15 @@ export async function PATCH(request: Request) {
     }
 
     const user = await prisma.user.update({ where: { id }, data: { status } });
+
+    // Audit log for user status change
+    await createAuditLog({
+      actorId: session.user.id,
+      action: `user.${status.toLowerCase()}`,
+      targetUserId: id,
+      details: { newStatus: status },
+    });
+
     return NextResponse.json({ user });
   } catch (error) {
     console.error("[API /admin/users PATCH]", error);

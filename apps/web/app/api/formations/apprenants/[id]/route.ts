@@ -16,6 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         avatar: true,
         image: true,
         createdAt: true,
+        freelancerProfile: { select: { bio: true } },
       },
     });
 
@@ -90,6 +91,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         id: user.id,
         name: user.name,
         avatar: user.avatar || user.image,
+        bio: user.freelancerProfile?.bio ?? null,
         memberSince: user.createdAt.toISOString(),
         stats: {
           completedCourses: completedEnrollments.length,

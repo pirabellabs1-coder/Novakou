@@ -1,21 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { ArrowLeft, ArrowRight, Check, AlertCircle } from "lucide-react";
+import { useFormationCategories, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import dynamic from "next/dynamic";
 
 const FormationRichEditor = dynamic(
   () => import("@/components/formations/FormationRichEditor").then((m) => m.FormationRichEditor),
   { ssr: false, loading: () => <div className="h-[250px] bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" /> }
 );
-
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-}
 
 const PRODUCT_TYPES = [
   { value: "EBOOK", icon: "menu_book", label: "E-book", desc: "Livre numérique" },
@@ -38,9 +33,8 @@ export default function CreerProduitPage() {
   const locale = useLocale();
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data: categories = [] } = useFormationCategories();
 
   // Step 1: Information
   const [title, setTitle] = useState("");
@@ -68,12 +62,19 @@ export default function CreerProduitPage() {
   const [originalPrice, setOriginalPrice] = useState<number | undefined>();
   const [isFree, setIsFree] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/formations/categories")
-      .then((r) => r.json())
-      .then((data) => setCategories(data.categories || []))
-      .catch(() => {});
-  }, []);
+  const createMutation = useInstructorMutation(
+    async (body: Record<string, unknown>) => {
+      const res = await fetch("/api/instructeur/produits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur lors de la création");
+      return data;
+    },
+    [instructorKeys.products()]
+  );
 
   function addTag() {
     const t = tagInput.trim().toLowerCase();
@@ -90,49 +91,37 @@ export default function CreerProduitPage() {
     return true;
   }
 
-  async function handleSubmit() {
-    setSubmitting(true);
+  function handleSubmit() {
     setError("");
-
-    try {
-      const res = await fetch("/api/instructeur/produits", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          productType,
-          categoryId,
-          tags,
-          description: description || undefined,
-          descriptionFormat: "tiptap",
-          banner: banner || undefined,
-          fileUrl: fileUrl || undefined,
-          fileStoragePath: fileStoragePath || undefined,
-          fileSize,
-          fileMimeType: fileMimeType || undefined,
-          previewEnabled,
-          previewPages,
-          watermarkEnabled,
-          maxBuyers: maxBuyers || undefined,
-          price: isFree ? 0 : price,
-          originalPrice: originalPrice || undefined,
-          isFree,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Erreur lors de la création");
-        return;
+    createMutation.mutate(
+      {
+        title,
+        type: productType,
+        categoryId,
+        tags,
+        description: description || undefined,
+        descriptionFormat: "tiptap",
+        banner: banner || undefined,
+        fileUrl: fileUrl || undefined,
+        fileStoragePath: fileStoragePath || undefined,
+        fileSize,
+        fileMimeType: fileMimeType || undefined,
+        previewEnabled,
+        previewPages,
+        watermarkEnabled,
+        maxBuyers: maxBuyers || undefined,
+        price: isFree ? 0 : price,
+        originalPrice: originalPrice || undefined,
+        isFree,
+      },
+      {
+        onSuccess: () => router.push("/formations/instructeur/produits"),
+        onError: (err) => setError(err instanceof Error ? err.message : "Erreur réseau"),
       }
-
-      router.push("/formations/instructeur/produits");
-    } catch {
-      setError("Erreur réseau");
-    } finally {
-      setSubmitting(false);
-    }
+    );
   }
+
+  const submitting = createMutation.isPending;
 
   return (
     <div className="max-w-3xl mx-auto">

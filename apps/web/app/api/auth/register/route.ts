@@ -12,7 +12,8 @@ const registerSchema = z.object({
     .regex(/[a-z]/, "Le mot de passe doit contenir au moins une minuscule")
     .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
   name: z.string().min(2, "Le nom est requis"),
-  role: z.enum(["freelance", "client", "agence"]).default("freelance"),
+  role: z.enum(["freelance", "client", "agence"]).default("client"),
+  country: z.string().max(100).optional(),
   formationsRole: z.enum(["apprenant", "instructeur"]).optional(),
 });
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: errors }, { status: 400 });
     }
 
-    const { email, password, name, role, formationsRole } = parsed.data;
+    const { email, password, name, role, country, formationsRole } = parsed.data;
 
     // Rate limit: 5 attempts per 15 min per email
     const rateLimitKey = `register:${email}`;
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
         plan: "gratuit",
         kyc: 1,
         status: "ACTIF",
+        ...(country ? { country } : {}),
         ...(formationsRole ? { formationsRole } : {}),
       });
 
@@ -118,7 +120,9 @@ export async function POST(request: Request) {
         name,
         role: role.toUpperCase() as "FREELANCE" | "CLIENT" | "AGENCE",
         plan: "GRATUIT",
+        status: "ACTIF",
         kyc: 1,
+        ...(country ? { country } : {}),
         ...(formationsRole ? { formationsRole } : {}),
       },
       select: { id: true, email: true, name: true, role: true },

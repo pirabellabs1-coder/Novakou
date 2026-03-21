@@ -131,9 +131,9 @@ export default function UserDetailPage() {
     );
   }
 
-  const roleInfo = ROLE_LABELS[user.role] ?? ROLE_LABELS.freelance;
-  const statusInfo = STATUS_LABELS[user.status] ?? STATUS_LABELS.actif;
-  const planInfo = PLAN_LABELS[user.plan] ?? PLAN_LABELS.gratuit;
+  const roleInfo = ROLE_LABELS[user.role?.toLowerCase()] ?? ROLE_LABELS.freelance;
+  const statusInfo = STATUS_LABELS[user.status?.toLowerCase()] ?? STATUS_LABELS.actif;
+  const planInfo = PLAN_LABELS[user.plan?.toLowerCase()] ?? PLAN_LABELS.gratuit;
 
   // Stats from AdminUser fields
   const totalEarnings = user.revenue;
@@ -239,18 +239,18 @@ export default function UserDetailPage() {
               </div>
               <p className="text-slate-400 text-sm">{user.email}</p>
               <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                <span>{user.country}</span>
-                <span>KYC: Niveau {user.kycLevel}</span>
+                <span>{user.country || "Non renseigne"}</span>
+                <span>KYC: Niveau {user.kycLevel ?? 0}</span>
                 <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-semibold", planInfo.color)}>Plan {planInfo.label}</span>
                 <span>Inscrit le {new Date(user.createdAt).toLocaleDateString("fr-FR")}</span>
-                <span>Dernière connexion: {new Date(user.lastLoginAt).toLocaleDateString("fr-FR")}</span>
+                <span>Dernière connexion: {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString("fr-FR") : "Jamais"}</span>
               </div>
             </div>
           </div>
 
           {/* Action buttons */}
           <div className="flex items-center gap-2">
-            {user.role !== "admin" && (
+            {user.role?.toLowerCase() !== "admin" && (
               <button
                 onClick={() => setModal("impersonate")}
                 className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/10 text-amber-400 rounded-lg text-xs font-semibold hover:bg-amber-500/20 transition-colors"
@@ -266,7 +266,7 @@ export default function UserDetailPage() {
               <span className="material-symbols-outlined text-sm">lock_reset</span>
               Reset mdp
             </button>
-            {user.status === "actif" && (
+            {user.status?.toLowerCase() === "actif" && (
               <button
                 onClick={() => setModal("suspend")}
                 className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/10 text-amber-400 rounded-lg text-xs font-semibold hover:bg-amber-500/20 transition-colors"
@@ -275,7 +275,7 @@ export default function UserDetailPage() {
                 Suspendre
               </button>
             )}
-            {user.status === "actif" && (
+            {user.status?.toLowerCase() === "actif" && (
               <button
                 onClick={() => setModal("ban")}
                 className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 text-red-400 rounded-lg text-xs font-semibold hover:bg-red-500/20 transition-colors"
@@ -284,7 +284,7 @@ export default function UserDetailPage() {
                 Bannir
               </button>
             )}
-            {(user.status === "suspendu" || user.status === "banni") && (
+            {(user.status?.toLowerCase() === "suspendu" || user.status?.toLowerCase() === "banni") && (
               <button
                 onClick={handleReactivate}
                 className="flex items-center gap-1.5 px-3 py-2 bg-green-500/10 text-green-400 rounded-lg text-xs font-semibold hover:bg-green-500/20 transition-colors"
@@ -352,10 +352,10 @@ export default function UserDetailPage() {
               <div className="flex justify-between"><span className="text-slate-500">Email</span><span className="text-white">{user.email}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Role</span><span className={cn("px-2 py-0.5 rounded-full text-xs font-semibold", roleInfo.color)}>{roleInfo.label}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Plan</span><span className={cn("px-2 py-0.5 rounded-full text-xs font-semibold", planInfo.color)}>{planInfo.label}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Pays</span><span className="text-white">{user.country}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">KYC</span><span className="text-white">Niveau {user.kycLevel}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Pays</span><span className="text-white">{user.country || "Non renseigne"}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">KYC</span><span className="text-white">Niveau {user.kycLevel ?? 0}</span></div>
               <div className="flex justify-between"><span className="text-slate-500">Inscription</span><span className="text-white">{new Date(user.createdAt).toLocaleDateString("fr-FR")}</span></div>
-              <div className="flex justify-between"><span className="text-slate-500">Dernière connexion</span><span className="text-white">{new Date(user.lastLoginAt).toLocaleDateString("fr-FR")}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">Dernière connexion</span><span className="text-white">{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString("fr-FR") : "Jamais"}</span></div>
             </div>
           </div>
 

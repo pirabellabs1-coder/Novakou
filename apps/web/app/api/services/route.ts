@@ -9,6 +9,7 @@ import {
   getCategoryName,
   getSubCategoryName,
 } from "@/lib/dev/data-store";
+import { canCreateService, normalizePlanName } from "@/lib/plans";
 
 // GET /api/services — List services for current authenticated user
 export async function GET(_request: NextRequest) {
@@ -68,6 +69,41 @@ export async function POST(request: NextRequest) {
         { error: "Le titre et la categorie sont requis" },
         { status: 400 }
       );
+    }
+
+    // --- Plan enforcement: check service limit ---
+    const userPlan = normalizePlanName(session.user.plan);
+    if (IS_DEV) {
+      const activeServices = serviceStore.getByUser(session.user.id)
+        .filter((s) => s.status === "actif" || s.status === "en_attente");
+      if (!canCreateService(userPlan, activeServices.length)) {
+        const limit = userPlan === "GRATUIT" ? 7 : "illimite";
+        return NextResponse.json(
+          {
+            error: `Limite de services atteinte pour votre plan (${limit}). Passez a un plan superieur pour publier plus de services.`,
+            code: "SERVICE_LIMIT_REACHED",
+          },
+          { status: 403 }
+        );
+      }
+    } else {
+      const activeServicesCount = await prisma.service.count({
+        where: {
+          userId: session.user.id,
+          status: { in: ["ACTIF", "EN_ATTENTE"] },
+        },
+      });
+      if (!canCreateService(userPlan, activeServicesCount)) {
+        const { getPlanLimits, formatLimit } = await import("@/lib/plans");
+        const limits = getPlanLimits(userPlan);
+        return NextResponse.json(
+          {
+            error: `Limite de services atteinte pour votre plan (${formatLimit(limits.serviceLimit)}). Passez a un plan superieur pour publier plus de services.`,
+            code: "SERVICE_LIMIT_REACHED",
+          },
+          { status: 403 }
+        );
+      }
     }
 
     if (IS_DEV) {

@@ -197,10 +197,10 @@ export function MessagingLayout({
           <ChatPanel
             conversation={selectedConv}
             currentUserId={userId}
-            onSendMessage={(content, type, fileName, fileSize, audioUrl, audioDuration) => {
+            onSendMessage={(content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType) => {
               if (selectedId) {
                 if (isSynced) {
-                  apiSendMessage(selectedId, content, type, fileName, fileSize);
+                  apiSendMessage(selectedId, content, type, fileName, fileSize, fileUrl, fileType);
                 } else {
                   sendMessage(selectedId, content, type, fileName, fileSize, audioUrl, audioDuration);
                 }
@@ -250,6 +250,11 @@ export function MessagingLayout({
           onAccept={() => answerCall()}
           onAcceptAudioOnly={callType === "video" ? () => answerCall("audio") : undefined}
           onReject={() => rejectCall()}
+          onMissed={() => {
+            if (selectedId) {
+              sendMessage(selectedId, "Appel manque", "call_missed");
+            }
+          }}
         />
       )}
 

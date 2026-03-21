@@ -86,7 +86,7 @@ export default function PromotionsListPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const { data, isLoading: loading, isError, error: queryError } = useInstructorPromotions();
+  const { data, isLoading: loading, isError, error: queryError, refetch } = useInstructorPromotions();
   const promos: FlashPromotion[] = (data as { promotions?: FlashPromotion[] } | null)?.promotions ?? [];
   const error = isError ? ((queryError as Error)?.message || "Erreur réseau") : "";
 
@@ -117,7 +117,7 @@ export default function PromotionsListPage() {
       if (!res.ok) throw new Error();
       await queryClient.invalidateQueries({ queryKey: instructorKeys.promotions() });
     } catch {
-      // Silently fail — state unchanged since we rely on server truth
+      alert(fr ? "Erreur lors du changement de statut" : "Error toggling status");
     }
   };
 
@@ -133,7 +133,7 @@ export default function PromotionsListPage() {
       if (!res.ok) throw new Error();
       await queryClient.invalidateQueries({ queryKey: instructorKeys.promotions() });
     } catch {
-      // Silently fail — could add toast
+      alert(fr ? "Erreur lors de la suppression" : "Error deleting promotion");
     }
     setDeletingId(null);
   };
@@ -163,8 +163,14 @@ export default function PromotionsListPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400 mb-4">
-          {error}
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400 mb-4">
+          <span>{error}</span>
+          <button
+            onClick={() => refetch()}
+            className="ml-4 px-3 py-1.5 bg-red-100 dark:bg-red-800/40 hover:bg-red-200 dark:hover:bg-red-800/60 rounded-lg font-medium transition-colors whitespace-nowrap"
+          >
+            {fr ? "Réessayer" : "Retry"}
+          </button>
         </div>
       )}
 

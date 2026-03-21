@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Plus, Users, Calendar, Trash2, Eye, ChevronLeft,
 } from "lucide-react";
+import { useInstructorCohorts, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import dynamic from "next/dynamic";
 
 const FormationRichEditor = dynamic(
@@ -72,74 +73,77 @@ export default function InstructeurCohortsPage({ params }: { params: Promise<{ i
   const router = useRouter();
   const fr = locale === "fr";
 
-  const [cohorts, setCohorts] = useState<Cohort[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: cohortsData, isLoading: loading, error: queryError, refetch } = useInstructorCohorts(id);
+  const cohorts: Cohort[] = (cohortsData as { cohorts?: Cohort[] } | null)?.cohorts ?? [];
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<FormData>(emptyForm);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (status === "loading") return;
     if (status === "unauthenticated") { router.replace("/formations/connexion"); return; }
-    if (status !== "authenticated") return;
-    fetchCohorts();
-  }, [status, router, id]);
+  }, [status, router]);
 
-  const fetchCohorts = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/instructeur/formations/${id}/cohorts`);
-      if (!res.ok) throw new Error(fr ? "Erreur lors du chargement" : "Loading error");
-      const data = await res.json();
-      setCohorts(data.cohorts ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : (fr ? "Erreur inattendue" : "Unexpected error"));
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    if (queryError) setError(fr ? "Erreur lors du chargement" : "Loading error");
+  }, [queryError, fr]);
 
-  const createCohort = async (e: React.FormEvent) => {
+  const createMutation = useInstructorMutation(
+    async (body: Record<string, unknown>) => {
+      const res = await fetch(`/api/instructeur/formations/${id}/cohorts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? (fr ? "Erreur" : "Error"));
+      }
+      return res.json();
+    },
+    [instructorKeys.cohorts(id)]
+  );
+
+  const deleteMutation = useInstructorMutation(
+    async (cohortId: string) => {
+      const res = await fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? (fr ? "Erreur" : "Error"));
+      }
+    },
+    [instructorKeys.cohorts(id)]
+  );
+
+  const saving = createMutation.isPending;
+
+  const createCohort = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setError("");
 
     let parsedSchedule = null;
     if (form.schedule.trim()) {
       try { parsedSchedule = JSON.parse(form.schedule); }
-      catch { setError(fr ? "JSON du programme invalide" : "Invalid schedule JSON"); setSaving(false); return; }
+      catch { setError(fr ? "JSON du programme invalide" : "Invalid schedule JSON"); return; }
     }
 
-    const res = await fetch(`/api/instructeur/formations/${id}/cohorts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+    createMutation.mutate(
+      {
         ...form,
         originalPrice: form.originalPrice ? parseFloat(form.originalPrice) : null,
         schedule: parsedSchedule,
-      }),
-    });
-
-    if (res.ok) {
-      setShowForm(false);
-      setForm(emptyForm);
-      fetchCohorts();
-    } else {
-      const data = await res.json();
-      setError(data.error ?? (fr ? "Erreur" : "Error"));
-    }
-    setSaving(false);
+      },
+      {
+        onSuccess: () => { setShowForm(false); setForm(emptyForm); },
+        onError: (err) => setError(err instanceof Error ? err.message : (fr ? "Erreur" : "Error")),
+      }
+    );
   };
 
-  const deleteCohort = async (cohortId: string) => {
+  const deleteCohort = (cohortId: string) => {
     if (!confirm(fr ? "Supprimer cette cohorte ?" : "Delete this cohort?")) return;
-    const res = await fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}`, { method: "DELETE" });
-    if (res.ok) fetchCohorts();
-    else {
-      const data = await res.json();
-      alert(data.error ?? (fr ? "Erreur" : "Error"));
-    }
+    deleteMutation.mutate(cohortId, {
+      onError: (err) => alert(err instanceof Error ? err.message : (fr ? "Erreur" : "Error")),
+    });
   };
 
   return (
@@ -161,6 +165,19 @@ export default function InstructeurCohortsPage({ params }: { params: Promise<{ i
           {fr ? "Nouvelle cohorte" : "New Cohort"}
         </button>
       </div>
+
+      {/* Query error */}
+      {queryError && !error && (
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 text-sm text-red-700 dark:text-red-400 mb-6">
+          <span>{fr ? "Erreur lors du chargement des cohortes" : "Error loading cohorts"}</span>
+          <button
+            onClick={() => refetch()}
+            className="ml-4 px-3 py-1.5 bg-red-100 dark:bg-red-800/40 hover:bg-red-200 dark:hover:bg-red-800/60 rounded-lg font-medium transition-colors whitespace-nowrap"
+          >
+            {fr ? "Réessayer" : "Retry"}
+          </button>
+        </div>
+      )}
 
       {/* Create form */}
       {showForm && (

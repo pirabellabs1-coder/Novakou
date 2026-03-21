@@ -7,6 +7,7 @@ import {
   Type, Image as ImageIcon, Video, Columns, DollarSign, MessageSquare, HelpCircle,
   MousePointer, Heading,
 } from "lucide-react";
+import { useInstructorSalesFunnel, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor,
   useSensor, useSensors, type DragEndEvent,
@@ -168,12 +169,12 @@ function BlockEditor({ block, onChange, onDelete }: { block: Block; onChange: (d
 export default function SalesFunnelBuilderPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+  const { data: funnelData, isLoading: loading, error: queryError, refetch } = useInstructorSalesFunnel(id);
   const [funnel, setFunnel] = useState<Funnel | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [seeded, setSeeded] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -181,35 +182,43 @@ export default function SalesFunnelBuilderPage() {
   );
 
   useEffect(() => {
-    fetch(`/api/instructeur/sales-funnel/${id}`)
-      .then((r) => r.json())
-      .catch(() => null)
-      .then((data) => {
-        // Try getting funnel by ID — if API returns it directly
-        if (data?.funnel) {
-          setFunnel(data.funnel);
-          setBlocks(Array.isArray(data.funnel.blocks) ? data.funnel.blocks.map((b: Block) => ({ ...b, id: b.id ?? generateId() })) : []);
-        }
-        setLoading(false);
-      });
-  }, [id]);
+    if (!seeded && funnelData) {
+      const data = funnelData as { funnel?: Funnel };
+      if (data.funnel) {
+        setFunnel(data.funnel);
+        setBlocks(Array.isArray(data.funnel.blocks) ? data.funnel.blocks.map((b: Block) => ({ ...b, id: b.id ?? generateId() })) : []);
+      }
+      setSeeded(true);
+    }
+  }, [funnelData, seeded]);
 
-  const saveBlocks = useCallback(async (publish?: boolean) => {
-    setSaving(true);
+  const saveMutation = useInstructorMutation(
+    async (body: Record<string, unknown>) => {
+      const res = await fetch(`/api/instructeur/sales-funnel/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return res.json();
+    },
+    [instructorKeys.salesFunnel(id), instructorKeys.salesFunnels()]
+  );
+
+  const saveBlocks = useCallback((publish?: boolean) => {
     const body: Record<string, unknown> = { blocks };
     if (publish !== undefined) body.published = publish;
-    await fetch(`/api/instructeur/sales-funnel/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+    saveMutation.mutate(body, {
+      onSuccess: () => {
+        if (publish !== undefined && funnel) {
+          setFunnel({ ...funnel, published: publish });
+        }
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      },
     });
-    if (publish !== undefined && funnel) {
-      setFunnel({ ...funnel, published: publish });
-    }
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }, [blocks, id, funnel]);
+  }, [blocks, funnel, saveMutation]);
+
+  const saving = saveMutation.isPending;
 
   const addBlock = (type: BlockType) => {
     const defaults: Record<BlockType, Record<string, unknown>> = {
@@ -246,6 +255,16 @@ export default function SalesFunnelBuilderPage() {
   };
 
   if (loading) return <div className="p-4 sm:p-6 lg:p-8"><div className="h-40 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" /></div>;
+  if (queryError) return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl w-full mx-auto">
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+        <p className="text-sm text-slate-500 mb-4">{(queryError as Error)?.message || "Erreur lors du chargement"}</p>
+        <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+          Réessayer
+        </button>
+      </div>
+    </div>
+  );
   if (!funnel) return <div className="p-4 sm:p-6 lg:p-8 text-center text-slate-400">Tunnel introuvable</div>;
 
   return (

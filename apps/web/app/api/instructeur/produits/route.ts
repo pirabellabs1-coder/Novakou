@@ -52,7 +52,7 @@ const updateProductSchema = z.object({
   watermarkEnabled: z.boolean().optional(),
   maxBuyers: z.number().int().min(1).optional().nullable(),
   tags: z.array(z.string()).optional(),
-  status: z.enum(["BROUILLON", "EN_ATTENTE", "ACTIF", "PAUSE"]).optional(),
+  status: z.enum(["BROUILLON", "EN_ATTENTE", "ACTIF"]).optional(),
 });
 
 // ── Select standard pour les réponses de liste ──────────────────────────────
@@ -62,6 +62,7 @@ const productListSelect = {
   slug: true,
   title: true,
   productType: true,
+  categoryId: true,
   price: true,
   salesCount: true,
   viewsCount: true,
@@ -105,7 +106,7 @@ export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
     }
 
     const instructeur = await resolveInstructeur(session.user.id);
@@ -133,7 +134,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
     }
 
     const instructeur = await resolveInstructeur(session.user.id);
@@ -144,6 +145,12 @@ export async function POST(req: NextRequest) {
     // Note: pas de vérification APPROUVE pour publier — KYC requis uniquement pour les retraits
 
     const body = await req.json();
+
+    // Validation du titre avant le parse Zod pour un message d'erreur explicite
+    if (!body.title || (typeof body.title === "string" && body.title.trim().length < 3)) {
+      return NextResponse.json({ error: "Titre francais requis" }, { status: 400 });
+    }
+
     const data = createProductSchema.parse(body);
 
     const slug = await generateUniqueSlug(data.title);
@@ -194,7 +201,7 @@ export async function PUT(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
     }
 
     const instructeur = await resolveInstructeur(session.user.id);
@@ -215,7 +222,7 @@ export async function PUT(req: NextRequest) {
       const anyExisting = await prisma.digitalProduct.findUnique({ where: { id } });
       if (anyExisting) {
         return NextResponse.json(
-          { error: "Vous n'êtes pas autorisé à modifier ce produit" },
+          { error: "Acces interdit" },
           { status: 403 }
         );
       }
@@ -274,7 +281,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
     }
 
     const instructeur = await resolveInstructeur(session.user.id);
@@ -298,7 +305,7 @@ export async function DELETE(req: NextRequest) {
       const anyExisting = await prisma.digitalProduct.findUnique({ where: { id } });
       if (anyExisting) {
         return NextResponse.json(
-          { error: "Vous n'êtes pas autorisé à archiver ce produit" },
+          { error: "Acces interdit" },
           { status: 403 }
         );
       }

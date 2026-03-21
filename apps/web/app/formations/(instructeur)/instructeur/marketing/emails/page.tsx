@@ -10,6 +10,7 @@ import {
   UserPlus, Tag, BookOpen, Eye,
   MailOpen, Play, Search, SlidersHorizontal,
 } from "lucide-react";
+import SharedStatCard from "@/components/formations/StatCard";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -117,7 +118,7 @@ function formatDate(iso: string): string {
 
 export default function EmailSequencesPage() {
   const queryClient = useQueryClient();
-  const { data: queryData, isLoading: loading } = useInstructorEmailSequences();
+  const { data: queryData, isLoading: loading, error: queryError, refetch } = useInstructorEmailSequences();
   const sequences: SequenceSummary[] = (queryData as { sequences?: SequenceSummary[] })?.sequences ?? [];
   const stats: Stats = (queryData as { stats?: Stats })?.stats ?? {
     totalSequences: 0,
@@ -144,9 +145,11 @@ export default function EmailSequencesPage() {
       });
       if (res.ok) {
         await queryClient.invalidateQueries({ queryKey: instructorKeys.emailSequences() });
+      } else {
+        alert("Erreur lors du changement de statut");
       }
     } catch {
-      // fallback
+      alert("Erreur lors du changement de statut");
     } finally {
       setToggling(null);
     }
@@ -165,9 +168,11 @@ export default function EmailSequencesPage() {
       });
       if (res.ok) {
         await queryClient.invalidateQueries({ queryKey: instructorKeys.emailSequences() });
+      } else {
+        alert("Erreur lors de la suppression");
       }
     } catch {
-      // fallback
+      alert("Erreur lors de la suppression");
     } finally {
       setDeleting(null);
     }
@@ -199,6 +204,20 @@ export default function EmailSequencesPage() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <Mail className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
         </div>
       </div>
     );
@@ -237,32 +256,32 @@ export default function EmailSequencesPage() {
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          icon={<Mail className="w-5 h-5 text-violet-600" />}
-          iconBg="bg-violet-50 dark:bg-violet-900/20"
+        <SharedStatCard
+          icon={Mail}
+          color="text-violet-600"
+          bg="bg-violet-50 dark:bg-violet-900/20"
           label="Total sequences"
-          labelEn="Total sequences"
           value={stats.totalSequences}
         />
-        <StatCard
-          icon={<Play className="w-5 h-5 text-green-600" />}
-          iconBg="bg-green-50 dark:bg-green-900/20"
+        <SharedStatCard
+          icon={Play}
+          color="text-green-600"
+          bg="bg-green-50 dark:bg-green-900/20"
           label="Sequences actives"
-          labelEn="Active sequences"
           value={stats.activeSequences}
         />
-        <StatCard
-          icon={<Users className="w-5 h-5 text-blue-600" />}
-          iconBg="bg-blue-50 dark:bg-blue-900/20"
+        <SharedStatCard
+          icon={Users}
+          color="text-blue-600"
+          bg="bg-blue-50 dark:bg-blue-900/20"
           label="Total inscrits"
-          labelEn="Total enrolled"
           value={stats.totalEnrolled}
         />
-        <StatCard
-          icon={<MailOpen className="w-5 h-5 text-amber-600" />}
-          iconBg="bg-amber-50 dark:bg-amber-900/20"
+        <SharedStatCard
+          icon={MailOpen}
+          color="text-amber-600"
+          bg="bg-amber-50 dark:bg-amber-900/20"
           label="Taux d'ouverture moy."
-          labelEn="Avg. open rate"
           value={`${stats.avgOpenRate}%`}
         />
       </div>
@@ -503,33 +522,6 @@ export default function EmailSequencesPage() {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
-
-function StatCard({
-  icon,
-  iconBg,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  iconBg: string;
-  label: string;
-  labelEn: string;
-  value: string | number;
-}) {
-  return (
-    <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{value}</p>
-          <p className="text-xs text-slate-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function FeatureCard({
   icon,

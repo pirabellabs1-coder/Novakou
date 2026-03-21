@@ -82,8 +82,8 @@ export default function InstructeurRevenusPage() {
   const [withdrawError, setWithdrawError] = useState("");
   const [withdrawSuccess, setWithdrawSuccess] = useState(false);
 
-  const { data: revenueData, isLoading: revenueLoading } = useInstructorRevenue();
-  const { data: productStatsData, isLoading: productStatsLoading } = useInstructorProductStats("all");
+  const { data: revenueData, isLoading: revenueLoading, error: revenueError, refetch: refetchRevenue } = useInstructorRevenue();
+  const { data: productStatsData, isLoading: productStatsLoading, error: productStatsError, refetch: refetchProducts } = useInstructorProductStats("all");
 
   const revenue = revenueData as Revenue | null | undefined;
   const productStats = productStatsData as ProductStats | null | undefined;
@@ -237,6 +237,21 @@ export default function InstructeurRevenusPage() {
           {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 bg-slate-200 rounded-2xl animate-pulse" />)}
         </div>
         <div className="h-72 bg-slate-200 rounded-2xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (revenueError || productStatsError) {
+    const errorMsg = (revenueError as Error)?.message || (productStatsError as Error)?.message || (fr ? "Erreur lors du chargement" : "Loading error");
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{errorMsg}</p>
+          <button onClick={() => { refetchRevenue(); refetchProducts(); }} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            {fr ? "Réessayer" : "Retry"}
+          </button>
+        </div>
       </div>
     );
   }

@@ -9,6 +9,7 @@ import {
   X, TrendingUp, Users, Timer, Archive, Percent,
   BookOpen, ShoppingBag,
 } from "lucide-react";
+import SharedStatCard from "@/components/formations/StatCard";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -108,7 +109,7 @@ function formatDateTime(iso: string): string {
 
 export default function FlashOffersPage() {
   const queryClient = useQueryClient();
-  const { data: queryData, isLoading: loading } = useMarketingFlashOffers();
+  const { data: queryData, isLoading: loading, error: queryError, refetch } = useMarketingFlashOffers();
 
   // Local state seeded from query data
   const [active, setActive] = useState<FlashOffer[]>([]);
@@ -299,6 +300,22 @@ export default function FlashOffersPage() {
     );
   }
 
+  // ── Error state ──
+
+  if (queryError) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <Zap className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const items = form.targetType === "formation" ? formations : products;
 
   return (
@@ -334,27 +351,31 @@ export default function FlashOffersPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <StatCard
-          icon={<Zap className="w-5 h-5 text-amber-600" />}
-          iconBg="bg-amber-50 dark:bg-amber-900/20"
+        <SharedStatCard
+          icon={Zap}
+          color="text-amber-600"
+          bg="bg-amber-50 dark:bg-amber-900/20"
           label="Total offres"
           value={stats.totalOffers}
         />
-        <StatCard
-          icon={<Timer className="w-5 h-5 text-green-600" />}
-          iconBg="bg-green-50 dark:bg-green-900/20"
+        <SharedStatCard
+          icon={Timer}
+          color="text-green-600"
+          bg="bg-green-50 dark:bg-green-900/20"
           label="Actives"
           value={stats.activeNow}
         />
-        <StatCard
-          icon={<Users className="w-5 h-5 text-blue-600" />}
-          iconBg="bg-blue-50 dark:bg-blue-900/20"
+        <SharedStatCard
+          icon={Users}
+          color="text-blue-600"
+          bg="bg-blue-50 dark:bg-blue-900/20"
           label="Utilisations"
           value={stats.totalUsages}
         />
-        <StatCard
-          icon={<TrendingUp className="w-5 h-5 text-emerald-600" />}
-          iconBg="bg-emerald-50 dark:bg-emerald-900/20"
+        <SharedStatCard
+          icon={TrendingUp}
+          color="text-emerald-600"
+          bg="bg-emerald-50 dark:bg-emerald-900/20"
           label="Revenus"
           value={`${stats.totalRevenue.toFixed(0)}€`}
         />
@@ -802,32 +823,6 @@ export default function FlashOffersPage() {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
-
-function StatCard({
-  icon,
-  iconBg,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  iconBg: string;
-  label: string;
-  value: string | number;
-}) {
-  return (
-    <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-      <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white dark:text-slate-100">{value}</p>
-          <p className="text-xs text-slate-500">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function CountdownBlock({ value, label }: { value: number; label: string }) {
   return (

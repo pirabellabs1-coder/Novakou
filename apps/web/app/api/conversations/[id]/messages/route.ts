@@ -70,7 +70,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { content, type, fileName, fileSize } = body;
+    const { content, type, fileName, fileSize, fileUrl, fileType, linkPreviewData } = body;
 
     if (!content || typeof content !== "string" || content.trim().length === 0) {
       return NextResponse.json(
@@ -85,7 +85,10 @@ export async function POST(
       content.trim(),
       type || "text",
       fileName,
-      fileSize
+      fileSize,
+      linkPreviewData,
+      fileUrl,
+      fileType
     );
 
     if (!updatedConversation) {
@@ -95,7 +98,34 @@ export async function POST(
       );
     }
 
-    // Create notification for other participants
+    // Auto-link files to order resources when shared in ORDER conversations
+    if ((type === "file" || type === "image") && fileUrl && updatedConversation.orderId) {
+      try {
+        const { orderStore } = await import("@/lib/dev/data-store");
+        const order = orderStore.getById(updatedConversation.orderId);
+        if (order) {
+          // Determine uploader role based on order participant IDs
+          const uploadedBy: "freelance" | "client" =
+            session.user.id === order.freelanceId ? "freelance" : "client";
+          const orderFile = {
+            id: `file-${Date.now()}`,
+            name: fileName || "Fichier",
+            url: fileUrl,
+            type: fileType || "application/octet-stream",
+            size: fileSize || "0 MB",
+            uploadedBy,
+            uploadedAt: new Date().toISOString(),
+          };
+          // Append to the order's files array and persist
+          order.files.push(orderFile);
+          orderStore.update(order.id, { files: order.files });
+        }
+      } catch {
+        // Non-blocking: resource linking is best-effort
+      }
+    }
+
+    // Create notification for other participants (in-app)
     const senderName = session.user.name || "Utilisateur";
     const isFile = type === "file" || type === "image";
     const otherParticipants = updatedConversation.participants.filter(
@@ -107,7 +137,7 @@ export async function POST(
         ? `${senderName} a partage un fichier`
         : "Nouveau message";
       const notifMessage = isFile
-        ? `${senderName} a partage : ${fileName || "fichier"}`
+        ? `${senderName} a partage un fichier : ${fileName || "fichier"}`
         : `${senderName} : ${content.trim().slice(0, 50)}${content.trim().length > 50 ? "..." : ""}`;
 
       notificationStore.add({
@@ -115,8 +145,24 @@ export async function POST(
         title: notifTitle,
         message: notifMessage,
         type: "message",
+        read: false,
         link: `/dashboard/messages`,
       });
+
+      // TODO: [Email notification after 5 min unread]
+      // When this notification is created, schedule a delayed email notification job.
+      // Implementation requires a BullMQ worker or cron job that:
+      //   1. Schedules a job with a 5-minute delay for each new message notification
+      //   2. When the job executes, checks if the notification is still unread
+      //   3. If still unread AND the user has email notifications enabled in their settings,
+      //      batches all unread message notifications and sends a single summary email
+      //   4. The email should contain: number of unread messages, sender names, and a link to /dashboard/messages
+      //   5. Uses Resend + React Email template: UnreadMessagesEmail
+      //
+      // Hook point: enqueue the delayed job here:
+      //   await messageEmailQueue.add('unread-email-check', { userId: participantId, notificationId }, { delay: 5 * 60 * 1000 });
+      //
+      // The BullMQ worker should be in: apps/api/src/workers/unread-email-worker.ts
     }
 
     return NextResponse.json({

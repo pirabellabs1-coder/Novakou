@@ -48,7 +48,7 @@ export default function PixelConfigPage() {
   // Local state for editing
   const [editValues, setEditValues] = useState<Record<string, { pixelId: string; isActive: boolean }>>({});
 
-  const { data: pixelsData, isLoading: loading } = useInstructorPixels();
+  const { data: pixelsData, isLoading: loading, error: queryError, refetch } = useInstructorPixels();
   const pixels: Pixel[] = (pixelsData as { pixels?: Pixel[] } | null)?.pixels ?? [];
 
   useEffect(() => {
@@ -113,6 +113,20 @@ export default function PixelConfigPage() {
 
   if (loading) {
     return <div className="animate-pulse space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-32 bg-slate-200 dark:bg-slate-700 rounded-xl" />)}</div>;
+  }
+
+  if (queryError) {
+    return (
+      <div className="max-w-2xl">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <BarChart2 className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

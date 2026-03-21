@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useToastStore } from "@/store/dashboard";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
@@ -65,11 +65,29 @@ export default function AdminFinances() {
     blockTransaction,
     unblockTransaction,
     approveTransaction,
+    refreshInterval,
+    lastRefreshedAt,
   } = useAdminStore();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleManualRefresh = useCallback(() => {
+    syncFinances();
+  }, [syncFinances]);
 
   useEffect(() => {
     syncFinances();
   }, [syncFinances]);
+
+  // Auto-refresh every refreshInterval ms (default 30s)
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      syncFinances();
+    }, refreshInterval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [syncFinances, refreshInterval]);
 
   const isLoading = loading.finances;
 
@@ -135,10 +153,26 @@ export default function AdminFinances() {
           </h1>
           <p className="text-slate-400 text-sm mt-1">Suivi des transactions et revenus de la plateforme.</p>
         </div>
-        <button onClick={() => addToast("success", "Rapport financier exporté (CSV)")} className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors">
-          <span className="material-symbols-outlined text-sm">download</span>
-          Exporter
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleManualRefresh}
+            disabled={loading.finances}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-primary/10 border border-border-dark transition-colors disabled:opacity-50"
+            title="Actualiser les donnees"
+          >
+            <span className={cn("material-symbols-outlined text-sm", loading.finances && "animate-spin")}>refresh</span>
+            Actualiser
+          </button>
+          {lastRefreshedAt.finances && (
+            <span className="text-[10px] text-slate-600 hidden sm:block">
+              MAJ {new Date(lastRefreshedAt.finances).toLocaleTimeString("fr-FR")}
+            </span>
+          )}
+          <button onClick={() => addToast("success", "Rapport financier exporté (CSV)")} className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors">
+            <span className="material-symbols-outlined text-sm">download</span>
+            Exporter
+          </button>
+        </div>
       </div>
 
       {/* Statistiques */}

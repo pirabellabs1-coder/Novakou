@@ -389,7 +389,7 @@ export default function InscriptionPage() {
     // Steps 1-2: just advance
     if (step < 3) { setStep(step + 1); return; }
 
-    // Step 3 (final): sign in and redirect
+    // Step 3 (final): sign in, save onboarding profile data, and redirect
     setRegisterLoading(true);
     try {
       const signInResult = await signIn("credentials", {
@@ -401,6 +401,29 @@ export default function InscriptionPage() {
       if (signInResult?.error) {
         router.push("/connexion?registered=1");
         return;
+      }
+
+      // Save onboarding profile data (country, bio, title, skills, etc.)
+      try {
+        const profileData: Record<string, unknown> = {};
+        if (d.pays) profileData.country = d.pays;
+        if (d.ville) profileData.city = d.ville;
+        if (d.bio) profileData.bio = d.bio;
+        if (d.titre) profileData.title = d.titre;
+        if (d.tarifHoraire) profileData.hourlyRate = parseFloat(d.tarifHoraire) || 0;
+        if (d.competences.length > 0) profileData.skills = d.competences;
+        if (d.langues.length > 0) profileData.languages = d.langues.map((l: string) => ({ name: l, level: "courant" }));
+
+        if (Object.keys(profileData).length > 0) {
+          await fetch("/api/profile", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(profileData),
+          });
+        }
+      } catch (profileErr) {
+        // Non-blocking: profile data can be completed later
+        console.error("[INSCRIPTION] Erreur sauvegarde profil onboarding:", profileErr);
       }
 
       router.refresh();

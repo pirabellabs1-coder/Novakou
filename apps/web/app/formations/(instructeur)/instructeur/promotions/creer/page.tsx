@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
@@ -8,6 +8,7 @@ import {
   ArrowLeft, Tag, Percent, Calendar, Check,
   AlertCircle, Loader2, Package, BookOpen,
 } from "lucide-react";
+import { useInstructorFormations, useInstructorProducts, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 // ── Types ──
 
@@ -49,40 +50,22 @@ export default function CreerPromotionPage() {
     endsAt: "",
     maxUsage: "",
   });
-  const [targets, setTargets] = useState<TargetItem[]>([]);
-  const [loadingTargets, setLoadingTargets] = useState(true);
+  const { data: formationsRaw, isLoading: formationsLoading } = useInstructorFormations();
+  const { data: productsRaw, isLoading: productsLoading } = useInstructorProducts();
+  const loadingTargets = formationsLoading || productsLoading;
+
+  const targets: TargetItem[] = [
+    ...((Array.isArray(formationsRaw) ? formationsRaw : []) as { id: string; title: string }[]).map(
+      (f) => ({ id: f.id, title: f.title, type: "formation" as const })
+    ),
+    ...(((productsRaw as { products?: { id: string; title: string }[] } | null)?.products ?? []).map(
+      (p) => ({ id: p.id, title: p.title, type: "product" as const })
+    )),
+  ];
+
   const [errors, setErrors] = useState<FormErrors>({});
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
-
-  // Fetch formations and products
-  useEffect(() => {
-    setLoadingTargets(true);
-    Promise.all([
-      fetch("/api/instructeur/formations").then((r) => r.json()),
-      fetch("/api/instructeur/produits").then((r) => r.json()),
-    ])
-      .then(([formData, prodData]) => {
-        const formations: TargetItem[] = (formData.formations || []).map(
-          (f: { id: string; title: string }) => ({
-            id: f.id,
-            title: f.title,
-            type: "formation" as const,
-          }),
-        );
-        const products: TargetItem[] = (prodData.products || []).map(
-          (p: { id: string; title: string }) => ({
-            id: p.id,
-            title: p.title,
-            type: "product" as const,
-          }),
-        );
-        setTargets([...formations, ...products]);
-      })
-      .catch(() => {})
-      .finally(() => setLoadingTargets(false));
-  }, []);
 
   const filteredTargets = targets.filter((t) => t.type === form.targetType);
 
@@ -130,51 +113,43 @@ export default function CreerPromotionPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validate()) return;
-
-    setSubmitting(true);
-    setSubmitError("");
-
-    try {
-      const body: Record<string, unknown> = {
-        discountPct: parseInt(form.discountPct, 10),
-        startsAt: new Date(form.startsAt).toISOString(),
-        endsAt: new Date(form.endsAt).toISOString(),
-      };
-
-      if (form.targetType === "formation") {
-        body.formationId = form.targetId;
-      } else {
-        body.digitalProductId = form.targetId;
-      }
-
-      if (form.maxUsage) {
-        body.maxUsage = parseInt(form.maxUsage, 10);
-      }
-
+  const createMutation = useInstructorMutation(
+    async (body: Record<string, unknown>) => {
       const res = await fetch("/api/instructeur/promotions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-
       const data = await res.json();
-      if (!res.ok) {
-        setSubmitError(data.error || (fr ? "Erreur lors de la creation" : "Error creating promotion"));
-        return;
-      }
+      if (!res.ok) throw new Error(data.error || (fr ? "Erreur lors de la creation" : "Error creating promotion"));
+      return data;
+    },
+    [instructorKeys.promotions()]
+  );
 
-      setSuccess(true);
-      setTimeout(() => {
-        router.push("/formations/instructeur/promotions");
-      }, 1500);
-    } catch {
-      setSubmitError(fr ? "Erreur reseau" : "Network error");
-    } finally {
-      setSubmitting(false);
-    }
+  const submitting = createMutation.isPending;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    setSubmitError("");
+    const body: Record<string, unknown> = {
+      discountPct: parseInt(form.discountPct, 10),
+      startsAt: new Date(form.startsAt).toISOString(),
+      endsAt: new Date(form.endsAt).toISOString(),
+    };
+    if (form.targetType === "formation") body.formationId = form.targetId;
+    else body.digitalProductId = form.targetId;
+    if (form.maxUsage) body.maxUsage = parseInt(form.maxUsage, 10);
+
+    createMutation.mutate(body, {
+      onSuccess: () => {
+        setSuccess(true);
+        setTimeout(() => router.push("/formations/instructeur/promotions"), 1500);
+      },
+      onError: (err) => setSubmitError(err instanceof Error ? err.message : (fr ? "Erreur reseau" : "Network error")),
+    });
   };
 
   if (success) {

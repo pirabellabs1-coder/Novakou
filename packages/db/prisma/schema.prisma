@@ -171,7 +171,7 @@ model User {
   passwordHash    String
   name            String
   image           String?
-  role            UserRole   @default(FREELANCE)
+  role            UserRole   @default(CLIENT)
   plan            UserPlan   @default(GRATUIT)
   status          UserStatus @default(ACTIF)
   country         String?

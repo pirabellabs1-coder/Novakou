@@ -11,6 +11,7 @@ import {
   Copy, Check, Monitor, ArrowLeft, MousePointer, Clock,
   ScrollText, Hash, Zap,
 } from "lucide-react";
+import SharedStatCard from "@/components/formations/StatCard";
 import dynamic from "next/dynamic";
 
 const MarkdownEditor = dynamic(
@@ -152,7 +153,7 @@ function formatNumber(n: number): string {
 
 export default function PopupsManagementPage() {
   const queryClient = useQueryClient();
-  const { data: queryData, isLoading: loading } = useInstructorPopups();
+  const { data: queryData, isLoading: loading, error: queryError, refetch } = useInstructorPopups();
   const popups: Popup[] = (queryData as { popups?: Popup[] })?.popups ?? [];
   const stats: Stats | null = (queryData as { stats?: Stats })?.stats ?? null;
 
@@ -297,17 +298,18 @@ export default function PopupsManagementPage() {
       });
       await queryClient.invalidateQueries({ queryKey: instructorKeys.popups() });
     } catch {
-      // ignore
+      alert("Erreur lors du changement de statut");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer ce popup ? Cette action est irreversible.")) return;
     try {
-      await fetch(`/api/marketing/popups?id=${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/marketing/popups?id=${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Erreur suppression");
       await queryClient.invalidateQueries({ queryKey: instructorKeys.popups() });
     } catch {
-      // ignore
+      alert("Erreur lors de la suppression du popup");
     }
   };
 
@@ -332,6 +334,22 @@ export default function PopupsManagementPage() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-28 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  // ── Error state ──
+
+  if (queryError) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <MessageSquare className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
         </div>
       </div>
     );
@@ -369,10 +387,10 @@ export default function PopupsManagementPage() {
       {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon={<MessageSquare className="w-5 h-5" />} label="Total popups" value={stats.totalPopups} color="text-slate-600 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 dark:text-slate-300" />
-          <StatCard icon={<ToggleRight className="w-5 h-5" />} label="Actifs" value={stats.activePopups} color="text-green-600 bg-green-50 dark:bg-green-900/20" />
-          <StatCard icon={<Eye className="w-5 h-5" />} label="Impressions totales" value={formatNumber(stats.totalImpressions)} color="text-blue-600 bg-blue-50 dark:bg-blue-900/20" />
-          <StatCard icon={<TrendingUp className="w-5 h-5" />} label="Conversions totales" value={formatNumber(stats.totalConversions)} sub={`${stats.avgConversionRate}% moy.`} color="text-purple-600 bg-purple-50 dark:bg-purple-900/20" />
+          <SharedStatCard icon={MessageSquare} label="Total popups" value={stats.totalPopups} color="text-slate-600" bg="bg-slate-100 dark:bg-slate-700" />
+          <SharedStatCard icon={ToggleRight} label="Actifs" value={stats.activePopups} color="text-green-600" bg="bg-green-50 dark:bg-green-900/20" />
+          <SharedStatCard icon={Eye} label="Impressions totales" value={formatNumber(stats.totalImpressions)} color="text-blue-600" bg="bg-blue-50 dark:bg-blue-900/20" />
+          <SharedStatCard icon={TrendingUp} label={`Conversions (${stats.avgConversionRate}% moy.)`} value={formatNumber(stats.totalConversions)} color="text-purple-600" bg="bg-purple-50 dark:bg-purple-900/20" />
         </div>
       )}
 
@@ -921,21 +939,6 @@ export default function PopupsManagementPage() {
 
 // ── Sub-components ──
 
-function StatCard({ icon, label, value, sub, color }: {
-  icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string;
-}) {
-  return (
-    <div className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4">
-      <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${color} mb-2`}>
-        {icon}
-      </div>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-slate-500">{label}</p>
-      {sub && <p className="text-xs text-primary font-semibold mt-0.5">{sub}</p>}
-    </div>
-  );
-}
-
 function PopupPreviewModal({ popup, onClose }: { popup: Popup; onClose: () => void }) {
   const typeConfig = POPUP_TYPE_CONFIG[popup.type];
 
@@ -1018,8 +1021,8 @@ function PopupPreviewModal({ popup, onClose }: { popup: Popup; onClose: () => vo
 
           {popup.type === "UPSELL" && popup.upsellOriginalPrice && (
             <div className="mb-4 flex items-center gap-3">
-              <span className="text-slate-400 line-through text-lg">{popup.upsellOriginalPrice.toFixed(2)}EUR</span>
-              <span className="text-2xl font-bold text-green-600">{popup.upsellDiscountedPrice?.toFixed(2) || "---"}EUR</span>
+              <span className="text-slate-400 line-through text-lg">{popup.upsellOriginalPrice.toFixed(2)}€</span>
+              <span className="text-2xl font-bold text-green-600">{popup.upsellDiscountedPrice?.toFixed(2) || "---"}€</span>
             </div>
           )}
 

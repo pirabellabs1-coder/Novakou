@@ -51,7 +51,7 @@ export async function PUT(
       const elapsed = Date.now() - new Date(msg.timestamp).getTime();
       if (elapsed > EDIT_WINDOW_MS) {
         return NextResponse.json(
-          { error: "Le delai de modification est expire" },
+          { error: "Le delai de modification est expire (15 minutes)" },
           { status: 400 }
         );
       }
@@ -86,7 +86,7 @@ export async function PUT(
     const elapsed = Date.now() - message.createdAt.getTime();
     if (elapsed > EDIT_WINDOW_MS) {
       return NextResponse.json(
-        { error: "Le delai de modification est expire" },
+        { error: "Le delai de modification est expire (15 minutes)" },
         { status: 400 }
       );
     }
@@ -144,7 +144,7 @@ export async function DELETE(
       const elapsed = Date.now() - new Date(msg.timestamp).getTime();
       if (elapsed > DELETE_WINDOW_MS) {
         return NextResponse.json(
-          { error: "Le delai de suppression est expire" },
+          { error: "Le delai de suppression est expire (10 minutes)" },
           { status: 400 }
         );
       }
@@ -179,7 +179,7 @@ export async function DELETE(
     const elapsed = Date.now() - message.createdAt.getTime();
     if (elapsed > DELETE_WINDOW_MS) {
       return NextResponse.json(
-        { error: "Le delai de suppression est expire" },
+        { error: "Le delai de suppression est expire (10 minutes)" },
         { status: 400 }
       );
     }

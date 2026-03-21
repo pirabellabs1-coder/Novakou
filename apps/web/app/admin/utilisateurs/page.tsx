@@ -83,9 +83,9 @@ export default function AdminUsers() {
   const filtered = useMemo(() => {
     return users.filter(u => {
       if (search && !u.name.toLowerCase().includes(search.toLowerCase()) && !u.email.toLowerCase().includes(search.toLowerCase())) return false;
-      if (roleFilter && u.role !== roleFilter) return false;
-      if (statusFilter && u.status !== statusFilter) return false;
-      if (planFilter && u.plan !== planFilter) return false;
+      if (roleFilter && u.role?.toLowerCase() !== roleFilter.toLowerCase()) return false;
+      if (statusFilter && u.status?.toLowerCase() !== statusFilter.toLowerCase()) return false;
+      if (planFilter && u.plan?.toLowerCase() !== planFilter.toLowerCase()) return false;
       return true;
     });
   }, [search, roleFilter, statusFilter, planFilter, users]);
@@ -147,9 +147,9 @@ export default function AdminUsers() {
 
   const stats = useMemo(() => ({
     total: users.length,
-    actifs: users.filter(u => u.status === "actif").length,
-    suspendus: users.filter(u => u.status === "suspendu").length,
-    bannis: users.filter(u => u.status === "banni").length,
+    actifs: users.filter(u => u.status?.toLowerCase() === "actif").length,
+    suspendus: users.filter(u => u.status?.toLowerCase() === "suspendu").length,
+    bannis: users.filter(u => u.status?.toLowerCase() === "banni").length,
   }), [users]);
 
   return (
@@ -246,24 +246,24 @@ export default function AdminUsers() {
                       </Link>
                     </td>
                     <td className="px-5 py-3">
-                      <button onClick={() => openModal(u, "role")} className={cn("text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80", ROLE_MAP[u.role]?.cls)}>
-                        {ROLE_MAP[u.role]?.label}
+                      <button onClick={() => openModal(u, "role")} className={cn("text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80", ROLE_MAP[u.role?.toLowerCase()]?.cls || "bg-slate-500/20 text-slate-400")}>
+                        {ROLE_MAP[u.role?.toLowerCase()]?.label || u.role || <span className="text-slate-600">&mdash;</span>}
                       </button>
                     </td>
                     <td className="px-5 py-3">
-                      <button onClick={() => openModal(u, "plan")} className={cn("text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80", PLAN_MAP[u.plan]?.cls)}>
-                        {PLAN_MAP[u.plan]?.label}
+                      <button onClick={() => openModal(u, "plan")} className={cn("text-xs font-semibold px-2 py-0.5 rounded-full cursor-pointer hover:opacity-80", PLAN_MAP[u.plan?.toLowerCase()]?.cls || "bg-slate-500/20 text-slate-400")}>
+                        {PLAN_MAP[u.plan?.toLowerCase()]?.label || u.plan || <span className="text-slate-600">&mdash;</span>}
                       </button>
                     </td>
-                    <td className="px-5 py-3 text-sm text-slate-300">{u.country}</td>
+                    <td className="px-5 py-3 text-sm text-slate-300">{u.country || <span className="text-slate-600">&mdash;</span>}</td>
                     <td className="px-5 py-3 text-center">
                       <button onClick={() => openModal(u, "kyc")} className="text-xs font-bold bg-border-dark text-slate-300 px-2 py-0.5 rounded-full cursor-pointer hover:bg-primary/20 hover:text-primary transition-colors">
-                        Niv. {u.kycLevel}
+                        Niv. {u.kycLevel ?? 0}
                       </button>
                     </td>
                     <td className="px-5 py-3 text-center">
-                      <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", STATUS_MAP[u.status]?.cls)}>
-                        {STATUS_MAP[u.status]?.label}
+                      <span className={cn("text-xs font-semibold px-2 py-0.5 rounded-full", STATUS_MAP[u.status?.toLowerCase()]?.cls || "bg-slate-500/20 text-slate-400")}>
+                        {STATUS_MAP[u.status?.toLowerCase()]?.label || u.status || <span className="text-slate-600">&mdash;</span>}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-sm text-slate-400">{new Date(u.createdAt).toLocaleDateString("fr-FR")}</td>
@@ -272,7 +272,7 @@ export default function AdminUsers() {
                         <Link href={`/admin/utilisateurs/${u.id}`} className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors" title="Voir profil">
                           <span className="material-symbols-outlined text-lg">visibility</span>
                         </Link>
-                        {u.status === "actif" && (
+                        {u.status?.toLowerCase() === "actif" && (
                           <>
                             <button onClick={() => openModal(u, "suspend")} className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors" title="Suspendre">
                               <span className="material-symbols-outlined text-lg">block</span>
@@ -282,12 +282,12 @@ export default function AdminUsers() {
                             </button>
                           </>
                         )}
-                        {u.status === "suspendu" && (
+                        {u.status?.toLowerCase() === "suspendu" && (
                           <button onClick={() => handleReactivate(u)} className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Reactiver">
                             <span className="material-symbols-outlined text-lg">check_circle</span>
                           </button>
                         )}
-                        {u.status === "banni" && (
+                        {u.status?.toLowerCase() === "banni" && (
                           <button onClick={() => handleReactivate(u)} className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors" title="Debannir">
                             <span className="material-symbols-outlined text-lg">lock_open</span>
                           </button>

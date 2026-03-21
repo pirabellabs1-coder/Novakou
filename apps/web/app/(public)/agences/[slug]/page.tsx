@@ -47,6 +47,7 @@ interface CaseStudy {
   description: string;
   image: string;
   category: string;
+  keyResult?: string;
 }
 
 interface WorkProcessStep {
@@ -517,13 +518,18 @@ export default function AgencyProfilePage() {
                     <div>
                       <h3 className="text-slate-900 dark:text-slate-100 text-lg font-bold mb-6 flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary">timeline</span>
-                        Notre Processus
+                        {t("our_process")}
                       </h3>
+                      {/* Horizontal timeline on desktop, vertical stack on mobile */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {agency.workProcess.map((step) => (
+                        {agency.workProcess.map((step, idx) => (
                           <div key={step.step} className="relative bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark p-5 text-center">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                              <span className="text-primary font-black text-lg">{step.step}</span>
+                            {/* Connector line between steps (hidden on last step and on mobile single-col) */}
+                            {idx < agency.workProcess!.length - 1 && (
+                              <div className="hidden lg:block absolute top-[28px] -right-4 w-4 h-0.5 bg-primary/30 z-10" />
+                            )}
+                            <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center mx-auto mb-3 shadow-md shadow-primary/20">
+                              <span className="font-black text-lg">{step.step}</span>
                             </div>
                             <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-1">{step.title}</h4>
                             <p className="text-xs text-slate-500">{step.description}</p>
@@ -807,22 +813,38 @@ export default function AgencyProfilePage() {
 
       {/* ============================================================ */}
       {/* Notre Equipe                                                   */}
-      {agency.team && agency.team.length > 0 && (
-        <div className="w-full max-w-[1100px] px-4 md:px-10 pb-8">
-          <h2 className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold flex items-center gap-3 mb-6">
-            <span className="material-symbols-outlined text-primary text-3xl">groups</span>
-            Notre Equipe
+      {/* Show team cards if members exist, otherwise show summary count  */}
+      <div className="w-full max-w-[1100px] px-4 md:px-10 pb-8">
+        <h2 className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold flex items-center gap-3 mb-6">
+          <span className="material-symbols-outlined text-primary text-3xl">groups</span>
+          {t("our_team")}
+          {agency.team && agency.team.length > 0 && (
             <span className="ml-1 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
               {agency.team.length}
             </span>
-          </h2>
+          )}
+        </h2>
+        {agency.team && agency.team.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {agency.team.map((member) => {
+              const initials = member.name.split(" ").map((n) => n[0]).join("").slice(0, 2);
               const card = (
-                <div className="bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 text-primary font-bold text-lg">
-                    {member.avatar || member.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                  </div>
+                <div className={cn(
+                  "bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark p-5 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center",
+                  member.freelanceUsername && "cursor-pointer"
+                )}>
+                  {member.avatar && (member.avatar.startsWith("http") || member.avatar.startsWith("/")) ? (
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="w-16 h-16 rounded-full object-cover mx-auto mb-3"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-3 text-primary font-bold text-lg">
+                      {initials}
+                    </div>
+                  )}
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white">{member.name}</h4>
                   <p className="text-xs text-primary font-semibold mb-3">{member.role}</p>
                   {member.skills.length > 0 && (
@@ -846,15 +868,22 @@ export default function AgencyProfilePage() {
               return <div key={member.id}>{card}</div>;
             })}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="bg-primary/5 dark:bg-white/5 p-6 rounded-xl border border-primary/10 text-center">
+            <span className="material-symbols-outlined text-3xl text-primary mb-2">group</span>
+            <p className="text-sm text-slate-600 dark:text-slate-400 font-semibold">
+              {t("team_summary", { count: stats.teamSize })}
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Nos Realisations                                               */}
       {agency.caseStudies && agency.caseStudies.length > 0 && (
         <div className="w-full max-w-[1100px] px-4 md:px-10 pb-8">
           <h2 className="text-slate-900 dark:text-slate-100 text-2xl font-extrabold flex items-center gap-3 mb-6">
             <span className="material-symbols-outlined text-primary text-3xl">palette</span>
-            Nos Realisations
+            {t("our_portfolio")}
             <span className="ml-1 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full">
               {agency.caseStudies.length}
             </span>
@@ -877,6 +906,12 @@ export default function AgencyProfilePage() {
                 <div className="p-5">
                   <h4 className="font-bold text-sm text-slate-900 dark:text-white mb-2 group-hover:text-primary transition-colors">{project.title}</h4>
                   <p className="text-xs text-slate-500 line-clamp-2">{project.description}</p>
+                  {project.keyResult && (
+                    <div className="mt-3 flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                      <span className="material-symbols-outlined text-sm fill-icon">emoji_events</span>
+                      <span className="text-xs font-semibold">{t("key_result")} : {project.keyResult}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

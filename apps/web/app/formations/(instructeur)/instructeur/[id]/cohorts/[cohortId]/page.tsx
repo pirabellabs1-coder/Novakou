@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Users, MessageSquare, Settings, Award, AlertCircle } from "lucide-react";
 import CohortChat from "@/components/formations/CohortChat";
+import { useInstructorCohortDetail, useInstructorCohortParticipants, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 interface Participant {
   id: string;
@@ -47,47 +48,40 @@ export default function InstructeurCohortDetailPage({ params }: { params: Promis
   const router = useRouter();
   const fr = locale === "fr";
 
-  const [cohort, setCohort] = useState<CohortDetail | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const { data: cohortRaw, isLoading: cohortLoading, refetch: refetchCohort } = useInstructorCohortDetail(id, cohortId);
+  const { data: participantsRaw, isLoading: participantsLoading } = useInstructorCohortParticipants(id, cohortId);
+  const cohort = (cohortRaw as CohortDetail | null) ?? null;
+  const participants: Participant[] = (participantsRaw as { participants?: Participant[] } | null)?.participants ?? [];
   const [tab, setTab] = useState<"participants" | "chat" | "settings">("participants");
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
+  const loading = cohortLoading || participantsLoading;
 
   useEffect(() => {
     if (authStatus === "unauthenticated") { router.replace("/formations/connexion"); return; }
-    if (authStatus !== "authenticated") return;
+  }, [authStatus, router]);
 
-    Promise.all([
-      fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}`).then((r) => r.json()),
-      fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}/participants`).then((r) => r.json()),
-    ]).then(([cohortData, participantsData]) => {
-      setCohort(cohortData);
-      setParticipants(participantsData.participants ?? []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, [authStatus, router, id, cohortId]);
-
-  const updateStatus = async (newStatus: string) => {
-    if (!confirm(fr ? `Passer la cohorte en "${newStatus}" ?` : `Set cohort status to "${newStatus}"?`)) return;
-    setUpdating(true);
-    try {
+  const updateStatusMutation = useInstructorMutation(
+    async (newStatus: string) => {
       const res = await fetch(`/api/instructeur/formations/${id}/cohorts/${cohortId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-      if (res.ok) {
-        const data = await res.json();
-        setCohort(data);
-      } else {
+      if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || (fr ? "Erreur lors de la mise à jour du statut" : "Error updating cohort status"));
+        throw new Error(data.error || (fr ? "Erreur lors de la mise à jour du statut" : "Error updating cohort status"));
       }
-    } catch {
-      alert(fr ? "Erreur réseau" : "Network error");
-    } finally {
-      setUpdating(false);
-    }
+      return res.json();
+    },
+    [instructorKeys.cohortDetail(id, cohortId), instructorKeys.cohorts(id)]
+  );
+
+  const updating = updateStatusMutation.isPending;
+
+  const updateStatus = (newStatus: string) => {
+    if (!confirm(fr ? `Passer la cohorte en "${newStatus}" ?` : `Set cohort status to "${newStatus}"?`)) return;
+    updateStatusMutation.mutate(newStatus, {
+      onError: (err) => alert(err instanceof Error ? err.message : (fr ? "Erreur réseau" : "Network error")),
+    });
   };
 
   if (loading) {

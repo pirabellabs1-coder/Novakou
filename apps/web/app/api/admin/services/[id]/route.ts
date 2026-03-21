@@ -130,10 +130,14 @@ export async function PATCH(
     } catch (notifErr) { console.error("[Service] Notification error:", notifErr); }
 
     if (action === "approve") {
-      sendServiceApprovedEmail(service.user.email, service.user.name, service.title).catch(() => {});
+      sendServiceApprovedEmail(service.user.email, service.user.name, service.title).catch((err) =>
+        console.error("[Admin] Failed to send service approved email to", service.user.email, err)
+      );
     }
     if (action === "refuse") {
-      sendServiceRejectedEmail(service.user.email, service.user.name, service.title, reason || "Non conforme aux directives").catch(() => {});
+      sendServiceRejectedEmail(service.user.email, service.user.name, service.title, reason || "Non conforme aux directives").catch((err) =>
+        console.error("[Admin] Failed to send service rejected email to", service.user.email, err)
+      );
     }
 
     await createAuditLog({

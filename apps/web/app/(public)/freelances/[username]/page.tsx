@@ -574,9 +574,19 @@ export default function FreelanceProfilePage() {
                                 {f.type === "diploma" ? "school" : "verified"}
                               </span>
                             </div>
-                            <div className="min-w-0">
-                              <p className="font-bold text-sm text-slate-900 dark:text-white">{f.title}</p>
-                              <p className="text-xs text-slate-500">{f.school} - {f.year}</p>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <p className="font-bold text-sm text-slate-900 dark:text-white">{f.title}</p>
+                                <span className={cn(
+                                  "text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0",
+                                  f.type === "diploma"
+                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                )}>
+                                  {f.type === "diploma" ? "Diplôme" : "Certification"}
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-500">{f.school} · {f.year}</p>
                             </div>
                           </div>
                         ))}
@@ -592,16 +602,28 @@ export default function FreelanceProfilePage() {
                         {t("languages")}
                       </h3>
                       <div className="flex flex-wrap gap-3">
-                        {languages.map((lang) => (
-                          <div
-                            key={lang.name}
-                            className="flex items-center gap-2 bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-lg px-4 py-2.5"
-                          >
-                            {lang.flag && <span className="text-lg">{lang.flag}</span>}
-                            <span className="text-sm font-semibold text-slate-900 dark:text-white">{lang.name}</span>
-                            <span className="text-xs text-slate-500">({lang.level})</span>
-                          </div>
-                        ))}
+                        {languages.map((lang) => {
+                          const levelBadge =
+                            lang.level === "Natif" || lang.level === "Native"
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                              : lang.level === "Courant" || lang.level === "Fluent"
+                              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                              : lang.level === "Intermédiaire" || lang.level === "Intermediaire" || lang.level === "Intermediate"
+                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                              : "bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20";
+                          return (
+                            <div
+                              key={lang.name}
+                              className="flex items-center gap-2 bg-white dark:bg-neutral-dark border border-slate-200 dark:border-border-dark rounded-lg px-4 py-2.5"
+                            >
+                              {lang.flag && <span className="text-lg">{lang.flag}</span>}
+                              <span className="text-sm font-semibold text-slate-900 dark:text-white">{lang.name}</span>
+                              <span className={cn("text-[11px] font-bold px-2 py-0.5 rounded-full border", levelBadge)}>
+                                {lang.level}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

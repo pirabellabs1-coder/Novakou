@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, ExternalLink, Pencil, Trash2, Eye } from "lucide-react";
+import { useInstructorSalesFunnels, useInstructorFormations, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 interface FunnelItem {
   id: string;
@@ -27,25 +28,15 @@ interface Formation {
 
 export default function TunnelDeVenteListPage() {
   const router = useRouter();
-  const [funnels, setFunnels] = useState<FunnelItem[]>([]);
-  const [formations, setFormations] = useState<Formation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: funnelsData, isLoading: funnelsLoading, error: queryError, refetch } = useInstructorSalesFunnels();
+  const { data: formationsRaw, isLoading: formationsLoading } = useInstructorFormations();
+  const funnels: FunnelItem[] = (funnelsData as { funnels?: FunnelItem[] } | null)?.funnels ?? [];
+  const formations: Formation[] = Array.isArray(formationsRaw) ? formationsRaw as Formation[] : [];
+  const loading = funnelsLoading || formationsLoading;
   const [showCreate, setShowCreate] = useState(false);
   const [selectedFormationId, setSelectedFormationId] = useState("");
   const [newSlug, setNewSlug] = useState("");
-  const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/instructeur/sales-funnel").then((r) => r.json()),
-      fetch("/api/instructeur/formations?status=all").then((r) => r.json()),
-    ]).then(([fData, formData]) => {
-      setFunnels(fData.funnels ?? []);
-      setFormations(formData.formations ?? []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
-  }, []);
 
   const funnelFormationIds = new Set(funnels.map((f) => f.formation?.slug).filter(Boolean));
   const availableFormations = formations.filter((f) => !funnelFormationIds.has(f.slug));
@@ -53,33 +44,44 @@ export default function TunnelDeVenteListPage() {
   const autoSlug = (title: string) =>
     title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
-  const createFunnel = async () => {
-    if (!selectedFormationId || !newSlug) return;
-    setCreating(true);
-    setError("");
-    try {
+  const createMutation = useInstructorMutation(
+    async (body: { formationId: string; slug: string }) => {
       const res = await fetch("/api/instructeur/sales-funnel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ formationId: selectedFormationId, slug: newSlug }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Erreur");
-        setCreating(false);
-        return;
+      if (!res.ok) throw new Error(data.error || "Erreur");
+      return data;
+    },
+    [instructorKeys.salesFunnels()]
+  );
+
+  const deleteMutation = useInstructorMutation(
+    async (funnelId: string) => {
+      await fetch(`/api/instructeur/sales-funnel/${funnelId}`, { method: "DELETE" });
+    },
+    [instructorKeys.salesFunnels()]
+  );
+
+  const createFunnel = () => {
+    if (!selectedFormationId || !newSlug) return;
+    setError("");
+    createMutation.mutate(
+      { formationId: selectedFormationId, slug: newSlug },
+      {
+        onSuccess: (data) => router.push(`/formations/instructeur/tunnel-de-vente/${(data as { funnel: { id: string } }).funnel.id}`),
+        onError: (err) => setError(err instanceof Error ? err.message : "Erreur réseau"),
       }
-      router.push(`/formations/instructeur/tunnel-de-vente/${data.funnel.id}`);
-    } catch {
-      setError("Erreur réseau");
-      setCreating(false);
-    }
+    );
   };
 
-  const deleteFunnel = async (id: string) => {
+  const creating = createMutation.isPending;
+
+  const deleteFunnel = (id: string) => {
     if (!confirm("Supprimer ce tunnel de vente ?")) return;
-    await fetch(`/api/instructeur/sales-funnel/${id}`, { method: "DELETE" });
-    setFunnels(funnels.filter((f) => f.id !== id));
+    deleteMutation.mutate(id);
   };
 
   if (loading) {
@@ -88,6 +90,20 @@ export default function TunnelDeVenteListPage() {
         {[1, 2, 3].map((i) => (
           <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8 max-w-4xl w-full mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <ExternalLink className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }

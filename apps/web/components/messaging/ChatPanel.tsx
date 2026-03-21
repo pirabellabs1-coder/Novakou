@@ -29,7 +29,11 @@ interface ChatPanelProps {
   onMobileBack?: () => void;
 }
 
-async function uploadFileToServer(file: File, onProgress?: (pct: number) => void): Promise<{ url: string; name: string; size: number; type: string } | null> {
+function uploadFileToServer(
+  file: File,
+  onProgress?: (pct: number) => void,
+  abortSignal?: AbortSignal
+): Promise<{ url: string; name: string; size: number; type: string } | null> {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -37,6 +41,14 @@ async function uploadFileToServer(file: File, onProgress?: (pct: number) => void
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload/file");
+
+    // Support cancellation via AbortSignal
+    if (abortSignal) {
+      abortSignal.addEventListener("abort", () => {
+        xhr.abort();
+        reject(new Error("Upload annule"));
+      });
+    }
 
     if (onProgress) {
       xhr.upload.addEventListener("progress", (e) => {
@@ -88,6 +100,7 @@ export function ChatPanel({
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ fileName: string; progress: number } | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const uploadAbortRef = useRef<AbortController | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -129,32 +142,67 @@ export function ChatPanel({
   async function handleFileUpload(files: FileList | null) {
     if (!files) return;
 
-    for (const file of Array.from(files)) {
+    const validFiles = Array.from(files).filter((file) => {
       const error = validateFile(file);
       if (error) {
         setUploadError(error);
-        continue;
+        return false;
       }
+      return true;
+    });
 
-      setUploadProgress({ fileName: file.name, progress: 0 });
+    if (validFiles.length === 0) return;
+
+    // Upload files in parallel
+    const abortController = new AbortController();
+    uploadAbortRef.current = abortController;
+
+    // Track progress per file
+    let completedCount = 0;
+    const totalCount = validFiles.length;
+
+    const uploadPromises = validFiles.map(async (file) => {
+      setUploadProgress({
+        fileName: totalCount > 1 ? `${file.name} (${completedCount + 1}/${totalCount})` : file.name,
+        progress: 0,
+      });
 
       try {
-        const result = await uploadFileToServer(file, (pct) => {
-          setUploadProgress({ fileName: file.name, progress: pct });
-        });
+        const result = await uploadFileToServer(
+          file,
+          (pct) => {
+            setUploadProgress({
+              fileName: totalCount > 1 ? `${file.name} (${completedCount + 1}/${totalCount})` : file.name,
+              progress: pct,
+            });
+          },
+          abortController.signal
+        );
 
         if (result) {
           const isImage = file.type.startsWith("image/");
+          const isVideo = file.type.startsWith("video/");
           const msgType: MessageContentType = isImage ? "image" : "file";
           const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
           onSendMessage(file.name, msgType, file.name, sizeStr, undefined, undefined, result.url, file.type);
         }
+
+        completedCount++;
       } catch (err) {
+        if (err instanceof Error && err.message === "Upload annule") return;
         setUploadError(err instanceof Error ? err.message : "Upload echoue");
       }
+    });
 
-      setUploadProgress(null);
-    }
+    await Promise.allSettled(uploadPromises);
+    setUploadProgress(null);
+    uploadAbortRef.current = null;
+  }
+
+  function handleCancelUpload() {
+    uploadAbortRef.current?.abort();
+    setUploadProgress(null);
+    uploadAbortRef.current = null;
   }
 
   const handleVoiceSend = useCallback(async (blob: Blob, duration: number) => {
@@ -395,6 +443,13 @@ export function ChatPanel({
                 </div>
               </div>
               <span className="text-xs text-slate-500">{uploadProgress.progress}%</span>
+              <button
+                onClick={handleCancelUpload}
+                className="p-1 text-slate-400 hover:text-red-400 rounded transition-colors"
+                title="Annuler l'upload"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
             </div>
           )}
           {uploadError && (

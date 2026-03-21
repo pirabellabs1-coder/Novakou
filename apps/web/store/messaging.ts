@@ -6,6 +6,21 @@
 
 import { create } from "zustand";
 
+// Show a toast error message without importing @/store/dashboard.
+// We use dynamic import() instead of require() because Turbopack still
+// treats require() as a static dependency — even inside a function body —
+// which can cause "Cannot access 'y' before initialization" (TDZ error)
+// when Turbopack evaluates messaging.ts before dashboard.ts finishes.
+async function showErrorToast(message: string) {
+  try {
+    const { useToastStore } = await import("@/store/dashboard");
+    useToastStore.getState().addToast("error", message);
+  } catch {
+    // Toast unavailable — silent fallback
+    console.error("[MessagingStore toast fallback]", message);
+  }
+}
+
 // ── Types ──
 
 export type ConversationType = "direct" | "group" | "order" | "admin";
@@ -25,7 +40,10 @@ export interface LinkPreviewData {
   description: string;
   image?: string;
   domain: string;
+  url?: string;
 }
+
+export type MessageDeliveryStatus = "sending" | "sent" | "delivered" | "read";
 
 export interface UnifiedMessage {
   id: string;
@@ -41,6 +59,8 @@ export interface UnifiedMessage {
   fileSizeBytes?: number;
   createdAt: string;
   readBy: string[];
+  /** Delivery status: sending → sent → delivered → read */
+  status: MessageDeliveryStatus;
   audioUrl?: string;
   audioDuration?: number;
   callDuration?: number;
@@ -48,6 +68,7 @@ export interface UnifiedMessage {
   editedAt?: string;
   deletedAt?: string;
   linkPreview?: LinkPreviewData;
+  linkPreviews?: LinkPreviewData[];
 }
 
 export interface UnifiedConversation {
@@ -70,7 +91,7 @@ interface MessagingState {
 
   // Actions
   setCurrentUser: (userId: string, role: UserRole) => void;
-  sendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number) => void;
+  sendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number, fileUrl?: string, fileType?: string) => void;
   markConversationRead: (convId: string) => void;
   createConversation: (participants: MessageParticipant[], type: ConversationType, title?: string, orderId?: string) => string;
   getMyConversations: () => UnifiedConversation[];
@@ -83,7 +104,7 @@ interface MessagingState {
 
   // API sync
   syncFromApi: () => Promise<void>;
-  apiSendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string) => Promise<void>;
+  apiSendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string, fileUrl?: string, fileType?: string) => Promise<void>;
   apiEditMessage: (convId: string, messageId: string, newContent: string) => Promise<boolean>;
   apiDeleteMessage: (convId: string, messageId: string) => Promise<boolean>;
 }
@@ -122,6 +143,7 @@ function msg(id: string, senderId: string, content: string, type: MessageContent
     type,
     createdAt: new Date(Date.now() - minutesAgo * 60000).toISOString(),
     readBy: [senderId],
+    status: "sent",
   };
 }
 
@@ -176,6 +198,7 @@ function voiceMsg(id: string, senderId: string, audioDuration: number, minutesAg
     transcription: "Bonjour, je voulais discuter du projet en cours...",
     createdAt: new Date(Date.now() - minutesAgo * 60000).toISOString(),
     readBy: [senderId],
+    status: "sent",
   };
 }
 
@@ -192,6 +215,7 @@ function callMsg(id: string, senderId: string, callType: "call_audio" | "call_vi
     callDuration,
     createdAt: new Date(Date.now() - minutesAgo * 60000).toISOString(),
     readBy: [senderId],
+    status: "sent",
   };
 }
 
@@ -225,7 +249,7 @@ function mapStoredToUnified(stored: {
   unread: number;
   online: boolean;
   orderId?: string;
-  messages: { id: string; senderId: string; sender: string; content: string; timestamp: string; type: string; fileName?: string; fileSize?: string; read: boolean }[];
+  messages: { id: string; senderId: string; sender: string; content: string; timestamp: string; type: string; fileName?: string; fileSize?: string; fileUrl?: string; fileType?: string; read: boolean; linkPreviewData?: LinkPreviewData[] }[];
 }, currentUserId: string): UnifiedConversation {
   // Build participants from stored data
   const otherParticipantId = stored.participants.find((p) => p !== currentUserId) || stored.participants[0];
@@ -244,7 +268,20 @@ function mapStoredToUnified(stored: {
 
   const messages: UnifiedMessage[] = stored.messages.map((m) => {
     const sender = DEMO_PARTICIPANTS[m.senderId];
-    return {
+    const readBy = m.read ? [currentUserId, m.senderId] : [m.senderId];
+    // Derive delivery status: if read by recipient → read, else if not from current user → delivered, else sent
+    const isMine = m.senderId === currentUserId || m.sender === "me";
+    let status: MessageDeliveryStatus = "sent";
+    if (isMine) {
+      if (m.read || readBy.length > 1) {
+        status = "read";
+      } else {
+        status = "delivered"; // API-persisted messages are at least delivered
+      }
+    } else {
+      status = "delivered";
+    }
+    const mapped: UnifiedMessage = {
       id: m.id,
       senderId: m.senderId,
       senderName: sender?.name ?? (m.sender === "me" ? "Vous" : stored.contactName),
@@ -253,9 +290,17 @@ function mapStoredToUnified(stored: {
       type: (m.type || "text") as MessageContentType,
       fileName: m.fileName,
       fileSize: m.fileSize,
+      fileUrl: m.fileUrl,
+      fileType: m.fileType,
       createdAt: m.timestamp,
-      readBy: m.read ? [currentUserId, m.senderId] : [m.senderId],
+      readBy,
+      status,
     };
+    if (m.linkPreviewData && m.linkPreviewData.length > 0) {
+      mapped.linkPreviews = m.linkPreviewData;
+      mapped.linkPreview = m.linkPreviewData[0];
+    }
+    return mapped;
   });
 
   return {
@@ -279,7 +324,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
 
   setCurrentUser: (userId, role) => set({ currentUserId: userId, currentUserRole: role }),
 
-  sendMessage: (convId, content, type = "text", fileName, fileSize, audioUrl, audioDuration) => {
+  sendMessage: (convId, content, type = "text", fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType) => {
     const { currentUserId, currentUserRole } = get();
     const participant = DEMO_PARTICIPANTS[currentUserId];
 
@@ -292,10 +337,13 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       type,
       fileName,
       fileSize,
+      fileUrl,
+      fileType,
       audioUrl,
       audioDuration,
       createdAt: new Date().toISOString(),
       readBy: [currentUserId],
+      status: "sent",
     };
 
     const lastMessageText =
@@ -318,6 +366,63 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
           : conv
       ),
     }));
+
+    // Simulate delivery status progression: sent -> delivered after 500ms
+    setTimeout(() => {
+      set((s) => ({
+        conversations: s.conversations.map((conv) =>
+          conv.id === convId
+            ? {
+                ...conv,
+                messages: conv.messages.map((m) =>
+                  m.id === newMessage.id && m.status === "sent"
+                    ? { ...m, status: "delivered" as const }
+                    : m
+                ),
+              }
+            : conv
+        ),
+      }));
+    }, 500);
+
+    // Auto-detect URLs and fetch link previews for local messages (max 3)
+    if (type === "text" && typeof window !== "undefined") {
+      const urlRegex = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+      const urls = content.match(urlRegex);
+      if (urls && urls.length > 0) {
+        const urlsToPreview = urls.slice(0, 3);
+        Promise.all(
+          urlsToPreview.map((url) =>
+            fetch("/api/link-preview", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ url }),
+            })
+              .then((res) => res.json())
+              .then((data) => data.preview as LinkPreviewData | null)
+              .catch(() => null)
+          )
+        ).then((results) => {
+          const previews = results.filter((p): p is LinkPreviewData => p !== null);
+          if (previews.length > 0) {
+            set((s) => ({
+              conversations: s.conversations.map((conv) =>
+                conv.id === convId
+                  ? {
+                      ...conv,
+                      messages: conv.messages.map((m) =>
+                        m.id === newMessage.id
+                          ? { ...m, linkPreviews: previews, linkPreview: previews[0] }
+                          : m
+                      ),
+                    }
+                  : conv
+              ),
+            }));
+          }
+        });
+      }
+    }
 
     // Simuler une reponse automatique apres 2 secondes
     if (type === "text") {
@@ -346,6 +451,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
           type: "text",
           createdAt: new Date().toISOString(),
           readBy: [otherParticipant.id],
+          status: "delivered",
         };
 
         set((s) => ({
@@ -361,6 +467,29 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
               : c
           ),
         }));
+
+        // Play notification sound for incoming message
+        if (typeof window !== "undefined") {
+          import("@/lib/webrtc/sounds").then(({ playMessageSound }) => {
+            playMessageSound();
+          }).catch(() => {});
+        }
+
+        // Create in-app notification for the incoming message (local/demo mode)
+        if (typeof window !== "undefined") {
+          const excerpt = reply.slice(0, 50) + (reply.length > 50 ? "..." : "");
+          fetch("/api/notifications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              create: true,
+              title: "Nouveau message",
+              message: `${otherParticipant.name} : ${excerpt}`,
+              type: "message",
+              link: "/dashboard/messages",
+            }),
+          }).catch(() => {});
+        }
       }, 2000);
     }
   },
@@ -373,9 +502,13 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
           ? {
               ...conv,
               unreadCount: 0,
-              messages: conv.messages.map((m) =>
-                m.readBy.includes(currentUserId) ? m : { ...m, readBy: [...m.readBy, currentUserId] }
-              ),
+              messages: conv.messages.map((m) => {
+                const alreadyRead = m.readBy.includes(currentUserId);
+                if (alreadyRead) return m;
+                const newReadBy = [...m.readBy, currentUserId];
+                // Update status to "read" when the other user reads it
+                return { ...m, readBy: newReadBy, status: "read" as const };
+              }),
             }
           : conv
       ),
@@ -422,6 +555,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       type: "system",
       createdAt: new Date().toISOString(),
       readBy: [],
+      status: "sent",
     };
 
     set((s) => ({
@@ -491,7 +625,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
     }));
   },
 
-  apiSendMessage: async (convId, content, type = "text", fileName, fileSize) => {
+  apiSendMessage: async (convId, content, type = "text", fileName, fileSize, fileUrl, fileType) => {
     const { currentUserId, currentUserRole } = get();
     const participant = DEMO_PARTICIPANTS[currentUserId];
 
@@ -505,8 +639,11 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       type,
       fileName,
       fileSize,
+      fileUrl,
+      fileType,
       createdAt: new Date().toISOString(),
       readBy: [currentUserId],
+      status: "sending",
     };
 
     const lastMessageText =
@@ -527,13 +664,91 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       ),
     }));
 
+    // Auto-detect URLs for link previews on text messages (max 3)
+    let linkPreviewDataArray: LinkPreviewData[] = [];
+    if (type === "text") {
+      const urlRegex = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
+      const urls = content.match(urlRegex);
+      if (urls && urls.length > 0) {
+        const urlsToPreview = urls.slice(0, 3);
+        try {
+          const results = await Promise.all(
+            urlsToPreview.map((url) =>
+              fetch("/api/link-preview", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ url }),
+              })
+                .then((res) => res.json())
+                .then((data) => data.preview as LinkPreviewData | null)
+                .catch(() => null)
+            )
+          );
+          linkPreviewDataArray = results.filter((p): p is LinkPreviewData => p !== null);
+          if (linkPreviewDataArray.length > 0) {
+            // Update the message optimistically with the previews
+            set((s) => ({
+              conversations: s.conversations.map((conv) =>
+                conv.id === convId
+                  ? {
+                      ...conv,
+                      messages: conv.messages.map((m) =>
+                        m.id === newMessage.id
+                          ? { ...m, linkPreviews: linkPreviewDataArray, linkPreview: linkPreviewDataArray[0] }
+                          : m
+                      ),
+                    }
+                  : conv
+              ),
+            }));
+          }
+        } catch {
+          // Non-blocking: link preview is best-effort
+        }
+      }
+    }
+
     // Persist via API
     try {
-      await fetch(`/api/conversations/${convId}/messages`, {
+      const res = await fetch(`/api/conversations/${convId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, type, fileName, fileSize }),
+        body: JSON.stringify({ content, type, fileName, fileSize, fileUrl, fileType, linkPreviewData: linkPreviewDataArray.length > 0 ? linkPreviewDataArray : undefined }),
       });
+      if (res.ok) {
+        // Update status from "sending" to "sent" after successful API persistence
+        set((s) => ({
+          conversations: s.conversations.map((conv) =>
+            conv.id === convId
+              ? {
+                  ...conv,
+                  messages: conv.messages.map((m) =>
+                    m.id === newMessage.id && m.status === "sending"
+                      ? { ...m, status: "sent" as const }
+                      : m
+                  ),
+                }
+              : conv
+          ),
+        }));
+        // Simulate "delivered" status after a short delay (server-side delivery confirmation)
+        setTimeout(() => {
+          set((s) => ({
+            conversations: s.conversations.map((conv) =>
+              conv.id === convId
+                ? {
+                    ...conv,
+                    messages: conv.messages.map((m) =>
+                      m.id === newMessage.id && m.status === "sent"
+                        ? { ...m, status: "delivered" as const }
+                        : m
+                    ),
+                  }
+                : conv
+            ),
+          }));
+        }, 1000);
+      }
       // Refresh from API after auto-reply delay
       setTimeout(() => get().syncFromApi(), 3000);
     } catch (err) {
@@ -551,6 +766,13 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
         body: JSON.stringify({ content: newContent }),
       });
       if (!res.ok) {
+        // Show error toast with server message
+        try {
+          const data = await res.json();
+          await showErrorToast(data.error || "Erreur lors de la modification du message");
+        } catch {
+          await showErrorToast("Erreur lors de la modification du message");
+        }
         // Revert on failure — re-sync from API
         await get().syncFromApi();
         return false;
@@ -558,6 +780,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       return true;
     } catch (err) {
       console.error("[MessagingStore apiEditMessage]", err);
+      await showErrorToast("Erreur lors de la modification du message");
       await get().syncFromApi();
       return false;
     }
@@ -571,12 +794,20 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
         method: "DELETE",
       });
       if (!res.ok) {
+        // Show error toast with server message
+        try {
+          const data = await res.json();
+          await showErrorToast(data.error || "Erreur lors de la suppression du message");
+        } catch {
+          await showErrorToast("Erreur lors de la suppression du message");
+        }
         await get().syncFromApi();
         return false;
       }
       return true;
     } catch (err) {
       console.error("[MessagingStore apiDeleteMessage]", err);
+      await showErrorToast("Erreur lors de la suppression du message");
       await get().syncFromApi();
       return false;
     }

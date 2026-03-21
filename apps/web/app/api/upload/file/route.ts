@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import {
   uploadFile,
+  getSignedUrl,
   type StorageBucket,
 } from "@/lib/supabase-storage";
 
@@ -109,6 +110,9 @@ export async function POST(req: NextRequest) {
     const result = await uploadFile(bucket, storagePath, buffer, file.type);
 
     if (result) {
+      // Generate a signed URL with 1-hour expiry for private buckets
+      const signedUrl = await getSignedUrl(bucket, result.path, 3600);
+
       return NextResponse.json({
         success: true,
         file: {
@@ -116,7 +120,7 @@ export async function POST(req: NextRequest) {
           name: file.name,
           size: file.size,
           type: file.type,
-          url: result.url,
+          url: signedUrl || result.url,
           path: result.path,
           bucket,
           uploadedAt: new Date().toISOString(),

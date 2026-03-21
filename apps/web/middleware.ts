@@ -5,6 +5,10 @@ import { getToken } from "next-auth/jwt";
 // Route admin login secrete — pas de redirection, le token est verifie cote client+API
 const ADMIN_LOGIN_PREFIX = "/admin-login/";
 
+// ── Maintenance mode cache (60s TTL in Edge Runtime) ──
+let maintenanceModeCache: { enabled: boolean; message: string; cachedAt: number } | null = null;
+const MAINTENANCE_CACHE_TTL_MS = 60_000; // 60 seconds
+
 // Routes publiques — toujours accessibles
 const PUBLIC_ROUTES = [
   "/",
@@ -92,23 +96,34 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── Maintenance mode check ──
+  // ── Maintenance mode check (cached ~60s in-memory) ──
   // Skip maintenance check for: /maintenance itself, /admin/*, /admin-login/*, /api/*
   const skipMaintenance = pathname === "/maintenance" || pathname.startsWith("/admin") || pathname.startsWith(ADMIN_LOGIN_PREFIX);
   if (!skipMaintenance) {
     try {
-      const maintenanceRes = await fetch(new URL("/api/public/maintenance", req.url), {
-        headers: { "Cache-Control": "no-cache" },
-      });
-      if (maintenanceRes.ok) {
-        const data = await maintenanceRes.json();
-        if (data.enabled) {
-          // Allow admin users through even during maintenance
-          const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-          const userRole = token?.role as string | undefined;
-          if (userRole !== "admin") {
-            return NextResponse.redirect(new URL("/maintenance", req.url));
-          }
+      let maintenanceState = maintenanceModeCache;
+
+      // Refresh cache if expired or missing
+      if (!maintenanceState || Date.now() - maintenanceState.cachedAt >= MAINTENANCE_CACHE_TTL_MS) {
+        const maintenanceRes = await fetch(new URL("/api/public/maintenance", req.url));
+        if (maintenanceRes.ok) {
+          const data = await maintenanceRes.json();
+          maintenanceState = {
+            enabled: !!data.enabled,
+            message: data.message || "",
+            cachedAt: Date.now(),
+          };
+          maintenanceModeCache = maintenanceState;
+        }
+      }
+
+      if (maintenanceState?.enabled) {
+        // Allow admin users through even during maintenance
+        const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+        const userRole = token?.role as string | undefined;
+        if (userRole !== "admin") {
+          const maintenanceUrl = new URL("/maintenance", req.url);
+          return NextResponse.redirect(maintenanceUrl);
         }
       }
     } catch {

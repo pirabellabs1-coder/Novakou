@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronRight, ChevronLeft, Check, BookOpen, Image, DollarSign,
@@ -8,6 +8,7 @@ import {
   HelpCircle, X, ChevronDown, ChevronUp, Upload, Clock,
 } from "lucide-react";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { useFormationCategories, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import dynamic from "next/dynamic";
 import {
   DndContext,
@@ -31,11 +32,6 @@ const FormationRichEditor = dynamic(
   () => import("@/components/formations/FormationRichEditor").then((m) => m.FormationRichEditor),
   { ssr: false, loading: () => <div className="h-[300px] bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" /> }
 );
-
-interface Category {
-  id: string;
-  name: string;
-}
 
 interface QuizQuestion {
   type: "CHOIX_UNIQUE" | "CHOIX_MULTIPLE" | "VRAI_FAUX" | "TEXTE_LIBRE";
@@ -149,9 +145,8 @@ function SortableLessonItem({ id, children }: { id: string; children: React.Reac
 export default function CreateFormationPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
-  const [saving, setSaving] = useState(false);
   const [formationId, setFormationId] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { data: categories = [] } = useFormationCategories();
 
   // Step 1 - Informations
   const [title, setTitle] = useState("");
@@ -198,34 +193,34 @@ export default function CreateFormationPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  useEffect(() => {
-    fetch("/api/formations/categories")
-      .then((r) => r.json())
-      .then((d) => setCategories(Array.isArray(d) ? d : (d.categories ?? [])));
-  }, []);
+  // Auto-save as draft via mutation
+  const saveDraftMutation = useInstructorMutation(
+    async (data: Record<string, unknown>) => {
+      const url = formationId
+        ? `/api/instructeur/formations/${formationId}`
+        : "/api/instructeur/formations";
+      const method = formationId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, status: "BROUILLON" }),
+      });
+      return res.json();
+    },
+    [instructorKeys.formations()]
+  );
 
-  // Auto-save as draft
-  const saveDraft = async (data: Record<string, unknown>) => {
-    const url = formationId
-      ? `/api/instructeur/formations/${formationId}`
-      : "/api/instructeur/formations";
-    const method = formationId ? "PUT" : "POST";
+  const saving = saveDraftMutation.isPending;
 
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, status: "BROUILLON" }),
-    });
-    const d = await res.json();
-    if (d.formation?.id && !formationId) setFormationId(d.formation.id);
-  };
-
-  const handleNext = async () => {
+  const handleNext = () => {
     if (step < 5) {
-      setSaving(true);
-      await saveDraft(buildPayload());
-      setSaving(false);
-      setStep((step + 1) as Step);
+      saveDraftMutation.mutate(buildPayload(), {
+        onSuccess: (d) => {
+          const data = d as { formation?: { id: string } };
+          if (data.formation?.id && !formationId) setFormationId(data.formation.id);
+          setStep((step + 1) as Step);
+        },
+      });
     }
   };
 
@@ -253,11 +248,10 @@ export default function CreateFormationPage() {
     })),
   });
 
-  const publish = async () => {
-    setSaving(true);
-    await saveDraft({ ...buildPayload(), status: "EN_ATTENTE" });
-    setSaving(false);
-    router.push("/formations/instructeur/mes-formations");
+  const publish = () => {
+    saveDraftMutation.mutate({ ...buildPayload(), status: "EN_ATTENTE" }, {
+      onSuccess: () => router.push("/formations/instructeur/mes-formations"),
+    });
   };
 
   // Section / Lesson management
@@ -703,7 +697,7 @@ export default function CreateFormationPage() {
               {!isFree && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-400 mb-1 block">Prix (EUR) *</label>
+                    <label className="text-xs text-slate-400 mb-1 block">Prix (€) *</label>
                     <div className="relative">
                       <input
                         type="number"
@@ -1256,7 +1250,7 @@ export default function CreateFormationPage() {
                   {saving ? "Envoi en cours..." : "Soumettre pour modération"}
                 </button>
                 <button
-                  onClick={async () => { setSaving(true); await saveDraft(buildPayload()); setSaving(false); router.push("/formations/instructeur/mes-formations"); }}
+                  onClick={() => saveDraftMutation.mutate(buildPayload(), { onSuccess: () => router.push("/formations/instructeur/mes-formations") })}
                   className="w-full flex items-center justify-center gap-2 border border-border-dark text-slate-300 hover:text-white hover:bg-border-dark/50 font-medium py-3 rounded-xl transition-colors"
                 >
                   {saving ? "Sauvegarde..." : "Sauvegarder en brouillon"}

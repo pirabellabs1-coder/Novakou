@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 
 const OG_TIMEOUT_MS = 5000;
 
+// Blacklisted domains — no preview for these
+const BLACKLISTED_DOMAINS = [
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "10.",
+  "172.16.",
+  "192.168.",
+  "169.254.",
+  // Potentially dangerous
+  "bit.ly",
+  "tinyurl.com",
+  "t.co",
+];
+
 function extractDomain(url: string): string {
   try {
     return new URL(url).hostname;
@@ -67,6 +82,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Seules les URLs HTTPS sont supportees" }, { status: 400 });
     }
 
+    // Check blacklist
+    const hostname = parsedUrl.hostname;
+    if (BLACKLISTED_DOMAINS.some((d) => hostname === d || hostname.startsWith(d))) {
+      return NextResponse.json({ preview: null });
+    }
+
     // Fetch with timeout
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), OG_TIMEOUT_MS);
@@ -107,6 +128,7 @@ export async function POST(request: NextRequest) {
         description,
         image: image || undefined,
         domain: extractDomain(url),
+        url,
       };
 
       return NextResponse.json({ preview });

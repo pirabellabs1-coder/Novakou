@@ -7,14 +7,7 @@ import {
   BOOST_TIERS,
 } from "@/lib/dev/data-store";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
-
-// Anti-abuse: limites de boosts par plan par mois
-const BOOST_LIMITS_BY_PLAN: Record<string, number> = {
-  gratuit: 0,
-  pro: 1,
-  business: 5,
-  agence: 10,
-};
+import { canBoost, normalizePlanName, getPlanLimits } from "@/lib/plans";
 
 // POST /api/services/[id]/boost — Activate a boost on a service
 export async function POST(
@@ -83,10 +76,11 @@ export async function POST(
     }
     recordFailedAttempt(rateLimitKey);
 
-    // Anti-abus : limite de boosts par plan par mois
-    const userPlan = (session.user.plan ?? "gratuit").toLowerCase();
-    const monthlyLimit = BOOST_LIMITS_BY_PLAN[userPlan] ?? 0;
-    if (monthlyLimit === 0) {
+    // Anti-abus : limite de boosts par plan par mois (using centralized plan rules)
+    const userPlan = normalizePlanName(session.user.plan);
+    const planLimits = getPlanLimits(userPlan);
+
+    if (planLimits.boostLimit === 0) {
       return NextResponse.json(
         {
           error: "Le plan Gratuit ne permet pas de booster des services. Passez au plan Pro ou superieur.",
@@ -102,12 +96,12 @@ export async function POST(
     const userBoostsThisMonth = boostStore.getByUser(session.user.id)
       .filter((b) => b.startedAt >= monthStart).length;
 
-    if (userBoostsThisMonth >= monthlyLimit) {
+    if (!canBoost(userPlan, userBoostsThisMonth)) {
       return NextResponse.json(
         {
-          error: `Vous avez atteint la limite de ${monthlyLimit} boost(s) par mois pour le plan ${userPlan}. Passez a un plan superieur pour plus de boosts.`,
+          error: `Vous avez atteint la limite de ${planLimits.boostLimit} boost(s) par mois pour le plan ${planLimits.name}. Passez a un plan superieur pour plus de boosts.`,
           code: "BOOST_LIMIT_REACHED",
-          limit: monthlyLimit,
+          limit: planLimits.boostLimit,
           used: userBoostsThisMonth,
         },
         { status: 403 }

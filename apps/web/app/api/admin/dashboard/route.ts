@@ -74,6 +74,25 @@ export async function GET() {
       // ── Disputes ──
       const totalDisputes = orders.filter((o) => o.status === "litige").length;
 
+      // ── Cross-space Activity Metrics ──
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const recentOrdersSet = orders.filter(
+        (o) => new Date(o.createdAt) >= thirtyDaysAgo
+      );
+      const activeFreelancerIds = new Set(
+        recentOrdersSet.map((o) => o.freelanceId)
+      );
+      const activeClientIds = new Set(
+        recentOrdersSet.map((o) => o.clientId)
+      );
+      const freelanceServices = services.filter(
+        (s) => !(s as Record<string, unknown>).agencyId
+      ).length;
+      const agencyServices = services.filter(
+        (s) => !!(s as Record<string, unknown>).agencyId
+      ).length;
+
       // ── Monthly Revenue (this year, grouped by month) ──
       const now = new Date();
       const currentYear = now.getFullYear();
@@ -195,6 +214,12 @@ export async function GET() {
           avgRating,
           reported: reportedReviews,
         },
+        crossSpace: {
+          activeFreelancers: activeFreelancerIds.size,
+          activeClients: activeClientIds.size,
+          freelanceServices,
+          agencyServices,
+        },
         monthlyRevenue,
         recentOrders,
         recentUsers,
@@ -313,6 +338,30 @@ export async function GET() {
       prisma.user.count({ where: { status: "BANNI" } }),
     ]);
 
+    // Cross-space activity metrics
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [
+      activeFreelancersRaw,
+      activeClientsRaw,
+      freelanceServicesCount,
+      agencyServicesCount,
+    ] = await Promise.all([
+      prisma.order.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        select: { freelanceId: true },
+        distinct: ["freelanceId"],
+      }),
+      prisma.order.findMany({
+        where: { createdAt: { gte: thirtyDaysAgo } },
+        select: { clientId: true },
+        distinct: ["clientId"],
+      }),
+      prisma.service.count({ where: { agencyId: null } }),
+      prisma.service.count({ where: { agencyId: { not: null } } }),
+    ]);
+
     // Monthly revenue for last 12 months
     const now = new Date();
     const monthNames = [
@@ -419,6 +468,12 @@ export async function GET() {
           ? Math.round(reviewStats._avg.rating * 10) / 10
           : 0,
         reported: 0,
+      },
+      crossSpace: {
+        activeFreelancers: activeFreelancersRaw.length,
+        activeClients: activeClientsRaw.length,
+        freelanceServices: freelanceServicesCount,
+        agencyServices: agencyServicesCount,
       },
       monthlyRevenue,
       recentOrders,

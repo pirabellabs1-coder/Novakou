@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useMarketingAffiliate } from "@/lib/formations/hooks";
+import { useMarketingAffiliate, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import Link from "next/link";
 import {
   Users, Settings, ToggleLeft, ToggleRight, Clock, Link2,
@@ -52,7 +52,7 @@ const COOKIE_DAYS_OPTIONS = [7, 14, 30, 60, 90];
 // ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AffiliateManagementPage() {
-  const { data: queryData, isLoading: loading, error: queryError } = useMarketingAffiliate();
+  const { data: queryData, isLoading: loading, error: queryError, refetch } = useMarketingAffiliate();
 
   const [program, setProgram] = useState<AffiliateProgram | null>(null);
   const [saving, setSaving] = useState(false);
@@ -91,87 +91,79 @@ export default function AffiliateManagementPage() {
     if (queryError && !error) setError("Erreur lors du chargement du programme");
   }, [queryError, error]);
 
-  // ── Save settings ────────────────────────────────────────────────────────
+  // ── Mutations ────────────────────────────────────────────────────────────
 
-  async function saveSettings() {
+  const affiliateMutation = useInstructorMutation(
+    async (body: Record<string, unknown>) => {
+      const res = await fetch("/api/marketing/affiliate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error("Erreur");
+      return data;
+    },
+    [instructorKeys.marketingAffiliate()]
+  );
+
+  function saveSettings() {
     setSaving(true);
     setError("");
     setSuccessMsg("");
-    try {
-      const res = await fetch("/api/marketing/affiliate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          commissionPercent,
-          cookieDays,
-          autoApprove,
-          applyToAll,
-          isActive,
-        }),
-      });
-      const data = await res.json();
-      if (data.success && data.program) {
-        setProgram(data.program);
-        setSuccessMsg("Parametres sauvegardes avec succes");
-        setTimeout(() => setSuccessMsg(""), 3000);
+    affiliateMutation.mutate(
+      { commissionPercent, cookieDays, autoApprove, applyToAll, isActive },
+      {
+        onSuccess: (data) => {
+          const d = data as { program?: AffiliateProgram };
+          if (d.program) setProgram(d.program);
+          setSuccessMsg("Parametres sauvegardes avec succes");
+          setTimeout(() => setSuccessMsg(""), 3000);
+          setSaving(false);
+        },
+        onError: () => { setError("Erreur lors de la sauvegarde"); setSaving(false); },
       }
-    } catch {
-      setError("Erreur lors de la sauvegarde");
-    } finally {
-      setSaving(false);
-    }
+    );
   }
 
-  // ── Toggle program active ────────────────────────────────────────────────
-
-  async function toggleActive() {
+  function toggleActive() {
     const newActive = !isActive;
     setIsActive(newActive);
     setSaving(true);
-    try {
-      const res = await fetch("/api/marketing/affiliate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isActive: newActive }),
-      });
-      const data = await res.json();
-      if (data.success && data.program) {
-        setProgram(data.program);
-        setSuccessMsg(newActive ? "Programme active" : "Programme desactive");
-        setTimeout(() => setSuccessMsg(""), 3000);
+    affiliateMutation.mutate(
+      { isActive: newActive },
+      {
+        onSuccess: (data) => {
+          const d = data as { program?: AffiliateProgram };
+          if (d.program) setProgram(d.program);
+          setSuccessMsg(newActive ? "Programme active" : "Programme desactive");
+          setTimeout(() => setSuccessMsg(""), 3000);
+          setSaving(false);
+        },
+        onError: () => { setIsActive(!newActive); setError("Erreur lors du changement de statut"); setSaving(false); },
       }
-    } catch {
-      setIsActive(!newActive);
-      setError("Erreur lors du changement de statut");
-    } finally {
-      setSaving(false);
-    }
+    );
   }
 
-  // ── Affiliate actions ────────────────────────────────────────────────────
-
-  async function handleAffiliateAction(affiliateId: string, action: "approve" | "reject" | "suspend" | "reactivate") {
-    try {
-      const res = await fetch("/api/marketing/affiliate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, affiliateId }),
-      });
-      const data = await res.json();
-      if (data.success && data.program) {
-        setProgram(data.program);
-        const messages: Record<string, string> = {
-          approve: "Affilie approuve",
-          reject: "Affilie refuse",
-          suspend: "Affilie suspendu",
-          reactivate: "Affilie reactive",
-        };
-        setSuccessMsg(messages[action] || "Action effectuee");
-        setTimeout(() => setSuccessMsg(""), 3000);
+  function handleAffiliateAction(affiliateId: string, action: "approve" | "reject" | "suspend" | "reactivate") {
+    affiliateMutation.mutate(
+      { action, affiliateId },
+      {
+        onSuccess: (data) => {
+          const d = data as { program?: AffiliateProgram };
+          if (d.program) setProgram(d.program);
+          const messages: Record<string, string> = {
+            approve: "Affilie approuve",
+            reject: "Affilie refuse",
+            suspend: "Affilie suspendu",
+            reactivate: "Affilie reactive",
+          };
+          setSuccessMsg(messages[action] || "Action effectuee");
+          setTimeout(() => setSuccessMsg(""), 3000);
+        },
+        onError: () => setError("Erreur lors de l'action"),
       }
-    } catch {
-      setError("Erreur lors de l'action");
-    }
+    );
   }
 
   // ── Copy link ────────────────────────────────────────────────────────────
@@ -260,9 +252,19 @@ export default function AffiliateManagementPage() {
 
       {/* Messages */}
       {error && (
-        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          {error}
+        <div className="flex items-center justify-between bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 px-4 py-3 rounded-xl text-sm">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {error}
+          </div>
+          {queryError && (
+            <button
+              onClick={() => { setError(""); refetch(); }}
+              className="ml-4 px-3 py-1.5 bg-red-100 dark:bg-red-800/40 hover:bg-red-200 dark:hover:bg-red-800/60 rounded-lg font-medium transition-colors whitespace-nowrap"
+            >
+              Réessayer
+            </button>
+          )}
         </div>
       )}
       {successMsg && (

@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
+import { PLAN_RULES, normalizePlanName, formatUsage, type PlanName } from "@/lib/plans";
 
 const TABS = ["Actifs", "En attente", "En pause", "Brouillons", "Refusés"];
 const STATUS_MAP: Record<string, string> = {
@@ -99,6 +100,11 @@ export default function ServicesPage() {
   }
 
   const statsService = services.find((s) => s.id === statsModal);
+
+  // Plan limits calculation
+  const planName = normalizePlanName(useDashboardStore.getState().currentPlan) as PlanName;
+  const planRules = PLAN_RULES[planName] || PLAN_RULES.GRATUIT;
+  const activeServiceCount = services.filter((s) => s.status === "actif" || s.status === "en_attente").length;
 
   return (
     <div className="max-w-full space-y-4 sm:space-y-6 lg:space-y-8">
@@ -208,6 +214,54 @@ export default function ServicesPage() {
           <span className="material-symbols-outlined text-lg">add_circle</span>
           Creer un service
         </Link>
+      </div>
+
+      {/* Plan Limits Banner */}
+      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-primary">verified</span>
+            </div>
+            <div>
+              <p className="text-sm font-bold">Plan {planRules.name}</p>
+              <p className="text-xs text-slate-400">
+                Commission : {planRules.commissionType === "percentage" ? `${planRules.commissionValue}%` : `${planRules.commissionValue} EUR/vente`}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-4 sm:gap-6">
+            <div className="text-center">
+              <p className="text-xs text-slate-400 font-semibold">Services</p>
+              <p className={cn("text-sm font-extrabold",
+                isFinite(planRules.serviceLimit)
+                  ? activeServiceCount >= planRules.serviceLimit ? "text-red-400" : "text-slate-100"
+                  : "text-emerald-400"
+              )}>
+                {formatUsage(activeServiceCount, planRules.serviceLimit)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-slate-400 font-semibold">Candidatures/mois</p>
+              <p className={cn("text-sm font-extrabold", isFinite(planRules.applicationLimit) ? "text-slate-100" : "text-emerald-400")}>
+                {isFinite(planRules.applicationLimit) ? `${planRules.applicationLimit}/mois` : "Illimite"}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-slate-400 font-semibold">Boosts/mois</p>
+              <p className={cn("text-sm font-extrabold", planRules.boostLimit === 0 ? "text-red-400" : isFinite(planRules.boostLimit) ? "text-slate-100" : "text-emerald-400")}>
+                {planRules.boostLimit === 0 ? "0" : isFinite(planRules.boostLimit) ? `${planRules.boostLimit}/mois` : "Illimite"}
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/abonnement"
+            className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 flex-shrink-0"
+          >
+            {planName === "GRATUIT" ? "Ameliorer" : "Gerer"} mon plan
+            <span className="material-symbols-outlined text-sm">arrow_forward</span>
+          </Link>
+        </div>
       </div>
 
       {/* Stats Cards — 3 cards matching mockup */}

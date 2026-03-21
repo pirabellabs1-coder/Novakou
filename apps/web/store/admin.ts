@@ -11,6 +11,12 @@ export interface AdminDashboardStats {
   finances: { platformRevenue: number; escrowFunds: number; pendingWithdrawals: number; totalTransactions: number };
   disputes: { total: number };
   reviews: { total: number; avgRating: number; reported: number };
+  crossSpace?: {
+    activeFreelancers: number;
+    activeClients: number;
+    freelanceServices: number;
+    agencyServices: number;
+  };
   monthlyRevenue: { month: string; revenue: number; commission: number; orders: number }[];
   recentOrders: { id: string; serviceTitle: string; clientName: string; freelanceName: string; amount: number; status: string; createdAt: string }[];
   recentUsers: { id: string; name: string; email: string; role: string; createdAt: string }[];
@@ -235,6 +241,11 @@ interface AdminState {
   loading: Record<string, boolean>;
   error: Record<string, string | null>;
 
+  // Auto-refresh configuration (in milliseconds)
+  refreshInterval: number;
+  setRefreshInterval: (ms: number) => void;
+  lastRefreshedAt: Record<string, number>;
+
   // Data
   dashboardStats: AdminDashboardStats | null;
   users: AdminUser[];
@@ -320,9 +331,15 @@ interface AdminState {
   sendNotification: (data: { title: string; message: string; type?: string; target?: Record<string, unknown>; channel?: string }) => Promise<{ success: boolean; count: number; failedEmails?: number; message?: string } | null>;
 }
 
+// Default auto-refresh interval: 30 seconds
+export const DEFAULT_REFRESH_INTERVAL = 30_000;
+
 export const useAdminStore = create<AdminState>()((set, get) => ({
   loading: {},
   error: {},
+  refreshInterval: DEFAULT_REFRESH_INTERVAL,
+  setRefreshInterval: (ms: number) => set({ refreshInterval: ms }),
+  lastRefreshedAt: {},
   dashboardStats: null,
   users: [],
   orders: [],
@@ -347,7 +364,12 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     set({ loading: { ...get().loading, dashboard: true } });
     try {
       const stats = await fetchAdmin<AdminDashboardStats>("/api/admin/dashboard");
-      set({ dashboardStats: stats, loading: { ...get().loading, dashboard: false }, error: { ...get().error, dashboard: null } });
+      set({
+        dashboardStats: stats,
+        loading: { ...get().loading, dashboard: false },
+        error: { ...get().error, dashboard: null },
+        lastRefreshedAt: { ...get().lastRefreshedAt, dashboard: Date.now() },
+      });
     } catch (e: unknown) {
       set({ loading: { ...get().loading, dashboard: false }, error: { ...get().error, dashboard: (e as Error).message } });
     }
@@ -397,7 +419,13 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     set({ loading: { ...get().loading, finances: true } });
     try {
       const data = await fetchAdmin<{ transactions: AdminTransaction[]; summary: AdminFinanceSummary }>("/api/admin/finances");
-      set({ transactions: data.transactions, financeSummary: data.summary, loading: { ...get().loading, finances: false }, error: { ...get().error, finances: null } });
+      set({
+        transactions: data.transactions,
+        financeSummary: data.summary,
+        loading: { ...get().loading, finances: false },
+        error: { ...get().error, finances: null },
+        lastRefreshedAt: { ...get().lastRefreshedAt, finances: Date.now() },
+      });
     } catch (e: unknown) {
       set({ loading: { ...get().loading, finances: false }, error: { ...get().error, finances: (e as Error).message } });
     }
@@ -457,7 +485,12 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
     set({ loading: { ...get().loading, analytics: true } });
     try {
       const analytics = await fetchAdmin<AdminAnalytics>("/api/admin/analytics");
-      set({ analytics, loading: { ...get().loading, analytics: false }, error: { ...get().error, analytics: null } });
+      set({
+        analytics,
+        loading: { ...get().loading, analytics: false },
+        error: { ...get().error, analytics: null },
+        lastRefreshedAt: { ...get().lastRefreshedAt, analytics: Date.now() },
+      });
     } catch (e: unknown) {
       set({ loading: { ...get().loading, analytics: false }, error: { ...get().error, analytics: (e as Error).message } });
     }

@@ -364,10 +364,10 @@
     "plan_pro": "Pro",
     "plan_business": "Business",
     "plan_agency": "Agency",
-    "plan_free_candidatures": "5/month",
+    "plan_free_candidatures": "10/month",
     "plan_pro_candidatures": "20/month",
-    "plan_pro_boost": "1/month",
-    "plan_business_boost": "5/month",
+    "plan_pro_boost": "5/month",
+    "plan_business_boost": "10/month",
     "plan_agency_boost": "10/month",
     "faq_title": "Frequently asked questions",
     "faq_change_plan_q": "Can I change plans at any time?",
@@ -878,7 +878,12 @@
     "request_quote": "Request a quote",
     "our_services": "Our services",
     "from_price": "From {price}",
-    "view_all_services": "View all services ({count})"
+    "view_all_services": "View all services ({count})",
+    "our_team": "Our Team",
+    "team_summary": "Team of {count} members",
+    "our_portfolio": "Our Portfolio",
+    "our_process": "Our Process",
+    "key_result": "Key result"
   },
   "projects": {
     "title": "Project Offers",

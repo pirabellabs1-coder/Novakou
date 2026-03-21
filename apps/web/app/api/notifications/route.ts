@@ -55,7 +55,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { id, all } = body;
+    const { id, all, create, title, message, type, link } = body;
+
+    // Create a new notification
+    if (create && title && message) {
+      if (IS_DEV) {
+        notificationStore.add({
+          userId: session.user.id,
+          title,
+          message,
+          type: type || "system",
+          read: false,
+          link,
+        });
+      } else {
+        await prisma.notification.create({
+          data: {
+            userId: session.user.id,
+            title,
+            message,
+            type: type?.toUpperCase() || "SYSTEM",
+            link,
+          },
+        });
+      }
+
+      return NextResponse.json({ success: true });
+    }
 
     if (IS_DEV) {
       if (all) {

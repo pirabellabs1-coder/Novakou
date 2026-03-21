@@ -35,7 +35,7 @@ export async function GET() {
       });
 
       return NextResponse.json({
-        history: logs.map((l: { id: string; adminId: string; title: string; message: string; recipientCount: number; failedCount: number; channels: string[]; createdAt: Date }) => ({
+        history: logs.map((l: { id: string; adminId: string; title: string; message: string; recipientCount: number; failedCount: number; channels: string[]; targetCriteria: unknown; createdAt: Date }) => ({
           id: l.id,
           adminId: l.adminId,
           title: l.title,
@@ -43,6 +43,8 @@ export async function GET() {
           recipientCount: l.recipientCount,
           failedCount: l.failedCount,
           channels: l.channels,
+          targetCriteria: l.targetCriteria,
+          status: l.failedCount > 0 ? "partial" : "sent",
           createdAt: l.createdAt,
         })),
       });

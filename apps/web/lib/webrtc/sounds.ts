@@ -81,6 +81,18 @@ export function playEndCallSound() {
   setTimeout(() => playTone(300, 300, 0.06), 220);
 }
 
+// New message notification sound — subtle ping
+export function playMessageSound() {
+  playTone(880, 80, 0.04);
+  setTimeout(() => playTone(1047, 100, 0.04), 100);
+}
+
+// Missed call sound — descending tone
+export function playMissedCallSound() {
+  playTone(523, 150, 0.06);
+  setTimeout(() => playTone(392, 200, 0.06), 170);
+}
+
 // Stop all sounds
 export function stopAllSounds() {
   stopRingtone();

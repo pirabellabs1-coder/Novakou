@@ -48,6 +48,7 @@ export const instructorKeys = {
   all: ["instructor"] as const,
   dashboard: (period: string) => ["instructor", "dashboard", period] as const,
   formations: () => ["instructor", "formations"] as const,
+  formation: (id: string) => ["instructor", "formation", id] as const,
   stats: (period: string) => ["instructor", "statistiques", period] as const,
   formationStats: (id: string, period: string) => ["instructor", "formation-stats", id, period] as const,
   marketing: (period: string) => ["instructor", "marketing", period] as const,
@@ -57,6 +58,7 @@ export const instructorKeys = {
   marketingDiscounts: () => ["instructor", "marketing-discounts"] as const,
   marketingFlashOffers: () => ["instructor", "marketing-flash"] as const,
   marketingAffiliate: () => ["instructor", "marketing-affiliate"] as const,
+  affiliateStats: (period: string) => ["instructor", "affiliate-stats", period] as const,
   revenue: () => ["instructor", "revenus"] as const,
   products: () => ["instructor", "produits"] as const,
   productStats: (period: string) => ["instructor", "produits-stats", period] as const,
@@ -69,6 +71,12 @@ export const instructorKeys = {
   promotions: () => ["instructor", "promotions"] as const,
   pixels: () => ["instructor", "pixels"] as const,
   cohorts: (formationId: string) => ["instructor", "cohorts", formationId] as const,
+  cohortDetail: (formationId: string, cohortId: string) => ["instructor", "cohort-detail", formationId, cohortId] as const,
+  cohortParticipants: (formationId: string, cohortId: string) => ["instructor", "cohort-participants", formationId, cohortId] as const,
+  profile: () => ["instructor", "profile"] as const,
+  salesFunnels: () => ["instructor", "sales-funnels"] as const,
+  salesFunnel: (id: string) => ["instructor", "sales-funnel", id] as const,
+  categories: () => ["instructor", "categories"] as const,
 };
 
 // ─── Hooks ────────────────────────────────────────────────────────
@@ -257,6 +265,76 @@ export function useInstructorFunnelAnalytics(funnelId: string) {
     queryFn: () => fetchAPI(`/api/marketing/funnels/${funnelId}/events`),
     enabled: !!funnelId,
     staleTime: 60000,
+  });
+}
+
+// ─── Additional data hooks ──────────────────────────────────────
+
+export function useInstructorFormation(id: string) {
+  return useQuery({
+    queryKey: instructorKeys.formation(id),
+    queryFn: () => fetchAPI(`/api/instructeur/formations/${id}`),
+    enabled: !!id,
+    staleTime: 30000,
+  });
+}
+
+export function useInstructorProfile() {
+  return useQuery({
+    queryKey: instructorKeys.profile(),
+    queryFn: () => fetchAPI("/api/instructeur/profil"),
+    staleTime: 30000,
+  });
+}
+
+export function useInstructorSalesFunnels() {
+  return useQuery({
+    queryKey: instructorKeys.salesFunnels(),
+    queryFn: () => fetchAPI("/api/instructeur/sales-funnel"),
+    staleTime: 30000,
+  });
+}
+
+export function useInstructorSalesFunnel(id: string) {
+  return useQuery({
+    queryKey: instructorKeys.salesFunnel(id),
+    queryFn: () => fetchAPI(`/api/instructeur/sales-funnel/${id}`),
+    enabled: !!id,
+    staleTime: 30000,
+  });
+}
+
+export function useInstructorCohortDetail(formationId: string, cohortId: string) {
+  return useQuery({
+    queryKey: instructorKeys.cohortDetail(formationId, cohortId),
+    queryFn: () => fetchAPI(`/api/instructeur/formations/${formationId}/cohorts/${cohortId}`),
+    enabled: !!formationId && !!cohortId,
+    staleTime: 30000,
+  });
+}
+
+export function useInstructorCohortParticipants(formationId: string, cohortId: string) {
+  return useQuery({
+    queryKey: instructorKeys.cohortParticipants(formationId, cohortId),
+    queryFn: () => fetchAPI(`/api/instructeur/formations/${formationId}/cohorts/${cohortId}/participants`),
+    enabled: !!formationId && !!cohortId,
+    staleTime: 30000,
+  });
+}
+
+export function useFormationCategories() {
+  return useQuery({
+    queryKey: instructorKeys.categories(),
+    queryFn: () => fetchAPI<{ categories: { id: string; name: string; slug?: string }[] }>("/api/formations/categories").then(r => r.categories ?? []),
+    staleTime: 60000,
+  });
+}
+
+export function useAffiliateStats(period: string) {
+  return useQuery({
+    queryKey: instructorKeys.affiliateStats(period),
+    queryFn: () => fetchAPI(`/api/marketing/affiliate/stats?period=${period}`),
+    staleTime: 30000,
   });
 }
 

@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import type { CallUser, CallType } from "@/lib/webrtc/types";
+import { playMissedCallSound } from "@/lib/webrtc/sounds";
 
 interface IncomingCallPopupProps {
   caller: CallUser;
   callType: CallType;
   onAccept: () => void;
-  onAcceptAudioOnly?: () => void; // For video calls: answer with audio only
+  onAcceptAudioOnly?: () => void;
   onReject: () => void;
+  onMissed?: () => void;
 }
 
 export function IncomingCallPopup({
@@ -18,14 +20,36 @@ export function IncomingCallPopup({
   onAccept,
   onAcceptAudioOnly,
   onReject,
+  onMissed,
 }: IncomingCallPopupProps) {
+  const missedRef = useRef(false);
+
+  const handleMissedCall = useCallback(() => {
+    if (missedRef.current) return;
+    missedRef.current = true;
+    playMissedCallSound();
+    onMissed?.();
+    onReject();
+
+    // Create a missed call notification
+    fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        create: true,
+        title: "Appel manque",
+        message: `${caller.name} a essaye de vous appeler (${callType === "video" ? "video" : "audio"})`,
+        type: "message",
+        link: "/dashboard/messages",
+      }),
+    }).catch(() => {});
+  }, [caller.name, callType, onMissed, onReject]);
+
   // Auto-timeout after 30 seconds — trigger missed call
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      onReject();
-    }, 30000);
+    const timeout = setTimeout(handleMissedCall, 30000);
     return () => clearTimeout(timeout);
-  }, [onReject]);
+  }, [handleMissedCall]);
 
   // Send browser notification if tab is not active
   useEffect(() => {

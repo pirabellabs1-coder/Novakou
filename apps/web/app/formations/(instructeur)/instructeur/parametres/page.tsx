@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { useInstructorProfile, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 interface Profile {
   name: string;
@@ -25,9 +26,8 @@ export default function InstructeurParametresPage() {
   const router = useRouter();
   const fr = locale === "fr";
 
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const { data: profileData, isLoading: loading, error: profileError, refetch } = useInstructorProfile();
+  const profile = (profileData as { profile?: Profile } | null)?.profile ?? null;
   const [success, setSuccess] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [form, setForm] = useState({
@@ -38,52 +38,52 @@ export default function InstructeurParametresPage() {
     website: "",
     youtube: "",
   });
+  const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
-    if (status === "loading") return;
     if (status === "unauthenticated") { router.replace("/formations/connexion"); return; }
-    if (status !== "authenticated") return;
-
-    fetch("/api/instructeur/profil")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.profile) {
-          setProfile(data.profile);
-          setForm({
-            name: data.profile.name ?? "",
-            avatar: data.profile.avatar ?? data.profile.image ?? "",
-            bio: data.profile.bio ?? "",
-            linkedin: data.profile.linkedin ?? "",
-            website: data.profile.website ?? "",
-            youtube: data.profile.youtube ?? "",
-          });
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
   }, [status, router]);
 
-  const handleSave = async () => {
-    setSaving(true);
-    setSuccess(false);
-    setSaveError("");
-    try {
+  useEffect(() => {
+    if (!seeded && profile) {
+      setForm({
+        name: profile.name ?? "",
+        avatar: profile.avatar ?? profile.image ?? "",
+        bio: profile.bio ?? "",
+        linkedin: profile.linkedin ?? "",
+        website: profile.website ?? "",
+        youtube: profile.youtube ?? "",
+      });
+      setSeeded(true);
+    }
+  }, [profile, seeded]);
+
+  const saveMutation = useInstructorMutation(
+    async (formData: typeof form) => {
       const res = await fetch("/api/instructeur/profil", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(formData),
       });
-      if (res.ok) {
-        setSuccess(true);
-      } else {
+      if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setSaveError(data.error || (fr ? "Erreur lors de la sauvegarde" : "Error saving changes"));
+        throw new Error(data.error || (fr ? "Erreur lors de la sauvegarde" : "Error saving changes"));
       }
-    } catch {
-      setSaveError(fr ? "Erreur réseau, veuillez réessayer" : "Network error, please try again");
-    }
-    setSaving(false);
+      return res.json();
+    },
+    [instructorKeys.profile()]
+  );
+
+  const handleSave = () => {
+    setSuccess(false);
+    setSaveError("");
+    saveMutation.mutate(form, {
+      onSuccess: () => setSuccess(true),
+      onError: (err) => setSaveError(err instanceof Error ? err.message : (fr ? "Erreur réseau, veuillez réessayer" : "Network error, please try again")),
+    });
   };
+
+  const saving = saveMutation.isPending;
 
   if (loading) {
     return (
@@ -92,6 +92,20 @@ export default function InstructeurParametresPage() {
         <div className="animate-pulse space-y-4">
           <div className="h-40 bg-slate-100 dark:bg-slate-800 dark:bg-white/5 rounded-2xl" />
           <div className="h-32 bg-slate-100 dark:bg-slate-800 dark:bg-white/5 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (profileError) {
+    return (
+      <div className="space-y-6 max-w-2xl">
+        <h1 className="text-2xl font-extrabold tracking-tight">{t("settings")}</h1>
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <p className="text-sm text-slate-500 mb-4">{(profileError as Error)?.message || (fr ? "Erreur lors du chargement du profil" : "Error loading profile")}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            {fr ? "Réessayer" : "Retry"}
+          </button>
         </div>
       </div>
     );

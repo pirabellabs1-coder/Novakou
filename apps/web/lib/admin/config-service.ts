@@ -1,11 +1,8 @@
 // FreelanceHigh — Admin Platform Config Service
 // Reads/writes platform configuration from PlatformConfig table via Prisma
 
-import { prisma as _prisma, IS_DEV } from "@/lib/prisma";
-
-// Cast prisma to allow new models that may not be reflected in cached TS types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = _prisma as any;
+import { prisma, IS_DEV } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export interface PlatformConfig {
   maintenanceMode: boolean;
@@ -176,8 +173,8 @@ export async function updateConfig(
     const promises = Object.entries(updates).map(([key, value]) =>
       prisma.platformConfig.upsert({
         where: { key },
-        create: { key, value: value as object, updatedBy: adminId },
-        update: { value: value as object, updatedBy: adminId },
+        create: { key, value: value as Prisma.InputJsonValue, updatedBy: adminId },
+        update: { value: value as Prisma.InputJsonValue, updatedBy: adminId },
       })
     );
     await Promise.all(promises);
@@ -205,7 +202,7 @@ export async function seedDefaultConfig(): Promise<void> {
       entries.map(([key, value]) =>
         prisma.platformConfig.upsert({
           where: { key },
-          create: { key, value: value as object },
+          create: { key, value: value as Prisma.InputJsonValue },
           update: {},
         })
       )

@@ -122,7 +122,7 @@ function getSourceColor(source: string): string {
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function CampaignsPage() {
-  const { data: queryData, isLoading: loading } = useMarketingCampaigns();
+  const { data: queryData, isLoading: loading, error: queryError, refetch } = useMarketingCampaigns();
 
   // Local state for optimistic mutation updates — seeded from query data
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -194,6 +194,7 @@ export default function CampaignsPage() {
           ...prev,
           activeCampaigns: target.isActive ? prev.activeCampaigns + 1 : prev.activeCampaigns - 1,
         }));
+        alert("Erreur lors du changement de statut");
       }
     } catch {
       // Revert on error
@@ -204,6 +205,7 @@ export default function CampaignsPage() {
         ...prev,
         activeCampaigns: target.isActive ? prev.activeCampaigns + 1 : prev.activeCampaigns - 1,
       }));
+      alert("Erreur lors du changement de statut");
     }
   };
 
@@ -222,6 +224,7 @@ export default function CampaignsPage() {
       }));
     } catch {
       // API call failed — keep campaign in local state, do not remove
+      alert("Erreur lors de la suppression de la campagne");
     } finally {
       setDeletingId(null);
     }
@@ -337,6 +340,20 @@ export default function CampaignsPage() {
           ))}
         </div>
         <div className="h-64 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <Link2 className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }

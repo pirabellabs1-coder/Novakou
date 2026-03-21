@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "next-intl";
 import {
   Plus, Eye, Archive, ShoppingBag, Star, Copy, BarChart2,
   BookOpen, FileText, Palette, Key, Headphones, Video, Package,
 } from "lucide-react";
+import { useInstructorProducts, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 import EmptyState from "@/components/formations/EmptyState";
 
@@ -15,6 +16,7 @@ interface Product {
   slug: string;
   title: string;
   productType: string;
+  categoryId: string;
   price: number;
   salesCount: number;
   viewsCount: number;
@@ -47,51 +49,49 @@ const TYPE_CONFIG: Record<string, { icon: React.ElementType; label: string; colo
 export default function InstructeurProduitsPage() {
   const locale = useLocale();
   const fr = locale === "fr";
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { data: productsData, isLoading: loading, error: queryError, refetch } = useInstructorProducts();
+  const products: Product[] = (productsData as { products?: Product[] } | null)?.products ?? [];
+  const error = queryError ? (fr ? "Erreur lors du chargement" : "Loading error") : "";
   const [filter, setFilter] = useState<string>("all");
 
-  useEffect(() => {
-    fetch("/api/instructeur/produits")
-      .then((r) => {
-        if (!r.ok) throw new Error(fr ? "Erreur lors du chargement" : "Loading error");
-        return r.json();
-      })
-      .then((data) => setProducts(data.products || []))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  async function handleArchive(id: string) {
-    if (!confirm(fr ? "Archiver ce produit ?" : "Archive this product?")) return;
-    try {
+  const archiveMutation = useInstructorMutation(
+    async (id: string) => {
       const res = await fetch(`/api/instructeur/produits?id=${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
-      setProducts((prev) => prev.map((p) => p.id === id ? { ...p, status: "ARCHIVE" } : p));
-    } catch {
-      alert(fr ? "Erreur lors de l'archivage" : "Error archiving");
-    }
-  }
+      return res.json();
+    },
+    [instructorKeys.products()]
+  );
 
-  async function handleDuplicate(product: Product) {
-    try {
+  const duplicateMutation = useInstructorMutation(
+    async (product: Product) => {
       const res = await fetch("/api/instructeur/produits", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: `${product.title} - Copie`,
-          productType: product.productType,
+          type: product.productType,
+          categoryId: product.categoryId,
           price: product.price,
-          status: "BROUILLON",
         }),
       });
       if (!res.ok) throw new Error();
-      const data = await res.json();
-      setProducts((prev) => [data.product || { ...product, id: Date.now().toString(), title: `${product.title} - Copie`, status: "BROUILLON", salesCount: 0 }, ...prev]);
-    } catch {
-      alert(fr ? "Erreur lors de la duplication" : "Error duplicating");
-    }
+      return res.json();
+    },
+    [instructorKeys.products()]
+  );
+
+  function handleArchive(id: string) {
+    if (!confirm(fr ? "Archiver ce produit ?" : "Archive this product?")) return;
+    archiveMutation.mutate(id, {
+      onError: () => alert(fr ? "Erreur lors de l'archivage" : "Error archiving"),
+    });
+  }
+
+  function handleDuplicate(product: Product) {
+    duplicateMutation.mutate(product, {
+      onError: () => alert(fr ? "Erreur lors de la duplication" : "Error duplicating"),
+    });
   }
 
   const productTypes = ["all", ...new Set(products.map((p) => p.productType))];
@@ -158,7 +158,15 @@ export default function InstructeurProduitsPage() {
       )}
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">{error}</div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            onClick={() => refetch()}
+            className="ml-4 px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-lg font-medium transition-colors whitespace-nowrap"
+          >
+            {fr ? "Réessayer" : "Retry"}
+          </button>
+        </div>
       )}
 
       {/* Products grid */}

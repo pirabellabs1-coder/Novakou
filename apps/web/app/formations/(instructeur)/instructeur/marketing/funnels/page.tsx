@@ -73,7 +73,7 @@ const STEP_TYPE_LABELS: Record<string, string> = {
 
 export default function FunnelsListPage() {
   const queryClient = useQueryClient();
-  const { data: queryData, isLoading: loading } = useInstructorFunnels();
+  const { data: queryData, isLoading: loading, error: queryError, refetch } = useInstructorFunnels();
   const funnels: Funnel[] = (queryData as { funnels?: Funnel[] })?.funnels ?? [];
   const stats: Stats = (queryData as { stats?: Stats })?.stats ?? {
     totalFunnels: 0,
@@ -110,9 +110,11 @@ export default function FunnelsListPage() {
         await queryClient.invalidateQueries({ queryKey: instructorKeys.funnels() });
         setLocalFunnels(null);
         setLocalStats(null);
+      } else {
+        alert("Erreur lors du changement de statut");
       }
     } catch {
-      // ignore
+      alert("Erreur lors du changement de statut");
     } finally {
       setTogglingId(null);
     }
@@ -142,6 +144,7 @@ export default function FunnelsListPage() {
       });
     } catch {
       // API call failed — do not remove from local state
+      alert("Erreur lors de la suppression du funnel");
     } finally {
       setDeletingId(null);
     }
@@ -165,9 +168,11 @@ export default function FunnelsListPage() {
       const res = await fetch(`/api/marketing/funnels/${id}/duplicate`, { method: "POST" });
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: instructorKeys.funnels() });
+      } else {
+        alert("Erreur lors de la duplication");
       }
     } catch {
-      // ignore
+      alert("Erreur lors de la duplication");
     } finally {
       setDuplicatingId(null);
     }
@@ -193,6 +198,20 @@ export default function FunnelsListPage() {
           ))}
         </div>
         <div className="h-48 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+          <Filter className="w-10 h-10 text-red-400 mx-auto mb-4" />
+          <p className="text-sm text-slate-500 mb-4">{queryError.message || "Erreur lors du chargement"}</p>
+          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm">
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }

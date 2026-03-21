@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import {
   Mail, ArrowLeft, ArrowRight, Check, Loader2, Plus, Trash2,
   Clock, ShoppingCart, UserPlus, Tag, BookOpen, AlertCircle,
@@ -241,8 +243,6 @@ export default function CreateEmailSequencePage() {
   const editId = searchParams.get("edit");
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [saving, setSaving] = useState(false);
-  const [loadingEdit, setLoadingEdit] = useState(!!editId);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState<FormData>({
@@ -261,42 +261,43 @@ export default function CreateEmailSequencePage() {
     { label: "Finalisation", labelEn: "Review" },
   ];
 
-  // ── Load sequence for editing ──
+  // ── Load sequence for editing via React Query ──
 
+  const { data: editData, isLoading: loadingEdit } = useQuery({
+    queryKey: ["instructor", "email-sequence", editId],
+    queryFn: () => fetch(`/api/marketing/sequences?id=${editId}`).then((r) => r.json()),
+    enabled: !!editId,
+    staleTime: 30000,
+  });
+
+  const [seeded, setSeeded] = useState(false);
   useEffect(() => {
-    if (!editId) return;
-    setLoadingEdit(true);
-    fetch(`/api/marketing/sequences?id=${editId}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.sequence) {
-          const seq = data.sequence;
-          setForm({
-            name: seq.name || "",
-            description: seq.description || "",
-            trigger: seq.trigger || "",
-            triggerConfig: seq.triggerConfig || {},
-            isActive: seq.isActive ?? false,
-            steps: (seq.steps || []).map((s: Record<string, unknown>) => ({
-              id: (s.id as string) || createEmptyStep("EMAIL").id,
-              stepType: (s.stepType as StepType) || "EMAIL",
-              subjectFr: (s.subjectFr as string) || "",
-              subjectEn: (s.subjectEn as string) || "",
-              bodyFr: (s.bodyFr as string) || "",
-              bodyEn: (s.bodyEn as string) || "",
-              delayMinutes: (s.delayMinutes as number) || 0,
-              conditionField: (s.conditionField as string) || "",
-              conditionOp: (s.conditionOp as string) || "eq",
-              conditionValue: (s.conditionValue as string) || "",
-              tagAction: (s.tagAction as string) || "add",
-              tagName: (s.tagName as string) || "",
-            })),
-          });
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingEdit(false));
-  }, [editId]);
+    if (!seeded && editData?.sequence) {
+      const seq = editData.sequence;
+      setForm({
+        name: seq.name || "",
+        description: seq.description || "",
+        trigger: seq.trigger || "",
+        triggerConfig: seq.triggerConfig || {},
+        isActive: seq.isActive ?? false,
+        steps: (seq.steps || []).map((s: Record<string, unknown>) => ({
+          id: (s.id as string) || createEmptyStep("EMAIL").id,
+          stepType: (s.stepType as StepType) || "EMAIL",
+          subjectFr: (s.subjectFr as string) || "",
+          subjectEn: (s.subjectEn as string) || "",
+          bodyFr: (s.bodyFr as string) || "",
+          bodyEn: (s.bodyEn as string) || "",
+          delayMinutes: (s.delayMinutes as number) || 0,
+          conditionField: (s.conditionField as string) || "",
+          conditionOp: (s.conditionOp as string) || "eq",
+          conditionValue: (s.conditionValue as string) || "",
+          tagAction: (s.tagAction as string) || "add",
+          tagName: (s.tagName as string) || "",
+        })),
+      });
+      setSeeded(true);
+    }
+  }, [editData, seeded]);
 
   // ── Field update helper ──
 
@@ -424,63 +425,63 @@ export default function CreateEmailSequencePage() {
 
   // ── Save ──
 
-  const handleSave = async (activate: boolean) => {
-    if (!validateStep(2)) {
-      setCurrentStep(2);
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const payload = {
-        ...(editId ? { id: editId } : {}),
-        name: form.name.trim(),
-        description: form.description,
-        trigger: form.trigger,
-        triggerConfig: form.triggerConfig,
-        isActive: activate,
-        steps: form.steps.map((s) => {
-          const base: Record<string, unknown> = { stepType: s.stepType };
-
-          if (s.stepType === "EMAIL") {
-            base.subjectFr = s.subjectFr;
-            base.subjectEn = s.subjectEn || undefined;
-            base.bodyFr = s.bodyFr;
-            base.bodyEn = s.bodyEn || undefined;
-          }
-          if (s.stepType === "DELAY") {
-            base.delayMinutes = s.delayMinutes;
-          }
-          if (s.stepType === "CONDITION") {
-            base.conditionField = s.conditionField;
-            base.conditionOp = s.conditionOp;
-            base.conditionValue = s.conditionValue;
-          }
-          if (s.stepType === "TAG_ACTION") {
-            base.tagAction = s.tagAction;
-            base.tagName = s.tagName;
-          }
-          return base;
-        }),
-      };
-
+  const saveMutation = useInstructorMutation(
+    async (payload: Record<string, unknown>) => {
       const res = await fetch("/api/marketing/sequences", {
         method: editId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (res.ok) {
-        router.push("/formations/instructeur/marketing/emails");
-      } else {
+      if (!res.ok) {
         const data = await res.json();
-        setErrors({ general: data.error || "Erreur lors de l'enregistrement" });
+        throw new Error(data.error || "Erreur lors de l'enregistrement");
       }
-    } catch {
-      setErrors({ general: "Erreur de connexion" });
-    } finally {
-      setSaving(false);
+      return res.json();
+    },
+    [instructorKeys.emailSequences()]
+  );
+
+  const saving = saveMutation.isPending;
+
+  const handleSave = (activate: boolean) => {
+    if (!validateStep(2)) {
+      setCurrentStep(2);
+      return;
     }
+
+    const payload = {
+      ...(editId ? { id: editId } : {}),
+      name: form.name.trim(),
+      description: form.description,
+      trigger: form.trigger,
+      triggerConfig: form.triggerConfig,
+      isActive: activate,
+      steps: form.steps.map((s) => {
+        const base: Record<string, unknown> = { stepType: s.stepType };
+        if (s.stepType === "EMAIL") {
+          base.subjectFr = s.subjectFr;
+          base.subjectEn = s.subjectEn || undefined;
+          base.bodyFr = s.bodyFr;
+          base.bodyEn = s.bodyEn || undefined;
+        }
+        if (s.stepType === "DELAY") base.delayMinutes = s.delayMinutes;
+        if (s.stepType === "CONDITION") {
+          base.conditionField = s.conditionField;
+          base.conditionOp = s.conditionOp;
+          base.conditionValue = s.conditionValue;
+        }
+        if (s.stepType === "TAG_ACTION") {
+          base.tagAction = s.tagAction;
+          base.tagName = s.tagName;
+        }
+        return base;
+      }),
+    };
+
+    saveMutation.mutate(payload, {
+      onSuccess: () => router.push("/formations/instructeur/marketing/emails"),
+      onError: (err) => setErrors({ general: err instanceof Error ? err.message : "Erreur de connexion" }),
+    });
   };
 
   // ── Loading state ──

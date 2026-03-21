@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { useInstructorFormation, useFormationCategories, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 const FormationRichEditor = dynamic(
   () => import("@/components/formations/FormationRichEditor").then((m) => m.FormationRichEditor),
@@ -18,11 +19,6 @@ const FormationRichEditor = dynamic(
 );
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Category {
-  id: string;
-  name: string;
-}
 
 interface QuizQuestion {
   type: "CHOIX_UNIQUE" | "CHOIX_MULTIPLE" | "VRAI_FAUX" | "TEXTE_LIBRE";
@@ -121,12 +117,12 @@ export default function ModifierFormationPage({ params }: { params: Promise<{ id
   const locale = useLocale();
   const fr = locale === "fr";
 
+  const { data: formationRaw, isLoading: formationLoading } = useInstructorFormation(id);
+  const { data: categories = [] } = useFormationCategories();
   const [formation, setFormation] = useState<FormationData | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const loading = formationLoading;
 
   // ── Form state ──────────────────────────────────────────────────────────────
   const [title, setTitle] = useState("");
@@ -147,61 +143,52 @@ export default function ModifierFormationPage({ params }: { params: Promise<{ id
   const [addingLessonInSection, setAddingLessonInSection] = useState<string | null>(null);
   const [newLessonType, setNewLessonType] = useState<Lesson["type"]>("VIDEO");
 
-  // ── Load formation data ─────────────────────────────────────────────────────
+  // ── Seed form from React Query data ─────────────────────────────────────────
+  const [seeded, setSeeded] = useState(false);
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/instructeur/formations/${id}`).then((r) => r.json()),
-      fetch("/api/formations/categories").then((r) => r.json()),
-    ])
-      .then(([formationData, catData]) => {
-        setCategories(Array.isArray(catData) ? catData : (catData.categories ?? []));
+    if (!seeded && formationRaw && !formationLoading) {
+      const formationData = formationRaw as { formation?: FormationData };
+      if (formationData.formation) {
+        const f: FormationData = formationData.formation;
+        setFormation(f);
+        setTitle(f.title || "");
+        setShortDesc(f.shortDesc || "");
+        setDescription(f.description || "");
+        setThumbnail(f.thumbnail || "");
+        setPreviewVideo(f.previewVideo || "");
+        setPrice(f.price || 0);
+        setIsFree(f.isFree || false);
+        setLevel(f.level || "TOUS_NIVEAUX");
+        setDuration(f.duration || 60);
+        setHasCertificate(f.hasCertificate ?? true);
+        setMinScore(f.minScore || 80);
+        setCategoryId(f.categoryId || "");
 
-        if (formationData.formation) {
-          const f: FormationData = formationData.formation;
-          setFormation(f);
-          setTitle(f.title || "");
-          setShortDesc(f.shortDesc || "");
-          setDescription(f.description || "");
-          setThumbnail(f.thumbnail || "");
-          setPreviewVideo(f.previewVideo || "");
-          setPrice(f.price || 0);
-          setIsFree(f.isFree || false);
-          setLevel(f.level || "TOUS_NIVEAUX");
-          setDuration(f.duration || 60);
-          setHasCertificate(f.hasCertificate ?? true);
-          setMinScore(f.minScore || 80);
-          setCategoryId(f.categoryId || "");
-
-          // Map API sections/lessons to local state
-          if (f.sections && Array.isArray(f.sections)) {
-            setSections(
-              f.sections.map((s) => ({
-                id: s.id || generateId(),
-                title: s.title || "",
-                expanded: true,
-                lessons: (s.lessons || []).map((l) => ({
-                  id: l.id || generateId(),
-                  title: l.title || "",
-                  type: (l.type as Lesson["type"]) || "VIDEO",
-                  content: l.content ?? undefined,
-                  videoUrl: l.videoUrl ?? undefined,
-                  duration: l.duration ?? undefined,
-                  isFree: l.isFree || false,
-                  quiz: l.quiz ?? undefined,
-                })),
-              }))
-            );
-          }
-        } else {
-          setError(fr ? "Formation introuvable" : "Course not found");
+        if (f.sections && Array.isArray(f.sections)) {
+          setSections(
+            f.sections.map((s) => ({
+              id: s.id || generateId(),
+              title: s.title || "",
+              expanded: true,
+              lessons: (s.lessons || []).map((l) => ({
+                id: l.id || generateId(),
+                title: l.title || "",
+                type: (l.type as Lesson["type"]) || "VIDEO",
+                content: l.content ?? undefined,
+                videoUrl: l.videoUrl ?? undefined,
+                duration: l.duration ?? undefined,
+                isFree: l.isFree || false,
+                quiz: l.quiz ?? undefined,
+              })),
+            }))
+          );
         }
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(fr ? "Erreur de chargement" : "Loading error");
-        setLoading(false);
-      });
-  }, [id, fr]);
+      } else {
+        setError(fr ? "Formation introuvable" : "Course not found");
+      }
+      setSeeded(true);
+    }
+  }, [formationRaw, formationLoading, seeded, fr]);
 
   // ── Section helpers ─────────────────────────────────────────────────────────
   const addSection = () => {
@@ -258,8 +245,26 @@ export default function ModifierFormationPage({ params }: { params: Promise<{ id
         : s
     ));
 
-  // ── Save ────────────────────────────────────────────────────────────────────
-  const handleSave = async (submitForReview = false) => {
+  // ── Save mutation ────────────────────────────────────────────────────────────
+  const saveMutation = useInstructorMutation(
+    async (body: Record<string, unknown>) => {
+      const res = await fetch(`/api/instructeur/formations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || (fr ? "Erreur lors de la sauvegarde" : "Error saving"));
+      }
+      return res.json();
+    },
+    [instructorKeys.formation(id), instructorKeys.formations()]
+  );
+
+  const saving = saveMutation.isPending;
+
+  const handleSave = (submitForReview = false) => {
     if (!title.trim()) {
       setError(fr ? "Le titre FR est obligatoire" : "French title is required");
       return;
@@ -269,58 +274,45 @@ export default function ModifierFormationPage({ params }: { params: Promise<{ id
       return;
     }
 
-    setSaving(true);
     setError(null);
-
-    try {
-      const res = await fetch(`/api/instructeur/formations/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          shortDesc,
-          description,
-          thumbnail,
-          previewVideo,
-          price: isFree ? 0 : price,
-          isFree,
-          level,
-          duration,
-          hasCertificate,
-          minScore,
-          categoryId: categoryId || undefined,
-          status: submitForReview ? "EN_ATTENTE" : "BROUILLON",
-          sections: sections.map((s, sIdx) => ({
-            title: s.title,
-            order: sIdx,
-            lessons: s.lessons.map((l, lIdx) => ({
-              title: l.title,
-              type: l.type,
-              videoUrl: l.videoUrl ?? null,
-              content: l.content ?? null,
-              duration: l.duration ?? null,
-              isFree: l.isFree,
-              order: lIdx,
-              quiz: l.quiz ?? null,
-            })),
+    saveMutation.mutate(
+      {
+        title,
+        shortDesc,
+        description,
+        thumbnail,
+        previewVideo,
+        price: isFree ? 0 : price,
+        isFree,
+        level,
+        duration,
+        hasCertificate,
+        minScore,
+        categoryId: categoryId || undefined,
+        status: submitForReview ? "EN_ATTENTE" : "BROUILLON",
+        sections: sections.map((s, sIdx) => ({
+          title: s.title,
+          order: sIdx,
+          lessons: s.lessons.map((l, lIdx) => ({
+            title: l.title,
+            type: l.type,
+            videoUrl: l.videoUrl ?? null,
+            content: l.content ?? null,
+            duration: l.duration ?? null,
+            isFree: l.isFree,
+            order: lIdx,
+            quiz: l.quiz ?? null,
           })),
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || (fr ? "Erreur lors de la sauvegarde" : "Error saving"));
+        })),
+      },
+      {
+        onSuccess: () => {
+          setSuccess(true);
+          setTimeout(() => router.push("/formations/instructeur/mes-formations"), 1500);
+        },
+        onError: (err) => setError(err instanceof Error ? err.message : (fr ? "Erreur inconnue" : "Unknown error")),
       }
-
-      setSuccess(true);
-      setTimeout(() => {
-        router.push("/formations/instructeur/mes-formations");
-      }, 1500);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : (fr ? "Erreur inconnue" : "Unknown error"));
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
   // ── Styles ──────────────────────────────────────────────────────────────────
@@ -565,7 +557,7 @@ export default function ModifierFormationPage({ params }: { params: Promise<{ id
 
         {!isFree && (
           <div>
-            <label className={labelClasses}>{fr ? "Prix (EUR)" : "Price (EUR)"}</label>
+            <label className={labelClasses}>{fr ? "Prix (€)" : "Price (€)"}</label>
             <input
               type="number"
               value={price}
@@ -577,7 +569,7 @@ export default function ModifierFormationPage({ params }: { params: Promise<{ id
             />
             <p className="text-xs text-green-600 dark:text-green-400 mt-1">
               {fr ? "Votre revenu net" : "Your net revenue"}:{" "}
-              <strong>{(price * 0.7).toFixed(2)} EUR</strong> (70%)
+              <strong>{(price * 0.7).toFixed(2)}€</strong> (70%)
             </p>
           </div>
         )}

@@ -111,7 +111,7 @@ export default function AbonnementPage() {
             {currentPlan === "free" ? "Actif" : "Actif · Renouvelle le 1 Avr 2026"}
           </div>
           <span className="px-2 py-0.5 bg-white/10 rounded-full text-xs font-bold">
-            {current.commission}% commission
+            {current.commission > 0 ? `${current.commission}% commission` : "1\u20AC/vente"}
           </span>
         </div>
       </div>
@@ -171,7 +171,7 @@ export default function AbonnementPage() {
               </div>
 
               <h3 className="text-lg font-extrabold mb-0.5">{plan.name}</h3>
-              <p className="text-xs text-slate-500 mb-4">{plan.commission}% de commission</p>
+              <p className="text-xs text-slate-500 mb-4">{plan.commission > 0 ? `${plan.commission}% de commission` : "1\u20AC/vente"}</p>
 
               <div className="mb-5">
                 <span className="text-3xl font-extrabold">{price > 0 ? `€${price}` : "€0"}</span>

@@ -131,6 +131,7 @@ export function MessageBubble({
 
   // URLs for link preview
   const urls = message.type === "text" && !isDeleted ? extractUrls(message.content) : [];
+  const resolvedPreviews = message.linkPreviews ?? (message.linkPreview ? [message.linkPreview] : []);
 
   return (
     <div className={cn("flex gap-3 group", isOwn ? "flex-row-reverse" : "")}>
@@ -263,13 +264,38 @@ export function MessageBubble({
                       <span className="material-symbols-outlined text-lg">download</span>
                     </button>
                   </div>
+                ) : message.type === "file" && message.fileType?.startsWith("video/") && message.fileUrl ? (
+                  /* Video inline player */
+                  <div className="space-y-2">
+                    <div className="rounded-lg overflow-hidden max-w-[300px]">
+                      <video
+                        src={message.fileUrl}
+                        controls
+                        preload="metadata"
+                        className="w-full rounded-lg"
+                      >
+                        Votre navigateur ne supporte pas la lecture video.
+                      </video>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[10px] text-slate-500 truncate flex-1">{message.fileName ?? "Video"}</p>
+                      {message.fileSize && <p className="text-[10px] text-slate-500">{message.fileSize}</p>}
+                      <a
+                        href={message.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-400 hover:text-primary transition-colors flex-shrink-0"
+                        download={message.fileName}
+                      >
+                        <span className="material-symbols-outlined text-sm">download</span>
+                      </a>
+                    </div>
+                  </div>
                 ) : message.type === "file" ? (
-                  /* File attachment */
+                  /* File attachment (documents, archives, etc.) */
                   <div className="flex items-center gap-3 bg-background-dark/50 rounded-lg px-3 py-2">
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined text-primary text-sm">
-                        {message.fileType?.startsWith("video/") ? "videocam" : "description"}
-                      </span>
+                      <span className="material-symbols-outlined text-primary text-sm">description</span>
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold truncate">{message.fileName ?? message.content}</p>
@@ -296,27 +322,15 @@ export function MessageBubble({
                   <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
                 )}
 
-                {/* Video inline player */}
-                {message.type === "file" && message.fileType?.startsWith("video/") && message.fileUrl && (
-                  <div className="mt-2 rounded-lg overflow-hidden max-w-[300px]">
-                    <video
-                      src={message.fileUrl}
-                      controls
-                      preload="metadata"
-                      className="w-full rounded-lg"
-                    >
-                      Votre navigateur ne supporte pas la lecture video.
-                    </video>
+                {/* Link previews (up to 3) */}
+                {resolvedPreviews.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {resolvedPreviews.slice(0, 3).map((preview, i) => (
+                      <LinkPreview key={i} preview={preview} />
+                    ))}
                   </div>
                 )}
-
-                {/* Link previews */}
-                {message.linkPreview && (
-                  <div className="mt-2">
-                    <LinkPreview preview={message.linkPreview} />
-                  </div>
-                )}
-                {urls.length > 0 && !message.linkPreview && (
+                {urls.length > 0 && resolvedPreviews.length === 0 && (
                   <div className="mt-2 space-y-2">
                     {urls.slice(0, 3).map((url, i) => (
                       <a
@@ -334,7 +348,7 @@ export function MessageBubble({
               </>
             )}
 
-            {/* Timestamp + edited + read status */}
+            {/* Timestamp + edited + read/delivery receipts */}
             {!isEditing && (
               <div className="flex items-center justify-end gap-1 mt-1.5">
                 {isEdited && !isDeleted && (
@@ -345,10 +359,25 @@ export function MessageBubble({
                   <span
                     className={cn(
                       "material-symbols-outlined text-xs",
-                      message.readBy.length > 1 ? "text-blue-400" : "text-slate-500"
+                      message.status === "read"
+                        ? "text-blue-400"
+                        : "text-slate-500"
                     )}
+                    title={
+                      message.status === "read"
+                        ? "Lu"
+                        : message.status === "delivered"
+                          ? "Livre"
+                          : message.status === "sending"
+                            ? "Envoi en cours"
+                            : "Envoye"
+                    }
                   >
-                    {message.readBy.length > 1 ? "done_all" : "done"}
+                    {message.status === "sending"
+                      ? "schedule"
+                      : message.status === "delivered" || message.status === "read"
+                        ? "done_all"
+                        : "done"}
                   </span>
                 )}
               </div>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PLAN_RULES } from "@/lib/plans";
 
 // ── Étape 1 — Titre et Catégorie ──
 
@@ -208,11 +209,15 @@ export const PRICE_OPTIONS: number[] = [
   2500, 3000, 3500, 4000, 4500, 5000,
 ];
 
+// Commission rates — now sourced from @/lib/plans (PLAN_RULES)
+// Kept here for backward compatibility with imports that reference these constants.
+// Authoritative source: @/lib/plans calculateCommissionEur()
+
 export const COMMISSION_RATES: Record<string, number> = {
-  GRATUIT: 0.2,
-  PRO: 0.15,
-  BUSINESS: 0.1,
-  AGENCE: 0.08,
+  GRATUIT: PLAN_RULES.GRATUIT.commissionValue / 100, // 12% → 0.12
+  PRO: 0, // Not a percentage — flat 1 EUR. Use calculateCommissionEur() instead.
+  BUSINESS: 0,
+  AGENCE: 0,
 };
 
 export const OPTIONS_LIMITS: Record<string, number> = {
@@ -222,11 +227,12 @@ export const OPTIONS_LIMITS: Record<string, number> = {
   AGENCE: Infinity,
 };
 
+// Service limits — now sourced from @/lib/plans (PLAN_RULES)
 export const SERVICES_LIMITS: Record<string, number> = {
-  GRATUIT: 3,
-  PRO: 15,
-  BUSINESS: Infinity,
-  AGENCE: Infinity,
+  GRATUIT: PLAN_RULES.GRATUIT.serviceLimit,
+  PRO: PLAN_RULES.PRO.serviceLimit,
+  BUSINESS: PLAN_RULES.BUSINESS.serviceLimit,
+  AGENCE: PLAN_RULES.AGENCE.serviceLimit,
 };
 
 export const LANGUAGES = [

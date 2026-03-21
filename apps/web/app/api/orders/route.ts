@@ -7,6 +7,7 @@ import { sendOrderConfirmationEmail } from "@/lib/email";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { z } from "zod";
+import { calculateCommissionEur, getCommissionLabel, normalizePlanName } from "@/lib/plans";
 
 const createOrderSchema = z.object({
   serviceId: z.string().min(1, "serviceId est requis"),
@@ -79,21 +80,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Commission rates by plan
-const COMMISSION_RATES: Record<string, number> = {
-  gratuit: 0.20,
-  pro: 0.15,
-  business: 0.10,
-  agence: 0.08,
-};
-
-// Prisma plan enum to commission rate mapping
-const PRISMA_COMMISSION_RATES: Record<string, number> = {
-  GRATUIT: 0.20,
-  PRO: 0.15,
-  BUSINESS: 0.10,
-  AGENCE: 0.08,
-};
+// Commission calculation now uses centralized plan rules from @/lib/plans
+// Old hardcoded rates removed in favor of calculateCommissionEur()
 
 export async function POST(request: NextRequest) {
   try {
@@ -152,8 +140,9 @@ export async function POST(request: NextRequest) {
       }
 
       const amount = pkg.price;
-      const commissionRate = COMMISSION_RATES[service.vendorPlan] ?? COMMISSION_RATES.gratuit;
-      const commission = Math.round(amount * commissionRate * 100) / 100;
+      const vendorPlan = normalizePlanName(service.vendorPlan);
+      const commission = calculateCommissionEur(vendorPlan, amount);
+      const commissionLabel = getCommissionLabel(vendorPlan);
 
       // Calculate deadline
       const now = new Date();
@@ -228,7 +217,7 @@ export async function POST(request: NextRequest) {
       transactionStore.add({
         userId: service.userId,
         type: "commission",
-        description: `Commission ${Math.round(commissionRate * 100)}% sur commande ${order.id}`,
+        description: `Commission ${commissionLabel} sur commande ${order.id}`,
         amount: -commission,
         status: "en_attente",
         date: now.toISOString().slice(0, 10),
@@ -330,8 +319,9 @@ export async function POST(request: NextRequest) {
       }
 
       const amount = pkg.price;
-      const commissionRate = PRISMA_COMMISSION_RATES[service.user.plan] ?? PRISMA_COMMISSION_RATES.GRATUIT;
-      const commission = Math.round(amount * commissionRate * 100) / 100;
+      const freelancePlan = normalizePlanName(service.user.plan);
+      const commission = calculateCommissionEur(freelancePlan, amount);
+      const commissionLabel = getCommissionLabel(freelancePlan);
 
       // Calculate deadline
       const deliveryDays = pkg.deliveryDays ?? service.deliveryDays;
@@ -379,7 +369,7 @@ export async function POST(request: NextRequest) {
             currency: "EUR",
             status: "EN_ATTENTE",
             type: "commission",
-            description: `Commission ${Math.round(commissionRate * 100)}% sur commande ${newOrder.id}`,
+            description: `Commission ${commissionLabel} sur commande ${newOrder.id}`,
           },
         });
 

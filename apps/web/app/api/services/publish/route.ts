@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { fullServiceSchema, SERVICES_LIMITS } from "@/lib/validations/service";
+import { fullServiceSchema } from "@/lib/validations/service";
+import { canCreateService, normalizePlanName, getPlanLimits, formatLimit } from "@/lib/plans";
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const userPlan = session.user.plan?.toUpperCase() || "GRATUIT";
+    const userPlan = normalizePlanName(session.user.plan);
 
     // The frontend sends fields at root level
     const result = fullServiceSchema.safeParse(body);
@@ -41,13 +42,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check service limit by plan
+    // Check service limit by plan (using authoritative plan rules)
     const activeServicesCount = body.activeServicesCount || 0;
-    const limit = SERVICES_LIMITS[userPlan] || 3;
-    if (activeServicesCount >= limit) {
+    const planLimits = getPlanLimits(userPlan);
+    if (!canCreateService(userPlan, activeServicesCount)) {
       return NextResponse.json(
         {
-          error: `Vous avez atteint la limite de ${limit} services pour le plan ${userPlan}. Passez à un plan supérieur pour publier plus de services.`,
+          error: `Vous avez atteint la limite de ${formatLimit(planLimits.serviceLimit)} services pour le plan ${planLimits.name}. Passez a un plan superieur pour publier plus de services.`,
+          code: "SERVICE_LIMIT_REACHED",
         },
         { status: 403 }
       );

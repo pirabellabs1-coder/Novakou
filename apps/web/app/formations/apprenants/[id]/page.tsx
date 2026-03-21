@@ -32,6 +32,7 @@ interface LearnerData {
   id: string;
   name: string;
   avatar: string | null;
+  bio: string | null;
   memberSince: string;
   stats: {
     completedCourses: number;
@@ -126,7 +127,10 @@ export default function ApprenantPublicPage({ params }: { params: Promise<{ id: 
             {/* Info */}
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-1">{apprenant.name}</h1>
-              <p className="text-sm text-primary font-semibold mb-2">Apprenant</p>
+              <p className="text-sm text-primary font-semibold mb-1">Apprenant</p>
+              {apprenant.bio && (
+                <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 line-clamp-3">{apprenant.bio}</p>
+              )}
 
               {/* Badges */}
               {badges.length > 0 && (
@@ -167,7 +171,7 @@ export default function ApprenantPublicPage({ params }: { params: Promise<{ id: 
             { icon: "school", label: "Formations complétées", value: stats.completedCourses.toString(), color: "text-primary" },
             { icon: "workspace_premium", label: "Certificats", value: stats.certificates.toString(), color: "text-emerald-500" },
             { icon: "schedule", label: "Heures d'apprentissage", value: `${stats.totalHours}h`, color: "text-blue-500" },
-            { icon: "grade", label: "Score moyen", value: stats.avgScore > 0 ? `${stats.avgScore}%` : "-", color: "text-amber-500" },
+            { icon: "grade", label: "Note moyenne", value: stats.avgScore > 0 ? `${stats.avgScore}%` : "-", color: "text-amber-500" },
           ].map((s) => (
             <div key={s.label} className="bg-primary/5 dark:bg-white/5 rounded-xl border border-primary/10 p-4 text-center">
               <span className={cn("material-symbols-outlined text-2xl mb-1", s.color)}>{s.icon}</span>

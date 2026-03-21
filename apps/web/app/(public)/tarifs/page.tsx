@@ -12,10 +12,10 @@ export default function TarifsPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const PLANS = [
-    { key: "free", price: 0, commission: "20%", services: "3", candidatures: t("plan_free_candidatures"), boost: t("no"), certif: false, api: false, color: "border-slate-600" },
-    { key: "pro", price: 15, commission: "15%", services: "15", candidatures: t("plan_pro_candidatures"), boost: t("plan_pro_boost"), certif: true, api: false, color: "border-primary", popular: true },
-    { key: "business", price: 45, commission: "10%", services: t("unlimited"), candidatures: t("unlimited"), boost: t("plan_business_boost"), certif: true, api: true, color: "border-blue-500" },
-    { key: "agency", price: 99, commission: "8%", services: t("unlimited"), candidatures: t("unlimited"), boost: t("plan_agency_boost"), certif: true, api: true, color: "border-emerald-500" },
+    { key: "free", price: 0, commission: "12%", services: "7", candidatures: t("plan_free_candidatures"), boost: t("no"), certif: false, api: false, color: "border-slate-600" },
+    { key: "pro", price: 15, commission: "1\u20AC/vente", services: t("unlimited"), candidatures: t("plan_pro_candidatures"), boost: t("plan_pro_boost"), certif: true, api: false, color: "border-primary", popular: true },
+    { key: "business", price: 45, commission: "1\u20AC/vente", services: t("unlimited"), candidatures: t("unlimited"), boost: t("plan_business_boost"), certif: true, api: true, color: "border-blue-500" },
+    { key: "agency", price: 99, commission: "1\u20AC/vente", services: t("unlimited"), candidatures: t("unlimited"), boost: t("plan_agency_boost"), certif: true, api: true, color: "border-emerald-500" },
   ];
 
   const FAQ = [

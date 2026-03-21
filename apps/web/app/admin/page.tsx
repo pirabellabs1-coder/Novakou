@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
@@ -8,12 +8,28 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, 
 import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 export default function AdminDashboard() {
-  const { dashboardStats, loading, config, syncDashboard, syncConfig } = useAdminStore();
+  const { dashboardStats, loading, config, syncDashboard, syncConfig, refreshInterval, lastRefreshedAt } = useAdminStore();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleManualRefresh = useCallback(() => {
+    syncDashboard();
+  }, [syncDashboard]);
 
   useEffect(() => {
     syncDashboard();
     syncConfig();
   }, [syncDashboard, syncConfig]);
+
+  // Auto-refresh every refreshInterval ms (default 30s)
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      syncDashboard();
+    }, refreshInterval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [syncDashboard, refreshInterval]);
 
   // Loading skeleton
   if (loading.dashboard || !dashboardStats) {
@@ -60,7 +76,7 @@ export default function AdminDashboard() {
     );
   }
 
-  const { users, orders, services, finances, disputes, monthlyRevenue, recentOrders, recentUsers, traffic } = dashboardStats;
+  const { users, orders, services, finances, disputes, crossSpace, monthlyRevenue, recentOrders, recentUsers, traffic } = dashboardStats;
 
   const STATS = [
     { label: "Utilisateurs", value: users.totalUsers.toLocaleString(), icon: "people", color: "text-primary", trend: "+8.2%", link: "/admin/utilisateurs" },
@@ -126,10 +142,26 @@ export default function AdminDashboard() {
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Administration</h1>
           <p className="text-slate-400 text-sm mt-1">Vue globale de la plateforme FreelanceHigh.</p>
         </div>
-        <span className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold", config?.maintenanceMode ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400")}>
-          <span className={cn("w-2 h-2 rounded-full", config?.maintenanceMode ? "bg-red-400" : "bg-emerald-400 animate-pulse")} />
-          {config?.maintenanceMode ? "Mode maintenance" : "Plateforme en ligne"}
-        </span>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleManualRefresh}
+            disabled={loading.dashboard}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-primary/10 border border-border-dark transition-colors disabled:opacity-50"
+            title="Actualiser les donnees"
+          >
+            <span className={cn("material-symbols-outlined text-sm", loading.dashboard && "animate-spin")}>refresh</span>
+            Actualiser
+          </button>
+          {lastRefreshedAt.dashboard && (
+            <span className="text-[10px] text-slate-600 hidden sm:block">
+              MAJ {new Date(lastRefreshedAt.dashboard).toLocaleTimeString("fr-FR")}
+            </span>
+          )}
+          <span className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold", config?.maintenanceMode ? "bg-red-500/10 text-red-400" : "bg-emerald-500/10 text-emerald-400")}>
+            <span className={cn("w-2 h-2 rounded-full", config?.maintenanceMode ? "bg-red-400" : "bg-emerald-400 animate-pulse")} />
+            {config?.maintenanceMode ? "Mode maintenance" : "Plateforme en ligne"}
+          </span>
+        </div>
       </div>
 
       {/* Stats clickable */}
@@ -301,6 +333,34 @@ export default function AdminDashboard() {
           ))}
         </div>
       </div>
+
+      {/* Cross-space activity metrics */}
+      {crossSpace && (
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
+          <h3 className="font-bold text-white text-sm mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-lg">groups</span>
+            Activite inter-espaces (30 derniers jours)
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div>
+              <p className="text-lg sm:text-xl font-black text-emerald-400">{crossSpace.activeFreelancers}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Freelancers actifs</p>
+            </div>
+            <div>
+              <p className="text-lg sm:text-xl font-black text-blue-400">{crossSpace.activeClients}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Clients actifs</p>
+            </div>
+            <div>
+              <p className="text-lg sm:text-xl font-black text-primary">{crossSpace.freelanceServices}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Services freelance</p>
+            </div>
+            <div>
+              <p className="text-lg sm:text-xl font-black text-amber-400">{crossSpace.agencyServices}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Services agence</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Quick links */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">

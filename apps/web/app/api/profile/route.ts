@@ -139,6 +139,15 @@ export async function PATCH(request: NextRequest) {
     if (IS_DEV) {
       const profile = profileStore.update(session.user.id, updates);
 
+      // Also sync country/city to the User record (devStore) so admin panel sees them
+      const { country: profileCountry, city: profileCity } = updates as Record<string, unknown>;
+      if (profileCountry !== undefined || profileCity !== undefined) {
+        const { devStore } = await import("@/lib/dev/dev-store");
+        const userUpdates: Record<string, unknown> = {};
+        if (profileCountry !== undefined) userUpdates.country = profileCountry;
+        devStore.update(session.user.id, userUpdates);
+      }
+
       return NextResponse.json({ profile });
     } else {
       // Extract user-level fields vs freelancerProfile fields
@@ -148,12 +157,15 @@ export async function PATCH(request: NextRequest) {
       const userName = firstName || lastName
         ? [firstName, lastName].filter(Boolean).join(" ")
         : undefined;
-      if (userName || photo) {
+      const hasUserUpdates = userName || photo || country !== undefined || city !== undefined;
+      if (hasUserUpdates) {
         await prisma.user.update({
           where: { id: session.user.id },
           data: {
             ...(userName ? { name: userName } : {}),
             ...(photo ? { image: photo } : {}),
+            ...(country !== undefined ? { country } : {}),
+            ...(city !== undefined ? { city } : {}),
           },
         });
       }

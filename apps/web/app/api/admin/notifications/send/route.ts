@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         if (target.role) targetUsers = targetUsers.filter((u) => u.role === target.role);
         if (target.plan) targetUsers = targetUsers.filter((u) => u.plan === target.plan);
         if (target.status) targetUsers = targetUsers.filter((u) => u.status === target.status);
-        if (target.kycLevel !== undefined) targetUsers = targetUsers.filter((u) => u.kyc >= target.kycLevel);
+        if (target.kycLevel !== undefined) targetUsers = targetUsers.filter((u) => u.kyc === target.kycLevel);
         if (target.userIds && Array.isArray(target.userIds)) targetUsers = targetUsers.filter((u) => target.userIds.includes(u.id));
       }
 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       if (target.role) where.role = target.role.toUpperCase();
       if (target.plan) where.plan = target.plan.toUpperCase();
       if (target.status) where.status = target.status.toUpperCase();
-      if (target.kycLevel !== undefined) where.kyc = { gte: target.kycLevel };
+      if (target.kycLevel !== undefined) where.kyc = target.kycLevel;
       if (target.userIds && Array.isArray(target.userIds)) where.id = { in: target.userIds };
     }
 
@@ -113,8 +113,9 @@ export async function POST(request: NextRequest) {
       for (const user of targetUsers) {
         try {
           await sendAdminBroadcastEmail(user.email, user.name, title, message);
-        } catch {
+        } catch (emailErr) {
           failedEmails++;
+          console.error(`[Notification] Email failed for ${user.email}:`, emailErr);
         }
       }
     }

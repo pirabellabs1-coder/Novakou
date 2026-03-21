@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useToastStore } from "@/store/dashboard";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
@@ -57,8 +57,17 @@ interface TrafficStats {
 export default function AdminAnalytics() {
   const [period, setPeriod] = useState("30j");
   const { addToast } = useToastStore();
-  const { analytics, loading, syncAnalytics } = useAdminStore();
+  const { analytics, loading, syncAnalytics, refreshInterval, lastRefreshedAt } = useAdminStore();
   const [traffic, setTraffic] = useState<TrafficStats | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleManualRefresh = useCallback(() => {
+    syncAnalytics();
+    fetch("/api/tracking/stats?period=30d")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setTraffic(data); })
+      .catch(() => {});
+  }, [syncAnalytics]);
 
   useEffect(() => {
     syncAnalytics();
@@ -68,6 +77,17 @@ export default function AdminAnalytics() {
       .then((data) => { if (data) setTraffic(data); })
       .catch(() => {});
   }, [syncAnalytics]);
+
+  // Auto-refresh every refreshInterval ms (default 30s)
+  useEffect(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      syncAnalytics();
+    }, refreshInterval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [syncAnalytics, refreshInterval]);
 
   if (loading.analytics || !analytics) {
     return (
@@ -137,6 +157,20 @@ export default function AdminAnalytics() {
           <p className="text-slate-400 text-sm mt-1">Vue complete des performances de FreelanceHigh.</p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={handleManualRefresh}
+            disabled={loading.analytics}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-primary/10 border border-border-dark transition-colors disabled:opacity-50"
+            title="Actualiser les donnees"
+          >
+            <span className={cn("material-symbols-outlined text-sm", loading.analytics && "animate-spin")}>refresh</span>
+            Actualiser
+          </button>
+          {lastRefreshedAt.analytics && (
+            <span className="text-[10px] text-slate-600 hidden sm:block">
+              MAJ {new Date(lastRefreshedAt.analytics).toLocaleTimeString("fr-FR")}
+            </span>
+          )}
           <div className="flex bg-border-dark rounded-lg p-0.5">
             {["7j", "30j", "90j", "12m"].map(p => (
               <button key={p} onClick={() => setPeriod(p)} className={cn("px-3 py-1.5 rounded-md text-xs font-semibold transition-colors", period === p ? "bg-neutral-dark text-primary shadow-sm" : "text-slate-500 hover:text-slate-300")}>

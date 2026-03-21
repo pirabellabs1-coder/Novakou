@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   MousePointerClick, TrendingUp, DollarSign, BarChart3,
@@ -8,6 +8,7 @@ import {
   Wallet, ChevronRight, Clock, AlertCircle, Star,
   ArrowLeft,
 } from "lucide-react";
+import { useAffiliateStats, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,35 +69,15 @@ const PERIODS = [
 // ── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AffiliateDashboardPage() {
-  const [stats, setStats] = useState<AffiliateStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState("30d");
+  const { data: statsRaw, isLoading: loading, error: queryError, refetch } = useAffiliateStats(period);
+  const stats: AffiliateStats | null = statsRaw && (statsRaw as AffiliateStats).totalClicks !== undefined
+    ? (statsRaw as AffiliateStats)
+    : null;
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
-  const [requestingPayout, setRequestingPayout] = useState(false);
   const [payoutSuccess, setPayoutSuccess] = useState(false);
   const [payoutError, setPayoutError] = useState<string | null>(null);
-
-  // ── Load stats ───────────────────────────────────────────────────────────
-
-  const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/marketing/affiliate/stats?period=${period}`);
-      const data = await res.json();
-      if (data.totalClicks !== undefined) {
-        setStats(data);
-      }
-    } catch {
-      setStats(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [period]);
-
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
 
   // ── Copy helpers ─────────────────────────────────────────────────────────
 
@@ -118,31 +99,36 @@ export default function AffiliateDashboardPage() {
 
   // ── Payout request ──────────────────────────────────────────────────────
 
-  async function requestPayout() {
-    setRequestingPayout(true);
-    setPayoutError(null);
-    try {
+  const payoutMutation = useInstructorMutation(
+    async (amount: number | undefined) => {
       const res = await fetch("/api/marketing/affiliate/payout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: stats?.pendingEarnings }),
+        body: JSON.stringify({ amount }),
       });
-      if (res.ok) {
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "La demande de retrait a échoué. Veuillez réessayer.");
+      }
+      return res.json();
+    },
+    [instructorKeys.affiliateStats(period)]
+  );
+
+  const requestingPayout = payoutMutation.isPending;
+
+  function requestPayout() {
+    setPayoutError(null);
+    payoutMutation.mutate(stats?.pendingEarnings, {
+      onSuccess: () => {
         setPayoutSuccess(true);
         setTimeout(() => setPayoutSuccess(false), 4000);
-        // Refresh stats after payout request
-        fetchStats();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setPayoutError(data.error || "La demande de retrait a échoué. Veuillez réessayer.");
+      },
+      onError: (err) => {
+        setPayoutError(err instanceof Error ? err.message : "Erreur de connexion. Veuillez vérifier votre connexion et réessayer.");
         setTimeout(() => setPayoutError(null), 6000);
-      }
-    } catch {
-      setPayoutError("Erreur de connexion. Veuillez vérifier votre connexion et réessayer.");
-      setTimeout(() => setPayoutError(null), 6000);
-    } finally {
-      setRequestingPayout(false);
-    }
+      },
+    });
   }
 
   // ── Loading state ────────────────────────────────────────────────────────
@@ -157,6 +143,22 @@ export default function AffiliateDashboardPage() {
           ))}
         </div>
         <div className="h-72 bg-slate-200 dark:bg-slate-700 rounded-xl animate-pulse" />
+      </div>
+    );
+  }
+
+  if (queryError) {
+    return (
+      <div className="text-center py-16">
+        <BarChart3 className="w-16 h-16 text-red-300 mx-auto mb-4" />
+        <h2 className="text-xl font-bold text-slate-600 dark:text-slate-300">Erreur de chargement</h2>
+        <p className="text-sm text-slate-400 mt-2">{queryError.message || "Impossible de charger les données"}</p>
+        <button
+          onClick={() => refetch()}
+          className="inline-block mt-6 px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
+        >
+          Réessayer
+        </button>
       </div>
     );
   }

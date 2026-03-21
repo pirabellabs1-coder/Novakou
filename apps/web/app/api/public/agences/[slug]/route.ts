@@ -93,7 +93,7 @@ export async function GET(
         avgRating: Math.round(avgRating * 10) / 10,
         totalReviews: reviews.length,
         activeServices: services.length,
-        teamSize: 1, // placeholder
+        teamSize: team.length > 0 ? team.length : 1,
       },
     },
   });

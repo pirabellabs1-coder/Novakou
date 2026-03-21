@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { serviceStore } from "@/lib/dev/data-store";
+import { createAuditLog } from "@/lib/admin/audit";
 
 // GET /api/admin/services — List all services for admin moderation
 export async function GET() {
@@ -109,6 +110,15 @@ export async function PATCH(request: NextRequest) {
     const service = await prisma.service.update({
       where: { id },
       data,
+    });
+
+    // Audit log for service moderation
+    await createAuditLog({
+      actorId: session.user.id,
+      action: `service.${status.toLowerCase()}`,
+      targetType: "service",
+      targetId: id,
+      details: { status, refuseReason },
     });
 
     return NextResponse.json({ service });

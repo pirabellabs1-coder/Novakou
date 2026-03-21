@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
+import { prisma, IS_DEV } from "@/lib/prisma";
+import { createAuditLog } from "@/lib/admin/audit";
 import { z } from "zod";
 
-const IS_DEV_MODE = process.env.DEV_MODE === "true";
+const IS_DEV_MODE = process.env.DEV_MODE === "true" || IS_DEV;
 
 const blogUpdateSchema = z.object({
   id: z.string(),
@@ -137,9 +139,7 @@ export async function GET() {
       });
     }
 
-    // Production: Prisma
-    const { prisma } = await import("@freelancehigh/db");
-
+    // Production: Prisma — fetch all blog posts with author info
     const articles = await prisma.blogPost.findMany({
       include: { author: { select: { name: true } } },
       orderBy: { createdAt: "desc" },
@@ -240,8 +240,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Production: Prisma
-    const { prisma } = await import("@freelancehigh/db");
-
     const article = await prisma.blogPost.create({
       data: {
         title,
@@ -251,12 +249,21 @@ export async function POST(request: NextRequest) {
         coverImage: featuredImage ?? null,
         category: category ?? "General",
         tags: tags ?? [],
-        authorId: authorId ?? "dev-admin-1",
+        authorId: authorId ?? session.user.id,
         status: prismaStatus,
         publishedAt: prismaStatus === "PUBLIE" ? new Date() : null,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       },
       include: { author: { select: { name: true } } },
+    });
+
+    // Audit log for blog creation
+    await createAuditLog({
+      actorId: session.user.id,
+      action: "blog.created",
+      targetType: "blogPost",
+      targetId: article.id,
+      details: { title, status: prismaStatus },
     });
 
     return NextResponse.json({
@@ -347,8 +354,6 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Production: Prisma
-    const { prisma } = await import("@freelancehigh/db");
-
     const existing = await prisma.blogPost.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Article introuvable" }, { status: 404 });
@@ -379,6 +384,15 @@ export async function PATCH(request: NextRequest) {
       where: { id },
       data,
       include: { author: { select: { name: true } } },
+    });
+
+    // Audit log for blog update
+    await createAuditLog({
+      actorId: session.user.id,
+      action: "blog.updated",
+      targetType: "blogPost",
+      targetId: id,
+      details: { title: article.title, updatedFields: Object.keys(data) },
     });
 
     return NextResponse.json({
@@ -435,14 +449,21 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Production: Prisma
-    const { prisma } = await import("@freelancehigh/db");
-
     const existing = await prisma.blogPost.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Article introuvable" }, { status: 404 });
     }
 
     await prisma.blogPost.delete({ where: { id } });
+
+    // Audit log for blog deletion
+    await createAuditLog({
+      actorId: session.user.id,
+      action: "blog.deleted",
+      targetType: "blogPost",
+      targetId: id,
+      details: { title: existing.title },
+    });
 
     return NextResponse.json({ success: true, message: `Article "${existing.title}" supprime` });
   } catch (error) {

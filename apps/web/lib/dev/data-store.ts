@@ -216,7 +216,7 @@ export interface StoredProfile {
   vacationMode: boolean;
   portfolio?: { id: string; title: string; description: string; image: string; link?: string; skills: string[]; featured: boolean }[];
   team?: { id: string; name: string; role: string; avatar: string; skills: string[]; freelanceUsername?: string }[];
-  caseStudies?: { id: string; title: string; description: string; image: string; category: string }[];
+  caseStudies?: { id: string; title: string; description: string; image: string; category: string; keyResult?: string }[];
   workProcess?: { step: number; title: string; description: string }[];
 }
 
@@ -301,7 +301,7 @@ export interface ChatMsg {
   read: boolean;
   editedAt?: string;
   deletedAt?: string;
-  linkPreviewData?: { title: string; description: string; image?: string; domain: string };
+  linkPreviewData?: { title: string; description: string; image?: string; domain: string; url?: string }[];
 }
 
 export interface StoredReview {
@@ -1652,7 +1652,7 @@ export const conversationStore = {
     return this.getAll().find((c) => c.id === id) ?? null;
   },
 
-  sendMessage(convId: string, senderId: string, content: string, type: "text" | "image" | "file" = "text", fileName?: string, fileSize?: string): StoredConversation | null {
+  sendMessage(convId: string, senderId: string, content: string, type: "text" | "image" | "file" = "text", fileName?: string, fileSize?: string, linkPreviewData?: { title: string; description: string; image?: string; domain: string; url?: string }[], fileUrl?: string, fileType?: string): StoredConversation | null {
     const convs = this.getAll();
     const idx = convs.findIndex((c) => c.id === convId);
     if (idx === -1) return null;
@@ -1666,7 +1666,10 @@ export const conversationStore = {
       type,
       fileName,
       fileSize,
+      fileUrl,
+      fileType,
       read: true,
+      linkPreviewData: linkPreviewData && linkPreviewData.length > 0 ? linkPreviewData : undefined,
     };
     convs[idx].messages.push(msg);
     convs[idx].lastMessage = content;

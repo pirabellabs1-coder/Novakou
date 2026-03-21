@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { useInstructorFormations, useInstructorProducts, useInstructorMutation, instructorKeys } from "@/lib/formations/hooks";
 import {
   ArrowLeft, ArrowRight, Plus, Trash2, Loader2,
   Check, Eye, ChevronDown, ChevronUp, AlertCircle,
@@ -135,62 +137,47 @@ export default function FunnelBuilderPage() {
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState<FunnelStepForm[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [loadingEdit, setLoadingEdit] = useState(!!editId);
   const [showStepPicker, setShowStepPicker] = useState(false);
   const [insertAfterIndex, setInsertAfterIndex] = useState<number | null>(null);
   const [createdFunnel, setCreatedFunnel] = useState<{ id: string; slug: string } | null>(null);
-  const [availableProducts, setAvailableProducts] = useState<{id: string; title: string; price: number; type: "formation" | "product"}[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
   const [stepValidationErrors, setStepValidationErrors] = useState<string[]>([]);
 
-  // -- Load real products --
+  // -- Load products via React Query --
+  const { data: formationsRaw, isLoading: formationsLoading } = useInstructorFormations();
+  const { data: productsRaw, isLoading: prdsLoading } = useInstructorProducts();
+  const productsLoading = formationsLoading || prdsLoading;
 
+  const availableProducts: {id: string; title: string; price: number; type: "formation" | "product"}[] = [
+    ...((Array.isArray(formationsRaw) ? formationsRaw : []) as { id: string; title?: string; price?: number }[]).map((f) => ({
+      id: f.id, title: f.title || "Formation", price: f.price || 0, type: "formation" as const,
+    })),
+    ...(((productsRaw as { products?: { id: string; title?: string; price?: number }[] } | null)?.products ?? []).map((p) => ({
+      id: p.id, title: p.title || "Produit", price: p.price || 0, type: "product" as const,
+    }))),
+  ];
+
+  // -- Load funnel for editing via React Query --
+  const { data: editFunnelData, isLoading: loadingEdit } = useQuery({
+    queryKey: ["instructor", "funnel-edit", editId],
+    queryFn: () => fetch("/api/marketing/funnels").then((r) => r.json()),
+    enabled: !!editId,
+    staleTime: 30000,
+  });
+
+  const [seededEdit, setSeededEdit] = useState(false);
   useEffect(() => {
-    Promise.all([
-      fetch("/api/instructeur/formations").then(r => r.json()),
-      fetch("/api/instructeur/produits").then(r => r.json()),
-    ]).then(([formData, prodData]) => {
-      const formations = (formData.formations || []).map((f: any) => ({
-        id: f.id,
-        title: f.title || "Formation",
-        price: f.price || 0,
-        type: "formation" as const,
-      }));
-      const products = (prodData.products || []).map((p: any) => ({
-        id: p.id,
-        title: p.title || "Produit",
-        price: p.price || 0,
-        type: "product" as const,
-      }));
-      setAvailableProducts([...formations, ...products]);
-    }).catch(() => {}).finally(() => setProductsLoading(false));
-  }, []);
-
-  // -- Load funnel for editing --
-
-  useEffect(() => {
-    if (!editId) return;
-    setLoadingEdit(true);
-
-    fetch("/api/marketing/funnels")
-      .then((r) => r.json())
-      .then((data) => {
-        const funnel = (data.funnels || []).find((f: { id: string }) => f.id === editId);
-        if (funnel) {
-          setName(funnel.name);
-          setDescription(funnel.description || "");
-          setSteps(
-            (funnel.steps || []).map((s: FunnelStepForm) => ({
-              ...s,
-              isExpanded: false,
-            })),
-          );
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoadingEdit(false));
-  }, [editId]);
+    if (!seededEdit && editFunnelData && editId) {
+      const funnel = (editFunnelData.funnels || []).find((f: { id: string }) => f.id === editId);
+      if (funnel) {
+        setName(funnel.name);
+        setDescription(funnel.description || "");
+        setSteps(
+          (funnel.steps || []).map((s: FunnelStepForm) => ({ ...s, isExpanded: false })),
+        );
+      }
+      setSeededEdit(true);
+    }
+  }, [editFunnelData, editId, seededEdit]);
 
   // -- Step management --
 
@@ -306,51 +293,53 @@ export default function FunnelBuilderPage() {
 
   // -- Submit --
 
-  const handleSubmit = async (activate: boolean) => {
-    setSubmitting(true);
-    setErrors({});
-
-    try {
-      const payload = {
-        ...(editId ? { id: editId } : {}),
-        name: name.trim(),
-        description: description.trim(),
-        isActive: activate,
-        steps: steps.map((step) => ({
-          type: step.type,
-          title: step.title,
-          headline: step.headline,
-          description: step.description,
-          ctaText: step.ctaText,
-          linkedProductId: step.linkedProductId,
-          linkedProductTitle: step.linkedProductTitle,
-          linkedProductPrice: step.linkedProductPrice,
-          discountPct: step.discountPct,
-        })),
-      };
-
+  const submitMutation = useInstructorMutation(
+    async (payload: Record<string, unknown>) => {
       const res = await fetch("/api/marketing/funnels", {
         method: editId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (res.ok) {
+      if (!res.ok) {
         const data = await res.json();
-        setCreatedFunnel({ id: data.funnel.id, slug: data.funnel.slug });
-
-        if (!activate) {
-          router.push("/formations/instructeur/marketing/funnels");
-        }
-      } else {
-        const data = await res.json();
-        setErrors({ general: data.error || "Erreur lors de la sauvegarde" });
+        throw new Error(data.error || "Erreur lors de la sauvegarde");
       }
-    } catch {
-      setErrors({ general: "Erreur de connexion" });
-    } finally {
-      setSubmitting(false);
-    }
+      return res.json();
+    },
+    [instructorKeys.funnels()]
+  );
+
+  const submitting = submitMutation.isPending;
+
+  const handleSubmit = (activate: boolean) => {
+    setErrors({});
+
+    const payload = {
+      ...(editId ? { id: editId } : {}),
+      name: name.trim(),
+      description: description.trim(),
+      isActive: activate,
+      steps: steps.map((step) => ({
+        type: step.type,
+        title: step.title,
+        headline: step.headline,
+        description: step.description,
+        ctaText: step.ctaText,
+        linkedProductId: step.linkedProductId,
+        linkedProductTitle: step.linkedProductTitle,
+        linkedProductPrice: step.linkedProductPrice,
+        discountPct: step.discountPct,
+      })),
+    };
+
+    submitMutation.mutate(payload, {
+      onSuccess: (data) => {
+        const d = data as { funnel: { id: string; slug: string } };
+        setCreatedFunnel({ id: d.funnel.id, slug: d.funnel.slug });
+        if (!activate) router.push("/formations/instructeur/marketing/funnels");
+      },
+      onError: (err) => setErrors({ general: err instanceof Error ? err.message : "Erreur de connexion" }),
+    });
   };
 
   // -- Loading --
@@ -677,11 +666,11 @@ export default function FunnelBuilderPage() {
                           {step.linkedProductPrice && (
                             <span className="text-xs font-bold">
                               {step.discountPct
-                                ? `${(step.linkedProductPrice * (1 - step.discountPct / 100)).toFixed(2)}EUR`
-                                : `${step.linkedProductPrice.toFixed(2)}EUR`}
+                                ? `${(step.linkedProductPrice * (1 - step.discountPct / 100)).toFixed(2)}€`
+                                : `${step.linkedProductPrice.toFixed(2)}€`}
                               {step.discountPct && (
                                 <span className="line-through text-slate-400 ml-1">
-                                  {step.linkedProductPrice.toFixed(2)}EUR
+                                  {step.linkedProductPrice.toFixed(2)}€
                                 </span>
                               )}
                             </span>
@@ -1046,7 +1035,7 @@ function StepCard({
                     <optgroup label="Formations">
                       {availableProducts.filter((p) => p.type === "formation").map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.title} ({p.price}EUR)
+                          {p.title} ({p.price}€)
                         </option>
                       ))}
                     </optgroup>
@@ -1055,7 +1044,7 @@ function StepCard({
                     <optgroup label="Produits digitaux">
                       {availableProducts.filter((p) => p.type === "product").map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.title} ({p.price}EUR)
+                          {p.title} ({p.price}€)
                         </option>
                       ))}
                     </optgroup>

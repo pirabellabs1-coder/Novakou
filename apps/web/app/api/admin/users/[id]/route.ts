@@ -35,7 +35,8 @@ export async function GET(
       return NextResponse.json({
         user: {
           id: user.id, name: user.name, email: user.email, role: user.role,
-          plan: user.plan, status: user.status, kycLevel: user.kyc,
+          plan: user.plan, status: user.status.toLowerCase(), kycLevel: user.kyc,
+          country: user.country || null,
           createdAt: user.createdAt, lastLoginAt: user.lastLoginAt ?? null,
           loginCount: user.loginCount, ordersCount: userOrders.length,
           revenue: Math.round(revenue * 100) / 100, totalSpent: Math.round(totalSpent * 100) / 100,
@@ -65,8 +66,10 @@ export async function GET(
 
     return NextResponse.json({
       user: {
-        id: user.id, name: user.name, email: user.email, role: user.role,
-        plan: user.plan, status: user.status, kycLevel: user.kyc,
+        id: user.id, name: user.name, email: user.email,
+        role: user.role.toLowerCase(), plan: user.plan.toLowerCase(),
+        status: user.status.toLowerCase(), kycLevel: user.kyc,
+        country: user.country ?? null,
         createdAt: user.createdAt, lastLoginAt: user.lastLoginAt,
         loginCount: user.loginCount,
         ordersCount: user._count.ordersAsClient + user._count.ordersAsFreelance,
@@ -175,7 +178,9 @@ export async function PATCH(
         await prisma.notification.create({
           data: { userId: id, title: "Compte suspendu", message: "Votre compte a ete suspendu par l'administration.", type: "ADMIN_ACTION" },
         });
-        sendAccountSuspendedEmail(user.email, user.name, reason).catch(() => {});
+        sendAccountSuspendedEmail(user.email, user.name, reason).catch((err) =>
+          console.error("[Admin] Failed to send suspension email to", user.email, err)
+        );
       }
 
       if (prismaStatus === "BANNI") {
@@ -190,7 +195,9 @@ export async function PATCH(
         await prisma.notification.create({
           data: { userId: id, title: "Compte banni", message: "Votre compte a ete banni par l'administration.", type: "ADMIN_ACTION" },
         });
-        sendAccountBannedEmail(user.email, user.name, reason).catch(() => {});
+        sendAccountBannedEmail(user.email, user.name, reason).catch((err) =>
+          console.error("[Admin] Failed to send ban email to", user.email, err)
+        );
       }
 
       if (prismaStatus === "ACTIF") {
