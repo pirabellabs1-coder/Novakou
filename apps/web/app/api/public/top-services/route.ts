@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { serviceStore } from "@/lib/dev/data-store";
 
 export async function GET(request: NextRequest) {

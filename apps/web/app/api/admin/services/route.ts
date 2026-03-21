@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { serviceStore } from "@/lib/dev/data-store";
 import { createAuditLog } from "@/lib/admin/audit";
 

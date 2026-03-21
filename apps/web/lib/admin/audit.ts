@@ -1,7 +1,8 @@
 // FreelanceHigh — Admin Audit Log Helper
 // Creates audit log entries for admin actions
 
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 interface AuditLogParams {
   actorId: string;

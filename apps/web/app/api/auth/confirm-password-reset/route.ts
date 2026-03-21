@@ -3,7 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { validateResetToken, consumeResetToken } from "@/lib/auth/password-reset";
 import { rateLimit } from "@/lib/api-rate-limit";
-import { IS_DEV } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 const schema = z.object({
   token: z.string().min(64),

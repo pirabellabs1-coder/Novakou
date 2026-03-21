@@ -3,7 +3,7 @@ import { z } from "zod";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { generateResetToken } from "@/lib/auth/password-reset";
-import { IS_DEV } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const schema = z.object({ email: z.string().email() });

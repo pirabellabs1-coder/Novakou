@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { prisma as _prisma, IS_DEV } from "@/lib/prisma";
+import { prisma as _prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any;

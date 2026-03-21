@@ -45,26 +45,35 @@ const DEFAULT_USERS: DevUser[] = [
   { id: "dev-admin-1", email: "admin@freelancehigh.com", passwordHash: ADMIN_HASH, name: "Admin FreelanceHigh", role: "admin", plan: "business", kyc: 4, status: "ACTIF", createdAt: "2026-01-01T00:00:00.000Z", loginCount: 0, country: "FR", adminRole: "super_admin", formationsRole: "instructeur" },
 ];
 
+const IS_VERCEL = !!process.env.VERCEL;
+let usersCache: DevUser[] | null = null;
+
 function readUsers(): DevUser[] {
+  if (usersCache) return usersCache;
   try {
     const dbPath = getDbPath();
     if (!fs.existsSync(dbPath)) {
-      writeUsers(DEFAULT_USERS);
+      usersCache = DEFAULT_USERS;
+      if (!IS_VERCEL) writeUsers(DEFAULT_USERS);
       return DEFAULT_USERS;
     }
     const raw = fs.readFileSync(dbPath, "utf-8");
-    return JSON.parse(raw) as DevUser[];
+    usersCache = JSON.parse(raw) as DevUser[];
+    return usersCache;
   } catch {
+    usersCache = DEFAULT_USERS;
     return DEFAULT_USERS;
   }
 }
 
 function writeUsers(users: DevUser[]): void {
+  usersCache = users;
+  if (IS_VERCEL) return; // read-only filesystem
   try {
     const dbPath = getDbPath();
     fs.writeFileSync(dbPath, JSON.stringify(users, null, 2), "utf-8");
   } catch {
-    // Ignore write errors in dev
+    // Ignore write errors
   }
 }
 

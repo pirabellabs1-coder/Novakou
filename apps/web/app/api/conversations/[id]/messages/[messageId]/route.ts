@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { conversationStore } from "@/lib/dev/data-store";
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 const EDIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const DELETE_WINDOW_MS = 10 * 60 * 1000; // 10 minutes

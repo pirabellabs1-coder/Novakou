@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { prisma as _prisma, IS_DEV } from "@/lib/prisma";
+import { prisma as _prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { kycRequestStore, kycPersonalInfoStore } from "@/lib/dev/data-store";
 
 // Cast prisma to allow new fields that may not be reflected in cached TS types

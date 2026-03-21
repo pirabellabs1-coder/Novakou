@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 // Semantic search API — In production: Postgres text search
 // In dev: uses keyword matching against dev store data

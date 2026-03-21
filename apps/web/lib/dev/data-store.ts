@@ -342,9 +342,17 @@ export interface StoredReview {
   createdAt: string;
 }
 
-// ── File Helpers ──────────────────────────────────────────────────────────
+// ── File Helpers (with in-memory cache for Vercel serverless) ─────────────
+
+const IS_VERCEL = !!process.env.VERCEL;
+
+// In-memory cache: on Vercel the filesystem is read-only, so we read seed
+// files once and keep mutations in memory (lost between cold starts, which
+// is acceptable for demo/dev mode).
+const memoryCache = new Map<string, unknown>();
 
 function ensureDir(): void {
+  if (IS_VERCEL) return; // read-only filesystem
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -355,26 +363,37 @@ function ensureDir(): void {
 }
 
 function readJson<T>(filename: string, defaultValue: T): T {
+  // Check in-memory cache first
+  if (memoryCache.has(filename)) {
+    return memoryCache.get(filename) as T;
+  }
   try {
     const filePath = path.join(DATA_DIR, filename);
     if (!fs.existsSync(filePath)) {
-      writeJson(filename, defaultValue);
+      memoryCache.set(filename, defaultValue);
+      if (!IS_VERCEL) writeJson(filename, defaultValue);
       return defaultValue;
     }
     const raw = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(raw) as T;
+    const parsed = JSON.parse(raw) as T;
+    memoryCache.set(filename, parsed);
+    return parsed;
   } catch {
+    memoryCache.set(filename, defaultValue);
     return defaultValue;
   }
 }
 
 function writeJson<T>(filename: string, data: T): void {
+  // Always update in-memory cache
+  memoryCache.set(filename, data);
+  if (IS_VERCEL) return; // read-only filesystem on Vercel
   try {
     ensureDir();
     const filePath = path.join(DATA_DIR, filename);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
   } catch {
-    // ignore write errors in dev
+    // ignore write errors
   }
 }
 

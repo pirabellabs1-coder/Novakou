@@ -1,7 +1,8 @@
 // FreelanceHigh — Admin Platform Config Service
 // Reads/writes platform configuration from PlatformConfig table via Prisma
 
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import type { Prisma } from "@prisma/client";
 
 export interface PlatformConfig {

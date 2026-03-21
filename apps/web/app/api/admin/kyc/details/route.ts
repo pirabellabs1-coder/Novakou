@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
-import { IS_DEV } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { kycRequestStore } from "@/lib/dev/data-store";
 
 // GET /api/admin/kyc/details — Fetch detailed KYC submissions for all pending requests

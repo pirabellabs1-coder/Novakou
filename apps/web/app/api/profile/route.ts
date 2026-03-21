@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { profileStore, orderStore, reviewStore } from "@/lib/dev/data-store";
 import { computeBadges } from "@/lib/badges";
-import { prisma, IS_DEV } from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { z } from "zod";
 
 const updateProfileSchema = z.looseObject({

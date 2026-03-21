@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { IS_DEV } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 import { devStore } from "@/lib/dev/dev-store";
 import {
   serviceStore,
