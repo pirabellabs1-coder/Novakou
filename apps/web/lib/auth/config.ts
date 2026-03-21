@@ -374,7 +374,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
-        token.role = (user.role as string) ?? "freelance";
+        token.role = (user.role as string) ?? "client";
         token.kyc = (user.kyc as number) ?? 1;
         token.plan = (user.plan as string) ?? "gratuit";
         if (user.formationsRole) {

@@ -202,7 +202,7 @@ const LABEL = "block text-sm font-semibold text-slate-700 dark:text-slate-300 mb
 export default function InscriptionPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [role, setRole] = useState<Role>("freelance");
+  const [role, setRole] = useState<Role | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   // All form data
@@ -355,6 +355,10 @@ export default function InscriptionPage() {
   async function next() {
     // Step 0: Register + send OTP
     if (step === 0) {
+      if (!role) {
+        setRegisterError("Veuillez choisir votre rôle (Freelance, Client ou Agence)");
+        return;
+      }
       setRegisterLoading(true);
       setRegisterError("");
       try {
@@ -439,7 +443,7 @@ export default function InscriptionPage() {
     if (step > 0) setStep(step - 1);
   }
 
-  const labels = getStepLabels(role);
+  const labels = getStepLabels(role || "freelance");
   const pw = getPasswordStrength(d.password);
 
   // ─── Step 0: Account ──────────────────────────────────────────────────
