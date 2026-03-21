@@ -15,7 +15,7 @@ const ROLE_REDIRECTS: Record<string, string> = {
 export default function ConnexionPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [role, setRole] = useState<"freelance" | "client">("freelance");
+  const [role, setRole] = useState<"freelance" | "client" | "agence">("freelance");
   const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -325,7 +325,7 @@ export default function ConnexionPage() {
                   : "text-slate-600 dark:text-slate-400 font-medium hover:text-primary"
               }`}
             >
-              Je suis un Freelance
+              Freelance
             </button>
             <button
               type="button"
@@ -336,7 +336,18 @@ export default function ConnexionPage() {
                   : "text-slate-600 dark:text-slate-400 font-medium hover:text-primary"
               }`}
             >
-              Je suis un Client
+              Client
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("agence")}
+              className={`flex-1 py-3 px-4 rounded-lg font-bold text-sm transition-all ${
+                role === "agence"
+                  ? "bg-primary text-white shadow-lg"
+                  : "text-slate-600 dark:text-slate-400 font-medium hover:text-primary"
+              }`}
+            >
+              Agence
             </button>
           </div>
 
