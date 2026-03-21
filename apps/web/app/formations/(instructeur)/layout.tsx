@@ -66,6 +66,7 @@ const INSTRUCTEUR_LINKS: NavLink[] = [
       { href: "/formations/instructeur/promotions/creer", icon: "add_circle", labelKey: "sub_create_promotion" },
     ],
   },
+  { href: "/formations/instructeur/kyc", icon: "verified_user", labelKey: "kyc" },
   { href: "/formations/instructeur/parametres", icon: "settings", labelKey: "settings" },
 ];
 

@@ -7,7 +7,23 @@
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = path.join(process.cwd(), "lib", "dev");
+// Resolve DATA_DIR: try multiple paths for compatibility (local dev, Vercel serverless, monorepo root)
+function resolveDataDir(): string {
+  const candidates = [
+    path.join(process.cwd(), "lib", "dev"),
+    path.join(__dirname, "..", "..", "lib", "dev"),
+    path.join(process.cwd(), "apps", "web", "lib", "dev"),
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) return dir;
+  }
+  // Fallback: create at cwd path
+  const fallback = candidates[0];
+  fs.mkdirSync(fallback, { recursive: true });
+  return fallback;
+}
+
+const DATA_DIR = resolveDataDir();
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -1904,13 +1920,33 @@ export interface StoredKycRequest {
   id: string;
   userId: string;
   level: 2 | 3 | 4;
-  documentType: "phone" | "cni" | "passeport" | "diplome" | "certificat" | "siret";
+  documentType: "phone" | "cni" | "passeport" | "permis" | "diplome" | "certificat" | "siret" | "registre_commerce" | "CNI" | "PASSEPORT" | "PERMIS" | "KBIS" | "REGISTRE_COMMERCE" | "LICENCE";
   documentUrl: string;
   status: "en_attente" | "approuve" | "refuse";
   reason: string;
   createdAt: string;
   reviewedAt: string | null;
   reviewedBy: string | null;
+  // Extended KYC submission fields
+  type?: "individual" | "agency";
+  // Individual fields
+  firstName?: string;
+  lastName?: string;
+  dateOfBirth?: string;
+  country?: string;
+  city?: string;
+  address?: string;
+  documentFrontUrl?: string;
+  documentBackUrl?: string;
+  selfieUrl?: string;
+  // Agency fields
+  agencyName?: string;
+  siretNumber?: string;
+  legalRepName?: string;
+  email?: string;
+  phone?: string;
+  registrationDocUrl?: string;
+  representativeIdUrl?: string;
 }
 
 const KYC_FILE = "kyc-requests.json";

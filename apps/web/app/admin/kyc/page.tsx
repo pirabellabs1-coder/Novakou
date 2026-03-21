@@ -40,17 +40,241 @@ function KycSkeleton() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function KycRequestDetails({ request }: { request: any }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Check if request has extended fields (from new structured submission)
+  const hasType = !!request.type || !!request.documentFrontUrl || !!request.agencyName;
+  const isAgency = request.type === "agency" || !!request.agencyName;
+
+  if (!hasType) return null;
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
+      >
+        <span className="material-symbols-outlined text-sm">
+          {expanded ? "expand_less" : "expand_more"}
+        </span>
+        {expanded ? "Masquer les details" : "Voir les details soumis"}
+      </button>
+
+      {expanded && (
+        <div className="mt-3 bg-background-dark/50 rounded-xl p-4 border border-border-dark/50 space-y-3">
+          {/* Type badge */}
+          <div className="flex items-center gap-2">
+            <span className={cn(
+              "text-xs font-semibold px-2.5 py-1 rounded-full",
+              isAgency ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
+            )}>
+              {isAgency ? "Agence" : "Individuel"}
+            </span>
+          </div>
+
+          {isAgency ? (
+            // Agency details
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              {request.agencyName && (
+                <div>
+                  <p className="text-xs text-slate-500">Nom de l&apos;agence</p>
+                  <p className="text-white font-medium">{request.agencyName}</p>
+                </div>
+              )}
+              {request.siretNumber && (
+                <div>
+                  <p className="text-xs text-slate-500">SIRET</p>
+                  <p className="text-white font-medium">{request.siretNumber}</p>
+                </div>
+              )}
+              {request.legalRepName && (
+                <div>
+                  <p className="text-xs text-slate-500">Representant legal</p>
+                  <p className="text-white font-medium">{request.legalRepName}</p>
+                </div>
+              )}
+              {request.email && (
+                <div>
+                  <p className="text-xs text-slate-500">Email</p>
+                  <p className="text-white font-medium">{request.email}</p>
+                </div>
+              )}
+              {request.phone && (
+                <div>
+                  <p className="text-xs text-slate-500">Telephone</p>
+                  <p className="text-white font-medium">{request.phone}</p>
+                </div>
+              )}
+              {request.country && (
+                <div>
+                  <p className="text-xs text-slate-500">Pays / Ville</p>
+                  <p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p>
+                </div>
+              )}
+              {request.address && (
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-slate-500">Adresse</p>
+                  <p className="text-white font-medium">{request.address}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            // Individual details
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+              {request.firstName && (
+                <div>
+                  <p className="text-xs text-slate-500">Prenom</p>
+                  <p className="text-white font-medium">{request.firstName}</p>
+                </div>
+              )}
+              {request.lastName && (
+                <div>
+                  <p className="text-xs text-slate-500">Nom</p>
+                  <p className="text-white font-medium">{request.lastName}</p>
+                </div>
+              )}
+              {request.dateOfBirth && (
+                <div>
+                  <p className="text-xs text-slate-500">Date de naissance</p>
+                  <p className="text-white font-medium">
+                    {new Date(request.dateOfBirth).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+              )}
+              {request.country && (
+                <div>
+                  <p className="text-xs text-slate-500">Pays / Ville</p>
+                  <p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p>
+                </div>
+              )}
+              {request.address && (
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-slate-500">Adresse</p>
+                  <p className="text-white font-medium">{request.address}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Document links */}
+          <div className="pt-2 border-t border-border-dark/50">
+            <p className="text-xs font-semibold text-slate-400 mb-2">Documents soumis</p>
+            <div className="flex flex-wrap gap-2">
+              {request.documentFrontUrl && (
+                <a
+                  href={request.documentFrontUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">badge</span>
+                  Recto
+                </a>
+              )}
+              {request.documentBackUrl && (
+                <a
+                  href={request.documentBackUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">badge</span>
+                  Verso
+                </a>
+              )}
+              {request.selfieUrl && (
+                <a
+                  href={request.selfieUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-lg hover:bg-blue-500/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">photo_camera</span>
+                  Selfie
+                </a>
+              )}
+              {request.registrationDocUrl && (
+                <a
+                  href={request.registrationDocUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">description</span>
+                  Doc entreprise
+                </a>
+              )}
+              {request.representativeIdUrl && (
+                <a
+                  href={request.representativeIdUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-lg hover:bg-blue-500/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">badge</span>
+                  ID Representant
+                </a>
+              )}
+              {request.documentUrl && !request.documentFrontUrl && !request.registrationDocUrl && (
+                <a
+                  href={request.documentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">description</span>
+                  Document
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminKYC() {
   const [tab, setTab] = useState("all");
   const [rejectUserId, setRejectUserId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [kycDetails, setKycDetails] = useState<Record<string, unknown>>({});
   const { addToast } = useToastStore();
   const { kycRequests, kycSummary, loading, syncKyc, approveKyc, refuseKyc } = useAdminStore();
 
   useEffect(() => {
     syncKyc();
   }, [syncKyc]);
+
+  // Fetch detailed KYC submissions from the dev store for each user
+  useEffect(() => {
+    if (kycRequests.length > 0) {
+      fetchKycDetails();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kycRequests]);
+
+  async function fetchKycDetails() {
+    try {
+      // Fetch KYC details for each user's pending submissions
+      const res = await fetch("/api/admin/kyc/details");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.details) {
+          const detailMap: Record<string, unknown> = {};
+          for (const detail of data.details) {
+            detailMap[detail.userId] = detail;
+          }
+          setKycDetails(detailMap);
+        }
+      }
+    } catch {
+      // Silently ignore — details are optional enhancement
+    }
+  }
 
   const filtered = useMemo(() => {
     if (tab === "all") return kycRequests;
@@ -156,6 +380,9 @@ export default function AdminKYC() {
       <div className="space-y-3 sm:space-y-4">
         {filtered.map(r => {
           const levelInfo = LEVEL_MAP[r.nextLevel];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const details = kycDetails[r.userId] as any;
+
           return (
             <div key={r.userId} className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
               <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -176,6 +403,9 @@ export default function AdminKYC() {
                     <div className="flex flex-wrap gap-2 mt-2">
                       <span className="text-xs text-slate-500">Soumis le {new Date(r.createdAt).toLocaleDateString("fr-FR")}</span>
                     </div>
+
+                    {/* Show KYC details if available */}
+                    {details && <KycRequestDetails request={details} />}
                   </div>
                 </div>
                 <div className="flex gap-2 shrink-0">

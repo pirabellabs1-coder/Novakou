@@ -4,10 +4,11 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma as _prisma, IS_DEV } from "@/lib/prisma";
 import { kycRequestStore, kycPersonalInfoStore } from "@/lib/dev/data-store";
 
-// Cast prisma to allow new fields (firstName, lastName, city, address, dateOfBirth)
-// that may not be reflected in cached TS types until next full rebuild
+// Cast prisma to allow new fields that may not be reflected in cached TS types
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const prisma = _prisma as any;
+
+// ── GET — Fetch current user's KYC data ──────────────────────────────────
 
 export async function GET() {
   try {
@@ -66,6 +67,8 @@ export async function GET() {
   }
 }
 
+// ── POST — Create a new KYC request ──────────────────────────────────────
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -74,11 +77,22 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const { type } = body;
+
+    // ── New structured submission (individual or agency) ──
+    if (type === "individual") {
+      return handleIndividualSubmission(session.user.id, body);
+    }
+    if (type === "agency") {
+      return handleAgencySubmission(session.user.id, body);
+    }
+
+    // ── Legacy submission (level + documentType) ──
     const { level, documentType, documentUrl } = body;
 
     if (!level || !documentType) {
       return NextResponse.json(
-        { error: "Champs requis : level, documentType" },
+        { error: "Champs requis : level, documentType (ou type: individual/agency)" },
         { status: 400 }
       );
     }
@@ -91,7 +105,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (IS_DEV) {
-      // Check if there's already a pending request for this level
       const existing = kycRequestStore.getByUser(session.user.id);
       const pendingForLevel = existing.find(
         (r) => r.level === level && r.status === "en_attente"
@@ -119,7 +132,6 @@ export async function POST(request: NextRequest) {
       select: { kyc: true },
     });
 
-    // Check if there's already a pending request for this level
     const pendingForLevel = await prisma.kycRequest.findFirst({
       where: {
         userId: session.user.id,
@@ -151,6 +163,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }
+
+// ── PATCH — Save personal info ──────────────────────────────────────────
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -210,7 +224,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: true });
     }
 
-    // Production: Prisma — update user profile fields
+    // Production: Prisma
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
@@ -228,4 +242,258 @@ export async function PATCH(request: NextRequest) {
     console.error("[API /kyc PATCH]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
+}
+
+// ── Individual submission handler ────────────────────────────────────────
+
+async function handleIndividualSubmission(userId: string, body: Record<string, string>) {
+  const requiredFields = [
+    "firstName", "lastName", "dateOfBirth", "country", "city", "address",
+    "documentType", "documentFrontUrl", "documentBackUrl", "selfieUrl",
+  ];
+
+  const fieldLabels: Record<string, string> = {
+    firstName: "Prenom",
+    lastName: "Nom",
+    dateOfBirth: "Date de naissance",
+    country: "Pays",
+    city: "Ville",
+    address: "Adresse",
+    documentType: "Type de document",
+    documentFrontUrl: "Recto du document",
+    documentBackUrl: "Verso du document",
+    selfieUrl: "Selfie de verification",
+  };
+
+  // Validate all required fields
+  const errors: Record<string, string> = {};
+  for (const field of requiredFields) {
+    if (!body[field] || !body[field].trim()) {
+      errors[field] = `${fieldLabels[field] || field} est requis`;
+    }
+  }
+
+  // Validate document type
+  const validDocTypes = ["CNI", "PASSEPORT", "PERMIS"];
+  if (body.documentType && !validDocTypes.includes(body.documentType)) {
+    errors.documentType = "Type de document invalide";
+  }
+
+  // Validate age
+  if (body.dateOfBirth) {
+    const birthDate = new Date(body.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    if (age < 18) {
+      errors.dateOfBirth = "Vous devez avoir au moins 18 ans";
+    }
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return NextResponse.json({ error: "Champs requis manquants", errors }, { status: 400 });
+  }
+
+  if (IS_DEV) {
+    // Check for existing pending request
+    const existing = kycRequestStore.getByUser(userId);
+    const pending = existing.find((r) => r.level === 3 && r.status === "en_attente");
+    if (pending) {
+      return NextResponse.json(
+        { error: "Une demande est deja en attente de verification" },
+        { status: 409 }
+      );
+    }
+
+    // Also save personal info to dev store
+    kycPersonalInfoStore.upsert(userId, {
+      firstName: body.firstName,
+      lastName: body.lastName,
+      country: body.country,
+      city: body.city,
+      address: body.address,
+      dateOfBirth: body.dateOfBirth,
+    });
+
+    const req = kycRequestStore.create({
+      userId,
+      level: 3,
+      documentType: body.documentType as "CNI" | "PASSEPORT" | "PERMIS",
+      documentUrl: body.documentFrontUrl,
+      type: "individual",
+      firstName: body.firstName,
+      lastName: body.lastName,
+      dateOfBirth: body.dateOfBirth,
+      country: body.country,
+      city: body.city,
+      address: body.address,
+      documentFrontUrl: body.documentFrontUrl,
+      documentBackUrl: body.documentBackUrl,
+      selfieUrl: body.selfieUrl,
+    });
+
+    return NextResponse.json({ request: req }, { status: 201 });
+  }
+
+  // Production: Prisma
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { kyc: true },
+  });
+
+  const pendingReq = await prisma.kycRequest.findFirst({
+    where: {
+      userId,
+      requestedLevel: 3,
+      status: "EN_ATTENTE",
+    },
+  });
+  if (pendingReq) {
+    return NextResponse.json(
+      { error: "Une demande est deja en attente de verification" },
+      { status: 409 }
+    );
+  }
+
+  // Update user personal info
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      firstName: body.firstName,
+      lastName: body.lastName,
+      country: body.country,
+      city: body.city,
+      address: body.address,
+      dateOfBirth: new Date(body.dateOfBirth),
+    },
+  });
+
+  const req = await prisma.kycRequest.create({
+    data: {
+      userId,
+      requestedLevel: 3,
+      currentLevel: user?.kyc ?? 1,
+      documentType: body.documentType,
+      documentUrl: body.documentFrontUrl,
+      status: "EN_ATTENTE",
+      // Store extra fields in a metadata JSON or separate columns if available
+    },
+  });
+
+  return NextResponse.json({ request: req }, { status: 201 });
+}
+
+// ── Agency submission handler ────────────────────────────────────────────
+
+async function handleAgencySubmission(userId: string, body: Record<string, string>) {
+  const requiredFields = [
+    "agencyName", "siret", "country", "city", "address",
+    "legalRepName", "email", "phone",
+    "documentType", "registrationDocUrl", "representativeIdUrl",
+  ];
+
+  const fieldLabels: Record<string, string> = {
+    agencyName: "Nom de l'agence",
+    siret: "SIRET / Numero d'immatriculation",
+    country: "Pays",
+    city: "Ville",
+    address: "Adresse",
+    legalRepName: "Nom du representant legal",
+    email: "Email professionnel",
+    phone: "Telephone",
+    documentType: "Type de document d'entreprise",
+    registrationDocUrl: "Document d'immatriculation",
+    representativeIdUrl: "Piece d'identite du representant",
+  };
+
+  // Validate all required fields
+  const errors: Record<string, string> = {};
+  for (const field of requiredFields) {
+    if (!body[field] || !body[field].trim()) {
+      errors[field] = `${fieldLabels[field] || field} est requis`;
+    }
+  }
+
+  // Validate document type
+  const validDocTypes = ["KBIS", "REGISTRE_COMMERCE", "LICENCE"];
+  if (body.documentType && !validDocTypes.includes(body.documentType)) {
+    errors.documentType = "Type de document invalide";
+  }
+
+  // Validate email format
+  if (body.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+    errors.email = "Format d'email invalide";
+  }
+
+  if (Object.keys(errors).length > 0) {
+    return NextResponse.json({ error: "Champs requis manquants", errors }, { status: 400 });
+  }
+
+  if (IS_DEV) {
+    // Check for existing pending request
+    const existing = kycRequestStore.getByUser(userId);
+    const pending = existing.find((r) => r.level === 3 && r.status === "en_attente");
+    if (pending) {
+      return NextResponse.json(
+        { error: "Une demande est deja en attente de verification" },
+        { status: 409 }
+      );
+    }
+
+    const req = kycRequestStore.create({
+      userId,
+      level: 3,
+      documentType: body.documentType as "KBIS" | "REGISTRE_COMMERCE" | "LICENCE",
+      documentUrl: body.registrationDocUrl,
+      type: "agency",
+      agencyName: body.agencyName,
+      siretNumber: body.siret,
+      country: body.country,
+      city: body.city,
+      address: body.address,
+      legalRepName: body.legalRepName,
+      email: body.email,
+      phone: body.phone,
+      registrationDocUrl: body.registrationDocUrl,
+      representativeIdUrl: body.representativeIdUrl,
+    });
+
+    return NextResponse.json({ request: req }, { status: 201 });
+  }
+
+  // Production: Prisma
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { kyc: true },
+  });
+
+  const pendingReq = await prisma.kycRequest.findFirst({
+    where: {
+      userId,
+      requestedLevel: 3,
+      status: "EN_ATTENTE",
+    },
+  });
+  if (pendingReq) {
+    return NextResponse.json(
+      { error: "Une demande est deja en attente de verification" },
+      { status: 409 }
+    );
+  }
+
+  const req = await prisma.kycRequest.create({
+    data: {
+      userId,
+      requestedLevel: 3,
+      currentLevel: user?.kyc ?? 1,
+      documentType: body.documentType,
+      documentUrl: body.registrationDocUrl,
+      status: "EN_ATTENTE",
+    },
+  });
+
+  return NextResponse.json({ request: req }, { status: 201 });
 }

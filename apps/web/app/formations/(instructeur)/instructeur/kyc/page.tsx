@@ -16,7 +16,7 @@ interface KycRequest {
 
 type PageView = "loading" | "form" | "pending" | "approved" | "rejected";
 
-export default function KycPage() {
+export default function InstructeurKycPage() {
   const [currentLevel, setCurrentLevel] = useState(1);
   const [requests, setRequests] = useState<KycRequest[]>([]);
   const [view, setView] = useState<PageView>("loading");
@@ -30,7 +30,6 @@ export default function KycPage() {
         setCurrentLevel(data.currentLevel ?? 1);
         setRequests(data.requests ?? []);
 
-        // Determine view
         const level = data.currentLevel ?? 1;
         if (level >= 3) {
           setView("approved");
@@ -105,10 +104,10 @@ export default function KycPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">
-              Verification d&apos;identite (KYC)
+              Verification d&apos;identite — Instructeur
             </h1>
             <p className="text-sm text-slate-400">
-              Verifiez votre identite pour debloquer toutes les fonctionnalites de la plateforme.
+              Verifiez votre identite pour creer des formations et recevoir des paiements.
             </p>
           </div>
         </div>
@@ -120,7 +119,7 @@ export default function KycPage() {
           currentLevel={currentLevel}
           status={bannerStatus}
           rejectionReason={rejectionReason}
-          kycHref="/dashboard/kyc"
+          kycHref="/formations/instructeur/kyc"
         />
       </div>
 
@@ -164,8 +163,7 @@ export default function KycPage() {
                 Identite verifiee avec succes
               </h3>
               <p className="text-sm text-slate-400 mb-3">
-                Votre identite a ete verifiee. Vous avez acces a toutes les fonctionnalites de la plateforme,
-                y compris la publication de services et le retrait de fonds.
+                Votre identite a ete verifiee. Vous pouvez creer des formations et recevoir des paiements.
               </p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-lg text-xs font-semibold text-emerald-400">
                 <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -203,7 +201,7 @@ export default function KycPage() {
         </div>
       )}
 
-      {/* Form - shown when not verified or rejected */}
+      {/* Form */}
       {(view === "form" || view === "rejected") && (
         <KycIndividualForm onSuccess={handleSuccess} />
       )}
@@ -221,11 +219,6 @@ export default function KycPage() {
                 <div>
                   <p className="text-sm font-semibold text-white">
                     Niveau {req.level} — {req.documentType}
-                    {req.type && (
-                      <span className="ml-2 text-xs text-slate-500 bg-white/5 px-2 py-0.5 rounded-full">
-                        {req.type === "individual" ? "Individuel" : "Agence"}
-                      </span>
-                    )}
                   </p>
                   <p className="text-xs text-slate-500">
                     {new Date(req.createdAt).toLocaleDateString("fr-FR", {

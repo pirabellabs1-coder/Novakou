@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "userId": "dev-freelance-1",
+    "firstName": "Amadou",
+    "lastName": "Diallo",
+    "country": "Senegal",
+    "city": "Dakar",
+    "address": "Avenue Cheikh Anta Diop, Dakar Plateau",
+    "dateOfBirth": "1992-03-15",
+    "updatedAt": "2026-02-20T14:00:00.000Z"
+  },
+  {
+    "userId": "dev-freelance-2",
+    "firstName": "Fatou",
+    "lastName": "Ndiaye",
+    "country": "Senegal",
+    "city": "Dakar",
+    "address": "Rue de la Corniche Ouest, Mermoz",
+    "dateOfBirth": "1995-06-12",
+    "updatedAt": "2026-03-18T10:30:00.000Z"
+  }
+]

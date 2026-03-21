@@ -1,190 +1,253 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useToastStore } from "@/store/dashboard";
-import { KycUploadCard } from "@/components/kyc/KycUploadCard";
-import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback } from "react";
+import { KycStatusBanner } from "@/components/kyc/KycStatusBanner";
+import { KycAgencyForm } from "@/components/kyc/KycAgencyForm";
 
-interface KycData {
-  currentLevel: number;
-  personalInfo: {
-    firstName: string;
-    lastName: string;
-    country: string;
-    city: string;
-    address: string;
-    dateOfBirth: string;
-  };
-  requests: Array<{
-    id: string;
-    level: number;
-    status: string;
-    documentType: string;
-    createdAt: string;
-    refuseReason?: string;
-  }>;
+interface KycRequest {
+  id: string;
+  level: number;
+  documentType: string;
+  status: "en_attente" | "approuve" | "refuse";
+  reason: string;
+  createdAt: string;
+  type?: string;
 }
 
+type PageView = "loading" | "form" | "pending" | "approved" | "rejected";
+
 export default function AgenceKycPage() {
-  const { addToast } = useToastStore();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [data, setData] = useState<KycData | null>(null);
-  const [personalInfo, setPersonalInfo] = useState({
-    firstName: "", lastName: "", country: "", city: "", address: "", dateOfBirth: "",
-  });
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [requests, setRequests] = useState<KycRequest[]>([]);
+  const [view, setView] = useState<PageView>("loading");
+  const [rejectionReason, setRejectionReason] = useState("");
 
-  useEffect(() => {
-    fetch("/api/kyc")
-      .then((r) => r.json())
-      .then((d) => {
-        setData(d);
-        if (d.personalInfo) setPersonalInfo(d.personalInfo);
-      })
-      .catch(() => addToast("error", "Erreur lors du chargement KYC"))
-      .finally(() => setLoading(false));
-  }, [addToast]);
-
-  async function savePersonalInfo() {
-    if (!personalInfo.firstName || !personalInfo.lastName || !personalInfo.country || !personalInfo.dateOfBirth) {
-      addToast("error", "Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-    setSaving(true);
+  const fetchKyc = useCallback(async () => {
     try {
-      const res = await fetch("/api/kyc", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ personalInfo }),
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        addToast("error", result.error || "Erreur lors de la sauvegarde");
-      } else {
-        addToast("success", "Informations personnelles enregistrees");
+      const res = await fetch("/api/kyc");
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentLevel(data.currentLevel ?? 1);
+        setRequests(data.requests ?? []);
+
+        const level = data.currentLevel ?? 1;
+        if (level >= 3) {
+          setView("approved");
+          return;
+        }
+
+        const reqs: KycRequest[] = data.requests ?? [];
+        const hasPending = reqs.some((r) => r.status === "en_attente");
+        if (hasPending) {
+          setView("pending");
+          return;
+        }
+
+        const refused = reqs.filter((r) => r.status === "refuse");
+        if (refused.length > 0) {
+          const latest = refused.sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )[0];
+          setRejectionReason(latest.reason || "");
+          setView("rejected");
+          return;
+        }
+
+        setView("form");
       }
     } catch {
-      addToast("error", "Erreur de connexion");
-    } finally {
-      setSaving(false);
+      setView("form");
     }
+  }, []);
+
+  useEffect(() => {
+    fetchKyc();
+  }, [fetchKyc]);
+
+  function handleSuccess() {
+    setView("pending");
+    fetchKyc();
   }
 
-  if (loading) {
+  if (view === "loading") {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-8 w-64 bg-border-dark rounded-lg" />
-        <div className="h-4 w-96 bg-border-dark rounded-lg" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 bg-neutral-dark rounded-xl border border-border-dark" />
-          <div className="h-80 bg-neutral-dark rounded-xl border border-border-dark" />
+      <div className="max-w-3xl mx-auto px-4 sm:px-0">
+        <div className="animate-pulse space-y-6">
+          <div className="h-10 bg-white/5 rounded-xl w-2/3" />
+          <div className="h-6 bg-white/5 rounded-xl w-1/2" />
+          <div className="h-40 bg-white/5 rounded-2xl" />
+          <div className="h-64 bg-white/5 rounded-2xl" />
+          <div className="h-48 bg-white/5 rounded-2xl" />
         </div>
       </div>
     );
   }
 
-  const level = data?.currentLevel ?? 1;
+  const bannerStatus =
+    view === "approved"
+      ? "approved"
+      : view === "pending"
+        ? "pending"
+        : view === "rejected"
+          ? "rejected"
+          : "not_verified";
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary">verified_user</span>
-          Verification d&apos;identite (KYC)
-        </h1>
-        <p className="text-slate-400 text-sm mt-1">
-          Completez votre verification pour pouvoir publier des services et recevoir des paiements.
-        </p>
-      </div>
-
-      {/* Niveau actuel */}
-      <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-        <div className="flex items-center gap-4">
-          <div className={cn(
-            "w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold",
-            level >= 3 ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
-          )}>
-            {level}
+    <div className="max-w-3xl mx-auto px-4 sm:px-0">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-xl text-primary">
+              shield
+            </span>
           </div>
           <div>
-            <p className="text-white font-semibold">Niveau {level} / 4</p>
-            <p className="text-xs text-slate-400">
-              {level >= 3 ? "Identite verifiee — vous pouvez publier et recevoir des paiements" : "Completez les etapes ci-dessous pour debloquer toutes les fonctionnalites"}
+            <h1 className="text-2xl font-bold text-white">
+              Verification de l&apos;agence (KYC)
+            </h1>
+            <p className="text-sm text-slate-400">
+              Verifiez votre agence pour publier des services et recevoir des paiements.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Informations personnelles */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-lg">person</span>
-            Informations personnelles
-          </h2>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Prenom *</label>
-                <input value={personalInfo.firstName} onChange={(e) => setPersonalInfo((p) => ({ ...p, firstName: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50" />
-              </div>
-              <div>
-                <label className="text-xs text-slate-400 mb-1 block">Nom *</label>
-                <input value={personalInfo.lastName} onChange={(e) => setPersonalInfo((p) => ({ ...p, lastName: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Pays *</label>
-              <input value={personalInfo.country} onChange={(e) => setPersonalInfo((p) => ({ ...p, country: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50" placeholder="ex: France, Senegal, Cameroun..." />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Ville</label>
-              <input value={personalInfo.city} onChange={(e) => setPersonalInfo((p) => ({ ...p, city: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Adresse</label>
-              <input value={personalInfo.address} onChange={(e) => setPersonalInfo((p) => ({ ...p, address: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50" />
-            </div>
-            <div>
-              <label className="text-xs text-slate-400 mb-1 block">Date de naissance *</label>
-              <input type="date" value={personalInfo.dateOfBirth} onChange={(e) => setPersonalInfo((p) => ({ ...p, dateOfBirth: e.target.value }))}
-                className="w-full px-3 py-2 rounded-lg border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50" />
-            </div>
-            <button onClick={savePersonalInfo} disabled={saving}
-              className="w-full py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
-              {saving ? "Enregistrement..." : "Enregistrer"}
-            </button>
-          </div>
-        </div>
-
-        {/* Upload KYC Document */}
-        <KycUploadCard currentLevel={level} />
+      {/* Status banner */}
+      <div className="mb-6">
+        <KycStatusBanner
+          currentLevel={currentLevel}
+          status={bannerStatus}
+          rejectionReason={rejectionReason}
+          kycHref="/agence/kyc"
+        />
       </div>
 
-      {/* Historique des demandes */}
-      {data?.requests && data.requests.length > 0 && (
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Historique des verifications</h2>
-          <div className="space-y-3">
-            {data.requests.map((req) => (
-              <div key={req.id} className="flex items-center justify-between p-3 rounded-lg bg-background-dark/50 border border-border-dark/50">
-                <div>
-                  <p className="text-sm font-semibold text-white">Niveau {req.level} — {req.documentType}</p>
-                  <p className="text-xs text-slate-500">{new Date(req.createdAt).toLocaleDateString("fr-FR")}</p>
-                  {req.refuseReason && <p className="text-xs text-red-400 mt-1">Motif : {req.refuseReason}</p>}
+      {/* Pending state */}
+      {view === "pending" && (
+        <div className="bg-amber-500/5 rounded-2xl border border-amber-500/20 p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-2xl text-amber-400 animate-pulse">
+                schedule
+              </span>
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-lg mb-1">
+                Votre demande est en cours de verification
+              </h3>
+              <p className="text-sm text-slate-400 mb-3">
+                Notre equipe examine les documents de votre agence. Vous serez notifie par email des que la verification sera terminee.
+                Le delai habituel est de 24 a 48 heures.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-amber-400/80">
+                <span className="material-symbols-outlined text-sm">info</span>
+                Vous pouvez continuer a utiliser la plateforme en attendant.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approved state */}
+      {view === "approved" && (
+        <div className="bg-emerald-500/5 rounded-2xl border border-emerald-500/20 p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-2xl text-emerald-400">
+                verified
+              </span>
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-lg mb-1">
+                Agence verifiee avec succes
+              </h3>
+              <p className="text-sm text-slate-400 mb-3">
+                Votre agence a ete verifiee. Vous avez acces a toutes les fonctionnalites de la plateforme,
+                y compris la publication de services et le retrait de fonds.
+              </p>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-lg text-xs font-semibold text-emerald-400">
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                Agence Verifiee — Niveau {currentLevel}/4
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rejected state */}
+      {view === "rejected" && (
+        <div className="bg-red-500/5 rounded-2xl border border-red-500/20 p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-2xl text-red-400">
+                gpp_bad
+              </span>
+            </div>
+            <div>
+              <h3 className="font-bold text-white text-lg mb-1">
+                Verification refusee
+              </h3>
+              <p className="text-sm text-slate-400 mb-2">
+                La verification de votre agence a ete refusee. Vous pouvez soumettre une nouvelle demande ci-dessous.
+              </p>
+              {rejectionReason && (
+                <div className="bg-red-500/10 rounded-lg p-3 mb-3 border border-red-500/10">
+                  <p className="text-xs font-semibold text-red-400 mb-0.5">Motif du refus :</p>
+                  <p className="text-sm text-red-300">{rejectionReason}</p>
                 </div>
-                <span className={cn("text-xs font-semibold px-2 py-1 rounded-full",
-                  req.status === "approved" || req.status === "APPROUVE" ? "bg-emerald-500/20 text-emerald-400" :
-                  req.status === "refused" || req.status === "REFUSE" ? "bg-red-500/20 text-red-400" :
-                  "bg-amber-500/20 text-amber-400"
-                )}>
-                  {req.status === "approved" || req.status === "APPROUVE" ? "Approuve" :
-                   req.status === "refused" || req.status === "REFUSE" ? "Refuse" : "En attente"}
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form */}
+      {(view === "form" || view === "rejected") && (
+        <KycAgencyForm onSuccess={handleSuccess} />
+      )}
+
+      {/* History */}
+      {requests.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <span className="material-symbols-outlined text-slate-400">history</span>
+            Historique des demandes
+          </h2>
+          <div className="bg-neutral-dark rounded-2xl border border-border-dark divide-y divide-border-dark">
+            {requests.map((req) => (
+              <div key={req.id} className="p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white">
+                    Niveau {req.level} — {req.documentType}
+                    {req.type && (
+                      <span className="ml-2 text-xs text-slate-500 bg-white/5 px-2 py-0.5 rounded-full">
+                        Agence
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    {new Date(req.createdAt).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <span
+                  className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    req.status === "approuve"
+                      ? "text-emerald-400 bg-emerald-500/10"
+                      : req.status === "refuse"
+                        ? "text-red-400 bg-red-500/10"
+                        : "text-amber-400 bg-amber-500/10"
+                  }`}
+                >
+                  {req.status === "approuve"
+                    ? "Approuve"
+                    : req.status === "refuse"
+                      ? "Refuse"
+                      : "En attente"}
                 </span>
               </div>
             ))}

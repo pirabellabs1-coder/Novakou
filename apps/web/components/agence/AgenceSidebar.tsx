@@ -32,6 +32,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Statistiques", href: "/agence/analytics", icon: "bar_chart" },
   { label: "Boost", href: "/agence/services/boost", icon: "rocket_launch" },
   { label: "SEO", href: "/agence/services/seo", icon: "search" },
+  { label: "Vérification KYC", href: "/agence/kyc", icon: "verified_user" },
   { label: "Litiges", href: "/agence/litiges", icon: "gavel" },
   { label: "Aide", href: "/agence/aide", icon: "help" },
   { label: "Paramètres", href: "/agence/parametres", icon: "settings" },

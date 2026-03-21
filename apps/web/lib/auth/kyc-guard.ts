@@ -12,7 +12,7 @@ export const KYC_REQUIREMENTS = {
 } as const;
 
 // Roles qui necessitent une verification KYC
-export const ROLES_REQUIRING_KYC = ["freelance", "agence"] as const;
+export const ROLES_REQUIRING_KYC = ["freelance", "agence", "instructeur"] as const;
 
 // Roles exempts de verification KYC
 export const ROLES_EXEMPT_FROM_KYC = ["client"] as const;

@@ -1,1 +1,46 @@
-[]
+[
+  {
+    "id": "kyc_sample_001",
+    "userId": "dev-freelance-2",
+    "level": 3,
+    "documentType": "CNI",
+    "documentUrl": "/uploads/kyc/sample_cni_front.jpg",
+    "status": "en_attente",
+    "reason": "",
+    "createdAt": "2026-03-18T10:30:00.000Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "type": "individual",
+    "firstName": "Fatou",
+    "lastName": "Ndiaye",
+    "dateOfBirth": "1995-06-12",
+    "country": "Senegal",
+    "city": "Dakar",
+    "address": "Rue de la Corniche Ouest, Mermoz",
+    "documentFrontUrl": "/uploads/kyc/sample_cni_front.jpg",
+    "documentBackUrl": "/uploads/kyc/sample_cni_back.jpg",
+    "selfieUrl": "/uploads/kyc/sample_selfie.jpg"
+  },
+  {
+    "id": "kyc_sample_002",
+    "userId": "dev-freelance-1",
+    "level": 3,
+    "documentType": "PASSEPORT",
+    "documentUrl": "/uploads/kyc/passport_front.jpg",
+    "status": "approuve",
+    "reason": "",
+    "createdAt": "2026-02-20T14:00:00.000Z",
+    "reviewedAt": "2026-02-21T09:15:00.000Z",
+    "reviewedBy": "dev-admin-1",
+    "type": "individual",
+    "firstName": "Amadou",
+    "lastName": "Diallo",
+    "dateOfBirth": "1992-03-15",
+    "country": "Senegal",
+    "city": "Dakar",
+    "address": "Avenue Cheikh Anta Diop, Dakar Plateau",
+    "documentFrontUrl": "/uploads/kyc/passport_front.jpg",
+    "documentBackUrl": "/uploads/kyc/passport_back.jpg",
+    "selfieUrl": "/uploads/kyc/selfie_amadou.jpg"
+  }
+]

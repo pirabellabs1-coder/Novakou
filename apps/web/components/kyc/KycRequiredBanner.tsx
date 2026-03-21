@@ -26,7 +26,12 @@ export function KycRequiredBanner() {
   const statusInfo = getKycStatusLabel(kycLevel);
 
   // Adapter le lien KYC selon l'espace de l'utilisateur
-  const kycHref = role === "agence" ? "/agence/kyc" : "/dashboard/kyc";
+  const kycHref =
+    role === "agence"
+      ? "/agence/kyc"
+      : role === "instructeur"
+        ? "/formations/instructeur/kyc"
+        : "/dashboard/kyc";
 
   return (
     <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">

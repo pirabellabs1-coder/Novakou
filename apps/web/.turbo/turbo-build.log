@@ -6,595 +6,512 @@
    - Environments: .env.local
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 5.9min
+ ✓ Compiled successfully in 7.6min
    Skipping validation of types
    Skipping linting
    Collecting page data ...
 [Stripe] STRIPE_SECRET_KEY not configured
 [Cloudinary] CLOUDINARY_URL not configured
-   Generating static pages (0/360) ...
-   Generating static pages (90/360) 
+   Generating static pages (0/370) ...
+   Generating static pages (92/370) 
 [Cloudinary] CLOUDINARY_URL not configured
+   Generating static pages (184/370) 
 [Stripe] STRIPE_SECRET_KEY not configured
-   Generating static pages (180/360) 
-prisma:error 
-Invalid `prisma.service.findMany()` invocation:
-
-{
-  where: {
-    status: "ACTIVE"
-            ~~~~~~~~
-  },
-  select: {
-    slug: true,
-    updatedAt: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  take: 5000
-}
-
-Invalid value for argument `status`. Expected ServiceStatus.
-[sitemap] Erreur chargement services: Error [PrismaClientValidationError]: 
-Invalid `prisma.service.findMany()` invocation:
-
-{
-  where: {
-    status: "ACTIVE"
-            ~~~~~~~~
-  },
-  select: {
-    slug: true,
-    updatedAt: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  take: 5000
-}
-
-Invalid value for argument `status`. Expected ServiceStatus.
-    at wn (.next/server/chunks/89596.js:29:1269)
-    at $n.handleRequestError (.next/server/chunks/89596.js:121:6850)
-    at $n.handleAndLogRequestError (.next/server/chunks/89596.js:121:6535)
-    at $n.request (.next/server/chunks/89596.js:121:6219)
-    at async f (.next/server/chunks/89596.js:130:9490)
-    at async z (.next/server/app/sitemap.xml/route.js:16:2113)
-    at async C (.next/server/app/sitemap.xml/route.js:16:3177) {
-  clientVersion: '5.22.0'
-}
-prisma:error 
-Invalid `prisma.user.findMany()` invocation:
-
-{
-  where: {
-    role: "FREELANCE",
-    status: "ACTIVE"
-            ~~~~~~~~
-  },
-  select: {
-    username: true,
-    updatedAt: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  take: 5000
-}
-
-Invalid value for argument `status`. Expected UserStatus.
-[sitemap] Erreur chargement profils: Error [PrismaClientValidationError]: 
-Invalid `prisma.user.findMany()` invocation:
-
-{
-  where: {
-    role: "FREELANCE",
-    status: "ACTIVE"
-            ~~~~~~~~
-  },
-  select: {
-    username: true,
-    updatedAt: true
-  },
-  orderBy: {
-    createdAt: "desc"
-  },
-  take: 5000
-}
-
-Invalid value for argument `status`. Expected UserStatus.
-    at wn (.next/server/chunks/89596.js:29:1269)
-    at $n.handleRequestError (.next/server/chunks/89596.js:121:6850)
-    at $n.handleAndLogRequestError (.next/server/chunks/89596.js:121:6535)
-    at $n.request (.next/server/chunks/89596.js:121:6219)
-    at async f (.next/server/chunks/89596.js:130:9490)
-    at async z (.next/server/app/sitemap.xml/route.js:16:2479)
-    at async C (.next/server/app/sitemap.xml/route.js:16:3177) {
-  clientVersion: '5.22.0'
-}
-   Generating static pages (270/360) 
- ✓ Generating static pages (360/360)
+   Generating static pages (277/370) 
+ ✓ Generating static pages (370/370)
    Finalizing page optimization ...
    Collecting build traces ...
 
 Route (app)                                                              Size  First Load JS  Revalidate  Expire
-┌ ƒ /                                                                 8.32 kB         138 kB
-├ ƒ /_not-found                                                         785 B         104 kB
+┌ ƒ /                                                                 8.33 kB         138 kB
+├ ƒ /_not-found                                                         809 B         104 kB
 ├ ƒ /a-propos                                                           200 B         107 kB
-├ ƒ /admin                                                            4.54 kB         233 kB
-├ ƒ /admin/analytics                                                  5.13 kB         236 kB
-├ ƒ /admin/audit-log                                                  2.72 kB         115 kB
-├ ƒ /admin/blog                                                       5.13 kB         123 kB
-├ ƒ /admin/categories                                                 4.36 kB         122 kB
+├ ƒ /admin                                                            4.94 kB         234 kB
+├ ƒ /admin-login/formations/[token]                                   2.37 kB         115 kB
+├ ƒ /admin-login/marketplace/[token]                                  2.35 kB         115 kB
+├ ƒ /admin/analytics                                                  8.13 kB         237 kB
+├ ƒ /admin/audit-log                                                  2.74 kB         115 kB
+├ ƒ /admin/blog                                                        142 kB         260 kB
+├ ƒ /admin/categories                                                 6.78 kB         123 kB
 ├ ƒ /admin/commandes                                                  4.13 kB         116 kB
-├ ƒ /admin/configuration                                              5.43 kB         123 kB
-├ ƒ /admin/equipe                                                     3.12 kB         108 kB
-├ ƒ /admin/finances                                                   4.08 kB         122 kB
-├ ƒ /admin/formations                                                   785 B         104 kB
-├ ƒ /admin/formations/apprenants                                      2.28 kB         109 kB
-├ ƒ /admin/formations/categories                                      3.28 kB         110 kB
-├ ƒ /admin/formations/certificats                                     2.89 kB         110 kB
-├ ƒ /admin/formations/dashboard                                       5.93 kB         227 kB
-├ ƒ /admin/formations/finances                                        6.21 kB         214 kB
-├ ƒ /admin/formations/instructeurs                                    3.23 kB         110 kB
-├ ƒ /admin/formations/liste                                           3.57 kB         110 kB
-├ ƒ /admin/kyc                                                         3.9 kB         122 kB
-├ ƒ /admin/litiges                                                    4.31 kB         122 kB
-├ ƒ /admin/messages                                                     373 B         141 kB
-├ ƒ /admin/notifications                                              3.91 kB         122 kB
-├ ƒ /admin/plans                                                       3.2 kB         121 kB
-├ ƒ /admin/services                                                    4.2 kB         122 kB
-├ ƒ /admin/utilisateurs                                               5.04 kB         126 kB
-├ ƒ /admin/utilisateurs/[id]                                          6.26 kB         124 kB
-├ ƒ /affiliation                                                      3.52 kB         133 kB
-├ ƒ /agence                                                           8.48 kB         241 kB
-├ ƒ /agence/abonnement                                                7.15 kB         123 kB
+├ ƒ /admin/configuration                                              7.54 kB         124 kB
+├ ƒ /admin/equipe                                                     2.83 kB         116 kB
+├ ƒ /admin/finances                                                   6.39 kB         123 kB
+├ ƒ /admin/formations                                                   809 B         104 kB
+├ ƒ /admin/formations/apprenants                                      2.32 kB         109 kB
+├ ƒ /admin/formations/categories                                      3.23 kB         110 kB
+├ ƒ /admin/formations/certificats                                      2.9 kB         110 kB
+├ ƒ /admin/formations/dashboard                                       5.95 kB         228 kB
+├ ƒ /admin/formations/finances                                        6.22 kB         214 kB
+├ ƒ /admin/formations/instructeurs                                    3.26 kB         110 kB
+├ ƒ /admin/formations/liste                                           3.58 kB         110 kB
+├ ƒ /admin/kyc                                                        6.95 kB         123 kB
+├ ƒ /admin/litiges                                                    6.38 kB         123 kB
+├ ƒ /admin/messages                                                     373 B         143 kB
+├ ƒ /admin/notifications                                              6.27 kB         122 kB
+├ ƒ /admin/plans                                                      5.32 kB         121 kB
+├ ƒ /admin/services                                                   6.28 kB         122 kB
+├ ƒ /admin/utilisateurs                                               7.29 kB         127 kB
+├ ƒ /admin/utilisateurs/[id]                                          8.42 kB         125 kB
+├ ƒ /affiliation                                                      3.52 kB         134 kB
+├ ƒ /agence                                                           5.24 kB         241 kB
+├ ƒ /agence/abonnement                                                5.92 kB         124 kB
 ├ ƒ /agence/abonnement/confirmation                                   1.83 kB         105 kB
-├ ƒ /agence/abonnement/paiement                                       3.26 kB         113 kB
-├ ƒ /agence/aide                                                      5.95 kB         122 kB
-├ ƒ /agence/analytics                                                 7.18 kB         242 kB
-├ ƒ /agence/automatisation                                            10.5 kB         124 kB
-├ ƒ /agence/avis                                                      7.21 kB         235 kB
-├ ƒ /agence/candidatures                                              5.11 kB         121 kB
-├ ƒ /agence/clients                                                   5.51 kB         131 kB
-├ ƒ /agence/commandes                                                 6.73 kB         126 kB
-├ ƒ /agence/commandes/[id]                                            5.28 kB         128 kB
-├ ƒ /agence/contrats                                                  6.51 kB         123 kB
-├ ƒ /agence/equipe                                                    5.72 kB         131 kB
-├ ƒ /agence/explorer                                                  5.34 kB         121 kB
-├ ƒ /agence/factures                                                  6.89 kB         128 kB
-├ ƒ /agence/favoris                                                   4.79 kB         124 kB
-├ ƒ /agence/finances                                                  9.53 kB         226 kB
-├ ƒ /agence/freelances/[id]                                           8.18 kB         124 kB
-├ ƒ /agence/litiges                                                   7.35 kB         123 kB
-├ ƒ /agence/messages                                                    393 B         141 kB
-├ ƒ /agence/notifications                                             4.54 kB         124 kB
-├ ƒ /agence/offres                                                    5.36 kB         121 kB
-├ ƒ /agence/parametres                                                6.35 kB         131 kB
-├ ƒ /agence/portfolio                                                 4.96 kB         121 kB
-├ ƒ /agence/profil                                                    7.07 kB         132 kB
-├ ƒ /agence/projets                                                   5.79 kB         122 kB
-├ ƒ /agence/ressources                                                4.23 kB         120 kB
-├ ƒ /agence/securite                                                  4.07 kB         120 kB
-├ ƒ /agence/services                                                  5.59 kB         131 kB
-├ ƒ /agence/services/boost                                             7.1 kB         127 kB
-├ ƒ /agence/services/creer                                              147 B         193 kB
-├ ƒ /agence/services/seo                                              6.68 kB         126 kB
-├ ƒ /agence/sous-traitance                                            5.65 kB         122 kB
-├ ƒ /agences/[slug]                                                   8.09 kB         138 kB
-├ ƒ /aide                                                             6.25 kB         139 kB
-├ ƒ /api/admin/analytics                                                785 B         104 kB
-├ ƒ /api/admin/audit-log                                                785 B         104 kB
-├ ƒ /api/admin/badges                                                   785 B         104 kB
-├ ƒ /api/admin/blog                                                     785 B         104 kB
-├ ƒ /api/admin/boosts                                                   785 B         104 kB
-├ ƒ /api/admin/config                                                   785 B         104 kB
-├ ƒ /api/admin/dashboard                                                785 B         104 kB
-├ ƒ /api/admin/disputes                                                 785 B         104 kB
-├ ƒ /api/admin/email-test                                               785 B         104 kB
-├ ƒ /api/admin/finances                                                 785 B         104 kB
-├ ƒ /api/admin/finances/[id]                                            785 B         104 kB
-├ ƒ /api/admin/formations/apprenants                                    785 B         104 kB
-├ ƒ /api/admin/formations/approve/[id]                                  785 B         104 kB
-├ ƒ /api/admin/formations/audit-log                                     785 B         104 kB
-├ ƒ /api/admin/formations/categories                                    785 B         104 kB
-├ ƒ /api/admin/formations/categories/[id]                               785 B         104 kB
-├ ƒ /api/admin/formations/certificats                                   785 B         104 kB
-├ ƒ /api/admin/formations/certificats/revoke/[id]                       785 B         104 kB
-├ ƒ /api/admin/formations/cohorts                                       785 B         104 kB
-├ ƒ /api/admin/formations/cohorts/[id]                                  785 B         104 kB
-├ ƒ /api/admin/formations/config                                        785 B         104 kB
-├ ƒ /api/admin/formations/discussions                                   785 B         104 kB
-├ ƒ /api/admin/formations/discussions/[id]                              785 B         104 kB
-├ ƒ /api/admin/formations/finances                                      785 B         104 kB
-├ ƒ /api/admin/formations/finances/withdrawal/[id]                      785 B         104 kB
-├ ƒ /api/admin/formations/list                                          785 B         104 kB
-├ ƒ /api/admin/formations/marketing                                     785 B         104 kB
-├ ƒ /api/admin/formations/marketing/promotions                          785 B         104 kB
-├ ƒ /api/admin/formations/produits                                      785 B         104 kB
-├ ƒ /api/admin/formations/produits/approve/[id]                         785 B         104 kB
-├ ƒ /api/admin/formations/produits/reject/[id]                          785 B         104 kB
-├ ƒ /api/admin/formations/promo-codes                                   785 B         104 kB
-├ ƒ /api/admin/formations/promo-codes/[id]                              785 B         104 kB
-├ ƒ /api/admin/formations/refund/[id]                                   785 B         104 kB
-├ ƒ /api/admin/formations/refunds                                       785 B         104 kB
-├ ƒ /api/admin/formations/refunds/[id]                                  785 B         104 kB
-├ ƒ /api/admin/formations/reject/[id]                                   785 B         104 kB
-├ ƒ /api/admin/formations/stats                                         785 B         104 kB
-├ ƒ /api/admin/instructeurs/approve/[id]                                785 B         104 kB
-├ ƒ /api/admin/instructeurs/list                                        785 B         104 kB
-├ ƒ /api/admin/instructeurs/reject/[id]                                 785 B         104 kB
-├ ƒ /api/admin/kyc                                                      785 B         104 kB
-├ ƒ /api/admin/notifications/send                                       785 B         104 kB
-├ ƒ /api/admin/orders                                                   785 B         104 kB
-├ ƒ /api/admin/orders/[id]                                              785 B         104 kB
-├ ƒ /api/admin/services                                                 785 B         104 kB
-├ ƒ /api/admin/services/[id]                                            785 B         104 kB
-├ ƒ /api/admin/team                                                     785 B         104 kB
-├ ƒ /api/admin/users                                                    785 B         104 kB
-├ ƒ /api/admin/users/[id]                                               785 B         104 kB
-├ ƒ /api/admin/users/[id]/impersonate                                   785 B         104 kB
-├ ƒ /api/admin/users/[id]/reset-password                                785 B         104 kB
-├ ƒ /api/admin/users/search                                             785 B         104 kB
-├ ƒ /api/affiliation                                                    785 B         104 kB
-├ ƒ /api/apprenant/achats                                               785 B         104 kB
-├ ƒ /api/apprenant/certificats                                          785 B         104 kB
-├ ƒ /api/apprenant/certificats/[id]                                     785 B         104 kB
-├ ƒ /api/apprenant/cohorts                                              785 B         104 kB
-├ ƒ /api/apprenant/cohorts/[cohortId]                                   785 B         104 kB
-├ ƒ /api/apprenant/discussions                                          785 B         104 kB
-├ ƒ /api/apprenant/enrollments                                          785 B         104 kB
-├ ƒ /api/apprenant/export-pdf                                           785 B         104 kB
-├ ƒ /api/apprenant/favoris                                              785 B         104 kB
-├ ƒ /api/apprenant/notes                                                785 B         104 kB
-├ ƒ /api/apprenant/produits                                             785 B         104 kB
-├ ƒ /api/apprenant/profil                                               785 B         104 kB
-├ ƒ /api/apprenant/recommendations                                      785 B         104 kB
-├ ƒ /api/apprenant/refunds                                              785 B         104 kB
-├ ƒ /api/apprenant/reviews                                              785 B         104 kB
-├ ƒ /api/apprenant/reviews/[id]                                         785 B         104 kB
-├ ƒ /api/auth/[...nextauth]                                             785 B         104 kB
-├ ƒ /api/auth/confirm-password-reset                                    785 B         104 kB
-├ ƒ /api/auth/register                                                  785 B         104 kB
-├ ƒ /api/auth/request-password-reset                                    785 B         104 kB
-├ ƒ /api/auth/reset-password                                            785 B         104 kB
-├ ƒ /api/auth/setup-2fa                                                 785 B         104 kB
-├ ƒ /api/auth/update-formations-role                                    785 B         104 kB
-├ ƒ /api/auth/verify-2fa                                                785 B         104 kB
-├ ƒ /api/auth/verify-email                                              785 B         104 kB
-├ ƒ /api/automation                                                     785 B         104 kB
-├ ƒ /api/blog                                                           785 B         104 kB
-├ ƒ /api/blog/[slug]                                                    785 B         104 kB
-├ ƒ /api/candidatures                                                   785 B         104 kB
-├ ƒ /api/categories                                                     785 B         104 kB
-├ ƒ /api/contact                                                        785 B         104 kB
-├ ƒ /api/conversations                                                  785 B         104 kB
-├ ƒ /api/conversations/[id]/messages                                    785 B         104 kB
-├ ƒ /api/conversations/[id]/messages/[messageId]                        785 B         104 kB
-├ ƒ /api/conversations/[id]/read                                        785 B         104 kB
-├ ƒ /api/cron/abandoned-cart-check                                      785 B         104 kB
-├ ƒ /api/cron/abandoned-cart-email                                      785 B         104 kB
-├ ƒ /api/cron/cohort-status                                             785 B         104 kB
-├ ƒ /api/cron/deadline-reminder                                         785 B         104 kB
-├ ƒ /api/cron/flash-promo-expiry                                        785 B         104 kB
-├ ƒ /api/downloads                                                      785 B         104 kB
-├ ƒ /api/favorites                                                      785 B         104 kB
-├ ƒ /api/feed                                                           785 B         104 kB
-├ ƒ /api/finances/summary                                               785 B         104 kB
-├ ƒ /api/finances/transactions                                          785 B         104 kB
-├ ƒ /api/finances/withdrawal                                            785 B         104 kB
-├ ƒ /api/formations                                                     785 B         104 kB
-├ ƒ /api/formations/[id]                                                785 B         104 kB
-├ ƒ /api/formations/[id]/certificate                                    785 B         104 kB
-├ ƒ /api/formations/[id]/cohorts                                        785 B         104 kB
-├ ƒ /api/formations/[id]/discussions                                    785 B         104 kB
-├ ƒ /api/formations/[id]/discussions/[discussionId]                     785 B         104 kB
-├ ƒ /api/formations/[id]/discussions/report                             785 B         104 kB
-├ ƒ /api/formations/[id]/enroll                                         785 B         104 kB
-├ ƒ /api/formations/[id]/progress                                       785 B         104 kB
-├ ƒ /api/formations/[id]/quiz/submit                                    785 B         104 kB
-├ ƒ /api/formations/[id]/refund                                         785 B         104 kB
-├ ƒ /api/formations/[id]/reviews                                        785 B         104 kB
-├ ƒ /api/formations/[id]/reviews/[reviewId]/reply                       785 B         104 kB
-├ ƒ /api/formations/apprenants/[id]                                     785 B         104 kB
-├ ƒ /api/formations/cart                                                785 B         104 kB
-├ ƒ /api/formations/cart/promo                                          785 B         104 kB
-├ ƒ /api/formations/categories                                          785 B         104 kB
-├ ƒ /api/formations/categories/[slug]                                   785 B         104 kB
-├ ƒ /api/formations/certificats/verify/[code]                           785 B         104 kB
-├ ƒ /api/formations/checkout                                            785 B         104 kB
-├ ƒ /api/formations/checkout/verify                                     785 B         104 kB
-├ ƒ /api/formations/cohorts                                             785 B         104 kB
-├ ƒ /api/formations/cohorts/[cohortId]/checkout                         785 B         104 kB
-├ ƒ /api/formations/cohorts/[cohortId]/messages                         785 B         104 kB
-├ ƒ /api/formations/instructeurs/[id]                                   785 B         104 kB
-├ ƒ /api/formations/promo/validate                                      785 B         104 kB
-├ ƒ /api/formations/quiz/[quizId]                                       785 B         104 kB
-├ ○ /api/formations/stats                                               785 B         104 kB          1m      1y
-├ ƒ /api/formations/unsubscribe/[token]                                 785 B         104 kB
-├ ƒ /api/formations/vente/[slug]                                        785 B         104 kB
-├ ƒ /api/instructeur/apprenants                                         785 B         104 kB
-├ ƒ /api/instructeur/avis                                               785 B         104 kB
-├ ƒ /api/instructeur/candidature                                        785 B         104 kB
-├ ƒ /api/instructeur/dashboard                                          785 B         104 kB
-├ ƒ /api/instructeur/formations                                         785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]                                    785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/cohorts                            785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/cohorts/[cohortId]                 785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/cohorts/[cohortId]/messages        785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/cohorts/[cohortId]/participants    785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/duplicate                          785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/reorder                            785 B         104 kB
-├ ƒ /api/instructeur/formations/[id]/statistiques                       785 B         104 kB
-├ ƒ /api/instructeur/formations/csv-template                            785 B         104 kB
-├ ƒ /api/instructeur/formations/export-pdf                              785 B         104 kB
-├ ƒ /api/instructeur/formations/import-csv                              785 B         104 kB
-├ ƒ /api/instructeur/marketing/pixels                                   785 B         104 kB
-├ ƒ /api/instructeur/marketing/pixels/[id]                              785 B         104 kB
-├ ƒ /api/instructeur/marketing/stats                                    785 B         104 kB
-├ ƒ /api/instructeur/produits                                           785 B         104 kB
-├ ƒ /api/instructeur/produits/stats                                     785 B         104 kB
-├ ƒ /api/instructeur/profil                                             785 B         104 kB
-├ ƒ /api/instructeur/promotions                                         785 B         104 kB
-├ ƒ /api/instructeur/promotions/[id]                                    785 B         104 kB
-├ ƒ /api/instructeur/revenus                                            785 B         104 kB
-├ ƒ /api/instructeur/sales-funnel                                       785 B         104 kB
-├ ƒ /api/instructeur/sales-funnel/[id]                                  785 B         104 kB
-├ ƒ /api/instructeur/statistiques                                       785 B         104 kB
-├ ƒ /api/instructeur/withdraw                                           785 B         104 kB
-├ ƒ /api/invoices                                                       785 B         104 kB
-├ ƒ /api/invoices/[id]/pdf                                              785 B         104 kB
-├ ƒ /api/kyc                                                            785 B         104 kB
-├ ƒ /api/link-preview                                                   785 B         104 kB
-├ ƒ /api/marketing/affiliate                                            785 B         104 kB
-├ ƒ /api/marketing/affiliate/click                                      785 B         104 kB
-├ ƒ /api/marketing/affiliate/join                                       785 B         104 kB
-├ ƒ /api/marketing/affiliate/payout                                     785 B         104 kB
-├ ƒ /api/marketing/affiliate/stats                                      785 B         104 kB
-├ ƒ /api/marketing/affiliate/track                                      785 B         104 kB
-├ ƒ /api/marketing/analytics                                            785 B         104 kB
-├ ƒ /api/marketing/campaigns                                            785 B         104 kB
-├ ƒ /api/marketing/campaigns/[slug]                                     785 B         104 kB
-├ ƒ /api/marketing/discounts                                            785 B         104 kB
-├ ƒ /api/marketing/discounts/validate                                   785 B         104 kB
-├ ƒ /api/marketing/flash-offers                                         785 B         104 kB
-├ ƒ /api/marketing/funnels                                              785 B         104 kB
-├ ƒ /api/marketing/funnels/[id]/duplicate                               785 B         104 kB
-├ ƒ /api/marketing/funnels/[id]/events                                  785 B         104 kB
-├ ƒ /api/marketing/funnels/checkout                                     785 B         104 kB
-├ ƒ /api/marketing/overview                                             785 B         104 kB
-├ ƒ /api/marketing/popups                                               785 B         104 kB
-├ ƒ /api/marketing/popups/impression                                    785 B         104 kB
-├ ƒ /api/marketing/sequences                                            785 B         104 kB
-├ ƒ /api/marketing/sequences/process                                    785 B         104 kB
-├ ƒ /api/notifications                                                  785 B         104 kB
-├ ƒ /api/offres                                                         785 B         104 kB
-├ ƒ /api/offres/[id]                                                    785 B         104 kB
-├ ƒ /api/orders                                                         785 B         104 kB
-├ ƒ /api/orders/[id]                                                    785 B         104 kB
-├ ƒ /api/orders/[id]/messages                                           785 B         104 kB
-├ ƒ /api/payment-methods                                                785 B         104 kB
-├ ƒ /api/payments/cinetpay                                              785 B         104 kB
-├ ƒ /api/produits                                                       785 B         104 kB
-├ ƒ /api/produits/[id]                                                  785 B         104 kB
-├ ƒ /api/produits/[id]/download                                         785 B         104 kB
-├ ƒ /api/produits/[id]/preview                                          785 B         104 kB
-├ ƒ /api/produits/checkout                                              785 B         104 kB
-├ ƒ /api/profile                                                        785 B         104 kB
-├ ƒ /api/projects                                                       785 B         104 kB
-├ ƒ /api/projects/[id]                                                  785 B         104 kB
-├ ƒ /api/public/agences/[slug]                                          785 B         104 kB
-├ ƒ /api/public/freelances/[username]                                   785 B         104 kB
-├ ƒ /api/public/maintenance                                             785 B         104 kB
-├ ƒ /api/public/projects                                                785 B         104 kB
-├ ƒ /api/public/services                                                785 B         104 kB
-├ ƒ /api/public/services/[slug]                                         785 B         104 kB
-├ ƒ /api/public/stats                                                   785 B         104 kB
-├ ƒ /api/public/top-freelances                                          785 B         104 kB
-├ ƒ /api/public/top-services                                            785 B         104 kB
-├ ƒ /api/rank                                                           785 B         104 kB
-├ ƒ /api/reviews                                                        785 B         104 kB
-├ ƒ /api/reviews/[id]/helpful                                           785 B         104 kB
-├ ƒ /api/reviews/[id]/reply                                             785 B         104 kB
-├ ƒ /api/reviews/[id]/report                                            785 B         104 kB
-├ ƒ /api/search                                                         785 B         104 kB
-├ ƒ /api/services                                                       785 B         104 kB
-├ ƒ /api/services/[id]                                                  785 B         104 kB
-├ ƒ /api/services/[id]/boost                                            785 B         104 kB
-├ ƒ /api/services/[id]/seo                                              785 B         104 kB
-├ ƒ /api/services/[id]/toggle                                           785 B         104 kB
-├ ƒ /api/services/draft                                                 785 B         104 kB
-├ ƒ /api/services/publish                                               785 B         104 kB
-├ ƒ /api/sessions                                                       785 B         104 kB
-├ ƒ /api/signaling                                                      785 B         104 kB
-├ ƒ /api/stats                                                          785 B         104 kB
-├ ƒ /api/subscription                                                   785 B         104 kB
-├ ƒ /api/support-tickets                                                785 B         104 kB
-├ ƒ /api/tracking/event                                                 785 B         104 kB
-├ ƒ /api/tracking/sessions                                              785 B         104 kB
-├ ƒ /api/tracking/stats                                                 785 B         104 kB
-├ ƒ /api/upload/file                                                    785 B         104 kB
-├ ƒ /api/upload/image                                                   785 B         104 kB
-├ ƒ /api/upload/service-image                                           785 B         104 kB
-├ ƒ /api/webhooks/cinetpay                                              785 B         104 kB
-├ ƒ /api/webhooks/stripe                                                785 B         104 kB
+├ ƒ /agence/abonnement/paiement                                       3.26 kB         114 kB
+├ ƒ /agence/aide                                                      8.04 kB         122 kB
+├ ƒ /agence/analytics                                                 6.01 kB         242 kB
+├ ƒ /agence/automatisation                                            7.28 kB         124 kB
+├ ƒ /agence/avis                                                      6.03 kB         236 kB
+├ ƒ /agence/candidatures                                               3.9 kB         122 kB
+├ ƒ /agence/clients                                                   4.31 kB         131 kB
+├ ƒ /agence/commandes                                                 3.54 kB         126 kB
+├ ƒ /agence/commandes/[id]                                            4.15 kB         128 kB
+├ ƒ /agence/contrats                                                  5.34 kB         123 kB
+├ ƒ /agence/equipe                                                     4.7 kB         131 kB
+├ ƒ /agence/explorer                                                  7.44 kB         122 kB
+├ ƒ /agence/factures                                                  5.71 kB         129 kB
+├ ƒ /agence/favoris                                                   6.91 kB         124 kB
+├ ƒ /agence/finances                                                  8.34 kB         227 kB
+├ ƒ /agence/freelances/[id]                                           10.3 kB         124 kB
+├ ƒ /agence/kyc                                                       4.26 kB         121 kB
+├ ƒ /agence/litiges                                                   6.13 kB         124 kB
+├ ƒ /agence/messages                                                    393 B         143 kB
+├ ƒ /agence/notifications                                             3.35 kB         124 kB
+├ ƒ /agence/offres                                                    4.16 kB         122 kB
+├ ƒ /agence/parametres                                                5.13 kB         132 kB
+├ ƒ /agence/portfolio                                                 7.05 kB         121 kB
+├ ƒ /agence/profil                                                    5.86 kB         133 kB
+├ ƒ /agence/projets                                                   4.56 kB         122 kB
+├ ƒ /agence/ressources                                                6.35 kB         121 kB
+├ ƒ /agence/securite                                                  6.13 kB         120 kB
+├ ƒ /agence/services                                                   4.4 kB         131 kB
+├ ƒ /agence/services/boost                                            5.92 kB         127 kB
+├ ƒ /agence/services/creer                                              146 B         193 kB
+├ ƒ /agence/services/seo                                              5.46 kB         127 kB
+├ ƒ /agence/sous-traitance                                            4.48 kB         122 kB
+├ ƒ /agences/[slug]                                                   8.36 kB         138 kB
+├ ƒ /aide                                                             8.33 kB         139 kB
+├ ƒ /api/admin/analytics                                                809 B         104 kB
+├ ƒ /api/admin/audit-log                                                809 B         104 kB
+├ ƒ /api/admin/badges                                                   809 B         104 kB
+├ ƒ /api/admin/blog                                                     809 B         104 kB
+├ ƒ /api/admin/boosts                                                   809 B         104 kB
+├ ƒ /api/admin/categories                                               809 B         104 kB
+├ ƒ /api/admin/config                                                   809 B         104 kB
+├ ƒ /api/admin/dashboard                                                809 B         104 kB
+├ ƒ /api/admin/disputes                                                 809 B         104 kB
+├ ƒ /api/admin/email-test                                               809 B         104 kB
+├ ƒ /api/admin/equipe/invite                                            809 B         104 kB
+├ ƒ /api/admin/finances                                                 809 B         104 kB
+├ ƒ /api/admin/finances/[id]                                            809 B         104 kB
+├ ƒ /api/admin/formations/apprenants                                    809 B         104 kB
+├ ƒ /api/admin/formations/approve/[id]                                  809 B         104 kB
+├ ƒ /api/admin/formations/audit-log                                     809 B         104 kB
+├ ƒ /api/admin/formations/categories                                    809 B         104 kB
+├ ƒ /api/admin/formations/categories/[id]                               809 B         104 kB
+├ ƒ /api/admin/formations/certificats                                   809 B         104 kB
+├ ƒ /api/admin/formations/certificats/revoke/[id]                       809 B         104 kB
+├ ƒ /api/admin/formations/cohorts                                       809 B         104 kB
+├ ƒ /api/admin/formations/cohorts/[id]                                  809 B         104 kB
+├ ƒ /api/admin/formations/config                                        809 B         104 kB
+├ ƒ /api/admin/formations/discussions                                   809 B         104 kB
+├ ƒ /api/admin/formations/discussions/[id]                              809 B         104 kB
+├ ƒ /api/admin/formations/finances                                      809 B         104 kB
+├ ƒ /api/admin/formations/finances/withdrawal/[id]                      809 B         104 kB
+├ ƒ /api/admin/formations/list                                          809 B         104 kB
+├ ƒ /api/admin/formations/marketing                                     809 B         104 kB
+├ ƒ /api/admin/formations/marketing/promotions                          809 B         104 kB
+├ ƒ /api/admin/formations/produits                                      809 B         104 kB
+├ ƒ /api/admin/formations/produits/approve/[id]                         809 B         104 kB
+├ ƒ /api/admin/formations/produits/reject/[id]                          809 B         104 kB
+├ ƒ /api/admin/formations/promo-codes                                   809 B         104 kB
+├ ƒ /api/admin/formations/promo-codes/[id]                              809 B         104 kB
+├ ƒ /api/admin/formations/refund/[id]                                   809 B         104 kB
+├ ƒ /api/admin/formations/refunds                                       809 B         104 kB
+├ ƒ /api/admin/formations/refunds/[id]                                  809 B         104 kB
+├ ƒ /api/admin/formations/reject/[id]                                   809 B         104 kB
+├ ƒ /api/admin/formations/stats                                         809 B         104 kB
+├ ƒ /api/admin/instructeurs/approve/[id]                                809 B         104 kB
+├ ƒ /api/admin/instructeurs/list                                        809 B         104 kB
+├ ƒ /api/admin/instructeurs/reject/[id]                                 809 B         104 kB
+├ ƒ /api/admin/kyc                                                      809 B         104 kB
+├ ƒ /api/admin/kyc/details                                              809 B         104 kB
+├ ƒ /api/admin/notifications/history                                    809 B         104 kB
+├ ƒ /api/admin/notifications/send                                       809 B         104 kB
+├ ƒ /api/admin/orders                                                   809 B         104 kB
+├ ƒ /api/admin/orders/[id]                                              809 B         104 kB
+├ ƒ /api/admin/seed                                                     809 B         104 kB
+├ ƒ /api/admin/services                                                 809 B         104 kB
+├ ƒ /api/admin/services/[id]                                            809 B         104 kB
+├ ƒ /api/admin/team                                                     809 B         104 kB
+├ ƒ /api/admin/users                                                    809 B         104 kB
+├ ƒ /api/admin/users/[id]                                               809 B         104 kB
+├ ƒ /api/admin/users/[id]/impersonate                                   809 B         104 kB
+├ ƒ /api/admin/users/[id]/reset-password                                809 B         104 kB
+├ ƒ /api/admin/users/search                                             809 B         104 kB
+├ ƒ /api/admin/verify-access-token                                      809 B         104 kB
+├ ƒ /api/affiliation                                                    809 B         104 kB
+├ ƒ /api/agence/equipe/invite                                           809 B         104 kB
+├ ƒ /api/apprenant/achats                                               809 B         104 kB
+├ ƒ /api/apprenant/certificats                                          809 B         104 kB
+├ ƒ /api/apprenant/certificats/[id]                                     809 B         104 kB
+├ ƒ /api/apprenant/cohorts                                              809 B         104 kB
+├ ƒ /api/apprenant/cohorts/[cohortId]                                   809 B         104 kB
+├ ƒ /api/apprenant/discussions                                          809 B         104 kB
+├ ƒ /api/apprenant/enrollments                                          809 B         104 kB
+├ ƒ /api/apprenant/export-pdf                                           809 B         104 kB
+├ ƒ /api/apprenant/favoris                                              809 B         104 kB
+├ ƒ /api/apprenant/notes                                                809 B         104 kB
+├ ƒ /api/apprenant/produits                                             809 B         104 kB
+├ ƒ /api/apprenant/profil                                               809 B         104 kB
+├ ƒ /api/apprenant/recommendations                                      809 B         104 kB
+├ ƒ /api/apprenant/refunds                                              809 B         104 kB
+├ ƒ /api/apprenant/reviews                                              809 B         104 kB
+├ ƒ /api/apprenant/reviews/[id]                                         809 B         104 kB
+├ ƒ /api/auth/[...nextauth]                                             809 B         104 kB
+├ ƒ /api/auth/confirm-password-reset                                    809 B         104 kB
+├ ƒ /api/auth/register                                                  809 B         104 kB
+├ ƒ /api/auth/request-password-reset                                    809 B         104 kB
+├ ƒ /api/auth/reset-password                                            809 B         104 kB
+├ ƒ /api/auth/setup-2fa                                                 809 B         104 kB
+├ ƒ /api/auth/update-formations-role                                    809 B         104 kB
+├ ƒ /api/auth/verify-2fa                                                809 B         104 kB
+├ ƒ /api/auth/verify-email                                              809 B         104 kB
+├ ƒ /api/automation                                                     809 B         104 kB
+├ ƒ /api/blog                                                           809 B         104 kB
+├ ƒ /api/blog/[slug]                                                    809 B         104 kB
+├ ƒ /api/candidatures                                                   809 B         104 kB
+├ ƒ /api/categories                                                     809 B         104 kB
+├ ƒ /api/contact                                                        809 B         104 kB
+├ ƒ /api/conversations                                                  809 B         104 kB
+├ ƒ /api/conversations/[id]/messages                                    809 B         104 kB
+├ ƒ /api/conversations/[id]/messages/[messageId]                        809 B         104 kB
+├ ƒ /api/conversations/[id]/read                                        809 B         104 kB
+├ ƒ /api/cron/abandoned-cart-check                                      809 B         104 kB
+├ ƒ /api/cron/abandoned-cart-email                                      809 B         104 kB
+├ ƒ /api/cron/cohort-status                                             809 B         104 kB
+├ ƒ /api/cron/deadline-reminder                                         809 B         104 kB
+├ ƒ /api/cron/flash-promo-expiry                                        809 B         104 kB
+├ ƒ /api/downloads                                                      809 B         104 kB
+├ ƒ /api/favorites                                                      809 B         104 kB
+├ ƒ /api/feed                                                           809 B         104 kB
+├ ƒ /api/files/signed-url                                               809 B         104 kB
+├ ƒ /api/finances/summary                                               809 B         104 kB
+├ ƒ /api/finances/transactions                                          809 B         104 kB
+├ ƒ /api/finances/withdrawal                                            809 B         104 kB
+├ ƒ /api/formations                                                     809 B         104 kB
+├ ƒ /api/formations/[id]                                                809 B         104 kB
+├ ƒ /api/formations/[id]/certificate                                    809 B         104 kB
+├ ƒ /api/formations/[id]/cohorts                                        809 B         104 kB
+├ ƒ /api/formations/[id]/discussions                                    809 B         104 kB
+├ ƒ /api/formations/[id]/discussions/[discussionId]                     809 B         104 kB
+├ ƒ /api/formations/[id]/discussions/report                             809 B         104 kB
+├ ƒ /api/formations/[id]/enroll                                         809 B         104 kB
+├ ƒ /api/formations/[id]/progress                                       809 B         104 kB
+├ ƒ /api/formations/[id]/quiz/submit                                    809 B         104 kB
+├ ƒ /api/formations/[id]/refund                                         809 B         104 kB
+├ ƒ /api/formations/[id]/reviews                                        809 B         104 kB
+├ ƒ /api/formations/[id]/reviews/[reviewId]/reply                       809 B         104 kB
+├ ƒ /api/formations/apprenants/[id]                                     809 B         104 kB
+├ ƒ /api/formations/cart                                                809 B         104 kB
+├ ƒ /api/formations/cart/promo                                          809 B         104 kB
+├ ƒ /api/formations/categories                                          809 B         104 kB
+├ ƒ /api/formations/categories/[slug]                                   809 B         104 kB
+├ ƒ /api/formations/certificats/verify/[code]                           809 B         104 kB
+├ ƒ /api/formations/checkout                                            809 B         104 kB
+├ ƒ /api/formations/checkout/verify                                     809 B         104 kB
+├ ƒ /api/formations/cohorts                                             809 B         104 kB
+├ ƒ /api/formations/cohorts/[cohortId]/checkout                         809 B         104 kB
+├ ƒ /api/formations/cohorts/[cohortId]/messages                         809 B         104 kB
+├ ƒ /api/formations/instructeurs/[id]                                   809 B         104 kB
+├ ƒ /api/formations/promo/validate                                      809 B         104 kB
+├ ƒ /api/formations/quiz/[quizId]                                       809 B         104 kB
+├ ○ /api/formations/stats                                               809 B         104 kB          1m      1y
+├ ƒ /api/formations/unsubscribe/[token]                                 809 B         104 kB
+├ ƒ /api/formations/vente/[slug]                                        809 B         104 kB
+├ ƒ /api/instructeur/apprenants                                         809 B         104 kB
+├ ƒ /api/instructeur/avis                                               809 B         104 kB
+├ ƒ /api/instructeur/candidature                                        809 B         104 kB
+├ ƒ /api/instructeur/dashboard                                          809 B         104 kB
+├ ƒ /api/instructeur/formations                                         809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]                                    809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/cohorts                            809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/cohorts/[cohortId]                 809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/cohorts/[cohortId]/messages        809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/cohorts/[cohortId]/participants    809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/duplicate                          809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/reorder                            809 B         104 kB
+├ ƒ /api/instructeur/formations/[id]/statistiques                       809 B         104 kB
+├ ƒ /api/instructeur/formations/csv-template                            809 B         104 kB
+├ ƒ /api/instructeur/formations/export-pdf                              809 B         104 kB
+├ ƒ /api/instructeur/formations/import-csv                              809 B         104 kB
+├ ƒ /api/instructeur/marketing/pixels                                   809 B         104 kB
+├ ƒ /api/instructeur/marketing/pixels/[id]                              809 B         104 kB
+├ ƒ /api/instructeur/marketing/stats                                    809 B         104 kB
+├ ƒ /api/instructeur/produits                                           809 B         104 kB
+├ ƒ /api/instructeur/produits/stats                                     809 B         104 kB
+├ ƒ /api/instructeur/profil                                             809 B         104 kB
+├ ƒ /api/instructeur/promotions                                         809 B         104 kB
+├ ƒ /api/instructeur/promotions/[id]                                    809 B         104 kB
+├ ƒ /api/instructeur/revenus                                            809 B         104 kB
+├ ƒ /api/instructeur/sales-funnel                                       809 B         104 kB
+├ ƒ /api/instructeur/sales-funnel/[id]                                  809 B         104 kB
+├ ƒ /api/instructeur/statistiques                                       809 B         104 kB
+├ ƒ /api/instructeur/withdraw                                           809 B         104 kB
+├ ƒ /api/invoices                                                       809 B         104 kB
+├ ƒ /api/invoices/[id]/pdf                                              809 B         104 kB
+├ ƒ /api/kyc                                                            809 B         104 kB
+├ ƒ /api/link-preview                                                   809 B         104 kB
+├ ƒ /api/marketing/affiliate                                            809 B         104 kB
+├ ƒ /api/marketing/affiliate/click                                      809 B         104 kB
+├ ƒ /api/marketing/affiliate/join                                       809 B         104 kB
+├ ƒ /api/marketing/affiliate/payout                                     809 B         104 kB
+├ ƒ /api/marketing/affiliate/stats                                      809 B         104 kB
+├ ƒ /api/marketing/affiliate/track                                      809 B         104 kB
+├ ƒ /api/marketing/analytics                                            809 B         104 kB
+├ ƒ /api/marketing/campaigns                                            809 B         104 kB
+├ ƒ /api/marketing/campaigns/[slug]                                     809 B         104 kB
+├ ƒ /api/marketing/discounts                                            809 B         104 kB
+├ ƒ /api/marketing/discounts/validate                                   809 B         104 kB
+├ ƒ /api/marketing/flash-offers                                         809 B         104 kB
+├ ƒ /api/marketing/funnels                                              809 B         104 kB
+├ ƒ /api/marketing/funnels/[id]/duplicate                               809 B         104 kB
+├ ƒ /api/marketing/funnels/[id]/events                                  809 B         104 kB
+├ ƒ /api/marketing/funnels/checkout                                     809 B         104 kB
+├ ƒ /api/marketing/overview                                             809 B         104 kB
+├ ƒ /api/marketing/popups                                               809 B         104 kB
+├ ƒ /api/marketing/popups/impression                                    809 B         104 kB
+├ ƒ /api/marketing/sequences                                            809 B         104 kB
+├ ƒ /api/marketing/sequences/process                                    809 B         104 kB
+├ ƒ /api/notifications                                                  809 B         104 kB
+├ ƒ /api/offres                                                         809 B         104 kB
+├ ƒ /api/offres/[id]                                                    809 B         104 kB
+├ ƒ /api/orders                                                         809 B         104 kB
+├ ƒ /api/orders/[id]                                                    809 B         104 kB
+├ ƒ /api/orders/[id]/messages                                           809 B         104 kB
+├ ƒ /api/payment-methods                                                809 B         104 kB
+├ ƒ /api/payments/cinetpay                                              809 B         104 kB
+├ ƒ /api/produits                                                       809 B         104 kB
+├ ƒ /api/produits/[id]                                                  809 B         104 kB
+├ ƒ /api/produits/[id]/download                                         809 B         104 kB
+├ ƒ /api/produits/[id]/preview                                          809 B         104 kB
+├ ƒ /api/produits/checkout                                              809 B         104 kB
+├ ƒ /api/profile                                                        809 B         104 kB
+├ ƒ /api/projects                                                       809 B         104 kB
+├ ƒ /api/projects/[id]                                                  809 B         104 kB
+├ ƒ /api/public/agences/[slug]                                          809 B         104 kB
+├ ƒ /api/public/freelances/[username]                                   809 B         104 kB
+├ ƒ /api/public/maintenance                                             809 B         104 kB
+├ ƒ /api/public/projects                                                809 B         104 kB
+├ ƒ /api/public/services                                                809 B         104 kB
+├ ƒ /api/public/services/[slug]                                         809 B         104 kB
+├ ƒ /api/public/stats                                                   809 B         104 kB
+├ ƒ /api/public/top-freelances                                          809 B         104 kB
+├ ƒ /api/public/top-services                                            809 B         104 kB
+├ ƒ /api/rank                                                           809 B         104 kB
+├ ƒ /api/reviews                                                        809 B         104 kB
+├ ƒ /api/reviews/[id]/helpful                                           809 B         104 kB
+├ ƒ /api/reviews/[id]/reply                                             809 B         104 kB
+├ ƒ /api/reviews/[id]/report                                            809 B         104 kB
+├ ƒ /api/search                                                         809 B         104 kB
+├ ƒ /api/services                                                       809 B         104 kB
+├ ƒ /api/services/[id]                                                  809 B         104 kB
+├ ƒ /api/services/[id]/boost                                            809 B         104 kB
+├ ƒ /api/services/[id]/seo                                              809 B         104 kB
+├ ƒ /api/services/[id]/toggle                                           809 B         104 kB
+├ ƒ /api/services/draft                                                 809 B         104 kB
+├ ƒ /api/services/publish                                               809 B         104 kB
+├ ƒ /api/sessions                                                       809 B         104 kB
+├ ƒ /api/signaling                                                      809 B         104 kB
+├ ƒ /api/stats                                                          809 B         104 kB
+├ ƒ /api/subscription                                                   809 B         104 kB
+├ ƒ /api/support-tickets                                                809 B         104 kB
+├ ƒ /api/tracking/event                                                 809 B         104 kB
+├ ƒ /api/tracking/service-stats/[id]                                    809 B         104 kB
+├ ƒ /api/tracking/sessions                                              809 B         104 kB
+├ ƒ /api/tracking/stats                                                 809 B         104 kB
+├ ƒ /api/upload/file                                                    809 B         104 kB
+├ ƒ /api/upload/image                                                   809 B         104 kB
+├ ƒ /api/upload/service-image                                           809 B         104 kB
+├ ƒ /api/webhooks/cinetpay                                              809 B         104 kB
+├ ƒ /api/webhooks/stripe                                                809 B         104 kB
 ├ ƒ /blog                                                             1.71 kB         125 kB
-├ ƒ /blog/[slug]                                                      1.71 kB         125 kB
+├ ƒ /blog/[slug]                                                      2.22 kB         134 kB
 ├ ƒ /cgu                                                                200 B         107 kB
-├ ƒ /client                                                           6.81 kB         232 kB
-├ ƒ /client/aide                                                       5.2 kB         128 kB
-├ ƒ /client/avis                                                      4.27 kB         127 kB
-├ ƒ /client/commandes                                                 4.28 kB         121 kB
-├ ƒ /client/commandes/[id]                                            4.46 kB         130 kB
-├ ƒ /client/explorer                                                  7.05 kB         120 kB
-├ ƒ /client/factures                                                  4.18 kB         127 kB
-├ ƒ /client/favoris                                                   4.56 kB         121 kB
-├ ƒ /client/litiges                                                   5.11 kB         124 kB
-├ ƒ /client/messages                                                    409 B         141 kB
-├ ƒ /client/notifications                                             4.22 kB         127 kB
-├ ƒ /client/paiements                                                 6.11 kB         125 kB
-├ ƒ /client/parametres                                                5.21 kB         124 kB
-├ ƒ /client/portefeuille-web3                                          1.1 kB         108 kB
-├ ƒ /client/profil                                                    3.94 kB         116 kB
-├ ƒ /client/projets                                                   3.42 kB         126 kB
-├ ƒ /client/projets/[id]                                              4.21 kB         127 kB
+├ ƒ /client                                                           4.73 kB         232 kB
+├ ƒ /client/aide                                                      5.22 kB         128 kB
+├ ƒ /client/avis                                                      4.29 kB         127 kB
+├ ƒ /client/commandes                                                 2.15 kB         121 kB
+├ ƒ /client/commandes/[id]                                            4.56 kB         130 kB
+├ ƒ /client/explorer                                                  4.98 kB         120 kB
+├ ƒ /client/factures                                                   4.2 kB         127 kB
+├ ƒ /client/favoris                                                   2.43 kB         121 kB
+├ ƒ /client/litiges                                                   5.14 kB         124 kB
+├ ƒ /client/messages                                                    409 B         143 kB
+├ ƒ /client/notifications                                             4.24 kB         127 kB
+├ ƒ /client/paiements                                                 6.13 kB         125 kB
+├ ƒ /client/parametres                                                5.22 kB         124 kB
+├ ƒ /client/portefeuille-web3                                         1.12 kB         108 kB
+├ ƒ /client/profil                                                    3.96 kB         116 kB
+├ ƒ /client/projets                                                   3.45 kB         126 kB
+├ ƒ /client/projets/[id]                                              4.22 kB         127 kB
 ├ ƒ /client/projets/nouveau                                           5.99 kB         125 kB
-├ ƒ /client/propositions                                              4.28 kB         127 kB
+├ ƒ /client/propositions                                               4.3 kB         127 kB
 ├ ƒ /client/recherche-ia                                              5.25 kB         119 kB
 ├ ƒ /comment-ca-marche                                                  200 B         107 kB
 ├ ƒ /confiance-securite                                                 200 B         107 kB
 ├ ƒ /confidentialite                                                    200 B         107 kB
 ├ ƒ /connexion                                                        4.25 kB         120 kB
 ├ ƒ /contact                                                          2.13 kB         109 kB
-├ ƒ /contrats                                                           785 B         104 kB
-├ ƒ /contrats/generateur                                              6.11 kB         142 kB
+├ ƒ /contrats                                                           809 B         104 kB
+├ ƒ /contrats/generateur                                               8.2 kB         142 kB
 ├ ƒ /cookies                                                            200 B         107 kB
-├ ƒ /dashboard                                                         7.8 kB         242 kB
-├ ƒ /dashboard/abonnement                                             4.71 kB         121 kB
+├ ƒ /dashboard                                                        9.84 kB         242 kB
+├ ƒ /dashboard/abonnement                                             6.78 kB         121 kB
 ├ ƒ /dashboard/abonnement/confirmation                                1.84 kB         105 kB
-├ ƒ /dashboard/abonnement/paiement                                    3.26 kB         113 kB
-├ ƒ /dashboard/affiliation                                            7.09 kB         123 kB
-├ ƒ /dashboard/aide                                                   2.17 kB         122 kB
-├ ƒ /dashboard/aide/[slug]                                            4.93 kB         124 kB
-├ ƒ /dashboard/automatisation                                         7.13 kB         127 kB
-├ ƒ /dashboard/avis                                                   3.97 kB         120 kB
-├ ƒ /dashboard/boost                                                  5.95 kB         125 kB
-├ ƒ /dashboard/candidatures                                           5.45 kB         121 kB
+├ ƒ /dashboard/abonnement/paiement                                    3.26 kB         114 kB
+├ ƒ /dashboard/affiliation                                            9.23 kB         123 kB
+├ ƒ /dashboard/aide                                                   2.18 kB         122 kB
+├ ƒ /dashboard/aide/[slug]                                            4.95 kB         124 kB
+├ ƒ /dashboard/automatisation                                         9.23 kB         127 kB
+├ ƒ /dashboard/avis                                                   6.07 kB         120 kB
+├ ƒ /dashboard/boost                                                  7.97 kB         126 kB
+├ ƒ /dashboard/candidatures                                           7.46 kB         122 kB
 ├ ƒ /dashboard/certifications                                         1.02 kB         108 kB
-├ ƒ /dashboard/commandes                                              3.89 kB         123 kB
-├ ƒ /dashboard/commandes/[id]                                         5.62 kB         128 kB
-├ ƒ /dashboard/commandes/[id]/suivi                                   7.65 kB         127 kB
-├ ƒ /dashboard/disponibilite                                           2.8 kB         119 kB
-├ ƒ /dashboard/escrow                                                 5.39 kB         125 kB
-├ ƒ /dashboard/explorer                                               6.15 kB         122 kB
-├ ƒ /dashboard/factures                                               4.45 kB         120 kB
-├ ƒ /dashboard/favoris                                                 4.1 kB         118 kB
-├ ƒ /dashboard/finances                                               8.49 kB         225 kB
-├ ƒ /dashboard/kyc                                                    5.58 kB         126 kB
-├ ƒ /dashboard/litiges                                                9.67 kB         126 kB
-├ ƒ /dashboard/messages                                                 397 B         141 kB
-├ ƒ /dashboard/notifications                                          3.71 kB         123 kB
-├ ƒ /dashboard/offres                                                 4.55 kB         121 kB
-├ ƒ /dashboard/paiements                                              5.25 kB         121 kB
-├ ƒ /dashboard/parametres                                             6.38 kB         126 kB
-├ ƒ /dashboard/portefeuille-web3                                      5.74 kB         122 kB
-├ ƒ /dashboard/portfolio                                              3.69 kB         120 kB
-├ ƒ /dashboard/productivite                                           5.26 kB         119 kB
-├ ƒ /dashboard/profil                                                 6.41 kB         122 kB
-├ ƒ /dashboard/propositions                                           5.94 kB         122 kB
-├ ƒ /dashboard/securite                                               6.19 kB         122 kB
-├ ƒ /dashboard/services                                               6.37 kB         126 kB
-├ ƒ /dashboard/services/creer                                           147 B         193 kB
-├ ƒ /dashboard/services/seo                                           5.47 kB         125 kB
-├ ƒ /dashboard/statistiques                                           4.72 kB         240 kB
+├ ƒ /dashboard/commandes                                              5.97 kB         124 kB
+├ ƒ /dashboard/commandes/[id]                                         7.73 kB         128 kB
+├ ƒ /dashboard/commandes/[id]/suivi                                   9.66 kB         127 kB
+├ ƒ /dashboard/disponibilite                                          4.94 kB         119 kB
+├ ƒ /dashboard/escrow                                                 7.48 kB         125 kB
+├ ƒ /dashboard/explorer                                               8.21 kB         122 kB
+├ ƒ /dashboard/factures                                               6.57 kB         121 kB
+├ ƒ /dashboard/favoris                                                4.11 kB         118 kB
+├ ƒ /dashboard/finances                                               10.5 kB         225 kB
+├ ƒ /dashboard/kyc                                                    2.04 kB         122 kB
+├ ƒ /dashboard/litiges                                                11.8 kB         126 kB
+├ ƒ /dashboard/messages                                                 398 B         143 kB
+├ ƒ /dashboard/notifications                                          5.82 kB         123 kB
+├ ƒ /dashboard/offres                                                 6.57 kB         121 kB
+├ ƒ /dashboard/paiements                                              7.37 kB         122 kB
+├ ƒ /dashboard/parametres                                              8.6 kB         126 kB
+├ ƒ /dashboard/portefeuille-web3                                      7.87 kB         122 kB
+├ ƒ /dashboard/portfolio                                              5.84 kB         120 kB
+├ ƒ /dashboard/productivite                                           5.27 kB         119 kB
+├ ƒ /dashboard/profil                                                 8.51 kB         123 kB
+├ ƒ /dashboard/propositions                                              8 kB         122 kB
+├ ƒ /dashboard/securite                                               8.23 kB         122 kB
+├ ƒ /dashboard/services                                               9.12 kB         127 kB
+├ ƒ /dashboard/services/creer                                           146 B         193 kB
+├ ƒ /dashboard/services/seo                                           7.56 kB         125 kB
+├ ƒ /dashboard/statistiques                                           6.81 kB         240 kB
 ├ ƒ /developer                                                         2.7 kB         116 kB
 ├ ƒ /developer/docs                                                   3.21 kB         117 kB
-├ ƒ /explorer                                                         8.22 kB         138 kB
+├ ƒ /explorer                                                         8.23 kB         138 kB
 ├ ƒ /explorer/categorie/[slug]                                        2.29 kB         132 kB
 ├ ƒ /faq                                                              3.54 kB         110 kB
-├ ƒ /formations                                                       5.85 kB         129 kB
-├ ƒ /formations/[slug]                                                10.3 kB         154 kB
-├ ƒ /formations/admin                                                   785 B         104 kB
-├ ƒ /formations/admin/apprenants                                       1.7 kB         125 kB
+├ ƒ /formations                                                       3.98 kB         139 kB
+├ ƒ /formations/[slug]                                                  14 kB         163 kB
+├ ƒ /formations/admin                                                   809 B         104 kB
+├ ƒ /formations/admin/apprenants                                      1.72 kB         125 kB
 ├ ƒ /formations/admin/audit-log                                       2.13 kB         122 kB
-├ ƒ /formations/admin/categories                                      2.13 kB         122 kB
+├ ƒ /formations/admin/categories                                      3.93 kB         132 kB
 ├ ƒ /formations/admin/certificats                                     1.96 kB         125 kB
 ├ ƒ /formations/admin/cohorts                                         2.87 kB         123 kB
 ├ ƒ /formations/admin/configuration                                    2.5 kB         122 kB
-├ ƒ /formations/admin/dashboard                                       7.54 kB         235 kB
-├ ƒ /formations/admin/discussions                                     2.45 kB         122 kB
-├ ƒ /formations/admin/finances                                        3.09 kB         123 kB
+├ ƒ /formations/admin/dashboard                                       9.39 kB         245 kB
+├ ƒ /formations/admin/discussions                                     2.46 kB         122 kB
+├ ƒ /formations/admin/finances                                         3.1 kB         123 kB
 ├ ƒ /formations/admin/formations                                       2.4 kB         126 kB
-├ ƒ /formations/admin/instructeurs                                    2.33 kB         122 kB
+├ ƒ /formations/admin/instructeurs                                    2.35 kB         122 kB
 ├ ƒ /formations/admin/marketing                                       2.55 kB         122 kB
 ├ ƒ /formations/admin/produits                                        2.83 kB         106 kB
 ├ ƒ /formations/admin/promo-codes                                     2.83 kB         123 kB
-├ ƒ /formations/apprenants/[id]                                       2.84 kB         116 kB
-├ ƒ /formations/apprendre/[id]                                        21.1 kB         153 kB
+├ ƒ /formations/apprenants/[id]                                       2.87 kB         117 kB
+├ ƒ /formations/apprendre/[id]                                        21.2 kB         153 kB
 ├ ƒ /formations/apprendre/[id]/quiz                                   6.65 kB         135 kB
 ├ ƒ /formations/callback                                                922 B         113 kB
-├ ƒ /formations/categories                                            1.23 kB         124 kB
-├ ƒ /formations/categories/[slug]                                     2.89 kB         126 kB
+├ ƒ /formations/categories                                            3.06 kB         134 kB
+├ ƒ /formations/categories/[slug]                                     3.85 kB         135 kB
 ├ ƒ /formations/certificats                                           2.95 kB         135 kB
 ├ ƒ /formations/certificats/[id]                                       3.1 kB         135 kB
-├ ƒ /formations/cohorts                                               3.36 kB         136 kB
-├ ƒ /formations/connexion                                             3.49 kB         142 kB
-├ ƒ /formations/devenir-instructeur                                   3.83 kB         136 kB
+├ ƒ /formations/cohorts                                               4.42 kB         145 kB
+├ ƒ /formations/connexion                                             3.49 kB         143 kB
+├ ƒ /formations/devenir-instructeur                                    4.9 kB         145 kB
 ├ ƒ /formations/echec                                                 1.89 kB         125 kB
-├ ƒ /formations/explorer                                              6.52 kB         130 kB
+├ ƒ /formations/explorer                                              7.19 kB         138 kB
 ├ ƒ /formations/f/[slug]                                              8.24 kB         131 kB
-├ ƒ /formations/favoris                                               3.82 kB         136 kB
+├ ƒ /formations/favoris                                               3.81 kB         136 kB
 ├ ƒ /formations/inscription                                           2.71 kB         142 kB
-├ ƒ /formations/instructeur/[id]/cohorts                              5.31 kB         137 kB
-├ ƒ /formations/instructeur/[id]/cohorts/[cohortId]                    3.4 kB         139 kB
-├ ƒ /formations/instructeur/[id]/modifier                             9.68 kB         140 kB
-├ ƒ /formations/instructeur/[id]/statistiques                         8.27 kB         245 kB
-├ ƒ /formations/instructeur/apprenants                                3.46 kB         132 kB
-├ ƒ /formations/instructeur/avis                                      3.71 kB         132 kB
-├ ƒ /formations/instructeur/creer                                     12.3 kB         138 kB
-├ ƒ /formations/instructeur/dashboard                                 9.94 kB         264 kB
-├ ƒ /formations/instructeur/marketing                                 6.84 kB         247 kB
-├ ƒ /formations/instructeur/marketing/affilies                        6.71 kB         122 kB
-├ ƒ /formations/instructeur/marketing/affilies/tableau-de-bord        6.05 kB         113 kB
-├ ƒ /formations/instructeur/marketing/analytics                       9.53 kB         254 kB
-├ ƒ /formations/instructeur/marketing/campagnes                       8.79 kB         229 kB
-├ ƒ /formations/instructeur/marketing/emails                          6.37 kB         122 kB
-├ ƒ /formations/instructeur/marketing/emails/creer                    10.1 kB         117 kB
-├ ƒ /formations/instructeur/marketing/flash                           7.22 kB         123 kB
-├ ƒ /formations/instructeur/marketing/funnels                         8.11 kB         232 kB
-├ ƒ /formations/instructeur/marketing/funnels/creer                   10.4 kB         117 kB
-├ ƒ /formations/instructeur/marketing/pixels                          3.74 kB         119 kB
-├ ƒ /formations/instructeur/marketing/popups                          10.7 kB         126 kB
-├ ƒ /formations/instructeur/marketing/reductions                      7.94 kB         123 kB
-├ ƒ /formations/instructeur/mes-formations                            4.79 kB         146 kB
-├ ƒ /formations/instructeur/parametres                                2.94 kB         138 kB
-├ ƒ /formations/instructeur/produits                                  4.96 kB         128 kB
-├ ƒ /formations/instructeur/produits/creer                            5.42 kB         125 kB
-├ ƒ /formations/instructeur/produits/dashboard                        8.51 kB         254 kB
-├ ƒ /formations/instructeur/promotions                                 4.6 kB         136 kB
-├ ƒ /formations/instructeur/promotions/creer                          4.83 kB         128 kB
-├ ƒ /formations/instructeur/revenus                                   10.3 kB         253 kB
-├ ƒ /formations/instructeur/statistiques                              8.89 kB         254 kB
-├ ƒ /formations/instructeur/tunnel-de-vente                           3.02 kB         106 kB
-├ ƒ /formations/instructeur/tunnel-de-vente/[id]                      5.49 kB         124 kB
-├ ƒ /formations/instructeurs/[id]                                     4.47 kB         134 kB
-├ ƒ /formations/mes-achats                                            6.76 kB         244 kB
+├ ƒ /formations/instructeur/[id]/cohorts                              6.74 kB         148 kB
+├ ƒ /formations/instructeur/[id]/cohorts/[cohortId]                    7.6 kB         149 kB
+├ ƒ /formations/instructeur/[id]/modifier                               11 kB         150 kB
+├ ƒ /formations/instructeur/[id]/statistiques                         9.11 kB         246 kB
+├ ƒ /formations/instructeur/apprenants                                4.35 kB         134 kB
+├ ƒ /formations/instructeur/avis                                       4.6 kB         134 kB
+├ ƒ /formations/instructeur/creer                                     13.6 kB         149 kB
+├ ƒ /formations/instructeur/dashboard                                 10.8 kB         266 kB
+├ ƒ /formations/instructeur/kyc                                       1.95 kB         122 kB
+├ ƒ /formations/instructeur/marketing                                 10.7 kB         248 kB
+├ ƒ /formations/instructeur/marketing/affilies                        5.18 kB         124 kB
+├ ƒ /formations/instructeur/marketing/affilies/tableau-de-bord        7.38 kB         124 kB
+├ ƒ /formations/instructeur/marketing/analytics                       10.3 kB         256 kB
+├ ƒ /formations/instructeur/marketing/campagnes                       7.17 kB         231 kB
+├ ƒ /formations/instructeur/marketing/emails                          8.02 kB         229 kB
+├ ƒ /formations/instructeur/marketing/emails/creer                    11.5 kB         128 kB
+├ ƒ /formations/instructeur/marketing/flash                           8.83 kB         230 kB
+├ ƒ /formations/instructeur/marketing/funnels                         12.1 kB         233 kB
+├ ƒ /formations/instructeur/marketing/funnels/creer                   11.8 kB         128 kB
+├ ƒ /formations/instructeur/marketing/pixels                          4.73 kB         121 kB
+├ ƒ /formations/instructeur/marketing/popups                          12.5 kB         234 kB
+├ ƒ /formations/instructeur/marketing/reductions                      9.61 kB         231 kB
+├ ƒ /formations/instructeur/mes-formations                            6.08 kB         156 kB
+├ ƒ /formations/instructeur/parametres                                4.32 kB         149 kB
+├ ƒ /formations/instructeur/produits                                  6.25 kB         139 kB
+├ ƒ /formations/instructeur/produits/creer                            6.71 kB         136 kB
+├ ƒ /formations/instructeur/produits/dashboard                        9.34 kB         256 kB
+├ ƒ /formations/instructeur/promotions                                5.59 kB         138 kB
+├ ƒ /formations/instructeur/promotions/creer                          6.16 kB         139 kB
+├ ƒ /formations/instructeur/revenus                                   11.3 kB         254 kB
+├ ƒ /formations/instructeur/statistiques                              9.72 kB         255 kB
+├ ƒ /formations/instructeur/tunnel-de-vente                           4.53 kB         117 kB
+├ ƒ /formations/instructeur/tunnel-de-vente/[id]                      6.98 kB         135 kB
+├ ƒ /formations/instructeurs/[id]                                     5.66 kB         136 kB
+├ ƒ /formations/mes-achats                                            6.75 kB         244 kB
 ├ ƒ /formations/mes-avis                                              3.24 kB         135 kB
-├ ƒ /formations/mes-cohorts                                            3.4 kB         136 kB
-├ ƒ /formations/mes-cohorts/[cohortId]                                3.88 kB         140 kB
+├ ƒ /formations/mes-cohorts                                           4.31 kB         145 kB
+├ ƒ /formations/mes-cohorts/[cohortId]                                7.63 kB         148 kB
 ├ ƒ /formations/mes-discussions                                       2.47 kB         135 kB
-├ ƒ /formations/mes-formations                                        7.87 kB         259 kB
+├ ƒ /formations/mes-formations                                        5.99 kB         268 kB
 ├ ƒ /formations/mes-produits                                          3.24 kB         135 kB
-├ ƒ /formations/panier                                                 4.4 kB         137 kB
+├ ƒ /formations/panier                                                4.98 kB         145 kB
 ├ ƒ /formations/parametres                                            2.59 kB         138 kB
 ├ ƒ /formations/produits                                              4.78 kB         128 kB
-├ ƒ /formations/produits/[slug]                                       6.76 kB         150 kB
+├ ƒ /formations/produits/[slug]                                       9.53 kB         150 kB
 ├ ƒ /formations/succes                                                2.39 kB         126 kB
-├ ƒ /formations/vente/[slug]                                          3.76 kB         107 kB
+├ ƒ /formations/vente/[slug]                                          5.11 kB         109 kB
 ├ ƒ /formations/verification/[code]                                   3.54 kB         127 kB
 ├ ƒ /formations/verifier-email                                        2.24 kB         106 kB
-├ ƒ /freelances/[username]                                            10.2 kB         140 kB
-├ ƒ /inscription                                                      9.41 kB         125 kB
-├ ƒ /maintenance                                                      1.12 kB         108 kB
+├ ƒ /freelances/[username]                                            10.7 kB         141 kB
+├ ƒ /inscription                                                      9.63 kB         126 kB
+├ ƒ /maintenance                                                      1.22 kB         105 kB
 ├ ƒ /mentions-legales                                                   200 B         107 kB
-├ ƒ /mot-de-passe-oublie                                              2.63 kB         109 kB
+├ ƒ /mot-de-passe-oublie                                              2.63 kB         110 kB
 ├ ƒ /offres-projets                                                   7.68 kB         134 kB
 ├ ƒ /onboarding                                                       3.27 kB         110 kB
 ├ ƒ /reinitialiser-mot-de-passe                                       3.52 kB         110 kB
-├ ○ /robots.txt                                                         785 B         104 kB
-├ ƒ /services/[slug]                                                  7.81 kB         138 kB
-├ ○ /sitemap.xml                                                        785 B         104 kB          1m      1y
-├ ƒ /status                                                             785 B         104 kB
+├ ○ /robots.txt                                                         809 B         104 kB
+├ ƒ /services/[slug]                                                  9.09 kB         139 kB
+├ ○ /sitemap.xml                                                        809 B         104 kB          1m      1y
+├ ƒ /status                                                             809 B         104 kB
 ├ ƒ /tarifs                                                            3.4 kB         130 kB
 └ ƒ /verifier-email                                                   2.48 kB         109 kB
 + First Load JS shared by all                                          103 kB
   ├ chunks/21941-1c7d98255d8421e0.js                                  46.2 kB
   ├ chunks/a3c0f6c7-f54fc9aff1e90cf9.js                               54.2 kB
-  └ other shared chunks (total)                                       2.93 kB
+  └ other shared chunks (total)                                       2.99 kB
 
 
-ƒ Middleware                                                          55.1 kB
+ƒ Middleware                                                          55.2 kB
 
 ○  (Static)   prerendered as static content
 ƒ  (Dynamic)  server-rendered on demand
