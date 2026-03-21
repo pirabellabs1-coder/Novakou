@@ -2,6 +2,40 @@ import { NextRequest, NextResponse } from "next/server";
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
 
+// In-memory blog store for dev mode (shared with admin blog route)
+// Admin creates articles → they're stored in admin blog devBlogPosts
+// Public blog reads from Prisma in production
+// In dev mode, we import from a shared JSON file
+
+import fs from "fs";
+import path from "path";
+
+const BLOG_FILE = path.join(process.cwd(), "lib", "dev", "blog-articles.json");
+
+interface DevArticle {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  author: string;
+  category: string | null;
+  tags: string[];
+  status: string;
+  publishedAt: string | null;
+  featuredImage: string;
+  views: number;
+  createdAt: string;
+}
+
+function readDevArticles(): DevArticle[] {
+  try {
+    if (fs.existsSync(BLOG_FILE)) {
+      return JSON.parse(fs.readFileSync(BLOG_FILE, "utf-8"));
+    }
+  } catch {}
+  return [];
+}
+
 // GET /api/blog — Public list of published articles
 export async function GET(request: NextRequest) {
   try {
@@ -10,29 +44,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50", 10);
 
     if (IS_DEV_MODE) {
-      // Import admin blog route to access the shared devBlogPosts
-      // We re-fetch from the admin API to get the in-memory data
-      const adminRes = await fetch(
-        new URL("/api/admin/blog", request.nextUrl.origin),
-        { headers: { cookie: request.headers.get("cookie") || "" } }
-      );
-      const adminData = await adminRes.json();
-      const allArticles = (adminData.articles || []) as Array<{
-        id: string;
-        title: string;
-        slug: string;
-        excerpt: string;
-        author: string;
-        category: string;
-        tags: string[];
-        status: string;
-        publishedAt: string | null;
-        featuredImage: string;
-        views: number;
-        createdAt: string;
-      }>;
+      const allArticles = readDevArticles();
 
-      let published = allArticles.filter(a => a.status === "publie");
+      let published = allArticles.filter(a =>
+        a.status === "publie" || a.status === "PUBLIE"
+      );
       if (category) published = published.filter(a => a.category === category);
       published.sort((a, b) => (b.publishedAt || "").localeCompare(a.publishedAt || ""));
       published = published.slice(0, limit);
@@ -48,9 +64,9 @@ export async function GET(request: NextRequest) {
 
     const articles = await prisma.blogPost.findMany({
       where,
-      include: { author: { select: { name: true } } },
       orderBy: { publishedAt: "desc" },
       take: limit,
+      include: { author: { select: { name: true } } },
     });
 
     return NextResponse.json({
@@ -59,12 +75,12 @@ export async function GET(request: NextRequest) {
         title: a.title,
         slug: a.slug,
         excerpt: a.excerpt,
-        author: a.author.name,
+        author: a.author?.name || "FreelanceHigh",
         category: a.category,
         tags: a.tags,
         status: "publie",
-        publishedAt: a.publishedAt?.toISOString() ?? null,
-        featuredImage: a.coverImage ?? "",
+        publishedAt: a.publishedAt?.toISOString() || null,
+        featuredImage: a.coverImage || "",
         views: a.views,
         createdAt: a.createdAt.toISOString(),
       })),
@@ -72,6 +88,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("[API /blog GET]", error);
-    return NextResponse.json({ error: "Erreur" }, { status: 500 });
+    return NextResponse.json({ articles: [], total: 0 });
   }
 }

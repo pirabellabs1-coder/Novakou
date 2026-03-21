@@ -49,7 +49,26 @@ interface DevBlogPost {
   updatedAt: string;
 }
 
-const devBlogPosts: DevBlogPost[] = [];
+// Persist blog articles to JSON file so public API can read them
+import fs from "fs";
+import path from "path";
+const BLOG_FILE = path.join(process.cwd(), "lib", "dev", "blog-articles.json");
+
+function readDevBlog(): DevBlogPost[] {
+  try {
+    if (fs.existsSync(BLOG_FILE)) return JSON.parse(fs.readFileSync(BLOG_FILE, "utf-8"));
+  } catch {}
+  return [];
+}
+function writeDevBlog(posts: DevBlogPost[]): void {
+  try {
+    const dir = path.dirname(BLOG_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(BLOG_FILE, JSON.stringify(posts, null, 2));
+  } catch (err) { console.error("[Blog] Write error:", err); }
+}
+
+const devBlogPosts: DevBlogPost[] = readDevBlog();
 
 // Map status to frontend format
 function mapStatus(s: string): "brouillon" | "publie" | "programme" | "archive" {
@@ -205,6 +224,7 @@ export async function POST(request: NextRequest) {
         updatedAt: now,
       };
       devBlogPosts.unshift(article);
+      writeDevBlog(devBlogPosts);
 
       return NextResponse.json({
         success: true,
@@ -311,6 +331,7 @@ export async function PATCH(request: NextRequest) {
       }
 
       post.updatedAt = now;
+      writeDevBlog(devBlogPosts);
 
       return NextResponse.json({
         success: true,
@@ -407,6 +428,7 @@ export async function DELETE(request: NextRequest) {
       }
       const title = devBlogPosts[idx].title;
       devBlogPosts.splice(idx, 1);
+      writeDevBlog(devBlogPosts);
       return NextResponse.json({ success: true, message: `Article "${title}" supprime` });
     }
 

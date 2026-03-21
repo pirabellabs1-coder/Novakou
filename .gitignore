@@ -57,6 +57,7 @@ apps/web/lib/dev/tracking-events.json
 apps/web/lib/dev/tracking-sessions.json
 apps/web/lib/dev/automations.json
 apps/web/lib/dev/platform-config.json
+apps/web/lib/dev/blog-articles.json
 .vercel
 
 # Prisma generated client

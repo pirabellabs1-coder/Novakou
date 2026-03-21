@@ -220,9 +220,13 @@ export default function AdminTeamPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                      member.status === "ACTIF" ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
+                      member.status === "active" || member.status === "ACTIF" ? "bg-emerald-500/10 text-emerald-400"
+                        : member.status === "pending" || member.status === "EN_ATTENTE" ? "bg-amber-500/10 text-amber-400"
+                        : "bg-red-500/10 text-red-400"
                     }`}>
-                      {member.status}
+                      {member.status === "active" || member.status === "ACTIF" ? "Actif"
+                        : member.status === "pending" || member.status === "EN_ATTENTE" ? "En attente"
+                        : member.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-slate-400">

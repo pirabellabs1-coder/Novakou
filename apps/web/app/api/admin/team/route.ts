@@ -15,6 +15,7 @@ export async function GET() {
     }
 
     const allUsers = devStore.getAll();
+    console.log(`[API /admin/team GET] Total users: ${allUsers.length}, admins: ${allUsers.filter(u => u.role === "admin").length}`);
     const admins = allUsers
       .filter((u) => u.role === "admin")
       .map((u) => ({
@@ -22,7 +23,7 @@ export async function GET() {
         name: u.name,
         email: u.email,
         adminRole: u.adminRole || "super_admin",
-        status: u.status,
+        status: u.status === "EN_ATTENTE" ? "pending" : u.status === "ACTIF" ? "active" : u.status,
         createdAt: u.createdAt,
         lastLoginAt: u.lastLoginAt ?? null,
       }));
