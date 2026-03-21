@@ -7,6 +7,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useCurrencyStore } from "@/store/currency";
 import { analytics } from "@/lib/analytics";
+import { useEntityTracker } from "@/lib/tracking/useEntityTracker";
 
 // ============================================================
 // Types
@@ -242,6 +243,9 @@ export default function FreelanceProfilePage() {
   const { format } = useCurrencyStore();
   const t = useTranslations("freelance_profile");
   const locale = useLocale();
+
+  // Track profile view (deduped per session)
+  useEntityTracker("profile", freelancer?.id ?? null);
 
   const [freelancer, setFreelancer] = useState<FreelancerData | null>(null);
   const [loading, setLoading] = useState(true);

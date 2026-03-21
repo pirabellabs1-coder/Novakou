@@ -43,13 +43,30 @@ function AnalyticsSkeleton() {
   );
 }
 
+interface TrafficStats {
+  totalPageViews: number;
+  uniqueVisitors: number;
+  totalSessions: number;
+  avgSessionDuration: number;
+  bounceRate: number;
+  activeSessions: number;
+  topPages: Array<{ path: string; views: number }>;
+  deviceBreakdown: { mobile: number; tablet: number; desktop: number };
+}
+
 export default function AdminAnalytics() {
   const [period, setPeriod] = useState("30j");
   const { addToast } = useToastStore();
   const { analytics, loading, syncAnalytics } = useAdminStore();
+  const [traffic, setTraffic] = useState<TrafficStats | null>(null);
 
   useEffect(() => {
     syncAnalytics();
+    // Load tracking stats
+    fetch("/api/tracking/stats?period=30d")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setTraffic(data); })
+      .catch(() => {});
   }, [syncAnalytics]);
 
   if (loading.analytics || !analytics) {
@@ -341,6 +358,83 @@ export default function AdminAnalytics() {
           </table>
         </div>
       </div>
+
+      {/* ── Section Trafic (depuis tracking) ── */}
+      {traffic && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">monitoring</span>
+            Trafic en temps reel
+          </h2>
+          <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+            {[
+              { label: "Visiteurs uniques", value: traffic.uniqueVisitors, icon: "person", color: "text-blue-400" },
+              { label: "Sessions", value: traffic.totalSessions, icon: "devices", color: "text-emerald-400" },
+              { label: "Pages vues", value: traffic.totalPageViews, icon: "visibility", color: "text-primary" },
+              { label: "Sessions actives", value: traffic.activeSessions, icon: "radio_button_checked", color: "text-amber-400" },
+            ].map((s) => (
+              <div key={s.label} className="bg-neutral-dark rounded-xl p-4 border border-border-dark">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={cn("material-symbols-outlined text-lg", s.color)}>{s.icon}</span>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">{s.label}</p>
+                </div>
+                <p className="text-xl font-black text-white">{s.value.toLocaleString()}</p>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="bg-neutral-dark rounded-xl p-4 border border-border-dark">
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-3">Engagement</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-400">Taux de rebond</span>
+                  <span className="text-sm font-bold text-white">{traffic.bounceRate.toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-400">Duree moy. session</span>
+                  <span className="text-sm font-bold text-white">{Math.floor(traffic.avgSessionDuration / 60)}m {Math.round(traffic.avgSessionDuration % 60)}s</span>
+                </div>
+              </div>
+            </div>
+            <div className="bg-neutral-dark rounded-xl p-4 border border-border-dark">
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-3">Appareils</p>
+              <div className="space-y-2">
+                {[
+                  { label: "Mobile", value: traffic.deviceBreakdown.mobile, color: "bg-blue-500" },
+                  { label: "Tablette", value: traffic.deviceBreakdown.tablet, color: "bg-amber-500" },
+                  { label: "Desktop", value: traffic.deviceBreakdown.desktop, color: "bg-emerald-500" },
+                ].map((d) => {
+                  const total = traffic.deviceBreakdown.mobile + traffic.deviceBreakdown.tablet + traffic.deviceBreakdown.desktop;
+                  const pct = total > 0 ? Math.round((d.value / total) * 100) : 0;
+                  return (
+                    <div key={d.label} className="flex items-center gap-3">
+                      <span className="text-xs text-slate-400 w-16">{d.label}</span>
+                      <div className="flex-1 h-2 bg-border-dark rounded-full overflow-hidden">
+                        <div className={cn("h-full rounded-full", d.color)} style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-white w-10 text-right">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="bg-neutral-dark rounded-xl p-4 border border-border-dark">
+              <p className="text-xs text-slate-500 uppercase font-semibold mb-3">Pages populaires</p>
+              <div className="space-y-2">
+                {(traffic.topPages || []).slice(0, 5).map((p, i) => (
+                  <div key={p.path} className="flex items-center justify-between">
+                    <span className="text-xs text-slate-400 truncate flex-1 mr-2">{i + 1}. {p.path}</span>
+                    <span className="text-xs font-bold text-white">{p.views}</span>
+                  </div>
+                ))}
+                {(!traffic.topPages || traffic.topPages.length === 0) && (
+                  <p className="text-xs text-slate-600">Aucune donnee de trafic</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

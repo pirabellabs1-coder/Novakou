@@ -68,7 +68,7 @@ export const trackingStore = {
       if (filter.userId) events = events.filter((e) => e.userId === filter.userId);
       if (filter.entityType) events = events.filter((e) => e.entityType === filter.entityType);
       if (filter.entityId) events = events.filter((e) => e.entityId === filter.entityId);
-      if (filter.path) events = events.filter((e) => e.path.startsWith(filter.path!));
+      if (filter.path) events = events.filter((e) => e.path === filter.path);
       if (filter.startDate) {
         const start = new Date(filter.startDate).getTime();
         events = events.filter((e) => new Date(e.timestamp).getTime() >= start);
@@ -133,6 +133,48 @@ export const trackingStore = {
     return cached(`fv:${formationId}`, () =>
       this.getEvents({ type: "formation_viewed", entityId: formationId }).length
     );
+  },
+
+  // ── Temps moyen par page ──
+  getAvgTimeOnPage(pagePath: string): number {
+    return cached(`atp:${pagePath}`, () => {
+      const events = this.getEvents({ type: "page_view", path: pagePath });
+      const durations = events
+        .filter((e) => e.metadata && typeof e.metadata.duration === "number" && e.metadata.duration > 0)
+        .map((e) => e.metadata!.duration as number);
+      if (durations.length === 0) return 0;
+      return Math.round(durations.reduce((s, d) => s + d, 0) / durations.length);
+    });
+  },
+
+  // ── Conversion rate par service ──
+  getConversionRate(serviceId: string): { views: number; orders: number; rate: number } {
+    return cached(`cr:${serviceId}`, () => {
+      const views = this.getEvents({ type: "service_viewed", entityId: serviceId }).length;
+      const orders = this.getEvents({ type: "order_placed", entityId: serviceId }).length;
+      const rate = views > 0 ? Math.round((orders / views) * 10000) / 100 : 0;
+      return { views, orders, rate };
+    });
+  },
+
+  // ── Créer un événement conversion server-side ──
+  trackConversion(
+    type: "order_placed" | "order_completed" | "sign_up",
+    entityId: string,
+    metadata: Record<string, string | number>
+  ) {
+    const event: TrackingEvent = {
+      id: `srv-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type,
+      sessionId: "server",
+      path: "",
+      entityType: type === "order_placed" || type === "order_completed" ? "service" : undefined,
+      entityId,
+      deviceType: "desktop",
+      timestamp: new Date().toISOString(),
+      metadata,
+    };
+    this.recordEvents([event]);
   },
 
   // ── Stats agrégées ──

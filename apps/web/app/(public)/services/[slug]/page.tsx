@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useCurrencyStore } from "@/store/currency";
+import { useEntityTracker } from "@/lib/tracking/useEntityTracker";
 import { cn } from "@/lib/utils";
 
 // ============================================================
@@ -253,6 +254,9 @@ export default function ServiceDetailPage() {
   const format = useCurrencyStore((s) => s.format);
   const t = useTranslations("service_detail");
   const locale = useLocale();
+
+  // Track service view (deduped per session)
+  useEntityTracker("service", service?.id ?? null);
 
   // API fetch state
   const [service, setService] = useState<ServiceData | null>(null);

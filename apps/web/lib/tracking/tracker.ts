@@ -34,6 +34,13 @@ class Tracker {
   private utmParams: ReturnType<typeof getUtmParams>;
   private started = false;
 
+  // Duration tracking
+  private pageEnterTime: number = 0; // performance.now() when page entered
+  private currentPath: string = "";
+
+  // Entity dedup: track which entities have been viewed this session
+  private viewedEntities = new Set<string>();
+
   constructor() {
     this.deviceType = "desktop";
     this.utmParams = {};
@@ -55,6 +62,8 @@ class Tracker {
 
     this.deviceType = getDeviceType();
     this.utmParams = getUtmParams();
+    this.pageEnterTime = performance.now();
+    this.currentPath = window.location.pathname;
 
     // Start session on server
     this.sendSession("start");
@@ -72,6 +81,8 @@ class Tracker {
 
   stop() {
     if (!this.started) return;
+    // Send duration for current page before stopping
+    this.sendCurrentPageDuration();
     this.flush();
     this.sendSession("end");
     if (this.flushInterval) clearInterval(this.flushInterval);
@@ -112,7 +123,69 @@ class Tracker {
   }
 
   trackPageView() {
+    // Capture previous page context BEFORE any state changes
+    const previousPath = this.currentPath;
+    const previousEnterTime = this.pageEnterTime;
+
+    // Reset page enter time for the new page FIRST
+    this.pageEnterTime = performance.now();
+    this.currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+
+    // Send duration for the PREVIOUS page (using captured values)
+    if (previousEnterTime > 0 && previousPath) {
+      const durationMs = performance.now() - previousEnterTime;
+      const durationSec = Math.round(durationMs / 1000);
+      if (durationSec > 0 && durationSec < 1800) {
+        this.track("page_view", {
+          metadata: {
+            duration: durationSec,
+            _isDurationEvent: 1,
+          },
+        });
+      }
+    }
+
+    // Track the new page view
     this.track("page_view");
+  }
+
+  /**
+   * Track entity view (service, formation, profile) — deduped per session
+   */
+  trackEntityView(
+    entityType: "service" | "profile" | "formation" | "project" | "blog",
+    entityId: string
+  ) {
+    const key = `${entityType}:${entityId}`;
+    if (this.viewedEntities.has(key)) return; // Already viewed this session
+    this.viewedEntities.add(key);
+
+    const typeMap: Record<string, TrackingEventType> = {
+      service: "service_viewed",
+      profile: "profile_viewed",
+      formation: "formation_viewed",
+      project: "page_view",
+      blog: "page_view",
+    };
+
+    this.track(typeMap[entityType] || "page_view", { entityType, entityId });
+  }
+
+  private sendCurrentPageDuration() {
+    if (this.pageEnterTime > 0 && this.currentPath) {
+      const durationMs = performance.now() - this.pageEnterTime;
+      const durationSec = Math.round(durationMs / 1000);
+
+      // Only send meaningful durations (> 0s and < 30min)
+      if (durationSec > 0 && durationSec < 1800) {
+        this.track("page_view", {
+          metadata: {
+            duration: durationSec,
+            _isDurationEvent: 1, // Marker to distinguish from regular page_view
+          },
+        });
+      }
+    }
   }
 
   private flush() {
@@ -170,6 +243,7 @@ class Tracker {
   };
 
   private handleUnload = () => {
+    this.sendCurrentPageDuration();
     this.flush();
     this.sendSession("end");
   };

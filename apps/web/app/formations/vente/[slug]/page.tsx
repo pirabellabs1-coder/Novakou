@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useEntityTracker } from "@/lib/tracking/useEntityTracker";
 import { Star, Clock, Users, Award, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Block {
@@ -198,6 +199,9 @@ function BlockRenderer({ block, formation, onBuy }: { block: Block; formation: F
 export default function SalesFunnelPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
+  // Track formation view
+  useEntityTracker("formation", data?.formation?.id ?? null);
+
   const [data, setData] = useState<FunnelData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);

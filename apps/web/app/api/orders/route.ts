@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma, IS_DEV } from "@/lib/prisma";
 import { orderStore, serviceStore, transactionStore, notificationStore, conversationStore } from "@/lib/dev/data-store";
 import { sendOrderConfirmationEmail } from "@/lib/email";
+import { trackingStore } from "@/lib/tracking/tracking-store";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { z } from "zod";
 
@@ -280,6 +281,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Track conversion
+      trackingStore.trackConversion("order_placed", service.id, {
+        orderId: order.id,
+        amount: String(amount),
+        clientId: session.user.id,
+        freelanceId: service.userId,
+      });
+
       return NextResponse.json({ order }, { status: 201 });
     } else {
       // Production: Prisma
@@ -444,6 +453,14 @@ export async function POST(request: NextRequest) {
           console.error("[API /orders POST] Erreur envoi email confirmation:", err)
         );
       }
+
+      // Track conversion
+      trackingStore.trackConversion("order_placed", serviceId, {
+        orderId: order.id,
+        amount: String(amount),
+        clientId: session.user.id,
+        freelanceId: service.userId,
+      });
 
       return NextResponse.json({ order }, { status: 201 });
     }

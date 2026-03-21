@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { CountdownTimer } from "@/components/formations/CountdownTimer";
+import { useEntityTracker } from "@/lib/tracking/useEntityTracker";
 import { StockCounter } from "@/components/formations/StockCounter";
 import { firePixelEvent } from "@/components/formations/PixelTracker";
 import DynamicIcon from "@/components/ui/DynamicIcon";
@@ -155,6 +156,9 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const locale = useLocale();
   const { data: session } = useSession();
   const router = useRouter();
+
+  // Track formation view
+  useEntityTracker("formation", formation?.id ?? null);
 
   const [formation, setFormation] = useState<Formation | null>(null);
   const [loading, setLoading] = useState(true);

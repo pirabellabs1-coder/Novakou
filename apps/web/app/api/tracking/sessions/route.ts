@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
           userId,
           startedAt: now,
           lastActiveAt: now,
-          pageViews: 1,
+          pageViews: 0,
           entryPath: path || "/",
           deviceType: deviceType || "desktop",
           referrer,
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
           trackingStore.upsertSession({
             ...existing,
             lastActiveAt: now,
-            pageViews: existing.pageViews + 1,
+            // DO NOT increment pageViews on heartbeat — only update lastActiveAt and exitPath
             exitPath: path,
             userId: userId || existing.userId,
           });
