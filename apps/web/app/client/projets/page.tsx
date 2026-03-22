@@ -99,7 +99,7 @@ export default function ClientProjects() {
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Mes Projets</h1>
           <p className="text-slate-400 text-sm mt-1">
-            {projects.length} projet{projects.length !== 1 ? "s" : ""} publie{projects.length !== 1 ? "s" : ""} — Gerez vos offres et suivez les candidatures.
+            {projects.length} projet{projects.length !== 1 ? "s" : ""} publié{projects.length !== 1 ? "s" : ""} — Gérez vos offres et suivez les candidatures.
           </p>
         </div>
         <Link
@@ -169,10 +169,10 @@ export default function ClientProjects() {
             <p className="text-slate-500 font-semibold">
               {projectFilter === "all"
                 ? "Vous n'avez pas encore de projets"
-                : "Aucun projet dans cette categorie"}
+                : "Aucun projet dans cette catégorie"}
             </p>
             <p className="text-slate-600 text-sm mt-1">
-              Publiez votre premier projet pour recevoir des propositions de freelances qualifies.
+              Publiez votre premier projet pour recevoir des propositions de freelances qualifiés.
             </p>
             <Link
               href="/client/projets/nouveau"
@@ -202,7 +202,7 @@ export default function ClientProjects() {
                     )}
                     {p.urgency === "tres_urgente" && (
                       <span className="text-xs bg-red-500/20 text-red-400 px-2.5 py-1 rounded-full font-semibold">
-                        Tres urgent
+                        Très urgent
                       </span>
                     )}
                   </div>
@@ -231,7 +231,7 @@ export default function ClientProjects() {
                       <span className="material-symbols-outlined text-sm">calendar_today</span>
                       {p.deadline
                         ? new Date(p.deadline).toLocaleDateString("fr-FR")
-                        : "Non defini"}
+                        : "Non défini"}
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-sm">group</span>
@@ -257,7 +257,7 @@ export default function ClientProjects() {
                     href={`/client/projets/${p.id}`}
                     className="px-4 py-2 bg-primary/10 text-primary text-xs font-bold rounded-lg hover:bg-primary hover:text-background-dark transition-all text-center"
                   >
-                    Voir details
+                    Voir détails
                   </Link>
                   <button className="px-4 py-2 bg-border-dark text-slate-400 text-xs font-semibold rounded-lg hover:bg-primary/10 hover:text-primary transition-colors text-center">
                     Modifier

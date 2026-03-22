@@ -108,7 +108,7 @@ export default function ClientFavorites() {
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">Favoris</h1>
-        <p className="text-slate-400 text-sm mt-1">Gerez vos prestataires et services sauvegardes pour vos futurs projets.</p>
+        <p className="text-slate-400 text-sm mt-1">Gérez vos prestataires et services sauvegardés pour vos futurs projets.</p>
       </div>
 
       {/* Tabs */}
@@ -143,7 +143,7 @@ export default function ClientFavorites() {
         <EmptyState
           icon={tab === "tous" ? "favorite_border" : getTypeIcon(tab)}
           title={tab === "tous" ? "Aucun favori" : `Aucun ${getTypeLabel(tab).toLowerCase()} en favoris`}
-          description="Explorez la marketplace et ajoutez des elements a vos favoris pour les retrouver ici."
+          description="Explorez la marketplace et ajoutez des éléments à vos favoris pour les retrouver ici."
           actionLabel="Explorer"
           actionHref="/client/explorer"
         />
@@ -187,7 +187,7 @@ export default function ClientFavorites() {
                   </div>
                   {fav.addedAt && (
                     <p className="text-[10px] text-slate-500 mt-1.5">
-                      Ajoute le {formatDate(fav.addedAt)}
+                      Ajouté le {formatDate(fav.addedAt)}
                     </p>
                   )}
                 </div>

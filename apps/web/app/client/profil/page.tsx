@@ -51,10 +51,11 @@ export default function ClientProfile() {
 
         // Calculate completion dynamically
         const items = [
-          { label: "Photo de profil ajoutee", done: !!profile.photo },
-          { label: "Bio renseignee", done: !!profile.bio },
-          { label: "Telephone verifie", done: !!profile.phone },
-          { label: "Pays renseigne", done: !!profile.country },
+          { label: "Email vérifié", done: true }, // Always true since user is logged in
+          { label: "Nom renseigné", done: !!(profile.firstName || profile.name) },
+          { label: "Photo de profil ajoutée", done: !!profile.photo },
+          { label: "Bio renseignée", done: !!profile.bio },
+          { label: "Pays renseigné", done: !!profile.country },
         ];
         setCompletionItems(items);
       })
@@ -73,11 +74,11 @@ export default function ClientProfile() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      addToast("error", "Veuillez selectionner une image (JPG, PNG, WebP)");
+      addToast("error", "Veuillez sélectionner une image (JPG, PNG, WebP)");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      addToast("error", "L'image ne doit pas depasser 5 Mo");
+      addToast("error", "L'image ne doit pas dépasser 5 Mo");
       return;
     }
 
@@ -85,11 +86,11 @@ export default function ClientProfile() {
     try {
       const result = await uploadApi.file(file, "avatar");
       const url = result?.file?.url;
-      if (!url) throw new Error("URL manquante dans la reponse upload");
+      if (!url) throw new Error("URL manquante dans la réponse upload");
       setAvatarUrl(url);
       // Update the profile with the new avatar URL
       await profileApi.update({ photo: url });
-      addToast("success", "Photo de profil mise a jour !");
+      addToast("success", "Photo de profil mise à jour !");
     } catch (err) {
       console.error("[Client profil upload]", err);
       addToast("error", "Erreur lors de l'upload de la photo");
@@ -114,9 +115,9 @@ export default function ClientProfile() {
     });
     setSaving(false);
     if (success) {
-      addToast("success", "Profil mis a jour avec succes !");
+      addToast("success", "Profil mis à jour avec succès !");
     } else {
-      addToast("error", "Erreur lors de la mise a jour du profil");
+      addToast("error", "Erreur lors de la mise à jour du profil");
     }
   }
 
@@ -176,7 +177,7 @@ export default function ClientProfile() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Mon Profil</h1>
-          <p className="text-slate-400 text-sm mt-1">Gerez vos informations personnelles et votre profil entreprise.</p>
+          <p className="text-slate-400 text-sm mt-1">Gérez vos informations personnelles et votre profil entreprise.</p>
         </div>
         <button
           onClick={save}
@@ -214,13 +215,13 @@ export default function ClientProfile() {
               {form.email && (
                 <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                  Email verifie
+                  Email vérifié
                 </span>
               )}
               {form.phone && (
                 <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                  Telephone verifie
+                  Téléphone vérifié
                 </span>
               )}
             </div>
@@ -244,14 +245,14 @@ export default function ClientProfile() {
             <input value={form.email} onChange={(e) => update("email", e.target.value)} type="email" className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20" />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Telephone</label>
+            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Téléphone</label>
             <input value={form.phone} onChange={(e) => update("phone", e.target.value)} className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20" />
           </div>
           <div>
             <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Pays</label>
             <select value={form.country} onChange={(e) => update("country", e.target.value)} className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20">
-              <option value="">Selectionnez un pays</option>
-              {["Senegal", "Cote d'Ivoire", "Cameroun", "France", "Belgique", "Canada", "Maroc", "Tunisie", "RDC", "Mali", "Burkina Faso", "Niger", "Guinee", "Benin", "Togo", "Gabon", "Autre"].map((c) => <option key={c} value={c}>{c}</option>)}
+              <option value="">Sélectionnez un pays</option>
+              {["Sénégal", "Côte d'Ivoire", "Cameroun", "France", "Belgique", "Canada", "Maroc", "Tunisie", "RDC", "Mali", "Burkina Faso", "Niger", "Guinée", "Bénin", "Togo", "Gabon", "Autre"].map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
@@ -282,16 +283,16 @@ export default function ClientProfile() {
             <input value={form.website} onChange={(e) => update("website", e.target.value)} className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20" />
           </div>
           <div>
-            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Secteur d&apos;activite</label>
+            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Secteur d&apos;activité</label>
             <select value={form.sector} onChange={(e) => update("sector", e.target.value)} className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20">
-              <option value="">Selectionnez un secteur</option>
-              {["Technologie", "Marketing", "Finance", "Sante", "Education", "Commerce", "Industrie", "Autre"].map((s) => <option key={s} value={s}>{s}</option>)}
+              <option value="">Sélectionnez un secteur</option>
+              {["Technologie", "Marketing", "Finance", "Santé", "Éducation", "Commerce", "Industrie", "Autre"].map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Taille d&apos;equipe</label>
+            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Taille d&apos;équipe</label>
             <select value={form.teamSize} onChange={(e) => update("teamSize", e.target.value)} className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20">
-              <option value="">Selectionnez une taille</option>
+              <option value="">Sélectionnez une taille</option>
               {["1-5", "5-10", "10-50", "50-200", "200+"].map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -303,7 +304,7 @@ export default function ClientProfile() {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">trending_up</span>
-            <p className="font-bold text-white text-sm">Completion du profil</p>
+            <p className="font-bold text-white text-sm">Complétion du profil</p>
           </div>
           <span className="text-primary text-sm font-bold">{completionPercent}%</span>
         </div>

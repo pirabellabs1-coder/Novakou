@@ -27,25 +27,25 @@ const PREF_SECTIONS = [
     title: "Messages et Communications",
     icon: "mail",
     prefs: [
-      { id: "msg_email", label: "Emails de nouveaux messages", desc: "Recevoir un resume par email pour chaque nouveau message non lu.", email: true, push: true },
-      { id: "msg_push", label: "Notifications Push (Navigateur)", desc: "Alertes en temps reel sur votre bureau lorsque vous etes connecte.", email: false, push: true },
+      { id: "msg_email", label: "Emails de nouveaux messages", desc: "Recevoir un résumé par email pour chaque nouveau message non lu.", email: true, push: true },
+      { id: "msg_push", label: "Notifications Push (Navigateur)", desc: "Alertes en temps réel sur votre bureau lorsque vous êtes connecté.", email: false, push: true },
     ],
   },
   {
     title: "Finances et Paiements",
     icon: "payments",
     prefs: [
-      { id: "pay_confirm", label: "Paiements confirmes", desc: "Alerte immediate par SMS et Email des qu'un paiement est confirme.", email: true, push: true },
-      { id: "pay_invoice", label: "Nouvelles factures", desc: "Notification quand une facture est generee.", email: true, push: false },
+      { id: "pay_confirm", label: "Paiements confirmés", desc: "Alerte immédiate par SMS et Email dès qu'un paiement est confirmé.", email: true, push: true },
+      { id: "pay_invoice", label: "Nouvelles factures", desc: "Notification quand une facture est générée.", email: true, push: false },
     ],
   },
   {
     title: "Projets et Missions",
     icon: "assignment",
     prefs: [
-      { id: "proj_update", label: "Mises a jour de commandes", desc: "Changements de statut, validations d'etapes et retours freelances.", email: true, push: true },
+      { id: "proj_update", label: "Mises à jour de commandes", desc: "Changements de statut, validations d'étapes et retours freelances.", email: true, push: true },
       { id: "proj_candidature", label: "Nouvelles candidatures", desc: "Quand un freelance postule sur un de vos projets.", email: true, push: true },
-      { id: "proj_deadline", label: "Rappels de delais", desc: "Alertes quand une deadline approche (3 jours, 1 jour avant).", email: true, push: false },
+      { id: "proj_deadline", label: "Rappels de délais", desc: "Alertes quand une deadline approche (3 jours, 1 jour avant).", email: true, push: false },
     ],
   },
 ];
@@ -99,7 +99,7 @@ export default function ClientNotifications() {
     for (const n of unread) {
       await markNotificationRead(n.id);
     }
-    addToast("success", "Toutes les notifications marquees comme lues");
+    addToast("success", "Toutes les notifications marquées comme lues");
   }
 
   async function handleNotificationClick(id: string) {
@@ -128,7 +128,7 @@ export default function ClientNotifications() {
     const diffH = Math.floor(diffMs / 3600000);
     const diffD = Math.floor(diffMs / 86400000);
 
-    if (diffMin < 1) return "A l'instant";
+    if (diffMin < 1) return "À l'instant";
     if (diffMin < 60) return `Il y a ${diffMin} min`;
     if (diffH < 24) return `Il y a ${diffH}h`;
     if (diffD < 7) return `Il y a ${diffD} jour${diffD > 1 ? "s" : ""}`;
@@ -140,7 +140,7 @@ export default function ClientNotifications() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Notifications</h1>
-          <p className="text-slate-400 text-sm mt-1">Gerez vos notifications et configurez vos preferences d&apos;alertes.</p>
+          <p className="text-slate-400 text-sm mt-1">Gérez vos notifications et configurez vos préférences d&apos;alertes.</p>
         </div>
         {unreadCount > 0 && (
           <button onClick={markAllRead} className="flex items-center gap-2 px-4 py-2 bg-neutral-dark border border-border-dark rounded-lg text-sm font-semibold text-white hover:bg-border-dark transition-colors">
@@ -159,7 +159,7 @@ export default function ClientNotifications() {
         </button>
         <button onClick={() => setTab("prefs")} className={cn("px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2", tab === "prefs" ? "bg-primary text-background-dark" : "bg-neutral-dark text-slate-400 border border-border-dark hover:text-white")}>
           <span className="material-symbols-outlined text-lg">tune</span>
-          Preferences
+          Préférences
         </button>
       </div>
 
@@ -173,7 +173,7 @@ export default function ClientNotifications() {
               { key: "message", label: "Messages" },
               { key: "payment", label: "Paiements" },
               { key: "project", label: "Projets" },
-              { key: "system", label: "Systeme" },
+              { key: "system", label: "Système" },
             ].map((f) => (
               <button
                 key={f.key}
@@ -193,7 +193,7 @@ export default function ClientNotifications() {
           ) : filtered.length === 0 ? (
             <EmptyState
               icon="notifications_off"
-              title={notifications.length === 0 ? "Aucune notification" : "Aucune notification dans cette categorie"}
+              title={notifications.length === 0 ? "Aucune notification" : "Aucune notification dans cette catégorie"}
               description={notifications.length === 0
                 ? "Vous recevrez des notifications pour vos commandes, messages et projets."
                 : "Essayez un autre filtre pour voir vos notifications."}
@@ -285,14 +285,14 @@ export default function ClientNotifications() {
                 }, {} as Record<string, boolean>);
                 const success = await updateSettings(notifSettings);
                 if (success) {
-                  addToast("success", "Preferences enregistrees");
+                  addToast("success", "Préférences enregistrées");
                 } else {
-                  addToast("error", "Erreur lors de la sauvegarde des preferences");
+                  addToast("error", "Erreur lors de la sauvegarde des préférences");
                 }
               }}
               className="px-6 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20"
             >
-              Enregistrer les preferences
+              Enregistrer les préférences
             </button>
           </div>
         </div>

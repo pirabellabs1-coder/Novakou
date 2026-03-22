@@ -12,7 +12,7 @@ const CURRENCIES = [
 ];
 
 const PAYMENT_METHODS = [
-  { id: "mobile", icon: "smartphone", label: "Mobile Money", description: "Orange Money, MTN MoMo, Wave (Senegal, Cote d'Ivoire...)", active: true },
+  { id: "mobile", icon: "smartphone", label: "Mobile Money", description: "Orange Money, MTN MoMo, Wave (Sénégal, Côte d'Ivoire...)", active: true },
   { id: "card", icon: "credit_card", label: "Carte Bancaire", description: "Visa, Mastercard, American Express via Stripe", active: false },
   { id: "bank", icon: "account_balance", label: "Virement Bancaire", description: "SEPA, virement international", active: false },
 ];
@@ -20,11 +20,11 @@ const PAYMENT_METHODS = [
 const SAVED_METHODS: { id: string; type: string; icon: string; label: string; detail: string; default: boolean }[] = [];
 
 const TX_STATUS_MAP: Record<string, { label: string; cls: string }> = {
-  completed: { label: "Complete", cls: "bg-primary/20 text-primary" },
-  complete: { label: "Complete", cls: "bg-primary/20 text-primary" },
+  completed: { label: "Complété", cls: "bg-primary/20 text-primary" },
+  complete: { label: "Complété", cls: "bg-primary/20 text-primary" },
   pending: { label: "En attente", cls: "bg-amber-500/20 text-amber-400" },
-  refund: { label: "Rembourse", cls: "bg-red-500/20 text-red-400" },
-  failed: { label: "Echoue", cls: "bg-red-500/20 text-red-400" },
+  refund: { label: "Remboursé", cls: "bg-red-500/20 text-red-400" },
+  failed: { label: "Échoué", cls: "bg-red-500/20 text-red-400" },
 };
 
 function SkeletonCard() {
@@ -163,7 +163,7 @@ export default function ClientPayments() {
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <span className="material-symbols-outlined text-primary">redeem</span>
                 </div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Credits FreelanceHigh</p>
+                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Crédits FreelanceHigh</p>
               </div>
               <p className="text-2xl font-black text-white">{formatAmount(credits)}</p>
             </div>
@@ -196,7 +196,7 @@ export default function ClientPayments() {
             <div className="px-5 py-4 border-b border-border-dark flex items-center justify-between">
               <h2 className="font-bold text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-lg">swap_vert</span>
-                Transactions recentes
+                Transactions récentes
               </h2>
               <button onClick={() => setActiveTab("invoices")} className="text-sm text-primary font-semibold hover:underline">Tout voir</button>
             </div>
@@ -247,18 +247,18 @@ export default function ClientPayments() {
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
                 <span className="material-symbols-outlined text-primary text-xl">add_card</span>
               </div>
-              <p className="font-bold text-white">Ajouter une methode</p>
+              <p className="font-bold text-white">Ajouter une méthode</p>
               <p className="text-xs text-slate-500 mt-1">Carte bancaire, Mobile Money ou virement</p>
             </button>
             <button
-              onClick={() => addToast("success", "Rapport de depenses en cours de generation...")}
+              onClick={() => addToast("success", "Rapport de dépenses en cours de génération...")}
               className="bg-neutral-dark rounded-xl border border-border-dark p-5 text-left hover:border-primary/40 transition-colors group"
             >
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3 group-hover:bg-primary/20 transition-colors">
                 <span className="material-symbols-outlined text-primary text-xl">download</span>
               </div>
               <p className="font-bold text-white">Exporter le rapport</p>
-              <p className="text-xs text-slate-500 mt-1">Telechargez vos depenses en CSV ou PDF</p>
+              <p className="text-xs text-slate-500 mt-1">Téléchargez vos dépenses en CSV ou PDF</p>
             </button>
           </div>
 
@@ -269,7 +269,7 @@ export default function ClientPayments() {
               <p className="font-bold text-white text-sm">Taux de change</p>
               <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                 <span className="material-symbols-outlined text-[10px]">sync</span>
-                Actualise il y a 5 min
+                Actualisé il y a 5 min
               </span>
             </div>
             <div className="flex flex-wrap gap-6 text-sm">
@@ -415,14 +415,14 @@ export default function ClientPayments() {
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
               <span className="material-symbols-outlined text-primary">credit_card</span>
-              Methodes enregistrees
+              Méthodes enregistrées
             </h2>
             <div className="space-y-3">
               {SAVED_METHODS.length === 0 ? (
                 <div className="text-center py-8 text-slate-500">
                   <span className="material-symbols-outlined text-4xl mb-2 block opacity-30">credit_card_off</span>
-                  <p className="text-sm">Aucune methode de paiement enregistree.</p>
-                  <p className="text-xs mt-1">Ajoutez une methode ci-dessous pour commencer.</p>
+                  <p className="text-sm">Aucune méthode de paiement enregistrée.</p>
+                  <p className="text-xs mt-1">Ajoutez une méthode ci-dessous pour commencer.</p>
                 </div>
               ) : (
                 SAVED_METHODS.map(m => (
@@ -434,7 +434,7 @@ export default function ClientPayments() {
                       <p className="text-sm font-bold text-white">{m.label}</p>
                       <p className="text-xs text-slate-500">{m.detail}</p>
                     </div>
-                    {m.default && <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">Par defaut</span>}
+                    {m.default && <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">Par défaut</span>}
                     <button className="text-slate-500 hover:text-red-400 transition-colors">
                       <span className="material-symbols-outlined text-lg">delete</span>
                     </button>
@@ -448,7 +448,7 @@ export default function ClientPayments() {
           <div>
             <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
               <span className="material-symbols-outlined text-primary">add_card</span>
-              Ajouter une methode
+              Ajouter une méthode
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {PAYMENT_METHODS.map(pm => (
@@ -479,7 +479,7 @@ export default function ClientPayments() {
             {/* Input Form */}
             <div className="mt-4 bg-neutral-dark rounded-xl border border-border-dark p-5">
               <label className="block text-sm font-semibold text-white mb-2">
-                {selectedMethod === "mobile" ? "Numero de telephone" : selectedMethod === "card" ? "Numero de carte" : "IBAN"}
+                {selectedMethod === "mobile" ? "Numéro de téléphone" : selectedMethod === "card" ? "Numéro de carte" : "IBAN"}
               </label>
               <input
                 type="text"
@@ -488,13 +488,13 @@ export default function ClientPayments() {
               />
               <div className="flex items-center gap-2 mt-3 p-3 bg-blue-500/5 rounded-lg border border-blue-500/10">
                 <span className="material-symbols-outlined text-blue-400 text-lg">verified_user</span>
-                <p className="text-xs text-slate-400">Vos informations de paiement sont cryptees et securisees par protocole SSL/TLS.</p>
+                <p className="text-xs text-slate-400">Vos informations de paiement sont cryptées et sécurisées par protocole SSL/TLS.</p>
               </div>
               <button
-                onClick={() => addToast("success", "Methode de paiement ajoutee")}
+                onClick={() => addToast("success", "Méthode de paiement ajoutée")}
                 className="mt-4 px-6 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
               >
-                Enregistrer la methode
+                Enregistrer la méthode
               </button>
             </div>
           </div>
@@ -512,10 +512,10 @@ export default function ClientPayments() {
             <button
               onClick={() => {
                 if (transactions.length === 0) {
-                  addToast("info", "Aucune transaction a exporter");
+                  addToast("info", "Aucune transaction à exporter");
                   return;
                 }
-                const headers = ["Reference", "Date", "Description", "Montant (EUR)", "Statut", "Methode"];
+                const headers = ["Référence", "Date", "Description", "Montant (EUR)", "Statut", "Méthode"];
                 const rows = transactions.map(tx => [
                   tx.id,
                   new Date(tx.date).toLocaleDateString("fr-FR"),
@@ -552,18 +552,18 @@ export default function ClientPayments() {
               <div className="text-center py-16">
                 <span className="material-symbols-outlined text-5xl text-slate-600 mb-3 block">receipt_long</span>
                 <p className="text-slate-500 font-semibold">Aucune transaction</p>
-                <p className="text-slate-600 text-sm mt-1">Vos transactions apparaitront ici apres votre premiere commande.</p>
+                <p className="text-slate-600 text-sm mt-1">Vos transactions apparaîtront ici après votre première commande.</p>
               </div>
             ) : (
               <table className="w-full">
                 <thead>
                   <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
-                    <th className="px-5 py-3 text-left font-semibold">Reference</th>
+                    <th className="px-5 py-3 text-left font-semibold">Référence</th>
                     <th className="px-5 py-3 text-left font-semibold">Date</th>
                     <th className="px-5 py-3 text-left font-semibold">Description</th>
                     <th className="px-5 py-3 text-right font-semibold">Montant</th>
                     <th className="px-5 py-3 text-center font-semibold">Statut</th>
-                    <th className="px-5 py-3 text-center font-semibold">Methode</th>
+                    <th className="px-5 py-3 text-center font-semibold">Méthode</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -589,7 +589,7 @@ export default function ClientPayments() {
 
           {/* Info Note */}
           <p className="text-xs text-slate-500 text-center">
-            Une facture PDF est automatiquement generee et envoyee a votre adresse email apres chaque paiement valide.
+            Une facture PDF est automatiquement générée et envoyée à votre adresse email après chaque paiement validé.
           </p>
         </div>
       )}

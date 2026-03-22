@@ -331,7 +331,7 @@ export const useClientStore = create<ClientState>()((set, get) => ({
           activities.push({
             id: `review-${r.id}`,
             type: "avis",
-            message: `Avis ${r.rating}/5 laisse pour ${r.serviceTitle}`,
+            message: `Avis ${r.rating}/5 laissé pour ${r.serviceTitle}`,
             link: "/client/avis",
             icon: "star",
             color: "text-amber-400",

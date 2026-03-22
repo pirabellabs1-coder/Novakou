@@ -46,9 +46,11 @@ export function ClientHeader({ onMenuClick }: ClientHeaderProps) {
         </Link>
 
         <Link href="/client/profil" className="hidden sm:flex items-center gap-3 ml-2 pl-3 border-l border-border-dark">
-          <span className="text-sm font-medium text-white">Jean Dupont</span>
+          <span className="text-sm font-medium text-white">{session?.user?.name || "Client"}</span>
           <div className="w-9 h-9 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center overflow-hidden">
-            <span className="text-primary text-xs font-bold">JD</span>
+            <span className="text-primary text-xs font-bold">
+              {(session?.user?.name || "C").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+            </span>
           </div>
         </Link>
       </div>

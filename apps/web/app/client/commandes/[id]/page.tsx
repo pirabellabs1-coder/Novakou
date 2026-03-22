@@ -167,7 +167,7 @@ export default function ClientOrderDetailPage() {
     });
     setActionLoading(false);
     if (ok) {
-      addToast("success", "Litige ouvert. Notre equipe va examiner le cas.");
+      addToast("success", "Litige ouvert. Notre équipe va examiner le cas.");
       setShowDisputeModal(false);
       setDisputeReason("");
       setDisputeDescription("");
@@ -329,7 +329,7 @@ export default function ClientOrderDetailPage() {
                       className="px-3 py-1.5 bg-primary/10 text-primary text-xs font-bold rounded-lg hover:bg-primary/20 transition-colors flex items-center gap-1"
                     >
                       <span className="material-symbols-outlined text-sm">download</span>
-                      Telecharger
+                      Télécharger
                     </a>
                   </div>
                 ))}
@@ -516,7 +516,7 @@ export default function ClientOrderDetailPage() {
               </button>
             </div>
             <p className="text-sm text-slate-400 mb-4">
-              Decrivez les modifications que vous souhaitez.
+              Décrivez les modifications que vous souhaitez.
               {order.revisionsLeft != null && (
                 <span className="text-orange-400 font-semibold ml-1">
                   ({order.revisionsLeft} revision(s) restante(s))
@@ -527,7 +527,7 @@ export default function ClientOrderDetailPage() {
               value={revisionComment}
               onChange={(e) => setRevisionComment(e.target.value)}
               rows={5}
-              placeholder="Decrivez precisement les modifications souhaitees..."
+              placeholder="Décrivez précisément les modifications souhaitées..."
               className="w-full px-4 py-3 rounded-xl border border-border-dark bg-background-dark text-sm text-white placeholder:text-slate-500 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none resize-none"
             />
             <div className="flex justify-end gap-3 mt-4">
@@ -578,7 +578,7 @@ export default function ClientOrderDetailPage() {
               </button>
             </div>
             <p className="text-sm text-slate-400 mb-4">
-              Un litige gelera les fonds en escrow jusqu&apos;a resolution par notre equipe.
+              Un litige gèlera les fonds en escrow jusqu&apos;à résolution par notre équipe.
             </p>
             <div className="space-y-4">
               <div>
@@ -590,7 +590,7 @@ export default function ClientOrderDetailPage() {
                   onChange={(e) => setDisputeReason(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-border-dark bg-background-dark text-sm text-white outline-none focus:border-primary/50"
                 >
-                  <option value="">Selectionnez un motif</option>
+                  <option value="">Sélectionnez un motif</option>
                   <option value="qualite">Qualite non conforme</option>
                   <option value="delai">Non-respect des delais</option>
                   <option value="communication">Absence de communication</option>
@@ -606,7 +606,7 @@ export default function ClientOrderDetailPage() {
                   value={disputeDescription}
                   onChange={(e) => setDisputeDescription(e.target.value)}
                   rows={4}
-                  placeholder="Decrivez le probleme rencontre en detail..."
+                  placeholder="Décrivez le problème rencontré en détail..."
                   className="w-full px-4 py-3 rounded-xl border border-border-dark bg-background-dark text-sm text-white placeholder:text-slate-500 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none resize-none"
                 />
               </div>

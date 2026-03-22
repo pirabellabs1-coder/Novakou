@@ -8,22 +8,22 @@ import { EmptyState } from "@/components/client/EmptyState";
 
 const STATUS_TABS = [
   { key: "all", label: "Toutes" },
-  { key: "payee", label: "Payees" },
+  { key: "payee", label: "Payées" },
   { key: "en_attente", label: "En attente" },
-  { key: "remboursee", label: "Remboursees" },
+  { key: "remboursee", label: "Remboursées" },
 ];
 
 const PERIOD_OPTIONS = [
   { key: "3m", label: "3 derniers mois" },
   { key: "6m", label: "6 derniers mois" },
-  { key: "year", label: "Cette annee" },
+  { key: "year", label: "Cette année" },
   { key: "all", label: "Tout" },
 ];
 
 const STATUS_MAP: Record<string, { label: string; cls: string; icon: string }> = {
-  payee: { label: "Payee", cls: "bg-primary/20 text-primary", icon: "check_circle" },
+  payee: { label: "Payée", cls: "bg-primary/20 text-primary", icon: "check_circle" },
   en_attente: { label: "En attente", cls: "bg-amber-500/20 text-amber-400", icon: "schedule" },
-  remboursee: { label: "Remboursee", cls: "bg-red-500/20 text-red-400", icon: "undo" },
+  remboursee: { label: "Remboursée", cls: "bg-red-500/20 text-red-400", icon: "undo" },
 };
 
 function SkeletonRow() {
@@ -100,7 +100,7 @@ export default function ClientInvoices() {
 
   function exportCSV() {
     if (filteredInvoices.length === 0) {
-      addToast("info", "Aucune facture a exporter");
+      addToast("info", "Aucune facture à exporter");
       return;
     }
     const headers = ["Date", "N Facture", "Service", "Montant (EUR)", "Statut"];
@@ -165,7 +165,7 @@ export default function ClientInvoices() {
           </div>
           <div>
             <p className="text-xl font-black text-primary">{isLoading ? "-" : counts.payee}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Payees</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Payées</p>
           </div>
         </div>
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
@@ -183,7 +183,7 @@ export default function ClientInvoices() {
           </div>
           <div>
             <p className="text-xl font-black text-white">{isLoading ? "-" : `${totalVisible.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} \u20ac`}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Montant affiche</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Montant affiché</p>
           </div>
         </div>
       </div>
@@ -216,7 +216,7 @@ export default function ClientInvoices() {
 
         {/* Period filter */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">Periode :</span>
+          <span className="text-xs text-slate-500">Période :</span>
           <select
             value={invoicePeriod}
             onChange={e => setInvoicePeriod(e.target.value)}
@@ -252,10 +252,10 @@ export default function ClientInvoices() {
         ) : filteredInvoices.length === 0 ? (
           <EmptyState
             icon="receipt_long"
-            title="Aucune facture trouvee"
+            title="Aucune facture trouvée"
             description={statusFilter !== "all" || invoicePeriod !== "all"
               ? "Essayez de modifier vos filtres."
-              : "Vos factures apparaitront ici apres votre premiere commande."}
+              : "Vos factures apparaîtront ici après votre première commande."}
             actionLabel="Explorer les services"
             actionHref="/client/explorer"
           />
@@ -298,7 +298,7 @@ export default function ClientInvoices() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 text-slate-500 hover:text-primary transition-colors"
-                          title="Telecharger PDF"
+                          title="Télécharger PDF"
                         >
                           <span className="material-symbols-outlined text-lg">download</span>
                         </a>
@@ -322,7 +322,7 @@ export default function ClientInvoices() {
       {/* Footer info */}
       {!isLoading && filteredInvoices.length > 0 && (
         <p className="text-xs text-slate-500 text-center">
-          {filteredInvoices.length} facture{filteredInvoices.length > 1 ? "s" : ""} affichee{filteredInvoices.length > 1 ? "s" : ""} &mdash; Total : {totalVisible.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} &euro;
+          {filteredInvoices.length} facture{filteredInvoices.length > 1 ? "s" : ""} affichée{filteredInvoices.length > 1 ? "s" : ""} &mdash; Total : {totalVisible.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} &euro;
         </p>
       )}
     </div>

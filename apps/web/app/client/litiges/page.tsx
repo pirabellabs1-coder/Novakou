@@ -8,15 +8,15 @@ import { cn } from "@/lib/utils";
 const STATUS_MAP: Record<string, { label: string; cls: string; icon: string }> = {
   en_cours: { label: "En cours d'examen", cls: "bg-blue-500/20 text-blue-400", icon: "pending" },
   en_attente: { label: "En attente", cls: "bg-amber-500/20 text-amber-400", icon: "schedule" },
-  resolu: { label: "Resolu", cls: "bg-primary/20 text-primary", icon: "check_circle" },
-  rejete: { label: "Rejete", cls: "bg-red-500/20 text-red-400", icon: "cancel" },
+  resolu: { label: "Résolu", cls: "bg-primary/20 text-primary", icon: "check_circle" },
+  rejete: { label: "Rejeté", cls: "bg-red-500/20 text-red-400", icon: "cancel" },
 };
 
 const CATEGORIES = [
   { key: "retard", label: "Retard de livraison", icon: "schedule" },
-  { key: "qualite", label: "Qualite non conforme", icon: "report_problem" },
+  { key: "qualite", label: "Qualité non conforme", icon: "report_problem" },
   { key: "non_livraison", label: "Non-livraison", icon: "block" },
-  { key: "communication", label: "Probleme de communication", icon: "chat_error" },
+  { key: "communication", label: "Problème de communication", icon: "chat_error" },
   { key: "autre", label: "Autre", icon: "more_horiz" },
 ];
 
@@ -77,15 +77,15 @@ export default function ClientDisputes() {
 
   async function submitDispute() {
     if (!newDispute.orderId) {
-      addToast("error", "Veuillez selectionner une commande");
+      addToast("error", "Veuillez sélectionner une commande");
       return;
     }
     if (!newDispute.category) {
-      addToast("error", "Veuillez selectionner une categorie");
+      addToast("error", "Veuillez sélectionner une catégorie");
       return;
     }
     if (!newDispute.description.trim()) {
-      addToast("error", "Veuillez fournir une description detaillee");
+      addToast("error", "Veuillez fournir une description détaillée");
       return;
     }
     const success = await openDispute(newDispute.orderId, {
@@ -93,7 +93,7 @@ export default function ClientDisputes() {
       description: newDispute.description,
     });
     if (success) {
-      addToast("success", "Litige soumis avec succes. Notre equipe l'examinera sous 48h.");
+      addToast("success", "Litige soumis avec succès. Notre équipe l'examinera sous 48h.");
       setView("list");
       setNewDispute({ orderId: "", category: "", description: "" });
       await syncDisputes();
@@ -116,7 +116,7 @@ export default function ClientDisputes() {
           <div>
             <h1 className="text-2xl font-black text-white">{selected.orderTitle}</h1>
             <p className="text-slate-400 text-sm mt-1">
-              Cas {selected.id} &middot; Commande : {selected.orderId} &middot; Categorie : {selected.category}
+              Cas {selected.id} &middot; Commande : {selected.orderId} &middot; Catégorie : {selected.category}
             </p>
           </div>
           <span className={cn("text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1", STATUS_MAP[selected.status]?.cls)}>
@@ -143,7 +143,7 @@ export default function ClientDisputes() {
             <div className="bg-neutral-dark rounded-xl border border-border-dark p-6">
               <h3 className="font-bold text-white flex items-center gap-2 mb-6">
                 <span className="material-symbols-outlined text-primary">timeline</span>
-                Suivi de la resolution
+                Suivi de la résolution
               </h3>
               <div className="space-y-6">
                 {selected.timeline.map((step, i) => (
@@ -184,7 +184,7 @@ export default function ClientDisputes() {
               </h3>
               <p className="text-sm text-slate-500">Aucun fichier soumis pour le moment.</p>
               <button
-                onClick={() => addToast("info", "Upload de fichiers bientot disponible")}
+                onClick={() => addToast("info", "Upload de fichiers bientôt disponible")}
                 className="mt-3 w-full py-2.5 border-2 border-dashed border-border-dark rounded-lg text-sm font-semibold text-slate-400 hover:border-primary/40 hover:text-primary transition-colors"
               >
                 + Ajouter une preuve
@@ -217,7 +217,7 @@ export default function ClientDisputes() {
               <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-3">Informations</p>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Reference</span>
+                  <span className="text-slate-500">Référence</span>
                   <span className="text-white font-mono">{selected.id}</span>
                 </div>
                 <div className="flex justify-between">
@@ -229,7 +229,7 @@ export default function ClientDisputes() {
                   <span className="text-white">{selected.orderId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Categorie</span>
+                  <span className="text-slate-500">Catégorie</span>
                   <span className="text-white capitalize">{selected.category}</span>
                 </div>
               </div>
@@ -256,15 +256,15 @@ export default function ClientDisputes() {
         </div>
 
         <div>
-          <h1 className="text-2xl font-black text-white">Signaler un probleme</h1>
-          <p className="text-slate-400 text-sm mt-1">Decrivez votre probleme en detail. Notre equipe examinera votre demande sous 48h.</p>
+          <h1 className="text-2xl font-black text-white">Signaler un problème</h1>
+          <p className="text-slate-400 text-sm mt-1">Décrivez votre problème en détail. Notre équipe examinera votre demande sous 48h.</p>
         </div>
 
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-6 space-y-5">
           {/* Order Selection */}
           <div>
             <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
-              Commande concernee *
+              Commande concernée *
             </label>
             {disputeableOrders.length > 0 ? (
               <select
@@ -272,7 +272,7 @@ export default function ClientDisputes() {
                 onChange={(e) => setNewDispute((p) => ({ ...p, orderId: e.target.value }))}
                 className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20"
               >
-                <option value="">-- Selectionnez une commande --</option>
+                <option value="">-- Sélectionnez une commande --</option>
                 {disputeableOrders.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.id.slice(-6).toUpperCase()} - {o.serviceTitle} ({o.amount} EUR)
@@ -288,7 +288,7 @@ export default function ClientDisputes() {
 
           {/* Category */}
           <div>
-            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Categorie du probleme *</label>
+            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Catégorie du problème *</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {CATEGORIES.map((c) => (
                 <button
@@ -310,26 +310,26 @@ export default function ClientDisputes() {
 
           {/* Description */}
           <div>
-            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Description detaillee *</label>
+            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Description détaillée *</label>
             <textarea
               value={newDispute.description}
               onChange={(e) => setNewDispute((p) => ({ ...p, description: e.target.value }))}
               rows={5}
-              placeholder="Expliquez en detail ce qui s'est passe, ce que vous attendiez et ce qui a ete livre..."
+              placeholder="Expliquez en détail ce qui s'est passé, ce que vous attendiez et ce qui a été livré..."
               className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 resize-none"
             />
           </div>
 
           {/* File Upload Area */}
           <div>
-            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Pieces jointes</label>
+            <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2">Pièces jointes</label>
             <button
-              onClick={() => addToast("info", "Upload de fichiers bientot disponible")}
+              onClick={() => addToast("info", "Upload de fichiers bientôt disponible")}
               className="w-full py-8 border-2 border-dashed border-border-dark rounded-xl text-center hover:border-primary/40 transition-colors"
             >
               <span className="material-symbols-outlined text-2xl text-slate-500 mb-1">cloud_upload</span>
               <p className="text-sm text-slate-400 font-medium">Glissez vos fichiers ou cliquez pour parcourir</p>
-              <p className="text-xs text-slate-500 mt-1">Captures d&apos;ecran, documents, fichiers (max 50 MB)</p>
+              <p className="text-xs text-slate-500 mt-1">Captures d&apos;écran, documents, fichiers (max 50 MB)</p>
             </button>
           </div>
         </div>
@@ -348,7 +348,7 @@ export default function ClientDisputes() {
           <span className="material-symbols-outlined text-blue-400 text-lg mt-0.5">info</span>
           <div>
             <p className="text-sm text-white font-semibold">Avant de soumettre un litige</p>
-            <p className="text-xs text-slate-400 mt-1">Nous vous recommandons d&apos;essayer de resoudre le probleme directement avec le freelance via la messagerie. 80% des litiges sont resolus par la discussion.</p>
+            <p className="text-xs text-slate-400 mt-1">Nous vous recommandons d&apos;essayer de résoudre le problème directement avec le freelance via la messagerie. 80% des litiges sont résolus par la discussion.</p>
           </div>
         </div>
       </div>
@@ -361,14 +361,14 @@ export default function ClientDisputes() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Litiges & Signalements</h1>
-          <p className="text-slate-400 text-sm mt-1">Gerez vos reclamations et suivez la resolution de vos litiges.</p>
+          <p className="text-slate-400 text-sm mt-1">Gérez vos réclamations et suivez la résolution de vos litiges.</p>
         </div>
         <button
           onClick={() => setView("new")}
           className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
         >
           <span className="material-symbols-outlined text-lg">flag</span>
-          Signaler un probleme
+          Signaler un problème
         </button>
       </div>
 
@@ -378,7 +378,7 @@ export default function ClientDisputes() {
           { label: "Total", value: disputes.length, icon: "gavel", color: "text-white" },
           { label: "En cours", value: disputes.filter((d) => d.status === "en_cours").length, icon: "pending", color: "text-blue-400" },
           { label: "En attente", value: disputes.filter((d) => d.status === "en_attente").length, icon: "schedule", color: "text-amber-400" },
-          { label: "Resolus", value: disputes.filter((d) => d.status === "resolu").length, icon: "check_circle", color: "text-primary" },
+          { label: "Résolus", value: disputes.filter((d) => d.status === "resolu").length, icon: "check_circle", color: "text-primary" },
         ].map((s) => (
           <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
             <span className={cn("material-symbols-outlined text-xl", s.color)}>{s.icon}</span>
@@ -396,7 +396,7 @@ export default function ClientDisputes() {
           { key: "tous", label: "Tous" },
           { key: "en_cours", label: "En cours" },
           { key: "en_attente", label: "En attente" },
-          { key: "resolu", label: "Resolus" },
+          { key: "resolu", label: "Résolus" },
         ].map((f) => (
           <button
             key={f.key}
@@ -422,11 +422,11 @@ export default function ClientDisputes() {
           <p className="text-slate-500 font-semibold">
             {disputes.length === 0
               ? "Aucun litige en cours. Bonne nouvelle !"
-              : "Aucun litige dans cette categorie"}
+              : "Aucun litige dans cette catégorie"}
           </p>
           {disputes.length === 0 && (
             <p className="text-slate-600 text-sm mt-1">
-              Si vous rencontrez un probleme avec une commande, vous pouvez signaler un litige.
+              Si vous rencontrez un problème avec une commande, vous pouvez signaler un litige.
             </p>
           )}
         </div>

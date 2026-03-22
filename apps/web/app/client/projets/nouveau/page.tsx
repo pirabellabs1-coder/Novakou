@@ -27,12 +27,12 @@ const CATEGORIES = [
 const URGENCY_OPTIONS = [
   { key: "normale", label: "Normale", desc: "Pas de contrainte de temps", icon: "pace" },
   { key: "urgente", label: "Urgente", desc: "Réponse sous 48h souhaitée", icon: "speed" },
-  { key: "tres_urgente", label: "Tres urgente", desc: "Besoin immediat", icon: "bolt" },
+  { key: "tres_urgente", label: "Très urgente", desc: "Besoin immédiat", icon: "bolt" },
 ];
 
 const VISIBILITY_OPTIONS = [
   { key: "public", label: "Public", desc: "Visible par tous les freelances", icon: "public" },
-  { key: "prive", label: "Prive", desc: "Sur invitation uniquement", icon: "lock" },
+  { key: "prive", label: "Privé", desc: "Sur invitation uniquement", icon: "lock" },
 ];
 
 interface FormErrors {
@@ -109,15 +109,15 @@ export default function NewProjectPage() {
     const budgetMaxNum = Number(form.budgetMax);
 
     if (form.budgetMin && budgetMinNum <= 0) {
-      newErrors.budgetMin = "Le budget minimum doit etre superieur a 0";
+      newErrors.budgetMin = "Le budget minimum doit être supérieur à 0";
     }
 
     if (form.budgetMax && budgetMaxNum <= 0) {
-      newErrors.budgetMax = "Le budget maximum doit etre superieur a 0";
+      newErrors.budgetMax = "Le budget maximum doit être supérieur à 0";
     }
 
     if (form.budgetMin && form.budgetMax && budgetMinNum > budgetMaxNum) {
-      newErrors.budgetMax = "Le budget maximum doit etre superieur au minimum";
+      newErrors.budgetMax = "Le budget maximum doit être supérieur au minimum";
     }
 
     setErrors(newErrors);
@@ -150,7 +150,7 @@ export default function NewProjectPage() {
     setSubmitting(false);
 
     if (ok) {
-      addToast("success", "Brouillon sauvegarde avec succes");
+      addToast("success", "Brouillon sauvegardé avec succès");
       router.push("/client/projets");
     } else {
       addToast("error", "Erreur lors de la sauvegarde du brouillon");
@@ -183,7 +183,7 @@ export default function NewProjectPage() {
     setSubmitting(false);
 
     if (ok) {
-      addToast("success", "Projet publie avec succes !");
+      addToast("success", "Projet publié avec succès !");
       router.push("/client/projets");
     } else {
       addToast("error", "Erreur lors de la publication du projet");
@@ -206,7 +206,7 @@ export default function NewProjectPage() {
           </button>
           <h1 className="text-2xl font-bold text-white">Publier un nouveau projet</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Decrivez votre besoin pour recevoir des propositions en quelques heures.
+            Décrivez votre besoin pour recevoir des propositions en quelques heures.
           </p>
         </div>
 
@@ -254,7 +254,7 @@ export default function NewProjectPage() {
                 <input
                   value={form.title}
                   onChange={(e) => update("title", e.target.value)}
-                  placeholder="Ex: Creation d'une plateforme E-commerce avec React & Node.js"
+                  placeholder="Ex: Création d'une plateforme E-commerce avec React & Node.js"
                   className={cn(
                     "w-full px-4 py-3.5 rounded-xl border bg-background-dark text-sm text-white placeholder:text-slate-500 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none transition-colors",
                     errors.title ? "border-red-500" : "border-border-dark",
@@ -263,14 +263,14 @@ export default function NewProjectPage() {
                 {errors.title && <p className="text-xs text-red-400 mt-1.5">{errors.title}</p>}
                 {!errors.title && (
                   <p className="text-[11px] text-slate-500 mt-1.5">
-                    Un titre precis attire 3x plus de freelances qualifies.
+                    Un titre précis attire 3x plus de freelances qualifiés.
                   </p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Categorie principale
+                  Catégorie principale
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {CATEGORIES.map((c) => (
@@ -292,14 +292,14 @@ export default function NewProjectPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Description detaillee
+                  Description détaillée
                 </label>
                 <textarea
                   value={form.description}
                   onChange={(e) => update("description", e.target.value)}
                   rows={8}
                   placeholder={
-                    "Decrivez les objectifs, les fonctionnalites attendues et le contexte du projet...\n\nExemple :\n- Objectif principal du projet\n- Fonctionnalites cles\n- Technologies preferees\n- Contexte et contraintes"
+                    "Décrivez les objectifs, les fonctionnalités attendues et le contexte du projet...\n\nExemple :\n- Objectif principal du projet\n- Fonctionnalités clés\n- Technologies préférées\n- Contexte et contraintes"
                   }
                   className={cn(
                     "w-full px-4 py-3.5 rounded-xl border bg-background-dark text-sm text-white placeholder:text-slate-500 focus:ring-1 focus:ring-primary/50 focus:border-primary/50 outline-none resize-none leading-relaxed",
@@ -311,14 +311,14 @@ export default function NewProjectPage() {
                 )}
                 {!errors.description && (
                   <p className="text-[11px] text-slate-500 mt-1.5">
-                    {form.description.length}/2000 caracteres
+                    {form.description.length}/2000 caractères
                   </p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Competences requises
+                  Compétences requises
                 </label>
                 <div className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-xl border border-border-dark bg-background-dark min-h-[48px]">
                   {form.skills.map((s) => (
@@ -344,7 +344,7 @@ export default function NewProjectPage() {
                         addSkill();
                       }
                     }}
-                    placeholder="Ajouter une competence (Entree pour valider)"
+                    placeholder="Ajouter une compétence (Entrée pour valider)"
                     className="flex-1 min-w-[200px] bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function NewProjectPage() {
 
               <div>
                 <label className="block text-sm font-semibold text-white mb-2">
-                  Deadline souhaitee
+                  Deadline souhaitée
                 </label>
                 <input
                   type="date"
@@ -364,13 +364,13 @@ export default function NewProjectPage() {
             </div>
           )}
 
-          {/* Step 2: Categorie & Expertise */}
+          {/* Step 2: Catégorie & Expertise */}
           {step === 1 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-white mb-1">Expertise requise</h3>
                 <p className="text-sm text-slate-400 mb-5">
-                  Selectionnez les sous-domaines pour affiner les candidatures.
+                  Sélectionnez les sous-domaines pour affiner les candidatures.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
@@ -409,7 +409,7 @@ export default function NewProjectPage() {
               <div>
                 <h3 className="text-lg font-bold text-white mb-1">Niveau d&apos;urgence</h3>
                 <p className="text-sm text-slate-400 mb-4">
-                  Indiquez la rapidite souhaitee pour les reponses.
+                  Indiquez la rapidité souhaitée pour les réponses.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {URGENCY_OPTIONS.map((u) => (
@@ -441,7 +441,7 @@ export default function NewProjectPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-bold text-white mb-1">Visibilite</h3>
+                <h3 className="text-lg font-bold text-white mb-1">Visibilité</h3>
                 <div className="grid grid-cols-2 gap-3 mt-3">
                   {VISIBILITY_OPTIONS.map((v) => (
                     <button
@@ -473,13 +473,13 @@ export default function NewProjectPage() {
             </div>
           )}
 
-          {/* Step 3: Budget detaille */}
+          {/* Step 3: Budget détaillé */}
           {step === 2 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-bold text-white mb-1">Budget & Tarification</h3>
                 <p className="text-sm text-slate-400 mb-5">
-                  Definissez votre budget pour attirer les bons profils.
+                  Définissez votre budget pour attirer les bons profils.
                 </p>
               </div>
 
@@ -564,8 +564,8 @@ export default function NewProjectPage() {
                   <div>
                     <p className="text-sm font-bold text-primary">Conseil budget</p>
                     <p className="text-xs text-primary/70 mt-1 leading-relaxed">
-                      Un budget realiste attire les meilleurs freelances. Pour un projet de{" "}
-                      {form.category || "developpement"}, le budget moyen est de 1 500 a 3 000 EUR en prix fixe.
+                      Un budget réaliste attire les meilleurs freelances. Pour un projet de{" "}
+                      {form.category || "développement"}, le budget moyen est de 1 500 à 3 000 EUR en prix fixe.
                     </p>
                   </div>
                 </div>
@@ -617,8 +617,8 @@ export default function NewProjectPage() {
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-base">category</span>
                     <div>
-                      <p className="text-slate-500 text-xs">Categorie</p>
-                      <p className="text-white font-semibold">{form.category || "Non definie"}</p>
+                      <p className="text-slate-500 text-xs">Catégorie</p>
+                      <p className="text-white font-semibold">{form.category || "Non définie"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -628,7 +628,7 @@ export default function NewProjectPage() {
                       <p className="text-white font-semibold">
                         {form.budgetMin || form.budgetMax
                           ? `${form.budgetMin || "?"} - ${form.budgetMax || "?"} EUR`
-                          : "Non defini"}{" "}
+                          : "Non défini"}{" "}
                         ({form.budgetType === "fixe" ? "Fixe" : "Horaire"})
                       </p>
                     </div>
@@ -640,7 +640,7 @@ export default function NewProjectPage() {
                       <p className="text-white font-semibold">
                         {form.deadline
                           ? new Date(form.deadline).toLocaleDateString("fr-FR")
-                          : "Non definie"}
+                          : "Non définie"}
                       </p>
                     </div>
                   </div>
@@ -658,9 +658,9 @@ export default function NewProjectPage() {
                       {form.visibility === "public" ? "public" : "lock"}
                     </span>
                     <div>
-                      <p className="text-slate-500 text-xs">Visibilite</p>
+                      <p className="text-slate-500 text-xs">Visibilité</p>
                       <p className="text-white font-semibold capitalize">
-                        {form.visibility === "public" ? "Public" : "Prive"}
+                        {form.visibility === "public" ? "Public" : "Privé"}
                       </p>
                     </div>
                   </div>
@@ -681,9 +681,9 @@ export default function NewProjectPage() {
                   info
                 </span>
                 <div>
-                  <p className="text-sm font-bold text-emerald-400">Pret a publier</p>
+                  <p className="text-sm font-bold text-emerald-400">Prêt à publier</p>
                   <p className="text-xs text-emerald-400/70 mt-1">
-                    Votre projet sera visible par les freelances qualifies correspondant a vos criteres.
+                    Votre projet sera visible par les freelances qualifiés correspondant à vos critères.
                     Vous recevrez des propositions directement dans votre espace.
                   </p>
                 </div>
@@ -708,7 +708,7 @@ export default function NewProjectPage() {
                   className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-border-dark text-slate-300 hover:bg-border-dark/80 transition-colors flex items-center gap-1"
                 >
                   <span className="material-symbols-outlined text-lg">arrow_back</span>
-                  Precedent
+                  Précédent
                 </button>
               )}
               {step < 3 ? (
@@ -716,7 +716,7 @@ export default function NewProjectPage() {
                   onClick={() => setStep(step + 1)}
                   className="px-6 py-2.5 bg-primary text-background-dark rounded-xl text-sm font-bold hover:brightness-110 transition-all flex items-center gap-2"
                 >
-                  Etape Suivante
+                  Étape Suivante
                   <span className="material-symbols-outlined text-lg">arrow_forward</span>
                 </button>
               ) : (

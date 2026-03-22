@@ -42,7 +42,7 @@ export default function RechercheIAPage() {
           <div className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
             <span className="material-symbols-outlined text-amber-400">info</span>
             <p className="text-sm text-amber-300">
-              <span className="font-bold">Version actuelle :</span> recherche par mots-cles et competences. La recherche semantique par IA (langage naturel) sera disponible en V3.
+              <span className="font-bold">Version actuelle :</span> recherche par mots-clés et compétences. La recherche sémantique par IA (langage naturel) sera disponible en V3.
             </p>
           </div>
         </div>
@@ -51,15 +51,15 @@ export default function RechercheIAPage() {
         <section className="w-full max-w-4xl px-6 pt-8 pb-8 flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-6">
             <span className="material-symbols-outlined text-sm">search</span>
-            Recherche Avancee
+            Recherche Avancée
           </div>
 
           <h1 className="text-slate-900 dark:text-white tracking-tight text-4xl md:text-5xl font-extrabold leading-tight mb-4">
-            Trouvez le freelance ideal
+            Trouvez le freelance idéal
           </h1>
 
           <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mb-10">
-            Recherchez par competences, budget ou type de prestataire. Decrivez votre besoin et nous trouverons les profils les plus pertinents.
+            Recherchez par compétences, budget ou type de prestataire. Décrivez votre besoin et nous trouverons les profils les plus pertinents.
           </p>
 
           {/* Search Bar */}
@@ -70,7 +70,7 @@ export default function RechercheIAPage() {
                 <span className="material-symbols-outlined text-primary">search</span>
                 <input
                   className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none text-slate-900 dark:text-white text-lg placeholder:text-slate-400"
-                  placeholder="Ex: developpeur React, design logo, marketing digital..."
+                  placeholder="Ex: développeur React, design logo, marketing digital..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={(e) => {
@@ -147,15 +147,15 @@ export default function RechercheIAPage() {
             ) : results.length === 0 ? (
               <EmptyState
                 icon="search_off"
-                title="Aucun resultat trouve"
-                description="Essayez avec d'autres mots-cles ou elargissez vos criteres de recherche."
+                title="Aucun résultat trouvé"
+                description="Essayez avec d'autres mots-clés ou élargissez vos critères de recherche."
               />
             ) : (
               <>
                 <div className="flex items-center justify-between mb-8">
                   <h3 className="text-xl font-bold flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">person_search</span>
-                    {results.length} resultat{results.length > 1 ? "s" : ""} trouves
+                    {results.length} résultat{results.length > 1 ? "s" : ""} trouvés
                   </h3>
                 </div>
 
@@ -227,7 +227,7 @@ export default function RechercheIAPage() {
                               <span className="material-symbols-outlined text-amber-400 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                               {result.rating.toFixed(1)} ({result.reviews})
                             </span>
-                            <span>{result.completionRate}% complete</span>
+                            <span>{result.completionRate}% complété</span>
                             <span>{result.responseTime}</span>
                           </div>
 

@@ -27,8 +27,8 @@ const FAQS = [
 const STATUS_MAP: Record<string, { label: string; color: string }> = {
   ouvert: { label: "Ouvert", color: "bg-blue-500/10 text-blue-400" },
   en_cours: { label: "En cours", color: "bg-amber-500/10 text-amber-400" },
-  resolu: { label: "Resolu", color: "bg-green-500/10 text-green-400" },
-  ferme: { label: "Ferme", color: "bg-slate-500/10 text-slate-400" },
+  resolu: { label: "Résolu", color: "bg-green-500/10 text-green-400" },
+  ferme: { label: "Fermé", color: "bg-slate-500/10 text-slate-400" },
 };
 
 export default function ClientHelp() {
@@ -64,12 +64,12 @@ export default function ClientHelp() {
     });
     setSubmitting(false);
     if (success) {
-      addToast("success", "Ticket cree avec succes ! Nous vous repondrons sous 24h.");
+      addToast("success", "Ticket créé avec succès ! Nous vous répondrons sous 24h.");
       setTicketForm({ subject: "", category: "plateforme", message: "", priority: "normale" });
       setShowTicketForm(false);
       setShowTickets(true);
     } else {
-      addToast("error", "Erreur lors de la creation du ticket. Reessayez.");
+      addToast("error", "Erreur lors de la création du ticket. Réessayez.");
     }
   }
 
@@ -86,7 +86,7 @@ export default function ClientHelp() {
       {/* Hero */}
       <div className="bg-primary/5 rounded-2xl border border-primary/10 p-4 sm:p-6 lg:p-8 text-center">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-2">Centre d&apos;Aide et Support</h1>
-        <p className="text-slate-400 max-w-xl mx-auto mb-6">Comment pouvons-nous vous aider aujourd&apos;hui ? Recherchez dans notre base de connaissances ou parcourez les categories ci-dessous.</p>
+        <p className="text-slate-400 max-w-xl mx-auto mb-6">Comment pouvons-nous vous aider aujourd&apos;hui ? Recherchez dans notre base de connaissances ou parcourez les catégories ci-dessous.</p>
 
         <div className="max-w-2xl mx-auto relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
@@ -107,7 +107,7 @@ export default function ClientHelp() {
 
       {/* Categories */}
       <div>
-        <h2 className="text-lg font-bold text-white mb-4">Categories d&apos;aide</h2>
+        <h2 className="text-lg font-bold text-white mb-4">Catégories d&apos;aide</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {CATEGORIES.map(c => (
             <button
@@ -130,7 +130,7 @@ export default function ClientHelp() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">quiz</span>
-            Questions frequentes
+            Questions fréquentes
           </h2>
         </div>
         <div className="space-y-2">
@@ -154,7 +154,7 @@ export default function ClientHelp() {
           ))}
           {filteredFaqs.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-slate-500 text-sm">Aucun resultat pour &quot;{search}&quot;</p>
+              <p className="text-slate-500 text-sm">Aucun résultat pour &quot;{search}&quot;</p>
             </div>
           )}
         </div>
@@ -194,8 +194,8 @@ export default function ClientHelp() {
               <EmptyState
                 icon="confirmation_number"
                 title="Aucun ticket"
-                description="Vous n'avez pas encore cree de ticket de support."
-                actionLabel="Creer un ticket"
+                description="Vous n'avez pas encore créé de ticket de support."
+                actionLabel="Créer un ticket"
                 onAction={() => { setShowTicketForm(true); setShowTickets(false); }}
               />
             ) : (
@@ -213,7 +213,7 @@ export default function ClientHelp() {
                   <p className="text-sm text-slate-400 line-clamp-2">{ticket.message}</p>
                   {ticket.responses.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-border-dark">
-                      <p className="text-xs text-slate-500 mb-1">{ticket.responses.length} reponse(s)</p>
+                      <p className="text-xs text-slate-500 mb-1">{ticket.responses.length} réponse(s)</p>
                       <p className="text-sm text-slate-300">{ticket.responses[ticket.responses.length - 1].message}</p>
                     </div>
                   )}
@@ -227,13 +227,13 @@ export default function ClientHelp() {
       {/* Contact Support */}
       <div className="bg-neutral-dark rounded-2xl border border-border-dark p-8">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-black text-white mb-2">Vous ne trouvez pas la reponse ?</h2>
+          <h2 className="text-2xl font-black text-white mb-2">Vous ne trouvez pas la réponse ?</h2>
           <p className="text-slate-400 text-sm">Nos experts sont disponibles pour vous accompagner.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           <button
-            onClick={() => addToast("info", "Chat en direct bientot disponible en V2")}
+            onClick={() => addToast("info", "Chat en direct bientôt disponible en V2")}
             className="py-3 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined text-lg">forum</span>
@@ -258,7 +258,7 @@ export default function ClientHelp() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Categorie</label>
+                <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Catégorie</label>
                 <select
                   value={ticketForm.category}
                   onChange={e => setTicketForm(t => ({ ...t, category: e.target.value }))}
@@ -270,7 +270,7 @@ export default function ClientHelp() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Priorite</label>
+                <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Priorité</label>
                 <select
                   value={ticketForm.priority}
                   onChange={e => setTicketForm(t => ({ ...t, priority: e.target.value }))}
@@ -289,7 +289,7 @@ export default function ClientHelp() {
               <input
                 value={ticketForm.subject}
                 onChange={e => setTicketForm(t => ({ ...t, subject: e.target.value }))}
-                placeholder="Decrivez brievement votre probleme"
+                placeholder="Décrivez brièvement votre problème"
                 className="w-full px-4 py-2.5 bg-neutral-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50"
               />
             </div>
@@ -300,7 +300,7 @@ export default function ClientHelp() {
                 value={ticketForm.message}
                 onChange={e => setTicketForm(t => ({ ...t, message: e.target.value }))}
                 rows={4}
-                placeholder="Expliquez votre probleme en detail..."
+                placeholder="Expliquez votre problème en détail..."
                 className="w-full px-4 py-2.5 bg-neutral-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 resize-none"
               />
             </div>

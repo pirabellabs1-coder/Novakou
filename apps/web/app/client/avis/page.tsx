@@ -126,7 +126,7 @@ export default function ClientReviews() {
     });
     setSubmittingOrderId(null);
     if (ok) {
-      addToast("success", "Avis publie avec succes !");
+      addToast("success", "Avis publié avec succès !");
       setNewRating(prev => {
         const next = { ...prev };
         delete next[orderId];

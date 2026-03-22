@@ -8,7 +8,7 @@ export default function PortefeuilleWeb3Page() {
       {/* Header */}
       <div>
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Portefeuille Web3</h1>
-        <p className="text-slate-400 text-sm mt-1">Gerez vos paiements en crypto-monnaie sur FreelanceHigh.</p>
+        <p className="text-slate-400 text-sm mt-1">Gérez vos paiements en crypto-monnaie sur FreelanceHigh.</p>
       </div>
 
       {/* Coming Soon Banner */}
@@ -37,7 +37,7 @@ export default function PortefeuilleWeb3Page() {
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-4">
             <span className="material-symbols-outlined text-primary text-2xl mb-2">lock</span>
             <p className="font-bold text-white text-sm">Escrow Blockchain</p>
-            <p className="text-xs text-slate-500 mt-1">Securite et transparence garanties</p>
+            <p className="text-xs text-slate-500 mt-1">Sécurité et transparence garanties</p>
           </div>
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-4">
             <span className="material-symbols-outlined text-primary text-2xl mb-2">speed</span>

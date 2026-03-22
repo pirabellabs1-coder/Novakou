@@ -237,7 +237,7 @@ export default function ClientExplorer() {
         <input
           value={searchInput}
           onChange={e => setSearchInput(e.target.value)}
-          placeholder="Rechercher un service, un freelance, une agence ou une competence..."
+          placeholder="Rechercher un service, un freelance, une agence ou une compétence..."
           className="w-full pl-12 pr-4 py-3.5 bg-neutral-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 transition-colors"
         />
         {searchInput && (
@@ -292,7 +292,7 @@ export default function ClientExplorer() {
           >
             <option value="pertinence">Pertinence</option>
             <option value="prix-asc">Prix croissant</option>
-            <option value="prix-desc">Prix decroissant</option>
+            <option value="prix-desc">Prix décroissant</option>
             <option value="note">Meilleure note</option>
             <option value="popularite">Plus populaire</option>
           </select>
@@ -324,7 +324,7 @@ export default function ClientExplorer() {
           <span className="material-symbols-outlined text-5xl text-red-400 mb-3">error</span>
           <p className="text-slate-400 mb-4">{error}</p>
           <button onClick={fetchServices} className="px-4 py-2 bg-primary text-background-dark text-sm font-bold rounded-lg hover:brightness-110 transition-all">
-            Reessayer
+            Réessayer
           </button>
         </div>
       )}
@@ -343,8 +343,8 @@ export default function ClientExplorer() {
           ) : sortedServices.length === 0 ? (
             <div className="text-center py-16">
               <span className="material-symbols-outlined text-5xl text-slate-600 mb-3">search_off</span>
-              <p className="text-white font-semibold mb-1">Aucun service trouve</p>
-              <p className="text-slate-400 text-sm">Essayez de modifier vos criteres de recherche ou de changer de categorie.</p>
+              <p className="text-white font-semibold mb-1">Aucun service trouvé</p>
+              <p className="text-slate-400 text-sm">Essayez de modifier vos critères de recherche ou de changer de catégorie.</p>
             </div>
           ) : (
             <div className={cn(
@@ -409,7 +409,7 @@ export default function ClientExplorer() {
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-border-dark">
                         <div>
-                          <p className="text-[10px] text-slate-500">A partir de</p>
+                          <p className="text-[10px] text-slate-500">À partir de</p>
                           <p className="text-lg font-black text-primary">{s.basePrice.toLocaleString("fr-FR")}&nbsp;EUR</p>
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] text-slate-500">
@@ -488,7 +488,7 @@ export default function ClientExplorer() {
           ) : freelances.length === 0 ? (
             <div className="text-center py-16">
               <span className="material-symbols-outlined text-5xl text-slate-600 mb-3">person_off</span>
-              <p className="text-white font-semibold mb-1">Aucun freelance trouve</p>
+              <p className="text-white font-semibold mb-1">Aucun freelance trouvé</p>
               <p className="text-slate-400 text-sm">Essayez de modifier votre recherche.</p>
             </div>
           ) : (
@@ -539,7 +539,7 @@ export default function ClientExplorer() {
                       >
                         favorite
                       </span>
-                      {isFreelanceFavorited(f.id) ? "Retire" : "Favoris"}
+                      {isFreelanceFavorited(f.id) ? "Retiré" : "Favoris"}
                     </button>
                     <div className="flex gap-2">
                       <button
@@ -576,7 +576,7 @@ export default function ClientExplorer() {
           ) : agences.length === 0 ? (
             <div className="text-center py-16">
               <span className="material-symbols-outlined text-5xl text-slate-600 mb-3">domain_disabled</span>
-              <p className="text-white font-semibold mb-1">Aucune agence trouvee</p>
+              <p className="text-white font-semibold mb-1">Aucune agence trouvée</p>
               <p className="text-slate-400 text-sm">Essayez de modifier votre recherche.</p>
             </div>
           ) : (
@@ -625,7 +625,7 @@ export default function ClientExplorer() {
                       >
                         favorite
                       </span>
-                      {isAgenceFavorited(a.id) ? "Retire" : "Favoris"}
+                      {isAgenceFavorited(a.id) ? "Retiré" : "Favoris"}
                     </button>
                     <div className="flex gap-2">
                       <button
@@ -662,7 +662,7 @@ export default function ClientExplorer() {
             </div>
             <textarea
               rows={4}
-              placeholder="Bonjour, je suis interesse par vos services. Pouvez-vous me donner plus de details sur..."
+              placeholder="Bonjour, je suis intéressé par vos services. Pouvez-vous me donner plus de détails sur..."
               className="w-full px-4 py-3 bg-background-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 resize-none"
             />
             <div className="flex justify-end gap-3 mt-4">
@@ -681,7 +681,7 @@ export default function ClientExplorer() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setProposalModal(null)}>
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-6 w-full max-w-lg" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-white text-lg">Proposition a {proposalModal}</h3>
+              <h3 className="font-bold text-white text-lg">Proposition à {proposalModal}</h3>
               <button onClick={() => setProposalModal(null)} className="text-slate-400 hover:text-white"><span className="material-symbols-outlined">close</span></button>
             </div>
             <div className="space-y-4">
@@ -700,13 +700,13 @@ export default function ClientExplorer() {
                   value={proposalForm.description}
                   onChange={e => setProposalForm(p => ({ ...p, description: e.target.value }))}
                   rows={4}
-                  placeholder="Decrivez precisement ce que vous recherchez, les fonctionnalites attendues, le contexte..."
+                  placeholder="Décrivez précisément ce que vous recherchez, les fonctionnalités attendues, le contexte..."
                   className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-lg text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-1.5">Budget estime</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Budget estimé</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">EUR</span>
                     <input

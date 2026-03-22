@@ -53,7 +53,7 @@ export default function ClientDashboard() {
     try {
       store.syncAll();
     } catch {
-      setError("Impossible de charger les donnees du dashboard client.");
+      setError("Impossible de charger les données du dashboard client.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -126,7 +126,7 @@ export default function ClientDashboard() {
     },
     {
       label: "Dépenses Totales",
-      value: `${totalSpent.toLocaleString("fr-FR")} \u20AC`,
+      value: `${totalSpent.toLocaleString("fr-FR")} €`,
       variation: `${store.orders.length} commandes`,
       variationColor: "text-emerald-400",
       icon: "payments",
@@ -162,7 +162,7 @@ export default function ClientDashboard() {
         <h3 className="text-lg font-bold text-white mb-2">Erreur de chargement</h3>
         <p className="text-sm text-slate-400 max-w-sm text-center mb-6">{error}</p>
         <button onClick={() => { setError(null); store.syncAll(); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:brightness-110 transition-all">
-          Reessayer
+          Réessayer
         </button>
       </div>
     );
@@ -207,7 +207,7 @@ export default function ClientDashboard() {
                 <BarChart data={store.stats.monthlyRevenue} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                   <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} width={50} />
-                  <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString("fr-FR")} \u20AC`} />} />
+                  <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString("fr-FR")} €`} />} />
                   <Bar dataKey="revenue" fill="rgb(var(--color-primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -345,7 +345,7 @@ export default function ClientDashboard() {
                       <p className="text-sm font-semibold text-white truncate group-hover:text-primary transition-colors">{o.serviceTitle}</p>
                       <p className="text-xs text-slate-500">#{o.id.slice(-4)} · {o.status}</p>
                     </div>
-                    <span className="text-sm font-bold text-white flex-shrink-0">{o.amount.toLocaleString("fr-FR")} \u20AC</span>
+                    <span className="text-sm font-bold text-white flex-shrink-0">{o.amount.toLocaleString("fr-FR")} €</span>
                   </Link>
                 ))
               ) : (
@@ -360,7 +360,7 @@ export default function ClientDashboard() {
           {/* Resume financier */}
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5 relative overflow-hidden">
             <p className="text-primary font-bold text-sm mb-2">Total dépensé</p>
-            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{totalSpent.toLocaleString("fr-FR")} \u20AC</p>
+            <p className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{totalSpent.toLocaleString("fr-FR")} €</p>
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-500">Commandes terminées</span>

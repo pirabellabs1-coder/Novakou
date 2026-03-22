@@ -37,13 +37,13 @@ const STATUS_MAP: Record<string, { label: string; cls: string }> = {
 const URGENCY_MAP: Record<string, { label: string; cls: string }> = {
   normale: { label: "Normale", cls: "bg-slate-500/20 text-slate-400" },
   urgente: { label: "Urgent", cls: "bg-amber-500/20 text-amber-400" },
-  tres_urgente: { label: "Tres urgent", cls: "bg-red-500/20 text-red-400" },
+  tres_urgente: { label: "Très urgent", cls: "bg-red-500/20 text-red-400" },
 };
 
 const CAND_STATUS: Record<string, { label: string; cls: string; icon: string }> = {
   en_attente: { label: "En attente", cls: "bg-blue-500/10 text-blue-400", icon: "schedule" },
-  acceptee: { label: "Acceptee", cls: "bg-emerald-500/10 text-emerald-400", icon: "check_circle" },
-  refusee: { label: "Refusee", cls: "bg-red-500/10 text-red-400", icon: "cancel" },
+  acceptee: { label: "Acceptée", cls: "bg-emerald-500/10 text-emerald-400", icon: "check_circle" },
+  refusee: { label: "Refusée", cls: "bg-red-500/10 text-red-400", icon: "cancel" },
 };
 
 // ---------------------------------------------------------------------------
@@ -439,7 +439,7 @@ export default function ProjectDetailPage() {
       {/* Actions */}
       <div className="flex items-center gap-3 flex-wrap">
         <button
-          onClick={() => addToast("info", "Modification du projet en cours de developpement")}
+          onClick={() => addToast("info", "Modification du projet en cours de développement")}
           className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
         >
           <span className="material-symbols-outlined text-lg">edit</span>

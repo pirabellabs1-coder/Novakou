@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 const SIDEBAR_ITEMS = [
   { key: "profil", label: "Profil Public", icon: "person" },
-  { key: "securite", label: "Securite", icon: "lock" },
+  { key: "securite", label: "Sécurité", icon: "lock" },
   { key: "paiements", label: "Paiements & Facturation", icon: "payments" },
   { key: "langues", label: "Langues & Devises", icon: "language" },
   { key: "notifications", label: "Notifications", icon: "notifications_active" },
@@ -16,11 +16,11 @@ const SIDEBAR_ITEMS = [
 
 const NOTIFICATION_ITEMS_DEFAULT = [
   { id: "1", label: "Nouvelles candidatures", desc: "Quand un freelance postule sur vos projets", email: true, push: true },
-  { id: "2", label: "Messages recus", desc: "Quand vous recevez un message", email: true, push: true },
+  { id: "2", label: "Messages reçus", desc: "Quand vous recevez un message", email: true, push: true },
   { id: "3", label: "Livraison commande", desc: "Quand un freelance livre une commande", email: true, push: false },
-  { id: "4", label: "Paiement effectue", desc: "Confirmation de paiement", email: true, push: false },
-  { id: "5", label: "Rappels de delais", desc: "Quand une deadline approche", email: false, push: true },
-  { id: "6", label: "Newsletter", desc: "Actualites et conseils FreelanceHigh", email: false, push: false },
+  { id: "4", label: "Paiement effectué", desc: "Confirmation de paiement", email: true, push: false },
+  { id: "5", label: "Rappels de délais", desc: "Quand une deadline approche", email: false, push: true },
+  { id: "6", label: "Newsletter", desc: "Actualités et conseils FreelanceHigh", email: false, push: false },
 ];
 
 export default function ClientSettings() {
@@ -72,9 +72,9 @@ export default function ClientSettings() {
   async function saveSection(section: string, data: Record<string, unknown>) {
     const success = await updateSettings(data);
     if (success) {
-      addToast("success", `${section} mis a jour`);
+      addToast("success", `${section} mis à jour`);
     } else {
-      addToast("error", `Erreur lors de la mise a jour de ${section.toLowerCase()}`);
+      addToast("error", `Erreur lors de la mise à jour de ${section.toLowerCase()}`);
     }
   }
 
@@ -107,7 +107,10 @@ export default function ClientSettings() {
 
             <div className="border-t border-border-dark my-2 mx-2" />
 
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-primary/10 hover:text-white transition-all text-left">
+            <button
+              onClick={() => window.open("/client/profil", "_blank")}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-400 hover:bg-primary/10 hover:text-white transition-all text-left"
+            >
               <span className="material-symbols-outlined text-lg">open_in_new</span>
               Voir mon profil public
             </button>
@@ -147,7 +150,7 @@ export default function ClientSettings() {
                         {profileForm.fullName.split(/\s+/).map((n) => n[0]).join("").toUpperCase().slice(0, 2) || "??"}
                       </div>
                       <button
-                        onClick={() => addToast("info", "Upload photo bientot disponible")}
+                        onClick={() => addToast("info", "Upload photo bientôt disponible")}
                         className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-background-dark shadow-lg"
                       >
                         <span className="material-symbols-outlined text-sm">photo_camera</span>
@@ -212,7 +215,7 @@ export default function ClientSettings() {
               <div className="bg-neutral-dark rounded-xl border border-border-dark p-6 space-y-5">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">lock</span>
-                  Securite du compte
+                  Sécurité du compte
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
@@ -238,7 +241,7 @@ export default function ClientSettings() {
                   <div className="flex items-end">
                     <button
                       onClick={() => {
-                        saveSection("Securite", {
+                        saveSection("Sécurité", {
                           currentPassword: securityForm.currentPassword,
                           newPassword: securityForm.newPassword,
                         });
@@ -246,7 +249,7 @@ export default function ClientSettings() {
                       }}
                       className="w-full px-4 py-2.5 bg-primary/10 text-primary text-sm font-bold rounded-xl hover:bg-primary hover:text-background-dark transition-all"
                     >
-                      Mettre a jour
+                      Mettre à jour
                     </button>
                   </div>
                 </div>
@@ -255,7 +258,7 @@ export default function ClientSettings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-white text-sm">Double authentification (2FA)</p>
-                      <p className="text-xs text-slate-500 mt-0.5">Protection supplementaire via Google Authenticator ou SMS</p>
+                      <p className="text-xs text-slate-500 mt-0.5">Protection supplémentaire via Google Authenticator ou SMS</p>
                     </div>
                     <button
                       onClick={() => {
@@ -274,8 +277,8 @@ export default function ClientSettings() {
                   <p className="font-bold text-white text-sm mb-3">Sessions actives</p>
                   <div className="space-y-2">
                     {[
-                      { device: "Chrome - Windows", location: "Dakar, Senegal", time: "Actuellement actif", current: true },
-                      { device: "Safari - iPhone", location: "Dakar, Senegal", time: "Il y a 2 heures", current: false },
+                      { device: "Chrome - Windows", location: "Dakar, Sénégal", time: "Actuellement actif", current: true },
+                      { device: "Safari - iPhone", location: "Dakar, Sénégal", time: "Il y a 2 heures", current: false },
                     ].map((s, i) => (
                       <div key={i} className="flex items-center justify-between p-3 bg-background-dark rounded-lg border border-border-dark">
                         <div className="flex items-center gap-3">
@@ -289,10 +292,10 @@ export default function ClientSettings() {
                           <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">Session actuelle</span>
                         ) : (
                           <button
-                            onClick={() => addToast("success", "Session revoquee")}
+                            onClick={() => addToast("success", "Session révoquée")}
                             className="text-xs text-red-400 hover:text-red-300 font-semibold"
                           >
-                            Revoquer
+                            Révoquer
                           </button>
                         )}
                       </div>
@@ -310,7 +313,7 @@ export default function ClientSettings() {
                 <span className="material-symbols-outlined text-primary">payments</span>
                 Paiements & Facturation
               </h2>
-              <p className="text-sm text-slate-400">Vos methodes de paiement enregistrees</p>
+              <p className="text-sm text-slate-400">Vos méthodes de paiement enregistrées</p>
               <div className="space-y-3">
                 {[
                   { icon: "credit_card", name: "Visa ---- 4242", detail: "Expire 12/28", isDefault: true },
@@ -324,7 +327,7 @@ export default function ClientSettings() {
                       <p className="text-sm font-bold text-white">{m.name}</p>
                       <p className="text-xs text-slate-500">{m.detail}</p>
                     </div>
-                    {m.isDefault && <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">Par defaut</span>}
+                    {m.isDefault && <span className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full font-semibold">Par défaut</span>}
                     <button className="text-slate-500 hover:text-red-400 transition-colors">
                       <span className="material-symbols-outlined text-lg">delete</span>
                     </button>
@@ -336,7 +339,7 @@ export default function ClientSettings() {
                 className="w-full py-3 border-2 border-dashed border-border-dark rounded-xl text-sm font-semibold text-slate-400 hover:border-primary/40 hover:text-primary transition-colors flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-lg">add</span>
-                Ajouter une methode de paiement
+                Ajouter une méthode de paiement
               </button>
             </div>
           )}
@@ -356,7 +359,7 @@ export default function ClientSettings() {
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { code: "fr", label: "Francais" },
+                      { code: "fr", label: "Français" },
                       { code: "en", label: "English" },
                     ].map((l) => (
                       <button
@@ -380,7 +383,7 @@ export default function ClientSettings() {
                 <div>
                   <label className="flex items-center gap-2 text-xs text-slate-500 uppercase tracking-wider font-semibold mb-3">
                     <span className="material-symbols-outlined text-sm">monetization_on</span>
-                    Devise preferee
+                    Devise préférée
                   </label>
                   <select
                     value={currency}
@@ -393,14 +396,14 @@ export default function ClientSettings() {
                     <option value="GBP">GBP (Livre sterling)</option>
                     <option value="MAD">MAD (Dirham marocain)</option>
                   </select>
-                  <p className="text-[11px] text-slate-500 mt-2">Note : Les conversions sont approximatives et basees sur le taux du marche en temps reel.</p>
+                  <p className="text-[11px] text-slate-500 mt-2">Note : Les conversions sont approximatives et basées sur le taux du marché en temps réel.</p>
                 </div>
               </div>
               <button
-                onClick={() => saveSection("Preferences", { language, currency })}
+                onClick={() => saveSection("Préférences", { language, currency })}
                 className="px-6 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
               >
-                Enregistrer les preferences
+                Enregistrer les préférences
               </button>
             </div>
           )}
@@ -462,16 +465,16 @@ export default function ClientSettings() {
           <div className="bg-red-500/5 rounded-xl border border-red-500/20 p-6">
             <h3 className="font-bold text-red-400 flex items-center gap-2 mb-2">
               <span className="material-symbols-outlined text-red-400">warning</span>
-              Desactiver le compte
+              Désactiver le compte
             </h3>
             <p className="text-sm text-slate-400 mb-4">
-              Ceci masquera votre profil de la plateforme jusqu&apos;a votre prochaine connexion.
+              Ceci masquera votre profil de la plateforme jusqu&apos;à votre prochaine connexion.
             </p>
             <button
-              onClick={() => addToast("info", "Veuillez contacter le support pour desactiver votre compte")}
+              onClick={() => addToast("info", "Veuillez contacter le support pour désactiver votre compte")}
               className="px-5 py-2 border border-red-500/40 text-red-400 text-sm font-semibold rounded-lg hover:bg-red-500 hover:text-white transition-all"
             >
-              Desactiver
+              Désactiver
             </button>
           </div>
         </div>

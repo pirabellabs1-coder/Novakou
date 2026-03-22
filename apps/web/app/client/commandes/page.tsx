@@ -149,10 +149,10 @@ export default function ClientOrders() {
             <p className="text-slate-500 font-semibold">
               {orderFilter === "all"
                 ? "Vous n'avez pas encore de commandes"
-                : "Aucune commande dans cette categorie"}
+                : "Aucune commande dans cette catégorie"}
             </p>
             <p className="text-slate-600 text-sm mt-1">
-              Explorez le marketplace pour trouver des services et passer votre premiere commande.
+              Explorez le marketplace pour trouver des services et passer votre première commande.
             </p>
             <Link
               href="/explorer"
