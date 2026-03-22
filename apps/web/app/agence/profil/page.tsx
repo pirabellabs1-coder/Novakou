@@ -84,7 +84,7 @@ export default function AgenceProfilPage() {
         photo: form.logo, bio: form.description, title: form.secteur, city: form.ville, country: form.pays,
         links: { linkedin: form.links.linkedin, github: form.links.twitter, portfolio: form.links.website, behance: "" },
       });
-      addToast("success", "Profil agence mis a jour avec succes !");
+      addToast("success", "Profil agence mis à jour avec succès !");
     } catch { addToast("error", "Erreur lors de la sauvegarde du profil."); }
     finally { setSaving(false); }
   }
@@ -104,7 +104,7 @@ export default function AgenceProfilPage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight">{form.name || "Profil Agence"}</h2>
-          <p className="text-slate-400 mt-1">Editez les informations de votre agence visibles publiquement.</p>
+          <p className="text-slate-400 mt-1">Éditez les informations de votre agence visibles publiquement.</p>
         </div>
         <div className="flex gap-1 bg-neutral-dark rounded-xl p-1 flex-shrink-0">
           {(["edition", "preview"] as const).map((tab) => (
@@ -112,7 +112,7 @@ export default function AgenceProfilPage() {
               className={cn("px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5",
                 activeTab === tab ? "bg-[#14B835]/10 text-[#14B835]" : "text-slate-500 hover:text-slate-300")}>
               <span className="material-symbols-outlined text-base">{tab === "edition" ? "edit" : "visibility"}</span>
-              {tab === "edition" ? "Edition" : "Previsualisation"}
+              {tab === "edition" ? "Édition" : "Prévisualisation"}
             </button>
           ))}
         </div>
@@ -144,12 +144,12 @@ export default function AgenceProfilPage() {
         </div>
 
         {form.description && (<div className={cardCls}>
-          <h4 className="font-bold text-lg mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-[#14B835]">info</span>A propos</h4>
+          <h4 className="font-bold text-lg mb-3 flex items-center gap-2"><span className="material-symbols-outlined text-[#14B835]">info</span>À propos</h4>
           <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line">{form.description}</div>
         </div>)}
 
         <div className={cardCls}>
-          <h4 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[#14B835]">groups</span>Equipe ({visibleMembers.length} membres publics)</h4>
+          <h4 className="font-bold text-lg mb-4 flex items-center gap-2"><span className="material-symbols-outlined text-[#14B835]">groups</span>Équipe ({visibleMembers.length} membres publics)</h4>
           {visibleMembers.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {visibleMembers.map((m) => (
@@ -186,7 +186,7 @@ export default function AgenceProfilPage() {
         </div>
 
         <button onClick={() => setActiveTab("edition")} className="w-full py-3 bg-[#14B835]/10 text-[#14B835] font-bold rounded-lg hover:bg-[#14B835]/20 transition-all flex items-center justify-center gap-2">
-          <span className="material-symbols-outlined">edit</span>Retour a l&apos;edition
+          <span className="material-symbols-outlined">edit</span>Retour à l&apos;édition
         </button>
       </div>)}
 
@@ -194,7 +194,7 @@ export default function AgenceProfilPage() {
       {activeTab === "edition" && (<>
         <div className="bg-neutral-dark border border-[#14B835]/30 rounded-xl p-5">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-bold">Completion du profil</p>
+            <p className="text-sm font-bold">Complétion du profil</p>
             <span className="text-[#14B835] font-bold">{form.completionPercent}%</span>
           </div>
           <div className="w-full h-2 bg-border-dark rounded-full overflow-hidden">
@@ -212,14 +212,14 @@ export default function AgenceProfilPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label className={labelCls}>Nom de l&apos;agence</label>
               <input value={form.name} onChange={(e) => set_({ name: e.target.value })} className={inputCls} /></div>
-            <div><label className={labelCls}>Secteur d&apos;activite</label>
+            <div><label className={labelCls}>Secteur d&apos;activité</label>
               <select value={form.secteur} onChange={(e) => set_({ secteur: e.target.value })} className={inputCls}>
-                <option value="">Selectionnez un secteur</option>
+                <option value="">Sélectionnez un secteur</option>
                 {SECTEURS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select></div>
-            <div><label className={labelCls}>Taille de l&apos;equipe</label>
+            <div><label className={labelCls}>Taille de l&apos;équipe</label>
               <select value={form.taille} onChange={(e) => set_({ taille: e.target.value })} className={inputCls}>
-                <option value="">Selectionnez une taille</option>
+                <option value="">Sélectionnez une taille</option>
                 {TAILLES.map((t) => <option key={t} value={t}>{t} personnes</option>)}
               </select></div>
             <div><label className={labelCls}>SIRET (optionnel)</label>
@@ -227,7 +227,7 @@ export default function AgenceProfilPage() {
           </div>
           <div><label className={labelCls}>Description</label>
             <textarea value={form.description} onChange={(e) => set_({ description: e.target.value })} rows={4}
-              placeholder="Decrivez votre agence, vos specialites et votre equipe..." className={cn(inputCls, "resize-none")} /></div>
+              placeholder="Décrivez votre agence, vos spécialités et votre équipe..." className={cn(inputCls, "resize-none")} /></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label className={labelCls}>Ville</label>
               <input value={form.ville} onChange={(e) => set_({ ville: e.target.value })} className={inputCls} /></div>
@@ -247,7 +247,7 @@ export default function AgenceProfilPage() {
         </div>
 
         {members.length > 0 && (<div className={cn(cardCls, "space-y-4")}>
-          <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-[#14B835]">groups</span>Membres de l&apos;equipe ({members.length})</h3>
+          <h3 className="font-bold text-lg flex items-center gap-2"><span className="material-symbols-outlined text-[#14B835]">groups</span>Membres de l&apos;équipe ({members.length})</h3>
           <div className="space-y-2">
             {members.map((m) => (
               <div key={m.id} className="flex items-center justify-between p-3 border border-border-dark rounded-lg">
@@ -259,7 +259,7 @@ export default function AgenceProfilPage() {
                   className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all",
                     memberVis[m.id] ? "bg-[#14B835]/10 text-[#14B835]" : "bg-slate-800 text-slate-500")}>
                   <span className="material-symbols-outlined text-sm">{memberVis[m.id] ? "visibility" : "visibility_off"}</span>
-                  {memberVis[m.id] ? "Visible" : "Masque"}
+                  {memberVis[m.id] ? "Visible" : "Masqué"}
                 </button>
               </div>))}
           </div>

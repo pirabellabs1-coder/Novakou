@@ -22,10 +22,11 @@ interface Project {
 }
 
 const COLUMNS: { key: ProjectStatus; label: string; color: string }[] = [
-  { key: "a_faire", label: "A faire", color: "bg-slate-500" },
+  { key: "a_faire", label: "À faire", color: "bg-slate-500" },
   { key: "en_cours", label: "En cours", color: "bg-blue-500" },
   { key: "en_revision", label: "En révision", color: "bg-purple-500" },
   { key: "termine", label: "Terminé", color: "bg-emerald-500" },
+
 ];
 
 const PRIORITY_BADGES: Record<Priority, { label: string; cls: string }> = {
@@ -123,8 +124,8 @@ export default function AgenceProjets() {
 
   const projects: Project[] = useMemo(() => {
     return orders.map((order, idx) => {
-      // Derive assignee: round-robin across active members, or "Non assigne"
-      let assignee = "Non assigne";
+      // Derive assignee: round-robin across active members, or "Non assigné"
+      let assignee = "Non assigné";
       let initials = "NA";
       if (activeMembers.length > 0) {
         const member = activeMembers[idx % activeMembers.length];
@@ -185,7 +186,7 @@ export default function AgenceProjets() {
       addToast("error", "Veuillez saisir un titre pour le projet.");
       return;
     }
-    addToast("success", "Projet cree !");
+    addToast("success", "Projet créé !");
     setShowNew(false);
     setNewTitle("");
     setNewClient("");
@@ -201,7 +202,7 @@ export default function AgenceProjets() {
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Projets</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Gerez tous les projets de l&apos;agence.
+            Gérez tous les projets de l&apos;agence.
           </p>
         </div>
         <button
@@ -261,7 +262,7 @@ export default function AgenceProjets() {
             onChange={(e) => setPriorityFilter(e.target.value)}
             className="px-3 py-2 bg-neutral-dark border border-border-dark rounded-lg text-xs text-white outline-none focus:border-primary/50"
           >
-            <option value="tous">Toutes priorites</option>
+            <option value="tous">Toutes priorités</option>
             <option value="urgent">Urgent</option>
             <option value="normal">Normal</option>
             <option value="faible">Faible</option>
@@ -275,7 +276,7 @@ export default function AgenceProjets() {
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs text-slate-400 font-semibold">
-              Capacite Agence
+              Capacité Agence
             </span>
             <span className="text-xs font-bold text-white">
               {capacityPercent}%
@@ -308,13 +309,13 @@ export default function AgenceProjets() {
             Aucun projet pour le moment
           </h3>
           <p className="text-sm text-slate-400 mb-4">
-            Les projets apparaitront ici lorsque des commandes seront passees.
+            Les projets apparaîtront ici lorsque des commandes seront passées.
           </p>
           <button
             onClick={() => setShowNew(true)}
             className="px-4 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
           >
-            Creer un projet
+            Créer un projet
           </button>
         </div>
       )}
@@ -405,8 +406,8 @@ export default function AgenceProjets() {
               <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
                 <th className="px-5 py-3 text-left font-semibold">Projet</th>
                 <th className="px-5 py-3 text-left font-semibold">Client</th>
-                <th className="px-5 py-3 text-left font-semibold">Assigne</th>
-                <th className="px-5 py-3 text-left font-semibold">Priorite</th>
+                <th className="px-5 py-3 text-left font-semibold">Assigné</th>
+                <th className="px-5 py-3 text-left font-semibold">Priorité</th>
                 <th className="px-5 py-3 text-left font-semibold">
                   Progression
                 </th>
@@ -504,7 +505,7 @@ export default function AgenceProjets() {
                 onChange={(e) => setNewClient(e.target.value)}
                 className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50"
               >
-                <option value="">Selectionner un client</option>
+                <option value="">Sélectionner un client</option>
                 {storeClientNames.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -537,9 +538,9 @@ export default function AgenceProjets() {
                 onChange={(e) => setNewPriority(e.target.value as Priority)}
                 className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50"
               >
-                <option value="normal">Priorite : Normal</option>
-                <option value="urgent">Priorite : Urgent</option>
-                <option value="faible">Priorite : Faible</option>
+                <option value="normal">Priorité : Normal</option>
+                <option value="urgent">Priorité : Urgent</option>
+                <option value="faible">Priorité : Faible</option>
               </select>
               <div className="flex gap-3 pt-2">
                 <button
@@ -552,7 +553,7 @@ export default function AgenceProjets() {
                   onClick={handleCreateProject}
                   className="flex-1 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
                 >
-                  Creer le projet
+                  Créer le projet
                 </button>
               </div>
             </div>

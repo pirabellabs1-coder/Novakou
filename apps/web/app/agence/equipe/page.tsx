@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 // ── Role config ──
 
 const ROLE_MAP: Record<AgencyMember["role"], { label: string; cls: string }> = {
-  proprietaire: { label: "Proprietaire", cls: "bg-red-500/20 text-red-400" },
+  proprietaire: { label: "Propriétaire", cls: "bg-red-500/20 text-red-400" },
   manager: { label: "Manager", cls: "bg-purple-500/20 text-purple-400" },
   freelance: { label: "Freelance", cls: "bg-blue-500/20 text-blue-400" },
   commercial: { label: "Commercial", cls: "bg-amber-500/20 text-amber-400" },
@@ -19,14 +19,14 @@ const ROLE_MAP: Record<AgencyMember["role"], { label: string; cls: string }> = {
 const STATUS_INDICATOR: Record<AgencyMember["status"], { label: string; dotCls: string; textCls: string }> = {
   actif: { label: "Actif", dotCls: "bg-emerald-400", textCls: "text-emerald-400" },
   inactif: { label: "Inactif", dotCls: "bg-slate-500", textCls: "text-slate-500" },
-  invite: { label: "Invite", dotCls: "bg-amber-400", textCls: "text-amber-400" },
+  invite: { label: "Invité", dotCls: "bg-amber-400", textCls: "text-amber-400" },
 };
 
 // ── Role filter tabs ──
 
 const ROLE_TABS: { key: string; label: string }[] = [
   { key: "tous", label: "Tous" },
-  { key: "proprietaire", label: "Proprietaire" },
+  { key: "proprietaire", label: "Propriétaire" },
   { key: "manager", label: "Manager" },
   { key: "freelance", label: "Freelance" },
   { key: "commercial", label: "Commercial" },
@@ -140,13 +140,13 @@ export default function AgenceEquipe() {
 
   function handleRemoveMember(member: AgencyMember) {
     // In production this would call an API to remove the member
-    addToast("success", `${member.name} a ete retire de l'agence.`);
+    addToast("success", `${member.name} a été retiré de l'agence.`);
     setConfirmRemove(null);
   }
 
   function handleChangeRole(member: AgencyMember) {
     // In production this would open a role change modal / call API
-    addToast("info", `Modification du role de ${member.name}...`);
+    addToast("info", `Modification du rôle de ${member.name}...`);
     setOpenMenuId(null);
   }
 
@@ -155,7 +155,7 @@ export default function AgenceEquipe() {
   const STATS_CARDS = [
     { label: "Total membres", value: totalMembers.toString(), icon: "groups", color: "text-primary" },
     { label: "Membres actifs", value: activeMembers.toString(), icon: "person_check", color: "text-emerald-400" },
-    { label: "CA total equipe", value: formatCurrency(totalRevenue), icon: "trending_up", color: "text-blue-400" },
+    { label: "CA total équipe", value: formatCurrency(totalRevenue), icon: "trending_up", color: "text-blue-400" },
     { label: "Commandes en cours", value: totalActiveOrders.toString(), icon: "shopping_cart", color: "text-amber-400" },
   ];
 
@@ -164,9 +164,9 @@ export default function AgenceEquipe() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Equipe</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Équipe</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Gerez les membres de votre agence et leurs acces.
+            Gérez les membres de votre agence et leurs accès.
           </p>
         </div>
         <button
@@ -236,7 +236,7 @@ export default function AgenceEquipe() {
           <span className="material-symbols-outlined text-4xl text-primary animate-spin">
             progress_activity
           </span>
-          <p className="text-slate-400 text-sm">Chargement de l&apos;equipe...</p>
+          <p className="text-slate-400 text-sm">Chargement de l&apos;équipe...</p>
         </div>
       )}
 
@@ -248,10 +248,10 @@ export default function AgenceEquipe() {
           </span>
           <div className="text-center">
             <p className="text-white font-semibold text-lg">
-              Vous etes le seul membre
+              Vous êtes le seul membre
             </p>
             <p className="text-slate-500 text-sm mt-1">
-              Invitez votre equipe pour collaborer sur vos projets.
+              Invitez votre équipe pour collaborer sur vos projets.
             </p>
           </div>
           <button
@@ -259,7 +259,7 @@ export default function AgenceEquipe() {
             className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all"
           >
             <span className="material-symbols-outlined text-lg">person_add</span>
-            Inviter votre equipe
+            Inviter votre équipe
           </button>
         </div>
       )}
@@ -271,7 +271,7 @@ export default function AgenceEquipe() {
             filter_list_off
           </span>
           <p className="text-slate-400 text-sm">
-            Aucun membre avec le role &quot;{ROLE_TABS.find((t) => t.key === roleFilter)?.label}&quot;.
+            Aucun membre avec le rôle &quot;{ROLE_TABS.find((t) => t.key === roleFilter)?.label}&quot;.
           </p>
           <button
             onClick={() => setRoleFilter("tous")}
@@ -340,7 +340,7 @@ export default function AgenceEquipe() {
                           className="flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-slate-300 hover:bg-neutral-dark hover:text-white transition-colors"
                         >
                           <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
-                          Modifier role
+                          Modifier rôle
                         </button>
                         <Link
                           href={`/agence/commandes?member=${member.id}`}
@@ -386,7 +386,7 @@ export default function AgenceEquipe() {
                     <p className="text-sm font-bold text-white">{member.activeOrders}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-0.5">CA genere</p>
+                    <p className="text-xs text-slate-500 mb-0.5">CA généré</p>
                     <p className="text-sm font-bold text-white">{formatCurrency(member.revenue)}</p>
                   </div>
                   <div>
@@ -437,14 +437,14 @@ export default function AgenceEquipe() {
 
               <div>
                 <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
-                  Role
+                  Rôle
                 </label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as AgencyMember["role"])}
                   className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50 transition-colors"
                 >
-                  <option value="proprietaire">Proprietaire</option>
+                  <option value="proprietaire">Propriétaire</option>
                   <option value="manager">Manager</option>
                   <option value="freelance">Freelance</option>
                   <option value="commercial">Commercial</option>
@@ -488,8 +488,8 @@ export default function AgenceEquipe() {
               <div>
                 <h3 className="text-lg font-bold text-white">Retirer ce membre ?</h3>
                 <p className="text-sm text-slate-400 mt-2">
-                  Etes-vous sur de vouloir retirer <span className="text-white font-semibold">{confirmRemove.name}</span> de
-                  l&apos;agence ? Cette action est irreversible.
+                  Êtes-vous sûr de vouloir retirer <span className="text-white font-semibold">{confirmRemove.name}</span> de
+                  l&apos;agence ? Cette action est irréversible.
                 </p>
               </div>
               <div className="flex gap-3 w-full pt-2">

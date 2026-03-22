@@ -9,27 +9,27 @@ import { cn } from "@/lib/utils";
 
 const SECTIONS = [
   { key: "agence", label: "Informations", icon: "business" },
-  { key: "roles", label: "Roles & Permissions", icon: "shield" },
+  { key: "roles", label: "Rôles & Permissions", icon: "shield" },
   { key: "plan", label: "Abonnement", icon: "loyalty" },
   { key: "paiements", label: "Paiements", icon: "credit_card" },
   { key: "notifications", label: "Notifications", icon: "notifications" },
   { key: "danger", label: "Zone danger", icon: "warning" },
 ];
-const PERMISSIONS = ["Voir projets", "Creer projets", "Gerer equipe", "Voir finances", "Retirer fonds", "Modifier parametres", "Supprimer contenu"];
+const PERMISSIONS = ["Voir projets", "Créer projets", "Gérer équipe", "Voir finances", "Retirer fonds", "Modifier paramètres", "Supprimer contenu"];
 const DEFAULT_PERMS: Record<string, boolean[]> = {
   Admin: [true, true, true, true, true, true, true],
   Manager: [true, true, true, true, false, false, false],
   Membre: [true, true, false, false, false, false, false],
   Commercial: [true, false, false, true, false, false, false],
 };
-const PLAN_FEATURES = ["Membres : jusqu'a 20", "Commission : 8%", "Services actifs : illimite", "Boosts publicitaires : 10/mois", "Certification IA", "Cles API & Webhooks", "Stockage ressources : 50 GB", "Support prioritaire"];
+const PLAN_FEATURES = ["Membres : jusqu'à 20", "Commission : 8%", "Services actifs : illimité", "Boosts publicitaires : 10/mois", "Certification IA", "Clés API & Webhooks", "Stockage ressources : 50 GB", "Support prioritaire"];
 const NOTIF_TYPES = [
   { id: "new_order", label: "Nouvelle commande" },
   { id: "member_joined", label: "Membre rejoint l'agence" },
-  { id: "payment_received", label: "Paiement recu" },
+  { id: "payment_received", label: "Paiement reçu" },
   { id: "dispute_opened", label: "Litige ouvert" },
   { id: "weekly_report", label: "Rapport hebdomadaire" },
-  { id: "deadline_near", label: "Delai de livraison proche" },
+  { id: "deadline_near", label: "Délai de livraison proche" },
   { id: "new_client_message", label: "Nouveau message client" },
 ];
 
@@ -50,7 +50,14 @@ export default function AgenceParametres() {
   const [agency, setAgency] = useState({ name: "", description: "", sector: "", website: "", country: "", siret: "" });
   const [payments, setPayments] = useState({ iban: "", paypalEmail: "", orangeMoney: "", waveMoney: "" });
   const [permissions, setPermissions] = useState<Record<string, boolean[]>>(DEFAULT_PERMS);
-  const [notifs, setNotifs] = useState<NotifSetting[]>(NOTIF_TYPES.map((n) => ({ ...n, email: false, push: false, sms: false })));
+  // Notifications critiques activées par défaut (email + push)
+  const CRITICAL_NOTIFS = ["new_order", "dispute_opened", "payment_received", "new_client_message"];
+  const [notifs, setNotifs] = useState<NotifSetting[]>(NOTIF_TYPES.map((n) => ({
+    ...n,
+    email: CRITICAL_NOTIFS.includes(n.id),
+    push: CRITICAL_NOTIFS.includes(n.id),
+    sms: false,
+  })));
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -121,7 +128,7 @@ export default function AgenceParametres() {
                 <label className={labelCls}>Logo</label>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xl font-black">{initials}</div>
-                  <button onClick={() => addToast("info", "Upload de logo bientot disponible")} className="text-xs text-primary font-semibold hover:underline">Changer le logo</button>
+                  <button onClick={() => addToast("info", "Upload de logo bientôt disponible")} className="text-xs text-primary font-semibold hover:underline">Changer le logo</button>
                 </div>
               </div>
               <div><label className={labelCls}>Nom de l&apos;agence</label><input value={agency.name} onChange={(e) => setAgency((a) => ({ ...a, name: e.target.value }))} className={inputCls} /></div>
@@ -132,15 +139,15 @@ export default function AgenceParametres() {
               </div>
               <div><label className={labelCls}>Site web</label><input value={agency.website} onChange={(e) => setAgency((a) => ({ ...a, website: e.target.value }))} className={inputCls} /></div>
               <div><label className={labelCls}>SIRET (optionnel)</label><input value={agency.siret} onChange={(e) => setAgency((a) => ({ ...a, siret: e.target.value }))} placeholder="XXX XXX XXX XXXXX" className={inputCls} /></div>
-              <button disabled={saving} onClick={() => saveToApi({ agencyName: agency.name, bio: agency.description, sector: agency.sector, website: agency.website, country: agency.country, siret: agency.siret }, "Informations sauvegardees")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
+              <button disabled={saving} onClick={() => saveToApi({ agencyName: agency.name, bio: agency.description, sector: agency.sector, website: agency.website, country: agency.country, siret: agency.siret }, "Informations sauvegardées")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
             </div>
           )}
 
           {/* Roles & Permissions */}
           {section === "roles" && (
             <div className="space-y-5">
-              <h2 className="text-lg font-bold text-white mb-4">Roles & Permissions</h2>
-              <p className="text-sm text-slate-400">Definissez les permissions pour chaque role de l&apos;agence.</p>
+              <h2 className="text-lg font-bold text-white mb-4">Rôles & Permissions</h2>
+              <p className="text-sm text-slate-400">Définissez les permissions pour chaque rôle de l&apos;agence.</p>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead><tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
@@ -161,7 +168,7 @@ export default function AgenceParametres() {
                   ))}</tbody>
                 </table>
               </div>
-              <button disabled={saving} onClick={() => saveToApi({ permissions }, "Permissions mises a jour")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
+              <button disabled={saving} onClick={() => saveToApi({ permissions }, "Permissions mises à jour")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
             </div>
           )}
 
@@ -179,8 +186,8 @@ export default function AgenceParametres() {
                 </div>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => addToast("info", "Changement de plan en cours de developpement")} className="px-4 py-2.5 bg-neutral-dark border border-border-dark rounded-xl text-sm text-white font-semibold hover:bg-border-dark transition-colors">Changer de plan</button>
-                <button onClick={() => addToast("info", "Annulation du plan en cours de developpement")} className="px-4 py-2.5 text-red-400 text-sm font-semibold hover:text-red-300 transition-colors">Annuler l&apos;abonnement</button>
+                <button onClick={() => addToast("info", "Changement de plan en cours de développement")} className="px-4 py-2.5 bg-neutral-dark border border-border-dark rounded-xl text-sm text-white font-semibold hover:bg-border-dark transition-colors">Changer de plan</button>
+                <button onClick={() => addToast("info", "Annulation du plan en cours de développement")} className="px-4 py-2.5 text-red-400 text-sm font-semibold hover:text-red-300 transition-colors">Annuler l&apos;abonnement</button>
               </div>
             </div>
           )}
@@ -188,14 +195,14 @@ export default function AgenceParametres() {
           {/* Paiements */}
           {section === "paiements" && (
             <div className="space-y-5 max-w-lg">
-              <h2 className="text-lg font-bold text-white mb-4">Methodes de paiement & retrait</h2>
+              <h2 className="text-lg font-bold text-white mb-4">Méthodes de paiement & retrait</h2>
               <div><label className={labelCls}>IBAN</label><input value={payments.iban} onChange={(e) => setPayments((p) => ({ ...p, iban: e.target.value }))} placeholder="FR76 XXXX XXXX XXXX XXXX XXX" className={inputCls} /></div>
               <div><label className={labelCls}>Email PayPal</label><input value={payments.paypalEmail} onChange={(e) => setPayments((p) => ({ ...p, paypalEmail: e.target.value }))} placeholder="agence@exemple.com" className={inputCls} /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className={labelCls}>Orange Money</label><input value={payments.orangeMoney} onChange={(e) => setPayments((p) => ({ ...p, orangeMoney: e.target.value }))} placeholder="+221 77 XXX XX XX" className={inputCls} /></div>
                 <div><label className={labelCls}>Wave</label><input value={payments.waveMoney} onChange={(e) => setPayments((p) => ({ ...p, waveMoney: e.target.value }))} placeholder="+221 76 XXX XX XX" className={inputCls} /></div>
               </div>
-              <button disabled={saving} onClick={() => saveToApi({ paymentInfo: payments }, "Methodes de paiement sauvegardees")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
+              <button disabled={saving} onClick={() => saveToApi({ paymentInfo: payments }, "Méthodes de paiement sauvegardées")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
             </div>
           )}
 
@@ -206,7 +213,7 @@ export default function AgenceParametres() {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead><tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
-                    <th className="px-4 py-3 text-left font-semibold">Evenement</th>
+                    <th className="px-4 py-3 text-left font-semibold">Événement</th>
                     <th className="px-4 py-3 text-center font-semibold">Email</th>
                     <th className="px-4 py-3 text-center font-semibold">Push</th>
                     <th className="px-4 py-3 text-center font-semibold">SMS</th>
@@ -225,7 +232,7 @@ export default function AgenceParametres() {
                   ))}</tbody>
                 </table>
               </div>
-              <button disabled={saving} onClick={() => saveToApi({ notificationSettings: notifs }, "Notifications mises a jour")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
+              <button disabled={saving} onClick={() => saveToApi({ notificationSettings: notifs }, "Notifications mises à jour")} className={saveBtnCls}>{saving ? "Enregistrement..." : "Enregistrer"}</button>
             </div>
           )}
 
@@ -257,10 +264,10 @@ export default function AgenceParametres() {
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center"><span className="material-symbols-outlined text-red-400">warning</span></div>
               <h3 className="text-lg font-bold text-white">Confirmer la suppression</h3>
             </div>
-            <p className="text-sm text-slate-400 mb-4">Etes-vous sur de vouloir supprimer definitivement votre agence ? Cette action est irreversible.</p>
+            <p className="text-sm text-slate-400 mb-4">Êtes-vous sûr de vouloir supprimer définitivement votre agence ? Cette action est irréversible.</p>
             <div className="flex gap-3">
               <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2.5 text-slate-400 text-sm font-semibold hover:text-white transition-colors">Annuler</button>
-              <button onClick={async () => { try { await profileApi.update({ deleted: true }); addToast("error", "Agence supprimee"); } catch { addToast("error", "Erreur lors de la suppression"); } setShowDeleteConfirm(false); }} className="flex-1 py-2.5 bg-red-500 text-white text-sm font-bold rounded-xl hover:bg-red-600 transition-all">Supprimer</button>
+              <button onClick={async () => { try { await profileApi.update({ deleted: true }); addToast("error", "Agence supprimée"); } catch { addToast("error", "Erreur lors de la suppression"); } setShowDeleteConfirm(false); }} className="flex-1 py-2.5 bg-red-500 text-white text-sm font-bold rounded-xl hover:bg-red-600 transition-all">Supprimer</button>
             </div>
           </div>
         </div>

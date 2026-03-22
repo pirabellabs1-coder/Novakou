@@ -28,9 +28,9 @@ const TX_TYPE_META: Record<string, { icon: string; color: string }> = {
 };
 
 const TX_STATUS_META: Record<string, { label: string; cls: string }> = {
-  complete: { label: "Complete", cls: "bg-emerald-500/20 text-emerald-400" },
+  complete: { label: "Complété", cls: "bg-emerald-500/20 text-emerald-400" },
   en_attente: { label: "En attente", cls: "bg-amber-500/20 text-amber-400" },
-  echoue: { label: "Echoue", cls: "bg-red-500/20 text-red-400" },
+  echoue: { label: "Échoué", cls: "bg-red-500/20 text-red-400" },
 };
 
 const MIN_WITHDRAWAL = 20;
@@ -108,7 +108,7 @@ export default function AgenceFinances() {
       const method = WITHDRAWAL_METHODS.find((m) => m.id === retraitMethod);
       const success = await requestWithdrawal(amount, retraitMethod);
       if (success) {
-        addToast("success", `Retrait de ${fmtEur(amount)} demande via ${method?.label ?? retraitMethod}`);
+        addToast("success", `Retrait de ${fmtEur(amount)} demandé via ${method?.label ?? retraitMethod}`);
         setShowRetrait(false);
         setRetraitAmount("");
       } else {
@@ -125,7 +125,7 @@ export default function AgenceFinances() {
 
   const handleExportCSV = useCallback(() => {
     if (sortedTransactions.length === 0) {
-      addToast("info", "Aucune transaction a exporter");
+      addToast("info", "Aucune transaction à exporter");
       return;
     }
     const header = "Date,Type,Description,Montant,Commission (10%),Net,Statut";
@@ -305,7 +305,7 @@ export default function AgenceFinances() {
           <div className="flex flex-col items-center justify-center py-16 text-slate-500">
             <span className="material-symbols-outlined text-4xl mb-2">receipt_long</span>
             <p className="text-sm font-semibold">Aucune transaction</p>
-            <p className="text-xs text-slate-600 mt-1">Les transactions apparaitront ici une fois les premieres commandes traitees.</p>
+            <p className="text-xs text-slate-600 mt-1">Les transactions apparaîtront ici une fois les premières commandes traitées.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -430,7 +430,7 @@ export default function AgenceFinances() {
               {/* Method */}
               <div>
                 <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
-                  Methode de retrait
+                  Méthode de retrait
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {WITHDRAWAL_METHODS.map((m) => (

@@ -34,7 +34,7 @@ const PLANS: Plan[] = [
       "Commission 12%",
       "Support email",
       "Pas de certification IA",
-      "Pas de cles API",
+      "Pas de clés API",
       "Pas de membres",
     ],
   },
@@ -45,13 +45,13 @@ const PLANS: Plan[] = [
     priceAnnual: 144,
     commission: "1\u20AC/vente",
     features: [
-      "Services illimites",
+      "Services illimités",
       "20 candidatures/mois",
       "5 boosts/mois",
       "Commission 1\u20AC/vente",
       "Support prioritaire",
       "Certification IA",
-      "Pas de cles API",
+      "Pas de clés API",
       "Pas de membres",
     ],
   },
@@ -62,13 +62,13 @@ const PLANS: Plan[] = [
     priceAnnual: 432,
     commission: "1\u20AC/vente",
     features: [
-      "Services illimites",
-      "Candidatures illimitees",
+      "Services illimités",
+      "Candidatures illimitées",
       "10 boosts/mois",
       "Commission 1\u20AC/vente",
-      "Support dedie",
+      "Support dédié",
       "Certification IA",
-      "Cles API incluses",
+      "Clés API incluses",
       "Pas de membres",
     ],
   },
@@ -80,13 +80,13 @@ const PLANS: Plan[] = [
     commission: "1\u20AC/vente",
     highlight: true,
     features: [
-      "Services illimites",
-      "Candidatures illimitees",
+      "Services illimités",
+      "Candidatures illimitées",
       "10 boosts/mois",
       "Commission 1\u20AC/vente",
-      "Support dedie VIP",
+      "Support dédié VIP",
       "Certification IA",
-      "Cles API incluses",
+      "Clés API incluses",
       "20 membres max",
     ],
   },
@@ -94,15 +94,15 @@ const PLANS: Plan[] = [
 
 // Feature comparison rows (static config)
 const COMPARISON_ROWS = [
-  { label: "Services actifs", values: ["7", "Illimite", "Illimite", "Illimite"] },
-  { label: "Candidatures/mois", values: ["10", "20", "Illimite", "Illimite"] },
+  { label: "Services actifs", values: ["7", "Illimité", "Illimité", "Illimité"] },
+  { label: "Candidatures/mois", values: ["10", "20", "Illimité", "Illimité"] },
   { label: "Boost publicitaire", values: ["Non", "5/mois", "10/mois", "10/mois"] },
   { label: "Commission", values: ["12%", "1\u20AC/vente", "1\u20AC/vente", "1\u20AC/vente"] },
   { label: "Certification IA", values: ["Non", "Oui", "Oui", "Oui"] },
-  { label: "Cles API", values: ["Non", "Non", "Oui", "Oui"] },
-  { label: "Membres equipe", values: ["-", "-", "-", "20 max"] },
+  { label: "Clés API", values: ["Non", "Non", "Oui", "Oui"] },
+  { label: "Membres équipe", values: ["-", "-", "-", "20 max"] },
   { label: "Stockage ressources", values: ["-", "-", "-", "50 GB"] },
-  { label: "Support", values: ["Email", "Prioritaire", "Dedie", "Dedie VIP"] },
+  { label: "Support", values: ["Email", "Prioritaire", "Dédié", "Dédié VIP"] },
 ];
 
 // ---------------------------------------------------------------------------
@@ -631,7 +631,7 @@ export default function AgenceAbonnement() {
               </span>
               <p className="text-sm text-slate-500">Aucune facture</p>
               <p className="text-xs text-slate-600 mt-1">
-                Vos factures apparaitront ici apres votre premier paiement.
+                Vos factures apparaîtront ici après votre premier paiement.
               </p>
             </div>
           ) : (

@@ -124,7 +124,7 @@ function CarteService({ service, onRetirer }: { service: ServiceSauvegarde; onRe
             <span className="text-xs text-slate-400">({service.avis})</span>
           </div>
           <div className="text-right">
-            <p className="text-[10px] text-slate-400 font-medium">A partir de</p>
+            <p className="text-[10px] text-slate-400 font-medium">À partir de</p>
             <p className="text-sm font-black text-primary">{service.prix} EUR</p>
           </div>
         </div>
@@ -174,12 +174,12 @@ export default function AgenceFavorisPage() {
 
   function retirerFreelance(id: string) {
     setFreelancesFavoris((prev) => prev.filter((f) => f.id !== id));
-    addToast("success", "Freelance retire des favoris");
+    addToast("success", "Freelance retiré des favoris");
   }
 
   function retirerService(id: string) {
     setServicesSauvegardes((prev) => prev.filter((s) => s.id !== id));
-    addToast("success", "Service retire des favoris");
+    addToast("success", "Service retiré des favoris");
   }
 
   function creerListe() {
@@ -193,7 +193,7 @@ export default function AgenceFavorisPage() {
       icon: "folder",
     };
     setListes((prev) => [...prev, newListe]);
-    addToast("success", `Liste "${nom}" creee`);
+    addToast("success", `Liste "${nom}" créée`);
     setNouvelleListe("");
     setShowNouvelleListeModal(false);
   }
@@ -204,13 +204,13 @@ export default function AgenceFavorisPage() {
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-100">Freelances & Services Favoris</h2>
-          <p className="text-slate-400 text-sm mt-1">Gerez les prestataires et services sauvegardes pour les projets de l&apos;agence.</p>
-          <p className="text-xs text-slate-500 mt-0.5">{totalElements} element{totalElements !== 1 ? "s" : ""} sauvegarde{totalElements !== 1 ? "s" : ""}</p>
+          <p className="text-slate-400 text-sm mt-1">Gérez les prestataires et services sauvegardés pour les projets de l&apos;agence.</p>
+          <p className="text-xs text-slate-500 mt-0.5">{totalElements} élément{totalElements !== 1 ? "s" : ""} sauvegardé{totalElements !== 1 ? "s" : ""}</p>
         </div>
         <button onClick={() => setShowNouvelleListeModal(true)}
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all flex-shrink-0">
           <span className="material-symbols-outlined text-base">add</span>
-          Creer une liste
+          Créer une liste
         </button>
       </header>
 
@@ -253,7 +253,7 @@ export default function AgenceFavorisPage() {
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <div className="w-1 h-5 rounded-full bg-primary" />
-            <h3 className="text-base font-black text-slate-100">Services Sauvegardes</h3>
+            <h3 className="text-base font-black text-slate-100">Services Sauvegardés</h3>
             <span className="text-xs font-bold text-slate-400 bg-background-dark/50 border border-border-dark px-2 py-0.5 rounded-full">{servicesFiltres.length}</span>
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function AgenceFavorisPage() {
         ) : (
           <div className="bg-background-dark/50 border border-dashed border-border-dark rounded-xl py-10 text-center">
             <span className="material-symbols-outlined text-4xl text-slate-600 mb-2 block">bookmark_remove</span>
-            <p className="text-slate-400 text-sm font-medium">Aucun service sauvegarde</p>
+            <p className="text-slate-400 text-sm font-medium">Aucun service sauvegardé</p>
             <Link href="/explorer" className="text-xs text-primary font-bold hover:underline mt-1 inline-block">Explorer les services</Link>
           </div>
         )}
@@ -286,7 +286,7 @@ export default function AgenceFavorisPage() {
                 <span className="material-symbols-outlined text-xl">{liste.icon}</span>
               </div>
               <p className="text-sm font-bold text-slate-100 mb-1 group-hover:text-primary transition-colors">{liste.nom}</p>
-              <p className="text-xs text-slate-400">{liste.elements} element{liste.elements !== 1 ? "s" : ""}</p>
+              <p className="text-xs text-slate-400">{liste.elements} élément{liste.elements !== 1 ? "s" : ""}</p>
             </button>
           ))}
           <button onClick={() => setShowNouvelleListeModal(true)}
@@ -305,7 +305,7 @@ export default function AgenceFavorisPage() {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowNouvelleListeModal(false)} />
           <div className="relative z-10 w-full max-w-md bg-background-dark border border-border-dark rounded-2xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-base font-black text-slate-100">Creer une nouvelle liste</h3>
+              <h3 className="text-base font-black text-slate-100">Créer une nouvelle liste</h3>
               <button onClick={() => setShowNouvelleListeModal(false)} className="w-8 h-8 rounded-lg bg-neutral-dark flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all">
                 <span className="material-symbols-outlined text-base">close</span>
               </button>
@@ -319,7 +319,7 @@ export default function AgenceFavorisPage() {
               <div className="flex gap-3">
                 <button onClick={creerListe}
                   className="flex-1 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50" disabled={!nouvelleListe.trim()}>
-                  Creer la liste
+                  Créer la liste
                 </button>
                 <button onClick={() => setShowNouvelleListeModal(false)}
                   className="px-4 py-2.5 border border-border-dark rounded-xl text-sm font-bold text-slate-400 hover:text-slate-100 transition-all">

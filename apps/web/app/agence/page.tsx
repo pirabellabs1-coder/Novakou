@@ -33,7 +33,7 @@ export default function AgencyDashboard() {
     try {
       syncAll();
     } catch {
-      setError("Impossible de charger les donnees du dashboard agence.");
+      setError("Impossible de charger les données du dashboard agence.");
     }
   }, [syncAll]);
 
@@ -98,7 +98,7 @@ export default function AgencyDashboard() {
         <h3 className="text-lg font-bold text-white mb-2">Erreur de chargement</h3>
         <p className="text-sm text-slate-400 max-w-sm text-center mb-6">{error}</p>
         <button onClick={() => { setError(null); syncAll(); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:brightness-110 transition-all">
-          Reessayer
+          Réessayer
         </button>
       </div>
     );
@@ -299,8 +299,8 @@ export default function AgencyDashboard() {
         ) : (
           <div className="text-center py-8">
             <span className="material-symbols-outlined text-4xl text-slate-600 mb-2">inbox</span>
-            <p className="text-slate-500 text-sm">Aucune activite pour le moment</p>
-            <p className="text-slate-600 text-xs mt-1">Les actions de votre agence apparaitront ici</p>
+            <p className="text-slate-500 text-sm">Aucune activité pour le moment</p>
+            <p className="text-slate-600 text-xs mt-1">Les actions de votre agence apparaîtront ici</p>
           </div>
         )}
       </div>

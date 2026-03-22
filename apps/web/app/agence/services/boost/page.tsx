@@ -72,7 +72,7 @@ const TIER_CARDS: {
     color: "text-blue-400",
     features: [
       "Mise en avant dans le marketplace",
-      "Badge \"Booste\" sur le service",
+      "Badge \"Boosté\" sur le service",
       "Statistiques de boost basiques",
     ],
   },
@@ -86,9 +86,9 @@ const TIER_CARDS: {
     icon: "rocket_launch",
     color: "text-primary",
     features: [
-      "Position prioritaire dans les resultats",
-      "Badge \"Booste\" premium dore",
-      "Statistiques detaillees en temps reel",
+      "Position prioritaire dans les résultats",
+      "Badge \"Boosté\" premium doré",
+      "Statistiques détaillées en temps réel",
       "Mise en avant sur la page d'accueil",
     ],
   },
@@ -102,11 +102,11 @@ const TIER_CARDS: {
     icon: "diamond",
     color: "text-amber-400",
     features: [
-      "Visibilite maximale pendant 30 jours",
-      "Placement en tete du marketplace",
-      "Badge \"Ultime\" exclusif anime",
+      "Visibilité maximale pendant 30 jours",
+      "Placement en tête du marketplace",
+      "Badge \"Ultime\" exclusif animé",
       "Recommandation IA prioritaire",
-      "Statistiques avancees avec ROI",
+      "Statistiques avancées avec ROI",
     ],
   },
 ];
@@ -215,7 +215,7 @@ export default function AgenceBoostPage() {
   const handleActivateBoost = async () => {
     if (!selectedServiceId || !selectedTier) return;
     if (boostData?.activeBoost) {
-      addToast("warning", "Ce service a deja un boost actif. Attendez son expiration.");
+      addToast("warning", "Ce service a déjà un boost actif. Attendez son expiration.");
       return;
     }
 
@@ -234,12 +234,12 @@ export default function AgenceBoostPage() {
         return;
       }
 
-      addToast("success", data.message || "Boost active avec succes !");
+      addToast("success", data.message || "Boost activé avec succès !");
       // Refresh boost data
       await fetchBoostData(selectedServiceId);
     } catch (err) {
       console.error("[Boost] Activate error:", err);
-      addToast("error", "Erreur reseau. Veuillez reessayer.");
+      addToast("error", "Erreur réseau. Veuillez réessayer.");
     } finally {
       setIsActivating(false);
     }
@@ -316,7 +316,7 @@ export default function AgenceBoostPage() {
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-colors"
           >
             <span className="material-symbols-outlined text-sm">add</span>
-            Creer un service
+            Créer un service
           </Link>
         </div>
       )}
@@ -327,7 +327,7 @@ export default function AgenceBoostPage() {
           <div className="bg-primary/5 rounded-2xl border border-primary/10 p-6">
             <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">tune</span>
-              Choisir un service a booster
+              Choisir un service à booster
             </h3>
             <select
               className="w-full bg-primary/10 border-none rounded-lg py-3 px-4 text-sm focus:ring-2 focus:ring-primary outline-none"
@@ -361,7 +361,7 @@ export default function AgenceBoostPage() {
                       </span>
                     </div>
                     <p className="text-xs text-slate-400">
-                      Active le {formatDate(activeBoost.startedAt)} — Expire le {formatDate(activeBoost.expiresAt)}
+                      Activé le {formatDate(activeBoost.startedAt)} — Expire le {formatDate(activeBoost.expiresAt)}
                     </p>
                   </div>
                 </div>
@@ -420,7 +420,7 @@ export default function AgenceBoostPage() {
                       {/* Recommended badge */}
                       {card.recommended && (
                         <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                          Recommande
+                          Recommandé
                         </span>
                       )}
 
@@ -437,7 +437,7 @@ export default function AgenceBoostPage() {
                         <span className="text-2xl font-black">{card.price} EUR</span>
                       </div>
                       <p className="text-xs text-slate-400 mb-4">
-                        {card.duration} jour{card.duration > 1 ? "s" : ""} — {card.estimatedViews} estimees
+                        {card.duration} jour{card.duration > 1 ? "s" : ""} — {card.estimatedViews} estimées
                       </p>
 
                       {/* Features */}
@@ -467,7 +467,7 @@ export default function AgenceBoostPage() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-primary/5 rounded-2xl border border-primary/10 p-6">
                 <div>
                   <p className="font-bold">
-                    {selectedService?.title ?? "Service selectionne"}
+                    {selectedService?.title ?? "Service sélectionné"}
                   </p>
                   <p className="text-xs text-slate-400">
                     Boost {tierLabel(selectedTier)} — {TIER_CARDS.find((c) => c.tier === selectedTier)?.price} EUR pour{" "}
@@ -518,7 +518,7 @@ export default function AgenceBoostPage() {
                   },
                   {
                     icon: "shopping_cart_checkout",
-                    label: "Commandes generees",
+                    label: "Commandes générées",
                     value: stats.totalOrders.toLocaleString("fr-FR"),
                     bg: "bg-emerald-500/10",
                     iconColor: "text-emerald-400",
@@ -532,7 +532,7 @@ export default function AgenceBoostPage() {
                   },
                   {
                     icon: "trending_up",
-                    label: "ROI estime",
+                    label: "ROI estimé",
                     value: `${roi >= 0 ? "+" : ""}${roi.toFixed(0)}%`,
                     bg: roi >= 0 ? "bg-emerald-500/10" : "bg-red-500/10",
                     iconColor: roi >= 0 ? "text-emerald-400" : "text-red-400",
@@ -650,7 +650,7 @@ export default function AgenceBoostPage() {
                         <thead>
                           <tr className="bg-primary/10">
                             <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase">Tier</th>
-                            <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase">Periode</th>
+                            <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase">Période</th>
                             <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">Prix</th>
                             <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">Vues</th>
                             <th className="px-4 py-3 text-[10px] font-bold text-slate-400 uppercase text-right">Clics</th>

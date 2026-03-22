@@ -10,12 +10,12 @@ import { useToastStore } from "@/store/toast";
 const TYPE_META: Record<string, { icon: string; color: string; bgColor: string; label: string }> = {
   commande: { icon: "shopping_cart", color: "text-green-400", bgColor: "bg-green-400/10", label: "Commande" },
   message:  { icon: "chat", color: "text-blue-400", bgColor: "bg-blue-400/10", label: "Message" },
-  equipe:   { icon: "groups", color: "text-purple-400", bgColor: "bg-purple-400/10", label: "Equipe" },
+  equipe:   { icon: "groups", color: "text-purple-400", bgColor: "bg-purple-400/10", label: "Équipe" },
   finance:  { icon: "payments", color: "text-emerald-400", bgColor: "bg-emerald-400/10", label: "Finance" },
-  systeme:  { icon: "info", color: "text-slate-400", bgColor: "bg-slate-400/10", label: "Systeme" },
+  systeme:  { icon: "info", color: "text-slate-400", bgColor: "bg-slate-400/10", label: "Système" },
   order:    { icon: "shopping_cart", color: "text-green-400", bgColor: "bg-green-400/10", label: "Commande" },
   payment:  { icon: "payments", color: "text-emerald-400", bgColor: "bg-emerald-400/10", label: "Paiement" },
-  system:   { icon: "info", color: "text-slate-400", bgColor: "bg-slate-400/10", label: "Systeme" },
+  system:   { icon: "info", color: "text-slate-400", bgColor: "bg-slate-400/10", label: "Système" },
   offer:    { icon: "local_offer", color: "text-orange-400", bgColor: "bg-orange-400/10", label: "Offre" },
   review:   { icon: "star", color: "text-yellow-400", bgColor: "bg-yellow-400/10", label: "Avis" },
   agency:   { icon: "business", color: "text-cyan-400", bgColor: "bg-cyan-400/10", label: "Agence" },
@@ -33,7 +33,7 @@ const FILTERS: { value: FilterType; label: string; icon: string }[] = [
   { value: "unread",   label: "Non lues",   icon: "mark_email_unread" },
   { value: "commande", label: "Commandes",  icon: "shopping_cart" },
   { value: "message",  label: "Messages",   icon: "chat" },
-  { value: "equipe",   label: "Equipe",     icon: "groups" },
+  { value: "equipe",   label: "Équipe",     icon: "groups" },
   { value: "finance",  label: "Finances",   icon: "payments" },
 ];
 
@@ -88,7 +88,7 @@ export default function AgenceNotificationsPage() {
   async function handleMarkAllRead() {
     await notificationsApi.markAllRead();
     await syncNotifications();
-    addToast("success", "Toutes les notifications marquees comme lues");
+    addToast("success", "Toutes les notifications marquées comme lues");
   }
 
   function renderNotif(notif: ApiNotification) {

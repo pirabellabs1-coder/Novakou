@@ -95,7 +95,7 @@ export default function AgenceAnalytics() {
     let newClients = 0;
     clientOrderCount.forEach((count) => { if (count > 1) recurring++; else newClients++; });
     return [
-      { name: "Recurrents", value: recurring },
+      { name: "Récurrents", value: recurring },
       { name: "Nouveaux", value: newClients },
     ];
   }, [orders]);
@@ -173,7 +173,7 @@ export default function AgenceAnalytics() {
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Analytics</h1>
-          <p className="text-slate-400 text-sm mt-1">Performance de l&apos;equipe et metriques de l&apos;agence.</p>
+          <p className="text-slate-400 text-sm mt-1">Performance de l&apos;équipe et métriques de l&apos;agence.</p>
         </div>
         <div className="flex items-center gap-1 bg-neutral-dark border border-border-dark rounded-lg p-1">
           {PERIODS.map((p) => (
@@ -204,7 +204,7 @@ export default function AgenceAnalytics() {
               <div className="flex justify-between text-xs">
                 <span className="text-emerald-400 font-semibold">Promoteurs {nps.promoters}%</span>
                 <span className="text-amber-400 font-semibold">Passifs {nps.passives}%</span>
-                <span className="text-red-400 font-semibold">Detracteurs {nps.detractors}%</span>
+                <span className="text-red-400 font-semibold">Détracteurs {nps.detractors}%</span>
               </div>
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function AgenceAnalytics() {
               ))}
             </tbody>
           </table>
-        ) : <EmptyState text="Aucun service publie" />}
+        ) : <EmptyState text="Aucun service publié" />}
       </div>
 
       {/* Row: Performance par membre + Vues profil */}
@@ -291,7 +291,7 @@ export default function AgenceAnalytics() {
                 <Bar dataKey="revenue" fill="#8B5CF6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <EmptyState text="Aucun membre dans l'equipe" />}
+          ) : <EmptyState text="Aucun membre dans l'équipe" />}
         </div>
 
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
@@ -309,14 +309,14 @@ export default function AgenceAnalytics() {
                 <Area type="monotone" dataKey="views" stroke="#14B835" fill="#14B835" fillOpacity={0.15} />
               </AreaChart>
             </ResponsiveContainer>
-          ) : <EmptyState text="Aucune vue enregistree" />}
+          ) : <EmptyState text="Aucune vue enregistrée" />}
         </div>
       </div>
 
-      {/* Row: Sources de trafic + Clients recurrents */}
+      {/* Row: Sources de trafic + Clients récurrents */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Sources de trafic (par categorie)</h2>
+          <h2 className="font-bold text-white mb-4">Sources de trafic (par catégorie)</h2>
           {trafficSources.length ? (
             <div className="flex items-center gap-6">
               <ResponsiveContainer width={180} height={180}>
@@ -341,7 +341,7 @@ export default function AgenceAnalytics() {
         </div>
 
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Clients recurrents vs nouveaux</h2>
+          <h2 className="font-bold text-white mb-4">Clients récurrents vs nouveaux</h2>
           {orders.length ? (
             <div className="flex items-center gap-6">
               <ResponsiveContainer width={180} height={180}>
@@ -404,9 +404,9 @@ export default function AgenceAnalytics() {
         </div>
       </div>
 
-      {/* Revenus par categorie */}
+      {/* Revenus par catégorie */}
       <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-        <SectionHeader title="Revenus par categorie" onExport={exportRevenueByCategory} />
+        <SectionHeader title="Revenus par catégorie" onExport={exportRevenueByCategory} />
         {revenueByCategory.length ? (
           <>
             <ResponsiveContainer width="100%" height={280}>
@@ -425,7 +425,7 @@ export default function AgenceAnalytics() {
               <span className="text-sm font-bold text-primary">{revenueByCategory.reduce((s, c) => s + c.revenue, 0).toLocaleString("fr-FR")} &euro;</span>
             </div>
           </>
-        ) : <EmptyState text="Aucun service publie" />}
+        ) : <EmptyState text="Aucun service publié" />}
       </div>
     </div>
   );

@@ -162,7 +162,7 @@ function ClientDetailPanel({
             </p>
             <div className="bg-background-dark rounded-xl p-4 border border-border-dark space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-400">Premiere commande</span>
+                <span className="text-slate-400">Première commande</span>
                 <span className="text-white font-medium">
                   {client.firstOrderAt ? formatDate(client.firstOrderAt) : "—"}
                 </span>
@@ -365,7 +365,7 @@ export default function AgenceClients() {
           </div>
           <p className="text-white font-semibold text-lg mb-1">Aucun client</p>
           <p className="text-slate-500 text-sm max-w-sm">
-            Vos clients apparaitront ici apres vos premieres commandes.
+            Vos clients apparaîtront ici après vos premières commandes.
           </p>
         </div>
       )}
@@ -376,9 +376,9 @@ export default function AgenceClients() {
           <span className="material-symbols-outlined text-4xl text-slate-600 mb-3">
             search_off
           </span>
-          <p className="text-slate-400 font-medium">Aucun resultat</p>
+          <p className="text-slate-400 font-medium">Aucun résultat</p>
           <p className="text-slate-500 text-sm mt-1">
-            Aucun client ne correspond a &quot;{search}&quot;
+            Aucun client ne correspond à &quot;{search}&quot;
           </p>
         </div>
       )}
@@ -398,10 +398,11 @@ export default function AgenceClients() {
               Pays
             </p>
             <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">
-              1ere commande
+              1ère commande
             </p>
             <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider">
               Dernière commande
+
             </p>
             <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider text-right">
               Commandes

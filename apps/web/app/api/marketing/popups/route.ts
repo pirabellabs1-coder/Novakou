@@ -117,36 +117,26 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (scope === "public") {
-      const prisma = (await import("@freelancehigh/db")).default;
-      const popups = await prisma.marketingPopup.findMany({
-        where: { isActive: true },
-        select: {
-          id: true,
-          type: true,
-          trigger: true,
-          triggerValue: true,
-          headlineFr: true,
-          headlineEn: true,
-          bodyFr: true,
-          bodyEn: true,
-          ctaTextFr: true,
-          ctaTextEn: true,
-          imageBannerUrl: true,
-          discountCode: true,
-          emailCaptureTag: true,
-          countdownEndsAt: true,
-          upsellProductId: true,
-          upsellOriginalPrice: true,
-          upsellDiscountedPrice: true,
-          ctaUrl: true,
-          showOnPages: true,
-          excludePages: true,
-          newVisitorsOnly: true,
-          maxShowsPerUser: true,
-        },
-      });
-
-      return NextResponse.json({ popups });
+      try {
+        const prisma = (await import("@freelancehigh/db")).default;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const popups = await (prisma as any).marketingPopup.findMany({
+          where: { isActive: true },
+          select: {
+            id: true, type: true, trigger: true, triggerValue: true,
+            headlineFr: true, headlineEn: true, bodyFr: true, bodyEn: true,
+            ctaTextFr: true, ctaTextEn: true, imageBannerUrl: true,
+            discountCode: true, emailCaptureTag: true, countdownEndsAt: true,
+            upsellProductId: true, upsellOriginalPrice: true, upsellDiscountedPrice: true,
+            ctaUrl: true, showOnPages: true, excludePages: true,
+            newVisitorsOnly: true, maxShowsPerUser: true,
+          },
+        });
+        return NextResponse.json({ popups });
+      } catch {
+        // Model may not exist yet in production schema — return empty
+        return NextResponse.json({ popups: [] });
+      }
     }
 
     if (!session?.user) {

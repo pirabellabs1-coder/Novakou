@@ -66,7 +66,7 @@ function ConfirmationContent() {
         </div>
         <div>
           <h2 className="text-2xl font-extrabold text-white">
-            Votre abonnement a ete active !
+            Votre abonnement a été activé !
           </h2>
           <p className="text-sm text-slate-400 mt-2">
             Merci pour votre confiance. Profitez de tous les avantages du plan {planName}.
@@ -82,17 +82,17 @@ function ConfirmationContent() {
           </div>
           <div>
             <p className="text-base font-extrabold text-white">Plan {planName}</p>
-            <p className="text-xs text-slate-500">Commission reduite a {commission}</p>
+            <p className="text-xs text-slate-500">Commission réduite à {commission}</p>
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">Montant paye</span>
+            <span className="text-sm text-slate-400">Montant payé</span>
             <span className="text-sm font-bold text-white">{amount} EUR</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-slate-400">Periode</span>
+            <span className="text-sm text-slate-400">Période</span>
             <span className="text-sm font-semibold text-white">
               {billing === "annual" ? "Annuel" : "Mensuel"}
             </span>
@@ -113,13 +113,13 @@ function ConfirmationContent() {
       {/* What's next */}
       <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 text-left">
         <p className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">
-          Prochaines etapes
+          Prochaines étapes
         </p>
         <ul className="space-y-2.5">
           {[
-            { icon: "groups", text: "Invitez vos membres et constituez votre equipe" },
+            { icon: "groups", text: "Invitez vos membres et constituez votre équipe" },
             { icon: "work", text: "Publiez des services sous votre marque agence" },
-            { icon: "trending_up", text: "Utilisez le CRM pour gerer vos clients" },
+            { icon: "trending_up", text: "Utilisez le CRM pour gérer vos clients" },
           ].map((item) => (
             <li key={item.icon} className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">

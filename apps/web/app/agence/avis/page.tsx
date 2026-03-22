@@ -23,11 +23,11 @@ import { ChartTooltip } from "@/components/ui/ChartTooltip";
 
 const FILTER_TABS = [
   { key: "tous", label: "Tous" },
-  { key: "5", label: "5 etoiles" },
-  { key: "4", label: "4 etoiles" },
+  { key: "5", label: "5 étoiles" },
+  { key: "4", label: "4 étoiles" },
   { key: "3-", label: "3 et moins" },
-  { key: "replied", label: "Avec reponse" },
-  { key: "unreplied", label: "Sans reponse" },
+  { key: "replied", label: "Avec réponse" },
+  { key: "unreplied", label: "Sans réponse" },
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -202,21 +202,21 @@ export default function AgenceAvis() {
     async (reviewId: string) => {
       const text = responseTexts[reviewId]?.trim();
       if (!text) {
-        addToast("error", "Veuillez rediger une reponse.");
+        addToast("error", "Veuillez rédiger une réponse.");
         return;
       }
       setSubmitting(reviewId);
       try {
         const ok = await replyToReview(reviewId, text);
         if (ok) {
-          addToast("success", "Reponse publiee avec succes !");
+          addToast("success", "Réponse publiée avec succès !");
           setResponseTexts((prev) => ({ ...prev, [reviewId]: "" }));
           setExpandedResponse(null);
         } else {
-          addToast("error", "Erreur lors de la publication de la reponse.");
+          addToast("error", "Erreur lors de la publication de la réponse.");
         }
       } catch {
-        addToast("error", "Erreur lors de la publication de la reponse.");
+        addToast("error", "Erreur lors de la publication de la réponse.");
       } finally {
         setSubmitting(null);
       }
@@ -259,7 +259,7 @@ export default function AgenceAvis() {
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Avis clients</h1>
           <p className="text-slate-400 text-sm mt-1">
-            Consultez et repondez aux avis recus par l&apos;agence.
+            Consultez et répondez aux avis reçus par l&apos;agence.
           </p>
         </div>
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-16 text-center">
@@ -268,9 +268,9 @@ export default function AgenceAvis() {
           </span>
           <p className="text-lg font-bold text-slate-400 mb-2">Aucun avis</p>
           <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Les avis apparaitront ici apres vos premieres commandes. Vos
-            clients pourront evaluer la qualite, la communication et le respect
-            des delais.
+            Les avis apparaîtront ici après vos premières commandes. Vos
+            clients pourront évaluer la qualité, la communication et le respect
+            des délais.
           </p>
         </div>
       </div>
@@ -286,7 +286,7 @@ export default function AgenceAvis() {
       <div>
         <h1 className="text-3xl font-black text-white">Avis clients</h1>
         <p className="text-slate-400 text-sm mt-1">
-          Consultez et repondez aux avis recus par l&apos;agence.
+          Consultez et répondez aux avis reçus par l&apos;agence.
         </p>
       </div>
 
@@ -344,7 +344,7 @@ export default function AgenceAvis() {
           <div>
             <p className="text-xl font-black text-white">{responseRate}%</p>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-              Reponses
+              Réponses
             </p>
           </div>
         </div>
@@ -411,14 +411,14 @@ export default function AgenceAvis() {
           {reviewSummary && (
             <div className="mt-5 pt-4 border-t border-border-dark space-y-2">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-                Moyennes par critere
+                Moyennes par critère
               </p>
-              <CriteriaBar label="Qualite" value={reviewSummary.avgQualite} />
+              <CriteriaBar label="Qualité" value={reviewSummary.avgQualite} />
               <CriteriaBar
                 label="Communication"
                 value={reviewSummary.avgCommunication}
               />
-              <CriteriaBar label="Delai" value={reviewSummary.avgDelai} />
+              <CriteriaBar label="Délai" value={reviewSummary.avgDelai} />
             </div>
           )}
         </div>
@@ -426,7 +426,7 @@ export default function AgenceAvis() {
         {/* Rating evolution chart */}
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
           <h2 className="font-bold text-white mb-4">
-            Evolution de la note sur 6 mois
+            Évolution de la note sur 6 mois
           </h2>
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
@@ -493,7 +493,7 @@ export default function AgenceAvis() {
               reviews
             </span>
             <p className="text-slate-500 font-semibold">
-              Aucun avis dans cette categorie
+              Aucun avis dans cette catégorie
             </p>
           </div>
         ) : (
@@ -560,7 +560,7 @@ function ReviewCard({
   }
 
   function handleReport() {
-    addToast("warning", `Avis ${r.id.slice(-6)} signale pour examen par la moderation.`);
+    addToast("warning", `Avis ${r.id.slice(-6)} signalé pour examen par la modération.`);
   }
 
   return (
@@ -616,9 +616,9 @@ function ReviewCard({
 
       {/* Criteria breakdown */}
       <div className="bg-background-dark rounded-lg p-4 border border-border-dark mb-4 space-y-2">
-        <CriteriaBar label="Qualite" value={r.qualite} />
+        <CriteriaBar label="Qualité" value={r.qualite} />
         <CriteriaBar label="Communication" value={r.communication} />
-        <CriteriaBar label="Delai" value={r.delai} />
+        <CriteriaBar label="Délai" value={r.delai} />
       </div>
 
       {/* Helpful count */}
@@ -627,7 +627,7 @@ function ReviewCard({
           <span className="material-symbols-outlined text-xs align-middle mr-1">
             thumb_up
           </span>
-          {r.helpful} personne{r.helpful > 1 ? "s" : ""} ont trouve cet avis utile
+          {r.helpful} personne{r.helpful > 1 ? "s" : ""} ont trouvé cet avis utile
         </p>
       )}
 
@@ -639,7 +639,7 @@ function ReviewCard({
               reply
             </span>
             <p className="text-xs font-semibold text-primary">
-              Reponse de l&apos;agence
+              Réponse de l&apos;agence
             </p>
             {r.repliedAt && (
               <span className="text-[10px] text-slate-500 ml-auto">
@@ -659,7 +659,7 @@ function ReviewCard({
               <textarea
                 value={responseText}
                 onChange={(e) => onResponseTextChange(e.target.value)}
-                placeholder="Redigez votre reponse publique..."
+                placeholder="Rédigez votre réponse publique..."
                 rows={3}
                 className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 resize-none"
                 disabled={isSubmitting}
@@ -682,7 +682,7 @@ function ReviewCard({
                       progress_activity
                     </span>
                   )}
-                  Publier la reponse
+                  Publier la réponse
                 </button>
               </div>
             </div>
@@ -692,7 +692,7 @@ function ReviewCard({
               className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline"
             >
               <span className="material-symbols-outlined text-sm">reply</span>
-              Repondre a cet avis
+              Répondre à cet avis
             </button>
           )}
         </div>

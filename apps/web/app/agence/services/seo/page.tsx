@@ -189,11 +189,11 @@ export default function AgenceSeoPage() {
 
     // Validate before sending
     if (metaTitle.length > MAX_TITLE) {
-      addToast("error", `Le meta titre ne doit pas depasser ${MAX_TITLE} caracteres.`);
+      addToast("error", `Le meta titre ne doit pas dépasser ${MAX_TITLE} caractères.`);
       return;
     }
     if (metaDesc.length > MAX_DESC) {
-      addToast("error", `La meta description ne doit pas depasser ${MAX_DESC} caracteres.`);
+      addToast("error", `La meta description ne doit pas dépasser ${MAX_DESC} caractères.`);
       return;
     }
 
@@ -215,7 +215,7 @@ export default function AgenceSeoPage() {
         metaDescription: data.seo.metaDescription || metaDesc,
         tags: data.seo.tags || tags,
       });
-      addToast("success", "Donnees SEO mises a jour avec succes !");
+      addToast("success", "Données SEO mises à jour avec succès !");
     } catch (err) {
       console.error("[SEO] Save error:", err);
       const message = err instanceof Error ? err.message : "Erreur lors de la sauvegarde.";
@@ -249,7 +249,7 @@ export default function AgenceSeoPage() {
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold mb-2">Optimisation SEO</h1>
           <p className="text-slate-500 dark:text-slate-400">
-            Ameliorez le classement de votre service sur Google et dans les recherches
+            Améliorez le classement de votre service sur Google et dans les recherches
             internes de la plateforme.
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function AgenceSeoPage() {
             <span className="material-symbols-outlined text-primary text-base align-middle mr-1">
               tune
             </span>
-            Selectionner un service a optimiser
+            Sélectionner un service à optimiser
           </label>
           <select
             className="w-full bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary outline-none appearance-none cursor-pointer"
@@ -276,7 +276,7 @@ export default function AgenceSeoPage() {
           </select>
           {activeServices.length === 0 && (
             <p className="mt-2 text-xs text-slate-400">
-              Aucun service disponible. Creez un service pour commencer l&apos;optimisation SEO.
+              Aucun service disponible. Créez un service pour commencer l&apos;optimisation SEO.
             </p>
           )}
         </div>
@@ -352,7 +352,7 @@ export default function AgenceSeoPage() {
               <div className="lg:col-span-2 bg-primary/5 rounded-xl border border-primary/10 p-8">
                 <h3 className="text-sm font-bold mb-5 flex items-center gap-2">
                   <span className="material-symbols-outlined text-primary">checklist</span>
-                  Analyse detaillee
+                  Analyse détaillée
                 </h3>
                 <div className="space-y-3">
                   {checks.map((check, i) => {
@@ -426,7 +426,7 @@ export default function AgenceSeoPage() {
                   <label className="block text-sm font-bold mb-2">
                     Meta Titre SEO
                     <span className="text-xs font-normal text-slate-400 ml-2">
-                      (30-60 caracteres recommandes, max {MAX_TITLE})
+                      (30-60 caractères recommandés, max {MAX_TITLE})
                     </span>
                   </label>
                   <input
@@ -439,7 +439,7 @@ export default function AgenceSeoPage() {
                   />
                   <div className="flex justify-between mt-1">
                     <p className="text-[10px] text-slate-400">
-                      Le titre qui apparaitra dans les resultats de recherche.
+                      Le titre qui apparaîtra dans les résultats de recherche.
                     </p>
                     <span
                       className={cn(
@@ -461,7 +461,7 @@ export default function AgenceSeoPage() {
                   <label className="block text-sm font-bold mb-2">
                     Meta Description SEO
                     <span className="text-xs font-normal text-slate-400 ml-2">
-                      (120-160 caracteres recommandes, max {MAX_DESC})
+                      (120-160 caractères recommandés, max {MAX_DESC})
                     </span>
                   </label>
                   <textarea
@@ -470,11 +470,11 @@ export default function AgenceSeoPage() {
                     value={metaDesc}
                     onChange={(e) => setMetaDesc(e.target.value)}
                     maxLength={MAX_DESC}
-                    placeholder="Decrivez votre service pour les moteurs de recherche..."
+                    placeholder="Décrivez votre service pour les moteurs de recherche..."
                   />
                   <div className="flex justify-between mt-1">
                     <p className="text-[10px] text-slate-400">
-                      Un resume accrocheur pour inciter les clients a cliquer.
+                      Un résumé accrocheur pour inciter les clients à cliquer.
                     </p>
                     <span
                       className={cn(
@@ -494,7 +494,7 @@ export default function AgenceSeoPage() {
                 {/* Tags / Keywords */}
                 <div>
                   <label className="block text-sm font-bold mb-2">
-                    Mots-cles personnalises (Tags)
+                    Mots-clés personnalisés (Tags)
                     <span className="text-xs font-normal text-slate-400 ml-2">
                       (max {MAX_TAGS})
                     </span>
@@ -518,7 +518,7 @@ export default function AgenceSeoPage() {
                     {tags.length < MAX_TAGS && (
                       <input
                         className="flex-1 bg-transparent border-none p-0 text-sm focus:ring-0 placeholder:text-slate-400 outline-none min-w-[120px]"
-                        placeholder="Ajouter un mot-cle..."
+                        placeholder="Ajouter un mot-clé..."
                         type="text"
                         value={newTag}
                         onChange={(e) => setNewTag(e.target.value)}
@@ -536,7 +536,7 @@ export default function AgenceSeoPage() {
                   </div>
                   <div className="flex justify-between mt-1">
                     <p className="text-[10px] text-slate-400">
-                      Separez les mots-cles par une virgule ou appuyez sur Entree.
+                      Séparez les mots-clés par une virgule ou appuyez sur Entrée.
                     </p>
                     <span
                       className={cn(
@@ -663,9 +663,9 @@ export default function AgenceSeoPage() {
             <span className="material-symbols-outlined text-5xl text-slate-600 mb-4 block">
               search_check
             </span>
-            <h3 className="text-lg font-bold mb-2">Selectionnez un service</h3>
+            <h3 className="text-lg font-bold mb-2">Sélectionnez un service</h3>
             <p className="text-sm text-slate-400 max-w-md mx-auto">
-              Choisissez un service dans le selecteur ci-dessus pour visualiser et ameliorer son
+              Choisissez un service dans le sélecteur ci-dessus pour visualiser et améliorer son
               score SEO.
             </p>
           </div>

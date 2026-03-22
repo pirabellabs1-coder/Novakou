@@ -21,17 +21,17 @@ interface CustomOffer {
 
 const STATUS_MAP: Record<OfferStatus, { label: string; cls: string }> = {
   en_attente: { label: "En attente", cls: "bg-amber-500/20 text-amber-400" },
-  acceptee: { label: "Acceptee", cls: "bg-emerald-500/20 text-emerald-400" },
-  refusee: { label: "Refusee", cls: "bg-red-500/20 text-red-400" },
-  expiree: { label: "Expiree", cls: "bg-slate-500/20 text-slate-400" },
+  acceptee: { label: "Acceptée", cls: "bg-emerald-500/20 text-emerald-400" },
+  refusee: { label: "Refusée", cls: "bg-red-500/20 text-red-400" },
+  expiree: { label: "Expirée", cls: "bg-slate-500/20 text-slate-400" },
 };
 
 const FILTER_TABS = [
   { key: "toutes", label: "Toutes" },
   { key: "en_attente", label: "En attente" },
-  { key: "acceptee", label: "Acceptees" },
-  { key: "refusee", label: "Refusees" },
-  { key: "expiree", label: "Expirees" },
+  { key: "acceptee", label: "Acceptées" },
+  { key: "refusee", label: "Refusées" },
+  { key: "expiree", label: "Expirées" },
 ];
 
 function getInitials(name: string): string {
@@ -83,9 +83,9 @@ export default function AgenceOffres() {
     const acceptees = offers.filter((o) => o.status === "acceptee").length;
     const caTotal = offers.filter((o) => o.status === "acceptee").reduce((s, o) => s + o.amount, 0);
     return [
-      { label: "Offres envoyees", value: total.toString(), icon: "local_offer", color: "text-primary" },
+      { label: "Offres envoyées", value: total.toString(), icon: "local_offer", color: "text-primary" },
       { label: "En attente", value: enAttente.toString(), icon: "hourglass_top", color: "text-amber-400" },
-      { label: "Acceptees", value: acceptees.toString(), icon: "check_circle", color: "text-emerald-400" },
+      { label: "Acceptées", value: acceptees.toString(), icon: "check_circle", color: "text-emerald-400" },
       { label: "CA potentiel", value: `\u20AC${caTotal.toLocaleString("fr-FR")}`, icon: "payments", color: "text-blue-400" },
     ];
   }, [offers]);
@@ -97,10 +97,10 @@ export default function AgenceOffres() {
   }
 
   function submitCreate() {
-    if (!formClient.trim()) { addToast("error", "Selectionnez un client."); return; }
+    if (!formClient.trim()) { addToast("error", "Sélectionnez un client."); return; }
     if (!formTitle.trim()) { addToast("error", "Saisissez un titre."); return; }
     if (!formAmount.trim()) { addToast("error", "Saisissez un montant."); return; }
-    addToast("success", `Offre "${formTitle}" envoyee a ${formClient} !`);
+    addToast("success", `Offre "${formTitle}" envoyée à ${formClient} !`);
     resetForm();
     setShowCreate(false);
   }
@@ -109,8 +109,8 @@ export default function AgenceOffres() {
     <div className="space-y-6">
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Offres personnalisees</h1>
-          <p className="text-slate-400 text-sm mt-1">Envoyez des devis sur mesure a vos clients.</p>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Offres personnalisées</h1>
+          <p className="text-slate-400 text-sm mt-1">Envoyez des devis sur mesure à vos clients.</p>
         </div>
         <button onClick={() => { resetForm(); setShowCreate(true); }}
           className="px-4 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
@@ -149,8 +149,8 @@ export default function AgenceOffres() {
         {filtered.length === 0 ? (
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-10 text-center">
             <span className="material-symbols-outlined text-5xl text-slate-600 mb-3">local_offer</span>
-            <p className="text-slate-500 font-semibold">Aucune offre personnalisee</p>
-            <p className="text-slate-600 text-xs mt-1">Creez une offre sur mesure pour vos clients</p>
+            <p className="text-slate-500 font-semibold">Aucune offre personnalisée</p>
+            <p className="text-slate-600 text-xs mt-1">Créez une offre sur mesure pour vos clients</p>
           </div>
         ) : (
           filtered.map((o) => (
@@ -234,7 +234,7 @@ export default function AgenceOffres() {
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreate(false)} />
           <div className="relative bg-neutral-dark rounded-2xl border border-border-dark p-6 w-full max-w-md">
             <div className="flex items-start justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Nouvelle offre personnalisee</h3>
+              <h3 className="text-lg font-bold text-white">Nouvelle offre personnalisée</h3>
               <button onClick={() => setShowCreate(false)} className="text-slate-400 hover:text-white"><span className="material-symbols-outlined">close</span></button>
             </div>
             <div className="space-y-4">
@@ -243,7 +243,7 @@ export default function AgenceOffres() {
                 {clientNames.length > 0 ? (
                   <select value={formClient} onChange={(e) => setFormClient(e.target.value)}
                     className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50">
-                    <option value="">Selectionner un client...</option>
+                    <option value="">Sélectionner un client...</option>
                     {clientNames.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 ) : (
@@ -258,7 +258,7 @@ export default function AgenceOffres() {
               </div>
               <div>
                 <label className="text-xs text-slate-400 font-semibold mb-1.5 block">Description</label>
-                <textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Decrivez la prestation..." rows={3}
+                <textarea value={formDescription} onChange={(e) => setFormDescription(e.target.value)} placeholder="Décrivez la prestation..." rows={3}
                   className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 resize-none" />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -268,7 +268,7 @@ export default function AgenceOffres() {
                     className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50" />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 font-semibold mb-1.5 block">Delai</label>
+                  <label className="text-xs text-slate-400 font-semibold mb-1.5 block">Délai</label>
                   <input type="date" value={formDeadline} onChange={(e) => setFormDeadline(e.target.value)}
                     className="w-full px-4 py-2.5 bg-background-dark border border-border-dark rounded-xl text-sm text-white outline-none focus:border-primary/50" />
                 </div>

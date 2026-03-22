@@ -104,10 +104,10 @@ export default function AgenceKycPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white">
-              Verification de l&apos;agence (KYC)
+              Vérification de l&apos;agence (KYC)
             </h1>
             <p className="text-sm text-slate-400">
-              Verifiez votre agence pour publier des services et recevoir des paiements.
+              Vérifiez votre agence pour publier des services et recevoir des paiements.
             </p>
           </div>
         </div>
@@ -134,15 +134,15 @@ export default function AgenceKycPage() {
             </div>
             <div>
               <h3 className="font-bold text-white text-lg mb-1">
-                Votre demande est en cours de verification
+                Votre demande est en cours de vérification
               </h3>
               <p className="text-sm text-slate-400 mb-3">
-                Notre equipe examine les documents de votre agence. Vous serez notifie par email des que la verification sera terminee.
-                Le delai habituel est de 24 a 48 heures.
+                Notre équipe examine les documents de votre agence. Vous serez notifié par email dès que la vérification sera terminée.
+                Le délai habituel est de 24 à 48 heures.
               </p>
               <div className="flex items-center gap-2 text-xs text-amber-400/80">
                 <span className="material-symbols-outlined text-sm">info</span>
-                Vous pouvez continuer a utiliser la plateforme en attendant.
+                Vous pouvez continuer à utiliser la plateforme en attendant.
               </div>
             </div>
           </div>
@@ -160,15 +160,15 @@ export default function AgenceKycPage() {
             </div>
             <div>
               <h3 className="font-bold text-white text-lg mb-1">
-                Agence verifiee avec succes
+                Agence vérifiée avec succès
               </h3>
               <p className="text-sm text-slate-400 mb-3">
-                Votre agence a ete verifiee. Vous avez acces a toutes les fonctionnalites de la plateforme,
+                Votre agence a été vérifiée. Vous avez accès à toutes les fonctionnalités de la plateforme,
                 y compris la publication de services et le retrait de fonds.
               </p>
               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 rounded-lg text-xs font-semibold text-emerald-400">
                 <span className="material-symbols-outlined text-sm">check_circle</span>
-                Agence Verifiee — Niveau {currentLevel}/4
+                Agence Vérifiée — Niveau {currentLevel}/4
               </div>
             </div>
           </div>
@@ -186,10 +186,10 @@ export default function AgenceKycPage() {
             </div>
             <div>
               <h3 className="font-bold text-white text-lg mb-1">
-                Verification refusee
+                Vérification refusée
               </h3>
               <p className="text-sm text-slate-400 mb-2">
-                La verification de votre agence a ete refusee. Vous pouvez soumettre une nouvelle demande ci-dessous.
+                La vérification de votre agence a été refusée. Vous pouvez soumettre une nouvelle demande ci-dessous.
               </p>
               {rejectionReason && (
                 <div className="bg-red-500/10 rounded-lg p-3 mb-3 border border-red-500/10">
@@ -244,9 +244,9 @@ export default function AgenceKycPage() {
                   }`}
                 >
                   {req.status === "approuve"
-                    ? "Approuve"
+                    ? "Approuvé"
                     : req.status === "refuse"
-                      ? "Refuse"
+                      ? "Refusé"
                       : "En attente"}
                 </span>
               </div>

@@ -25,7 +25,7 @@ interface InvoiceView {
 
 const FILTER_TABS = [
   { key: "all", label: "Toutes", icon: "receipt_long" },
-  { key: "payee", label: "Payees", icon: "check_circle" },
+  { key: "payee", label: "Payées", icon: "check_circle" },
   { key: "en_attente", label: "En attente", icon: "schedule" },
 ] as const;
 
@@ -92,7 +92,7 @@ function getInitials(name: string): string {
 
 function generateCsv(invoices: InvoiceView[]): void {
   const headers = [
-    "Numero facture",
+    "Numéro facture",
     "Client",
     "Service",
     "Date",
@@ -119,7 +119,7 @@ function generateCsv(invoices: InvoiceView[]): void {
       ttc.toFixed(2),
       inv.commission.toFixed(2),
       net.toFixed(2),
-      inv.status === "payee" ? "Payee" : "En attente",
+      inv.status === "payee" ? "Payée" : "En attente",
     ];
   });
 
@@ -248,7 +248,7 @@ export default function AgenceFacturesPage() {
   const handleExportCsv = useCallback(() => {
     if (filteredInvoices.length === 0) return;
     generateCsv(filteredInvoices);
-    addToast("success", `${filteredInvoices.length} facture(s) exportee(s) en CSV`);
+    addToast("success", `${filteredInvoices.length} facture(s) exportée(s) en CSV`);
   }, [filteredInvoices, addToast]);
 
   const handleDownloadPdf = useCallback(
@@ -262,7 +262,7 @@ export default function AgenceFacturesPage() {
 
   const handleSendEmail = useCallback(
     (inv: InvoiceView) => {
-      addToast("success", `Facture ${inv.invoiceNumber} envoyee par email`);
+      addToast("success", `Facture ${inv.invoiceNumber} envoyée par email`);
     },
     [addToast]
   );
@@ -315,13 +315,13 @@ export default function AgenceFacturesPage() {
             </div>
           </div>
           <p className="text-3xl font-extrabold text-white">{stats.total}</p>
-          <p className="text-xs text-slate-500 mt-1">Factures emises</p>
+          <p className="text-xs text-slate-500 mt-1">Factures émises</p>
         </div>
 
         <div className="bg-neutral-dark border border-border-dark rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-              Montant paye
+              Montant payé
             </p>
             <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
               <span className="material-symbols-outlined text-lg">payments</span>
@@ -331,7 +331,7 @@ export default function AgenceFacturesPage() {
             {formatAmount(stats.paidAmount)}
           </p>
           <p className="text-xs text-slate-500 mt-1">
-            {stats.paidCount} facture{stats.paidCount !== 1 ? "s" : ""} payee{stats.paidCount !== 1 ? "s" : ""}
+            {stats.paidCount} facture{stats.paidCount !== 1 ? "s" : ""} payée{stats.paidCount !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -391,7 +391,7 @@ export default function AgenceFacturesPage() {
         </span>
         <input
           type="text"
-          placeholder="Rechercher par numero, client ou service..."
+          placeholder="Rechercher par numéro, client ou service..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 bg-neutral-dark border border-border-dark rounded-lg text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50 transition-colors"
@@ -426,7 +426,7 @@ export default function AgenceFacturesPage() {
             Aucune facture
           </p>
           <p className="text-slate-500 text-xs text-center max-w-sm">
-            Les factures seront generees automatiquement apres chaque commande terminee.
+            Les factures seront générées automatiquement après chaque commande terminée.
           </p>
         </div>
       )}
@@ -438,11 +438,11 @@ export default function AgenceFacturesPage() {
             search_off
           </span>
           <p className="text-slate-400 text-sm font-medium">
-            Aucune facture trouvee
+            Aucune facture trouvée
           </p>
           {searchQuery && (
             <p className="text-slate-500 text-xs">
-              Aucun resultat pour &quot;{searchQuery}&quot;.{" "}
+              Aucun résultat pour &quot;{searchQuery}&quot;.{" "}
               <button
                 onClick={() => setSearchQuery("")}
                 className="text-primary hover:underline"
@@ -461,7 +461,7 @@ export default function AgenceFacturesPage() {
             <table className="w-full">
               <thead>
                 <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
-                  <th className="px-5 py-3 text-left font-semibold">Numero</th>
+                  <th className="px-5 py-3 text-left font-semibold">Numéro</th>
                   <th className="px-5 py-3 text-left font-semibold">Client</th>
                   <th className="px-5 py-3 text-left font-semibold">Service</th>
                   <th className="px-5 py-3 text-left font-semibold">Date</th>
@@ -536,7 +536,7 @@ export default function AgenceFacturesPage() {
                             : "text-amber-400 bg-amber-500/10"
                         )}
                       >
-                        {inv.status === "payee" ? "Payee" : "En attente"}
+                        {inv.status === "payee" ? "Payée" : "En attente"}
                       </span>
                     </td>
 
@@ -547,7 +547,7 @@ export default function AgenceFacturesPage() {
                         <button
                           onClick={() => handleDownloadPdf(inv)}
                           disabled={downloadingId === inv.orderId}
-                          title="Telecharger PDF"
+                          title="Télécharger PDF"
                           className={cn(
                             "p-1.5 rounded-lg transition-colors",
                             downloadingId === inv.orderId
@@ -581,7 +581,7 @@ export default function AgenceFacturesPage() {
                         {/* Preview */}
                         <button
                           onClick={() => setPreviewInvoice(inv)}
-                          title="Previsualiser"
+                          title="Prévisualiser"
                           className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
                         >
                           <span className="material-symbols-outlined text-lg">
@@ -661,7 +661,7 @@ export default function AgenceFacturesPage() {
             {/* Agency info */}
             <div className="bg-background-dark/50 rounded-lg p-4 mb-4">
               <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-2">
-                Emetteur
+                Émetteur
               </p>
               <p className="text-sm text-white font-semibold">
                 FreelanceHigh SAS
@@ -707,7 +707,7 @@ export default function AgenceFacturesPage() {
                   ["Date", formatDateLong(previewInvoice.date)],
                   [
                     "Statut",
-                    previewInvoice.status === "payee" ? "Payee" : "En attente",
+                    previewInvoice.status === "payee" ? "Payée" : "En attente",
                   ],
                 ] as [string, string][]
               ).map(([label, value]) => (
@@ -726,7 +726,7 @@ export default function AgenceFacturesPage() {
             {/* Financial breakdown */}
             <div className="bg-background-dark/50 rounded-lg p-4 space-y-3">
               <p className="text-xs text-slate-500 uppercase tracking-wider font-bold mb-1">
-                Detail financier
+                Détail financier
               </p>
 
               {(
@@ -792,7 +792,7 @@ export default function AgenceFacturesPage() {
                 <span className="material-symbols-outlined text-lg">
                   download
                 </span>
-                Telecharger PDF
+                Télécharger PDF
               </button>
               <button
                 onClick={() => {

@@ -188,7 +188,7 @@ export const useAgencyStore = create<AgencyState>()((set, get) => ({
           activities.push({
             id: `review-${r.id}`,
             type: "avis",
-            message: `${r.clientName} a laisse un avis ${r.rating}/5`,
+            message: `${r.clientName} a laissé un avis ${r.rating}/5`,
             link: "/agence/avis",
             icon: "star",
             color: "text-amber-400",

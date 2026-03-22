@@ -56,48 +56,48 @@ interface HistoryEntry {
 // ============================================================
 
 const TRIGGERS: Trigger[] = [
-  { id: "t1", icon: "chat_bubble", label: "Nouveau message recu", category: "Messages" },
+  { id: "t1", icon: "chat_bubble", label: "Nouveau message reçu", category: "Messages" },
   { id: "t2", icon: "person_add", label: "Nouveau client qui contacte", category: "Messages" },
-  { id: "t3", icon: "shopping_cart", label: "Commande passee", category: "Commandes" },
-  { id: "t4", icon: "check_circle", label: "Commande livree", category: "Commandes" },
-  { id: "t5", icon: "star", label: "Avis laisse", category: "Avis" },
-  { id: "t6", icon: "visibility", label: "Page agence visitee X fois", category: "Agence" },
-  { id: "t7", icon: "request_quote", label: "Proposition recue", category: "Commandes" },
-  { id: "t8", icon: "cancel", label: "Commande annulee", category: "Commandes" },
-  { id: "t9", icon: "payments", label: "Paiement recu", category: "Finances" },
-  { id: "t10", icon: "timer_off", label: "Delai de reponse depasse", category: "Messages" },
+  { id: "t3", icon: "shopping_cart", label: "Commande passée", category: "Commandes" },
+  { id: "t4", icon: "check_circle", label: "Commande livrée", category: "Commandes" },
+  { id: "t5", icon: "star", label: "Avis laissé", category: "Avis" },
+  { id: "t6", icon: "visibility", label: "Page agence visitée X fois", category: "Agence" },
+  { id: "t7", icon: "request_quote", label: "Proposition reçue", category: "Commandes" },
+  { id: "t8", icon: "cancel", label: "Commande annulée", category: "Commandes" },
+  { id: "t9", icon: "payments", label: "Paiement reçu", category: "Finances" },
+  { id: "t10", icon: "timer_off", label: "Délai de réponse dépassé", category: "Messages" },
   { id: "t11", icon: "person_off", label: "Client inactif depuis X jours", category: "Clients" },
-  { id: "t12", icon: "assignment_ind", label: "Membre assigne a une commande", category: "Equipe" },
-  { id: "t13", icon: "group_add", label: "Equipe membre rejoint", category: "Equipe" },
-  { id: "t14", icon: "group_remove", label: "Membre quitte l'equipe", category: "Equipe" },
+  { id: "t12", icon: "assignment_ind", label: "Membre assigné à une commande", category: "Équipe" },
+  { id: "t13", icon: "group_add", label: "Équipe membre rejoint", category: "Équipe" },
+  { id: "t14", icon: "group_remove", label: "Membre quitte l'équipe", category: "Équipe" },
   { id: "t15", icon: "trending_up", label: "Objectif CA mensuel atteint", category: "Finances" },
-  { id: "t16", icon: "work", label: "Nouveau projet agence cree", category: "Projets" },
+  { id: "t16", icon: "work", label: "Nouveau projet agence créé", category: "Projets" },
 ];
 
 const CONDITIONS: Condition[] = [
-  { id: "c1", icon: "euro", label: "Budget superieur a", valueType: "number" },
-  { id: "c2", icon: "category", label: "Categorie", valueType: "select", options: ["Design", "Developpement", "Marketing", "Redaction", "Video"] },
+  { id: "c1", icon: "euro", label: "Budget supérieur à", valueType: "number" },
+  { id: "c2", icon: "category", label: "Catégorie", valueType: "select", options: ["Design", "Développement", "Marketing", "Rédaction", "Vidéo"] },
   { id: "c3", icon: "fiber_new", label: "Client est nouveau", valueType: "select", options: ["Oui", "Non"] },
-  { id: "c4", icon: "repeat", label: "Client est recurrent", valueType: "select", options: ["Oui", "Non"] },
-  { id: "c5", icon: "star", label: "Note superieure a", valueType: "number" },
+  { id: "c4", icon: "repeat", label: "Client est récurrent", valueType: "select", options: ["Oui", "Non"] },
+  { id: "c5", icon: "star", label: "Note supérieure à", valueType: "number" },
   { id: "c6", icon: "schedule", label: "Heure entre", valueType: "text" },
   { id: "c7", icon: "calendar_today", label: "Jour de la semaine", valueType: "select", options: ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"] },
   { id: "c8", icon: "public", label: "Pays", valueType: "select", options: ["France", "Senegal", "Cote d'Ivoire", "Cameroun", "Belgique", "Canada", "Autre"] },
-  { id: "c9", icon: "search", label: "Mot-cle contient", valueType: "text" },
-  { id: "c10", icon: "shopping_cart", label: "Montant commande superieur a", valueType: "number" },
-  { id: "c11", icon: "badge", label: "Role du membre", valueType: "select", options: ["Manager", "Freelance", "Commercial", "Proprietaire"] },
+  { id: "c9", icon: "search", label: "Mot-clé contient", valueType: "text" },
+  { id: "c10", icon: "shopping_cart", label: "Montant commande supérieur à", valueType: "number" },
+  { id: "c11", icon: "badge", label: "Rôle du membre", valueType: "select", options: ["Manager", "Freelance", "Commercial", "Propriétaire"] },
 ];
 
 const ACTIONS: Action[] = [
   { id: "a1", icon: "send", label: "Envoyer un message automatique", hasMessage: true },
-  { id: "a2", icon: "local_offer", label: "Envoyer une offre personnalisee", hasMessage: true },
+  { id: "a2", icon: "local_offer", label: "Envoyer une offre personnalisée", hasMessage: true },
   { id: "a3", icon: "confirmation_number", label: "Envoyer un code promo", hasMessage: true },
   { id: "a4", icon: "priority_high", label: "Marquer conversation prioritaire" },
-  { id: "a5", icon: "notifications_active", label: "Notifier l'equipe" },
+  { id: "a5", icon: "notifications_active", label: "Notifier l'équipe" },
   { id: "a6", icon: "label", label: "Ajouter un tag au client" },
   { id: "a7", icon: "email", label: "Envoyer un email de suivi", hasMessage: true },
   { id: "a8", icon: "alarm", label: "Planifier un rappel" },
-  { id: "a9", icon: "assignment_ind", label: "Assigner a un membre", hasMessage: false },
+  { id: "a9", icon: "assignment_ind", label: "Assigner à un membre", hasMessage: false },
   { id: "a10", icon: "campaign", label: "Notifier le manager", hasMessage: true },
 ];
 
@@ -105,10 +105,10 @@ const MESSAGE_VARIABLES = [
   { var: "{nom_client}", label: "Nom du client" },
   { var: "{service}", label: "Nom du service" },
   { var: "{montant}", label: "Montant" },
-  { var: "{delai}", label: "Delai de livraison" },
+  { var: "{delai}", label: "Délai de livraison" },
   { var: "{date}", label: "Date actuelle" },
   { var: "{nom_agence}", label: "Nom de l'agence" },
-  { var: "{membre}", label: "Nom du membre assigne" },
+  { var: "{membre}", label: "Nom du membre assigné" },
 ];
 
 // ============================================================
@@ -252,7 +252,7 @@ export default function AgenceAutomationPage() {
             Automatisation Marketing
           </h1>
           <p className="text-slate-400 mb-6 leading-relaxed">
-            Passez en Pro, Business ou Agence pour acceder a l&apos;automatisation marketing et automatiser vos reponses, relances et workflows.
+            Passez en Pro, Business ou Agence pour accéder à l&apos;automatisation marketing et automatiser vos réponses, relances et workflows.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -371,9 +371,9 @@ export default function AgenceAutomationPage() {
             </h3>
             <nav className="space-y-1">
               {([
-                { key: "scenarios" as const, icon: "settings_suggest", label: "Scenarios", count: scenarios.length },
+                { key: "scenarios" as const, icon: "settings_suggest", label: "Scénarios", count: scenarios.length },
                 { key: "historique" as const, icon: "history", label: "Historique" },
-                { key: "modeles" as const, icon: "class", label: "Modeles" },
+                { key: "modeles" as const, icon: "class", label: "Modèles" },
               ]).map((item) => (
                 <button
                   key={item.key}
@@ -398,16 +398,16 @@ export default function AgenceAutomationPage() {
           {/* Quick stats */}
           <div className="space-y-3 mb-8">
             <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-              <p className="text-xs text-slate-500">Scenarios actifs</p>
+              <p className="text-xs text-slate-500">Scénarios actifs</p>
               <p className="text-xl font-extrabold text-primary">{scenarios.filter((s) => s.active).length}</p>
             </div>
             <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-              <p className="text-xs text-slate-500">Total declenchements</p>
+              <p className="text-xs text-slate-500">Total déclenchements</p>
               <p className="text-xl font-extrabold text-primary">{scenarios.reduce((a, s) => a + s.triggerCount, 0)}</p>
             </div>
             {members.length > 0 && (
               <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
-                <p className="text-xs text-slate-500">Membres equipe</p>
+                <p className="text-xs text-slate-500">Membres équipe</p>
                 <p className="text-xl font-extrabold text-primary">{members.length}</p>
               </div>
             )}
@@ -419,7 +419,7 @@ export default function AgenceAutomationPage() {
               <span className="text-xs font-bold uppercase">Conseil</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Les reponses automatiques peuvent augmenter votre taux de conversion de 25% en repondant instantanement aux nouveaux clients.
+              Les réponses automatiques peuvent augmenter votre taux de conversion de 25% en répondant instantanément aux nouveaux clients.
             </p>
           </div>
         </div>
@@ -437,7 +437,7 @@ export default function AgenceAutomationPage() {
             </nav>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-white mb-2">Automatisation Marketing</h1>
             <p className="text-slate-400">
-              Creez des scenarios automatises pour gagner du temps et professionnaliser les echanges de votre agence.
+              Créez des scénarios automatisés pour gagner du temps et professionnaliser les échanges de votre agence.
             </p>
           </div>
           <button
@@ -445,7 +445,7 @@ export default function AgenceAutomationPage() {
             className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20"
           >
             <span className="material-symbols-outlined">add</span>
-            Creer un scenario
+            Créer un scénario
           </button>
         </div>
 
@@ -458,7 +458,7 @@ export default function AgenceAutomationPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold flex items-center gap-2 text-white">
                 <span className="material-symbols-outlined text-primary">magic_button</span>
-                Nouveau scenario
+                Nouveau scénario
               </h2>
               <button onClick={resetCreator} className="p-2 rounded-lg hover:bg-border-dark transition-colors">
                 <span className="material-symbols-outlined text-slate-400">close</span>
@@ -494,7 +494,7 @@ export default function AgenceAutomationPage() {
             {creatorStep === 0 && (
               <div className="max-w-lg">
                 <label className="text-sm font-bold text-slate-300 mb-2 block">
-                  Nom du scenario
+                  Nom du scénario
                 </label>
                 <input
                   type="text"
@@ -516,7 +516,7 @@ export default function AgenceAutomationPage() {
             {/* Step 1: Trigger */}
             {creatorStep === 1 && (
               <div>
-                <p className="text-sm text-slate-400 mb-4">Choisissez l&apos;evenement qui declenchera le scenario :</p>
+                <p className="text-sm text-slate-400 mb-4">Choisissez l&apos;événement qui déclenchera le scénario :</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {TRIGGERS.map((trigger) => (
                     <button
@@ -621,7 +621,7 @@ export default function AgenceAutomationPage() {
             {/* Step 3: Actions */}
             {creatorStep === 3 && (
               <div>
-                <p className="text-sm text-slate-400 mb-4">Choisissez les actions a executer :</p>
+                <p className="text-sm text-slate-400 mb-4">Choisissez les actions à exécuter :</p>
 
                 {/* Selected actions */}
                 {selectedActions.length > 0 && (
@@ -657,7 +657,7 @@ export default function AgenceAutomationPage() {
                             <textarea
                               value={sa.message || ""}
                               onChange={(e) => updateActionMessage(idx, e.target.value)}
-                              placeholder="Redigez votre message... Utilisez les variables ci-dessus."
+                              placeholder="Rédigez votre message... Utilisez les variables ci-dessus."
                               className="w-full p-3 rounded-lg border border-primary/20 bg-background-dark text-sm text-white outline-none focus:ring-1 focus:ring-primary resize-none placeholder:text-slate-600"
                               rows={3}
                             />
@@ -712,7 +712,7 @@ export default function AgenceAutomationPage() {
                         <span className="material-symbols-outlined text-blue-500">{selectedTrigger?.icon}</span>
                       </div>
                       <div className="flex-1 p-3 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                        <p className="text-[10px] font-bold text-blue-500 uppercase mb-0.5">Declencheur</p>
+                        <p className="text-[10px] font-bold text-blue-500 uppercase mb-0.5">Déclencheur</p>
                         <p className="text-sm font-medium text-white">{selectedTrigger?.label}</p>
                       </div>
                     </div>
@@ -734,7 +734,7 @@ export default function AgenceAutomationPage() {
                             </div>
                             <div className="flex-1 p-3 bg-amber-500/5 rounded-lg border border-amber-500/20">
                               <p className="text-[10px] font-bold text-amber-500 uppercase mb-0.5">Condition</p>
-                              <p className="text-sm font-medium text-white">{sc.condition.label}: <span className="text-primary font-bold">{sc.value || "Non defini"}</span></p>
+                              <p className="text-sm font-medium text-white">{sc.condition.label}: <span className="text-primary font-bold">{sc.value || "Non défini"}</span></p>
                             </div>
                           </div>
                         ))}
@@ -780,7 +780,7 @@ export default function AgenceAutomationPage() {
                     className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
                   >
                     <span className="material-symbols-outlined text-sm">check</span>
-                    Activer le scenario
+                    Activer le scénario
                   </button>
                 </div>
               </div>
@@ -795,14 +795,14 @@ export default function AgenceAutomationPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2 text-white">
               <span className="material-symbols-outlined text-primary">account_tree</span>
-              Vos scenarios ({scenarios.length})
+              Vos scénarios ({scenarios.length})
             </h3>
 
             {scenariosLoading ? (
               <div className="flex items-center justify-center py-16">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm text-slate-500">Chargement des scenarios...</p>
+                  <p className="text-sm text-slate-500">Chargement des scénarios...</p>
                 </div>
               </div>
             ) : (
@@ -863,17 +863,17 @@ export default function AgenceAutomationPage() {
                         <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-xs">bolt</span>
-                            {scenario.triggerCount} declenchements
+                            {scenario.triggerCount} déclenchements
                           </span>
                           {scenario.lastTriggered && (
                             <span className="flex items-center gap-1">
                               <span className="material-symbols-outlined text-xs">schedule</span>
-                              Dernier: {scenario.lastTriggered}
+                              Dernier : {scenario.lastTriggered}
                             </span>
                           )}
                           <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-xs">calendar_today</span>
-                            Cree le {scenario.createdAt}
+                            Créé le {scenario.createdAt}
                           </span>
                         </div>
                       </div>
@@ -905,13 +905,13 @@ export default function AgenceAutomationPage() {
                 {scenarios.length === 0 && (
                   <div className="text-center py-16">
                     <span className="material-symbols-outlined text-5xl mb-4 block text-slate-600">settings_suggest</span>
-                    <p className="text-lg font-bold text-white mb-2">Aucun scenario d&apos;automatisation</p>
-                    <p className="text-sm text-slate-400 mb-6">Creez votre premier scenario pour automatiser vos actions.</p>
+                    <p className="text-lg font-bold text-white mb-2">Aucun scénario d&apos;automatisation</p>
+                    <p className="text-sm text-slate-400 mb-6">Créez votre premier scénario pour automatiser vos actions.</p>
                     <button
                       onClick={() => { resetCreator(); setShowCreator(true); }}
                       className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all"
                     >
-                      Creer un scenario
+                      Créer un scénario
                     </button>
                   </div>
                 )}
@@ -927,7 +927,7 @@ export default function AgenceAutomationPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2 text-white">
               <span className="material-symbols-outlined text-primary">history</span>
-              Historique des declenchements
+              Historique des déclenchements
             </h3>
             {history.length > 0 ? (
               history.map((entry, i) => (
@@ -951,7 +951,7 @@ export default function AgenceAutomationPage() {
               <div className="text-center py-16">
                 <span className="material-symbols-outlined text-5xl mb-4 block text-slate-600">history</span>
                 <p className="text-lg font-bold text-white mb-2">Aucun historique</p>
-                <p className="text-sm text-slate-400">Les declenchements de vos scenarios apparaitront ici.</p>
+                <p className="text-sm text-slate-400">Les déclenchements de vos scénarios apparaîtront ici.</p>
               </div>
             )}
           </div>
@@ -964,17 +964,17 @@ export default function AgenceAutomationPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2 text-white">
               <span className="material-symbols-outlined text-primary">class</span>
-              Modeles de scenarios
+              Modèles de scénarios
             </h3>
-            <p className="text-sm text-slate-400 mb-4">Utilisez un modele pre-configure pour demarrer rapidement.</p>
+            <p className="text-sm text-slate-400 mb-4">Utilisez un modèle pré-configuré pour démarrer rapidement.</p>
             {[
-              { name: "Accueil automatique", desc: "Envoie un message de bienvenue a chaque nouveau client qui contacte votre agence.", icon: "waving_hand", trigger: "Nouveau client", actions: 1 },
-              { name: "Relance client inactif", desc: "Relance automatiquement les clients qui n'ont pas donne de nouvelles depuis 7 jours.", icon: "notifications_active", trigger: "Inactivite 7j", actions: 1 },
-              { name: "Suivi post-livraison", desc: "Envoie un message et un email apres chaque livraison pour demander un avis.", icon: "check_circle", trigger: "Commande livree", actions: 2 },
-              { name: "Remerciement avis", desc: "Remercie automatiquement les clients qui laissent un avis positif (4+ etoiles).", icon: "star", trigger: "Avis >= 4 etoiles", actions: 1 },
-              { name: "Confirmation paiement", desc: "Envoie une confirmation automatique a la reception d'un paiement.", icon: "payments", trigger: "Paiement recu", actions: 2 },
-              { name: "Notification assignation membre", desc: "Notifie automatiquement un membre de l'equipe lorsqu'il est assigne a une commande.", icon: "assignment_ind", trigger: "Membre assigne", actions: 1 },
-              { name: "Bienvenue nouveau membre", desc: "Envoie un message de bienvenue lorsqu'un nouveau membre rejoint l'equipe.", icon: "group_add", trigger: "Membre rejoint", actions: 1 },
+              { name: "Accueil automatique", desc: "Envoie un message de bienvenue à chaque nouveau client qui contacte votre agence.", icon: "waving_hand", trigger: "Nouveau client", actions: 1 },
+              { name: "Relance client inactif", desc: "Relance automatiquement les clients qui n'ont pas donné de nouvelles depuis 7 jours.", icon: "notifications_active", trigger: "Inactivité 7j", actions: 1 },
+              { name: "Suivi post-livraison", desc: "Envoie un message et un email après chaque livraison pour demander un avis.", icon: "check_circle", trigger: "Commande livrée", actions: 2 },
+              { name: "Remerciement avis", desc: "Remercie automatiquement les clients qui laissent un avis positif (4+ étoiles).", icon: "star", trigger: "Avis >= 4 étoiles", actions: 1 },
+              { name: "Confirmation paiement", desc: "Envoie une confirmation automatique à la réception d'un paiement.", icon: "payments", trigger: "Paiement reçu", actions: 2 },
+              { name: "Notification assignation membre", desc: "Notifie automatiquement un membre de l'équipe lorsqu'il est assigné à une commande.", icon: "assignment_ind", trigger: "Membre assigné", actions: 1 },
+              { name: "Bienvenue nouveau membre", desc: "Envoie un message de bienvenue lorsqu'un nouveau membre rejoint l'équipe.", icon: "group_add", trigger: "Membre rejoint", actions: 1 },
             ].map((template, i) => (
               <div key={i} className="flex items-start gap-4 p-5 bg-neutral-dark rounded-xl border border-border-dark hover:border-primary/30 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
