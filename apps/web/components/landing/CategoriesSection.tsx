@@ -45,7 +45,7 @@ export function CategoriesSection() {
               <span className="material-symbols-outlined text-2xl sm:text-3xl lg:text-5xl text-primary group-hover:text-white mb-3 sm:mb-5 lg:mb-8 block transition-transform group-hover:scale-110">
                 {cat.icon}
               </span>
-              <h4 className="text-xs sm:text-sm lg:text-xl font-bold group-hover:text-white mb-1 sm:mb-2 leading-tight">{t(`items.${cat.slug}.title`)}</h4>
+              <h4 className="text-xs sm:text-sm lg:text-xl font-bold text-slate-900 dark:text-white group-hover:text-white mb-1 sm:mb-2 leading-tight">{t(`items.${cat.slug}.title`)}</h4>
               <p className="text-[10px] sm:text-xs lg:text-sm text-slate-500 dark:text-slate-400 group-hover:text-white/80 leading-relaxed hidden sm:block">
                 {t(`items.${cat.slug}.description`)}
               </p>

@@ -58,7 +58,8 @@ export async function GET(request: NextRequest) {
       scored.sort((a, b) => b.score - a.score);
       const top = scored.slice(0, limit).map((item) => ({
         id: item.user.id,
-        username: item.user.email.split("@")[0],
+        // Use ID as username — guaranteed to match in public freelance API
+        username: item.user.id,
         name: item.user.name,
         title: item.skills.length > 0 ? item.skills[0] : "Freelance",
         rating: item.avgRating,
@@ -101,7 +102,8 @@ export async function GET(request: NextRequest) {
 
       return {
         id: u.id,
-        username: u.email.split("@")[0],
+        // Use ID as username fallback — the public freelance API searches by ID, name slug, AND email prefix
+        username: u.id,
         name: u.name,
         title: u.freelancerProfile?.title ?? "Freelance",
         rating: avgRating,
@@ -110,7 +112,7 @@ export async function GET(request: NextRequest) {
         completedOrders,
         reviewCount: u.reviewsReceived.length,
         badge: avgRating >= 4.5 && completedOrders >= 5 ? "ELITE" : avgRating >= 4.0 ? "TOP RATED" : "",
-        image: u.avatar ?? "",
+        image: u.image ?? "",
         location: u.country ?? "",
       };
     });

@@ -73,6 +73,7 @@ const nextConfig: NextConfig = {
       { source: "/register", destination: "/inscription", permanent: true },
       { source: "/signup", destination: "/inscription", permanent: true },
       { source: "/signin", destination: "/connexion", permanent: true },
+      { source: "/formations/produits-numeriques", destination: "/formations/produits", permanent: true },
     ];
   },
   // Optimisations production
