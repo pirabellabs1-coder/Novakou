@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { serviceStore } from "@/lib/dev/data-store";
 import { createAuditLog } from "@/lib/admin/audit";
 
@@ -14,7 +14,7 @@ export async function GET() {
       return NextResponse.json({ error: "Acces refuse" }, { status: 403 });
     }
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const services = serviceStore.getAll();
 
       return NextResponse.json({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { IS_DEV } from "@/lib/env";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { serviceStore, boostStore } from "@/lib/dev/data-store";
 
@@ -13,12 +13,12 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, Number(searchParams.get("page")) || 1);
   const limit = Math.min(50, Number(searchParams.get("limit")) || 12);
 
-  // Production mode: Prisma
-  if (!IS_DEV) {
+  // Production mode or Vercel: Prisma (dev stores are ephemeral on serverless)
+  if (!IS_DEV || USE_PRISMA_FOR_DATA) {
     return handleProductionMode({ q, category, minPrice, maxPrice, sort, page, limit });
   }
 
-  // Dev mode: in-memory stores
+  // Dev mode local only: in-memory stores
   boostStore.cleanupExpired();
   let services = serviceStore.getAll().filter((s) => s.status === "actif");
 

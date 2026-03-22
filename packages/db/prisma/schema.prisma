@@ -235,6 +235,8 @@ model User {
   kycRequests        KycRequest[]
   disputesAsClient   Dispute[]           @relation("DisputeClient")
   disputesAsFreelance Dispute[]          @relation("DisputeFreelance")
+  projects           Project[]           @relation("ProjectClient")
+  bidsOnProjects     ProjectBid[]        @relation("ProjectBidFreelance")
 
   // Relations formations
   instructeurProfile InstructeurProfile?
@@ -503,6 +505,51 @@ model ServiceTag {
 
   @@id([serviceId, tagId])
   @@index([tagId])
+}
+
+// ── Projets clients (offres publiées par les clients) ──────────────────────
+model Project {
+  id            String        @id @default(cuid())
+  clientId      String
+  title         String
+  description   String        @db.Text
+  category      String        @default("general")
+  budgetMin     Float         @default(0)
+  budgetMax     Float         @default(0)
+  deadline      DateTime
+  urgency       String        @default("normale") // normale, urgente, tres_urgente
+  contractType  String        @default("ponctuel") // ponctuel, long_terme, recurrent
+  skills        String[]      @default([])
+  status        String        @default("ouvert") // ouvert, pourvu, ferme, brouillon
+  visibility    String        @default("public") // public, prive
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  client        User          @relation("ProjectClient", fields: [clientId], references: [id], onDelete: Cascade)
+  bids          ProjectBid[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([category])
+}
+
+model ProjectBid {
+  id            String   @id @default(cuid())
+  projectId     String
+  freelanceId   String
+  amount        Float
+  deliveryDays  Int
+  coverLetter   String?  @db.Text
+  status        String   @default("en_attente") // en_attente, acceptee, refusee
+
+  createdAt     DateTime @default(now())
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  freelance     User     @relation("ProjectBidFreelance", fields: [freelanceId], references: [id])
+
+  @@index([projectId])
+  @@index([freelanceId])
 }
 
 model Order {

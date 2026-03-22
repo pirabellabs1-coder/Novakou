@@ -178,7 +178,7 @@ export default function NewProjectPage() {
       urgency: form.urgency,
       visibility: form.visibility,
       subcategories: form.subcategories,
-      status: "actif",
+      status: "ouvert",
     });
     setSubmitting(false);
 
@@ -345,7 +345,7 @@ export default function NewProjectPage() {
                       }
                     }}
                     placeholder="Ajouter une compétence (Entrée pour valider)"
-                    className="flex-1 min-w-[200px] bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+                    className="flex-1 min-w-0 sm:min-w-[200px] bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
                   />
                 </div>
               </div>

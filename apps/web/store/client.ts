@@ -22,7 +22,7 @@ export interface ClientProject {
   skills: string[];
   urgency: "normale" | "urgente" | "tres_urgente";
   visibility: "public" | "prive";
-  status: "actif" | "termine" | "brouillon";
+  status: "ouvert" | "pourvu" | "ferme" | "brouillon" | "actif" | "termine";
   candidatures: number;
   progress: number;
   createdAt: string;

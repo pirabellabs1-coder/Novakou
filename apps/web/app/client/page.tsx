@@ -270,62 +270,116 @@ export default function ClientDashboard() {
           </div>
 
           <div className="bg-neutral-dark rounded-xl border border-border-dark overflow-hidden">
-            {/* Table header */}
-            <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border-dark text-xs text-slate-500 uppercase font-semibold">
-              <div className="col-span-5">Nom du projet</div>
-              <div className="col-span-4">Progression</div>
-              <div className="col-span-3 text-right">Deadline</div>
+            {/* Mobile card layout */}
+            <div className="md:hidden">
+              {store.loading.all || store.loading.projects ? (
+                <div className="space-y-3 p-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <div key={i} className="p-3 rounded-lg border border-border-dark/50 animate-pulse space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-border-dark rounded-lg" />
+                        <div className="space-y-2 flex-1">
+                          <div className="h-4 w-3/4 bg-border-dark rounded" />
+                          <div className="h-3 w-1/2 bg-border-dark rounded" />
+                        </div>
+                      </div>
+                      <div className="h-2 bg-border-dark rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : myProjects.length > 0 ? (
+                <div className="space-y-3 p-3">
+                  {myProjects.map((p) => (
+                    <div key={p.id} className="p-3 rounded-lg border border-border-dark/50 hover:bg-white/[0.02] transition-colors space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", p.iconBg)}>
+                          <span className={cn("material-symbols-outlined text-lg", p.iconColor)}>{p.icon}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-white truncate">{p.title}</p>
+                          <p className="text-xs text-slate-500">{p.category}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-semibold text-slate-400 w-8">{p.progress}%</span>
+                        <div className="flex-1 h-2 bg-border-dark rounded-full overflow-hidden">
+                          <div className={cn("h-full rounded-full transition-all", p.barColor)} style={{ width: `${p.progress}%` }} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className={cn("text-xs font-semibold", p.statusColor)}>{p.statusLabel}</span>
+                        <span className="text-xs text-slate-400">{p.deadline || "N/A"}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="px-5 py-10 text-center text-slate-500 text-sm">
+                  <span className="material-symbols-outlined text-3xl mb-2 block">folder_off</span>
+                  Aucun projet actif
+                </div>
+              )}
             </div>
 
-            {/* Table rows */}
-            {store.loading.all || store.loading.projects ? (
-              Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-border-dark/50 animate-pulse">
-                  <div className="col-span-5 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-border-dark rounded-lg" />
-                    <div className="space-y-2">
-                      <div className="h-4 w-32 bg-border-dark rounded" />
-                      <div className="h-3 w-20 bg-border-dark rounded" />
-                    </div>
-                  </div>
-                  <div className="col-span-4 flex items-center gap-3">
-                    <div className="h-2 flex-1 bg-border-dark rounded-full" />
-                  </div>
-                  <div className="col-span-3 flex justify-end">
-                    <div className="h-4 w-20 bg-border-dark rounded" />
-                  </div>
-                </div>
-              ))
-            ) : myProjects.length > 0 ? (
-              myProjects.map((p) => (
-                <div key={p.id} className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-border-dark/50 hover:bg-white/[0.02] transition-colors items-center">
-                  <div className="col-span-5 flex items-center gap-3">
-                    <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", p.iconBg)}>
-                      <span className={cn("material-symbols-outlined text-lg", p.iconColor)}>{p.icon}</span>
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{p.title}</p>
-                      <p className="text-xs text-slate-500">{p.category}</p>
-                    </div>
-                  </div>
-                  <div className="col-span-4 flex items-center gap-3">
-                    <span className="text-xs font-semibold text-slate-400 w-8">{p.progress}%</span>
-                    <div className="flex-1 h-2 bg-border-dark rounded-full overflow-hidden">
-                      <div className={cn("h-full rounded-full transition-all", p.barColor)} style={{ width: `${p.progress}%` }} />
-                    </div>
-                    <span className={cn("text-xs font-semibold", p.statusColor)}>{p.statusLabel}</span>
-                  </div>
-                  <div className="col-span-3 text-right text-sm text-slate-400">
-                    {p.deadline || "N/A"}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="px-5 py-10 text-center text-slate-500 text-sm">
-                <span className="material-symbols-outlined text-3xl mb-2 block">folder_off</span>
-                Aucun projet actif
+            {/* Desktop table layout */}
+            <div className="hidden md:block">
+              {/* Table header */}
+              <div className="grid grid-cols-12 gap-4 px-5 py-3 border-b border-border-dark text-xs text-slate-500 uppercase font-semibold">
+                <div className="col-span-5">Nom du projet</div>
+                <div className="col-span-4">Progression</div>
+                <div className="col-span-3 text-right">Deadline</div>
               </div>
-            )}
+
+              {/* Table rows */}
+              {store.loading.all || store.loading.projects ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-border-dark/50 animate-pulse">
+                    <div className="col-span-5 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-border-dark rounded-lg" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-border-dark rounded" />
+                        <div className="h-3 w-20 bg-border-dark rounded" />
+                      </div>
+                    </div>
+                    <div className="col-span-4 flex items-center gap-3">
+                      <div className="h-2 flex-1 bg-border-dark rounded-full" />
+                    </div>
+                    <div className="col-span-3 flex justify-end">
+                      <div className="h-4 w-20 bg-border-dark rounded" />
+                    </div>
+                  </div>
+                ))
+              ) : myProjects.length > 0 ? (
+                myProjects.map((p) => (
+                  <div key={p.id} className="grid grid-cols-12 gap-4 px-5 py-4 border-b border-border-dark/50 hover:bg-white/[0.02] transition-colors items-center">
+                    <div className="col-span-5 flex items-center gap-3">
+                      <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", p.iconBg)}>
+                        <span className={cn("material-symbols-outlined text-lg", p.iconColor)}>{p.icon}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{p.title}</p>
+                        <p className="text-xs text-slate-500">{p.category}</p>
+                      </div>
+                    </div>
+                    <div className="col-span-4 flex items-center gap-3">
+                      <span className="text-xs font-semibold text-slate-400 w-8">{p.progress}%</span>
+                      <div className="flex-1 h-2 bg-border-dark rounded-full overflow-hidden">
+                        <div className={cn("h-full rounded-full transition-all", p.barColor)} style={{ width: `${p.progress}%` }} />
+                      </div>
+                      <span className={cn("text-xs font-semibold", p.statusColor)}>{p.statusLabel}</span>
+                    </div>
+                    <div className="col-span-3 text-right text-sm text-slate-400">
+                      {p.deadline || "N/A"}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="px-5 py-10 text-center text-slate-500 text-sm">
+                  <span className="material-symbols-outlined text-3xl mb-2 block">folder_off</span>
+                  Aucun projet actif
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

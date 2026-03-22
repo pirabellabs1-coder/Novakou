@@ -391,7 +391,7 @@ export default function ClientDisputes() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {[
           { key: "tous", label: "Tous" },
           { key: "en_cours", label: "En cours" },

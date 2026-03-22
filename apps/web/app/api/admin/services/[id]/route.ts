@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { serviceStore } from "@/lib/dev/data-store";
 import { devStore } from "@/lib/dev/dev-store";
 import { emitEvent } from "@/lib/events/dispatcher";
@@ -23,7 +23,7 @@ export async function PATCH(
     const body = await request.json();
     const { action, reason } = body;
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const service = serviceStore.getById(id);
       if (!service) {
         return NextResponse.json({ error: "Service introuvable" }, { status: 404 });

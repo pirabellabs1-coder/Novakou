@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
+import { prisma } from "@/lib/prisma";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { projectStore } from "@/lib/dev/data-store";
 import { z } from "zod";
 
@@ -16,23 +18,32 @@ const createProjectSchema = z.object({
   skills: z.array(z.string()).max(20).optional(),
 }).refine(
   (data) => !data.budgetMin || !data.budgetMax || data.budgetMin <= data.budgetMax,
-  { message: "Le budget min doit etre inferieur au budget max", path: ["budgetMax"] }
+  { message: "Le budget min doit être inférieur au budget max", path: ["budgetMax"] }
 );
 
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
-    const projects = projectStore.getAll();
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
+      const projects = projectStore.getAll().filter((p) => p.clientId === session.user.id);
+      return NextResponse.json({ projects });
+    }
+
+    // Prisma
+    const projects = await prisma.project.findMany({
+      where: { clientId: session.user.id },
+      orderBy: { createdAt: "desc" },
+    });
 
     return NextResponse.json({ projects });
   } catch (error) {
     console.error("[API /projects GET]", error);
     return NextResponse.json(
-      { error: "Erreur lors de la recuperation des projets" },
+      { error: "Erreur lors de la récupération des projets" },
       { status: 500 }
     );
   }
@@ -42,33 +53,53 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
 
     const body = await req.json();
     const result = createProjectSchema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { error: "Donnees invalides", details: z.treeifyError(result.error) },
+        { error: "Données invalides", details: result.error.flatten() },
         { status: 400 }
       );
     }
     const { title, description, category, budgetMin, budgetMax, deadline, urgency, contractType, skills } = result.data;
 
-    const project = projectStore.create({
-      clientId: session.user.id,
-      clientName: session.user.name || "Client",
-      clientCountry: "FR",
-      clientRating: 0,
-      title,
-      description,
-      category: category || "general",
-      budgetMin: budgetMin || 0,
-      budgetMax: budgetMax || 0,
-      deadline: deadline || new Date(Date.now() + 30 * 86400000).toISOString(),
-      urgency: urgency || "normale",
-      contractType: contractType || "ponctuel",
-      skills: skills || [],
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
+      const project = projectStore.create({
+        clientId: session.user.id,
+        clientName: session.user.name || "Client",
+        clientCountry: "FR",
+        clientRating: 0,
+        title,
+        description,
+        category: category || "general",
+        budgetMin: budgetMin || 0,
+        budgetMax: budgetMax || 0,
+        deadline: deadline || new Date(Date.now() + 30 * 86400000).toISOString(),
+        urgency: urgency || "normale",
+        contractType: contractType || "ponctuel",
+        skills: skills || [],
+      });
+      return NextResponse.json({ project }, { status: 201 });
+    }
+
+    // Prisma
+    const project = await prisma.project.create({
+      data: {
+        clientId: session.user.id,
+        title,
+        description,
+        category: category || "general",
+        budgetMin: budgetMin || 0,
+        budgetMax: budgetMax || 0,
+        deadline: deadline ? new Date(deadline) : new Date(Date.now() + 30 * 86400000),
+        urgency: urgency || "normale",
+        contractType: contractType || "ponctuel",
+        skills: skills || [],
+        status: "ouvert",
+      },
     });
 
     return NextResponse.json({ project }, { status: 201 });

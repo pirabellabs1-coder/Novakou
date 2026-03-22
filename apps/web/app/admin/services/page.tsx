@@ -7,10 +7,16 @@ import { cn } from "@/lib/utils";
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   actif: { label: "Actif", cls: "bg-emerald-500/20 text-emerald-400" },
+  ACTIF: { label: "Actif", cls: "bg-emerald-500/20 text-emerald-400" },
   en_attente: { label: "En attente", cls: "bg-amber-500/20 text-amber-400" },
+  EN_ATTENTE: { label: "En attente", cls: "bg-amber-500/20 text-amber-400" },
   refuse: { label: "Refusé", cls: "bg-red-500/20 text-red-400" },
+  REFUSE: { label: "Refusé", cls: "bg-red-500/20 text-red-400" },
   pause: { label: "En pause", cls: "bg-slate-500/20 text-slate-400" },
+  PAUSE: { label: "En pause", cls: "bg-slate-500/20 text-slate-400" },
   vedette: { label: "En vedette", cls: "bg-purple-500/20 text-purple-400" },
+  VEDETTE: { label: "En vedette", cls: "bg-purple-500/20 text-purple-400" },
+  BROUILLON: { label: "Brouillon", cls: "bg-slate-500/20 text-slate-400" },
 };
 
 function CardSkeleton() {
@@ -97,15 +103,15 @@ export default function AdminServices() {
 
   const filtered = useMemo(() => {
     if (tab === "tous") return typedServices;
-    return typedServices.filter(s => s.status === tab);
+    return typedServices.filter(s => s.status.toLowerCase() === tab);
   }, [tab, typedServices]);
 
   const stats = useMemo(() => ({
-    en_attente: typedServices.filter(s => s.status === "en_attente").length,
-    actif: typedServices.filter(s => s.status === "actif").length,
-    refuse: typedServices.filter(s => s.status === "refuse").length,
-    vedette: typedServices.filter(s => s.status === "vedette").length,
-    pause: typedServices.filter(s => s.status === "pause").length,
+    en_attente: typedServices.filter(s => s.status.toLowerCase() === "en_attente").length,
+    actif: typedServices.filter(s => s.status.toLowerCase() === "actif").length,
+    refuse: typedServices.filter(s => s.status.toLowerCase() === "refuse").length,
+    vedette: typedServices.filter(s => s.status.toLowerCase() === "vedette").length,
+    pause: typedServices.filter(s => s.status.toLowerCase() === "pause").length,
   }), [typedServices]);
 
   async function handleApprove(id: string) {
@@ -270,10 +276,10 @@ export default function AdminServices() {
                           <button onClick={() => handlePause(s.id)} disabled={actionLoading} className="px-3 py-1.5 bg-border-dark text-slate-300 text-xs font-bold rounded-lg hover:bg-border-dark/80 transition-colors disabled:opacity-50">Pause</button>
                         </>
                       )}
-                      {s.status === "vedette" && (
+                      {s.status.toLowerCase() === "vedette" && (
                         <button onClick={() => handlePause(s.id)} disabled={actionLoading} className="px-3 py-1.5 bg-border-dark text-slate-300 text-xs font-bold rounded-lg hover:bg-border-dark/80 transition-colors disabled:opacity-50">Retirer vedette</button>
                       )}
-                      {(s.status === "pause" || s.status === "refuse") && (
+                      {(s.status.toLowerCase() === "pause" || s.status.toLowerCase() === "refuse") && (
                         <button onClick={() => handleApprove(s.id)} disabled={actionLoading} className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50">Réactiver</button>
                       )}
                       <button onClick={() => setDeleteId(s.id)} className="px-3 py-1.5 bg-red-500/10 text-red-400 text-xs font-bold rounded-lg hover:bg-red-500/20 transition-colors">

@@ -199,7 +199,7 @@ export default function ClientReviews() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setTab("donnes")}
           className={cn(

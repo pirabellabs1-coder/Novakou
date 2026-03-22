@@ -916,8 +916,8 @@ export default function ExplorerPage() {
       {/* ---- Main content ---- */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
         {/* ---- Filters row (desktop) + mobile filter button ---- */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3 mb-5">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {/* Mobile: "Filtres" button */}
             <button
               onClick={() => setMobileFiltersOpen(true)}
@@ -940,7 +940,7 @@ export default function ExplorerPage() {
                 icon="payments"
                 isActive={filters.priceMin !== "" || filters.priceMax !== ""}
               >
-                <div className="flex items-center gap-2 min-w-[240px]">
+                <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto sm:min-w-[200px]">
                   <input
                     type="number"
                     placeholder={t("filter_min")}
@@ -965,7 +965,7 @@ export default function ExplorerPage() {
                 icon="schedule"
                 isActive={filters.delivery !== "all"}
               >
-                <div className="flex flex-col gap-1 min-w-[180px]">
+                <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto sm:min-w-[200px]">
                   {DELIVERY_VALUES.map((val) => (
                     <button
                       key={val}
@@ -989,7 +989,7 @@ export default function ExplorerPage() {
                 icon="star"
                 isActive={filters.minRating > 0}
               >
-                <div className="flex flex-col gap-1 min-w-[180px]">
+                <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto sm:min-w-[200px]">
                   <button
                     onClick={() => updateFilter("minRating", 0)}
                     className={cn(
@@ -1029,7 +1029,7 @@ export default function ExplorerPage() {
                 icon="public"
                 isActive={filters.country !== "tous"}
               >
-                <div className="flex flex-col gap-1 min-w-[180px] max-h-[280px] overflow-y-auto">
+                <div className="flex flex-col gap-1 min-w-0 w-full sm:w-auto sm:min-w-[200px] max-h-[280px] overflow-y-auto">
                   {COUNTRY_KEYS.map((key) => (
                     <button
                       key={key}
@@ -1078,11 +1078,11 @@ export default function ExplorerPage() {
             </select>
 
             {/* View toggle */}
-            <div className="hidden sm:flex items-center border border-slate-200 dark:border-border-dark rounded-lg overflow-hidden">
+            <div className="flex items-center border border-slate-200 dark:border-border-dark rounded-lg overflow-hidden">
               <button
                 onClick={() => setView("grid")}
                 className={cn(
-                  "p-2 transition-colors",
+                  "p-1.5 sm:p-2 transition-colors",
                   view === "grid" ? "bg-primary text-white" : "text-slate-500 hover:text-primary"
                 )}
               >
@@ -1091,7 +1091,7 @@ export default function ExplorerPage() {
               <button
                 onClick={() => setView("list")}
                 className={cn(
-                  "p-2 transition-colors",
+                  "p-1.5 sm:p-2 transition-colors",
                   view === "list" ? "bg-primary text-white" : "text-slate-500 hover:text-primary"
                 )}
               >
@@ -1106,7 +1106,7 @@ export default function ExplorerPage() {
           <div
             className={cn(
               view === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5"
                 : "flex flex-col gap-3 sm:gap-4"
             )}
           >
@@ -1133,7 +1133,7 @@ export default function ExplorerPage() {
           <div
             className={cn(
               view === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-5"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5"
                 : "flex flex-col gap-3 sm:gap-4"
             )}
           >

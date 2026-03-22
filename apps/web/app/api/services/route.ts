@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import {
   serviceStore,
   notificationStore,
@@ -20,7 +20,7 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const services = serviceStore.getByUser(session.user.id);
 
       return NextResponse.json(services);
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     // --- Plan enforcement: check service limit ---
     const userPlan = normalizePlanName(session.user.plan);
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const activeServices = serviceStore.getByUser(session.user.id)
         .filter((s) => s.status === "actif" || s.status === "en_attente");
       if (!canCreateService(userPlan, activeServices.length)) {
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       // Resolve category and subcategory names
       const categoryName = getCategoryName(body.categoryId);
       const subCategoryName = getSubCategoryName(
