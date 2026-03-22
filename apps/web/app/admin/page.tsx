@@ -147,7 +147,7 @@ export default function AdminDashboard() {
             onClick={handleManualRefresh}
             disabled={loading.dashboard}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-primary/10 border border-border-dark transition-colors disabled:opacity-50"
-            title="Actualiser les donnees"
+            title="Actualiser les données"
           >
             <span className={cn("material-symbols-outlined text-sm", loading.dashboard && "animate-spin")}>refresh</span>
             Actualiser

@@ -159,7 +159,7 @@ export default function AdminUsers() {
           <span className="material-symbols-outlined text-primary">people</span>
           Utilisateurs
         </h1>
-        <p className="text-slate-400 text-sm mt-1">Gerez les {stats.total} comptes de la plateforme.</p>
+        <p className="text-slate-400 text-sm mt-1">Gérez les {stats.total} comptes de la plateforme.</p>
       </div>
 
       {/* Stats rapides */}
@@ -390,9 +390,9 @@ export default function AdminUsers() {
               ))}
             </div>
             <div className="text-xs text-slate-500 mb-4 space-y-1">
-              <p>Niv. 1 : Email verifie — acces de base</p>
+              <p>Niv. 1 : Email vérifié — accès de base</p>
               <p>Niv. 2 : Acces elargi — commander, postuler</p>
-              <p>Niv. 3 : Identite verifiee — retirer, publier</p>
+              <p>Niv. 3 : Identité vérifiée — retirer, publier</p>
               <p>Niv. 4 : Verification pro — badge Elite</p>
             </div>
             <div className="flex gap-3">

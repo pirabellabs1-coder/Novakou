@@ -132,7 +132,7 @@ export const ADMIN_NAV_PERMISSIONS: Record<string, AdminPermission> = {
 
 export const ADMIN_ROLE_LABELS: Record<AdminRole, string> = {
   super_admin: "Super Admin",
-  moderateur: "Moderateur",
+  moderateur: "Modérateur",
   validateur_kyc: "Validateur KYC",
   analyste: "Analyste",
   support: "Support",

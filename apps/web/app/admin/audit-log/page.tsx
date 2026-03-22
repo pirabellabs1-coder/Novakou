@@ -7,18 +7,18 @@ import { cn } from "@/lib/utils";
 const ACTION_LABELS: Record<string, { label: string; color: string; icon: string }> = {
   suspend_user: { label: "Suspension", color: "text-amber-400 bg-amber-500/10", icon: "pause_circle" },
   ban_user: { label: "Bannissement", color: "text-red-400 bg-red-500/10", icon: "block" },
-  reactivate_user: { label: "Reactivation", color: "text-green-400 bg-green-500/10", icon: "check_circle" },
-  change_role: { label: "Changement role", color: "text-blue-400 bg-blue-500/10", icon: "swap_horiz" },
+  reactivate_user: { label: "Réactivation", color: "text-green-400 bg-green-500/10", icon: "check_circle" },
+  change_role: { label: "Changement rôle", color: "text-blue-400 bg-blue-500/10", icon: "swap_horiz" },
   change_plan: { label: "Changement plan", color: "text-purple-400 bg-purple-500/10", icon: "workspace_premium" },
-  verify_kyc: { label: "Verification KYC", color: "text-green-400 bg-green-500/10", icon: "verified" },
-  approve_kyc: { label: "KYC approuve", color: "text-green-400 bg-green-500/10", icon: "verified" },
-  refuse_kyc: { label: "KYC refuse", color: "text-red-400 bg-red-500/10", icon: "cancel" },
-  resolve_dispute: { label: "Litige resolu", color: "text-blue-400 bg-blue-500/10", icon: "gavel" },
+  verify_kyc: { label: "Vérification KYC", color: "text-green-400 bg-green-500/10", icon: "verified" },
+  approve_kyc: { label: "KYC approuvé", color: "text-green-400 bg-green-500/10", icon: "verified" },
+  refuse_kyc: { label: "KYC refusé", color: "text-red-400 bg-red-500/10", icon: "cancel" },
+  resolve_dispute: { label: "Litige résolu", color: "text-blue-400 bg-blue-500/10", icon: "gavel" },
   impersonate: { label: "Impersonation", color: "text-amber-400 bg-amber-500/10", icon: "visibility" },
   reset_password: { label: "Reset mdp", color: "text-amber-400 bg-amber-500/10", icon: "lock_reset" },
-  approve_service: { label: "Service approuve", color: "text-green-400 bg-green-500/10", icon: "check_circle" },
-  refuse_service: { label: "Service refuse", color: "text-red-400 bg-red-500/10", icon: "cancel" },
-  update_config: { label: "Config modifiee", color: "text-blue-400 bg-blue-500/10", icon: "settings" },
+  approve_service: { label: "Service approuvé", color: "text-green-400 bg-green-500/10", icon: "check_circle" },
+  refuse_service: { label: "Service refusé", color: "text-red-400 bg-red-500/10", icon: "cancel" },
+  update_config: { label: "Config modifiée", color: "text-blue-400 bg-blue-500/10", icon: "settings" },
   send_notification: { label: "Notification", color: "text-primary bg-primary/10", icon: "notifications" },
 };
 
@@ -106,7 +106,7 @@ export default function AuditLogPage() {
           e.adminName.toLowerCase().includes(q) ||
           (e.targetUserName?.toLowerCase().includes(q) ?? false) ||
           e.action.toLowerCase().includes(q) ||
-          e.details.toLowerCase().includes(q)
+          (typeof e.details === "string" ? e.details : JSON.stringify(e.details)).toLowerCase().includes(q)
       );
     }
     return list;
@@ -116,7 +116,7 @@ export default function AuditLogPage() {
     const header = "Date,Admin,Action,Cible,Details\n";
     const rows = filtered
       .map((e) =>
-        `"${formatDateTime(e.createdAt)}","${e.adminName}","${e.action}","${e.targetUserName ?? "-"}","${e.details}"`
+        `"${formatDateTime(e.createdAt)}","${e.adminName}","${e.action}","${e.targetUserName ?? "-"}","${typeof e.details === "string" ? e.details : JSON.stringify(e.details)}"`
       )
       .join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
@@ -136,7 +136,7 @@ export default function AuditLogPage() {
         <div>
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight">Journal d&apos;audit</h2>
           <p className="text-slate-400 mt-1">
-            {auditLog.length} action{auditLog.length !== 1 ? "s" : ""} enregistree{auditLog.length !== 1 ? "s" : ""}
+            {auditLog.length} action{auditLog.length !== 1 ? "s" : ""} enregistrée{auditLog.length !== 1 ? "s" : ""}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -191,7 +191,7 @@ export default function AuditLogPage() {
             onClick={() => { setFilterAction("tous"); setFilterDate(""); setSearch(""); }}
             className="px-3 py-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
           >
-            Reinitialiser
+            Réinitialiser
           </button>
         )}
       </div>
@@ -200,8 +200,8 @@ export default function AuditLogPage() {
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-500">
           <span className="material-symbols-outlined text-5xl mb-3">history</span>
-          <p className="font-medium">Aucune action enregistree</p>
-          <p className="text-xs mt-1">Les actions admin apparaitront ici automatiquement.</p>
+          <p className="font-medium">Aucune action enregistrée</p>
+          <p className="text-xs mt-1">Les actions admin apparaîtront ici automatiquement.</p>
         </div>
       ) : (
         <div className="bg-neutral-dark border border-border-dark rounded-xl overflow-hidden">
@@ -243,7 +243,9 @@ export default function AuditLogPage() {
                     </td>
                     <td className="px-4 py-3">
                       {entry.details ? (
-                        <span className="text-xs text-slate-400">{entry.details}</span>
+                        <span className="text-xs text-slate-400">
+                          {typeof entry.details === "string" ? entry.details : JSON.stringify(entry.details)}
+                        </span>
                       ) : (
                         <span className="text-xs text-slate-500">&mdash;</span>
                       )}

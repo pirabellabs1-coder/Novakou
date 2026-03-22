@@ -6,10 +6,10 @@ import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
 
 const LEVEL_MAP: Record<number, { label: string; desc: string; color: string }> = {
-  1: { label: "Niveau 1", desc: "Email verifie", color: "text-slate-400" },
-  2: { label: "Niveau 2", desc: "Acces de base", color: "text-blue-400" },
-  3: { label: "Niveau 3", desc: "Identite verifiee", color: "text-amber-400" },
-  4: { label: "Niveau 4", desc: "Verification pro", color: "text-emerald-400" },
+  1: { label: "Niveau 1", desc: "Email vérifié", color: "text-slate-400" },
+  2: { label: "Niveau 2", desc: "Accès de base", color: "text-blue-400" },
+  3: { label: "Niveau 3", desc: "Identité vérifiée", color: "text-amber-400" },
+  4: { label: "Niveau 4", desc: "Vérification pro", color: "text-emerald-400" },
 };
 
 function KycSkeleton() {
@@ -55,7 +55,7 @@ function DocumentImage({ url, label }: { url: string; label: string }) {
     <a href={url} target="_blank" rel="noopener noreferrer" className="block group">
       <div className="border border-border-dark rounded-lg overflow-hidden hover:border-primary/30 transition-colors">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt={label} className="w-full h-40 object-cover group-hover:scale-105 transition-transform" />
+        <img src={url} alt={label} className="w-full h-40 object-cover group-hover:scale-105 transition-transform" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; (e.target as HTMLImageElement).parentElement!.innerHTML = `<div class="w-full h-40 flex flex-col items-center justify-center bg-background-dark"><span class="material-symbols-outlined text-3xl text-slate-500">broken_image</span><p class="text-xs text-slate-500 mt-1">Image non disponible</p></div>`; }} />
         <p className="text-xs text-center text-slate-400 py-1.5 bg-background-dark">{label}</p>
       </div>
     </a>
@@ -88,15 +88,15 @@ function KycRequestDetails({ request }: { request: any }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           {request.agencyName && <div><p className="text-xs text-slate-500">Nom de l&apos;agence</p><p className="text-white font-medium">{request.agencyName}</p></div>}
           {request.siretNumber && <div><p className="text-xs text-slate-500">SIRET</p><p className="text-white font-medium">{request.siretNumber}</p></div>}
-          {request.legalRepName && <div><p className="text-xs text-slate-500">Representant legal</p><p className="text-white font-medium">{request.legalRepName}</p></div>}
+          {request.legalRepName && <div><p className="text-xs text-slate-500">Représentant légal</p><p className="text-white font-medium">{request.legalRepName}</p></div>}
           {request.email && <div><p className="text-xs text-slate-500">Email</p><p className="text-white font-medium">{request.email}</p></div>}
-          {request.phone && <div><p className="text-xs text-slate-500">Telephone</p><p className="text-white font-medium">{request.phone}</p></div>}
+          {request.phone && <div><p className="text-xs text-slate-500">Téléphone</p><p className="text-white font-medium">{request.phone}</p></div>}
           {request.country && <div><p className="text-xs text-slate-500">Pays / Ville</p><p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p></div>}
           {request.address && <div className="sm:col-span-2"><p className="text-xs text-slate-500">Adresse</p><p className="text-white font-medium">{request.address}</p></div>}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-          {request.firstName && <div><p className="text-xs text-slate-500">Prenom</p><p className="text-white font-medium">{request.firstName}</p></div>}
+          {request.firstName && <div><p className="text-xs text-slate-500">Prénom</p><p className="text-white font-medium">{request.firstName}</p></div>}
           {request.lastName && <div><p className="text-xs text-slate-500">Nom</p><p className="text-white font-medium">{request.lastName}</p></div>}
           {request.dateOfBirth && <div><p className="text-xs text-slate-500">Date de naissance</p><p className="text-white font-medium">{new Date(request.dateOfBirth).toLocaleDateString("fr-FR")}</p></div>}
           {request.country && <div><p className="text-xs text-slate-500">Pays / Ville</p><p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p></div>}
@@ -113,9 +113,9 @@ function KycRequestDetails({ request }: { request: any }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {request.documentFrontUrl && <DocumentImage url={request.documentFrontUrl} label="Recto du document" />}
           {request.documentBackUrl && <DocumentImage url={request.documentBackUrl} label="Verso du document" />}
-          {request.selfieUrl && <DocumentImage url={request.selfieUrl} label="Selfie de verification" />}
+          {request.selfieUrl && <DocumentImage url={request.selfieUrl} label="Selfie de vérification" />}
           {request.registrationDocUrl && <DocumentImage url={request.registrationDocUrl} label="Doc entreprise" />}
-          {request.representativeIdUrl && <DocumentImage url={request.representativeIdUrl} label="ID Representant" />}
+          {request.representativeIdUrl && <DocumentImage url={request.representativeIdUrl} label="ID Représentant" />}
           {request.documentUrl && !request.documentFrontUrl && !request.registrationDocUrl && (
             <DocumentImage url={request.documentUrl} label="Document" />
           )}
@@ -183,7 +183,7 @@ export default function AdminKYC() {
     const ok = await approveKyc(userId, nextLevel, req?.requestId);
     setActionLoading(null);
     if (ok) {
-      addToast("success", `KYC de ${req?.name} approuve — niveau ${nextLevel} active`);
+      addToast("success", `KYC de ${req?.name} approuvé — niveau ${nextLevel} activé`);
       // Also refresh details
       fetchKycDetails();
     } else {
@@ -201,7 +201,7 @@ export default function AdminKYC() {
     const ok = await refuseKyc(rejectUserId, rejectReason, req?.requestId);
     setActionLoading(null);
     if (ok) {
-      addToast("success", `KYC de ${req?.name} refuse`);
+      addToast("success", `KYC de ${req?.name} refusé`);
     } else {
       addToast("error", "Erreur lors du refus du KYC");
     }
@@ -215,9 +215,9 @@ export default function AdminKYC() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
             <span className="material-symbols-outlined text-primary">verified</span>
-            Verifications KYC
+            Vérifications KYC
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Validez les demandes de verification d&apos;identite.</p>
+          <p className="text-slate-400 text-sm mt-1">Validez les demandes de vérification d&apos;identité.</p>
         </div>
         <KycSkeleton />
       </div>
@@ -229,18 +229,18 @@ export default function AdminKYC() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
           <span className="material-symbols-outlined text-primary">verified</span>
-          Verifications KYC
+          Vérifications KYC
         </h1>
-        <p className="text-slate-400 text-sm mt-1">Validez les demandes de verification d&apos;identite.</p>
+        <p className="text-slate-400 text-sm mt-1">Validez les demandes de vérification d&apos;identité.</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {[
           { label: "Total demandes", value: stats.total, color: "text-primary", icon: "assignment" },
-          { label: "Identite (Niv. 3)", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
+          { label: "Identité (Niv. 3)", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
           { label: "Pro (Niv. 4)", value: stats.byLevel["4"] ?? 0, color: "text-emerald-400", icon: "workspace_premium" },
-          { label: "Verifies (Niv. 4)", value: stats.byLevel["4"] ?? 0, color: "text-blue-400", icon: "verified" },
+          { label: "Vérifiés (Niv. 4)", value: stats.byLevel["4"] ?? 0, color: "text-blue-400", icon: "verified" },
         ].map(s => (
           <div key={s.label} className="bg-neutral-dark rounded-xl p-3 sm:p-4 lg:p-5 border border-border-dark">
             <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -256,7 +256,7 @@ export default function AdminKYC() {
       <div className="flex gap-2 border-b border-border-dark overflow-x-auto">
         {[
           { key: "all", label: "Tous", count: kycRequests.length },
-          { key: "3", label: "Identite", count: kycRequests.filter(r => r.nextLevel === 3).length },
+          { key: "3", label: "Identité", count: kycRequests.filter(r => r.nextLevel === 3).length },
           { key: "4", label: "Professionnel", count: kycRequests.filter(r => r.nextLevel === 4).length },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} className={cn("px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap flex items-center gap-1.5", tab === t.key ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>
@@ -321,7 +321,7 @@ export default function AdminKYC() {
         {filtered.length === 0 && (
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-slate-600">verified</span>
-            <p className="text-slate-500 mt-2">Aucune demande dans cette categorie</p>
+            <p className="text-slate-500 mt-2">Aucune demande dans cette catégorie</p>
           </div>
         )}
       </div>
@@ -331,16 +331,16 @@ export default function AdminKYC() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setRejectUserId(null)}>
           <div onClick={e => e.stopPropagation()} className="bg-neutral-dark rounded-2xl p-6 w-full max-w-md border border-border-dark shadow-2xl">
             <h3 className="font-bold text-lg text-white mb-4">Motif de refus</h3>
-            <p className="text-sm text-slate-400 mb-3">Ce motif sera communique a l&apos;utilisateur par email et notification.</p>
+            <p className="text-sm text-slate-400 mb-3">Ce motif sera communiqué à l&apos;utilisateur par email et notification.</p>
             {/* Presets de motifs de refus */}
             <div className="flex flex-wrap gap-2 mb-3">
               {[
                 "Document non lisible",
-                "Identite ne correspond pas",
-                "Document invalide ou expire",
-                "Informations incompletes",
+                "Identité ne correspond pas",
+                "Document invalide ou expiré",
+                "Informations incomplètes",
                 "Selfie ne correspond pas au document",
-                "Document non accepte",
+                "Document non accepté",
               ].map((reason) => (
                 <button
                   key={reason}
@@ -356,7 +356,7 @@ export default function AdminKYC() {
                 </button>
               ))}
             </div>
-            <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} placeholder="Expliquez le motif du refus ou selectionnez un motif ci-dessus..." className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-background-dark text-sm text-white placeholder:text-slate-500 outline-none resize-none mb-4 focus:ring-2 focus:ring-primary/30" />
+            <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)} rows={3} placeholder="Expliquez le motif du refus ou sélectionnez un motif ci-dessus..." className="w-full px-4 py-2.5 rounded-lg border border-border-dark bg-background-dark text-sm text-white placeholder:text-slate-500 outline-none resize-none mb-4 focus:ring-2 focus:ring-primary/30" />
             <div className="flex gap-3">
               <button onClick={() => setRejectUserId(null)} className="flex-1 py-2.5 border border-border-dark rounded-lg text-sm font-semibold text-slate-300 hover:bg-background-dark/50 transition-colors">Annuler</button>
               <button onClick={handleRefuse} disabled={actionLoading !== null} className="flex-1 py-2.5 bg-red-500 text-white rounded-lg text-sm font-bold hover:bg-red-600 transition-colors disabled:opacity-50">Confirmer le refus</button>

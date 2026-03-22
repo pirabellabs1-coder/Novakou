@@ -7,12 +7,12 @@ import { cn } from "@/lib/utils";
 
 const TYPE_MAP: Record<string, { label: string; cls: string; icon: string }> = {
   info: { label: "Information", cls: "bg-blue-500/20 text-blue-400", icon: "info" },
-  success: { label: "Succes", cls: "bg-emerald-500/20 text-emerald-400", icon: "check_circle" },
+  success: { label: "Succès", cls: "bg-emerald-500/20 text-emerald-400", icon: "check_circle" },
   warning: { label: "Avertissement", cls: "bg-amber-500/20 text-amber-400", icon: "warning" },
   error: { label: "Erreur", cls: "bg-red-500/20 text-red-400", icon: "error" },
   annonce: { label: "Annonce", cls: "bg-primary/20 text-primary", icon: "campaign" },
   maintenance: { label: "Maintenance", cls: "bg-amber-500/20 text-amber-400", icon: "build" },
-  fonctionnalite: { label: "Fonctionnalite", cls: "bg-blue-500/20 text-blue-400", icon: "new_releases" },
+  fonctionnalite: { label: "Fonctionnalité", cls: "bg-blue-500/20 text-blue-400", icon: "new_releases" },
   promotion: { label: "Promotion", cls: "bg-emerald-500/20 text-emerald-400", icon: "local_offer" },
 };
 
@@ -21,8 +21,8 @@ const TARGET_OPTIONS: { value: string; label: string; target: Record<string, unk
   { value: "freelance", label: "Freelances", target: { role: "freelance" } },
   { value: "client", label: "Clients", target: { role: "client" } },
   { value: "agence", label: "Agences", target: { role: "agence" } },
-  { value: "pro", label: "Abonnes Pro", target: { plan: "pro" } },
-  { value: "business", label: "Abonnes Business", target: { plan: "business" } },
+  { value: "pro", label: "Abonnés Pro", target: { plan: "pro" } },
+  { value: "business", label: "Abonnés Business", target: { plan: "business" } },
 ];
 
 const CHANNEL_MAP: Record<string, { label: string; icon: string }> = {
@@ -120,9 +120,9 @@ export default function AdminNotifications() {
       setHistory((h) => [entry, ...h]);
 
       if (result.failedEmails && result.failedEmails > 0) {
-        addToast("warning", `${result.count} notification(s) envoyee(s) — ${result.failedEmails} email(s) echoue(s)`);
+        addToast("warning", `${result.count} notification(s) envoyée(s) — ${result.failedEmails} email(s) échoué(s)`);
       } else {
-        addToast("success", `${result.count} notification(s) envoyee(s) avec succes`);
+        addToast("success", `${result.count} notification(s) envoyée(s) avec succes`);
       }
       setForm({ title: "", message: "", type: "info", targetKey: "tous", channel: "in-app" });
     } else {
@@ -138,13 +138,13 @@ export default function AdminNotifications() {
             <span className="material-symbols-outlined text-primary">notifications</span>
             Notifications &amp; Emails
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Envoyer des notifications ciblees et consulter l&apos;historique.</p>
+          <p className="text-slate-400 text-sm mt-1">Envoyer des notifications ciblées et consulter l&apos;historique.</p>
         </div>
         {history.length > 0 && (
           <div className="flex items-center gap-2 text-sm">
             <span className="material-symbols-outlined text-primary text-lg">send</span>
             <span className="text-slate-400">
-              <span className="font-bold text-white">{history.length}</span> notification{history.length > 1 ? "s" : ""} envoyee{history.length > 1 ? "s" : ""} cette session
+              <span className="font-bold text-white">{history.length}</span> notification{history.length > 1 ? "s" : ""} envoyée{history.length > 1 ? "s" : ""} cette session
             </span>
           </div>
         )}
@@ -153,7 +153,7 @@ export default function AdminNotifications() {
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {[
-          { label: "Envoyees (session)", value: history.length, icon: "send", color: "text-primary" },
+          { label: "Envoyées (session)", value: history.length, icon: "send", color: "text-primary" },
           { label: "Destinataires totaux", value: history.reduce((acc, h) => acc + h.count, 0), icon: "people", color: "text-blue-400" },
           { label: "In-app", value: history.filter((h) => h.channel === "in-app").length, icon: "notifications", color: "text-emerald-400" },
           { label: "Email", value: history.filter((h) => h.channel === "email").length, icon: "mail", color: "text-amber-400" },
@@ -299,8 +299,8 @@ export default function AdminNotifications() {
           ) : history.length === 0 ? (
             <div className="text-center py-12">
               <span className="material-symbols-outlined text-4xl text-slate-600">notifications_off</span>
-              <p className="text-sm text-slate-500 mt-2">Aucune notification envoyee</p>
-              <p className="text-xs text-slate-600 mt-1">Les notifications envoyees apparaitront ici.</p>
+              <p className="text-sm text-slate-500 mt-2">Aucune notification envoyée</p>
+              <p className="text-xs text-slate-600 mt-1">Les notifications envoyées apparaîtront ici.</p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-1">

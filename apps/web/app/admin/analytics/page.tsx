@@ -98,7 +98,7 @@ export default function AdminAnalytics() {
               <span className="material-symbols-outlined text-primary">bar_chart</span>
               Analytics Plateforme
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Vue complete des performances de FreelanceHigh.</p>
+            <p className="text-slate-400 text-sm mt-1">Vue complète des performances de FreelanceHigh.</p>
           </div>
         </div>
         <AnalyticsSkeleton />
@@ -142,7 +142,7 @@ export default function AdminAnalytics() {
 
   // Review stats distribution for pie chart
   const reviewDistribution = analytics.reviewStats.distribution.map(d => ({
-    name: `${d.stars} etoile${d.stars > 1 ? "s" : ""}`,
+    name: `${d.stars} étoile${d.stars > 1 ? "s" : ""}`,
     value: d.count,
   }));
 
@@ -154,14 +154,14 @@ export default function AdminAnalytics() {
             <span className="material-symbols-outlined text-primary">bar_chart</span>
             Analytics Plateforme
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Vue complete des performances de FreelanceHigh.</p>
+          <p className="text-slate-400 text-sm mt-1">Vue complète des performances de FreelanceHigh.</p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={handleManualRefresh}
             disabled={loading.analytics}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-primary/10 border border-border-dark transition-colors disabled:opacity-50"
-            title="Actualiser les donnees"
+            title="Actualiser les données"
           >
             <span className={cn("material-symbols-outlined text-sm", loading.analytics && "animate-spin")}>refresh</span>
             Actualiser
@@ -178,7 +178,7 @@ export default function AdminAnalytics() {
               </button>
             ))}
           </div>
-          <button onClick={() => addToast("success", "Rapport exporte")} className="px-3 py-1.5 border border-border-dark rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-primary/5 flex items-center gap-1 transition-colors">
+          <button onClick={() => addToast("success", "Rapport exporté")} className="px-3 py-1.5 border border-border-dark rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-primary/5 flex items-center gap-1 transition-colors">
             <span className="material-symbols-outlined text-sm">download</span>Export
           </button>
         </div>
@@ -187,9 +187,9 @@ export default function AdminAnalytics() {
       {/* KPI cards */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {[
-          { label: "Revenus totaux", value: `EUR${totalRevenue.toLocaleString()}`, icon: "payments", color: "text-primary" },
+          { label: "Revenus totaux", value: `${totalRevenue.toLocaleString()} €`, icon: "payments", color: "text-primary" },
           { label: "Taux conversion", value: `${avgConversion}%`, icon: "trending_up", color: "text-emerald-400" },
-          { label: "Commissions", value: `EUR${totalCommission.toLocaleString()}`, icon: "account_balance", color: "text-blue-400" },
+          { label: "Commissions", value: `${totalCommission.toLocaleString()} €`, icon: "account_balance", color: "text-blue-400" },
           { label: "Note moyenne", value: avgRating.toFixed(1), icon: "star", color: "text-amber-400" },
         ].map(s => (
           <div key={s.label} className="bg-neutral-dark rounded-xl p-5 border border-border-dark">
@@ -221,8 +221,8 @@ export default function AdminAnalytics() {
                 </linearGradient>
               </defs>
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 12 }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => `EUR${(v / 1000).toFixed(0)}k`} />
-              <Tooltip content={<ChartTooltip formatter={(v) => `EUR${v.toLocaleString()}`} />} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k €`} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString()} €`} />} />
               <Area type="monotone" dataKey="revenue" stroke="#6C2BD9" strokeWidth={2} fill="url(#revGrad)" name="Revenus" />
               <Area type="monotone" dataKey="commissions" stroke="#10B981" strokeWidth={2} fill="url(#commGrad)" name="Commissions" />
             </AreaChart>
@@ -230,7 +230,7 @@ export default function AdminAnalytics() {
         </div>
 
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Inscriptions recentes</h2>
+          <h2 className="font-bold text-white mb-4">Inscriptions récentes</h2>
           {rolePie.length > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={200}>
@@ -293,12 +293,12 @@ export default function AdminAnalytics() {
       {/* Revenue by category + Review distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-          <h2 className="font-bold text-white mb-4">Revenus par categorie</h2>
+          <h2 className="font-bold text-white mb-4">Revenus par catégorie</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={revenueByCategory} layout="vertical">
-              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => `EUR${(v / 1000).toFixed(0)}k`} />
+              <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontSize: 11 }} tickFormatter={v => `${(v / 1000).toFixed(0)}k €`} />
               <YAxis type="category" dataKey="category" axisLine={false} tickLine={false} tick={{ fill: "#94a3b8", fontSize: 11 }} width={130} />
-              <Tooltip content={<ChartTooltip formatter={(v) => `EUR${v.toLocaleString()}`} />} />
+              <Tooltip content={<ChartTooltip formatter={(v) => `${v.toLocaleString()} €`} />} />
               <Bar dataKey="revenue" radius={[0, 6, 6, 0]}>
                 {revenueByCategory.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
@@ -312,16 +312,16 @@ export default function AdminAnalytics() {
           <h2 className="font-bold text-white mb-4">Distribution des avis</h2>
           <div className="grid grid-cols-3 gap-3 mb-4">
             <div className="text-center">
-              <p className="text-xl font-bold text-white">{analytics.reviewStats.avgQualite.toFixed(1)}</p>
-              <p className="text-[10px] text-slate-500 uppercase">Qualite</p>
+              <p className="text-xl font-bold text-white">{analytics.reviewStats.avgQualité.toFixed(1)}</p>
+              <p className="text-[10px] text-slate-500 uppercase">Qualité</p>
             </div>
             <div className="text-center">
               <p className="text-xl font-bold text-white">{analytics.reviewStats.avgCommunication.toFixed(1)}</p>
               <p className="text-[10px] text-slate-500 uppercase">Communication</p>
             </div>
             <div className="text-center">
-              <p className="text-xl font-bold text-white">{analytics.reviewStats.avgDelai.toFixed(1)}</p>
-              <p className="text-[10px] text-slate-500 uppercase">Delai</p>
+              <p className="text-xl font-bold text-white">{analytics.reviewStats.avgDélai.toFixed(1)}</p>
+              <p className="text-[10px] text-slate-500 uppercase">Délai</p>
             </div>
           </div>
           <ResponsiveContainer width="100%" height={180}>
@@ -344,7 +344,7 @@ export default function AdminAnalytics() {
             </PieChart>
           </ResponsiveContainer>
           {analytics.reviewStats.reported > 0 && (
-            <p className="text-xs text-red-400 text-center mt-2">{analytics.reviewStats.reported} avis signale(s)</p>
+            <p className="text-xs text-red-400 text-center mt-2">{analytics.reviewStats.reported} avis signalé(s)</p>
           )}
         </div>
       </div>
@@ -376,7 +376,7 @@ export default function AdminAnalytics() {
                     <td className="px-4 py-2 text-sm text-slate-300 font-medium">{c.country}</td>
                     <td className="px-4 py-2 text-center text-sm font-bold text-white">{c.users}</td>
                     <td className="px-4 py-2 text-center text-sm text-slate-400">{c.orders}</td>
-                    <td className="px-4 py-2 text-right text-sm font-bold text-primary">EUR{c.revenue.toLocaleString()}</td>
+                    <td className="px-4 py-2 text-right text-sm font-bold text-primary">{c.revenue.toLocaleString()} €</td>
                     <td className="px-4 py-2">
                       <div className="flex items-center gap-2">
                         <div className="w-24 h-2 bg-border-dark rounded-full overflow-hidden">
@@ -398,7 +398,7 @@ export default function AdminAnalytics() {
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">monitoring</span>
-            Trafic en temps reel
+            Trafic en temps réel
           </h2>
           <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
             {[
@@ -425,7 +425,7 @@ export default function AdminAnalytics() {
                   <span className="text-sm font-bold text-white">{traffic.bounceRate.toFixed(1)}%</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-400">Duree moy. session</span>
+                  <span className="text-sm text-slate-400">Durée moy. session</span>
                   <span className="text-sm font-bold text-white">{Math.floor(traffic.avgSessionDuration / 60)}m {Math.round(traffic.avgSessionDuration % 60)}s</span>
                 </div>
               </div>
@@ -462,7 +462,7 @@ export default function AdminAnalytics() {
                   </div>
                 ))}
                 {(!traffic.topPages || traffic.topPages.length === 0) && (
-                  <p className="text-xs text-slate-600">Aucune donnee de trafic</p>
+                  <p className="text-xs text-slate-600">Aucune donnée de trafic</p>
                 )}
               </div>
             </div>

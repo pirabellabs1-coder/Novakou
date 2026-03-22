@@ -155,7 +155,7 @@ export default function AdminFormationsDashboardPage() {
       trend: stats?.trends?.revenueTrend ?? 0,
     },
     {
-      label: "Certificats delivres",
+      label: "Certificats délivrés",
       value: (stats?.certificatesIssued ?? 0).toLocaleString(),
       icon: Award,
       color: "text-amber-400",
@@ -296,7 +296,7 @@ export default function AdminFormationsDashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart message="Les revenus apparaitront lorsque des apprenants acheteront des formations." />
+            <EmptyChart message="Les revenus apparaîtront lorsque des apprenants achèteront des formations." />
           )}
         </div>
 
@@ -323,7 +323,7 @@ export default function AdminFormationsDashboardPage() {
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <EmptyChart message="Les statistiques d'inscriptions apparaitront lorsque des apprenants s'inscriront aux formations." />
+            <EmptyChart message="Les statistiques d'inscriptions apparaîtront lorsque des apprenants s'inscriront aux formations." />
           )}
         </div>
       </div>
@@ -366,7 +366,7 @@ export default function AdminFormationsDashboardPage() {
               </div>
             </div>
           ) : (
-            <EmptyChart message="Les categories apparaitront lorsque des formations seront publiees." />
+            <EmptyChart message="Les catégories apparaîtront lorsque des formations seront publiées." />
           )}
         </div>
 

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   ouvert: { label: "Ouvert", cls: "bg-red-500/20 text-red-400" },
   en_examen: { label: "En examen", cls: "bg-amber-500/20 text-amber-400" },
-  resolu: { label: "Resolu", cls: "bg-emerald-500/20 text-emerald-400" },
+  resolu: { label: "Résolu", cls: "bg-emerald-500/20 text-emerald-400" },
 };
 
 const VERDICT_MAP: Record<string, { label: string; cls: string }> = {
@@ -78,7 +78,7 @@ export default function AdminDisputes() {
     const ok = await examineDispute(id);
     setActionLoading(null);
     if (ok) {
-      addToast("info", "Litige passe en examen");
+      addToast("info", "Litige passé en examen");
     } else {
       addToast("error", "Erreur lors du passage en examen");
     }
@@ -96,11 +96,11 @@ export default function AdminDisputes() {
 
     if (ok) {
       const d = disputes.find(x => x.id === resolveId);
-      if (verdict === "client") addToast("success", `Litige resolu — EUR${d?.amount.toLocaleString()} rembourse au client`);
-      else if (verdict === "freelance") addToast("success", `Litige resolu — fonds liberes au freelance`);
-      else if (verdict === "partiel") addToast("success", `Litige resolu — remboursement partiel`);
+      if (verdict === "client") addToast("success", `Litige résolu — ${d?.amount.toLocaleString()} € remboursé au client`);
+      else if (verdict === "freelance") addToast("success", `Litige résolu — fonds libérés au freelance`);
+      else if (verdict === "partiel") addToast("success", `Litige résolu — remboursement partiel`);
     } else {
-      addToast("error", "Erreur lors de la resolution du litige");
+      addToast("error", "Erreur lors de la résolution du litige");
     }
 
     setResolveId(null);
@@ -130,7 +130,7 @@ export default function AdminDisputes() {
           <span className="material-symbols-outlined text-primary">gavel</span>
           Litiges
         </h1>
-        <p className="text-slate-400 text-sm mt-1">Gerez les litiges entre clients et freelances. EUR{stats.totalAmount.toLocaleString()} en jeu.</p>
+        <p className="text-slate-400 text-sm mt-1">Gérez les litiges entre clients et freelances. {stats.totalAmount.toLocaleString()} € en jeu.</p>
       </div>
 
       {/* Stats */}
@@ -138,7 +138,7 @@ export default function AdminDisputes() {
         {[
           { label: "Ouverts", value: stats.ouvert, color: "text-red-400", icon: "error" },
           { label: "En examen", value: stats.en_examen, color: "text-amber-400", icon: "pending" },
-          { label: "Resolus", value: disputeSummary?.resolved ?? stats.resolu, color: "text-emerald-400", icon: "check_circle" },
+          { label: "Résolus", value: disputeSummary?.resolved ?? stats.resolu, color: "text-emerald-400", icon: "check_circle" },
           { label: "Montant en jeu", value: `EUR${stats.totalAmount.toLocaleString()}`, color: "text-blue-400", icon: "payments" },
         ].map(s => (
           <div key={s.label} className="bg-neutral-dark rounded-xl p-4 border border-border-dark">
@@ -156,7 +156,7 @@ export default function AdminDisputes() {
         {[
           { key: "ouvert", label: "Ouverts", count: stats.ouvert },
           { key: "en_examen", label: "En examen", count: stats.en_examen },
-          { key: "resolu", label: "Resolus", count: stats.resolu },
+          { key: "resolu", label: "Résolus", count: stats.resolu },
           { key: "all", label: "Tous", count: stats.total },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} className={cn("px-3 sm:px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap flex items-center gap-1.5", tab === t.key ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-white")}>
@@ -201,15 +201,15 @@ export default function AdminDisputes() {
                       </div>
                     ))}
                     {d.timeline.length > 3 && (
-                      <p className="text-xs text-slate-500 pl-3.5">+ {d.timeline.length - 3} evenement(s)</p>
+                      <p className="text-xs text-slate-500 pl-3.5">+ {d.timeline.length - 3} événement(s)</p>
                     )}
                   </div>
                 )}
 
                 <div className="flex items-center gap-4 text-sm text-slate-400 flex-wrap">
-                  <span className="font-bold text-primary">EUR{d.amount.toLocaleString()}</span>
+                  <span className="font-bold text-primary">{d.amount.toLocaleString()} €</span>
                   <span>Ouvert le {new Date(d.createdAt).toLocaleDateString("fr-FR")}</span>
-                  {d.updatedAt !== d.createdAt && <span className="text-slate-500">Mis a jour le {new Date(d.updatedAt).toLocaleDateString("fr-FR")}</span>}
+                  {d.updatedAt !== d.createdAt && <span className="text-slate-500">Mis à jour le {new Date(d.updatedAt).toLocaleDateString("fr-FR")}</span>}
                 </div>
               </div>
               <div className="flex gap-2 shrink-0">
@@ -226,7 +226,7 @@ export default function AdminDisputes() {
                       onClick={() => { setResolveId(d.id); setVerdict("freelance"); }}
                       className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-colors"
                     >
-                      Resoudre
+                      Résoudre
                     </button>
                   </>
                 )}
@@ -245,7 +245,7 @@ export default function AdminDisputes() {
         {filtered.length === 0 && (
           <div className="text-center py-16">
             <span className="material-symbols-outlined text-5xl text-slate-600">gavel</span>
-            <p className="text-slate-500 mt-2">Aucun litige dans cette categorie</p>
+            <p className="text-slate-500 mt-2">Aucun litige dans cette catégorie</p>
           </div>
         )}
       </div>
@@ -254,12 +254,12 @@ export default function AdminDisputes() {
       {resolveId && dispute && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setResolveId(null)}>
           <div onClick={e => e.stopPropagation()} className="bg-neutral-dark rounded-2xl p-6 w-full max-w-lg border border-border-dark shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="font-bold text-lg text-white mb-4">Resoudre le litige {dispute.id}</h3>
+            <h3 className="font-bold text-lg text-white mb-4">Résoudre le litige {dispute.id}</h3>
 
             {/* Resume */}
             <div className="bg-background-dark rounded-xl p-4 mb-4 border border-border-dark/50 space-y-2">
               <p className="text-sm text-slate-300"><b className="text-white">Service :</b> {dispute.serviceTitle}</p>
-              <p className="text-sm text-slate-300"><b className="text-white">Montant :</b> <span className="text-primary font-bold">EUR{dispute.amount.toLocaleString()}</span></p>
+              <p className="text-sm text-slate-300"><b className="text-white">Montant :</b> <span className="text-primary font-bold">{dispute.amount.toLocaleString()} €</span></p>
               <p className="text-sm text-slate-300"><b className="text-white">Client :</b> {dispute.clientName}</p>
               <p className="text-sm text-slate-300"><b className="text-white">Freelance :</b> {dispute.freelanceName}</p>
             </div>
@@ -268,7 +268,7 @@ export default function AdminDisputes() {
             <label className="text-xs font-semibold text-slate-400 mb-2 block">Verdict</label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-4">
               {([
-                { key: "freelance" as const, label: "Freelance", desc: "Fonds liberes au freelance", icon: "person", color: "border-primary text-primary bg-primary/10" },
+                { key: "freelance" as const, label: "Freelance", desc: "Fonds libérés au freelance", icon: "person", color: "border-primary text-primary bg-primary/10" },
                 { key: "client" as const, label: "Client", desc: "Remboursement total au client", icon: "person", color: "border-blue-500 text-blue-400 bg-blue-500/10" },
                 { key: "partiel" as const, label: "Partiel", desc: "Remboursement partiel", icon: "pie_chart", color: "border-amber-500 text-amber-400 bg-amber-500/10" },
               ]).map(v => (

@@ -158,7 +158,7 @@ export default function AdminFinances() {
             onClick={handleManualRefresh}
             disabled={loading.finances}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-400 hover:text-white hover:bg-primary/10 border border-border-dark transition-colors disabled:opacity-50"
-            title="Actualiser les donnees"
+            title="Actualiser les données"
           >
             <span className={cn("material-symbols-outlined text-sm", loading.finances && "animate-spin")}>refresh</span>
             Actualiser
@@ -181,10 +181,10 @@ export default function AdminFinances() {
           Array.from({ length: 4 }).map((_, i) => <StatCardSkeleton key={i} />)
         ) : (
           [
-            { label: "Revenus plateforme", value: `€${platformRevenue.toLocaleString()}`, icon: "trending_up", color: "text-emerald-400", bgIcon: "bg-emerald-500/20", sub: "Commissions cumulées" },
-            { label: "Fonds en escrow", value: `€${escrowFunds.toLocaleString()}`, icon: "lock", color: "text-blue-400", bgIcon: "bg-blue-500/20", sub: "En attente de libération" },
-            { label: "Retraits en attente", value: `€${pendingWithdrawals.toLocaleString()}`, icon: "hourglass_top", color: "text-amber-400", bgIcon: "bg-amber-500/20", sub: "À traiter" },
-            { label: "Abonnements", value: `€${subscriptionRevenue.toLocaleString()}`, icon: "card_membership", color: "text-purple-400", bgIcon: "bg-purple-500/20", sub: "Revenus récurrents" },
+            { label: "Revenus plateforme", value: `${platformRevenue.toLocaleString()} €`, icon: "trending_up", color: "text-emerald-400", bgIcon: "bg-emerald-500/20", sub: "Commissions cumulées" },
+            { label: "Fonds en escrow", value: `${escrowFunds.toLocaleString()} €`, icon: "lock", color: "text-blue-400", bgIcon: "bg-blue-500/20", sub: "En attente de libération" },
+            { label: "Retraits en attente", value: `${pendingWithdrawals.toLocaleString()} €`, icon: "hourglass_top", color: "text-amber-400", bgIcon: "bg-amber-500/20", sub: "À traiter" },
+            { label: "Abonnements", value: `${subscriptionRevenue.toLocaleString()} €`, icon: "card_membership", color: "text-purple-400", bgIcon: "bg-purple-500/20", sub: "Revenus récurrents" },
           ].map(s => (
             <div key={s.label} className="bg-neutral-dark rounded-xl p-5 border border-border-dark">
               <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", s.bgIcon)}>

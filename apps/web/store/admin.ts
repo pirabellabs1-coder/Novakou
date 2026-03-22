@@ -208,7 +208,7 @@ export interface AdminAuditEntry {
   action: string;
   targetUserId?: string;
   targetUserName?: string;
-  details: string;
+  details: string | Record<string, unknown>;
   createdAt: string;
 }
 

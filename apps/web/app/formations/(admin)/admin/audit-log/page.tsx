@@ -45,7 +45,7 @@ const FILTER_TABS = [
   { value: "", label: "Tous" },
   { value: "approval", label: "Approbations" },
   { value: "rejection", label: "Rejets" },
-  { value: "moderation", label: "Mod\u00e9ration" },
+  { value: "moderation", label: "Modération" },
   { value: "refund", label: "Remboursements" },
 ];
 
@@ -169,7 +169,7 @@ export default function AdminAuditLogPage() {
             history
           </span>
           <p className="text-sm text-slate-400">
-            Aucune entr\u00e9e dans le journal d&apos;audit
+            Aucune entrée dans le journal d&apos;audit
           </p>
         </div>
       ) : (

@@ -27,13 +27,13 @@ export default function AdminTeamPage() {
     const ok = await inviteMember(inviteForm);
     setActionLoading(false);
     if (ok) {
-      addToast("success", `Invitation envoyee a ${inviteForm.name} (${inviteForm.email})`);
+      addToast("success", `Invitation envoyée à ${inviteForm.name} (${inviteForm.email})`);
       setShowInvite(false);
       setInviteForm({ email: "", name: "", adminRole: "moderateur" });
       // Re-sync to show the new member in the list
       syncTeam();
     } else {
-      addToast("error", "Erreur lors de l'invitation. Verifiez que l'email n'est pas deja utilise.");
+      addToast("error", "Erreur lors de l'invitation. Vérifiez que l'email n'est pas déjà utilisé.");
     }
   };
 
@@ -45,7 +45,7 @@ export default function AdminTeamPage() {
   };
 
   const handleRemove = async (memberId: string, name: string) => {
-    if (!confirm(`Retirer ${name} de l'equipe admin ?`)) return;
+    if (!confirm(`Retirer ${name} de l'équipe admin ?`)) return;
     setActionLoading(true);
     await removeMember(memberId);
     setActionLoading(false);
@@ -68,9 +68,9 @@ export default function AdminTeamPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Equipe d&apos;administration</h1>
+          <h1 className="text-2xl font-bold text-white">Équipe d&apos;administration</h1>
           <p className="text-sm text-slate-400 mt-1">
-            Gerez les membres et les roles de l&apos;equipe admin
+            Gérez les membres et les rôles de l&apos;équipe admin
           </p>
         </div>
         <button
@@ -105,7 +105,7 @@ export default function AdminTeamPage() {
                   value={inviteForm.name}
                   onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg bg-background-dark border border-border-dark text-white text-sm focus:outline-none focus:border-primary"
-                  placeholder="Prenom Nom"
+                  placeholder="Prénom Nom"
                 />
               </div>
               <div>
@@ -119,7 +119,7 @@ export default function AdminTeamPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-1">Role</label>
+                <label className="block text-sm font-semibold text-slate-300 mb-1">Rôle</label>
                 <select
                   value={inviteForm.adminRole}
                   onChange={(e) => setInviteForm({ ...inviteForm, adminRole: e.target.value })}
@@ -240,14 +240,14 @@ export default function AdminTeamPage() {
                         <button
                           onClick={() => { setEditingId(member.id); setEditRole(member.adminRole); }}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-border-dark transition-colors"
-                          title="Modifier le role"
+                          title="Modifier le rôle"
                         >
                           <span className="material-symbols-outlined text-sm">edit</span>
                         </button>
                         <button
                           onClick={() => handleRemove(member.id, member.name)}
                           className="p-1.5 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-colors"
-                          title="Retirer de l'equipe"
+                          title="Retirer de l'équipe"
                         >
                           <span className="material-symbols-outlined text-sm">person_remove</span>
                         </button>
@@ -260,7 +260,7 @@ export default function AdminTeamPage() {
               {teamMembers.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-slate-400 text-sm">
-                    Aucun membre dans l&apos;equipe
+                    Aucun membre dans l&apos;équipe
                   </td>
                 </tr>
               )}
@@ -271,12 +271,12 @@ export default function AdminTeamPage() {
 
       {/* Permissions reference */}
       <div className="bg-neutral-dark border border-border-dark rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">Reference des permissions</h2>
+        <h2 className="text-lg font-bold text-white mb-4">Référence des permissions</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {ALL_ADMIN_ROLES.map((role) => {
             const permsMap: Record<string, string[]> = {
-              super_admin: ["Acces complet a toutes les fonctionnalites"],
-              moderateur: ["Services (moderation)", "Blog (edition)", "Categories", "Journal d'audit"],
+              super_admin: ["Accès complet à toutes les fonctionnalités"],
+              moderateur: ["Services (modération)", "Blog (édition)", "Catégories", "Journal d'audit"],
               validateur_kyc: ["Utilisateurs (lecture)", "KYC (validation)", "Journal d'audit"],
               analyste: ["Dashboard", "Utilisateurs (lecture)", "Commandes (lecture)", "Finances (lecture)", "Analytics"],
               support: ["Utilisateurs (lecture)", "Commandes", "Litiges", "Messages", "Notifications"],

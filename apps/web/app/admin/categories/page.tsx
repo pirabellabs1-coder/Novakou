@@ -124,7 +124,7 @@ export default function AdminCategories() {
     const cat = categories.find(c => c.id === id);
     const linkedServices = cat?.servicesCount ?? 0;
     if (linkedServices > 0) {
-      addToast("warning", `${linkedServices} service(s) utilisent cette categorie. Reassignez-les d'abord.`);
+      addToast("warning", `${linkedServices} service(s) utilisent cette catégorie. Réassignez-les d'abord.`);
       setDeleteConfirm(null);
       return;
     }
