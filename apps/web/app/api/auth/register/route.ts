@@ -114,12 +114,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Un compte avec cet email existe deja" }, { status: 409 });
     }
 
+    const upperRole = role.toUpperCase() as "FREELANCE" | "CLIENT" | "AGENCE";
     const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
         name,
-        role: role.toUpperCase() as "FREELANCE" | "CLIENT" | "AGENCE",
+        role: upperRole,
         plan: "GRATUIT",
         status: "ACTIF",
         kyc: 1,
@@ -128,6 +129,25 @@ export async function POST(request: Request) {
       },
       select: { id: true, email: true, name: true, role: true },
     });
+
+    // Auto-create role-specific profile
+    try {
+      if (upperRole === "FREELANCE") {
+        await prisma.freelancerProfile.create({
+          data: { userId: user.id },
+        });
+      } else if (upperRole === "CLIENT") {
+        await prisma.clientProfile.create({
+          data: { userId: user.id },
+        });
+      } else if (upperRole === "AGENCE") {
+        await prisma.agencyProfile.create({
+          data: { userId: user.id, agencyName: name },
+        });
+      }
+    } catch (profileErr) {
+      console.error("[REGISTER] Auto-create profile error:", profileErr);
+    }
 
     // Emit welcome + verification events
     emitEvent("system.welcome", {

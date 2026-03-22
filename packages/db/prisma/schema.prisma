@@ -287,21 +287,29 @@ model Account {
 }
 
 model FreelancerProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  bio         String?  @db.Text
-  title       String?
-  skills      String[] @default([])
-  hourlyRate  Float?
-  availability String? // "disponible", "occupe", "vacances"
-  timezone    String?
-  languages   String[] @default([])
-  portfolio   Json?    // Array d'objets { title, description, imageUrl, link }
-  badges      String[] @default([])
-  completionRate Float @default(0)
-  avgResponseTime Int? // en minutes
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  bio              String?  @db.Text
+  title            String?
+  skills           String[] @default([])
+  hourlyRate       Float?
+  availability     Json?
+  timezone         String?
+  languages        Json?
+  portfolio        Json?
+  badges           String[] @default([])
+  completionRate   Float    @default(0)
+  completionPercent Float   @default(0)
+  avgResponseTime  Int?
+  phone            String?
+  coverPhoto       String?
+  city             String?
+  country          String?
+  education        Json?
+  links            Json?
+  vacationMode     Boolean  @default(false)
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model ClientProfile {
@@ -729,6 +737,8 @@ model KycRequest {
   reviewedBy      String?
   reviewedAt      DateTime?
   refuseReason    String?
+  metadata        Json?
+  submissionType  String?
 
   createdAt       DateTime  @default(now())
 
