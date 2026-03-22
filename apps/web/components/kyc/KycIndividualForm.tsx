@@ -374,9 +374,9 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
             </span>
           </div>
           <div>
-            <h3 className="font-bold text-white">Selfie de verification</h3>
+            <h3 className="font-bold text-white">Selfie de verification (camera uniquement)</h3>
             <p className="text-xs text-slate-400">
-              Prenez un selfie clair en tenant votre document d&apos;identite a cote de votre visage.
+              Votre camera frontale s&apos;ouvrira automatiquement. Prenez un selfie en tenant votre document d&apos;identite a cote de votre visage.
             </p>
           </div>
         </div>
@@ -413,7 +413,8 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
           required
           error={!!errors.selfieUrl}
           accept="image/jpeg,image/png"
-          hint="Photo de vous tenant votre document d'identite"
+          capture="user"
+          hint="Votre camera s'ouvrira pour prendre un selfie — les photos de galerie ne sont pas acceptees"
         />
       </div>
 

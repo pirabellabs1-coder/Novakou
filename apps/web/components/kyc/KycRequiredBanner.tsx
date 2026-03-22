@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { getKycStatusLabel, roleRequiresKyc } from "@/lib/auth/kyc-guard";
@@ -10,12 +11,30 @@ import { getKycStatusLabel, roleRequiresKyc } from "@/lib/auth/kyc-guard";
  * Ne s'affiche PAS pour les clients et apprenants.
  */
 export function KycRequiredBanner() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
+  const [apiKycLevel, setApiKycLevel] = useState<number | null>(null);
+
+  // Force JWT refresh on mount to pick up KYC level changes from admin
+  useEffect(() => {
+    update();
+    // Also check KYC level directly from API to avoid JWT cache issues
+    fetch("/api/kyc")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data?.currentLevel != null) {
+          setApiKycLevel(data.currentLevel);
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!session?.user) return null;
 
   const role = session.user.role;
-  const kycLevel = session.user.kyc ?? 1;
+  // Use the highest KYC level between JWT and API
+  const jwtKycLevel = session.user.kyc ?? 1;
+  const kycLevel = apiKycLevel !== null ? Math.max(jwtKycLevel, apiKycLevel) : jwtKycLevel;
 
   // Ne pas afficher pour les roles exempts
   if (!roleRequiresKyc(role)) return null;

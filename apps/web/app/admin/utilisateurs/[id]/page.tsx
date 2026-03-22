@@ -412,7 +412,7 @@ export default function UserDetailPage() {
                   className="w-full px-3 py-2 bg-background-dark border border-border-dark rounded-lg text-sm outline-none focus:ring-1 focus:ring-primary appearance-none"
                 >
                   <option value={1}>Niveau 1 — Email verifie</option>
-                  <option value={2}>Niveau 2 — Telephone verifie</option>
+                  <option value={2}>Niveau 2 — Acces elargi</option>
                   <option value={3}>Niveau 3 — Identite verifiee</option>
                   <option value={4}>Niveau 4 — Pro verifie</option>
                 </select>

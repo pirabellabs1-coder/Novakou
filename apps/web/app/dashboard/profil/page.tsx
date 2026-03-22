@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { ImageUpload } from "@/components/ui/image-upload";
@@ -31,11 +31,42 @@ const SAFE_DEFAULTS = {
 };
 
 export default function ProfilPage() {
-  const { profile, updateProfile, apiSaveProfile } = useDashboardStore();
+  const { profile, updateProfile, apiSaveProfile, syncFromApi } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
-  const [form, setForm] = useState({ ...SAFE_DEFAULTS, ...profile });
+  const [form, setForm] = useState(() => ({
+    ...SAFE_DEFAULTS,
+    ...profile,
+    skills: Array.isArray(profile?.skills) ? profile.skills : SAFE_DEFAULTS.skills,
+    languages: Array.isArray(profile?.languages) ? profile.languages : SAFE_DEFAULTS.languages,
+    education: Array.isArray(profile?.education) ? profile.education : SAFE_DEFAULTS.education,
+    links: profile?.links && typeof profile.links === "object" ? { ...SAFE_DEFAULTS.links, ...profile.links } : SAFE_DEFAULTS.links,
+  }));
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<"edition" | "preview">("edition");
+  const hasSynced = useRef(false);
+
+  // Sync profile from API on mount to ensure data persists after refresh
+  useEffect(() => {
+    if (!hasSynced.current) {
+      hasSynced.current = true;
+      syncFromApi();
+    }
+  }, [syncFromApi]);
+
+  // Re-initialize form when profile is loaded/updated from API
+  useEffect(() => {
+    if (profile && (profile.firstName || profile.email)) {
+      setForm({
+        ...SAFE_DEFAULTS,
+        ...profile,
+        // Ensure arrays are never undefined (prevents .map() crashes)
+        skills: Array.isArray(profile.skills) ? profile.skills : SAFE_DEFAULTS.skills,
+        languages: Array.isArray(profile.languages) ? profile.languages : SAFE_DEFAULTS.languages,
+        education: Array.isArray(profile.education) ? profile.education : SAFE_DEFAULTS.education,
+        links: profile.links && typeof profile.links === "object" ? { ...SAFE_DEFAULTS.links, ...profile.links } : SAFE_DEFAULTS.links,
+      });
+    }
+  }, [profile]);
   const [newSkill, setNewSkill] = useState("");
   const [newSkillLevel, setNewSkillLevel] = useState<"debutant" | "intermediaire" | "expert">("intermediaire");
 

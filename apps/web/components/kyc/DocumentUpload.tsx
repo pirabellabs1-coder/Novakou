@@ -12,6 +12,8 @@ interface DocumentUploadProps {
   accept?: string;
   maxSizeMB?: number;
   hint?: string;
+  /** Force camera capture (e.g. "user" for front camera selfie) */
+  capture?: "user" | "environment";
 }
 
 export function DocumentUpload({
@@ -23,6 +25,7 @@ export function DocumentUpload({
   accept = "image/jpeg,image/png,application/pdf",
   maxSizeMB = 10,
   hint,
+  capture,
 }: DocumentUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -225,6 +228,7 @@ export function DocumentUpload({
             ref={inputRef}
             type="file"
             accept={accept}
+            capture={capture}
             onChange={handleFileSelect}
             className="hidden"
           />

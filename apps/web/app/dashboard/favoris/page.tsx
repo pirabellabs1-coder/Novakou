@@ -19,6 +19,7 @@ type FreelanceFavori = {
 
 type ServiceSauvegarde = {
   id: string;
+  slug: string;
   titre: string;
   prestataire: string;
   prestataireinitiales: string;
@@ -87,6 +88,7 @@ const FREELANCES: FreelanceFavori[] = [
 const SERVICES: ServiceSauvegarde[] = [
   {
     id: "s1",
+    slug: "design-logo-minimaliste-branding-premium",
     titre: "Design de Logo Minimaliste & Branding Premium",
     prestataire: "Marie L.",
     prestataireinitiales: "ML",
@@ -98,6 +100,7 @@ const SERVICES: ServiceSauvegarde[] = [
   },
   {
     id: "s2",
+    slug: "landing-page-conversion-optimisee-figma-react",
     titre: "Landing Page Conversion-Optimisée (Figma/React)",
     prestataire: "Jean D.",
     prestataireinitiales: "JD",
@@ -109,6 +112,7 @@ const SERVICES: ServiceSauvegarde[] = [
   },
   {
     id: "s3",
+    slug: "illustrations-personnalisees-saas-blogs",
     titre: "Illustrations Personnalisées pour SaaS & Blogs",
     prestataire: "Sophie Design",
     prestataireinitiales: "SD",
@@ -277,7 +281,7 @@ function CarteService({
           </div>
         </div>
         <Link
-          href={`/services/${service.id}`}
+          href={`/services/${service.slug || service.id}`}
           className="block w-full py-2 text-center text-xs font-bold rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-all"
         >
           Voir le service

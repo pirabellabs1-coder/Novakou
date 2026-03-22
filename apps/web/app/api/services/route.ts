@@ -272,6 +272,32 @@ export async function POST(request: NextRequest) {
           ? body.description
           : "");
 
+    // Build ServiceMedia entries from wizard data
+    const mediaEntries: { url: string; type: string; isPrimary: boolean; order: number }[] = [];
+    if (body.mainImage?.url) {
+      mediaEntries.push({ url: body.mainImage.url, type: "IMAGE", isPrimary: true, order: 0 });
+    }
+    if (Array.isArray(body.additionalImages)) {
+      body.additionalImages.forEach((img: { url?: string }, idx: number) => {
+        if (img?.url) {
+          mediaEntries.push({ url: img.url, type: "IMAGE", isPrimary: false, order: idx + 1 });
+        }
+      });
+    }
+    if (body.videoUrl) {
+      mediaEntries.push({ url: body.videoUrl, type: "VIDEO", isPrimary: false, order: mediaEntries.length });
+    }
+
+    // Build ServiceOption entries
+    const optionEntries: { name: string; price: number; description?: string }[] = [];
+    if (Array.isArray(body.options)) {
+      for (const opt of body.options) {
+        if (opt?.name && opt?.price != null) {
+          optionEntries.push({ name: opt.name, price: opt.price, description: opt.description || "" });
+        }
+      }
+    }
+
     const service = await prisma.service.create({
       data: {
         title: body.title,
@@ -317,6 +343,16 @@ export async function POST(request: NextRequest) {
         },
         faq: Array.isArray(body.faq) ? body.faq : undefined,
         extras: Array.isArray(body.extras) ? body.extras : undefined,
+        ...(mediaEntries.length > 0 ? {
+          media: {
+            create: mediaEntries,
+          },
+        } : {}),
+        ...(optionEntries.length > 0 ? {
+          options: {
+            create: optionEntries,
+          },
+        } : {}),
       },
       include: { category: true, options: true, media: true },
     });

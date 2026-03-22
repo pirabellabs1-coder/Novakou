@@ -12,7 +12,6 @@ interface KycStatusBannerProps {
 
 const STEPS = [
   { level: 1, label: "Email", icon: "email" },
-  { level: 2, label: "Telephone", icon: "phone" },
   { level: 3, label: "Identite", icon: "badge" },
   { level: 4, label: "Professionnel", icon: "workspace_premium" },
 ];

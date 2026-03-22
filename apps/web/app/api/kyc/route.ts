@@ -380,7 +380,18 @@ async function handleIndividualSubmission(userId: string, body: Record<string, s
       documentType: body.documentType,
       documentUrl: body.documentFrontUrl,
       status: "EN_ATTENTE",
-      // Store extra fields in a metadata JSON or separate columns if available
+      submissionType: "individual",
+      metadata: {
+        firstName: body.firstName,
+        lastName: body.lastName,
+        dateOfBirth: body.dateOfBirth,
+        country: body.country,
+        city: body.city,
+        address: body.address,
+        documentFrontUrl: body.documentFrontUrl,
+        documentBackUrl: body.documentBackUrl,
+        selfieUrl: body.selfieUrl,
+      },
     },
   });
 
@@ -493,6 +504,19 @@ async function handleAgencySubmission(userId: string, body: Record<string, strin
       documentType: body.documentType,
       documentUrl: body.registrationDocUrl,
       status: "EN_ATTENTE",
+      submissionType: "agency",
+      metadata: {
+        agencyName: body.agencyName,
+        siret: body.siret,
+        country: body.country,
+        city: body.city,
+        address: body.address,
+        legalRepName: body.legalRepName,
+        email: body.email,
+        phone: body.phone,
+        registrationDocUrl: body.registrationDocUrl,
+        representativeIdUrl: body.representativeIdUrl,
+      },
     },
   });
 

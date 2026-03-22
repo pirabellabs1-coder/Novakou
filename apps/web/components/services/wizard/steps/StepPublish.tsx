@@ -78,8 +78,8 @@ export function StepPublish({ role }: { role: string }) {
         baseExpressDaysReduction: store.expressDelivery.baseExpressDaysReduction,
         instructionsRequired: store.instructionsRequired,
         instructionsContent: store.instructionsContent,
-        mainImage: store.mainImage?.url || "",
-        additionalImages: store.additionalImages.map((img: { url: string }) => img.url),
+        mainImage: store.mainImage ? { url: store.mainImage.url } : null,
+        additionalImages: store.additionalImages.map((img: { url: string }) => ({ url: img.url })),
         videoUrl: store.videoUrl,
         packages: store.packages,
       });

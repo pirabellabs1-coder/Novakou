@@ -391,7 +391,7 @@ export default function AdminUsers() {
             </div>
             <div className="text-xs text-slate-500 mb-4 space-y-1">
               <p>Niv. 1 : Email verifie — acces de base</p>
-              <p>Niv. 2 : Telephone verifie — commander, postuler</p>
+              <p>Niv. 2 : Acces elargi — commander, postuler</p>
               <p>Niv. 3 : Identite verifiee — retirer, publier</p>
               <p>Niv. 4 : Verification pro — badge Elite</p>
             </div>

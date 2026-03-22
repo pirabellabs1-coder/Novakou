@@ -278,10 +278,16 @@ export const financesApi = {
 // ── Profile ──
 
 export const profileApi = {
-  get: () => fetchApi<ApiProfile>("/api/profile"),
+  get: async (): Promise<ApiProfile> => {
+    const res = await fetchApi<{ profile: ApiProfile } | ApiProfile>("/api/profile");
+    // Handle both { profile: {...} } and direct {...} response shapes
+    return "profile" in res && res.profile ? res.profile : res as ApiProfile;
+  },
 
-  update: (data: Record<string, unknown>) =>
-    fetchApi<ApiProfile>("/api/profile", { method: "PATCH", body: JSON.stringify(data) }),
+  update: async (data: Record<string, unknown>): Promise<ApiProfile> => {
+    const res = await fetchApi<{ profile: ApiProfile } | ApiProfile>("/api/profile", { method: "PATCH", body: JSON.stringify(data) });
+    return "profile" in res && res.profile ? res.profile : res as ApiProfile;
+  },
 };
 
 // ── Notifications ──

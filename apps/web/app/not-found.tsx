@@ -11,7 +11,7 @@ export default function NotFound() {
         <h1 className="text-6xl font-black text-white mb-4">404</h1>
         <h2 className="text-xl font-bold text-white mb-3">Page introuvable</h2>
         <p className="text-slate-400 mb-8">
-          La page que vous recherchez n&apos;existe pas ou a ete deplacee.
+          La page que vous recherchez n&apos;existe pas ou a &eacute;t&eacute; d&eacute;plac&eacute;e.
         </p>
 
         <div className="flex flex-wrap justify-center gap-4">
@@ -20,7 +20,7 @@ export default function NotFound() {
             className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors"
           >
             <span className="material-symbols-outlined text-lg">home</span>
-            Retour a l&apos;accueil
+            Retour &agrave; l&apos;accueil
           </Link>
           <Link
             href="/explorer"

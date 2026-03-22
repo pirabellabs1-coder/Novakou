@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { devStore } from "@/lib/dev/dev-store";
+import { kycRequestStore } from "@/lib/dev/data-store";
 import { emitEvent } from "@/lib/events/dispatcher";
 import { createAuditLog } from "@/lib/admin/audit";
 
@@ -17,51 +18,28 @@ export async function GET() {
     if (IS_DEV) {
       const users = devStore.getAll();
 
-      // Build KYC queue from users who haven't reached level 4
-      const kycQueue = users
-        .filter((u) => u.role !== "admin" && u.kyc < 4)
-        .map((u) => {
-          // Determine what the next verification step is
-          const nextLevel = u.kyc + 1;
-          const levelDescriptions: Record<number, { label: string; verification: string }> = {
-            1: {
-              label: "Niveau 1 - Email",
-              verification: "Verification de l'adresse email",
-            },
-            2: {
-              label: "Niveau 2 - Email",
-              verification: "Verification de l'adresse email",
-            },
-            3: {
-              label: "Niveau 3 - Identite",
-              verification: "Verification de la piece d'identite",
-            },
-            4: {
-              label: "Niveau 4 - Professionnel",
-              verification: "Verification professionnelle complete",
-            },
-          };
+      // Build KYC queue from actual pending KYC requests
+      const pendingRequests = kycRequestStore.getPending();
 
-          const next = levelDescriptions[nextLevel] ?? levelDescriptions[4];
-
-          return {
-            userId: u.id,
-            userName: u.name,
-            userEmail: u.email,
-            userRole: u.role,
-            currentLevel: u.kyc,
-            nextLevel,
-            nextLevelLabel: next.label,
-            nextVerification: next.verification,
-            status: u.status,
-            createdAt: u.createdAt,
-            // Simulated document status
-            documentSubmitted: u.kyc >= 2, // Simulate that level 2+ users have submitted docs
-            documentType: u.kyc >= 2 ? "Carte d'identite nationale" : null,
-            submittedAt: u.kyc >= 2 ? u.createdAt : null,
-          };
-        })
-        .sort((a, b) => b.currentLevel - a.currentLevel); // Higher levels first (closer to approval)
+      const kycQueue = pendingRequests.map((req) => {
+        const user = devStore.findById(req.userId);
+        return {
+          userId: req.userId,
+          userName: user?.name || "Utilisateur inconnu",
+          userEmail: user?.email || "",
+          userRole: user?.role || "freelance",
+          currentLevel: user?.kyc || 1,
+          nextLevel: req.level,
+          nextLevelLabel: `Niveau ${req.level} - ${req.level === 3 ? "Identite" : req.level === 4 ? "Professionnel" : "Verification"}`,
+          nextVerification: req.documentType || "Document",
+          status: user?.status || "actif",
+          createdAt: req.createdAt,
+          documentSubmitted: true,
+          documentType: req.documentType,
+          submittedAt: req.createdAt,
+          requestId: req.id,
+        };
+      });
 
       // Summary stats
       const summary = {
@@ -174,12 +152,24 @@ export async function POST(request: NextRequest) {
 
           devStore.update(userId, { kyc: newLevel });
 
-          const levelBadges: Record<number, string> = {
-            1: "Email verifie",
-            2: "Telephone verifie",
-            3: "Identite verifiee",
-            4: "Professionnel verifie - Badge Elite",
-          };
+          // Update the KYC request status to approved
+          if (requestId) {
+            kycRequestStore.update(requestId, {
+              status: "approuve",
+              reviewedAt: new Date().toISOString(),
+              reviewedBy: session.user.id,
+            });
+          } else {
+            // Find pending request for this user and approve it
+            const pending = kycRequestStore.getByUser(userId).find((r) => r.status === "en_attente");
+            if (pending) {
+              kycRequestStore.update(pending.id, {
+                status: "approuve",
+                reviewedAt: new Date().toISOString(),
+                reviewedBy: session.user.id,
+              });
+            }
+          }
 
           // Emit KYC approved event (notification + email)
           emitEvent("kyc.approved", {
@@ -200,6 +190,26 @@ export async function POST(request: NextRequest) {
         case "refuse": {
           const refuseReason =
             reason ?? "Documents non conformes aux exigences de la plateforme";
+
+          // Update the KYC request status to refused
+          if (requestId) {
+            kycRequestStore.update(requestId, {
+              status: "refuse",
+              reason: refuseReason,
+              reviewedAt: new Date().toISOString(),
+              reviewedBy: session.user.id,
+            });
+          } else {
+            const pending = kycRequestStore.getByUser(userId).find((r) => r.status === "en_attente");
+            if (pending) {
+              kycRequestStore.update(pending.id, {
+                status: "refuse",
+                reason: refuseReason,
+                reviewedAt: new Date().toISOString(),
+                reviewedBy: session.user.id,
+              });
+            }
+          }
 
           // Emit KYC rejected event (notification + email)
           emitEvent("kyc.rejected", {

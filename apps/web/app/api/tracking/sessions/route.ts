@@ -8,7 +8,8 @@ export async function POST(req: NextRequest) {
     const { action, sessionId, userId, deviceType, path, referrer, utmSource, utmMedium, utmCampaign } = body;
 
     if (!sessionId || !action) {
-      return NextResponse.json({ error: "Missing sessionId or action" }, { status: 400 });
+      // Return 200 with ok:false to avoid noisy client errors
+      return NextResponse.json({ ok: false, reason: "Missing sessionId or action" });
     }
 
     const now = new Date().toISOString();
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    // Return 200 silently to avoid polluting client console
+    return NextResponse.json({ ok: false });
   }
 }

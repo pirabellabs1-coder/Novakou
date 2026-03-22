@@ -318,17 +318,31 @@ export const authOptions: NextAuthOptions = {
             if (!dbUser) {
               // Create user with role + formationsRole from cookies
               const oauthRole = pendingRole || "client";
+              const upperRole = oauthRole.toUpperCase() as "FREELANCE" | "CLIENT" | "AGENCE";
               dbUser = await prisma.user.create({
                 data: {
                   email,
                   name: user.name || email.split("@")[0],
                   passwordHash: "", // OAuth users don't have a password
-                  role: oauthRole.toUpperCase() as "FREELANCE" | "CLIENT" | "AGENCE",
+                  role: upperRole,
                   image: user.image,
                   emailVerified: new Date(),
                   ...(pendingFormationsRole ? { formationsRole: pendingFormationsRole } : {}),
                 },
               });
+
+              // Auto-create role-specific profile
+              try {
+                if (upperRole === "FREELANCE") {
+                  await prisma.freelancerProfile.create({ data: { userId: dbUser.id } });
+                } else if (upperRole === "CLIENT") {
+                  await prisma.clientProfile.create({ data: { userId: dbUser.id } });
+                } else if (upperRole === "AGENCE") {
+                  await prisma.agencyProfile.create({ data: { userId: dbUser.id, agencyName: user.name || email.split("@")[0] } });
+                }
+              } catch (profileErr) {
+                console.error("[AUTH OAuth] Auto-create profile error:", profileErr);
+              }
 
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
@@ -385,7 +399,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id as string;
         token.role = (user.role as string) ?? "client";
@@ -395,6 +409,40 @@ export const authOptions: NextAuthOptions = {
           token.formationsRole = user.formationsRole as string;
         }
       }
+
+      // Refresh KYC level from DB when session is updated or periodically
+      if (trigger === "update" || (token.id && !user)) {
+        const now = Date.now();
+        const lastRefresh = (token as Record<string, unknown>).kycRefreshedAt as number | undefined;
+        // Force refresh immediately on explicit update(), otherwise every 5 minutes
+        const shouldRefresh = trigger === "update" || !lastRefresh || now - lastRefresh > 5 * 60 * 1000;
+        if (shouldRefresh) {
+          try {
+            if (IS_DEV_MODE) {
+              const { devStore } = await import("../dev/dev-store");
+              const dbUser = devStore.findById(token.id);
+              if (dbUser) {
+                token.kyc = dbUser.kyc;
+                token.plan = dbUser.plan;
+              }
+            } else {
+              const { prisma } = await import("@freelancehigh/db");
+              const dbUser = await prisma.user.findUnique({
+                where: { id: token.id },
+                select: { kyc: true, plan: true },
+              });
+              if (dbUser) {
+                token.kyc = dbUser.kyc;
+                token.plan = dbUser.plan.toLowerCase();
+              }
+            }
+            (token as Record<string, unknown>).kycRefreshedAt = now;
+          } catch {
+            // Silently fail — keep existing token values
+          }
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

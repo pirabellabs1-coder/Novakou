@@ -102,6 +102,7 @@ export interface AdminKycRequest {
   currentLevel: number;
   nextLevel: number;
   createdAt: string;
+  requestId?: string;
 }
 
 export interface AdminDispute {
@@ -312,8 +313,8 @@ interface AdminState {
   approveTransaction: (id: string) => Promise<boolean>;
 
   // KYC actions
-  approveKyc: (userId: string, level: number) => Promise<boolean>;
-  refuseKyc: (userId: string, reason: string) => Promise<boolean>;
+  approveKyc: (userId: string, level: number, requestId?: string) => Promise<boolean>;
+  refuseKyc: (userId: string, reason: string, requestId?: string) => Promise<boolean>;
 
   // Dispute actions
   examineDispute: (orderId: string) => Promise<boolean>;
@@ -434,8 +435,20 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
   syncKyc: async () => {
     set({ loading: { ...get().loading, kyc: true } });
     try {
-      const data = await fetchAdmin<{ queue: AdminKycRequest[]; summary: { total: number; byLevel: Record<string, number> } }>("/api/admin/kyc");
-      set({ kycRequests: data.queue, kycSummary: data.summary, loading: { ...get().loading, kyc: false }, error: { ...get().error, kyc: null } });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data = await fetchAdmin<{ queue: any[]; summary: { total: number; byLevel: Record<string, number> } }>("/api/admin/kyc");
+      // Map queue to include requestId
+      const queue: AdminKycRequest[] = (data.queue || []).map((r) => ({
+        userId: r.userId,
+        name: r.userName || r.name,
+        email: r.userEmail || r.email,
+        role: r.userRole || r.role,
+        currentLevel: r.currentLevel,
+        nextLevel: r.nextLevel,
+        createdAt: r.createdAt,
+        requestId: r.requestId,
+      }));
+      set({ kycRequests: queue, kycSummary: data.summary, loading: { ...get().loading, kyc: false }, error: { ...get().error, kyc: null } });
     } catch (e: unknown) {
       set({ loading: { ...get().loading, kyc: false }, error: { ...get().error, kyc: (e as Error).message } });
     }
@@ -688,17 +701,17 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
 
   // ── KYC actions ──
 
-  approveKyc: async (userId, level) => {
+  approveKyc: async (userId, level, requestId) => {
     try {
-      await fetchAdmin("/api/admin/kyc", { method: "POST", body: JSON.stringify({ action: "approve", userId, level }) });
+      await fetchAdmin("/api/admin/kyc", { method: "POST", body: JSON.stringify({ action: "approve", userId, level, requestId }) });
       await get().syncKyc();
       return true;
     } catch { return false; }
   },
 
-  refuseKyc: async (userId, reason) => {
+  refuseKyc: async (userId, reason, requestId) => {
     try {
-      await fetchAdmin("/api/admin/kyc", { method: "POST", body: JSON.stringify({ action: "refuse", userId, reason }) });
+      await fetchAdmin("/api/admin/kyc", { method: "POST", body: JSON.stringify({ action: "refuse", userId, reason, requestId }) });
       await get().syncKyc();
       return true;
     } catch { return false; }

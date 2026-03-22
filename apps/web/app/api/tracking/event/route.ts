@@ -36,10 +36,11 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const events: TrackingEvent[] = body.events;
+    const events: TrackingEvent[] = body?.events;
 
     if (!Array.isArray(events) || events.length === 0) {
-      return NextResponse.json({ error: "No events provided" }, { status: 400 });
+      // Return 200 with 0 recorded instead of 400 to avoid noisy client errors
+      return NextResponse.json({ ok: true, recorded: 0 });
     }
 
     // Prune expired dedup entries (older than 1 hour)
@@ -83,6 +84,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, recorded: batch.length });
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    // Return 200 silently to avoid polluting client console
+    return NextResponse.json({ ok: false, recorded: 0 });
   }
 }

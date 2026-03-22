@@ -38,13 +38,14 @@ export default function KycPage() {
         }
 
         const reqs: KycRequest[] = data.requests ?? [];
-        const hasPending = reqs.some((r) => r.status === "en_attente");
+        // Handle both lowercase (dev) and uppercase (production/Prisma) statuses
+        const hasPending = reqs.some((r) => r.status === "en_attente" || r.status === ("EN_ATTENTE" as KycRequest["status"]));
         if (hasPending) {
           setView("pending");
           return;
         }
 
-        const refused = reqs.filter((r) => r.status === "refuse");
+        const refused = reqs.filter((r) => r.status === "refuse" || r.status === ("REFUSE" as KycRequest["status"]));
         if (refused.length > 0) {
           const latest = refused.sort(
             (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

@@ -62,7 +62,7 @@ export async function GET() {
 
       return NextResponse.json({ profile });
     } else {
-      const user = await prisma.user.findUnique({
+      let user = await prisma.user.findUnique({
         where: { id: session.user.id },
         include: {
           freelancerProfile: true,
@@ -78,8 +78,25 @@ export async function GET() {
         );
       }
 
+      // Lazy creation: auto-create FreelancerProfile if missing for a freelance
+      if (!user.freelancerProfile && user.role === "FREELANCE") {
+        await prisma.freelancerProfile.create({
+          data: { userId: user.id },
+        });
+        user = await prisma.user.findUnique({
+          where: { id: session.user.id },
+          include: { freelancerProfile: true, clientProfile: true, agencyProfile: true },
+        }) as typeof user;
+      }
+      if (!user!.clientProfile && user!.role === "CLIENT") {
+        await prisma.clientProfile.create({ data: { userId: user!.id } });
+      }
+      if (!user!.agencyProfile && user!.role === "AGENCE") {
+        await prisma.agencyProfile.create({ data: { userId: user!.id, agencyName: user!.name } });
+      }
+
       // Build a profile object matching the dev-store shape
-      const fp = user.freelancerProfile;
+      const fp = user!.freelancerProfile;
       const profile = {
         userId: user.id,
         firstName: user.name?.split(" ")[0] || "",

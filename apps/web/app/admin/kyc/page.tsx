@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const LEVEL_MAP: Record<number, { label: string; desc: string; color: string }> = {
   1: { label: "Niveau 1", desc: "Email verifie", color: "text-slate-400" },
-  2: { label: "Niveau 2", desc: "Email verifie", color: "text-blue-400" },
+  2: { label: "Niveau 2", desc: "Acces de base", color: "text-blue-400" },
   3: { label: "Niveau 3", desc: "Identite verifiee", color: "text-amber-400" },
   4: { label: "Niveau 4", desc: "Verification pro", color: "text-emerald-400" },
 };
@@ -40,10 +40,30 @@ function KycSkeleton() {
   );
 }
 
+// eslint-disable-next-line @next/next/no-img-element, @typescript-eslint/no-explicit-any
+function DocumentImage({ url, label }: { url: string; label: string }) {
+  const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(url) || url.startsWith("data:image") || url.includes("/uploads/");
+  if (!isImage) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" className="block border border-border-dark rounded-lg p-3 hover:border-primary/30 transition-colors">
+        <span className="material-symbols-outlined text-2xl text-primary block mx-auto mb-1">description</span>
+        <p className="text-xs text-center text-slate-400">{label}</p>
+      </a>
+    );
+  }
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="block group">
+      <div className="border border-border-dark rounded-lg overflow-hidden hover:border-primary/30 transition-colors">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={url} alt={label} className="w-full h-40 object-cover group-hover:scale-105 transition-transform" />
+        <p className="text-xs text-center text-slate-400 py-1.5 bg-background-dark">{label}</p>
+      </div>
+    </a>
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function KycRequestDetails({ request }: { request: any }) {
-  const [expanded, setExpanded] = useState(false);
-
   // Check if request has extended fields (from new structured submission)
   const hasType = !!request.type || !!request.documentFrontUrl || !!request.agencyName;
   const isAgency = request.type === "agency" || !!request.agencyName;
@@ -51,187 +71,56 @@ function KycRequestDetails({ request }: { request: any }) {
   if (!hasType) return null;
 
   return (
-    <div className="mt-3">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 transition-colors"
-      >
-        <span className="material-symbols-outlined text-sm">
-          {expanded ? "expand_less" : "expand_more"}
+    <div className="mt-3 bg-background-dark/50 rounded-xl p-4 border border-border-dark/50 space-y-3">
+      {/* Type badge */}
+      <div className="flex items-center gap-2">
+        <span className={cn(
+          "text-xs font-semibold px-2.5 py-1 rounded-full",
+          isAgency ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
+        )}>
+          {isAgency ? "Agence" : "Individuel"}
         </span>
-        {expanded ? "Masquer les details" : "Voir les details soumis"}
-      </button>
+        <span className="text-xs text-slate-500">Type de document : <b className="text-white">{request.documentType || "N/A"}</b></span>
+      </div>
 
-      {expanded && (
-        <div className="mt-3 bg-background-dark/50 rounded-xl p-4 border border-border-dark/50 space-y-3">
-          {/* Type badge */}
-          <div className="flex items-center gap-2">
-            <span className={cn(
-              "text-xs font-semibold px-2.5 py-1 rounded-full",
-              isAgency ? "bg-blue-500/10 text-blue-400" : "bg-purple-500/10 text-purple-400"
-            )}>
-              {isAgency ? "Agence" : "Individuel"}
-            </span>
-          </div>
-
-          {isAgency ? (
-            // Agency details
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              {request.agencyName && (
-                <div>
-                  <p className="text-xs text-slate-500">Nom de l&apos;agence</p>
-                  <p className="text-white font-medium">{request.agencyName}</p>
-                </div>
-              )}
-              {request.siretNumber && (
-                <div>
-                  <p className="text-xs text-slate-500">SIRET</p>
-                  <p className="text-white font-medium">{request.siretNumber}</p>
-                </div>
-              )}
-              {request.legalRepName && (
-                <div>
-                  <p className="text-xs text-slate-500">Representant legal</p>
-                  <p className="text-white font-medium">{request.legalRepName}</p>
-                </div>
-              )}
-              {request.email && (
-                <div>
-                  <p className="text-xs text-slate-500">Email</p>
-                  <p className="text-white font-medium">{request.email}</p>
-                </div>
-              )}
-              {request.phone && (
-                <div>
-                  <p className="text-xs text-slate-500">Telephone</p>
-                  <p className="text-white font-medium">{request.phone}</p>
-                </div>
-              )}
-              {request.country && (
-                <div>
-                  <p className="text-xs text-slate-500">Pays / Ville</p>
-                  <p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p>
-                </div>
-              )}
-              {request.address && (
-                <div className="sm:col-span-2">
-                  <p className="text-xs text-slate-500">Adresse</p>
-                  <p className="text-white font-medium">{request.address}</p>
-                </div>
-              )}
-            </div>
-          ) : (
-            // Individual details
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              {request.firstName && (
-                <div>
-                  <p className="text-xs text-slate-500">Prenom</p>
-                  <p className="text-white font-medium">{request.firstName}</p>
-                </div>
-              )}
-              {request.lastName && (
-                <div>
-                  <p className="text-xs text-slate-500">Nom</p>
-                  <p className="text-white font-medium">{request.lastName}</p>
-                </div>
-              )}
-              {request.dateOfBirth && (
-                <div>
-                  <p className="text-xs text-slate-500">Date de naissance</p>
-                  <p className="text-white font-medium">
-                    {new Date(request.dateOfBirth).toLocaleDateString("fr-FR")}
-                  </p>
-                </div>
-              )}
-              {request.country && (
-                <div>
-                  <p className="text-xs text-slate-500">Pays / Ville</p>
-                  <p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p>
-                </div>
-              )}
-              {request.address && (
-                <div className="sm:col-span-2">
-                  <p className="text-xs text-slate-500">Adresse</p>
-                  <p className="text-white font-medium">{request.address}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Document links */}
-          <div className="pt-2 border-t border-border-dark/50">
-            <p className="text-xs font-semibold text-slate-400 mb-2">Documents soumis</p>
-            <div className="flex flex-wrap gap-2">
-              {request.documentFrontUrl && (
-                <a
-                  href={request.documentFrontUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">badge</span>
-                  Recto
-                </a>
-              )}
-              {request.documentBackUrl && (
-                <a
-                  href={request.documentBackUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">badge</span>
-                  Verso
-                </a>
-              )}
-              {request.selfieUrl && (
-                <a
-                  href={request.selfieUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-lg hover:bg-blue-500/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">photo_camera</span>
-                  Selfie
-                </a>
-              )}
-              {request.registrationDocUrl && (
-                <a
-                  href={request.registrationDocUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">description</span>
-                  Doc entreprise
-                </a>
-              )}
-              {request.representativeIdUrl && (
-                <a
-                  href={request.representativeIdUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 text-xs font-semibold rounded-lg hover:bg-blue-500/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">badge</span>
-                  ID Representant
-                </a>
-              )}
-              {request.documentUrl && !request.documentFrontUrl && !request.registrationDocUrl && (
-                <a
-                  href={request.documentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-colors"
-                >
-                  <span className="material-symbols-outlined text-sm">description</span>
-                  Document
-                </a>
-              )}
-            </div>
-          </div>
+      {/* Personal / Agency info */}
+      {isAgency ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          {request.agencyName && <div><p className="text-xs text-slate-500">Nom de l&apos;agence</p><p className="text-white font-medium">{request.agencyName}</p></div>}
+          {request.siretNumber && <div><p className="text-xs text-slate-500">SIRET</p><p className="text-white font-medium">{request.siretNumber}</p></div>}
+          {request.legalRepName && <div><p className="text-xs text-slate-500">Representant legal</p><p className="text-white font-medium">{request.legalRepName}</p></div>}
+          {request.email && <div><p className="text-xs text-slate-500">Email</p><p className="text-white font-medium">{request.email}</p></div>}
+          {request.phone && <div><p className="text-xs text-slate-500">Telephone</p><p className="text-white font-medium">{request.phone}</p></div>}
+          {request.country && <div><p className="text-xs text-slate-500">Pays / Ville</p><p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p></div>}
+          {request.address && <div className="sm:col-span-2"><p className="text-xs text-slate-500">Adresse</p><p className="text-white font-medium">{request.address}</p></div>}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          {request.firstName && <div><p className="text-xs text-slate-500">Prenom</p><p className="text-white font-medium">{request.firstName}</p></div>}
+          {request.lastName && <div><p className="text-xs text-slate-500">Nom</p><p className="text-white font-medium">{request.lastName}</p></div>}
+          {request.dateOfBirth && <div><p className="text-xs text-slate-500">Date de naissance</p><p className="text-white font-medium">{new Date(request.dateOfBirth).toLocaleDateString("fr-FR")}</p></div>}
+          {request.country && <div><p className="text-xs text-slate-500">Pays / Ville</p><p className="text-white font-medium">{request.country}{request.city ? `, ${request.city}` : ""}</p></div>}
+          {request.address && <div className="sm:col-span-2"><p className="text-xs text-slate-500">Adresse</p><p className="text-white font-medium">{request.address}</p></div>}
         </div>
       )}
+
+      {/* Documents — displayed inline as images */}
+      <div className="pt-3 border-t border-border-dark/50">
+        <p className="text-xs font-semibold text-slate-400 mb-3 flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-sm">folder_open</span>
+          Documents soumis
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {request.documentFrontUrl && <DocumentImage url={request.documentFrontUrl} label="Recto du document" />}
+          {request.documentBackUrl && <DocumentImage url={request.documentBackUrl} label="Verso du document" />}
+          {request.selfieUrl && <DocumentImage url={request.selfieUrl} label="Selfie de verification" />}
+          {request.registrationDocUrl && <DocumentImage url={request.registrationDocUrl} label="Doc entreprise" />}
+          {request.representativeIdUrl && <DocumentImage url={request.representativeIdUrl} label="ID Representant" />}
+          {request.documentUrl && !request.documentFrontUrl && !request.registrationDocUrl && (
+            <DocumentImage url={request.documentUrl} label="Document" />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -291,10 +180,12 @@ export default function AdminKYC() {
   async function handleApprove(userId: string, nextLevel: number) {
     const req = kycRequests.find(r => r.userId === userId);
     setActionLoading(userId);
-    const ok = await approveKyc(userId, nextLevel);
+    const ok = await approveKyc(userId, nextLevel, req?.requestId);
     setActionLoading(null);
     if (ok) {
       addToast("success", `KYC de ${req?.name} approuve — niveau ${nextLevel} active`);
+      // Also refresh details
+      fetchKycDetails();
     } else {
       addToast("error", "Erreur lors de l'approbation du KYC");
     }
@@ -307,7 +198,7 @@ export default function AdminKYC() {
     }
     const req = kycRequests.find(r => r.userId === rejectUserId);
     setActionLoading(rejectUserId);
-    const ok = await refuseKyc(rejectUserId, rejectReason);
+    const ok = await refuseKyc(rejectUserId, rejectReason, req?.requestId);
     setActionLoading(null);
     if (ok) {
       addToast("success", `KYC de ${req?.name} refuse`);
@@ -347,9 +238,9 @@ export default function AdminKYC() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
         {[
           { label: "Total demandes", value: stats.total, color: "text-primary", icon: "assignment" },
-          { label: "Niveau 2 (email)", value: stats.byLevel["2"] ?? 0, color: "text-blue-400", icon: "email" },
-          { label: "Niveau 3 (identite)", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
-          { label: "Niveau 4 (pro)", value: stats.byLevel["4"] ?? 0, color: "text-emerald-400", icon: "workspace_premium" },
+          { label: "Identite (Niv. 3)", value: stats.byLevel["3"] ?? 0, color: "text-amber-400", icon: "badge" },
+          { label: "Pro (Niv. 4)", value: stats.byLevel["4"] ?? 0, color: "text-emerald-400", icon: "workspace_premium" },
+          { label: "Verifies (Niv. 4)", value: stats.byLevel["4"] ?? 0, color: "text-blue-400", icon: "verified" },
         ].map(s => (
           <div key={s.label} className="bg-neutral-dark rounded-xl p-3 sm:p-4 lg:p-5 border border-border-dark">
             <div className="flex items-center gap-2 sm:gap-3 mb-2">
@@ -365,9 +256,8 @@ export default function AdminKYC() {
       <div className="flex gap-2 border-b border-border-dark overflow-x-auto">
         {[
           { key: "all", label: "Tous", count: kycRequests.length },
-          { key: "2", label: "Niveau 2", count: kycRequests.filter(r => r.nextLevel === 2).length },
-          { key: "3", label: "Niveau 3", count: kycRequests.filter(r => r.nextLevel === 3).length },
-          { key: "4", label: "Niveau 4", count: kycRequests.filter(r => r.nextLevel === 4).length },
+          { key: "3", label: "Identite", count: kycRequests.filter(r => r.nextLevel === 3).length },
+          { key: "4", label: "Professionnel", count: kycRequests.filter(r => r.nextLevel === 4).length },
         ].map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} className={cn("px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors whitespace-nowrap flex items-center gap-1.5", tab === t.key ? "border-primary text-primary" : "border-transparent text-slate-500 hover:text-slate-300")}>
             {t.label}

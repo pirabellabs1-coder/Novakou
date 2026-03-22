@@ -14,18 +14,18 @@ const securityHeaders = isDev
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "X-XSS-Protection", value: "1; mode=block" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-      { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+      { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
       {
         key: "Content-Security-Policy",
         value: [
           "default-src 'self'",
-          // Note: Next.js requiert 'unsafe-inline' pour les styles inline generes.
-          // 'unsafe-eval' supprime — utiliser 'unsafe-inline' seulement pour les scripts si necessaire.
           "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com",
           "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
           "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com",
+          "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com",
+          "media-src 'self' blob: data: https://res.cloudinary.com",
           "frame-ancestors 'self'",
         ].join("; "),
       },
@@ -64,6 +64,15 @@ const nextConfig: NextConfig = {
         destination: "https://freelancehigh.com/:path*",
         permanent: true,
       },
+      // Common 404 redirects — pages users try to access directly
+      { source: "/projets", destination: "/offres-projets", permanent: true },
+      { source: "/devenir-freelance", destination: "/inscription", permanent: true },
+      { source: "/accueil", destination: "/", permanent: true },
+      { source: "/home", destination: "/", permanent: true },
+      { source: "/login", destination: "/connexion", permanent: true },
+      { source: "/register", destination: "/inscription", permanent: true },
+      { source: "/signup", destination: "/inscription", permanent: true },
+      { source: "/signin", destination: "/connexion", permanent: true },
     ];
   },
   // Optimisations production
