@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "3", 10), 12);
 
     if (IS_DEV) {
-      const users = devStore.getAll().filter((u) => u.role === "freelance" && u.status === "ACTIF");
+      // Inclure freelances ET agences — les agences sont aussi des prestataires
+      const users = devStore.getAll().filter((u) => (u.role === "freelance" || u.role === "agence") && u.status === "ACTIF");
       const allServices = serviceStore.getAll();
       const allOrders = orderStore.getAll();
       const allReviews = reviewStore.getAll();
@@ -77,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     // Production: Prisma
     const users = await prisma.user.findMany({
-      where: { role: "FREELANCE", status: "ACTIF" },
+      where: { role: { in: ["FREELANCE", "AGENCE"] }, status: "ACTIF" },
       include: {
         freelancerProfile: true,
         services: { where: { status: "ACTIF" } },

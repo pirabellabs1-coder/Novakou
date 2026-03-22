@@ -12,9 +12,11 @@ export async function GET() {
       const orders = orderStore.getAll();
       const reviews = reviewStore.getAll();
 
-      const freelances = users.filter((u) => u.role === "freelance" && u.status === "ACTIF");
+      const freelancesOnly = users.filter((u) => u.role === "freelance" && u.status === "ACTIF");
       const clients = users.filter((u) => u.role === "client" && u.status === "ACTIF");
       const agences = users.filter((u) => u.role === "agence" && u.status === "ACTIF");
+      // Les agences sont aussi des prestataires — les compter dans le total freelances pour les stats publiques
+      const freelances = [...freelancesOnly, ...agences];
       const activeServices = services.filter((s) => s.status === "actif");
       const completedOrders = orders.filter((o) => o.status === "livre" || o.status === "termine");
 
@@ -60,7 +62,8 @@ export async function GET() {
       reviewStats,
       newUsersThisMonth,
     ] = await Promise.all([
-      prisma.user.count({ where: { role: "FREELANCE", status: "ACTIF" } }),
+      // Freelances + Agences comptés ensemble comme "prestataires" pour les stats publiques
+      prisma.user.count({ where: { role: { in: ["FREELANCE", "AGENCE"] }, status: "ACTIF" } }),
       prisma.user.count({ where: { role: "CLIENT", status: "ACTIF" } }),
       prisma.user.count({ where: { role: "AGENCE", status: "ACTIF" } }),
       prisma.user.count(),
