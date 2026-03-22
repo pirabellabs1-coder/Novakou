@@ -272,28 +272,34 @@ export async function POST(request: NextRequest) {
           ? body.description
           : "");
 
-    // Build ServiceMedia entries from wizard data
-    const mediaEntries: { url: string; type: string; isPrimary: boolean; order: number }[] = [];
+    // Build ServiceMedia entries from wizard data (Prisma model uses sortOrder, not order)
+    const mediaEntries: { url: string; type: "IMAGE" | "VIDEO"; isPrimary: boolean; sortOrder: number }[] = [];
     if (body.mainImage?.url) {
-      mediaEntries.push({ url: body.mainImage.url, type: "IMAGE", isPrimary: true, order: 0 });
+      mediaEntries.push({ url: body.mainImage.url, type: "IMAGE", isPrimary: true, sortOrder: 0 });
     }
     if (Array.isArray(body.additionalImages)) {
       body.additionalImages.forEach((img: { url?: string }, idx: number) => {
         if (img?.url) {
-          mediaEntries.push({ url: img.url, type: "IMAGE", isPrimary: false, order: idx + 1 });
+          mediaEntries.push({ url: img.url, type: "IMAGE", isPrimary: false, sortOrder: idx + 1 });
         }
       });
     }
     if (body.videoUrl) {
-      mediaEntries.push({ url: body.videoUrl, type: "VIDEO", isPrimary: false, order: mediaEntries.length });
+      mediaEntries.push({ url: body.videoUrl, type: "VIDEO", isPrimary: false, sortOrder: mediaEntries.length });
     }
 
-    // Build ServiceOption entries
-    const optionEntries: { name: string; price: number; description?: string }[] = [];
+    // Build ServiceOption entries (Prisma model uses title/extraPrice, not name/price)
+    const optionEntries: { title: string; extraPrice: number; description?: string; sortOrder: number }[] = [];
     if (Array.isArray(body.options)) {
-      for (const opt of body.options) {
-        if (opt?.name && opt?.price != null) {
-          optionEntries.push({ name: opt.name, price: opt.price, description: opt.description || "" });
+      for (let i = 0; i < body.options.length; i++) {
+        const opt = body.options[i];
+        if ((opt?.name || opt?.title) && opt?.price != null) {
+          optionEntries.push({
+            title: opt.name || opt.title,
+            extraPrice: Number(opt.price || opt.extraPrice || 0),
+            description: opt.description || "",
+            sortOrder: i,
+          });
         }
       }
     }
@@ -307,7 +313,7 @@ export async function POST(request: NextRequest) {
           typeof body.description === "object" ? body.description : undefined,
         descriptionText: descriptionText || undefined,
         categoryId: body.categoryId,
-        subCategoryId: body.subCategoryId || undefined,
+        ...(body.subCategoryId ? { subCategoryId: body.subCategoryId } : {}),
         userId: session.user.id,
         status: "EN_ATTENTE",
         basePrice,
@@ -371,8 +377,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(service);
   } catch (error) {
     console.error("[API /services POST]", error);
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
     return NextResponse.json(
-      { error: "Erreur lors de la creation du service" },
+      { error: "Erreur lors de la création du service", details: message },
       { status: 500 }
     );
   }

@@ -109,10 +109,10 @@ export default function CandidaturesPage() {
   const fetchProjects = useCallback(async () => {
     setLoadingProjects(true);
     try {
-      const res = await fetch("/api/projects");
+      const res = await fetch("/api/public/projects?limit=50");
       if (res.ok) {
         const data = await res.json();
-        setProjects(data.projects);
+        setProjects(data.projects || []);
       }
     } catch (err) {
       console.error("Erreur chargement projets:", err);
