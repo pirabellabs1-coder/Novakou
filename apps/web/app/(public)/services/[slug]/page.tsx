@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState, useMemo, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { useCurrencyStore } from "@/store/currency";
 import { useEntityTracker } from "@/lib/tracking/useEntityTracker";
@@ -28,6 +29,7 @@ interface ApiReview {
 }
 
 interface ApiVendor {
+  id: string;
   name: string;
   avatar: string;
   username: string;
@@ -269,6 +271,43 @@ export default function ServiceDetailPage() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [reviewPage, setReviewPage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
+  const [contactMessage, setContactMessage] = useState("");
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  async function handleContactSeller() {
+    if (!session?.user) {
+      router.push(`/connexion?redirect=${encodeURIComponent(`/services/${slug}`)}`);
+      return;
+    }
+    if (!service?.vendor?.id) return;
+    if (!contactOpen) { setContactOpen(true); return; }
+    if (!contactMessage.trim()) return;
+    setSendingMessage(true);
+    try {
+      const res = await fetch("/api/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          participantId: service.vendor.id,
+          contactName: service.vendor.name,
+          message: contactMessage.trim(),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContactMessage("");
+        setContactOpen(false);
+        const role = (session.user as Record<string, unknown>)?.role;
+        const basePath = role === "freelance" ? "/dashboard" : role === "agence" ? "/agence" : "/client";
+        router.push(`${basePath}/messages?conversation=${data.conversation?.id || ""}`);
+      }
+    } catch { /* ignore */ } finally {
+      setSendingMessage(false);
+    }
+  }
 
   // Fetch service data from API
   useEffect(() => {
@@ -791,7 +830,7 @@ export default function ServiceDetailPage() {
                       <span className="material-symbols-outlined text-sm">person</span>
                       {t("view_full_profile")}
                     </Link>
-                    <button className="flex-1 flex items-center justify-center gap-2 bg-transparent border border-border-dark text-slate-300 hover:text-primary hover:border-primary/30 rounded-xl px-4 py-3 text-sm font-bold transition-all">
+                    <button onClick={handleContactSeller} className="flex-1 flex items-center justify-center gap-2 bg-transparent border border-border-dark text-slate-300 hover:text-primary hover:border-primary/30 rounded-xl px-4 py-3 text-sm font-bold transition-all">
                       <span className="material-symbols-outlined text-sm">mail</span>
                       {t("contact")}
                     </button>
@@ -1037,10 +1076,28 @@ export default function ServiceDetailPage() {
                       <span className="material-symbols-outlined text-base">shopping_cart</span>
                       {t("order_this_package")}
                     </Link>
-                    <button className="w-full flex items-center justify-center gap-2 bg-transparent border border-border-dark hover:border-primary/50 text-slate-300 hover:text-primary rounded-xl px-6 py-3.5 text-sm font-bold transition-all">
+                    <button onClick={() => { if (!session?.user) { router.push(`/connexion?redirect=${encodeURIComponent(`/services/${slug}`)}`); return; } setContactOpen(!contactOpen); }} className="w-full flex items-center justify-center gap-2 bg-transparent border border-border-dark hover:border-primary/50 text-slate-300 hover:text-primary rounded-xl px-6 py-3.5 text-sm font-bold transition-all">
                       <span className="material-symbols-outlined text-base">mail</span>
                       {t("contact_seller")}
                     </button>
+                    {contactOpen && (
+                      <div className="mt-3 space-y-2">
+                        <textarea
+                          value={contactMessage}
+                          onChange={(e) => setContactMessage(e.target.value)}
+                          placeholder="Votre message au vendeur..."
+                          className="w-full bg-white/5 border border-border-dark rounded-xl p-3 text-sm text-white placeholder:text-slate-500 resize-none focus:border-primary/50 focus:outline-none"
+                          rows={3}
+                        />
+                        <button
+                          onClick={handleContactSeller}
+                          disabled={sendingMessage || !contactMessage.trim()}
+                          className="w-full py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
+                        >
+                          {sendingMessage ? "Envoi..." : "Envoyer le message"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

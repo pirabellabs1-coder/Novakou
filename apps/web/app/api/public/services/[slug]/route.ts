@@ -107,6 +107,7 @@ async function handleProductionMode(slug: string) {
         createdAt: r.createdAt,
       })),
       vendor: {
+        id: service.userId,
         name: service.user.name,
         avatar: service.user.image || "",
         username: service.user.email?.split("@")[0] || "",
@@ -188,6 +189,7 @@ async function handleDevMode(slug: string) {
       ...service,
       reviews,
       vendor: {
+        id: service.userId,
         name: service.vendorName,
         avatar: service.vendorAvatar,
         username: service.vendorUsername,

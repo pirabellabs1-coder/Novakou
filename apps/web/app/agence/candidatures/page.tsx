@@ -132,7 +132,7 @@ export default function AgenceCandidatures() {
                     <p className="text-xs text-slate-500">{s.vendorName} · {s.categoryName}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-black text-white">&euro;{s.basePrice.toLocaleString("fr-FR")}</p>
+                    <p className="text-lg font-black text-white">&euro;{(s.basePrice ?? 0).toLocaleString("fr-FR")}</p>
                     <p className="text-[10px] text-slate-500 uppercase font-semibold">Prix</p>
                   </div>
                 </div>

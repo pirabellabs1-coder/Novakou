@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
         images,
         mainImage: body.mainImage?.url || images[0] || "",
         videoUrl: body.videoUrl || "",
-        status: "actif" as const,
+        status: "en_attente" as const,
         isBoosted: false,
         boostedUntil: null,
         boostTier: null,
@@ -226,17 +226,17 @@ export async function POST(request: NextRequest) {
       // Create notification for the user
       notificationStore.add({
         userId: session.user.id,
-        title: "Service publié",
-        message: `Votre service "${service.title}" est maintenant visible dans la marketplace.`,
+        title: "Service soumis",
+        message: `Votre service "${service.title}" est en attente de validation par l'equipe.`,
         type: "service",
         read: false,
         link: `/dashboard/services`,
       });
 
-      // Notify admins about new service
+      // Notify admins about new service to review
       notifyAdmins({
-        title: "Nouveau service publie",
-        message: `"${service.title}" par ${session.user.name || "Freelance"}`,
+        title: "Service a valider",
+        message: `"${service.title}" par ${session.user.name || "Freelance"} — en attente de validation`,
         type: "service",
         link: "/admin/services",
       }).catch(() => {});
@@ -357,7 +357,7 @@ export async function POST(request: NextRequest) {
         categoryId,
         ...(subCategoryId ? { subCategoryId } : {}),
         userId: session.user.id,
-        status: "ACTIF",
+        status: "EN_ATTENTE",
         basePrice,
         price: basePrice,
         deliveryDays,
@@ -404,8 +404,8 @@ export async function POST(request: NextRequest) {
       await prisma.notification.create({
         data: {
           userId: session.user.id,
-          title: "Service publié",
-          message: `Votre service "${body.title}" est maintenant visible dans la marketplace.`,
+          title: "Service soumis",
+          message: `Votre service "${body.title}" est en attente de validation par l'equipe.`,
           type: "SYSTEM",
           link: `/dashboard/services`,
         },

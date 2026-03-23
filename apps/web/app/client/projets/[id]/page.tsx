@@ -234,7 +234,7 @@ export default function ProjectDetailPage() {
         {[
           {
             label: "Budget",
-            value: `${project.budget.min.toLocaleString("fr-FR")} - ${project.budget.max.toLocaleString("fr-FR")} EUR`,
+            value: `${(project.budget?.min ?? 0).toLocaleString("fr-FR")} - ${(project.budget?.max ?? 0).toLocaleString("fr-FR")} EUR`,
             icon: "payments",
             color: "text-primary",
           },
