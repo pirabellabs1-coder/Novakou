@@ -294,8 +294,17 @@ export const useDashboardStore = create<DashboardState>()(
       apiCreateService: async (data) => {
         try {
           const result = await servicesApi.create(data);
-          const localService = mapApiServiceToLocal(result);
-          set((s) => ({ services: [localService, ...s.services] }));
+          if (!result || !result.id) {
+            console.error("[Service create] Invalid response:", result);
+            return null;
+          }
+          // Mapping can fail if response shape differs — don't let it block the ID return
+          try {
+            const localService = mapApiServiceToLocal(result);
+            set((s) => ({ services: [localService, ...s.services] }));
+          } catch (mapErr) {
+            console.error("[Service create] Mapping failed (service was created):", mapErr);
+          }
           return result.id;
         } catch (err) {
           console.error("[Service create] Error:", err);

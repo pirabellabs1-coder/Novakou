@@ -314,7 +314,38 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create service first (without nested relations to avoid type mismatches)
+    // Ensure category exists (upsert if needed)
+    let categoryId = body.categoryId;
+    const existingCategory = await prisma.category.findUnique({ where: { id: categoryId } });
+    if (!existingCategory) {
+      // Try by name/slug
+      const byName = await prisma.category.findFirst({
+        where: { OR: [{ name: categoryId }, { slug: categoryId }] },
+      });
+      if (byName) {
+        categoryId = byName.id;
+      } else {
+        // Create the category on the fly
+        const newCat = await prisma.category.create({
+          data: {
+            name: categoryId,
+            slug: categoryId.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+          },
+        });
+        categoryId = newCat.id;
+      }
+    }
+
+    // Handle subCategoryId — only include if valid
+    let subCategoryId: string | undefined;
+    if (body.subCategoryId) {
+      const existingSub = await prisma.category.findUnique({ where: { id: body.subCategoryId } });
+      if (existingSub) {
+        subCategoryId = body.subCategoryId;
+      }
+    }
+
+    // Create service
     const service = await prisma.service.create({
       data: {
         title: body.title,
@@ -323,8 +354,8 @@ export async function POST(request: NextRequest) {
         description:
           typeof body.description === "object" ? body.description : undefined,
         descriptionText: descriptionText || undefined,
-        categoryId: body.categoryId,
-        ...(body.subCategoryId ? { subCategoryId: body.subCategoryId } : {}),
+        categoryId,
+        ...(subCategoryId ? { subCategoryId } : {}),
         userId: session.user.id,
         status: "ACTIF",
         basePrice,
