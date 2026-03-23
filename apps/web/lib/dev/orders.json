@@ -1,1 +1,403 @@
-[]
+[
+  {
+    "id": "ORD-1024",
+    "serviceId": "s5",
+    "serviceTitle": "Design Dashboard SaaS",
+    "category": "UI/UX Design",
+    "clientId": "dev-client-1",
+    "clientName": "TechCorp Inc.",
+    "clientAvatar": "TC",
+    "clientCountry": "FR",
+    "freelanceId": "dev-freelance-1",
+    "status": "en_cours",
+    "amount": 850,
+    "commission": 127.5,
+    "packageType": "premium",
+    "deadline": "2026-03-10",
+    "deliveredAt": null,
+    "completedAt": null,
+    "progress": 65,
+    "revisionsLeft": 3,
+    "messages": [
+      {
+        "id": "m1",
+        "sender": "client",
+        "senderName": "TechCorp Inc.",
+        "content": "Bonjour ! On aimerait un dashboard moderne pour notre SaaS B2B.",
+        "timestamp": "2026-02-15T10:00:00",
+        "type": "text"
+      },
+      {
+        "id": "m2",
+        "sender": "freelance",
+        "senderName": "Vous",
+        "content": "Parfait ! J'ai bien noté vos besoins.",
+        "timestamp": "2026-02-15T10:30:00",
+        "type": "text"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t1",
+        "type": "created",
+        "title": "Commande créée",
+        "description": "Forfait Premium - Design Dashboard SaaS",
+        "timestamp": "2026-02-15T09:00:00"
+      },
+      {
+        "id": "t2",
+        "type": "started",
+        "title": "Travail démarré",
+        "description": "Vous avez commencé à travailler",
+        "timestamp": "2026-02-15T10:30:00"
+      }
+    ],
+    "files": [
+      {
+        "id": "f1",
+        "name": "brief-dashboard.pdf",
+        "size": "1.2 MB",
+        "type": "pdf",
+        "uploadedBy": "client",
+        "uploadedAt": "2026-02-15T09:15:00",
+        "url": "#"
+      }
+    ],
+    "createdAt": "2026-02-15T09:00:00",
+    "updatedAt": "2026-03-23T01:08:50.882Z"
+  },
+  {
+    "id": "ORD-1019",
+    "serviceId": "s4",
+    "serviceTitle": "API Backend Node.js",
+    "category": "Développement",
+    "clientId": "dev-client-1",
+    "clientName": "Lamine Diallo",
+    "clientAvatar": "LD",
+    "clientCountry": "SN",
+    "freelanceId": "dev-freelance-1",
+    "status": "livre",
+    "amount": 1200,
+    "commission": 180,
+    "packageType": "premium",
+    "deadline": "2026-02-20",
+    "deliveredAt": "2026-02-18",
+    "completedAt": null,
+    "progress": 100,
+    "revisionsLeft": 2,
+    "messages": [
+      {
+        "id": "m1",
+        "sender": "client",
+        "senderName": "Lamine Diallo",
+        "content": "J'ai besoin d'une API pour mon app de livraison.",
+        "timestamp": "2026-01-20T08:00:00",
+        "type": "text"
+      },
+      {
+        "id": "m2",
+        "sender": "freelance",
+        "senderName": "Vous",
+        "content": "Voici le code source complet.",
+        "timestamp": "2026-02-18T16:00:00",
+        "type": "text"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t1",
+        "type": "created",
+        "title": "Commande créée",
+        "description": "Forfait Premium - API Backend",
+        "timestamp": "2026-01-20T08:00:00"
+      },
+      {
+        "id": "t2",
+        "type": "started",
+        "title": "Travail démarré",
+        "description": "Développement en cours",
+        "timestamp": "2026-01-21T09:00:00"
+      },
+      {
+        "id": "t3",
+        "type": "delivered",
+        "title": "Livraison effectuée",
+        "description": "Code source + documentation livrés",
+        "timestamp": "2026-02-18T16:00:00"
+      }
+    ],
+    "files": [
+      {
+        "id": "f1",
+        "name": "api-source-code.zip",
+        "size": "8.5 MB",
+        "type": "zip",
+        "uploadedBy": "freelance",
+        "uploadedAt": "2026-02-18T16:00:00",
+        "url": "#"
+      }
+    ],
+    "createdAt": "2026-01-20T08:00:00",
+    "updatedAt": "2026-03-23T01:08:50.882Z"
+  },
+  {
+    "id": "ORD-1016",
+    "serviceId": "s7",
+    "serviceTitle": "Audit SEO E-commerce",
+    "category": "Marketing Digital",
+    "clientId": "dev-client-1",
+    "clientName": "Auto-Focus SARL",
+    "clientAvatar": "AF",
+    "clientCountry": "CI",
+    "freelanceId": "dev-freelance-1",
+    "status": "en_attente",
+    "amount": 450,
+    "commission": 67.5,
+    "packageType": "standard",
+    "deadline": "2026-03-15",
+    "deliveredAt": null,
+    "completedAt": null,
+    "progress": 0,
+    "revisionsLeft": 1,
+    "messages": [
+      {
+        "id": "m1",
+        "sender": "client",
+        "senderName": "Auto-Focus SARL",
+        "content": "Nous aimerions un audit SEO complet.",
+        "timestamp": "2026-02-28T11:00:00",
+        "type": "text"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t1",
+        "type": "created",
+        "title": "Commande créée",
+        "description": "Forfait Standard - Audit SEO",
+        "timestamp": "2026-02-28T11:00:00"
+      }
+    ],
+    "files": [],
+    "createdAt": "2026-02-28T11:00:00",
+    "updatedAt": "2026-03-23T01:08:50.882Z"
+  },
+  {
+    "id": "ORD-1012",
+    "serviceId": "s1",
+    "serviceTitle": "Logo Startup FinTech",
+    "category": "Identité visuelle",
+    "clientId": "dev-client-1",
+    "clientName": "Moussa Keita",
+    "clientAvatar": "MK",
+    "clientCountry": "ML",
+    "freelanceId": "dev-freelance-1",
+    "status": "revision",
+    "amount": 150,
+    "commission": 22.5,
+    "packageType": "premium",
+    "deadline": "2026-02-28",
+    "deliveredAt": null,
+    "completedAt": null,
+    "progress": 80,
+    "revisionsLeft": 2,
+    "messages": [
+      {
+        "id": "m1",
+        "sender": "client",
+        "senderName": "Moussa Keita",
+        "content": "J'aimerais un logo pour ma startup FinTech.",
+        "timestamp": "2026-02-10T14:00:00",
+        "type": "text"
+      },
+      {
+        "id": "m2",
+        "sender": "freelance",
+        "senderName": "Vous",
+        "content": "Voici 3 propositions de logo.",
+        "timestamp": "2026-02-14T10:00:00",
+        "type": "text"
+      },
+      {
+        "id": "m3",
+        "sender": "client",
+        "senderName": "Moussa Keita",
+        "content": "J'aime le concept 2, couleurs plus vives svp.",
+        "timestamp": "2026-02-15T08:00:00",
+        "type": "text"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t1",
+        "type": "created",
+        "title": "Commande créée",
+        "description": "Forfait Premium - Logo FinTech",
+        "timestamp": "2026-02-10T14:00:00"
+      },
+      {
+        "id": "t2",
+        "type": "started",
+        "title": "Travail démarré",
+        "description": "Recherche et brainstorming",
+        "timestamp": "2026-02-11T09:00:00"
+      },
+      {
+        "id": "t3",
+        "type": "delivered",
+        "title": "Première livraison",
+        "description": "3 concepts envoyés",
+        "timestamp": "2026-02-14T10:00:00"
+      },
+      {
+        "id": "t4",
+        "type": "revision",
+        "title": "Révision demandée",
+        "description": "Ajustement couleurs",
+        "timestamp": "2026-02-15T08:00:00"
+      }
+    ],
+    "files": [
+      {
+        "id": "f1",
+        "name": "logos-v1.pdf",
+        "size": "5.1 MB",
+        "type": "pdf",
+        "uploadedBy": "freelance",
+        "uploadedAt": "2026-02-14T10:00:00",
+        "url": "#"
+      }
+    ],
+    "createdAt": "2026-02-10T14:00:00",
+    "updatedAt": "2026-03-23T01:08:50.882Z"
+  },
+  {
+    "id": "ORD-1008",
+    "serviceId": "s2",
+    "serviceTitle": "Pack 5 Articles Blog",
+    "category": "Contenu",
+    "clientId": "dev-client-1",
+    "clientName": "Marie Dupont",
+    "clientAvatar": "MD",
+    "clientCountry": "FR",
+    "freelanceId": "dev-freelance-1",
+    "status": "termine",
+    "amount": 300,
+    "commission": 45,
+    "packageType": "standard",
+    "deadline": "2026-01-20",
+    "deliveredAt": "2026-01-18",
+    "completedAt": "2026-01-19",
+    "progress": 100,
+    "revisionsLeft": 0,
+    "messages": [
+      {
+        "id": "m1",
+        "sender": "client",
+        "senderName": "Marie Dupont",
+        "content": "Merci pour ce travail excellent !",
+        "timestamp": "2026-01-19T11:00:00",
+        "type": "text"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t1",
+        "type": "created",
+        "title": "Commande créée",
+        "description": "Pack Articles",
+        "timestamp": "2026-01-05T10:00:00"
+      },
+      {
+        "id": "t2",
+        "type": "started",
+        "title": "Travail démarré",
+        "description": "Rédaction en cours",
+        "timestamp": "2026-01-06T09:00:00"
+      },
+      {
+        "id": "t3",
+        "type": "delivered",
+        "title": "Livraison effectuée",
+        "description": "5 articles livrés",
+        "timestamp": "2026-01-18T15:00:00"
+      },
+      {
+        "id": "t4",
+        "type": "completed",
+        "title": "Commande terminée",
+        "description": "Client satisfait",
+        "timestamp": "2026-01-19T11:00:00"
+      }
+    ],
+    "files": [
+      {
+        "id": "f1",
+        "name": "articles-blog-pack.zip",
+        "size": "1.8 MB",
+        "type": "zip",
+        "uploadedBy": "freelance",
+        "uploadedAt": "2026-01-18T15:00:00",
+        "url": "#"
+      }
+    ],
+    "createdAt": "2026-01-05T10:00:00",
+    "updatedAt": "2026-03-23T01:08:50.882Z"
+  },
+  {
+    "id": "ORD-1003",
+    "serviceId": "s4",
+    "serviceTitle": "Application Mobile React Native",
+    "category": "Développement",
+    "clientId": "dev-client-1",
+    "clientName": "Ibrahim Traore",
+    "clientAvatar": "IT",
+    "clientCountry": "BF",
+    "freelanceId": "dev-freelance-1",
+    "status": "annule",
+    "amount": 700,
+    "commission": 105,
+    "packageType": "premium",
+    "deadline": "2026-01-15",
+    "deliveredAt": null,
+    "completedAt": null,
+    "progress": 25,
+    "revisionsLeft": 5,
+    "messages": [
+      {
+        "id": "m1",
+        "sender": "client",
+        "senderName": "Ibrahim Traore",
+        "content": "Je dois annuler, changement de budget.",
+        "timestamp": "2025-12-28T10:00:00",
+        "type": "text"
+      }
+    ],
+    "timeline": [
+      {
+        "id": "t1",
+        "type": "created",
+        "title": "Commande créée",
+        "description": "App Mobile",
+        "timestamp": "2025-12-15T10:00:00"
+      },
+      {
+        "id": "t2",
+        "type": "started",
+        "title": "Travail démarré",
+        "description": "Architecture",
+        "timestamp": "2025-12-16T09:00:00"
+      },
+      {
+        "id": "t3",
+        "type": "cancelled",
+        "title": "Commande annulée",
+        "description": "Annulée par le client",
+        "timestamp": "2025-12-28T10:00:00"
+      }
+    ],
+    "files": [],
+    "createdAt": "2025-12-15T10:00:00",
+    "updatedAt": "2026-03-23T01:08:50.882Z"
+  }
+]

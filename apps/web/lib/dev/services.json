@@ -1,1 +1,1566 @@
-[]
+[
+  {
+    "id": "srv-seed-001",
+    "userId": "user-freelance-001",
+    "slug": "creation-de-site-web-react-next-js-sur-mesure-mn2hmbe7",
+    "title": "Création de site web React & Next.js sur mesure",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Création de site web React & Next.js sur mesure. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Création de site web React & Next.js sur mesure",
+    "categoryId": "cat-dev-web",
+    "categoryName": "Développement Web",
+    "subCategoryId": "sub-frontend",
+    "subCategoryName": "Frontend",
+    "tags": [
+      "création",
+      "site",
+      "web",
+      "react",
+      "next.js"
+    ],
+    "basePrice": 250,
+    "deliveryDays": 7,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 250,
+        "deliveryDays": 9,
+        "revisions": 1,
+        "description": "Version basique de Création de site web React & Next.js sur mesure"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 450,
+        "deliveryDays": 7,
+        "revisions": 3,
+        "description": "Version complète de Création de site web React & Next.js sur mesure"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 750,
+        "deliveryDays": 6,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Création de site web React & Next.js sur mesure"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 3200,
+    "clicks": 160,
+    "orderCount": 87,
+    "revenue": 21750,
+    "rating": 4.937119615456414,
+    "ratingCount": 61,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Création de site web React & Next.js sur mesure",
+    "metaDescription": "Création de site web React & Next.js sur mesure - Service professionnel sur FreelanceHigh",
+    "seoScore": 66,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Moussa Diallo",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "moussa-diallo",
+    "vendorCountry": "SN",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2025-12-26T23:08:45.944Z",
+    "updatedAt": "2026-03-23T01:08:50.865Z"
+  },
+  {
+    "id": "srv-seed-002",
+    "userId": "user-freelance-002",
+    "slug": "developpement-api-rest-graphql-avec-node-js-mn2hmbe9",
+    "title": "Développement API REST & GraphQL avec Node.js",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Développement API REST & GraphQL avec Node.js. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Développement API REST & GraphQL avec Node.js",
+    "categoryId": "cat-dev-web",
+    "categoryName": "Développement Web",
+    "subCategoryId": "sub-backend",
+    "subCategoryName": "Backend",
+    "tags": [
+      "développement",
+      "api",
+      "rest",
+      "graphql",
+      "avec"
+    ],
+    "basePrice": 180,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 180,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Développement API REST & GraphQL avec Node.js"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 324,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Développement API REST & GraphQL avec Node.js"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 540,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Développement API REST & GraphQL avec Node.js"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1800,
+    "clicks": 90,
+    "orderCount": 52,
+    "revenue": 9360,
+    "rating": 4.609590136470676,
+    "ratingCount": 36,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Développement API REST & GraphQL avec Node.js",
+    "metaDescription": "Développement API REST & GraphQL avec Node.js - Service professionnel sur FreelanceHigh",
+    "seoScore": 64,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Aminata Koné",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "aminata-kone",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-05T23:16:10.322Z",
+    "updatedAt": "2026-03-23T01:08:50.865Z"
+  },
+  {
+    "id": "srv-seed-003",
+    "userId": "user-freelance-003",
+    "slug": "site-e-commerce-complet-avec-shopify-ou-woocommerce-mn2hmbe9",
+    "title": "Site e-commerce complet avec Shopify ou WooCommerce",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Site e-commerce complet avec Shopify ou WooCommerce. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Site e-commerce complet avec Shopify ou WooCommerce",
+    "categoryId": "cat-dev-web",
+    "categoryName": "Développement Web",
+    "subCategoryId": "sub-ecommerce",
+    "subCategoryName": "E-commerce",
+    "tags": [
+      "site",
+      "e-commerce",
+      "complet",
+      "avec",
+      "shopify"
+    ],
+    "basePrice": 400,
+    "deliveryDays": 14,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 400,
+        "deliveryDays": 16,
+        "revisions": 1,
+        "description": "Version basique de Site e-commerce complet avec Shopify ou WooCommerce"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 720,
+        "deliveryDays": 14,
+        "revisions": 3,
+        "description": "Version complète de Site e-commerce complet avec Shopify ou WooCommerce"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 1200,
+        "deliveryDays": 13,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Site e-commerce complet avec Shopify ou WooCommerce"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2500,
+    "clicks": 125,
+    "orderCount": 35,
+    "revenue": 14000,
+    "rating": 4.691483586192522,
+    "ratingCount": 25,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Site e-commerce complet avec Shopify ou WooCommerce",
+    "metaDescription": "Site e-commerce complet avec Shopify ou WooCommerce - Service professionnel sur FreelanceHigh",
+    "seoScore": 69,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Jean-Baptiste Nguema",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "jb-nguema",
+    "vendorCountry": "CM",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-09T10:32:06.436Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-004",
+    "userId": "user-freelance-004",
+    "slug": "creation-de-logo-professionnel-et-charte-graphique-mn2hmbea",
+    "title": "Création de logo professionnel et charte graphique",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Création de logo professionnel et charte graphique. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Création de logo professionnel et charte graphique",
+    "categoryId": "cat-design",
+    "categoryName": "Design & Graphisme",
+    "subCategoryId": "sub-logo",
+    "subCategoryName": "Logo & Identité",
+    "tags": [
+      "création",
+      "logo",
+      "professionnel",
+      "charte",
+      "graphique"
+    ],
+    "basePrice": 80,
+    "deliveryDays": 3,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 80,
+        "deliveryDays": 5,
+        "revisions": 1,
+        "description": "Version basique de Création de logo professionnel et charte graphique"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 144,
+        "deliveryDays": 3,
+        "revisions": 3,
+        "description": "Version complète de Création de logo professionnel et charte graphique"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 240,
+        "deliveryDays": 2,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Création de logo professionnel et charte graphique"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 4800,
+    "clicks": 240,
+    "orderCount": 195,
+    "revenue": 15600,
+    "rating": 4.867689099301485,
+    "ratingCount": 137,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Création de logo professionnel et charte graphique",
+    "metaDescription": "Création de logo professionnel et charte graphique - Service professionnel sur FreelanceHigh",
+    "seoScore": 67,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Fatou Sow",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "fatou-sow",
+    "vendorCountry": "SN",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-20T01:21:20.911Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-005",
+    "userId": "user-freelance-005",
+    "slug": "design-ui-ux-complet-pour-application-mobile-mn2hmbea",
+    "title": "Design UI/UX complet pour application mobile",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Design UI/UX complet pour application mobile. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Design UI/UX complet pour application mobile",
+    "categoryId": "cat-design",
+    "categoryName": "Design & Graphisme",
+    "subCategoryId": "sub-ui-ux",
+    "subCategoryName": "UI/UX Design",
+    "tags": [
+      "design",
+      "ui/ux",
+      "complet",
+      "pour",
+      "application"
+    ],
+    "basePrice": 350,
+    "deliveryDays": 10,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 350,
+        "deliveryDays": 12,
+        "revisions": 1,
+        "description": "Version basique de Design UI/UX complet pour application mobile"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 630,
+        "deliveryDays": 10,
+        "revisions": 3,
+        "description": "Version complète de Design UI/UX complet pour application mobile"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 1050,
+        "deliveryDays": 9,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Design UI/UX complet pour application mobile"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2100,
+    "clicks": 105,
+    "orderCount": 42,
+    "revenue": 14700,
+    "rating": 4.739293012677911,
+    "ratingCount": 29,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Design UI/UX complet pour application mobile",
+    "metaDescription": "Design UI/UX complet pour application mobile - Service professionnel sur FreelanceHigh",
+    "seoScore": 48,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Kofi Asante",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "kofi-asante",
+    "vendorCountry": "GH",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-26T14:14:52.247Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-006",
+    "userId": "user-freelance-006",
+    "slug": "illustration-personnalisee-pour-livre-ou-projet-digital-mn2hmbea",
+    "title": "Illustration personnalisée pour livre ou projet digital",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Illustration personnalisée pour livre ou projet digital. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Illustration personnalisée pour livre ou projet digital",
+    "categoryId": "cat-design",
+    "categoryName": "Design & Graphisme",
+    "subCategoryId": "sub-illustration",
+    "subCategoryName": "Illustration",
+    "tags": [
+      "illustration",
+      "personnalisée",
+      "pour",
+      "livre",
+      "projet"
+    ],
+    "basePrice": 120,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 120,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Illustration personnalisée pour livre ou projet digital"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 216,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Illustration personnalisée pour livre ou projet digital"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 360,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Illustration personnalisée pour livre ou projet digital"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1500,
+    "clicks": 75,
+    "orderCount": 68,
+    "revenue": 8160,
+    "rating": 4.755672630831708,
+    "ratingCount": 48,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Illustration personnalisée pour livre ou projet digital",
+    "metaDescription": "Illustration personnalisée pour livre ou projet digital - Service professionnel sur FreelanceHigh",
+    "seoScore": 60,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Claire Dubois",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "claire-dubois",
+    "vendorCountry": "FR",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-03T01:58:40.077Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-007",
+    "userId": "user-freelance-007",
+    "slug": "redaction-d-articles-seo-optimises-en-francais-mn2hmbea",
+    "title": "Rédaction d'articles SEO optimisés en français",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Rédaction d'articles SEO optimisés en français. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Rédaction d'articles SEO optimisés en français",
+    "categoryId": "cat-redaction",
+    "categoryName": "Rédaction & Contenu",
+    "subCategoryId": "sub-redaction-web",
+    "subCategoryName": "Rédaction Web",
+    "tags": [
+      "rédaction",
+      "d'articles",
+      "seo",
+      "optimisés",
+      "français"
+    ],
+    "basePrice": 45,
+    "deliveryDays": 2,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 45,
+        "deliveryDays": 4,
+        "revisions": 1,
+        "description": "Version basique de Rédaction d'articles SEO optimisés en français"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 81,
+        "deliveryDays": 2,
+        "revisions": 3,
+        "description": "Version complète de Rédaction d'articles SEO optimisés en français"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 135,
+        "deliveryDays": 1,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Rédaction d'articles SEO optimisés en français"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 3600,
+    "clicks": 180,
+    "orderCount": 180,
+    "revenue": 8100,
+    "rating": 4.839695490940528,
+    "ratingCount": 126,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Rédaction d'articles SEO optimisés en français",
+    "metaDescription": "Rédaction d'articles SEO optimisés en français - Service professionnel sur FreelanceHigh",
+    "seoScore": 41,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Ibrahim Traoré",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "ibrahim-traore",
+    "vendorCountry": "BF",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-03-06T01:57:55.163Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-008",
+    "userId": "user-freelance-008",
+    "slug": "copywriting-persuasif-pour-pages-de-vente-mn2hmbea",
+    "title": "Copywriting persuasif pour pages de vente",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Copywriting persuasif pour pages de vente. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Copywriting persuasif pour pages de vente",
+    "categoryId": "cat-redaction",
+    "categoryName": "Rédaction & Contenu",
+    "subCategoryId": "sub-copywriting",
+    "subCategoryName": "Copywriting",
+    "tags": [
+      "copywriting",
+      "persuasif",
+      "pour",
+      "pages",
+      "vente"
+    ],
+    "basePrice": 100,
+    "deliveryDays": 3,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 100,
+        "deliveryDays": 5,
+        "revisions": 1,
+        "description": "Version basique de Copywriting persuasif pour pages de vente"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 180,
+        "deliveryDays": 3,
+        "revisions": 3,
+        "description": "Version complète de Copywriting persuasif pour pages de vente"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 300,
+        "deliveryDays": 2,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Copywriting persuasif pour pages de vente"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2800,
+    "clicks": 140,
+    "orderCount": 95,
+    "revenue": 9500,
+    "rating": 4.612810552808117,
+    "ratingCount": 67,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Copywriting persuasif pour pages de vente",
+    "metaDescription": "Copywriting persuasif pour pages de vente - Service professionnel sur FreelanceHigh",
+    "seoScore": 43,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Nadia Benali",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "nadia-benali",
+    "vendorCountry": "MA",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-03-19T04:06:53.174Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-009",
+    "userId": "user-freelance-009",
+    "slug": "traduction-professionnelle-francais-anglais-mn2hmbea",
+    "title": "Traduction professionnelle français-anglais",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Traduction professionnelle français-anglais. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Traduction professionnelle français-anglais",
+    "categoryId": "cat-redaction",
+    "categoryName": "Rédaction & Contenu",
+    "subCategoryId": "sub-traduction",
+    "subCategoryName": "Traduction",
+    "tags": [
+      "traduction",
+      "professionnelle",
+      "français-anglais"
+    ],
+    "basePrice": 35,
+    "deliveryDays": 1,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 35,
+        "deliveryDays": 3,
+        "revisions": 1,
+        "description": "Version basique de Traduction professionnelle français-anglais"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 63,
+        "deliveryDays": 1,
+        "revisions": 3,
+        "description": "Version complète de Traduction professionnelle français-anglais"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 105,
+        "deliveryDays": 1,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Traduction professionnelle français-anglais"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 4200,
+    "clicks": 210,
+    "orderCount": 200,
+    "revenue": 7000,
+    "rating": 4.624035306741181,
+    "ratingCount": 140,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Traduction professionnelle français-anglais",
+    "metaDescription": "Traduction professionnelle français-anglais - Service professionnel sur FreelanceHigh",
+    "seoScore": 59,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Ousmane Barry",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "ousmane-barry",
+    "vendorCountry": "GN",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-26T17:02:48.442Z",
+    "updatedAt": "2026-03-23T01:08:50.866Z"
+  },
+  {
+    "id": "srv-seed-010",
+    "userId": "user-freelance-010",
+    "slug": "audit-seo-complet-et-plan-d-optimisation-mn2hmbeb",
+    "title": "Audit SEO complet et plan d'optimisation",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Audit SEO complet et plan d'optimisation. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Audit SEO complet et plan d'optimisation",
+    "categoryId": "cat-marketing",
+    "categoryName": "Marketing Digital",
+    "subCategoryId": "sub-seo",
+    "subCategoryName": "SEO",
+    "tags": [
+      "audit",
+      "seo",
+      "complet",
+      "plan",
+      "d'optimisation"
+    ],
+    "basePrice": 150,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 150,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Audit SEO complet et plan d'optimisation"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 270,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Audit SEO complet et plan d'optimisation"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 450,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Audit SEO complet et plan d'optimisation"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2600,
+    "clicks": 130,
+    "orderCount": 73,
+    "revenue": 10950,
+    "rating": 4.970741199708013,
+    "ratingCount": 51,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Audit SEO complet et plan d'optimisation",
+    "metaDescription": "Audit SEO complet et plan d'optimisation - Service professionnel sur FreelanceHigh",
+    "seoScore": 48,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Awa Diop",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "awa-diop",
+    "vendorCountry": "SN",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-01-10T23:27:35.135Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-011",
+    "userId": "user-freelance-011",
+    "slug": "gestion-de-reseaux-sociaux-pendant-30-jours-mn2hmbeb",
+    "title": "Gestion de réseaux sociaux pendant 30 jours",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Gestion de réseaux sociaux pendant 30 jours. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Gestion de réseaux sociaux pendant 30 jours",
+    "categoryId": "cat-marketing",
+    "categoryName": "Marketing Digital",
+    "subCategoryId": "sub-social-media",
+    "subCategoryName": "Social Media",
+    "tags": [
+      "gestion",
+      "réseaux",
+      "sociaux",
+      "pendant",
+      "jours"
+    ],
+    "basePrice": 200,
+    "deliveryDays": 7,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 200,
+        "deliveryDays": 9,
+        "revisions": 1,
+        "description": "Version basique de Gestion de réseaux sociaux pendant 30 jours"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 360,
+        "deliveryDays": 7,
+        "revisions": 3,
+        "description": "Version complète de Gestion de réseaux sociaux pendant 30 jours"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 600,
+        "deliveryDays": 6,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Gestion de réseaux sociaux pendant 30 jours"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 3100,
+    "clicks": 155,
+    "orderCount": 110,
+    "revenue": 22000,
+    "rating": 4.530781564874715,
+    "ratingCount": 77,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Gestion de réseaux sociaux pendant 30 jours",
+    "metaDescription": "Gestion de réseaux sociaux pendant 30 jours - Service professionnel sur FreelanceHigh",
+    "seoScore": 66,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Pierre Kamga",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "pierre-kamga",
+    "vendorCountry": "CM",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-13T13:59:21.629Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-012",
+    "userId": "user-freelance-012",
+    "slug": "campagne-publicitaire-facebook-instagram-ads-mn2hmbeb",
+    "title": "Campagne publicitaire Facebook & Instagram Ads",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Campagne publicitaire Facebook & Instagram Ads. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Campagne publicitaire Facebook & Instagram Ads",
+    "categoryId": "cat-marketing",
+    "categoryName": "Marketing Digital",
+    "subCategoryId": "sub-pub",
+    "subCategoryName": "Publicité",
+    "tags": [
+      "campagne",
+      "publicitaire",
+      "facebook",
+      "instagram",
+      "ads"
+    ],
+    "basePrice": 300,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 300,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Campagne publicitaire Facebook & Instagram Ads"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 540,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Campagne publicitaire Facebook & Instagram Ads"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 900,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Campagne publicitaire Facebook & Instagram Ads"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1900,
+    "clicks": 95,
+    "orderCount": 48,
+    "revenue": 14400,
+    "rating": 4.853203920252202,
+    "ratingCount": 34,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Campagne publicitaire Facebook & Instagram Ads",
+    "metaDescription": "Campagne publicitaire Facebook & Instagram Ads - Service professionnel sur FreelanceHigh",
+    "seoScore": 56,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Mariame Coulibaly",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "mariame-coulibaly",
+    "vendorCountry": "ML",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-07T16:36:22.138Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-013",
+    "userId": "user-freelance-013",
+    "slug": "montage-video-professionnel-youtube-ou-corporate-mn2hmbeb",
+    "title": "Montage vidéo professionnel YouTube ou corporate",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Montage vidéo professionnel YouTube ou corporate. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Montage vidéo professionnel YouTube ou corporate",
+    "categoryId": "cat-video",
+    "categoryName": "Vidéo & Animation",
+    "subCategoryId": "sub-montage",
+    "subCategoryName": "Montage Vidéo",
+    "tags": [
+      "montage",
+      "vidéo",
+      "professionnel",
+      "youtube",
+      "corporate"
+    ],
+    "basePrice": 90,
+    "deliveryDays": 3,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 90,
+        "deliveryDays": 5,
+        "revisions": 1,
+        "description": "Version basique de Montage vidéo professionnel YouTube ou corporate"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 162,
+        "deliveryDays": 3,
+        "revisions": 3,
+        "description": "Version complète de Montage vidéo professionnel YouTube ou corporate"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 270,
+        "deliveryDays": 2,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Montage vidéo professionnel YouTube ou corporate"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 3500,
+    "clicks": 175,
+    "orderCount": 145,
+    "revenue": 13050,
+    "rating": 4.899571288676723,
+    "ratingCount": 102,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Montage vidéo professionnel YouTube ou corporate",
+    "metaDescription": "Montage vidéo professionnel YouTube ou corporate - Service professionnel sur FreelanceHigh",
+    "seoScore": 71,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Yves Mensah",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "yves-mensah",
+    "vendorCountry": "TG",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-01-05T20:55:08.675Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-014",
+    "userId": "user-freelance-014",
+    "slug": "animation-2d-explicative-pour-votre-entreprise-mn2hmbeb",
+    "title": "Animation 2D explicative pour votre entreprise",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Animation 2D explicative pour votre entreprise. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Animation 2D explicative pour votre entreprise",
+    "categoryId": "cat-video",
+    "categoryName": "Vidéo & Animation",
+    "subCategoryId": "sub-animation-2d",
+    "subCategoryName": "Animation 2D",
+    "tags": [
+      "animation",
+      "explicative",
+      "pour",
+      "votre",
+      "entreprise"
+    ],
+    "basePrice": 250,
+    "deliveryDays": 7,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 250,
+        "deliveryDays": 9,
+        "revisions": 1,
+        "description": "Version basique de Animation 2D explicative pour votre entreprise"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 450,
+        "deliveryDays": 7,
+        "revisions": 3,
+        "description": "Version complète de Animation 2D explicative pour votre entreprise"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 750,
+        "deliveryDays": 6,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Animation 2D explicative pour votre entreprise"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1700,
+    "clicks": 85,
+    "orderCount": 38,
+    "revenue": 9500,
+    "rating": 4.5077815707409075,
+    "ratingCount": 27,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Animation 2D explicative pour votre entreprise",
+    "metaDescription": "Animation 2D explicative pour votre entreprise - Service professionnel sur FreelanceHigh",
+    "seoScore": 61,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Léa Fontaine",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "lea-fontaine",
+    "vendorCountry": "FR",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-03-01T02:24:45.922Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-015",
+    "userId": "user-freelance-015",
+    "slug": "motion-graphics-pour-publicite-et-reseaux-sociaux-mn2hmbeb",
+    "title": "Motion graphics pour publicité et réseaux sociaux",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Motion graphics pour publicité et réseaux sociaux. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Motion graphics pour publicité et réseaux sociaux",
+    "categoryId": "cat-video",
+    "categoryName": "Vidéo & Animation",
+    "subCategoryId": "sub-motion-graphics",
+    "subCategoryName": "Motion Graphics",
+    "tags": [
+      "motion",
+      "graphics",
+      "pour",
+      "publicité",
+      "réseaux"
+    ],
+    "basePrice": 180,
+    "deliveryDays": 5,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 180,
+        "deliveryDays": 7,
+        "revisions": 1,
+        "description": "Version basique de Motion graphics pour publicité et réseaux sociaux"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 324,
+        "deliveryDays": 5,
+        "revisions": 3,
+        "description": "Version complète de Motion graphics pour publicité et réseaux sociaux"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 540,
+        "deliveryDays": 4,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Motion graphics pour publicité et réseaux sociaux"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2200,
+    "clicks": 110,
+    "orderCount": 62,
+    "revenue": 11160,
+    "rating": 4.662511640484258,
+    "ratingCount": 43,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Motion graphics pour publicité et réseaux sociaux",
+    "metaDescription": "Motion graphics pour publicité et réseaux sociaux - Service professionnel sur FreelanceHigh",
+    "seoScore": 50,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Abdoulaye Ndiaye",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "abdoulaye-ndiaye",
+    "vendorCountry": "SN",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-03-08T05:04:06.867Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-016",
+    "userId": "user-freelance-016",
+    "slug": "formation-complete-react-next-js-en-visio-mn2hmbeb",
+    "title": "Formation complète React & Next.js en visio",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Formation complète React & Next.js en visio. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Formation complète React & Next.js en visio",
+    "categoryId": "cat-formation",
+    "categoryName": "Formation & Coaching",
+    "subCategoryId": "sub-dev-formation",
+    "subCategoryName": "Développement",
+    "tags": [
+      "formation",
+      "complète",
+      "react",
+      "next.js",
+      "visio"
+    ],
+    "basePrice": 500,
+    "deliveryDays": 14,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 500,
+        "deliveryDays": 16,
+        "revisions": 1,
+        "description": "Version basique de Formation complète React & Next.js en visio"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 900,
+        "deliveryDays": 14,
+        "revisions": 3,
+        "description": "Version complète de Formation complète React & Next.js en visio"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 1500,
+        "deliveryDays": 13,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Formation complète React & Next.js en visio"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1200,
+    "clicks": 60,
+    "orderCount": 25,
+    "revenue": 12500,
+    "rating": 4.835065470993163,
+    "ratingCount": 18,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Formation complète React & Next.js en visio",
+    "metaDescription": "Formation complète React & Next.js en visio - Service professionnel sur FreelanceHigh",
+    "seoScore": 70,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Rachida El Amrani",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "rachida-elamrani",
+    "vendorCountry": "MA",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-02-01T16:15:29.152Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-017",
+    "userId": "user-freelance-017",
+    "slug": "coaching-design-figma-pour-debutants-mn2hmbeb",
+    "title": "Coaching design Figma pour débutants",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Coaching design Figma pour débutants. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Coaching design Figma pour débutants",
+    "categoryId": "cat-formation",
+    "categoryName": "Formation & Coaching",
+    "subCategoryId": "sub-design-formation",
+    "subCategoryName": "Design",
+    "tags": [
+      "coaching",
+      "design",
+      "figma",
+      "pour",
+      "débutants"
+    ],
+    "basePrice": 75,
+    "deliveryDays": 3,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 75,
+        "deliveryDays": 5,
+        "revisions": 1,
+        "description": "Version basique de Coaching design Figma pour débutants"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 135,
+        "deliveryDays": 3,
+        "revisions": 3,
+        "description": "Version complète de Coaching design Figma pour débutants"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 225,
+        "deliveryDays": 2,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Coaching design Figma pour débutants"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 2900,
+    "clicks": 145,
+    "orderCount": 130,
+    "revenue": 9750,
+    "rating": 4.924238478480468,
+    "ratingCount": 91,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Coaching design Figma pour débutants",
+    "metaDescription": "Coaching design Figma pour débutants - Service professionnel sur FreelanceHigh",
+    "seoScore": 61,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Sékou Camara",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "sekou-camara",
+    "vendorCountry": "GN",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-03-21T20:18:25.092Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  },
+  {
+    "id": "srv-seed-018",
+    "userId": "user-freelance-018",
+    "slug": "strategie-marketing-digital-pour-pme-africaines-mn2hmbeb",
+    "title": "Stratégie marketing digital pour PME africaines",
+    "language": "fr",
+    "description": {
+      "type": "markdown",
+      "text": "Description détaillée de Stratégie marketing digital pour PME africaines. Ce service est proposé par un freelance expérimenté sur FreelanceHigh."
+    },
+    "descriptionText": "Description détaillée de Stratégie marketing digital pour PME africaines",
+    "categoryId": "cat-formation",
+    "categoryName": "Formation & Coaching",
+    "subCategoryId": "sub-business",
+    "subCategoryName": "Business",
+    "tags": [
+      "stratégie",
+      "marketing",
+      "digital",
+      "pour",
+      "pme"
+    ],
+    "basePrice": 200,
+    "deliveryDays": 7,
+    "revisions": 2,
+    "packages": {
+      "basic": {
+        "name": "Basique",
+        "price": 200,
+        "deliveryDays": 9,
+        "revisions": 1,
+        "description": "Version basique de Stratégie marketing digital pour PME africaines"
+      },
+      "standard": {
+        "name": "Standard",
+        "price": 360,
+        "deliveryDays": 7,
+        "revisions": 3,
+        "description": "Version complète de Stratégie marketing digital pour PME africaines"
+      },
+      "premium": {
+        "name": "Premium",
+        "price": 600,
+        "deliveryDays": 6,
+        "revisions": 5,
+        "description": "Version premium all-inclusive de Stratégie marketing digital pour PME africaines"
+      }
+    },
+    "options": [],
+    "expressEnabled": false,
+    "expressPrice": 0,
+    "expressDaysReduction": 0,
+    "instructionsRequired": false,
+    "instructionsContent": null,
+    "images": [
+      "/images/placeholder-service.jpg"
+    ],
+    "mainImage": "/images/placeholder-service.jpg",
+    "videoUrl": "",
+    "status": "actif",
+    "views": 1600,
+    "clicks": 80,
+    "orderCount": 55,
+    "revenue": 11000,
+    "rating": 4.6053685363013495,
+    "ratingCount": 39,
+    "isBoosted": false,
+    "boostedUntil": null,
+    "boostTier": null,
+    "metaTitle": "Stratégie marketing digital pour PME africaines",
+    "metaDescription": "Stratégie marketing digital pour PME africaines - Service professionnel sur FreelanceHigh",
+    "seoScore": 42,
+    "faq": [],
+    "extras": [],
+    "vendorName": "Bintou Sangaré",
+    "vendorAvatar": "/images/avatars/default.png",
+    "vendorUsername": "bintou-sangare",
+    "vendorCountry": "CI",
+    "vendorBadges": [
+      "Vérifié",
+      "Pro"
+    ],
+    "vendorRating": 4.8,
+    "vendorPlan": "pro",
+    "createdAt": "2026-01-29T11:29:25.790Z",
+    "updatedAt": "2026-03-23T01:08:50.867Z"
+  }
+]

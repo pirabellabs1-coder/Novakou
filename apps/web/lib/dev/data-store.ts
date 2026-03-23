@@ -454,7 +454,7 @@ const SEED_VENDORS = [
 ];
 
 function getDefaultServices(): StoredService[] {
-  return []; // No seed data — platform starts empty
+  return _getDefaultServicesOriginal();
 }
 
 function _getDefaultServicesOriginal(): StoredService[] {
@@ -797,10 +797,9 @@ function calculateSeoScore(service: Partial<StoredService>): number {
 const ORDERS_FILE = "orders.json";
 
 function getDefaultOrders(): StoredOrder[] {
-  return [];
+  return _getDefaultOrdersLegacy();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _getDefaultOrdersLegacy(): StoredOrder[] {
   const now = new Date().toISOString();
   return [
@@ -1456,7 +1455,16 @@ export function calculateStats(userId: string) {
 const REVIEWS_FILE = "reviews.json";
 
 function getDefaultReviews(): StoredReview[] {
-  return [];
+  return [
+    { id: "rev-seed-001", orderId: "ORD-1008", serviceId: "srv-seed-007", clientId: "dev-client-1", clientName: "Marie Dupont", clientAvatar: "MD", clientCountry: "FR", freelanceId: "user-freelance-007", serviceTitle: "Rédaction d'articles SEO optimisés en français", qualite: 5, communication: 5, delai: 4, rating: 4.7, comment: "Travail excellent, articles bien structurés et optimisés. Je recommande vivement !", reply: "Merci Marie, ce fut un plaisir de travailler avec vous !", repliedAt: "2026-01-20T10:00:00", helpful: 12, reported: false, createdAt: "2026-01-19T14:00:00" },
+    { id: "rev-seed-002", orderId: "ORD-1024", serviceId: "srv-seed-005", clientId: "dev-client-2", clientName: "TechCorp Inc.", clientAvatar: "TC", clientCountry: "FR", freelanceId: "user-freelance-005", serviceTitle: "Design UI/UX complet pour application mobile", qualite: 5, communication: 5, delai: 5, rating: 5.0, comment: "Design incroyable, exactement ce qu'on cherchait pour notre application. Professionnel et réactif.", reply: null, repliedAt: null, helpful: 8, reported: false, createdAt: "2026-02-25T09:00:00" },
+    { id: "rev-seed-003", orderId: "ORD-1019", serviceId: "srv-seed-002", clientId: "dev-client-3", clientName: "Lamine Diallo", clientAvatar: "LD", clientCountry: "SN", freelanceId: "user-freelance-002", serviceTitle: "Développement API REST & GraphQL avec Node.js", qualite: 5, communication: 4, delai: 5, rating: 4.7, comment: "API bien documentée et fonctionnelle. Livré en avance, très pro.", reply: "Merci Lamine ! L'API tourne bien, n'hésitez pas pour la maintenance.", repliedAt: "2026-02-20T11:00:00", helpful: 15, reported: false, createdAt: "2026-02-19T16:00:00" },
+    { id: "rev-seed-004", orderId: "ORD-1012", serviceId: "srv-seed-004", clientId: "dev-client-4", clientName: "Moussa Keita", clientAvatar: "MK", clientCountry: "ML", freelanceId: "user-freelance-004", serviceTitle: "Création de logo professionnel et charte graphique", qualite: 4, communication: 5, delai: 4, rating: 4.3, comment: "Logo magnifique, bonne communication tout au long du projet.", reply: null, repliedAt: null, helpful: 6, reported: false, createdAt: "2026-02-16T10:00:00" },
+    { id: "rev-seed-005", orderId: "ORD-1016", serviceId: "srv-seed-010", clientId: "dev-client-5", clientName: "Auto-Focus SARL", clientAvatar: "AF", clientCountry: "CI", freelanceId: "user-freelance-010", serviceTitle: "Audit SEO complet et plan d'optimisation", qualite: 5, communication: 5, delai: 5, rating: 5.0, comment: "Audit très complet avec des recommandations actionnables. Notre trafic a augmenté de 40% en 2 mois.", reply: "Ravi des résultats ! On continue avec le plan d'optimisation.", repliedAt: "2026-03-05T14:00:00", helpful: 22, reported: false, createdAt: "2026-03-04T09:00:00" },
+    { id: "rev-seed-006", orderId: "ORD-extra-001", serviceId: "srv-seed-001", clientId: "dev-client-6", clientName: "Sophie Martin", clientAvatar: "SM", clientCountry: "FR", freelanceId: "user-freelance-001", serviceTitle: "Création de site web React & Next.js sur mesure", qualite: 5, communication: 4, delai: 4, rating: 4.3, comment: "Site web rapide et bien conçu. Quelques ajustements mineurs mais globalement excellent.", reply: null, repliedAt: null, helpful: 9, reported: false, createdAt: "2026-02-10T11:00:00" },
+    { id: "rev-seed-007", orderId: "ORD-extra-002", serviceId: "srv-seed-013", clientId: "dev-client-7", clientName: "Ahmed Bah", clientAvatar: "AB", clientCountry: "GN", freelanceId: "user-freelance-013", serviceTitle: "Montage vidéo professionnel YouTube ou corporate", qualite: 5, communication: 5, delai: 5, rating: 5.0, comment: "Montage exceptionnel ! Transitions fluides, musique parfaite. Notre chaîne YouTube a gagné 2000 abonnés.", reply: "Merci Ahmed ! Content que la vidéo ait eu cet impact.", repliedAt: "2026-03-01T16:00:00", helpful: 18, reported: false, createdAt: "2026-02-28T14:00:00" },
+    { id: "rev-seed-008", orderId: "ORD-extra-003", serviceId: "srv-seed-011", clientId: "dev-client-8", clientName: "Fatima Ouédraogo", clientAvatar: "FO", clientCountry: "BF", freelanceId: "user-freelance-011", serviceTitle: "Gestion de réseaux sociaux pendant 30 jours", qualite: 4, communication: 5, delai: 5, rating: 4.7, comment: "Notre engagement Instagram a triplé. Contenu créatif et adapté à notre audience africaine.", reply: null, repliedAt: null, helpful: 11, reported: false, createdAt: "2026-03-10T08:00:00" },
+  ];
 }
 
 export const reviewStore = {

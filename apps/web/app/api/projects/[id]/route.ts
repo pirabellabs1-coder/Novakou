@@ -37,9 +37,9 @@ export async function GET(
     }
 
     // Production: Prisma
-    const project = await prisma.bid.findUnique({
+    const project = await prisma.project.findUnique({
       where: { id },
-      include: { user: true },
+      include: { client: true, bids: true },
     });
     if (!project) {
       return NextResponse.json({ error: "Projet non trouve" }, { status: 404 });
@@ -79,7 +79,7 @@ export async function PATCH(
     }
 
     // Production: Prisma
-    const project = await prisma.bid.update({
+    const project = await prisma.project.update({
       where: { id },
       data: parsed.data,
     });
@@ -113,7 +113,7 @@ export async function DELETE(
     }
 
     // Production: Prisma
-    await prisma.bid.delete({ where: { id } });
+    await prisma.project.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
