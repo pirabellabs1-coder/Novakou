@@ -272,7 +272,7 @@ export default function NewProjectPage() {
                 <label className="block text-sm font-semibold text-white mb-2">
                   Catégorie principale
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                   {CATEGORIES.map((c) => (
                     <button
                       key={c}
@@ -513,7 +513,7 @@ export default function NewProjectPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-white mb-2">
                     Budget minimum{form.budgetType === "horaire" && " / heure"}

@@ -5,6 +5,7 @@
 
 import { IS_DEV } from "@/lib/env";
 import type { NotificationOutput } from "@/lib/events/types";
+import type { NotificationType } from "@prisma/client";
 
 interface CreateNotificationInput {
   userId: string;
@@ -26,6 +27,7 @@ export async function createNotification(input: CreateNotificationInput): Promis
       title: input.title,
       message: input.message,
       type: input.type as "order" | "message" | "payment" | "system" | "service" | "boost" | "offer" | "review" | "agency" | "course" | "product",
+      read: false,
       link: input.link,
     });
     return;
@@ -58,6 +60,7 @@ export async function createNotifications(inputs: CreateNotificationInput[]): Pr
         title: input.title,
         message: input.message,
         type: input.type as "order" | "message" | "payment" | "system" | "service" | "boost" | "offer" | "review" | "agency" | "course" | "product",
+        read: false,
         link: input.link,
       });
     }
@@ -82,8 +85,8 @@ export async function createNotifications(inputs: CreateNotificationInput[]): Pr
  * Les nouveaux types (offer, review, agency, etc.) sont mappes vers
  * les valeurs de l'enum Prisma apres la migration.
  */
-function mapToNotificationType(type: string): string {
-  const typeMap: Record<string, string> = {
+function mapToNotificationType(type: string): NotificationType {
+  const typeMap: Record<string, NotificationType> = {
     order: "ORDER",
     message: "MESSAGE",
     payment: "PAYMENT",

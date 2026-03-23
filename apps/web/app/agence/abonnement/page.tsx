@@ -345,7 +345,7 @@ export default function AgenceAbonnement() {
         </div>
 
         {/* Features */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {currentPlan.features.map((feat) => (
             <div key={feat} className="flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-sm">
@@ -392,7 +392,7 @@ export default function AgenceAbonnement() {
         <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-3">
           Utilisation du plan
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             {
               label: "Membres",

@@ -189,7 +189,7 @@ export default function AgenceFinances() {
             <p className="text-slate-400 text-sm mt-1">Chargement des données financières...</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-4 animate-pulse">
               <div className="h-6 bg-background-dark/50 rounded w-20 mb-2" />
@@ -232,7 +232,7 @@ export default function AgenceFinances() {
       </div>
 
       {/* KPI Metric Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {metrics.map((m) => (
           <div
             key={m.label}

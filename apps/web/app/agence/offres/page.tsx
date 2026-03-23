@@ -120,7 +120,7 @@ export default function AgenceOffres() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((s) => (
           <div key={s.label} className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
             <span className={cn("material-symbols-outlined text-xl", s.color)}>{s.icon}</span>

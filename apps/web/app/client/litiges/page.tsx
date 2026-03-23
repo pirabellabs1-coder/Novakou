@@ -373,7 +373,7 @@ export default function ClientDisputes() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Total", value: disputes.length, icon: "gavel", color: "text-white" },
           { label: "En cours", value: disputes.filter((d) => d.status === "en_cours").length, icon: "pending", color: "text-blue-400" },

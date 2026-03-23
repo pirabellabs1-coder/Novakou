@@ -36,7 +36,7 @@ export function CookieConsent() {
         'script[src*="googletagmanager"]'
       );
       if (gaId) {
-        (window as Record<string, unknown>).gtag?.("consent", "update", {
+        ((window as unknown) as Record<string, (...args: unknown[]) => void>).gtag?.("consent", "update", {
           analytics_storage: "granted",
         });
       }

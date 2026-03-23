@@ -76,10 +76,10 @@ function BlockRenderer({ block, formation, onBuy }: { block: Block; formation: F
     case "HERO":
       return (
         <div className="relative py-20 px-6 text-center rounded-2xl overflow-hidden" style={{ backgroundImage: d.bgImage ? `url(${d.bgImage})` : undefined, backgroundSize: "cover", backgroundPosition: "center" }}>
-          {d.bgImage && <div className="absolute inset-0 bg-black/50" />}
+          {!!d.bgImage && <div className="absolute inset-0 bg-black/50" />}
           <div className="relative z-10">
             <h1 className="text-3xl sm:text-5xl font-black text-white mb-4">{String(d.title || formation.title)}</h1>
-            {d.subtitle && <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">{String(d.subtitle)}</p>}
+            {!!d.subtitle && <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto">{String(d.subtitle)}</p>}
             <button onClick={onBuy} className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-4 rounded-xl text-lg transition-colors shadow-xl">
               {String(d.ctaText || "Acheter maintenant")}
             </button>
@@ -97,7 +97,7 @@ function BlockRenderer({ block, formation, onBuy }: { block: Block; formation: F
       return d.url ? (
         <div className={`py-6 ${sizeClass}`}>
           <img src={String(d.url)} alt={String(d.alt ?? "")} className="w-full rounded-xl" />
-          {d.alt && <p className="text-center text-sm text-slate-500 mt-2">{String(d.alt)}</p>}
+          {!!d.alt && <p className="text-center text-sm text-slate-500 mt-2">{String(d.alt)}</p>}
         </div>
       ) : null;
     }

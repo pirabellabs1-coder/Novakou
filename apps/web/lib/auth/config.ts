@@ -271,7 +271,7 @@ export const authOptions: NextAuthOptions = {
             const existing = devStore.findByEmail(email);
             if (!existing) {
               // Create a new user for OAuth with role from cookie (default: client)
-              const oauthRole = pendingRole || "client";
+              const oauthRole = (pendingRole || "client") as "freelance" | "client" | "agence" | "admin";
               const newUser = devStore.create({
                 email,
                 passwordHash: "", // OAuth users don't have a password

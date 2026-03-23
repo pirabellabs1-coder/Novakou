@@ -184,7 +184,7 @@ export default function MarketingHubPage() {
     );
   }
 
-  const { kpis, subsystems, recentActivity, revenueByDay } = data;
+  const { kpis, subsystems, recentActivity, revenueByDay } = data as OverviewData;
 
   // Build subsystem metrics
   const subsystemMetrics = [
@@ -336,7 +336,7 @@ export default function MarketingHubPage() {
             </h3>
           </div>
           <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
-            {(recentActivity ?? []).slice(0, 15).map((a) => {
+            {(recentActivity ?? []).slice(0, 15).map((a: ActivityItem) => {
               const config = ACTIVITY_ICONS[a.type] || ACTIVITY_ICONS.campaign_click;
               return (
                 <div key={a.id} className="flex items-start gap-3 p-4">

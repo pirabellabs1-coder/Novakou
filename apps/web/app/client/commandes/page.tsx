@@ -88,7 +88,7 @@ export default function ClientOrders() {
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           { label: "Total", value: counts.all, icon: "receipt_long", color: "text-white" },
           { label: "En cours", value: counts.en_cours, icon: "construction", color: "text-blue-400" },

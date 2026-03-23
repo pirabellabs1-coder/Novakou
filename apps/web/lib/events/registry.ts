@@ -768,22 +768,46 @@ export const EVENT_REGISTRY: {
   // ═══════════════════════════════════════════════════════════════════
 
   "admin.new_user": {
-    notification: (p: AdminEventPayload) => null,
+    notification: (p: AdminEventPayload) => (p.adminId ? {
+      userId: p.adminId,
+      title: "Nouvel utilisateur",
+      message: `${p.userName || "Quelqu'un"} (${p.userRole || "inconnu"}) vient de s'inscrire`,
+      type: "system",
+      link: "/admin/utilisateurs",
+    } : null),
     email: undefined,
   },
 
   "admin.new_service": {
-    notification: (p: AdminEventPayload) => null,
+    notification: (p: AdminEventPayload) => (p.adminId ? {
+      userId: p.adminId,
+      title: "Nouveau service publie",
+      message: `"${p.serviceTitle || "Service"}" par ${p.userName || "un freelance"}`,
+      type: "service",
+      link: "/admin/services",
+    } : null),
     email: undefined,
   },
 
   "admin.new_course": {
-    notification: (p: AdminEventPayload) => null,
+    notification: (p: AdminEventPayload) => (p.adminId ? {
+      userId: p.adminId,
+      title: "Nouvelle formation",
+      message: `"${p.courseTitle || "Formation"}" par ${p.userName || "un instructeur"}`,
+      type: "system",
+      link: "/admin/formations/liste",
+    } : null),
     email: undefined,
   },
 
   "admin.dispute_opened": {
-    notification: (p: AdminEventPayload) => null,
+    notification: (p: AdminEventPayload) => (p.adminId ? {
+      userId: p.adminId,
+      title: "Nouveau litige",
+      message: `Litige ouvert${p.userName ? ` par ${p.userName}` : ""}`,
+      type: "system",
+      link: "/admin/litiges",
+    } : null),
     email: undefined,
   },
 

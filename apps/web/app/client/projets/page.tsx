@@ -112,7 +112,7 @@ export default function ClientProjects() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: "Total", value: counts.all, icon: "folder_open", color: "text-white" },
           { label: "Actifs", value: counts.actif, icon: "play_circle", color: "text-primary" },

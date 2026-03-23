@@ -217,7 +217,7 @@ export default function ClientSettings() {
                   <span className="material-symbols-outlined text-primary">lock</span>
                   Sécurité du compte
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Mot de passe actuel</label>
                     <input

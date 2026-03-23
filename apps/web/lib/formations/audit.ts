@@ -32,7 +32,7 @@ export async function logAuditAction({
         targetType: targetType ?? null,
         targetId: targetId ?? null,
         targetUserId: targetUserId ?? null,
-        details: metadata ?? null,
+        details: metadata ?? undefined,
         ipAddress: ipAddress ?? null,
       },
     });

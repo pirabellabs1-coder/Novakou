@@ -160,7 +160,7 @@ export default function MarketingAnalyticsPage() {
     );
   }
 
-  const { overview, revenueByMonth, salesByProduct, trafficSources, conversionFunnel, topPages, geographicData } = data;
+  const { overview, revenueByMonth, salesByProduct, trafficSources, conversionFunnel, topPages, geographicData } = data as AnalyticsData;
 
   // Funnel steps for ConversionFunnel component
   const funnelSteps = [
@@ -172,8 +172,8 @@ export default function MarketingAnalyticsPage() {
 
   // Sales by product type for PieChart
   const salesByType = [
-    { name: "Formations", value: salesByProduct.filter((s) => s.type === "formation").reduce((a, s) => a + s.revenue, 0) },
-    { name: fr ? "Produits" : "Products", value: salesByProduct.filter((s) => s.type === "product").reduce((a, s) => a + s.revenue, 0) },
+    { name: "Formations", value: salesByProduct.filter((s: SalesByProduct) => s.type === "formation").reduce((a: number, s: SalesByProduct) => a + s.revenue, 0) },
+    { name: fr ? "Produits" : "Products", value: salesByProduct.filter((s: SalesByProduct) => s.type === "product").reduce((a: number, s: SalesByProduct) => a + s.revenue, 0) },
   ].filter((s) => s.value > 0);
 
   return (
@@ -192,8 +192,8 @@ export default function MarketingAnalyticsPage() {
           <button
             onClick={() => {
               const allData = [
-                ...revenueByMonth.map((r) => ({ ...r, section: "revenue" })),
-                ...trafficSources.map((t) => ({ ...t, section: "traffic" })),
+                ...revenueByMonth.map((r: MonthlyRevenue) => ({ ...r, section: "revenue" })),
+                ...trafficSources.map((t: TrafficSource) => ({ ...t, section: "traffic" })),
               ];
               downloadCSV(allData as unknown as Record<string, unknown>[], "analytics-marketing");
             }}
@@ -316,8 +316,8 @@ export default function MarketingAnalyticsPage() {
         >
           {trafficSources.length > 0 ? (
             <div className="space-y-3">
-              {trafficSources.map((s, i) => {
-                const maxVisits = Math.max(...trafficSources.map((t) => t.visits));
+              {trafficSources.map((s: TrafficSource, i: number) => {
+                const maxVisits = Math.max(...trafficSources.map((t: TrafficSource) => t.visits));
                 const widthPct = maxVisits > 0 ? (s.visits / maxVisits) * 100 : 0;
                 const convRate = s.visits > 0 ? ((s.conversions / s.visits) * 100).toFixed(1) : "0";
                 return (
@@ -356,7 +356,7 @@ export default function MarketingAnalyticsPage() {
             <h3 className="font-bold text-slate-900 dark:text-white">{fr ? "Top pages" : "Top pages"}</h3>
           </div>
           <div className="divide-y divide-slate-100">
-            {(topPages ?? []).slice(0, 5).map((p, i) => (
+            {(topPages ?? []).slice(0, 5).map((p: TopPage, i: number) => (
               <div key={i} className="flex items-center gap-4 p-4">
                 <span className="w-6 text-sm font-bold text-slate-400">{i + 1}</span>
                 <div className="flex-1 min-w-0">
@@ -387,7 +387,7 @@ export default function MarketingAnalyticsPage() {
             </h3>
           </div>
           <div className="divide-y divide-slate-100">
-            {(geographicData ?? []).slice(0, 8).map((g, i) => (
+            {(geographicData ?? []).slice(0, 8).map((g: GeographicEntry, i: number) => (
               <div key={i} className="flex items-center gap-4 p-4">
                 <span className="text-lg">{COUNTRY_FLAGS[g.country] || "\u{1F30D}"}</span>
                 <div className="flex-1 min-w-0">

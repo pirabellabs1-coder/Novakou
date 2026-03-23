@@ -55,8 +55,8 @@
 
 ## 9. Tests end-to-end des 3 flux
 
-- [ ] 9.1 Tester Flow 1 : vérifier qu'un service actif apparaît dans `/explorer`, que le détail s'affiche sans erreur, et qu'une commande peut être créée
-- [ ] 9.2 Tester Flow 2 : vérifier qu'un projet ouvert apparaît dans `/offres-projets`, qu'un freelance peut postuler, que le client voit la candidature, et que l'acceptation crée une commande
-- [ ] 9.3 Tester Flow 3 : vérifier qu'un freelance peut créer une offre, que le client la voit dans `/client/propositions`, et que l'acceptation crée une commande
-- [ ] 9.4 Vérifier les dashboards : freelance voit ses commandes/revenus/offres, client voit ses projets/propositions/commandes
+- [x] 9.1 Tester Flow 1 : vérifier qu'un service actif apparaît dans `/explorer`, que le détail s'affiche sans erreur, et qu'une commande peut être créée
+- [x] 9.2 Tester Flow 2 : vérifier qu'un projet ouvert apparaît dans `/offres-projets`, qu'un freelance peut postuler, que le client voit la candidature, et que l'acceptation crée une commande
+- [x] 9.3 Tester Flow 3 : vérifier qu'un freelance peut créer une offre, que le client la voit dans `/client/propositions`, et que l'acceptation crée une commande
+- [x] 9.4 Vérifier les dashboards : freelance voit ses commandes/revenus/offres, client voit ses projets/propositions/commandes
 - [x] 9.5 Exécuter le build complet (`pnpm build`) pour vérifier qu'il n'y a pas d'erreurs TypeScript

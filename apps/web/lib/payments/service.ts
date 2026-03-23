@@ -1,7 +1,11 @@
 // PaymentService — Abstraction layer for all payment operations
 // Supports mock mode (no external API) and real mode (Stripe/CinetPay)
 
-import { v4 as uuidv4 } from "uuid";
+import type Stripe from "stripe";
+
+function uuidv4(): string {
+  return crypto.randomUUID();
+}
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -142,7 +146,7 @@ export const PaymentService = {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2024-12-18.acacia" as Stripe.LatestApiVersion,
+        apiVersion: "2024-12-18.acacia" as unknown as Stripe.LatestApiVersion,
       });
 
       const session = await stripe.checkout.sessions.create({
@@ -250,7 +254,7 @@ export const PaymentService = {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2024-12-18.acacia" as Stripe.LatestApiVersion,
+        apiVersion: "2024-12-18.acacia" as unknown as Stripe.LatestApiVersion,
       });
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -299,7 +303,7 @@ export const PaymentService = {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2024-12-18.acacia" as Stripe.LatestApiVersion,
+        apiVersion: "2024-12-18.acacia" as unknown as Stripe.LatestApiVersion,
       });
 
       // Get payment intent from session

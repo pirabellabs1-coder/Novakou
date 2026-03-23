@@ -349,7 +349,7 @@ export function useInvalidateInstructor() {
 /** Hook de mutation générique qui invalide automatiquement les queries instructeur */
 export function useInstructorMutation<TData = unknown, TVariables = unknown>(
   mutationFn: (variables: TVariables) => Promise<TData>,
-  invalidateKeys?: readonly unknown[][]
+  invalidateKeys?: readonly (readonly unknown[])[]
 ) {
   const queryClient = useQueryClient();
   return useMutation({

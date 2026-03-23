@@ -62,7 +62,7 @@ function DetailSkeleton() {
         </div>
         <div className="h-8 w-2/3 bg-border-dark rounded" />
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="bg-neutral-dark rounded-xl border border-border-dark p-4 h-20" />
         ))}
@@ -230,7 +230,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           {
             label: "Budget",

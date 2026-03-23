@@ -1109,7 +1109,7 @@ export default function CreateEmailSequencePage() {
                   <p className="text-sm text-slate-600 dark:text-slate-400">{form.description}</p>
                 </div>
               )}
-              {form.trigger === "USER_INACTIVITY" && form.triggerConfig.inactivityDays && (
+              {form.trigger === "USER_INACTIVITY" && !!form.triggerConfig.inactivityDays && (
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
                     Jours d'inactivite
@@ -1119,7 +1119,7 @@ export default function CreateEmailSequencePage() {
                   </p>
                 </div>
               )}
-              {form.trigger === "TAG_ADDED" && form.triggerConfig.tagName && (
+              {form.trigger === "TAG_ADDED" && !!form.triggerConfig.tagName && (
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tag</p>
                   <p className="text-sm font-bold text-slate-900 dark:text-white dark:text-slate-100 font-mono">

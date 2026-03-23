@@ -149,7 +149,7 @@ export default function ClientInvoices() {
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
             <span className="material-symbols-outlined text-primary">receipt_long</span>
@@ -236,7 +236,7 @@ export default function ClientInvoices() {
             <thead>
               <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
                 <th className="px-5 py-3 text-left font-semibold">Date</th>
-                <th className="px-5 py-3 text-left font-semibold">N&deg; Facture</th>
+                <th className="hidden md:table-cell px-5 py-3 text-left font-semibold">N&deg; Facture</th>
                 <th className="px-5 py-3 text-left font-semibold">Service</th>
                 <th className="px-5 py-3 text-right font-semibold">Montant (EUR)</th>
                 <th className="px-5 py-3 text-center font-semibold">Statut</th>
@@ -264,7 +264,7 @@ export default function ClientInvoices() {
             <thead>
               <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
                 <th className="px-5 py-3 text-left font-semibold">Date</th>
-                <th className="px-5 py-3 text-left font-semibold">N&deg; Facture</th>
+                <th className="hidden md:table-cell px-5 py-3 text-left font-semibold">N&deg; Facture</th>
                 <th className="px-5 py-3 text-left font-semibold">Service</th>
                 <th className="px-5 py-3 text-right font-semibold">Montant (EUR)</th>
                 <th className="px-5 py-3 text-center font-semibold">Statut</th>
@@ -277,7 +277,7 @@ export default function ClientInvoices() {
                 return (
                   <tr key={inv.id} className="border-b border-border-dark/50 hover:bg-background-dark/30 transition-colors">
                     <td className="px-5 py-3.5 text-sm text-slate-400">{new Date(inv.date).toLocaleDateString("fr-FR")}</td>
-                    <td className="px-5 py-3.5 text-sm font-mono text-primary font-semibold">{inv.id}</td>
+                    <td className="hidden md:table-cell px-5 py-3.5 text-sm font-mono text-primary font-semibold">{inv.id}</td>
                     <td className="px-5 py-3.5">
                       <p className="text-sm font-medium text-white truncate max-w-xs">{inv.serviceTitle}</p>
                       <p className="text-xs text-slate-500">Commande #{inv.orderId.slice(-6)}</p>

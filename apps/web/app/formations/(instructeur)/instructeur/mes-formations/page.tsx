@@ -63,7 +63,7 @@ export default function InstructeurMesFormationsPage() {
   const { data: formationsData, isLoading: loading, isError: fetchError, refetch: refetchFormations } = useInstructorFormations();
   const formations: InstructorFormation[] = Array.isArray(formationsData)
     ? (formationsData as InstructorFormation[])
-    : ((formationsData as { formations?: InstructorFormation[] })?.formations ?? []);
+    : ((formationsData as { formations?: InstructorFormation[] } | undefined)?.formations ?? []);
 
   useEffect(() => {
     if (status === "loading") return;

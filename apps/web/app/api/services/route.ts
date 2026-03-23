@@ -11,6 +11,8 @@ import {
   getSubCategoryName,
 } from "@/lib/dev/data-store";
 import { canCreateService, normalizePlanName } from "@/lib/plans";
+import { emitEvent } from "@/lib/events/dispatcher";
+import { notifyAdmins } from "@/lib/admin/notify";
 
 // GET /api/services — List services for current authenticated user
 export async function GET(_request: NextRequest) {
@@ -189,7 +191,7 @@ export async function POST(request: NextRequest) {
         images,
         mainImage: body.mainImage?.url || images[0] || "",
         videoUrl: body.videoUrl || "",
-        status: "en_attente" as const,
+        status: "actif" as const,
         isBoosted: false,
         boostedUntil: null,
         boostTier: null,
@@ -224,12 +226,20 @@ export async function POST(request: NextRequest) {
       // Create notification for the user
       notificationStore.add({
         userId: session.user.id,
-        title: "Service soumis",
-        message: `Votre service "${service.title}" a ete soumis pour validation. Il sera visible apres approbation.`,
+        title: "Service publié",
+        message: `Votre service "${service.title}" est maintenant visible dans la marketplace.`,
         type: "service",
         read: false,
         link: `/dashboard/services`,
       });
+
+      // Notify admins about new service
+      notifyAdmins({
+        title: "Nouveau service publie",
+        message: `"${service.title}" par ${session.user.name || "Freelance"}`,
+        type: "service",
+        link: "/admin/services",
+      }).catch(() => {});
 
       return NextResponse.json(service);
     }
@@ -316,7 +326,7 @@ export async function POST(request: NextRequest) {
         categoryId: body.categoryId,
         ...(body.subCategoryId ? { subCategoryId: body.subCategoryId } : {}),
         userId: session.user.id,
-        status: "EN_ATTENTE",
+        status: "ACTIF",
         basePrice,
         price: basePrice,
         deliveryDays,
@@ -363,8 +373,8 @@ export async function POST(request: NextRequest) {
       await prisma.notification.create({
         data: {
           userId: session.user.id,
-          title: "Service soumis",
-          message: `Votre service "${body.title}" est en attente de validation`,
+          title: "Service publié",
+          message: `Votre service "${body.title}" est maintenant visible dans la marketplace.`,
           type: "SYSTEM",
           link: `/dashboard/services`,
         },
@@ -372,6 +382,14 @@ export async function POST(request: NextRequest) {
     } catch (notifErr) {
       console.error("[Service create] Notification failed:", notifErr);
     }
+
+    // Notify admins about new service (non-blocking)
+    emitEvent("admin.new_service", {
+      serviceId: service.id,
+      serviceTitle: body.title,
+      userId: session.user.id,
+      userName: session.user.name || "Freelance",
+    }).catch(() => {});
 
     return NextResponse.json(service);
   } catch (error) {
