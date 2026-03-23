@@ -588,7 +588,156 @@ export async function POST(req: NextRequest) {
     }
     results.products = productsCreated;
 
-    // ── 8. Reviews sur les services ────────────────────────────────────────
+    // ── 8. Commandes actives (3+ avec statuts variés) ─────────────────────
+    let ordersCreated = 0;
+    const orderIds: string[] = [];
+    if (serviceIds.length >= 3 && clientIds.length >= 1) {
+      const orderData = [
+        { serviceIdx: 0, clientIdx: 0, freelanceIdx: 0, status: "EN_ATTENTE" as const, escrow: "HELD" as const, pkg: "standard", progress: 0 },
+        { serviceIdx: 1, clientIdx: 1, freelanceIdx: 1, status: "EN_COURS" as const, escrow: "HELD" as const, pkg: "premium", progress: 40 },
+        { serviceIdx: 2, clientIdx: 2, freelanceIdx: 2, status: "LIVRE" as const, escrow: "HELD" as const, pkg: "basic", progress: 100 },
+      ];
+
+      for (const od of orderData) {
+        const svcId = serviceIds[od.serviceIdx];
+        const cId = clientIds[od.clientIdx % clientIds.length];
+        const fId = freelanceIds[od.freelanceIdx];
+        if (!svcId || !cId || !fId) continue;
+
+        // Check if active order already exists
+        const existing = await prisma.order.findFirst({
+          where: { serviceId: svcId, clientId: cId, freelanceId: fId, status: od.status },
+        });
+        if (existing) {
+          orderIds.push(existing.id);
+          continue;
+        }
+
+        const svc = serviceData[od.serviceIdx];
+        const amount = Math.round((svc?.basePrice || 100) * 1.6);
+        const commission = amount * 0.2;
+
+        const order = await prisma.order.create({
+          data: {
+            serviceId: svcId,
+            clientId: cId,
+            freelanceId: fId,
+            status: od.status,
+            escrowStatus: od.escrow,
+            amount,
+            commission,
+            packageType: od.pkg,
+            deadline: new Date(Date.now() + 14 * 86400000),
+            progress: od.progress,
+          },
+        });
+        orderIds.push(order.id);
+
+        // Create payment record
+        await prisma.payment.create({
+          data: {
+            orderId: order.id,
+            payerId: cId,
+            payeeId: fId,
+            amount: amount - commission,
+            currency: "EUR",
+            status: "EN_ATTENTE",
+            type: "paiement",
+            description: `Commande ${order.id} — ${svc?.title || "Service"}`,
+          },
+        });
+
+        // Create conversation
+        await prisma.conversation.create({
+          data: {
+            type: "ORDER",
+            orderId: order.id,
+            users: { create: [{ userId: cId }, { userId: fId }] },
+          },
+        });
+
+        ordersCreated++;
+      }
+    }
+    results.activeOrders = ordersCreated;
+
+    // ── 9. Candidatures (ProjectBid) sur les projets ────────────────────
+    let bidsCreated = 0;
+    const projectList = await prisma.project.findMany({ where: { status: "ouvert" }, take: 5 });
+
+    for (const proj of projectList) {
+      // Each project gets 2-3 bids from different freelances
+      const bidFreelances = freelanceIds.slice(0, Math.min(3, freelanceIds.length));
+      for (let i = 0; i < bidFreelances.length; i++) {
+        const fId = bidFreelances[i];
+        if (!fId || fId === proj.clientId) continue;
+
+        const existing = await prisma.projectBid.findFirst({
+          where: { projectId: proj.id, freelanceId: fId },
+        });
+        if (existing) continue;
+
+        const statuses = ["en_attente", "en_attente", "refusee"] as const;
+        await prisma.projectBid.create({
+          data: {
+            projectId: proj.id,
+            freelanceId: fId,
+            amount: Math.round(((proj.budgetMin || 500) + (proj.budgetMax || 2000)) / 2 * (0.8 + i * 0.15)),
+            deliveryDays: 7 + i * 7,
+            coverLetter: `Bonjour, je suis très intéressé par votre projet "${proj.title}". Fort de mon expérience en ${(proj.skills || []).slice(0, 2).join(" et ")}, je suis confiant de pouvoir livrer un résultat de qualité.`,
+            status: statuses[i % statuses.length],
+          },
+        });
+        bidsCreated++;
+      }
+    }
+    results.candidatures = bidsCreated;
+
+    // ── 10. Offres personnalisées (Offer) ────────────────────────────────
+    let offersCreated = 0;
+    const offerData = [
+      { freelanceIdx: 0, clientIdx: 0, title: "Développement dashboard analytics sur mesure", amount: 1200, status: "EN_ATTENTE" as const },
+      { freelanceIdx: 1, clientIdx: 1, title: "Refonte UI complète de votre application", amount: 800, status: "ACCEPTE" as const },
+      { freelanceIdx: 2, clientIdx: 0, title: "API REST microservices + documentation", amount: 950, status: "REFUSE" as const },
+      { freelanceIdx: 3, clientIdx: 2, title: "Rédaction de 20 articles SEO pour votre blog", amount: 400, status: "EN_ATTENTE" as const },
+      { freelanceIdx: 4, clientIdx: 1, title: "Audit SEO complet + plan d'action 3 mois", amount: 600, status: "EXPIRE" as const },
+    ];
+
+    for (const of_ of offerData) {
+      const fId = freelanceIds[of_.freelanceIdx];
+      const cId = clientIds[of_.clientIdx % clientIds.length];
+      if (!fId || !cId) continue;
+
+      const existing = await prisma.offer.findFirst({
+        where: { freelanceId: fId, title: of_.title },
+      });
+      if (existing) continue;
+
+      const clientUser = await prisma.user.findUnique({ where: { id: cId }, select: { name: true, email: true } });
+
+      await prisma.offer.create({
+        data: {
+          freelanceId: fId,
+          clientId: cId,
+          clientName: clientUser?.name || "Client",
+          clientEmail: clientUser?.email || "",
+          title: of_.title,
+          description: `Offre personnalisée pour ${of_.title.toLowerCase()}. Incluant : conception, développement, tests, et livraison. Révisions incluses.`,
+          amount: of_.amount,
+          delay: "14 jours",
+          revisions: 3,
+          validityDays: 14,
+          status: of_.status,
+          expiresAt: of_.status === "EXPIRE"
+            ? new Date(Date.now() - 86400000)
+            : new Date(Date.now() + 14 * 86400000),
+        },
+      });
+      offersCreated++;
+    }
+    results.offers = offersCreated;
+
+    // ── 11. Reviews sur les services ────────────────────────────────────────
     // Only create reviews if we have services and orders to reference
     // We create minimal orders first to satisfy the review foreign key
     let reviewsCreated = 0;

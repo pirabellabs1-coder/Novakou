@@ -271,6 +271,7 @@ model User {
   refundRequests       RefundRequest[]          @relation("UserRefundRequests")
   discussionReports    DiscussionReport[]       @relation("UserDiscussionReports")
   offers               Offer[]                  @relation("UserOffers")
+  offersReceived       Offer[]                  @relation("OffersReceived")
 
   @@index([email])
   @@index([role])
@@ -690,6 +691,7 @@ model Bid {
 model Offer {
   id            String       @id @default(cuid())
   freelanceId   String
+  clientId      String?
   clientName    String
   clientEmail   String?
   title         String
@@ -705,8 +707,10 @@ model Offer {
   updatedAt     DateTime     @updatedAt
 
   freelance     User         @relation("UserOffers", fields: [freelanceId], references: [id], onDelete: Cascade)
+  client        User?        @relation("OffersReceived", fields: [clientId], references: [id])
 
   @@index([freelanceId])
+  @@index([clientId])
   @@index([status])
 }
 

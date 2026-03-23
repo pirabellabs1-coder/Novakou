@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
@@ -17,8 +17,12 @@ const STATUS_MAP: Record<string, string> = {
   "Refusés": "refuse",
 };
 
+function normalizeStatus(s: string): string {
+  return (s || "").toLowerCase().replace(/ /g, "_");
+}
+
 export default function ServicesPage() {
-  const { services, toggleServiceStatus, deleteService, addService, apiToggleService, apiDeleteService } = useDashboardStore();
+  const { services, toggleServiceStatus, deleteService, addService, apiToggleService, apiDeleteService, syncFromApi } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
   const [activeTab, setActiveTab] = useState("Actifs");
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,8 +31,13 @@ export default function ServicesPage() {
   const [search, setSearch] = useState("");
   const perPage = 4;
 
+  // Sync from API on mount to ensure fresh data
+  useEffect(() => {
+    syncFromApi();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const filtered = useMemo(() => {
-    let result = services.filter((s) => s.status === STATUS_MAP[activeTab]);
+    let result = services.filter((s) => normalizeStatus(s.status) === STATUS_MAP[activeTab]);
     if (search) {
       const q = search.toLowerCase();
       result = result.filter((s) => s.title.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));

@@ -266,7 +266,17 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
     );
   }
 
-  if (!formation) return null;
+  if (!formation) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+        <AlertCircle className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-slate-600 dark:text-slate-300">Formation introuvable</h2>
+        <Link href="/formations" className="mt-4 inline-block text-primary hover:underline font-semibold">
+          Retour aux formations
+        </Link>
+      </div>
+    );
+  }
 
   const title = formation.title;
   const desc = formation.description;

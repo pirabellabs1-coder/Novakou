@@ -23,7 +23,7 @@ async function handleProductionMode(slug: string) {
       status: "ACTIF",
     },
     include: {
-      media: { orderBy: { order: "asc" } },
+      media: { orderBy: { sortOrder: "asc" } },
       options: true,
       category: true,
       user: {

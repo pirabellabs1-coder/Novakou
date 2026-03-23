@@ -359,13 +359,13 @@ export const candidaturesApi = {
   list: () => fetchApi<{ candidatures: Record<string, unknown>[] }>("/api/candidatures"),
 
   getByProject: (projectId: string) =>
-    fetchApi<{ candidatures: Record<string, unknown>[] }>(`/api/candidatures?projectId=${projectId}`),
+    fetchApi<{ candidatures: Record<string, unknown>[] }>(`/api/projects/${projectId}/bids`),
 
   accept: (id: string) =>
-    fetchApi<unknown>(`/api/candidatures/${id}`, { method: "PATCH", body: JSON.stringify({ status: "acceptee" }) }),
+    fetchApi<unknown>(`/api/candidatures/${id}/accept`, { method: "POST" }),
 
   reject: (id: string) =>
-    fetchApi<unknown>(`/api/candidatures/${id}`, { method: "PATCH", body: JSON.stringify({ status: "refusee" }) }),
+    fetchApi<unknown>(`/api/candidatures/${id}/refuse`, { method: "POST" }),
 };
 
 // ── Offres (proposals received by client) ──
@@ -374,10 +374,10 @@ export const offresApi = {
   list: () => fetchApi<{ offres: Record<string, unknown>[] }>("/api/offres"),
 
   accept: (id: string) =>
-    fetchApi<unknown>(`/api/offres/${id}`, { method: "PATCH", body: JSON.stringify({ status: "acceptee" }) }),
+    fetchApi<unknown>(`/api/offres/${id}/accept`, { method: "POST" }),
 
   reject: (id: string) =>
-    fetchApi<unknown>(`/api/offres/${id}`, { method: "PATCH", body: JSON.stringify({ status: "refusee" }) }),
+    fetchApi<unknown>(`/api/offres/${id}/refuse`, { method: "POST" }),
 };
 
 // ── Affiliation ──

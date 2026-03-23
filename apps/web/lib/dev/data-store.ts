@@ -272,6 +272,7 @@ export interface StoredCandidature {
 export interface StoredOffre {
   id: string;
   freelanceId: string;
+  clientId?: string;
   client: string;
   clientEmail: string;
   title: string;
@@ -1844,6 +1845,10 @@ export const projectStore = {
     return true;
   },
 
+  updateStatus(id: string, status: string): void {
+    this.update(id, { status } as Partial<StoredProject>);
+  },
+
   incrementProposals(id: string): void {
     const projects = this.getAll();
     const idx = projects.findIndex((p) => p.id === id);
@@ -1867,6 +1872,20 @@ export const candidatureStore = {
     return this.getAll()
       .filter((c) => c.freelanceId === freelanceId)
       .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  },
+
+  getByProject(projectId: string): StoredCandidature[] {
+    return this.getAll()
+      .filter((c) => c.projectId === projectId)
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+  },
+
+  getById(id: string): StoredCandidature | null {
+    return this.getAll().find((c) => c.id === id) || null;
+  },
+
+  updateStatus(id: string, status: string): StoredCandidature | null {
+    return this.update(id, { status } as Partial<StoredCandidature>);
   },
 
   create(data: Omit<StoredCandidature, "id" | "status" | "submittedAt">): StoredCandidature {
@@ -1905,6 +1924,20 @@ export const offreStore = {
     return this.getAll()
       .filter((o) => o.freelanceId === freelanceId)
       .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
+  },
+
+  getByClient(clientId: string, clientEmail: string): StoredOffre[] {
+    return this.getAll()
+      .filter((o) => o.clientId === clientId || (clientEmail && o.clientEmail === clientEmail))
+      .sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
+  },
+
+  getById(id: string): StoredOffre | null {
+    return this.getAll().find((o) => o.id === id) || null;
+  },
+
+  updateStatus(id: string, status: string): StoredOffre | null {
+    return this.update(id, { status } as Partial<StoredOffre>);
   },
 
   create(data: Omit<StoredOffre, "id" | "status" | "sentAt" | "expiresAt">): StoredOffre {
