@@ -141,6 +141,14 @@ enum BidStatus {
   EXPIRE
 }
 
+enum OfferStatus {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+  EXPIREE
+  ANNULEE
+}
+
 enum ContractStatus {
   BROUILLON
   ENVOYE
@@ -262,6 +270,7 @@ model User {
   userTags             UserTag[]               @relation("UserTags")
   refundRequests       RefundRequest[]          @relation("UserRefundRequests")
   discussionReports    DiscussionReport[]       @relation("UserDiscussionReports")
+  offers               Offer[]                  @relation("UserOffers")
 
   @@index([email])
   @@index([role])
@@ -675,6 +684,29 @@ model Bid {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([status])
+}
+
+model Offer {
+  id            String       @id @default(cuid())
+  freelanceId   String
+  clientName    String
+  clientEmail   String?
+  title         String
+  description   String       @db.Text
+  amount        Float
+  delay         String       // ex: "7 jours", "2 semaines"
+  revisions     Int          @default(2)
+  validityDays  Int          @default(14)
+  status        OfferStatus  @default(EN_ATTENTE)
+  expiresAt     DateTime?
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  freelance     User         @relation("UserOffers", fields: [freelanceId], references: [id], onDelete: Cascade)
+
+  @@index([freelanceId])
   @@index([status])
 }
 

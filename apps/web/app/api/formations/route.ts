@@ -40,18 +40,29 @@ export async function GET(req: NextRequest) {
     // Si recherche full-text
     if (filters.q && filters.q.trim()) {
       const searchTerm = filters.q.trim();
-      // FTS via colonne searchVector (GIN index) avec fallback ILIKE
-      // La colonne searchVector est créée par 001_formation_search_vector.sql
-      const ftsResults = await prisma.$queryRaw<{ id: string }[]>`
-        SELECT id FROM "Formation"
-        WHERE status = 'ACTIF'
-          AND (
-            "searchVector" @@ plainto_tsquery('french', ${searchTerm})
-            OR "title" ILIKE ${'%' + searchTerm + '%'}
-          )
-        ORDER BY
-          ts_rank("searchVector", plainto_tsquery('french', ${searchTerm})) DESC
-      `;
+      let ftsResults: { id: string }[] = [];
+
+      try {
+        // FTS via colonne searchVector (GIN index) avec fallback ILIKE
+        ftsResults = await prisma.$queryRaw<{ id: string }[]>`
+          SELECT id FROM "Formation"
+          WHERE status = 'ACTIF'
+            AND (
+              "searchVector" @@ plainto_tsquery('french', ${searchTerm})
+              OR "title" ILIKE ${'%' + searchTerm + '%'}
+            )
+          ORDER BY
+            ts_rank("searchVector", plainto_tsquery('french', ${searchTerm})) DESC
+        `;
+      } catch {
+        // Fallback si searchVector n'existe pas encore
+        ftsResults = await prisma.$queryRaw<{ id: string }[]>`
+          SELECT id FROM "Formation"
+          WHERE status = 'ACTIF'
+            AND ("title" ILIKE ${'%' + searchTerm + '%'}
+              OR "shortDesc" ILIKE ${'%' + searchTerm + '%'})
+        `;
+      }
 
       const matchingIds = ftsResults.map((r) => r.id);
       if (matchingIds.length === 0) {

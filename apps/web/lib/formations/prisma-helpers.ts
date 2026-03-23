@@ -18,7 +18,7 @@ export async function getOrCreateInstructeurProfile(userId: string) {
     profile = await prisma.instructeurProfile.create({
       data: {
         userId,
-        status: "ACTIF",
+        status: "APPROUVE",
       },
     });
   }

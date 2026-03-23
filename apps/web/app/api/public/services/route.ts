@@ -121,14 +121,7 @@ async function handleProductionMode(params: {
     ];
   }
   if (category) {
-    where.OR = [
-      ...(where.OR || []),
-      { categoryId: category },
-    ];
-    if (!where.OR?.length) {
-      where.categoryId = category;
-      delete where.OR;
-    }
+    where.categoryId = category;
   }
   if (minPrice > 0) where.basePrice = { ...where.basePrice, gte: minPrice };
   if (maxPrice < Infinity) where.basePrice = { ...where.basePrice, lte: maxPrice };

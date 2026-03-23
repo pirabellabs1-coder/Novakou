@@ -572,19 +572,6 @@ export default function ServiceDetailPage() {
                 <p className="text-slate-300 leading-relaxed text-sm whitespace-pre-line">{descriptionText}</p>
               </div>
 
-              {/* What's included */}
-              <div>
-                <h3 className="text-sm font-bold text-white mb-3">{t("whats_included")}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {packageFeatures.filter((f) => f.standard).map((f, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-slate-300">
-                      <span className="material-symbols-outlined text-sm text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                      {f.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               {/* Tags */}
               {service.tags.length > 0 && (
                 <div>
@@ -596,55 +583,12 @@ export default function ServiceDetailPage() {
                   </div>
                 </div>
               )}
-
-              {/* Key Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                {[
-                  { icon: "timer", label: t("delivery_time"), value: t("delivery_days", { count: service.deliveryDays }) },
-                  { icon: "refresh", label: t("revisions_included"), value: `${service.revisions}` },
-                  { icon: "shopping_cart", label: t("orders"), value: `${service.orderCount}` },
-                  { icon: "visibility", label: t("views"), value: service.views.toLocaleString(locale === "en" ? "en-US" : "fr-FR") },
-                ].map((stat) => (
-                  <div key={stat.label} className="bg-neutral-dark border border-border-dark rounded-xl p-4 text-center">
-                    <span className="material-symbols-outlined text-primary text-xl mb-2 block">{stat.icon}</span>
-                    <p className="text-white font-bold text-lg">{stat.value}</p>
-                    <p className="text-slate-400 text-xs mt-1">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* FAQ */}
-              {service.faq.length > 0 && (
-                <div>
-                  <h2 className="text-lg font-bold text-white mb-4">{t("seller_faq")}</h2>
-                  <div className="space-y-2">
-                    {service.faq.map((item, idx) => (
-                      <div key={idx} className="bg-neutral-dark border border-border-dark rounded-xl overflow-hidden">
-                        <button
-                          onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                          className="w-full flex items-center justify-between px-5 py-4 text-left"
-                        >
-                          <span className="text-sm font-bold text-white">{item.question}</span>
-                          <span className={cn("material-symbols-outlined text-slate-400 transition-transform", expandedFaq === idx && "rotate-180")}>
-                            expand_more
-                          </span>
-                        </button>
-                        {expandedFaq === idx && (
-                          <div className="px-5 pb-4 border-t border-border-dark pt-3">
-                            <p className="text-slate-300 text-sm leading-relaxed">{item.answer}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* ============================================ */}
             {/* Forfaits comparison (3 columns)             */}
             {/* ============================================ */}
-            <div className="mt-12 pt-8 border-t border-border-dark">
+            <div className="mt-8 pt-8 border-t border-border-dark">
               <h2 className="text-lg font-bold text-white mb-6">{t("compare_packages")}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(["basic", "standard", "premium"] as const).map((tier) => {
@@ -706,6 +650,71 @@ export default function ServiceDetailPage() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* ============================================ */}
+            {/* Extras (options supplementaires)             */}
+            {/* ============================================ */}
+            {service.extras.length > 0 && (
+              <div className="mt-8 pt-8 border-t border-border-dark">
+                <h2 className="text-lg font-bold text-white mb-4">{t("available_extras")}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {service.extras.map((extra, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-neutral-dark border border-border-dark rounded-xl px-5 py-4">
+                      <span className="text-sm text-slate-300">{extra.label}</span>
+                      <span className="text-sm font-bold text-primary">+{format(extra.price)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ============================================ */}
+            {/* Key Stats + FAQ                              */}
+            {/* ============================================ */}
+            <div className="mt-8 pt-8 border-t border-border-dark space-y-8">
+              {/* Key Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {[
+                  { icon: "timer", label: t("delivery_time"), value: t("delivery_days", { count: service.deliveryDays }) },
+                  { icon: "refresh", label: t("revisions_included"), value: `${service.revisions}` },
+                  { icon: "shopping_cart", label: t("orders"), value: `${service.orderCount}` },
+                  { icon: "visibility", label: t("views"), value: service.views.toLocaleString(locale === "en" ? "en-US" : "fr-FR") },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-neutral-dark border border-border-dark rounded-xl p-4 text-center">
+                    <span className="material-symbols-outlined text-primary text-xl mb-2 block">{stat.icon}</span>
+                    <p className="text-white font-bold text-lg">{stat.value}</p>
+                    <p className="text-slate-400 text-xs mt-1">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* FAQ */}
+              {service.faq.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-bold text-white mb-4">{t("seller_faq")}</h2>
+                  <div className="space-y-2">
+                    {service.faq.map((item, idx) => (
+                      <div key={idx} className="bg-neutral-dark border border-border-dark rounded-xl overflow-hidden">
+                        <button
+                          onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
+                          className="w-full flex items-center justify-between px-5 py-4 text-left"
+                        >
+                          <span className="text-sm font-bold text-white">{item.question}</span>
+                          <span className={cn("material-symbols-outlined text-slate-400 transition-transform", expandedFaq === idx && "rotate-180")}>
+                            expand_more
+                          </span>
+                        </button>
+                        {expandedFaq === idx && (
+                          <div className="px-5 pb-4 border-t border-border-dark pt-3">
+                            <p className="text-slate-300 text-sm leading-relaxed">{item.answer}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* ============================================ */}

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { reviewStore, orderStore } from "@/lib/dev/data-store";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { z } from "zod";
 
 const createReviewSchema = z.object({
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
     const serviceId = searchParams.get("serviceId");
     const orderId = searchParams.get("orderId");
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       let reviews;
 
       if (orderId) {
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
     const { orderId, qualite, communication, delai, comment } = result.data;
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       // Get the order
       const order = orderStore.getById(orderId);
       if (!order) {

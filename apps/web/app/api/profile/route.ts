@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { profileStore, orderStore, reviewStore } from "@/lib/dev/data-store";
 import { computeBadges } from "@/lib/badges";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { z } from "zod";
 
 const updateProfileSchema = z.looseObject({
@@ -31,7 +31,7 @@ export async function GET() {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const profile = profileStore.get(session.user.id);
 
       if (!profile) {
@@ -154,7 +154,7 @@ export async function PATCH(request: NextRequest) {
     delete (updates as Record<string, unknown>).completionPercent;
     delete (updates as Record<string, unknown>).badges;
 
-    if (IS_DEV) {
+    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const profile = profileStore.update(session.user.id, updates);
 
       // Also sync country/city to the User record (devStore) so admin panel sees them
