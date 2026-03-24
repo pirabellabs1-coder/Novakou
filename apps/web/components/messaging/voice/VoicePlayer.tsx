@@ -14,14 +14,19 @@ interface VoicePlayerProps {
   duration: number;
   transcription?: string;
   isOwn?: boolean;
+  messageId?: string;
+  conversationId?: string;
 }
 
-export function VoicePlayer({ audioUrl, duration, transcription, isOwn = false }: VoicePlayerProps) {
+export function VoicePlayer({ audioUrl, duration, transcription: initialTranscription, isOwn = false, messageId, conversationId }: VoicePlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showTranscription, setShowTranscription] = useState(false);
+  const [transcription, setTranscription] = useState(initialTranscription);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -34,32 +39,43 @@ export function VoicePlayer({ audioUrl, duration, transcription, isOwn = false }
     };
     const onPlay = () => setIsPlaying(true);
     const onPause = () => setIsPlaying(false);
+    const onError = () => {
+      setIsPlaying(false);
+      setLoadError(true);
+    };
 
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("ended", onEnded);
     audio.addEventListener("play", onPlay);
     audio.addEventListener("pause", onPause);
+    audio.addEventListener("error", onError);
 
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("ended", onEnded);
       audio.removeEventListener("play", onPlay);
       audio.removeEventListener("pause", onPause);
+      audio.removeEventListener("error", onError);
     };
   }, []);
 
+  // Reset error state when audioUrl changes (e.g., fresh signed URL)
+  useEffect(() => {
+    setLoadError(false);
+  }, [audioUrl]);
+
   const togglePlay = useCallback(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || loadError) return;
     if (isPlaying) {
       audio.pause();
     } else {
       audio.play().catch(() => {
-        // Audio source may not be available in demo mode
         setIsPlaying(false);
+        setLoadError(true);
       });
     }
-  }, [isPlaying]);
+  }, [isPlaying, loadError]);
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const audio = audioRef.current;
@@ -86,15 +102,19 @@ export function VoicePlayer({ audioUrl, duration, transcription, isOwn = false }
         {/* Play/Pause */}
         <button
           onClick={togglePlay}
+          disabled={loadError}
           className={cn(
             "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
-            isOwn
-              ? "bg-primary/30 text-primary hover:bg-primary/40"
-              : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+            loadError
+              ? "bg-red-500/20 text-red-400 cursor-not-allowed"
+              : isOwn
+                ? "bg-primary/30 text-primary hover:bg-primary/40"
+                : "bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
           )}
+          title={loadError ? "Audio indisponible" : undefined}
         >
           <span className="material-symbols-outlined text-lg">
-            {isPlaying ? "pause" : "play_arrow"}
+            {loadError ? "error" : isPlaying ? "pause" : "play_arrow"}
           </span>
         </button>
 
@@ -140,23 +160,51 @@ export function VoicePlayer({ audioUrl, duration, transcription, isOwn = false }
         </div>
       </div>
 
-      {/* Transcription toggle */}
-      {transcription !== undefined && (
-        <div className="mt-1.5">
+      {/* Transcription */}
+      <div className="mt-1.5">
+        {transcription ? (
+          <>
+            <button
+              onClick={() => setShowTranscription(!showTranscription)}
+              className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-xs">subtitles</span>
+              {showTranscription ? "Masquer la transcription" : "Voir la transcription"}
+            </button>
+            {showTranscription && (
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed italic">
+                {transcription}
+              </p>
+            )}
+          </>
+        ) : messageId && conversationId ? (
           <button
-            onClick={() => setShowTranscription(!showTranscription)}
-            className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1"
+            onClick={async () => {
+              if (isTranscribing) return;
+              setIsTranscribing(true);
+              try {
+                const res = await fetch(`/api/conversations/${conversationId}/messages/${messageId}/transcribe`, { method: "POST" });
+                if (res.ok) {
+                  const data = await res.json();
+                  setTranscription(data.transcription);
+                  setShowTranscription(true);
+                }
+              } catch {
+                // silently fail
+              } finally {
+                setIsTranscribing(false);
+              }
+            }}
+            disabled={isTranscribing}
+            className="text-[10px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-1 disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-xs">subtitles</span>
-            {showTranscription ? "Masquer la transcription" : "Voir la transcription"}
+            <span className={cn("material-symbols-outlined text-xs", isTranscribing && "animate-spin")}>
+              {isTranscribing ? "progress_activity" : "subtitles"}
+            </span>
+            {isTranscribing ? "Transcription en cours..." : "Transcrire"}
           </button>
-          {showTranscription && (
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed italic">
-              {transcription || "Transcription non disponible"}
-            </p>
-          )}
-        </div>
-      )}
+        ) : null}
+      </div>
     </div>
   );
 }

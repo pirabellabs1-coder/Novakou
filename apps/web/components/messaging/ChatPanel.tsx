@@ -35,7 +35,7 @@ function sanitizeDisplay(text: string, fallback: string): string {
 interface ChatPanelProps {
   conversation: UnifiedConversation | null;
   currentUserId: string;
-  onSendMessage: (content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number, fileUrl?: string, fileType?: string) => void;
+  onSendMessage: (content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number, fileUrl?: string, fileType?: string, storagePath?: string) => void;
   onMarkRead: () => void;
   onEditMessage?: (messageId: string, newContent: string) => void;
   onDeleteMessage?: (messageId: string) => void;
@@ -51,7 +51,7 @@ function uploadFileToServer(
   file: File,
   onProgress?: (pct: number) => void,
   abortSignal?: AbortSignal
-): Promise<{ url: string; name: string; size: number; type: string } | null> {
+): Promise<{ url: string; path: string; name: string; size: number; type: string } | null> {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -79,7 +79,7 @@ function uploadFileToServer(
       if (xhr.status >= 200 && xhr.status < 300) {
         const data = JSON.parse(xhr.responseText);
         if (data.success && data.file) {
-          resolve({ url: data.file.url, name: data.file.name, size: data.file.size, type: data.file.type });
+          resolve({ url: data.file.url, path: data.file.path || '', name: data.file.name, size: data.file.size, type: data.file.type });
         } else {
           reject(new Error(data.error || "Upload echoue"));
         }
@@ -213,7 +213,7 @@ export function ChatPanel({
           const isImage = file.type.startsWith("image/");
           const msgType: MessageContentType = isImage ? "image" : "file";
           const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
-          onSendMessage(file.name, msgType, file.name, sizeStr, undefined, undefined, result.url, file.type);
+          onSendMessage(file.name, msgType, file.name, sizeStr, undefined, undefined, result.url, file.type, result.path);
         }
         completedCount++;
       } catch (err) {
@@ -238,7 +238,7 @@ export function ChatPanel({
       const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
       const result = await uploadFileToServer(file);
       const audioUrl = result?.url || URL.createObjectURL(blob);
-      onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration);
+      onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration, undefined, undefined, result?.path);
     } catch {
       const audioUrl = URL.createObjectURL(blob);
       onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration);
@@ -380,6 +380,7 @@ export function ChatPanel({
                 message={msg}
                 isOwn={isOwn}
                 showSenderInfo={showSenderInfo}
+                conversationId={conversation.id}
                 onEdit={onEditMessage}
                 onDelete={onDeleteMessage}
                 onRetry={onRetryMessage}

@@ -93,7 +93,7 @@ interface MessagingState {
   // API-first messaging
   syncFromApi: () => Promise<void>;
   loadMessages: (convId: string) => Promise<void>;
-  sendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number, fileUrl?: string, fileType?: string) => Promise<void>;
+  sendMessage: (convId: string, content: string, type?: MessageContentType, fileName?: string, fileSize?: string, audioUrl?: string, audioDuration?: number, fileUrl?: string, fileType?: string, storagePath?: string) => Promise<void>;
   markConversationRead: (convId: string) => Promise<void>;
   editMessage: (convId: string, messageId: string, newContent: string) => Promise<boolean>;
   deleteMessage: (convId: string, messageId: string) => Promise<boolean>;
@@ -164,6 +164,7 @@ function mapApiMessage(m: Record<string, unknown>): UnifiedMessage {
     status: ((m.status as string) || "sent") as MessageDeliveryStatus,
     audioUrl: m.audioUrl as string | undefined,
     audioDuration: m.audioDuration as number | undefined,
+    transcription: m.transcription as string | undefined,
     callDuration: m.callDuration as number | undefined,
     editedAt: m.editedAt as string | undefined,
     deletedAt: m.deletedAt as string | undefined,
@@ -252,7 +253,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
   },
 
   // ── Send message with optimistic update ──
-  sendMessage: async (convId, content, type = "text", fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType) => {
+  sendMessage: async (convId, content, type = "text", fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType, storagePath) => {
     const { currentUserId, currentUserRole } = get();
     const tempId = genTempId();
 
@@ -306,7 +307,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       const res = await fetch(`/api/conversations/${convId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, type, fileName, fileSize, fileUrl, fileType, audioUrl, audioDuration }),
+        body: JSON.stringify({ content, type, fileName, fileSize, fileUrl, fileType, audioUrl, audioDuration, storagePath }),
       });
 
       if (res.ok) {
@@ -402,7 +403,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
                   : c
               ),
             }));
-            get().sendMessage(convId, content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType);
+            get().sendMessage(convId, content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType, storagePath);
           }
         }, retryCount === 0 ? 2000 : 5000);
       }

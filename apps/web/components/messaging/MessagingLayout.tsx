@@ -222,9 +222,9 @@ export function MessagingLayout({
           <ChatPanel
             conversation={selectedConv}
             currentUserId={userId}
-            onSendMessage={(content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType) => {
+            onSendMessage={(content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType, storagePath) => {
               if (selectedId) {
-                sendMessage(selectedId, content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType);
+                sendMessage(selectedId, content, type, fileName, fileSize, audioUrl, audioDuration, fileUrl, fileType, storagePath);
               }
             }}
             onEditMessage={(messageId, newContent) => {

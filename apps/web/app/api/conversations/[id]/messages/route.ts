@@ -3,6 +3,25 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { emitEvent } from "@/lib/events/dispatcher";
+import { getSignedUrl, type StorageBucket } from "@/lib/supabase-storage";
+
+const MSG_ATTACHMENT_BUCKET: StorageBucket = "message-attachments";
+const SIGNED_URL_TTL = 3600; // 1 hour
+
+/** Check if a value is a Supabase Storage path (not a full URL) */
+function isStoragePath(value: string | null | undefined): value is string {
+  if (!value) return false;
+  return !value.startsWith("http") && !value.startsWith("blob:") && !value.startsWith("data:");
+}
+
+/** Generate a fresh signed URL from a storage path, or return the value as-is */
+async function resolveUrl(value: string | null | undefined): Promise<string | null> {
+  if (!value) return null;
+  if (isStoragePath(value)) {
+    return await getSignedUrl(MSG_ATTACHMENT_BUCKET, value, SIGNED_URL_TTL) || value;
+  }
+  return value;
+}
 
 export async function GET(
   _request: NextRequest,
@@ -42,7 +61,7 @@ export async function GET(
       orderBy: { createdAt: "asc" },
     });
 
-    const mappedMessages = messages.map((m) => {
+    const mappedMessages = await Promise.all(messages.map(async (m) => {
       const isMine = m.senderId === userId;
       // Determine delivery status
       let status: "sent" | "delivered" | "read" = "sent";
@@ -51,6 +70,10 @@ export async function GET(
       } else if (!isMine) {
         status = "delivered"; // If we can see it, it's delivered to us
       }
+
+      // Generate fresh signed URLs for storage paths
+      const fileUrl = await resolveUrl(m.fileUrl);
+      const audioUrl = await resolveUrl(m.audioUrl);
 
       return {
         id: m.id,
@@ -64,17 +87,18 @@ export async function GET(
         read: m.read,
         status,
         fileName: m.fileName,
-        fileUrl: m.fileUrl,
+        fileUrl,
         fileType: m.fileType,
         fileSizeBytes: m.fileSizeBytes,
-        audioUrl: m.audioUrl,
+        audioUrl,
         audioDuration: m.audioDuration,
+        transcription: m.transcription,
         callDuration: m.callDuration,
         editedAt: m.editedAt?.toISOString(),
         deletedAt: m.deletedAt?.toISOString(),
         linkPreviewData: m.linkPreviewData,
       };
-    });
+    }));
 
     // Auto-mark other users' messages as read
     await prisma.message.updateMany({
@@ -108,7 +132,7 @@ export async function POST(
     const { id } = await params;
     const userId = session.user.id;
     const body = await request.json();
-    const { content, type, fileName, fileSize, fileUrl, fileType, linkPreviewData, audioUrl, audioDuration } = body;
+    const { content, type, fileName, fileSize, fileUrl, fileType, linkPreviewData, audioUrl, audioDuration, storagePath } = body;
 
     if (!content || typeof content !== "string" || content.trim().length === 0) {
       return NextResponse.json({ error: "Le contenu du message est requis" }, { status: 400 });
@@ -129,18 +153,32 @@ export async function POST(
       return NextResponse.json({ error: "Acces non autorise" }, { status: 403 });
     }
 
+    // Determine what to store in DB:
+    // If storagePath is provided, store it instead of the signed URL (which expires).
+    // For voice messages, the path goes into audioUrl; for files/images, into fileUrl.
+    const msgType = (type || "TEXT").toUpperCase();
+    let dbFileUrl = fileUrl || null;
+    let dbAudioUrl = audioUrl || null;
+    if (storagePath) {
+      if (msgType === "VOICE") {
+        dbAudioUrl = storagePath;
+      } else {
+        dbFileUrl = storagePath;
+      }
+    }
+
     // Create message
     const message = await prisma.message.create({
       data: {
         conversationId: id,
         senderId: userId,
         content: content.trim(),
-        type: (type || "TEXT").toUpperCase(),
+        type: msgType,
         fileName: fileName || null,
-        fileUrl: fileUrl || null,
+        fileUrl: dbFileUrl,
         fileType: fileType || null,
         fileSizeBytes: fileSize ? parseInt(fileSize, 10) || null : null,
-        audioUrl: audioUrl || null,
+        audioUrl: dbAudioUrl,
         audioDuration: audioDuration ? parseInt(String(audioDuration), 10) || null : null,
         linkPreviewData: linkPreviewData || undefined,
       },
@@ -170,6 +208,10 @@ export async function POST(
       }).catch(() => {});
     }
 
+    // Resolve storage paths to fresh signed URLs for the response
+    const responseFileUrl = await resolveUrl(message.fileUrl);
+    const responseAudioUrl = await resolveUrl(message.audioUrl);
+
     return NextResponse.json({
       message: {
         id: message.id,
@@ -183,10 +225,10 @@ export async function POST(
         read: false,
         status: "sent",
         fileName: message.fileName,
-        fileUrl: message.fileUrl,
+        fileUrl: responseFileUrl,
         fileType: message.fileType,
         fileSizeBytes: message.fileSizeBytes,
-        audioUrl: message.audioUrl,
+        audioUrl: responseAudioUrl,
         audioDuration: message.audioDuration,
         linkPreviewData: message.linkPreviewData,
       },

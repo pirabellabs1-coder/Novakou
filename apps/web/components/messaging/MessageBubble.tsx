@@ -14,6 +14,28 @@ const ROLE_COLORS: Record<string, string> = {
   admin: "text-red-400",
 };
 
+/** Get icon and color for a file type */
+function getFileTypeInfo(fileName?: string, fileType?: string): { icon: string; color: string; label: string } {
+  const ext = (fileName?.split(".").pop() || "").toLowerCase();
+  const mime = (fileType || "").toLowerCase();
+
+  if (mime === "application/pdf" || ext === "pdf")
+    return { icon: "picture_as_pdf", color: "text-red-400", label: "PDF" };
+  if (mime.includes("word") || ext === "doc" || ext === "docx")
+    return { icon: "description", color: "text-blue-400", label: "Word" };
+  if (mime.includes("spreadsheet") || mime.includes("excel") || ext === "xls" || ext === "xlsx")
+    return { icon: "table_chart", color: "text-emerald-400", label: "Excel" };
+  if (mime.includes("presentation") || mime.includes("powerpoint") || ext === "ppt" || ext === "pptx")
+    return { icon: "slideshow", color: "text-amber-400", label: "PowerPoint" };
+  if (ext === "txt" || mime.includes("text/plain"))
+    return { icon: "article", color: "text-slate-400", label: "Texte" };
+  if (ext === "zip" || ext === "rar" || ext === "7z" || mime.includes("zip") || mime.includes("rar"))
+    return { icon: "folder_zip", color: "text-yellow-400", label: "Archive" };
+  if (mime.startsWith("video/") || ["mp4", "webm", "mov"].includes(ext))
+    return { icon: "movie", color: "text-purple-400", label: "Video" };
+  return { icon: "insert_drive_file", color: "text-slate-400", label: ext.toUpperCase() || "Fichier" };
+}
+
 function formatTime(ts: string) {
   const d = new Date(ts);
   const now = new Date();
@@ -41,6 +63,7 @@ interface MessageBubbleProps {
   message: UnifiedMessage;
   isOwn: boolean;
   showSenderInfo?: boolean;
+  conversationId?: string;
   onEdit?: (messageId: string, newContent: string) => void;
   onDelete?: (messageId: string) => void;
   onRetry?: (messageId: string) => void;
@@ -51,6 +74,7 @@ export function MessageBubble({
   message,
   isOwn,
   showSenderInfo = true,
+  conversationId,
   onEdit,
   onDelete,
   onRetry,
@@ -59,6 +83,7 @@ export function MessageBubble({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const editInputRef = useRef<HTMLTextAreaElement>(null);
 
   const isDeleted = !!message.deletedAt;
@@ -230,22 +255,44 @@ export function MessageBubble({
                     duration={message.audioDuration ?? 0}
                     transcription={message.transcription}
                     isOwn={isOwn}
+                    messageId={message.id}
+                    conversationId={conversationId}
                   />
                 ) : message.type === "image" && message.fileUrl ? (
                   /* Image with inline preview */
                   <div className="space-y-2">
-                    <button
-                      onClick={() => onImageClick?.(message.fileUrl!)}
-                      className="block rounded-lg overflow-hidden max-w-[300px] hover:opacity-90 transition-opacity"
-                    >
-                      <img
-                        src={message.fileUrl}
-                        alt={message.fileName ?? "Image"}
-                        className="w-full h-auto object-cover rounded-lg"
-                        loading="lazy"
-                      />
-                    </button>
-                    {message.fileName && (
+                    {imageError ? (
+                      <div className="flex items-center gap-3 bg-background-dark/50 rounded-lg px-3 py-3 max-w-[300px]">
+                        <span className="material-symbols-outlined text-slate-500">broken_image</span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-slate-400">{message.fileName || "Image"}</p>
+                          <p className="text-[10px] text-slate-500">Image indisponible</p>
+                        </div>
+                        <a
+                          href={message.fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-400 hover:text-primary transition-colors flex-shrink-0"
+                          download={message.fileName}
+                        >
+                          <span className="material-symbols-outlined text-sm">download</span>
+                        </a>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => onImageClick?.(message.fileUrl!)}
+                        className="block rounded-lg overflow-hidden max-w-[300px] hover:opacity-90 transition-opacity"
+                      >
+                        <img
+                          src={message.fileUrl}
+                          alt={message.fileName ?? "Image"}
+                          className="w-full h-auto object-cover rounded-lg"
+                          loading="lazy"
+                          onError={() => setImageError(true)}
+                        />
+                      </button>
+                    )}
+                    {message.fileName && !imageError && (
                       <p className="text-[10px] text-slate-500">{message.fileName}</p>
                     )}
                   </div>
@@ -295,30 +342,38 @@ export function MessageBubble({
                   </div>
                 ) : message.type === "file" ? (
                   /* File attachment (documents, archives, etc.) */
-                  <div className="flex items-center gap-3 bg-background-dark/50 rounded-lg px-3 py-2">
-                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <span className="material-symbols-outlined text-primary text-sm">description</span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold truncate">{message.fileName ?? message.content}</p>
-                      {message.fileSize && <p className="text-[10px] text-slate-500">{message.fileSize}</p>}
-                    </div>
-                    {message.fileUrl ? (
-                      <a
-                        href={message.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-slate-400 hover:text-primary transition-colors"
-                        download={message.fileName}
-                      >
-                        <span className="material-symbols-outlined text-lg">download</span>
-                      </a>
-                    ) : (
-                      <button className="text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-lg">download</span>
-                      </button>
-                    )}
-                  </div>
+                  (() => {
+                    const ft = getFileTypeInfo(message.fileName, message.fileType);
+                    return (
+                      <div className="flex items-center gap-3 bg-background-dark/50 rounded-lg px-3 py-2">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <span className={cn("material-symbols-outlined text-sm", ft.color)}>{ft.icon}</span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold truncate">{message.fileName ?? message.content}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] font-medium text-slate-500 bg-slate-500/10 px-1.5 py-0.5 rounded">{ft.label}</span>
+                            {message.fileSize && <span className="text-[10px] text-slate-500">{message.fileSize}</span>}
+                          </div>
+                        </div>
+                        {message.fileUrl ? (
+                          <a
+                            href={message.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-slate-400 hover:text-primary transition-colors"
+                            download={message.fileName}
+                          >
+                            <span className="material-symbols-outlined text-lg">download</span>
+                          </a>
+                        ) : (
+                          <button className="text-slate-400 hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-lg">download</span>
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()
                 ) : (
                   /* Text message */
                   <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{message.content}</p>
