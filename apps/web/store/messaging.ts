@@ -238,15 +238,37 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       if (!res.ok) return;
       const data = await res.json();
 
-      const messages: UnifiedMessage[] = (data.messages || []).map(
+      const newMessages: UnifiedMessage[] = (data.messages || []).map(
         (m: Record<string, unknown>) => mapApiMessage(m)
       );
 
-      set((s) => ({
-        conversations: s.conversations.map((conv) =>
-          conv.id === convId ? { ...conv, messages, unreadCount: 0 } : conv
-        ),
-      }));
+      set((s) => {
+        const conv = s.conversations.find((c) => c.id === convId);
+        const existingMessages = conv?.messages || [];
+
+        // Merge: keep existing audioUrl/fileUrl for unchanged messages
+        // to prevent <audio>/<img> elements from reloading mid-playback
+        const merged = newMessages.map((newMsg) => {
+          const existing = existingMessages.find((m) => m.id === newMsg.id);
+          if (existing) {
+            return {
+              ...newMsg,
+              // Preserve stable media URLs — signed URLs change on every API call
+              audioUrl: existing.audioUrl || newMsg.audioUrl,
+              fileUrl: existing.fileUrl || newMsg.fileUrl,
+              // Keep status from server if more advanced
+              status: newMsg.status === "read" || existing.status === "read" ? "read" as const : newMsg.status,
+            };
+          }
+          return newMsg;
+        });
+
+        return {
+          conversations: s.conversations.map((c) =>
+            c.id === convId ? { ...c, messages: merged, unreadCount: 0 } : c
+          ),
+        };
+      });
     } catch (err) {
       console.error("[MessagingStore loadMessages]", err);
     }

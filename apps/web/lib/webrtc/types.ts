@@ -58,43 +58,47 @@ export interface CallReject {
 }
 
 // Configuration STUN/TURN — TURN nécessaire pour traverser les NAT symétriques
-export const ICE_SERVERS: RTCIceServer[] = [
-  // STUN publics Google (gratuits, fiables)
-  { urls: "stun:stun.l.google.com:19302" },
-  { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
-  { urls: "stun:stun3.l.google.com:19302" },
-  { urls: "stun:stun4.l.google.com:19302" },
-  // TURN servers (metered.ca free tier) — UDP + TCP + TLS
-  {
-    urls: "turn:a.relay.metered.ca:80",
-    username: "e8dd65a92f3c090f4be6e4c0",
-    credential: "SoELzOhU5MEhH97+",
-  },
-  {
-    urls: "turn:a.relay.metered.ca:443",
-    username: "e8dd65a92f3c090f4be6e4c0",
-    credential: "SoELzOhU5MEhH97+",
-  },
-  {
-    urls: "turn:a.relay.metered.ca:443?transport=tcp",
-    username: "e8dd65a92f3c090f4be6e4c0",
-    credential: "SoELzOhU5MEhH97+",
-  },
-  // TURN fallback (openrelay — free, no auth)
-  {
-    urls: "turn:openrelay.metered.ca:80",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:openrelay.metered.ca:443",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-  {
-    urls: "turn:openrelay.metered.ca:443?transport=tcp",
-    username: "openrelayproject",
-    credential: "openrelayproject",
-  },
-];
+// TURN credentials are read from env vars so they can be updated without code change.
+// Set NEXT_PUBLIC_TURN_URL, NEXT_PUBLIC_TURN_USERNAME, NEXT_PUBLIC_TURN_CREDENTIAL on Vercel.
+function buildIceServers(): RTCIceServer[] {
+  const servers: RTCIceServer[] = [
+    // STUN publics Google (gratuits, fiables)
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" },
+  ];
+
+  // Dynamic TURN from env vars (preferred — always fresh)
+  const turnUrl = typeof window !== "undefined"
+    ? (process.env.NEXT_PUBLIC_TURN_URL || "").trim()
+    : "";
+  const turnUser = typeof window !== "undefined"
+    ? (process.env.NEXT_PUBLIC_TURN_USERNAME || "").trim()
+    : "";
+  const turnCred = typeof window !== "undefined"
+    ? (process.env.NEXT_PUBLIC_TURN_CREDENTIAL || "").trim()
+    : "";
+
+  if (turnUrl && turnUser && turnCred) {
+    // Support comma-separated URLs (e.g. "turn:host:80,turn:host:443")
+    const urls = turnUrl.split(",").map((u) => u.trim()).filter(Boolean);
+    for (const url of urls) {
+      servers.push({ urls: url, username: turnUser, credential: turnCred });
+    }
+  } else {
+    // Fallback: hardcoded metered.ca (update these if expired)
+    const fallbackUser = "e8dd65a92f3c090f4be6e4c0";
+    const fallbackCred = "SoELzOhU5MEhH97+";
+    servers.push(
+      { urls: "turn:a.relay.metered.ca:80", username: fallbackUser, credential: fallbackCred },
+      { urls: "turn:a.relay.metered.ca:443", username: fallbackUser, credential: fallbackCred },
+      { urls: "turn:a.relay.metered.ca:443?transport=tcp", username: fallbackUser, credential: fallbackCred },
+    );
+  }
+
+  return servers;
+}
+
+export const ICE_SERVERS: RTCIceServer[] = buildIceServers();
