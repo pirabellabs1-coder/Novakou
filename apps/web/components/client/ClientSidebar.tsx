@@ -93,7 +93,7 @@ export function ClientSidebar({ collapsed = false, onToggle, onClose }: ClientSi
   return (
     <aside
       className={cn(
-        "flex-shrink-0 bg-background-dark border-r border-border-dark flex flex-col h-screen overflow-hidden transition-all duration-300",
+        "flex-shrink-0 bg-background-dark border-r border-border-dark flex flex-col h-screen transition-all duration-300",
         collapsed ? "w-[72px]" : "w-64"
       )}
     >

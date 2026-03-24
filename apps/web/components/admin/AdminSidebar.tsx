@@ -59,7 +59,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
 
   return (
     <aside className={cn(
-      "flex-shrink-0 bg-neutral-dark border-r border-border-dark flex flex-col h-screen overflow-hidden transition-all duration-300",
+      "flex-shrink-0 bg-neutral-dark border-r border-border-dark flex flex-col h-screen transition-all duration-300",
       collapsed ? "w-[68px]" : "w-64"
     )}>
       {/* Header + toggle */}

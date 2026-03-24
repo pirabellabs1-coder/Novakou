@@ -36,6 +36,7 @@ const PUBLIC_ROUTES = [
   "/404",
   "/maintenance",
   "/status",
+  "/debug-media",
 ];
 
 // Routes auth — accessibles uniquement si NON connecte
