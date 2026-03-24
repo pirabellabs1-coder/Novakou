@@ -22,7 +22,7 @@ const securityHeaders = isDev
           "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
           "font-src 'self' https://fonts.gstatic.com",
-          "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
+          "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.supabase.co",
           "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com",
           "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com",
           "media-src 'self' blob: data: https://res.cloudinary.com https://*.supabase.co",

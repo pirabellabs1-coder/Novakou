@@ -52,14 +52,23 @@ export function AudioCallModal({ remoteStream, onHangup, onSwitchToVideo, onTogg
     const audioEl = remoteAudioRef.current;
     if (!audioEl) return;
 
-    if (remoteStream) {
+    if (remoteStream && remoteStream.getTracks().length > 0) {
       audioEl.srcObject = remoteStream;
-      audioEl.play().catch((err) => {
-        console.warn("[AudioCallModal] Autoplay blocked, retrying on user gesture:", err);
-      });
+      // Retry play — some browsers block autoplay until user gesture
+      const tryPlay = () => {
+        audioEl.play().catch(() => {
+          // Retry after 500ms — the user has already interacted (clicked call/answer)
+          setTimeout(() => audioEl.play().catch(() => {}), 500);
+        });
+      };
+      tryPlay();
     } else {
       audioEl.srcObject = null;
     }
+
+    return () => {
+      if (audioEl) audioEl.srcObject = null;
+    };
   }, [remoteStream]);
 
   if (!remoteUser || callState === "idle") return null;

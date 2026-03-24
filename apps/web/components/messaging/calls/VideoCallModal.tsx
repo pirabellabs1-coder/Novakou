@@ -59,8 +59,11 @@ export function VideoCallModal({
 
   // Attach remote stream to video element
   useEffect(() => {
-    if (remoteVideoRef.current && remoteStream) {
+    if (remoteVideoRef.current && remoteStream && remoteStream.getTracks().length > 0) {
       remoteVideoRef.current.srcObject = remoteStream;
+      remoteVideoRef.current.play().catch(() => {
+        setTimeout(() => remoteVideoRef.current?.play().catch(() => {}), 500);
+      });
     }
   }, [remoteStream]);
 

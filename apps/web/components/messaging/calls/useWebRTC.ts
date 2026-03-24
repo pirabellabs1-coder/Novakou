@@ -130,13 +130,18 @@ export function useWebRTC({ currentUser, onCallEnded, onCallMissed }: UseWebRTCO
     // Receive remote tracks
     const remoteMs = new MediaStream();
     remoteStreamRef.current = remoteMs;
-    setRemoteStream(remoteMs);
 
     pc.ontrack = (event) => {
-      event.streams[0]?.getTracks().forEach((track) => {
-        remoteMs.addTrack(track);
-      });
-      // Force re-render
+      // Some browsers may not associate a stream with the track — use track directly as fallback
+      const tracks = event.streams[0]?.getTracks() ?? [event.track];
+      for (const track of tracks) {
+        // Avoid duplicate tracks
+        if (!remoteMs.getTracks().find((t) => t.id === track.id)) {
+          remoteMs.addTrack(track);
+        }
+      }
+      console.log(`[WebRTC] ontrack: kind=${event.track.kind}, total tracks=${remoteMs.getTracks().length}`);
+      // Force re-render with a new MediaStream object so React detects the change
       setRemoteStream(new MediaStream(remoteMs.getTracks()));
     };
 
