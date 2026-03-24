@@ -306,7 +306,7 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
       const res = await fetch(`/api/conversations/${convId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, type, fileName, fileSize, fileUrl, fileType }),
+        body: JSON.stringify({ content, type, fileName, fileSize, fileUrl, fileType, audioUrl, audioDuration }),
       });
 
       if (res.ok) {
@@ -326,6 +326,9 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
                           id: serverMessage.id,
                           status: "sent" as const,
                           createdAt: serverMessage.createdAt || m.createdAt,
+                          audioUrl: serverMessage.audioUrl || m.audioUrl,
+                          audioDuration: serverMessage.audioDuration || m.audioDuration,
+                          fileUrl: serverMessage.fileUrl || m.fileUrl,
                         }
                       : m
                   ),

@@ -108,7 +108,7 @@ export async function POST(
     const { id } = await params;
     const userId = session.user.id;
     const body = await request.json();
-    const { content, type, fileName, fileSize, fileUrl, fileType, linkPreviewData } = body;
+    const { content, type, fileName, fileSize, fileUrl, fileType, linkPreviewData, audioUrl, audioDuration } = body;
 
     if (!content || typeof content !== "string" || content.trim().length === 0) {
       return NextResponse.json({ error: "Le contenu du message est requis" }, { status: 400 });
@@ -140,6 +140,8 @@ export async function POST(
         fileUrl: fileUrl || null,
         fileType: fileType || null,
         fileSizeBytes: fileSize ? parseInt(fileSize, 10) || null : null,
+        audioUrl: audioUrl || null,
+        audioDuration: audioDuration ? parseInt(String(audioDuration), 10) || null : null,
         linkPreviewData: linkPreviewData || undefined,
       },
       include: {
@@ -184,6 +186,8 @@ export async function POST(
         fileUrl: message.fileUrl,
         fileType: message.fileType,
         fileSizeBytes: message.fileSizeBytes,
+        audioUrl: message.audioUrl,
+        audioDuration: message.audioDuration,
         linkPreviewData: message.linkPreviewData,
       },
     }, { status: 201 });
