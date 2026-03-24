@@ -116,8 +116,14 @@ export function useWebRTC({ currentUser, onCallEnded, onCallMissed }: UseWebRTCO
   // Create RTCPeerConnection with handlers
   const createPeerConnection = useCallback((callIdForIce: string, remoteUserId: string, iceServers?: RTCIceServer[]) => {
     const servers = iceServers || staticIceServers;
-    console.log(`[WebRTC] Creating PC with ${servers.length} ICE servers`);
-    const pc = new RTCPeerConnection({ iceServers: servers });
+    const hasTurn = servers.some((s) => String(s.urls).includes("turn:"));
+    console.log(`[WebRTC] Creating PC with ${servers.length} ICE servers (TURN: ${hasTurn})`);
+    // Force relay when TURN is available — guarantees connectivity across networks
+    // Without this, host/srflx candidates fail and prevent relay fallback in time
+    const pc = new RTCPeerConnection({
+      iceServers: servers,
+      iceTransportPolicy: hasTurn ? "relay" : "all",
+    });
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
