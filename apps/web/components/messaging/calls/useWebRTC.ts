@@ -486,19 +486,22 @@ export function useWebRTC({ currentUser, onCallEnded, onCallMissed }: UseWebRTCO
       onAnswer: async (answer) => {
         const pc = pcRef.current;
         const state = useCallStore.getState();
-        // Accept answer if we're calling OR connecting (don't be too strict)
-        if (!pc || (state.callState !== "calling" && state.callState !== "connecting")) return;
+        // Only process if we're in "calling" state — prevents duplicate processing
+        // (BroadcastChannel + server poll can both deliver the same answer)
+        if (!pc || state.callState !== "calling") return;
 
         try {
-          // Transition caller to "connecting" state
+          // Transition to "connecting" FIRST to prevent duplicate processing
           setCallState("connecting");
           stopDialTone();
 
+          console.log("[WebRTC] Answer received, setting remote description...");
           await pc.setRemoteDescription(new RTCSessionDescription(answer.sdp));
+          console.log("[WebRTC] Remote description set OK, flushing ICE candidates...");
           await flushPendingCandidates();
           // Immediately poll for any buffered ICE candidates
           pollServerNow();
-          console.log("[WebRTC] Remote description set, waiting for ICE connection...");
+          console.log("[WebRTC] Waiting for ICE connection...");
         } catch (e) {
           console.error("[WebRTC] Error setting remote description:", e);
         }
@@ -507,13 +510,24 @@ export function useWebRTC({ currentUser, onCallEnded, onCallMissed }: UseWebRTCO
       onIceCandidate: async (ice) => {
         const pc = pcRef.current;
         if (!pc) return;
+
+        // Deduplicate ICE candidates (BroadcastChannel + server poll can deliver same candidate)
+        const candidateStr = JSON.stringify(ice.candidate);
+        const isDuplicate = pendingCandidatesRef.current.some(
+          (c) => JSON.stringify(c) === candidateStr
+        );
+        if (isDuplicate) return;
+
         iceReceivedCountRef.current++;
 
         if (pc.remoteDescription) {
           try {
             await pc.addIceCandidate(new RTCIceCandidate(ice.candidate));
           } catch (e) {
-            console.warn("[WebRTC] Error adding ICE candidate:", e);
+            // Ignore late/duplicate candidate errors
+            if (!(e instanceof DOMException && e.name === "InvalidStateError")) {
+              console.warn("[WebRTC] Error adding ICE candidate:", e);
+            }
           }
         } else {
           // Buffer until remote description is set

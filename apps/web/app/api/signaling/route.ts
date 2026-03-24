@@ -72,15 +72,10 @@ export async function GET(req: NextRequest) {
 
     await cleanup();
 
-    // Fetch and delete signals atomically
+    // Simple atomic fetch + delete — pgbouncer compatible (no FOR UPDATE)
     const rows = await prisma.$queryRaw<SignalRow[]>`
       DELETE FROM "signaling_signals"
-      WHERE "id" IN (
-        SELECT "id" FROM "signaling_signals"
-        WHERE "to_user" = ${userId}
-        ORDER BY "id" ASC
-        FOR UPDATE SKIP LOCKED
-      )
+      WHERE "to_user" = ${userId}
       RETURNING "id", "type", "from_user", "to_user", "payload", "created_at"
     `;
 

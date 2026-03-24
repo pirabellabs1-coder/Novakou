@@ -96,7 +96,7 @@ export function VoicePlayer({ audioUrl, duration, transcription: initialTranscri
 
   return (
     <div className="w-full">
-      <audio ref={audioRef} src={audioUrl} preload="auto" crossOrigin="anonymous" />
+      <audio ref={audioRef} src={audioUrl} preload="auto" />
 
       <div className="flex items-center gap-2.5">
         {/* Play/Pause */}
