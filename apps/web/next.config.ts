@@ -25,7 +25,7 @@ const securityHeaders = isDev
           "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com",
           "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com",
           "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com",
-          "media-src 'self' blob: data: https://res.cloudinary.com",
+          "media-src 'self' blob: data: https://res.cloudinary.com https://*.supabase.co",
           "frame-ancestors 'self'",
         ].join("; "),
       },

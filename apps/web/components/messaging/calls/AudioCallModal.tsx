@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useCallStore } from "@/store/call";
 import { CallControls } from "./CallControls";
-import type { CallUser } from "@/lib/webrtc/types";
 
 function formatCallTimer(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -24,12 +23,15 @@ const STATE_LABELS: Record<string, string> = {
 };
 
 interface AudioCallModalProps {
+  remoteStream: MediaStream | null;
   onHangup: () => void;
   onSwitchToVideo?: () => void;
   onToggleMute?: () => void;
 }
 
-export function AudioCallModal({ onHangup, onSwitchToVideo, onToggleMute }: AudioCallModalProps) {
+export function AudioCallModal({ remoteStream, onHangup, onSwitchToVideo, onToggleMute }: AudioCallModalProps) {
+  const remoteAudioRef = useRef<HTMLAudioElement>(null);
+
   const {
     callState,
     remoteUser,
@@ -45,12 +47,30 @@ export function AudioCallModal({ onHangup, onSwitchToVideo, onToggleMute }: Audi
     isScreenSharing,
   } = useCallStore();
 
+  // Attach remote audio stream to the hidden <audio> element
+  useEffect(() => {
+    const audioEl = remoteAudioRef.current;
+    if (!audioEl) return;
+
+    if (remoteStream) {
+      audioEl.srcObject = remoteStream;
+      audioEl.play().catch((err) => {
+        console.warn("[AudioCallModal] Autoplay blocked, retrying on user gesture:", err);
+      });
+    } else {
+      audioEl.srcObject = null;
+    }
+  }, [remoteStream]);
+
   if (!remoteUser || callState === "idle") return null;
 
   const statusLabel = STATE_LABELS[callState] || "";
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center">
+      {/* Hidden audio element for remote stream playback */}
+      <audio ref={remoteAudioRef} autoPlay playsInline />
+
       <div className="bg-background-dark border border-border-dark rounded-3xl p-8 w-full max-w-sm mx-4 shadow-2xl">
         {/* Avatar */}
         <div className="flex flex-col items-center mb-8">

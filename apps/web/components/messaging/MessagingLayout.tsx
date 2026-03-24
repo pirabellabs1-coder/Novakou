@@ -268,6 +268,7 @@ export function MessagingLayout({
 
       {(callState === "calling" || callState === "connecting" || callState === "connected" || callState === "reconnecting") && callType === "audio" && (
         <AudioCallModal
+          remoteStream={remoteStream}
           onHangup={hangup}
           onSwitchToVideo={handleSwitchToVideo}
           onToggleMute={toggleMuteReal}
