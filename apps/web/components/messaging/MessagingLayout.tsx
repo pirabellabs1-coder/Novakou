@@ -245,6 +245,8 @@ export function MessagingLayout({
                 ? (content) => { if (selectedId) addSystemMessage(selectedId, content); }
                 : undefined
             }
+            onStartAudioCall={handleStartAudioCall}
+            onStartVideoCall={handleStartVideoCall}
             onMobileBack={handleMobileBack}
           />
         </div>

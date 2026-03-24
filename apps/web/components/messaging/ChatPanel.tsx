@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, DragEvent } from "react";
 import { cn } from "@/lib/utils";
 import { MessageBubble } from "./MessageBubble";
+import { VoiceRecorder } from "./voice/VoiceRecorder";
 import { ImageLightbox } from "./ImageLightbox";
 import type { UnifiedConversation, MessageContentType } from "@/store/messaging";
 
@@ -14,6 +15,24 @@ const ALLOWED_EXTENSIONS = [
   "zip", "rar", "7z",
 ];
 
+// Detect if a string looks like a technical ID (CUID, UUID, etc.)
+function looksLikeTechnicalId(str: string): boolean {
+  if (!str || str.length < 20) return false;
+  // CUIDs: c + 24 alphanumeric chars
+  if (/^c[a-z0-9]{20,}$/i.test(str)) return true;
+  // UUIDs
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str)) return true;
+  // Generic long alphanumeric strings
+  if (/^[a-z0-9_-]{24,}$/i.test(str)) return true;
+  return false;
+}
+
+// Sanitize display text: if it looks like a technical ID, return fallback
+function sanitizeDisplay(text: string, fallback: string): string {
+  if (!text || looksLikeTechnicalId(text.trim())) return fallback;
+  return text;
+}
+
 interface ChatPanelProps {
   conversation: UnifiedConversation | null;
   currentUserId: string;
@@ -24,6 +43,8 @@ interface ChatPanelProps {
   onRetryMessage?: (messageId: string) => void;
   showAdminActions?: boolean;
   onSendSystemMessage?: (content: string) => void;
+  onStartAudioCall?: () => void;
+  onStartVideoCall?: () => void;
   onMobileBack?: () => void;
 }
 
@@ -88,6 +109,8 @@ export function ChatPanel({
   onRetryMessage,
   showAdminActions = false,
   onSendSystemMessage,
+  onStartAudioCall,
+  onStartVideoCall,
   onMobileBack,
 }: ChatPanelProps) {
   const [input, setInput] = useState("");
@@ -102,15 +125,12 @@ export function ChatPanel({
   const dragCounterRef = useRef(0);
   const isUserScrolledUpRef = useRef(false);
 
-  // Smart auto-scroll: only scroll to bottom if user is near the bottom
+  // Smart auto-scroll
   const scrollToBottom = useCallback((force = false) => {
     const container = messagesContainerRef.current;
     if (!container) return;
-
-    // Check if user is near the bottom (within 150px)
     const threshold = 150;
     const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
-
     if (force || isNearBottom || !isUserScrolledUpRef.current) {
       requestAnimationFrame(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -118,7 +138,6 @@ export function ChatPanel({
     }
   }, []);
 
-  // Track user scroll position
   const handleScroll = useCallback(() => {
     const container = messagesContainerRef.current;
     if (!container) return;
@@ -126,12 +145,10 @@ export function ChatPanel({
     isUserScrolledUpRef.current = container.scrollHeight - container.scrollTop - container.clientHeight > threshold;
   }, []);
 
-  // Auto-scroll on new messages (smart)
   useEffect(() => {
     scrollToBottom();
   }, [conversation?.messages?.length, scrollToBottom]);
 
-  // Force scroll to bottom when switching conversations
   useEffect(() => {
     isUserScrolledUpRef.current = false;
     scrollToBottom(true);
@@ -141,7 +158,6 @@ export function ChatPanel({
     if (conversation) onMarkRead();
   }, [conversation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-dismiss error
   useEffect(() => {
     if (uploadError) {
       const timer = setTimeout(() => setUploadError(null), 5000);
@@ -153,7 +169,6 @@ export function ChatPanel({
     if (!input.trim()) return;
     onSendMessage(input.trim());
     setInput("");
-    // Force scroll to bottom after sending
     isUserScrolledUpRef.current = false;
     setTimeout(() => scrollToBottom(true), 50);
   }
@@ -171,21 +186,15 @@ export function ChatPanel({
 
   async function handleFileUpload(files: FileList | null) {
     if (!files) return;
-
     const validFiles = Array.from(files).filter((file) => {
       const error = validateFile(file);
-      if (error) {
-        setUploadError(error);
-        return false;
-      }
+      if (error) { setUploadError(error); return false; }
       return true;
     });
-
     if (validFiles.length === 0) return;
 
     const abortController = new AbortController();
     uploadAbortRef.current = abortController;
-
     let completedCount = 0;
     const totalCount = validFiles.length;
 
@@ -194,26 +203,19 @@ export function ChatPanel({
         fileName: totalCount > 1 ? `${file.name} (${completedCount + 1}/${totalCount})` : file.name,
         progress: 0,
       });
-
       try {
-        const result = await uploadFileToServer(
-          file,
-          (pct) => {
-            setUploadProgress({
-              fileName: totalCount > 1 ? `${file.name} (${completedCount + 1}/${totalCount})` : file.name,
-              progress: pct,
-            });
-          },
-          abortController.signal
-        );
-
+        const result = await uploadFileToServer(file, (pct) => {
+          setUploadProgress({
+            fileName: totalCount > 1 ? `${file.name} (${completedCount + 1}/${totalCount})` : file.name,
+            progress: pct,
+          });
+        }, abortController.signal);
         if (result) {
           const isImage = file.type.startsWith("image/");
           const msgType: MessageContentType = isImage ? "image" : "file";
           const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
           onSendMessage(file.name, msgType, file.name, sizeStr, undefined, undefined, result.url, file.type);
         }
-
         completedCount++;
       } catch (err) {
         if (err instanceof Error && err.message === "Upload annule") return;
@@ -232,35 +234,23 @@ export function ChatPanel({
     uploadAbortRef.current = null;
   }
 
-  // Drag and drop handlers
-  function handleDragEnter(e: DragEvent) {
-    e.preventDefault();
-    dragCounterRef.current++;
-    if (e.dataTransfer.types.includes("Files")) {
-      setIsDragging(true);
+  const handleVoiceSend = useCallback(async (blob: Blob, duration: number) => {
+    try {
+      const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+      const result = await uploadFileToServer(file);
+      const audioUrl = result?.url || URL.createObjectURL(blob);
+      onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration);
+    } catch {
+      const audioUrl = URL.createObjectURL(blob);
+      onSendMessage("Message vocal", "voice", undefined, undefined, audioUrl, duration);
     }
-  }
+  }, [onSendMessage]);
 
-  function handleDragLeave(e: DragEvent) {
-    e.preventDefault();
-    dragCounterRef.current--;
-    if (dragCounterRef.current === 0) {
-      setIsDragging(false);
-    }
-  }
-
-  function handleDragOver(e: DragEvent) {
-    e.preventDefault();
-  }
-
-  function handleDrop(e: DragEvent) {
-    e.preventDefault();
-    dragCounterRef.current = 0;
-    setIsDragging(false);
-    if (e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files);
-    }
-  }
+  // Drag and drop
+  function handleDragEnter(e: DragEvent) { e.preventDefault(); dragCounterRef.current++; if (e.dataTransfer.types.includes("Files")) setIsDragging(true); }
+  function handleDragLeave(e: DragEvent) { e.preventDefault(); dragCounterRef.current--; if (dragCounterRef.current === 0) setIsDragging(false); }
+  function handleDragOver(e: DragEvent) { e.preventDefault(); }
+  function handleDrop(e: DragEvent) { e.preventDefault(); dragCounterRef.current = 0; setIsDragging(false); if (e.dataTransfer.files.length > 0) handleFileUpload(e.dataTransfer.files); }
 
   // ── Empty state ──
   if (!conversation) {
@@ -268,10 +258,7 @@ export function ChatPanel({
       <div className="flex-1 flex items-center justify-center text-slate-500 p-4 min-h-0">
         <div className="text-center">
           {onMobileBack && (
-            <button
-              onClick={onMobileBack}
-              className="md:hidden mb-4 px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/10 rounded-lg transition-colors"
-            >
+            <button onClick={onMobileBack} className="md:hidden mb-4 px-4 py-2 text-sm text-primary font-semibold hover:bg-primary/10 rounded-lg transition-colors">
               <span className="material-symbols-outlined text-sm align-middle mr-1">arrow_back</span>
               Retour aux conversations
             </button>
@@ -287,9 +274,10 @@ export function ChatPanel({
   }
 
   const otherParticipants = conversation.participants.filter((p) => p.id !== currentUserId);
-  const displayName = conversation.title || otherParticipants.map((p) => p.name).join(", ") || "Conversation";
+  // Sanitize display name — never show technical IDs
+  const rawName = conversation.title || otherParticipants.map((p) => p.name).join(", ") || "";
+  const displayName = sanitizeDisplay(rawName, otherParticipants.length > 0 ? "Utilisateur" : "Conversation");
   const isOnline = otherParticipants.some((p) => p.online);
-
   const filteredMessages = conversation.messages;
 
   return (
@@ -310,21 +298,17 @@ export function ChatPanel({
         </div>
       )}
 
-      {/* ── Header (fixed top) ── */}
+      {/* ── Header ── */}
       <div className="flex items-center justify-between px-3 md:px-6 py-3 md:py-4 border-b border-border-dark flex-shrink-0 bg-background-dark/80 backdrop-blur-sm z-10">
         <div className="flex items-center gap-2 md:gap-3 min-w-0">
           {onMobileBack && (
-            <button
-              onClick={onMobileBack}
-              className="md:hidden p-1.5 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
-              aria-label="Retour aux conversations"
-            >
+            <button onClick={onMobileBack} className="md:hidden p-1.5 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0" aria-label="Retour">
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
           )}
           <div className="relative flex-shrink-0">
             <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
-              {otherParticipants[0]?.avatar ?? "?"}
+              {sanitizeDisplay(otherParticipants[0]?.avatar ?? "", "?").slice(0, 2)}
             </div>
             {isOnline && (
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-400 border-2 border-background-dark rounded-full" />
@@ -335,41 +319,36 @@ export function ChatPanel({
             <p className="text-xs text-slate-500 truncate">
               {isOnline ? "En ligne" : "Hors ligne"}
               {otherParticipants[0]?.role && ` · ${String(otherParticipants[0].role).charAt(0).toUpperCase() + String(otherParticipants[0].role).slice(1)}`}
-              {conversation.orderId && ` · Commande #${conversation.orderNumber || conversation.orderId.slice(-6)}`}
-              {otherParticipants.length > 1 && ` · ${otherParticipants.length} participants`}
+              {conversation.orderId && ` · Commande #${(conversation.orderNumber || conversation.orderId.slice(-6)).toUpperCase()}`}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
           {conversation.orderId && (
-            <a
-              href={`/dashboard/commandes/${conversation.orderId}`}
-              className="hidden sm:flex text-xs text-primary font-bold hover:underline items-center gap-1 mr-2"
-            >
+            <a href={`/dashboard/commandes/${conversation.orderId}`} className="hidden sm:flex text-xs text-primary font-bold hover:underline items-center gap-1 mr-2">
               Voir la commande <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </a>
           )}
-
+          {onStartAudioCall && (
+            <button onClick={onStartAudioCall} className="p-2 text-slate-400 hover:text-emerald-400 rounded-lg hover:bg-emerald-500/10 transition-colors" title="Appel audio">
+              <span className="material-symbols-outlined text-lg">call</span>
+            </button>
+          )}
+          {onStartVideoCall && (
+            <button onClick={onStartVideoCall} className="p-2 text-slate-400 hover:text-blue-400 rounded-lg hover:bg-blue-500/10 transition-colors" title="Appel video">
+              <span className="material-symbols-outlined text-lg">videocam</span>
+            </button>
+          )}
           {showAdminActions && onSendSystemMessage && (
-            <button
-              onClick={() => {
-                const msg = prompt("Message systeme a envoyer:");
-                if (msg) onSendSystemMessage(msg);
-              }}
-              className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
-              title="Envoyer un message systeme"
-            >
+            <button onClick={() => { const msg = prompt("Message systeme:"); if (msg) onSendSystemMessage(msg); }} className="p-2 text-slate-500 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors" title="Message systeme">
               <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
             </button>
           )}
-          <button className="p-2 text-slate-400 hover:text-primary rounded-lg hover:bg-primary/10 transition-colors">
-            <span className="material-symbols-outlined text-lg">info</span>
-          </button>
         </div>
       </div>
 
-      {/* ── Messages (scrollable area — the ONLY scrollable element) ── */}
+      {/* ── Messages ── */}
       <div
         ref={messagesContainerRef}
         onScroll={handleScroll}
@@ -389,7 +368,6 @@ export function ChatPanel({
             const isOwn = msg.senderId === currentUserId;
             const prevMsg = i > 0 ? filteredMessages[i - 1] : null;
             const showSenderInfo = !isOwn && (!prevMsg || prevMsg.senderId !== msg.senderId || prevMsg.type === "system");
-
             return (
               <MessageBubble
                 key={msg.id}
@@ -407,7 +385,7 @@ export function ChatPanel({
         <div ref={chatEndRef} />
       </div>
 
-      {/* Upload progress / error */}
+      {/* Upload progress */}
       {(uploadProgress || uploadError) && (
         <div className="px-4 py-2 border-t border-border-dark/50 flex-shrink-0">
           {uploadProgress && (
@@ -416,18 +394,11 @@ export function ChatPanel({
               <div className="flex-1">
                 <p className="text-xs text-slate-400 truncate">{uploadProgress.fileName}</p>
                 <div className="w-full h-1.5 bg-border-dark rounded-full mt-1">
-                  <div
-                    className="h-full bg-primary rounded-full transition-all"
-                    style={{ width: `${uploadProgress.progress}%` }}
-                  />
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${uploadProgress.progress}%` }} />
                 </div>
               </div>
               <span className="text-xs text-slate-500">{uploadProgress.progress}%</span>
-              <button
-                onClick={handleCancelUpload}
-                className="p-1 text-slate-400 hover:text-red-400 rounded transition-colors"
-                title="Annuler l'upload"
-              >
+              <button onClick={handleCancelUpload} className="p-1 text-slate-400 hover:text-red-400 rounded transition-colors" title="Annuler">
                 <span className="material-symbols-outlined text-sm">close</span>
               </button>
             </div>
@@ -435,7 +406,7 @@ export function ChatPanel({
           {uploadError && (
             <div className="flex items-center gap-2 text-red-400">
               <span className="material-symbols-outlined text-sm">error</span>
-              <p className="text-xs">{uploadError}</p>
+              <p className="text-xs truncate">{uploadError}</p>
               <button onClick={() => setUploadError(null)} className="ml-auto text-slate-500 hover:text-slate-300">
                 <span className="material-symbols-outlined text-sm">close</span>
               </button>
@@ -444,46 +415,29 @@ export function ChatPanel({
         </div>
       )}
 
-      {/* ── Input (fixed bottom, always visible) ── */}
+      {/* ── Input ── */}
       <div className="border-t border-border-dark p-2 md:p-4 flex-shrink-0 bg-background-dark/80 backdrop-blur-sm">
         <div className="flex gap-1.5 md:gap-3 items-end">
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="p-2 md:p-2.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors flex-shrink-0"
-            aria-label="Joindre un fichier"
-          >
+          <button onClick={() => fileRef.current?.click()} className="p-2 md:p-2.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors flex-shrink-0" aria-label="Joindre un fichier">
             <span className="material-symbols-outlined text-xl md:text-2xl">attach_file</span>
           </button>
-          <input
-            ref={fileRef}
-            type="file"
-            multiple
-            accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",")}
-            className="hidden"
-            onChange={(e) => handleFileUpload(e.target.files)}
-          />
+          <input ref={fileRef} type="file" multiple accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",")} className="hidden" onChange={(e) => handleFileUpload(e.target.files)} />
 
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             placeholder="Ecrire un message..."
             className="flex-1 min-w-0 px-4 py-2.5 bg-neutral-dark border border-border-dark rounded-lg text-sm outline-none focus:ring-1 focus:ring-primary"
           />
+          <VoiceRecorder onSend={handleVoiceSend} />
           <button
             onClick={handleSend}
             disabled={!input.trim()}
             className={cn(
               "p-2.5 rounded-lg font-semibold text-sm transition-all flex-shrink-0",
-              input.trim()
-                ? "bg-primary text-white hover:bg-primary/90"
-                : "bg-border-dark text-slate-500"
+              input.trim() ? "bg-primary text-white hover:bg-primary/90" : "bg-border-dark text-slate-500"
             )}
           >
             <span className="material-symbols-outlined">send</span>
@@ -491,13 +445,7 @@ export function ChatPanel({
         </div>
       </div>
 
-      {/* Image lightbox */}
-      {lightboxImage && (
-        <ImageLightbox
-          imageUrl={lightboxImage}
-          onClose={() => setLightboxImage(null)}
-        />
-      )}
+      {lightboxImage && <ImageLightbox imageUrl={lightboxImage} onClose={() => setLightboxImage(null)} />}
     </div>
   );
 }

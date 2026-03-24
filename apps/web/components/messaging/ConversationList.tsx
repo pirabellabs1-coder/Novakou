@@ -4,6 +4,20 @@ import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import type { UnifiedConversation, ConversationType } from "@/store/messaging";
 
+// Detect technical IDs (CUIDs, UUIDs, long alphanumeric tokens)
+function looksLikeTechnicalId(str: string): boolean {
+  if (!str || str.length < 20) return false;
+  if (/^c[a-z0-9]{20,}$/i.test(str)) return true;
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(str)) return true;
+  if (/^[a-z0-9_-]{24,}$/i.test(str.trim())) return true;
+  return false;
+}
+
+function sanitizeText(text: string, fallback: string): string {
+  if (!text || looksLikeTechnicalId(text.trim())) return fallback;
+  return text;
+}
+
 const TYPE_BADGES: Record<ConversationType, { label: string; cls: string; icon: string }> = {
   direct: { label: "Direct", cls: "bg-blue-500/20 text-blue-400", icon: "chat" },
   group: { label: "Groupe", cls: "bg-primary/10 text-primary", icon: "group" },
@@ -67,17 +81,22 @@ export function ConversationList({
   }, [conversations, filterType, search, currentUserId]);
 
   function getConversationName(conv: UnifiedConversation): string {
-    if (conv.title) return conv.title;
+    if (conv.title && !looksLikeTechnicalId(conv.title)) return conv.title;
     const others = conv.participants.filter((p) => p.id !== currentUserId);
     if (others.length === 0) return "Conversation";
-    if (others.length === 1) return others[0].name;
-    return others.map((p) => p.name.split(" ")[0]).join(", ");
+    if (others.length === 1) return sanitizeText(others[0].name, "Utilisateur");
+    return others.map((p) => sanitizeText(p.name, "Utilisateur").split(" ")[0]).join(", ");
   }
 
   function getConversationAvatar(conv: UnifiedConversation): { text: string; online: boolean } {
     const others = conv.participants.filter((p) => p.id !== currentUserId);
     if (others.length === 0) return { text: "?", online: false };
-    return { text: others[0].avatar, online: others[0].online };
+    const avatar = others[0].avatar;
+    // Sanitize avatar — if it looks like a CUID, use initials from name
+    const safeAvatar = looksLikeTechnicalId(avatar)
+      ? sanitizeText(others[0].name, "U").split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2)
+      : avatar;
+    return { text: safeAvatar || "?", online: others[0].online };
   }
 
   return (
@@ -205,7 +224,7 @@ export function ConversationList({
                       {conv.lastMessage === "Appel manque" && (
                         <span className="material-symbols-outlined text-xs text-red-400">phone_missed</span>
                       )}
-                      {conv.lastMessage}
+                      {sanitizeText(conv.lastMessage, "...")}
                     </p>
                     {conv.unreadCount > 0 && (
                       <span className="w-5 h-5 bg-primary rounded-full text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 ml-2">
@@ -214,7 +233,7 @@ export function ConversationList({
                     )}
                   </div>
                   {conv.orderId && (
-                    <p className="text-[10px] text-primary mt-0.5">Commande #{conv.orderNumber || conv.orderId.slice(-6)}</p>
+                    <p className="text-[10px] text-primary mt-0.5 truncate">Commande #{(conv.orderNumber || conv.orderId.slice(-6)).toUpperCase()}</p>
                   )}
                 </div>
               </button>
