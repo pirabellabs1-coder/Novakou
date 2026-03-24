@@ -130,7 +130,7 @@ export default function ClientPayments() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {isLoading ? (
           <>
             <SkeletonCard />
@@ -139,51 +139,52 @@ export default function ClientPayments() {
           </>
         ) : (
           <>
-            <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
+            <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-5">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-lg sm:text-2xl">account_balance_wallet</span>
                 </div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Total dépensé</p>
+                <p className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">Total dépensé</p>
               </div>
-              <p className="text-2xl font-black text-white">{formatAmount(totalSpent)}</p>
-              {currency === "FCFA" && <p className="text-xs text-slate-500 mt-1">&asymp; {totalSpent.toFixed(2)} EUR</p>}
+              <p className="text-lg sm:text-2xl font-black text-white">{formatAmount(totalSpent)}</p>
+              {currency === "FCFA" && <p className="text-[10px] sm:text-xs text-slate-500 mt-1">&asymp; {totalSpent.toFixed(2)} EUR</p>}
             </div>
-            <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-amber-400">schedule</span>
+            <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-5">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-amber-400 text-lg sm:text-2xl">schedule</span>
                 </div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">En attente</p>
+                <p className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">En attente</p>
               </div>
-              <p className="text-2xl font-black text-amber-400">{formatAmount(pending)}</p>
+              <p className="text-lg sm:text-2xl font-black text-amber-400">{formatAmount(pending)}</p>
             </div>
-            <div className="bg-neutral-dark rounded-xl border border-border-dark p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary">redeem</span>
+            <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-5">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-lg sm:text-2xl">redeem</span>
                 </div>
-                <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Crédits FreelanceHigh</p>
+                <p className="text-[10px] sm:text-xs text-slate-500 uppercase tracking-wider font-semibold">Crédits</p>
               </div>
-              <p className="text-2xl font-black text-white">{formatAmount(credits)}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{formatAmount(credits)}</p>
             </div>
           </>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-neutral-dark rounded-xl p-1 border border-border-dark">
+      <div className="flex gap-0.5 sm:gap-1 bg-neutral-dark rounded-xl p-0.5 sm:p-1 border border-border-dark overflow-x-auto">
         {TABS.map(t => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key)}
             className={cn(
-              "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex-1 justify-center",
+              "flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex-1 justify-center whitespace-nowrap min-w-0",
               activeTab === t.key ? "bg-primary text-background-dark shadow" : "text-slate-400 hover:text-white"
             )}
           >
-            <span className="material-symbols-outlined text-lg">{t.icon}</span>
-            {t.label}
+            <span className="material-symbols-outlined text-sm sm:text-lg">{t.icon}</span>
+            <span className="hidden sm:inline">{t.label}</span>
+            <span className="sm:hidden">{t.label.split(" ")[0]}</span>
           </button>
         ))}
       </div>
@@ -272,7 +273,7 @@ export default function ClientPayments() {
                 Actualisé il y a 5 min
               </span>
             </div>
-            <div className="flex flex-wrap gap-6 text-sm">
+            <div className="flex flex-wrap gap-3 sm:gap-6 text-xs sm:text-sm">
               <span className="text-slate-400">1 EUR = <span className="text-white font-bold">655,96 FCFA</span></span>
               <span className="text-slate-400">1 EUR = <span className="text-white font-bold">1,08 USD</span></span>
               <span className="text-slate-400">1 EUR = <span className="text-white font-bold">0,85 GBP</span></span>
@@ -321,13 +322,13 @@ export default function ClientPayments() {
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">{currency}</span>
               </div>
               {/* Preset amounts */}
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-3">
                 {DEPOSIT_PRESETS.map((amount) => (
                   <button
                     key={amount}
                     onClick={() => setDepositAmount(String(amount))}
                     className={cn(
-                      "px-4 py-2 rounded-lg text-sm font-bold transition-all",
+                      "px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold transition-all",
                       depositAmount === String(amount)
                         ? "bg-primary text-background-dark shadow"
                         : "bg-background-dark border border-border-dark text-slate-400 hover:text-white hover:border-primary/30"
@@ -555,15 +556,16 @@ export default function ClientPayments() {
                 <p className="text-slate-600 text-sm mt-1">Vos transactions apparaîtront ici après votre première commande.</p>
               </div>
             ) : (
-              <table className="w-full">
+              {/* Desktop table */}
+              <table className="w-full hidden md:table">
                 <thead>
                   <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
-                    <th className="px-5 py-3 text-left font-semibold">Référence</th>
-                    <th className="px-5 py-3 text-left font-semibold">Date</th>
-                    <th className="px-5 py-3 text-left font-semibold">Description</th>
-                    <th className="px-5 py-3 text-right font-semibold">Montant</th>
-                    <th className="px-5 py-3 text-center font-semibold">Statut</th>
-                    <th className="px-5 py-3 text-center font-semibold">Méthode</th>
+                    <th className="px-4 py-3 text-left font-semibold">Réf.</th>
+                    <th className="px-4 py-3 text-left font-semibold">Date</th>
+                    <th className="px-4 py-3 text-left font-semibold">Description</th>
+                    <th className="px-4 py-3 text-right font-semibold">Montant</th>
+                    <th className="px-4 py-3 text-center font-semibold">Statut</th>
+                    <th className="px-4 py-3 text-center font-semibold">Méthode</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -571,19 +573,41 @@ export default function ClientPayments() {
                     const statusInfo = TX_STATUS_MAP[tx.status] || TX_STATUS_MAP.pending;
                     return (
                       <tr key={tx.id} className="border-b border-border-dark/50 hover:bg-background-dark/30 transition-colors">
-                        <td className="px-5 py-3.5 text-sm font-mono text-primary font-semibold">{tx.id}</td>
-                        <td className="px-5 py-3.5 text-sm text-slate-400">{new Date(tx.date).toLocaleDateString("fr-FR")}</td>
-                        <td className="px-5 py-3.5 text-sm text-slate-300">{tx.description}</td>
-                        <td className="px-5 py-3.5 text-sm font-bold text-white text-right">{formatAmount(tx.amount)}</td>
-                        <td className="px-5 py-3.5 text-center">
-                          <span className={cn("text-[10px] font-semibold px-2.5 py-1 rounded-full", statusInfo.cls)}>{statusInfo.label}</span>
+                        <td className="px-4 py-3 text-xs font-mono text-primary font-semibold">{tx.id}</td>
+                        <td className="px-4 py-3 text-xs text-slate-400">{new Date(tx.date).toLocaleDateString("fr-FR")}</td>
+                        <td className="px-4 py-3 text-sm text-slate-300 truncate max-w-[200px]">{tx.description}</td>
+                        <td className="px-4 py-3 text-sm font-bold text-white text-right">{formatAmount(tx.amount)}</td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full", statusInfo.cls)}>{statusInfo.label}</span>
                         </td>
-                        <td className="px-5 py-3.5 text-center text-sm text-slate-400 capitalize">{tx.method || "-"}</td>
+                        <td className="px-4 py-3 text-center text-xs text-slate-400 capitalize">{tx.method || "-"}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
+              {/* Mobile card layout */}
+              <div className="md:hidden divide-y divide-border-dark">
+                {transactions.map(tx => {
+                  const methodIcon = tx.method === "mobile" ? "smartphone" : tx.method === "bank" ? "account_balance" : "credit_card";
+                  const statusInfo = TX_STATUS_MAP[tx.status] || TX_STATUS_MAP.pending;
+                  return (
+                    <div key={tx.id} className="px-3 py-3 flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <span className="material-symbols-outlined text-primary text-lg">{methodIcon}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-white truncate">{tx.description}</p>
+                        <p className="text-[10px] text-slate-500">{new Date(tx.date).toLocaleDateString("fr-FR")}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className="text-xs font-bold text-white">{formatAmount(tx.amount)}</p>
+                        <span className={cn("text-[9px] font-semibold px-1.5 py-0.5 rounded-full", statusInfo.cls)}>{statusInfo.label}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
 

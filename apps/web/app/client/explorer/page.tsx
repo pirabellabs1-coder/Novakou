@@ -158,7 +158,7 @@ export default function ClientExplorer() {
     if (searchInput) {
       const q = searchInput.toLowerCase();
       result = result.filter(f =>
-        f.name.toLowerCase().includes(q) || f.skills.some(s => s.toLowerCase().includes(q))
+        (f.name || "").toLowerCase().includes(q) || f.skills.some(s => (s || "").toLowerCase().includes(q))
       );
     }
     return result;
@@ -173,24 +173,26 @@ export default function ClientExplorer() {
     }>();
     for (const s of services) {
       const key = s.vendorUsername || s.vendorName;
-      const isAgency = s.vendorPlan === "agence" || s.vendorName.toLowerCase().includes("agency") || s.vendorName.toLowerCase().includes("agence") || s.vendorName.toLowerCase().includes("studio");
+      const nameLower = (s.vendorName || "").toLowerCase();
+      const isAgency = s.vendorPlan === "agence" || nameLower.includes("agency") || nameLower.includes("agence") || nameLower.includes("studio");
       if (!isAgency) continue;
+      const catName = s.categoryName || "";
       const existing = vendorMap.get(key);
       if (existing) {
         existing.serviceCount++;
         existing.rating = Math.max(existing.rating, s.rating);
         existing.ratingCount += s.ratingCount;
-        if (!existing.specialities.includes(s.categoryName)) existing.specialities.push(s.categoryName);
+        if (catName && !existing.specialities.includes(catName)) existing.specialities.push(catName);
       } else {
         vendorMap.set(key, {
           id: s.userId,
-          name: s.vendorName,
-          avatar: s.vendorAvatar,
-          country: s.vendorCountry,
+          name: s.vendorName || "",
+          avatar: s.vendorAvatar || "",
+          country: s.vendorCountry || "",
           rating: s.rating,
           ratingCount: s.ratingCount,
           serviceCount: 1,
-          specialities: [s.categoryName],
+          specialities: catName ? [catName] : [],
           badges: s.vendorBadges || [],
         });
       }
@@ -199,7 +201,7 @@ export default function ClientExplorer() {
     if (searchInput) {
       const q = searchInput.toLowerCase();
       result = result.filter(a =>
-        a.name.toLowerCase().includes(q) || a.specialities.some(s => s.toLowerCase().includes(q))
+        (a.name || "").toLowerCase().includes(q) || a.specialities.some(s => (s || "").toLowerCase().includes(q))
       );
     }
     return result;
@@ -220,7 +222,8 @@ export default function ClientExplorer() {
 
   // Get initials from name
   const getInitials = (name: string) => {
-    return name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+    if (!name) return "?";
+    return name.split(" ").filter(Boolean).map(n => n[0]).join("").slice(0, 2).toUpperCase();
   };
 
   return (

@@ -141,49 +141,49 @@ export default function ClientInvoices() {
         </div>
         <button
           onClick={exportCSV}
-          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-background-dark text-sm font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20"
+          className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-primary text-background-dark text-xs sm:text-sm font-bold rounded-xl hover:brightness-110 transition-all shadow-lg shadow-primary/20"
         >
-          <span className="material-symbols-outlined text-lg">download</span>
-          Exporter CSV
+          <span className="material-symbols-outlined text-base sm:text-lg">download</span>
+          <span className="hidden sm:inline">Exporter</span> CSV
         </button>
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary">receipt_long</span>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-primary text-base sm:text-2xl">receipt_long</span>
           </div>
-          <div>
-            <p className="text-xl font-black text-white">{isLoading ? "-" : counts.all}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Total factures</p>
-          </div>
-        </div>
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary">check_circle</span>
-          </div>
-          <div>
-            <p className="text-xl font-black text-primary">{isLoading ? "-" : counts.payee}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Payées</p>
+          <div className="min-w-0">
+            <p className="text-base sm:text-xl font-black text-white">{isLoading ? "-" : counts.all}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Total</p>
           </div>
         </div>
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-amber-400">schedule</span>
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-primary text-base sm:text-2xl">check_circle</span>
           </div>
-          <div>
-            <p className="text-xl font-black text-amber-400">{isLoading ? "-" : counts.en_attente}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">En attente</p>
+          <div className="min-w-0">
+            <p className="text-base sm:text-xl font-black text-primary">{isLoading ? "-" : counts.payee}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Payées</p>
           </div>
         </div>
-        <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary">payments</span>
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-amber-400 text-base sm:text-2xl">schedule</span>
           </div>
-          <div>
-            <p className="text-xl font-black text-white">{isLoading ? "-" : `${totalVisible.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} \u20ac`}</p>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Montant affiché</p>
+          <div className="min-w-0">
+            <p className="text-base sm:text-xl font-black text-amber-400">{isLoading ? "-" : counts.en_attente}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Attente</p>
+          </div>
+        </div>
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-primary text-base sm:text-2xl">payments</span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-base sm:text-xl font-black text-white truncate">{isLoading ? "-" : `${totalVisible.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} \u20ac`}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Montant</p>
           </div>
         </div>
       </div>
@@ -191,13 +191,13 @@ export default function ClientInvoices() {
       {/* Filters row */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         {/* Status tabs */}
-        <div className="flex gap-1 bg-neutral-dark rounded-xl p-1 border border-border-dark">
+        <div className="flex gap-0.5 sm:gap-1 bg-neutral-dark rounded-xl p-0.5 sm:p-1 border border-border-dark overflow-x-auto w-full sm:w-auto">
           {STATUS_TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setStatusFilter(t.key)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
+                "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all whitespace-nowrap",
                 statusFilter === t.key
                   ? "bg-primary text-background-dark shadow"
                   : "text-slate-400 hover:text-white"
@@ -205,7 +205,7 @@ export default function ClientInvoices() {
             >
               {t.label}
               <span className={cn(
-                "text-xs px-1.5 py-0.5 rounded-full",
+                "text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded-full",
                 statusFilter === t.key ? "bg-background-dark/20" : "bg-border-dark"
               )}>
                 {counts[t.key as keyof typeof counts]}
@@ -230,17 +230,17 @@ export default function ClientInvoices() {
       </div>
 
       {/* Invoice table */}
-      <div className="bg-neutral-dark rounded-xl border border-border-dark overflow-x-auto">
+      <div className="bg-neutral-dark rounded-xl border border-border-dark overflow-hidden">
         {isLoading ? (
-          <table className="w-full">
+          <table className="w-full hidden sm:table">
             <thead>
               <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
-                <th className="px-5 py-3 text-left font-semibold">Date</th>
-                <th className="hidden md:table-cell px-5 py-3 text-left font-semibold">N&deg; Facture</th>
-                <th className="px-5 py-3 text-left font-semibold">Service</th>
-                <th className="px-5 py-3 text-right font-semibold">Montant (EUR)</th>
-                <th className="px-5 py-3 text-center font-semibold">Statut</th>
-                <th className="px-5 py-3 text-center font-semibold">Actions</th>
+                <th className="px-3 sm:px-5 py-3 text-left font-semibold">Date</th>
+                <th className="hidden md:table-cell px-3 sm:px-5 py-3 text-left font-semibold">N&deg; Facture</th>
+                <th className="px-3 sm:px-5 py-3 text-left font-semibold">Service</th>
+                <th className="px-3 sm:px-5 py-3 text-right font-semibold">Montant</th>
+                <th className="px-3 sm:px-5 py-3 text-center font-semibold">Statut</th>
+                <th className="px-3 sm:px-5 py-3 text-center font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -260,15 +260,16 @@ export default function ClientInvoices() {
             actionHref="/client/explorer"
           />
         ) : (
-          <table className="w-full">
+          {/* Desktop table */}
+          <table className="w-full hidden sm:table">
             <thead>
               <tr className="text-[10px] text-slate-500 uppercase tracking-wider border-b border-border-dark">
-                <th className="px-5 py-3 text-left font-semibold">Date</th>
-                <th className="hidden md:table-cell px-5 py-3 text-left font-semibold">N&deg; Facture</th>
-                <th className="px-5 py-3 text-left font-semibold">Service</th>
-                <th className="px-5 py-3 text-right font-semibold">Montant (EUR)</th>
-                <th className="px-5 py-3 text-center font-semibold">Statut</th>
-                <th className="px-5 py-3 text-center font-semibold">Actions</th>
+                <th className="px-3 sm:px-5 py-3 text-left font-semibold">Date</th>
+                <th className="hidden md:table-cell px-3 sm:px-5 py-3 text-left font-semibold">N&deg; Facture</th>
+                <th className="px-3 sm:px-5 py-3 text-left font-semibold">Service</th>
+                <th className="px-3 sm:px-5 py-3 text-right font-semibold">Montant</th>
+                <th className="px-3 sm:px-5 py-3 text-center font-semibold">Statut</th>
+                <th className="px-3 sm:px-5 py-3 text-center font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -276,38 +277,38 @@ export default function ClientInvoices() {
                 const statusInfo = STATUS_MAP[inv.status] || STATUS_MAP.en_attente;
                 return (
                   <tr key={inv.id} className="border-b border-border-dark/50 hover:bg-background-dark/30 transition-colors">
-                    <td className="px-5 py-3.5 text-sm text-slate-400">{new Date(inv.date).toLocaleDateString("fr-FR")}</td>
-                    <td className="hidden md:table-cell px-5 py-3.5 text-sm font-mono text-primary font-semibold">{inv.id}</td>
-                    <td className="px-5 py-3.5">
-                      <p className="text-sm font-medium text-white truncate max-w-xs">{inv.serviceTitle}</p>
-                      <p className="text-xs text-slate-500">Commande #{inv.orderId.slice(-6)}</p>
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm text-slate-400">{new Date(inv.date).toLocaleDateString("fr-FR")}</td>
+                    <td className="hidden md:table-cell px-3 sm:px-5 py-3 text-xs font-mono text-primary font-semibold">{inv.id}</td>
+                    <td className="px-3 sm:px-5 py-3">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate max-w-[200px]">{inv.serviceTitle}</p>
+                      <p className="text-[10px] sm:text-xs text-slate-500">#{inv.orderId.slice(-6)}</p>
                     </td>
-                    <td className="px-5 py-3.5 text-sm font-bold text-white text-right">
+                    <td className="px-3 sm:px-5 py-3 text-xs sm:text-sm font-bold text-white text-right">
                       {(inv.amount ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} &euro;
                     </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span className={cn("text-[10px] font-semibold px-2.5 py-1 rounded-full inline-flex items-center gap-1", statusInfo.cls)}>
+                    <td className="px-3 sm:px-5 py-3 text-center">
+                      <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full inline-flex items-center gap-0.5", statusInfo.cls)}>
                         <span className="material-symbols-outlined text-[10px]">{statusInfo.icon}</span>
                         {statusInfo.label}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-3 sm:px-5 py-3">
                       <div className="flex items-center justify-center gap-1">
                         <a
                           href={inv.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 text-slate-500 hover:text-primary transition-colors"
+                          className="p-1 text-slate-500 hover:text-primary transition-colors"
                           title="Télécharger PDF"
                         >
-                          <span className="material-symbols-outlined text-lg">download</span>
+                          <span className="material-symbols-outlined text-base sm:text-lg">download</span>
                         </a>
                         <button
                           onClick={() => handleSendEmail(inv.id)}
-                          className="p-1.5 text-slate-500 hover:text-primary transition-colors"
+                          className="p-1 text-slate-500 hover:text-primary transition-colors"
                           title="Envoyer par email"
                         >
-                          <span className="material-symbols-outlined text-lg">mail</span>
+                          <span className="material-symbols-outlined text-base sm:text-lg">mail</span>
                         </button>
                       </div>
                     </td>
@@ -316,6 +317,37 @@ export default function ClientInvoices() {
               })}
             </tbody>
           </table>
+          {/* Mobile card layout */}
+          <div className="sm:hidden divide-y divide-border-dark">
+            {filteredInvoices.map(inv => {
+              const statusInfo = STATUS_MAP[inv.status] || STATUS_MAP.en_attente;
+              return (
+                <div key={inv.id} className="p-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-white truncate">{inv.serviceTitle}</p>
+                      <p className="text-[10px] text-slate-500">{new Date(inv.date).toLocaleDateString("fr-FR")} · #{inv.orderId.slice(-6)}</p>
+                    </div>
+                    <span className={cn("text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 inline-flex items-center gap-0.5", statusInfo.cls)}>
+                      <span className="material-symbols-outlined text-[9px]">{statusInfo.icon}</span>
+                      {statusInfo.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-white">{(inv.amount ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} &euro;</p>
+                    <div className="flex gap-1">
+                      <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 text-slate-500 hover:text-primary rounded-lg bg-border-dark/50">
+                        <span className="material-symbols-outlined text-base">download</span>
+                      </a>
+                      <button onClick={() => handleSendEmail(inv.id)} className="p-1.5 text-slate-500 hover:text-primary rounded-lg bg-border-dark/50">
+                        <span className="material-symbols-outlined text-base">mail</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
