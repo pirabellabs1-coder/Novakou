@@ -352,6 +352,7 @@ const IS_VERCEL = !!process.env.VERCEL;
 // files once and keep mutations in memory (lost between cold starts, which
 // is acceptable for demo/dev mode).
 const memoryCache = new Map<string, unknown>();
+const mtimeCache = new Map<string, number>();
 
 function ensureDir(): void {
   if (IS_VERCEL) return; // read-only filesystem
@@ -364,21 +365,30 @@ function ensureDir(): void {
   }
 }
 
+function invalidateCache(filename: string): void {
+  memoryCache.delete(filename);
+}
+
 function readJson<T>(filename: string, defaultValue: T): T {
-  // Check in-memory cache first
-  if (memoryCache.has(filename)) {
-    return memoryCache.get(filename) as T;
-  }
   try {
     const filePath = path.join(DATA_DIR, filename);
     if (!fs.existsSync(filePath)) {
       memoryCache.set(filename, defaultValue);
+      mtimeCache.set(filename, 0);
       if (!IS_VERCEL) writeJson(filename, defaultValue);
       return defaultValue;
+    }
+    // Check if file was modified externally (compare mtime)
+    const stat = fs.statSync(filePath);
+    const fileMtime = stat.mtimeMs;
+    const cachedMtime = mtimeCache.get(filename) ?? 0;
+    if (memoryCache.has(filename) && fileMtime <= cachedMtime) {
+      return memoryCache.get(filename) as T;
     }
     const raw = fs.readFileSync(filePath, "utf-8");
     const parsed = JSON.parse(raw) as T;
     memoryCache.set(filename, parsed);
+    mtimeCache.set(filename, fileMtime);
     return parsed;
   } catch {
     memoryCache.set(filename, defaultValue);
@@ -394,6 +404,9 @@ function writeJson<T>(filename: string, data: T): void {
     ensureDir();
     const filePath = path.join(DATA_DIR, filename);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
+    // Update mtime cache after write
+    const stat = fs.statSync(filePath);
+    mtimeCache.set(filename, stat.mtimeMs);
   } catch {
     // ignore write errors
   }

@@ -14,6 +14,7 @@ const TABS = [
   { label: "Révision", filter: "revision" },
   { label: "Terminées", filter: "termine" },
   { label: "Annulées", filter: "annule" },
+  { label: "Litiges", filter: "litige" },
 ];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {

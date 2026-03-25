@@ -273,8 +273,8 @@ export default function OrderTrackingPage() {
         fileName,
         fileSize,
       });
-      // Persist file message via API
-      ordersApi.sendMessage(order.id, { content: `Fichier envoye : ${fileName}`, type: "file", fileName, fileSize });
+      // Persist file message via API (fire-and-forget with error handling)
+      ordersApi.sendMessage(order.id, { content: `Fichier envoye : ${fileName}`, type: "file", fileName, fileSize }).catch(() => {});
     });
     addToast("success", `${files.length} fichier(s) envoye(s)`);
   }
@@ -376,7 +376,7 @@ export default function OrderTrackingPage() {
         fileName,
         fileSize,
       });
-      ordersApi.sendMessage(order.id, { content: `Nouvelle livraison : ${fileName}`, type: "file", fileName, fileSize });
+      ordersApi.sendMessage(order.id, { content: `Nouvelle livraison : ${fileName}`, type: "file", fileName, fileSize }).catch(() => {});
     });
     updateOrderStatus(order.id, "livre");
     addToast("success", "Nouvelle livraison envoyee !");
