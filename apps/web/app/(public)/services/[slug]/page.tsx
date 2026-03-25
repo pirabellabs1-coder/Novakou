@@ -690,11 +690,80 @@ export default function ServiceDetailPage() {
             </div>
 
             {/* ============================================ */}
-            {/* Forfaits comparison (3 columns)             */}
+            {/* Forfaits — tabs mobile / 3 cols desktop     */}
             {/* ============================================ */}
             <div className="mt-8 pt-8 border-t border-border-dark">
               <h2 className="text-lg font-bold text-white mb-6">{t("compare_packages")}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+              {/* Mobile: tab selector */}
+              <div className="flex md:hidden border border-border-dark rounded-xl overflow-hidden mb-4">
+                {(["basic", "standard", "premium"] as const).map((tier) => (
+                  <button
+                    key={tier}
+                    onClick={() => setSelectedPackage(tier)}
+                    className={cn(
+                      "flex-1 py-3 text-xs font-bold text-center transition-all relative",
+                      selectedPackage === tier
+                        ? "bg-primary text-white"
+                        : "bg-neutral-dark text-slate-400"
+                    )}
+                  >
+                    {service.packages[tier].name}
+                    {tier === "standard" && selectedPackage !== tier && (
+                      <span className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              {/* Mobile: selected package card */}
+              <div className="md:hidden">
+                {(["basic", "standard", "premium"] as const)
+                  .filter((tier) => tier === selectedPackage)
+                  .map((tier) => {
+                    const p = service.packages[tier];
+                    return (
+                      <div key={tier} className="bg-neutral-dark border border-primary ring-2 ring-primary/20 rounded-2xl p-6 shadow-lg shadow-primary/10">
+                        <h3 className="text-white font-bold text-base mb-1">{p.name}</h3>
+                        <p className="text-2xl font-extrabold text-primary mb-3">{format(p.price)}</p>
+                        <p className="text-slate-400 text-xs leading-relaxed mb-4">{p.description}</p>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-center gap-2 text-slate-300">
+                            <span className="material-symbols-outlined text-sm text-primary">timer</span>
+                            {t("delivery_days", { count: p.deliveryDays ?? p.delivery })}
+                          </div>
+                          <div className="flex items-center gap-2 text-slate-300">
+                            <span className="material-symbols-outlined text-sm text-primary">refresh</span>
+                            {p.revisions === 0 ? t("no_revision") : t("revisions", { count: p.revisions })}
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-border-dark space-y-2">
+                          {packageFeatures.map((f, i) => {
+                            const included = f[tier];
+                            return (
+                              <div key={i} className={cn("flex items-center gap-2 text-xs", included ? "text-slate-300" : "text-slate-600 line-through")}>
+                                <span className={cn("material-symbols-outlined text-sm", included ? "text-primary" : "text-slate-600")} style={included ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                                  {included ? "check_circle" : "cancel"}
+                                </span>
+                                {f.label}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={handleOrder}
+                          className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold bg-primary text-white hover:bg-primary/90 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">shopping_cart</span>
+                          {t("order_button")}
+                        </button>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Desktop: 3 columns */}
+              <div className="hidden md:grid md:grid-cols-3 gap-4">
                 {(["basic", "standard", "premium"] as const).map((tier) => {
                   const p = service.packages[tier];
                   const isSelected = selectedPackage === tier;
