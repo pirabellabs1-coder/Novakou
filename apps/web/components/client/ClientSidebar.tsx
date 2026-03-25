@@ -46,6 +46,12 @@ const SECTIONS: NavSection[] = [
       { label: "Litiges", href: "/client/litiges", icon: "gavel" },
     ],
   },
+  {
+    title: "Formation",
+    items: [
+      { label: "Formations", href: "/formations", icon: "school" },
+    ],
+  },
 ];
 
 const BOTTOM_ITEMS = [

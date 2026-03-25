@@ -68,6 +68,7 @@ const SECTIONS: NavSection[] = [
       { label: "Finances", href: "/dashboard/finances", icon: "payments" },
       { label: "Factures", href: "/dashboard/factures", icon: "receipt_long" },
       { label: "Paiements", href: "/dashboard/paiements", icon: "account_balance_wallet" },
+      { label: "Escrow", href: "/dashboard/escrow", icon: "lock" },
     ],
   },
   {
@@ -87,8 +88,20 @@ const SECTIONS: NavSection[] = [
     title: "Outils",
     icon: "build",
     items: [
+      { label: "Certifications", href: "/dashboard/certifications", icon: "workspace_premium" },
+      { label: "Productivité", href: "/dashboard/productivite", icon: "timer" },
+      { label: "Automatisation", href: "/dashboard/automatisation", icon: "bolt" },
       { label: "Vérification KYC", href: "/dashboard/kyc", icon: "verified_user" },
       { label: "Sécurité", href: "/dashboard/securite", icon: "shield" },
+    ],
+  },
+  {
+    id: "croissance",
+    title: "Croissance",
+    icon: "trending_up",
+    items: [
+      { label: "Affiliation", href: "/dashboard/affiliation", icon: "share" },
+      { label: "Formations", href: "/formations", icon: "school" },
     ],
   },
 ];
