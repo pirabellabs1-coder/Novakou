@@ -136,6 +136,10 @@ export default function AffiliationPage() {
   const referralLink = affiliation?.referralLink ?? "";
 
   function handleCopyLink() {
+    if (!referralLink) {
+      addToast("info", "Chargement du lien en cours...");
+      return;
+    }
     navigator.clipboard.writeText(referralLink).then(() => {
       addToast("success", "Lien de parrainage copie dans le presse-papier !");
     }).catch(() => {
@@ -254,7 +258,7 @@ export default function AffiliationPage() {
           Votre lien de parrainage
         </h3>
         <div className="flex gap-2 mb-4">
-          <input type="text" readOnly value={referralLink}
+          <input type="text" readOnly value={referralLink || "Generation du lien..."}
             className="flex-1 px-4 py-3 bg-neutral-dark border border-border-dark rounded-lg text-sm text-slate-300 font-mono outline-none select-all"
             onClick={(e) => (e.target as HTMLInputElement).select()} />
           <button onClick={handleCopyLink}

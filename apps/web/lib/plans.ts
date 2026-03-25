@@ -11,6 +11,9 @@ export const PLAN_RULES = {
     serviceLimit: 7,
     applicationLimit: 10,
     boostLimit: 0,
+    scenarioLimit: 0,
+    certificationLimit: 0,
+    productiviteAccess: false,
   },
   PRO: {
     name: "Pro",
@@ -19,6 +22,9 @@ export const PLAN_RULES = {
     serviceLimit: Infinity,
     applicationLimit: 20,
     boostLimit: 5,
+    scenarioLimit: 5,
+    certificationLimit: 3,
+    productiviteAccess: true,
   },
   BUSINESS: {
     name: "Business",
@@ -27,6 +33,9 @@ export const PLAN_RULES = {
     serviceLimit: Infinity,
     applicationLimit: Infinity,
     boostLimit: 10,
+    scenarioLimit: 15,
+    certificationLimit: Infinity,
+    productiviteAccess: true,
   },
   AGENCE: {
     name: "Agence",
@@ -35,6 +44,9 @@ export const PLAN_RULES = {
     serviceLimit: Infinity,
     applicationLimit: Infinity,
     boostLimit: 10,
+    scenarioLimit: Infinity,
+    certificationLimit: Infinity,
+    productiviteAccess: true,
   },
 } as const;
 
@@ -86,6 +98,18 @@ export function canApply(plan: PlanName, monthlyCount: number): boolean {
 
 export function canBoost(plan: PlanName, monthlyCount: number): boolean {
   return monthlyCount < PLAN_RULES[plan].boostLimit;
+}
+
+export function canCreateScenario(plan: PlanName, currentCount: number): boolean {
+  return currentCount < PLAN_RULES[plan].scenarioLimit;
+}
+
+export function canTakeCertification(plan: PlanName, monthlyCount: number): boolean {
+  return monthlyCount < PLAN_RULES[plan].certificationLimit;
+}
+
+export function hasProductiviteAccess(plan: PlanName): boolean {
+  return PLAN_RULES[plan].productiviteAccess;
 }
 
 export function getPlanLimits(plan: PlanName) {

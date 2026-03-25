@@ -476,6 +476,15 @@ export interface ApiAutomationData {
   scenarios: ApiAutomationScenario[];
 }
 
+export interface ApiAutomationHistoryEntry {
+  id: string;
+  scenarioId: string;
+  scenarioName: string;
+  action: string;
+  time: string;
+  badge: string;
+}
+
 export const automationApi = {
   get: () => fetchApi<ApiAutomationData>("/api/automation"),
 
@@ -483,6 +492,18 @@ export const automationApi = {
     fetchApi<{ scenario: ApiAutomationScenario }>("/api/automation", {
       method: "POST",
       body: JSON.stringify({ action: "create", scenario }),
+    }),
+
+  updateScenario: (id: string, scenario: Omit<ApiAutomationScenario, "id" | "triggerCount" | "createdAt">) =>
+    fetchApi<{ scenario: ApiAutomationScenario }>("/api/automation", {
+      method: "POST",
+      body: JSON.stringify({ action: "update", id, scenario }),
+    }),
+
+  duplicateScenario: (id: string) =>
+    fetchApi<{ scenario: ApiAutomationScenario }>("/api/automation", {
+      method: "POST",
+      body: JSON.stringify({ action: "duplicate", id }),
     }),
 
   toggleScenario: (id: string, active: boolean) =>
@@ -495,6 +516,98 @@ export const automationApi = {
     fetchApi<{ success: boolean }>("/api/automation", {
       method: "POST",
       body: JSON.stringify({ action: "delete", id }),
+    }),
+
+  history: () =>
+    fetchApi<{ history: ApiAutomationHistoryEntry[] }>("/api/automation", {
+      method: "POST",
+      body: JSON.stringify({ action: "history" }),
+    }),
+};
+
+// ── Productivite ──
+
+export interface ApiProductiviteSession {
+  id: string;
+  label: string;
+  start: string;
+  end: string | null;
+  durationSeconds: number;
+  status: "running" | "paused" | "stopped";
+  amount: number;
+  date: string;
+}
+
+export const productiviteApi = {
+  getSessions: (date?: string) => {
+    const url = date ? `/api/productivite?date=${date}` : "/api/productivite";
+    return fetchApi<{ sessions: ApiProductiviteSession[] }>(url);
+  },
+
+  startSession: (label: string) =>
+    fetchApi<{ session: ApiProductiviteSession }>("/api/productivite", {
+      method: "POST",
+      body: JSON.stringify({ action: "start", label }),
+    }),
+
+  pauseSession: (id: string) =>
+    fetchApi<{ session: ApiProductiviteSession }>("/api/productivite", {
+      method: "POST",
+      body: JSON.stringify({ action: "pause", id }),
+    }),
+
+  resumeSession: (id: string) =>
+    fetchApi<{ session: ApiProductiviteSession }>("/api/productivite", {
+      method: "POST",
+      body: JSON.stringify({ action: "resume", id }),
+    }),
+
+  stopSession: (id: string) =>
+    fetchApi<{ session: ApiProductiviteSession }>("/api/productivite", {
+      method: "POST",
+      body: JSON.stringify({ action: "stop", id }),
+    }),
+};
+
+// ── Certifications ──
+
+export interface ApiCertification {
+  id: string;
+  name: string;
+  category: string;
+  icon: string;
+  description: string;
+  questionCount: number;
+  passingScore: number;
+  durationMinutes: number;
+}
+
+export interface ApiCertificationQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+}
+
+export interface ApiCertificationResult {
+  id: string;
+  certificationId: string;
+  score: number;
+  passed: boolean;
+  date: string;
+  answers: number[];
+}
+
+export const certificationsApi = {
+  list: () => fetchApi<{ certifications: ApiCertification[]; results: ApiCertificationResult[] }>("/api/certifications"),
+
+  getQuestions: (certId: string) =>
+    fetchApi<{ questions: ApiCertificationQuestion[] }>(`/api/certifications/${certId}/questions`),
+
+  submitResult: (certId: string, answers: number[]) =>
+    fetchApi<{ result: ApiCertificationResult }>("/api/certifications", {
+      method: "POST",
+      body: JSON.stringify({ action: "submit", certificationId: certId, answers }),
     }),
 };
 

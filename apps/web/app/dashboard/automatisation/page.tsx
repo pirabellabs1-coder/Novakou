@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { cn } from "@/lib/utils";
-import type { ApiAutomationTrigger, ApiAutomationCondition, ApiAutomationAction } from "@/lib/api-client";
+import { normalizePlanName, PLAN_RULES, canCreateScenario } from "@/lib/plans";
+import type { ApiAutomationTrigger, ApiAutomationCondition, ApiAutomationAction, ApiAutomationScenario } from "@/lib/api-client";
 
 // ---------------------------------------------------------------------------
 // UI config (not data)
@@ -16,6 +17,15 @@ const MESSAGE_VARIABLES = [
   { var: "{montant}", label: "Montant" },
   { var: "{delai}", label: "Delai de livraison" },
   { var: "{date}", label: "Date actuelle" },
+];
+
+// Template definitions with trigger/action mappings for pre-fill
+const TEMPLATES = [
+  { name: "Accueil automatique", desc: "Envoie un message de bienvenue a chaque nouveau client qui vous contacte.", icon: "waving_hand", triggerId: "t2", actionIds: ["a1"], defaultMessage: "Bonjour {nom_client} ! Merci de me contacter. Je suis disponible pour discuter de votre projet. N'hesitez pas a me decrire votre besoin !" },
+  { name: "Relance client inactif", desc: "Relance automatiquement les clients qui n'ont pas donne de nouvelles depuis 7 jours.", icon: "notifications_active", triggerId: "t7", actionIds: ["a1"], defaultMessage: "Bonjour {nom_client}, j'espere que tout va bien ! Je voulais prendre de vos nouvelles concernant notre echange. N'hesitez pas a me recontacter si besoin." },
+  { name: "Suivi post-livraison", desc: "Envoie un message et un email apres chaque livraison pour demander un avis.", icon: "check_circle", triggerId: "t4", actionIds: ["a1", "a3"], defaultMessage: "Bonjour {nom_client} ! Votre commande pour {service} a ete livree. J'espere que le resultat vous plait. N'hesitez pas a laisser un avis !" },
+  { name: "Remerciement avis", desc: "Remercie automatiquement les clients qui laissent un avis positif (4+ etoiles).", icon: "star", triggerId: "t5", actionIds: ["a1"], defaultMessage: "Merci beaucoup {nom_client} pour votre avis ! Votre retour me motive a continuer a donner le meilleur. Au plaisir de retravailler ensemble !" },
+  { name: "Confirmation paiement", desc: "Envoie une confirmation automatique a la reception d'un paiement.", icon: "payments", triggerId: "t3", actionIds: ["a1", "a3"], defaultMessage: "Bonjour {nom_client}, votre paiement de {montant} a bien ete recu pour {service}. Je commence le travail immediatement !" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -42,16 +52,32 @@ function SkeletonScenario() {
   );
 }
 
+function formatTimeAgo(isoDate: string): string {
+  const diff = Date.now() - new Date(isoDate).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "A l'instant";
+  if (minutes < 60) return `Il y a ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `Il y a ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `Il y a ${days}j`;
+}
+
 // ---------------------------------------------------------------------------
 // Page Component
 // ---------------------------------------------------------------------------
 
 export default function AutomationPage() {
-  const { currentPlan, automation, automationLoading, syncAutomation, createScenario, toggleScenario, deleteScenario } = useDashboardStore();
+  const {
+    currentPlan, automation, automationLoading, automationHistory,
+    syncAutomation, createScenario, updateScenario, duplicateScenario,
+    toggleScenario, deleteScenario, syncAutomationHistory,
+  } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
 
   const [sideTab, setSideTab] = useState<"scenarios" | "historique" | "modeles">("scenarios");
   const [showCreator, setShowCreator] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Creator state
   const [creatorStep, setCreatorStep] = useState(0);
@@ -65,13 +91,21 @@ export default function AutomationPage() {
     syncAutomation();
   }, [syncAutomation]);
 
+  // Load history when switching to that tab
+  useEffect(() => {
+    if (sideTab === "historique") syncAutomationHistory();
+  }, [sideTab, syncAutomationHistory]);
+
   const scenarios = automation?.scenarios ?? [];
   const triggers = automation?.triggers ?? [];
   const conditions = automation?.conditions ?? [];
   const actions = automation?.actions ?? [];
 
+  const plan = normalizePlanName(currentPlan);
+  const planRules = PLAN_RULES[plan];
+
   // Plan gate
-  if (currentPlan === "gratuit") {
+  if (planRules.scenarioLimit === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] px-6">
         <div className="max-w-md text-center">
@@ -111,6 +145,15 @@ export default function AutomationPage() {
     if (ok) addToast("success", "Scenario supprime");
   }
 
+  async function handleDuplicate(id: string) {
+    if (!canCreateScenario(plan, scenarios.length)) {
+      addToast("error", `Limite atteinte (${scenarios.length}/${planRules.scenarioLimit} scenarios). Passez au plan superieur.`);
+      return;
+    }
+    const ok = await duplicateScenario(id);
+    if (ok) addToast("success", "Scenario duplique");
+  }
+
   function resetCreator() {
     setCreatorStep(0);
     setScenarioName("");
@@ -118,24 +161,74 @@ export default function AutomationPage() {
     setSelectedConditions([]);
     setSelectedActions([]);
     setShowCreator(false);
+    setEditingId(null);
+  }
+
+  function handleEdit(scenario: ApiAutomationScenario) {
+    setEditingId(scenario.id);
+    setScenarioName(scenario.name);
+    setSelectedTrigger(scenario.trigger);
+    setSelectedConditions(scenario.conditions);
+    setSelectedActions(scenario.actions);
+    setCreatorStep(0);
+    setShowCreator(true);
+  }
+
+  function handleUseTemplate(template: typeof TEMPLATES[number]) {
+    if (!canCreateScenario(plan, scenarios.length)) {
+      addToast("error", `Limite atteinte (${scenarios.length}/${planRules.scenarioLimit} scenarios). Passez au plan superieur.`);
+      return;
+    }
+    const trigger = triggers.find((t) => t.id === template.triggerId);
+    if (!trigger) { addToast("error", "Declencheur du modele introuvable"); return; }
+    const templateActions = template.actionIds
+      .map((aid) => actions.find((a) => a.id === aid))
+      .filter(Boolean) as ApiAutomationAction[];
+    if (templateActions.length === 0) { addToast("error", "Actions du modele introuvables"); return; }
+
+    setEditingId(null);
+    setScenarioName(template.name);
+    setSelectedTrigger(trigger);
+    setSelectedConditions([]);
+    setSelectedActions(templateActions.map((a) => ({ action: a, message: a.hasMessage ? template.defaultMessage : "" })));
+    setCreatorStep(4); // Go directly to preview
+    setShowCreator(true);
+  }
+
+  function handleCreateNew() {
+    if (!canCreateScenario(plan, scenarios.length) && !editingId) {
+      addToast("error", `Limite atteinte (${scenarios.length}/${planRules.scenarioLimit} scenarios). Passez au plan superieur.`);
+      return;
+    }
+    resetCreator();
+    setShowCreator(true);
   }
 
   async function handleCreateScenario() {
     if (!selectedTrigger || selectedActions.length === 0 || !scenarioName) return;
     setCreating(true);
-    const ok = await createScenario({
+
+    const scenarioData = {
       name: scenarioName,
       active: true,
       trigger: selectedTrigger,
       conditions: selectedConditions,
       actions: selectedActions,
-    });
+    };
+
+    let ok: boolean;
+    if (editingId) {
+      ok = await updateScenario(editingId, scenarioData);
+      if (ok) addToast("success", "Scenario mis a jour !");
+    } else {
+      ok = await createScenario(scenarioData);
+      if (ok) addToast("success", "Scenario cree avec succes !");
+    }
     setCreating(false);
     if (ok) {
-      addToast("success", "Scenario cree avec succes !");
       resetCreator();
     } else {
-      addToast("error", "Erreur lors de la creation du scenario");
+      addToast("error", editingId ? "Erreur lors de la mise a jour" : "Erreur lors de la creation du scenario");
     }
   }
 
@@ -163,6 +256,10 @@ export default function AutomationPage() {
   function updateActionMessage(idx: number, message: string) {
     setSelectedActions((prev) => prev.map((a, i) => (i === idx ? { ...a, message } : a)));
   }
+
+  const limitLabel = isFinite(planRules.scenarioLimit)
+    ? `${scenarios.length}/${planRules.scenarioLimit}`
+    : `${scenarios.length}`;
 
   return (
     <div className="flex flex-col lg:flex-row gap-0 min-h-[calc(100vh-80px)]">
@@ -200,6 +297,10 @@ export default function AutomationPage() {
               <p className="text-xs text-slate-500">Total declenchements</p>
               <p className="text-xl font-extrabold text-primary">{scenarios.reduce((a, s) => a + s.triggerCount, 0)}</p>
             </div>
+            <div className="p-3 bg-primary/5 rounded-xl border border-primary/10">
+              <p className="text-xs text-slate-500">Limite scenarios</p>
+              <p className="text-xl font-extrabold text-primary">{limitLabel}</p>
+            </div>
           </div>
 
           <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
@@ -229,7 +330,7 @@ export default function AutomationPage() {
               Creez des scenarios automatises pour gagner du temps et professionnaliser vos echanges.
             </p>
           </div>
-          <button onClick={() => { resetCreator(); setShowCreator(true); }}
+          <button onClick={handleCreateNew}
             className="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
             <span className="material-symbols-outlined">add</span>
             Creer un scenario
@@ -242,7 +343,7 @@ export default function AutomationPage() {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">magic_button</span>
-                Nouveau scenario
+                {editingId ? "Modifier le scenario" : "Nouveau scenario"}
               </h2>
               <button onClick={resetCreator} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-border-dark transition-colors">
                 <span className="material-symbols-outlined text-slate-400">close</span>
@@ -467,7 +568,7 @@ export default function AutomationPage() {
                   <button onClick={handleCreateScenario} disabled={creating}
                     className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2 disabled:opacity-50">
                     {creating ? <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span> : <span className="material-symbols-outlined text-sm">check</span>}
-                    {creating ? "Creation..." : "Activer le scenario"}
+                    {creating ? "En cours..." : editingId ? "Sauvegarder" : "Activer le scenario"}
                   </button>
                 </div>
               </div>
@@ -543,10 +644,10 @@ export default function AutomationPage() {
                       </div>
                     </div>
                     <div className="flex gap-1 shrink-0">
-                      <button className="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Modifier">
+                      <button onClick={() => handleEdit(scenario)} className="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Modifier">
                         <span className="material-symbols-outlined text-lg">edit</span>
                       </button>
-                      <button className="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Dupliquer">
+                      <button onClick={() => handleDuplicate(scenario.id)} className="p-2 hover:bg-primary/10 rounded-lg text-slate-400 hover:text-primary transition-colors" title="Dupliquer">
                         <span className="material-symbols-outlined text-lg">content_copy</span>
                       </button>
                       <button onClick={() => handleDelete(scenario.id)}
@@ -562,7 +663,7 @@ export default function AutomationPage() {
                 <span className="material-symbols-outlined text-5xl mb-4 block">settings_suggest</span>
                 <p className="text-lg font-bold mb-2">Aucun scenario</p>
                 <p className="text-sm mb-6">Creez votre premier scenario d&apos;automatisation pour gagner du temps.</p>
-                <button onClick={() => { resetCreator(); setShowCreator(true); }}
+                <button onClick={handleCreateNew}
                   className="px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all">
                   Creer un scenario
                 </button>
@@ -571,38 +672,40 @@ export default function AutomationPage() {
           </div>
         )}
 
-        {/* Historique tab */}
+        {/* Historique tab — real data from API */}
         {sideTab === "historique" && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">history</span>
               Historique des declenchements
             </h3>
-            {[
-              { scenario: "Accueil des nouveaux clients", action: "Message envoye a Amadou Diop", time: "Il y a 2 heures", badge: "auto" },
-              { scenario: "Notification de livraison", action: "Email envoye a Claire Beaumont", time: "Il y a 30 min", badge: "auto" },
-              { scenario: "Remerciement avis positif", action: "Message envoye a Moussa Kone", time: "Hier", badge: "auto" },
-              { scenario: "Notification de livraison", action: "Message + Email envoyes a Pierre Martin", time: "Hier", badge: "auto" },
-              { scenario: "Accueil des nouveaux clients", action: "Message envoye a Fatima Ndiaye", time: "Il y a 2 jours", badge: "auto" },
-            ].map((entry, i) => (
-              <div key={i} className="flex items-start gap-4 p-4 bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-primary">bolt</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold">{entry.scenario}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">{entry.action}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase">{entry.badge}</span>
-                  <p className="text-xs text-slate-400 mt-1">{entry.time}</p>
-                </div>
+            {automationHistory.length === 0 ? (
+              <div className="text-center py-16 text-slate-500">
+                <span className="material-symbols-outlined text-5xl mb-4 block">history</span>
+                <p className="text-lg font-bold mb-2">Aucun historique</p>
+                <p className="text-sm">Les declenchements de vos scenarios apparaitront ici.</p>
               </div>
-            ))}
+            ) : (
+              automationHistory.map((entry) => (
+                <div key={entry.id} className="flex items-start gap-4 p-4 bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary">bolt</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold">{entry.scenarioName}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{entry.action}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase">{entry.badge}</span>
+                    <p className="text-xs text-slate-400 mt-1">{formatTimeAgo(entry.time)}</p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
-        {/* Modeles tab */}
+        {/* Modeles tab — with "Utiliser" buttons */}
         {sideTab === "modeles" && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold flex items-center gap-2">
@@ -610,13 +713,7 @@ export default function AutomationPage() {
               Modeles de scenarios
             </h3>
             <p className="text-sm text-slate-500 mb-4">Utilisez un modele pre-configure pour demarrer rapidement.</p>
-            {[
-              { name: "Accueil automatique", desc: "Envoie un message de bienvenue a chaque nouveau client qui vous contacte.", icon: "waving_hand", trigger: "Nouveau client", actions: 1 },
-              { name: "Relance client inactif", desc: "Relance automatiquement les clients qui n'ont pas donne de nouvelles depuis 7 jours.", icon: "notifications_active", trigger: "Inactivite 7j", actions: 1 },
-              { name: "Suivi post-livraison", desc: "Envoie un message et un email apres chaque livraison pour demander un avis.", icon: "check_circle", trigger: "Commande livree", actions: 2 },
-              { name: "Remerciement avis", desc: "Remercie automatiquement les clients qui laissent un avis positif (4+ etoiles).", icon: "star", trigger: "Avis >= 4 etoiles", actions: 1 },
-              { name: "Confirmation paiement", desc: "Envoie une confirmation automatique a la reception d'un paiement.", icon: "payments", trigger: "Paiement recu", actions: 2 },
-            ].map((template, i) => (
+            {TEMPLATES.map((template, i) => (
               <div key={i} className="flex items-start gap-4 p-5 bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/30 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                   <span className="material-symbols-outlined text-primary text-xl">{template.icon}</span>
@@ -627,15 +724,16 @@ export default function AutomationPage() {
                   <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs text-blue-500">bolt</span>
-                      {template.trigger}
+                      {triggers.find((t) => t.id === template.triggerId)?.label || template.triggerId}
                     </span>
                     <span className="flex items-center gap-1">
                       <span className="material-symbols-outlined text-xs text-emerald-500">flash_on</span>
-                      {template.actions} action{template.actions > 1 ? "s" : ""}
+                      {template.actionIds.length} action{template.actionIds.length > 1 ? "s" : ""}
                     </span>
                   </div>
                 </div>
-                <button className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors shrink-0">
+                <button onClick={() => handleUseTemplate(template)}
+                  className="px-4 py-2 bg-primary/10 text-primary font-bold text-xs rounded-lg hover:bg-primary/20 transition-colors shrink-0">
                   Utiliser
                 </button>
               </div>

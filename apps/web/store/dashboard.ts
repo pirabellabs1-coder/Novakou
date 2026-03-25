@@ -11,10 +11,12 @@ import {
 } from "@/lib/demo-data";
 import {
   servicesApi, ordersApi, financesApi, profileApi, notificationsApi, conversationsApi, statsApi, reviewsApi,
-  affiliationApi, automationApi,
+  affiliationApi, automationApi, productiviteApi, certificationsApi,
   mapApiServiceToLocal, mapApiOrderToLocal, mapApiTransactionToLocal, mapApiConversationToLocal,
   type ApiNotification, type ApiReview, type ApiReviewSummary, type ApiStats,
   type ApiAffiliationData, type ApiAutomationData, type ApiAutomationScenario,
+  type ApiAutomationHistoryEntry, type ApiProductiviteSession,
+  type ApiCertification, type ApiCertificationResult,
 } from "@/lib/api-client";
 
 // ============================================================
@@ -128,10 +130,30 @@ interface DashboardState {
   // Automation
   automation: ApiAutomationData | null;
   automationLoading: boolean;
+  automationHistory: ApiAutomationHistoryEntry[];
   syncAutomation: () => Promise<void>;
   createScenario: (scenario: Omit<ApiAutomationScenario, "id" | "triggerCount" | "createdAt">) => Promise<boolean>;
+  updateScenario: (id: string, scenario: Omit<ApiAutomationScenario, "id" | "triggerCount" | "createdAt">) => Promise<boolean>;
+  duplicateScenario: (id: string) => Promise<boolean>;
   toggleScenario: (id: string, active: boolean) => Promise<boolean>;
   deleteScenario: (id: string) => Promise<boolean>;
+  syncAutomationHistory: () => Promise<void>;
+
+  // Productivite
+  productiviteSessions: ApiProductiviteSession[];
+  productiviteLoading: boolean;
+  syncProductivite: (date?: string) => Promise<void>;
+  startProductiviteSession: (label: string) => Promise<ApiProductiviteSession | null>;
+  pauseProductiviteSession: (id: string) => Promise<boolean>;
+  resumeProductiviteSession: (id: string) => Promise<boolean>;
+  stopProductiviteSession: (id: string) => Promise<boolean>;
+
+  // Certifications
+  certifications: ApiCertification[];
+  certificationResults: ApiCertificationResult[];
+  certificationsLoading: boolean;
+  syncCertifications: () => Promise<void>;
+  submitCertificationResult: (certId: string, answers: number[]) => Promise<ApiCertificationResult | null>;
 }
 
 export const useDashboardStore = create<DashboardState>()(
@@ -733,6 +755,7 @@ export const useDashboardStore = create<DashboardState>()(
       // Automation
       automation: null,
       automationLoading: false,
+      automationHistory: [],
       syncAutomation: async () => {
         set({ automationLoading: true });
         try {
@@ -797,6 +820,143 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (err) {
           console.error("[Automation delete] Error:", err);
           return false;
+        }
+      },
+      updateScenario: async (id, scenario) => {
+        try {
+          const result = await automationApi.updateScenario(id, scenario);
+          set((s) => {
+            if (!s.automation) return s;
+            return {
+              automation: {
+                ...s.automation,
+                scenarios: s.automation.scenarios.map((sc) =>
+                  sc.id === id ? result.scenario : sc
+                ),
+              },
+            };
+          });
+          return true;
+        } catch (err) {
+          console.error("[Automation update] Error:", err);
+          return false;
+        }
+      },
+      duplicateScenario: async (id) => {
+        try {
+          const result = await automationApi.duplicateScenario(id);
+          set((s) => {
+            if (!s.automation) return s;
+            return {
+              automation: {
+                ...s.automation,
+                scenarios: [...s.automation.scenarios, result.scenario],
+              },
+            };
+          });
+          return true;
+        } catch (err) {
+          console.error("[Automation duplicate] Error:", err);
+          return false;
+        }
+      },
+      syncAutomationHistory: async () => {
+        try {
+          const data = await automationApi.history();
+          set({ automationHistory: data.history ?? [] });
+        } catch (err) {
+          console.error("[Automation history] Error:", err);
+        }
+      },
+
+      // Productivite
+      productiviteSessions: [],
+      productiviteLoading: false,
+      syncProductivite: async (date) => {
+        set({ productiviteLoading: true });
+        try {
+          const data = await productiviteApi.getSessions(date);
+          set({ productiviteSessions: data.sessions ?? [], productiviteLoading: false });
+        } catch (err) {
+          console.error("[Productivite sync] Error:", err);
+          set({ productiviteLoading: false });
+        }
+      },
+      startProductiviteSession: async (label) => {
+        try {
+          const data = await productiviteApi.startSession(label);
+          set((s) => ({ productiviteSessions: [...s.productiviteSessions, data.session] }));
+          return data.session;
+        } catch (err) {
+          console.error("[Productivite start] Error:", err);
+          return null;
+        }
+      },
+      pauseProductiviteSession: async (id) => {
+        try {
+          const data = await productiviteApi.pauseSession(id);
+          set((s) => ({
+            productiviteSessions: s.productiviteSessions.map((ss) => ss.id === id ? data.session : ss),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Productivite pause] Error:", err);
+          return false;
+        }
+      },
+      resumeProductiviteSession: async (id) => {
+        try {
+          const data = await productiviteApi.resumeSession(id);
+          set((s) => ({
+            productiviteSessions: s.productiviteSessions.map((ss) => ss.id === id ? data.session : ss),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Productivite resume] Error:", err);
+          return false;
+        }
+      },
+      stopProductiviteSession: async (id) => {
+        try {
+          const data = await productiviteApi.stopSession(id);
+          set((s) => ({
+            productiviteSessions: s.productiviteSessions.map((ss) => ss.id === id ? data.session : ss),
+          }));
+          return true;
+        } catch (err) {
+          console.error("[Productivite stop] Error:", err);
+          return false;
+        }
+      },
+
+      // Certifications
+      certifications: [],
+      certificationResults: [],
+      certificationsLoading: false,
+      syncCertifications: async () => {
+        set({ certificationsLoading: true });
+        try {
+          const data = await certificationsApi.list();
+          set({
+            certifications: data.certifications ?? [],
+            certificationResults: data.results ?? [],
+            certificationsLoading: false,
+          });
+        } catch (err) {
+          console.error("[Certifications sync] Error:", err);
+          set({ certificationsLoading: false });
+        }
+      },
+      submitCertificationResult: async (certId, answers) => {
+        try {
+          const data = await certificationsApi.submitResult(certId, answers);
+          set((s) => ({
+            certificationResults: [...s.certificationResults, data.result],
+          }));
+          return data.result;
+        } catch (err) {
+          console.error("[Certification submit] Error:", err);
+          return null;
         }
       },
     }),

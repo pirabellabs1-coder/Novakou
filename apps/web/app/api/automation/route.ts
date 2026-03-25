@@ -7,6 +7,7 @@ import path from "path";
 // ── Persistence ──
 const DEV_DIR = path.join(process.cwd(), "lib", "dev");
 const AUTOMATIONS_FILE = path.join(DEV_DIR, "automations.json");
+const HISTORY_FILE = path.join(DEV_DIR, "automation-history.json");
 
 function ensureDir() {
   if (!fs.existsSync(DEV_DIR)) fs.mkdirSync(DEV_DIR, { recursive: true });
@@ -24,6 +25,30 @@ function readScenarios(): unknown[] {
 function writeScenarios(scenarios: unknown[]) {
   ensureDir();
   fs.writeFileSync(AUTOMATIONS_FILE, JSON.stringify(scenarios, null, 2), "utf-8");
+}
+
+function readHistory(): unknown[] {
+  try {
+    if (!fs.existsSync(HISTORY_FILE)) return [];
+    return JSON.parse(fs.readFileSync(HISTORY_FILE, "utf-8"));
+  } catch {
+    return [];
+  }
+}
+
+function addHistoryEntry(scenarioName: string, action: string) {
+  ensureDir();
+  const history = readHistory() as Record<string, unknown>[];
+  history.unshift({
+    id: "h" + Date.now(),
+    scenarioId: "",
+    scenarioName,
+    action,
+    time: new Date().toISOString(),
+    badge: "auto",
+  });
+  // Keep last 50 entries
+  fs.writeFileSync(HISTORY_FILE, JSON.stringify(history.slice(0, 50), null, 2), "utf-8");
 }
 
 // ── Static config ──
@@ -88,7 +113,44 @@ export async function POST(request: Request) {
     };
     scenarios.push(newScenario);
     writeScenarios(scenarios);
+    addHistoryEntry(String(body.scenario?.name || "Scenario"), "Scenario cree");
     return NextResponse.json({ scenario: newScenario });
+  }
+
+  if (body.action === "update") {
+    const scenarios = readScenarios() as Record<string, unknown>[];
+    const idx = scenarios.findIndex((s) => s.id === body.id);
+    if (idx < 0) return NextResponse.json({ error: "Scenario introuvable" }, { status: 404 });
+    const existing = scenarios[idx];
+    const updated = {
+      ...existing,
+      ...body.scenario,
+      id: body.id,
+      triggerCount: existing.triggerCount,
+      createdAt: existing.createdAt,
+    };
+    scenarios[idx] = updated;
+    writeScenarios(scenarios);
+    addHistoryEntry(String(body.scenario?.name || "Scenario"), "Scenario modifie");
+    return NextResponse.json({ scenario: updated });
+  }
+
+  if (body.action === "duplicate") {
+    const scenarios = readScenarios() as Record<string, unknown>[];
+    const original = scenarios.find((s) => s.id === body.id) as Record<string, unknown> | undefined;
+    if (!original) return NextResponse.json({ error: "Scenario introuvable" }, { status: 404 });
+    const cloned = {
+      ...original,
+      id: "sc" + Date.now(),
+      name: String(original.name || "Scenario") + " (copie)",
+      triggerCount: 0,
+      active: false,
+      createdAt: new Date().toISOString().slice(0, 10),
+    };
+    scenarios.push(cloned);
+    writeScenarios(scenarios);
+    addHistoryEntry(String(cloned.name), "Scenario duplique");
+    return NextResponse.json({ scenario: cloned });
   }
 
   if (body.action === "toggle") {
@@ -97,15 +159,23 @@ export async function POST(request: Request) {
     if (idx >= 0) {
       scenarios[idx].active = body.active;
       writeScenarios(scenarios);
+      addHistoryEntry(String(scenarios[idx].name || "Scenario"), body.active ? "Scenario active" : "Scenario desactive");
     }
     return NextResponse.json({ success: true, id: body.id, active: body.active });
   }
 
   if (body.action === "delete") {
     const scenarios = readScenarios() as Record<string, unknown>[];
+    const target = scenarios.find((s) => s.id === body.id) as Record<string, unknown> | undefined;
     const filtered = scenarios.filter((s) => s.id !== body.id);
     writeScenarios(filtered);
+    if (target) addHistoryEntry(String(target.name || "Scenario"), "Scenario supprime");
     return NextResponse.json({ success: true, id: body.id });
+  }
+
+  if (body.action === "history") {
+    const history = readHistory();
+    return NextResponse.json({ history });
   }
 
   return NextResponse.json({ error: "Action inconnue" }, { status: 400 });
