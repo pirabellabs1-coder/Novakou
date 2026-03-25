@@ -46,7 +46,7 @@ export default function CommandesPage() {
         o.id.toLowerCase().includes(q)
       );
     }
-    result.sort((a, b) => sortBy === "amount" ? b.amount - a.amount : b.createdAt.localeCompare(a.createdAt));
+    result.sort((a, b) => sortBy === "amount" ? (b.amount || 0) - (a.amount || 0) : (b.createdAt || "").localeCompare(a.createdAt || ""));
     return result;
   }, [orders, activeTab, search, sortBy]);
 
