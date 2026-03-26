@@ -245,6 +245,29 @@ export function MessagingLayout({
                 ? (content) => { if (selectedId) addSystemMessage(selectedId, content); }
                 : undefined
             }
+            onSendOffer={userRole === "freelance" || userRole === "agence" ? async (data) => {
+              if (!selectedId) return false;
+              try {
+                const recipient = selectedConv?.participants.find(p => p.id !== userId);
+                const res = await fetch("/api/offres", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    client: recipient?.name || "Client",
+                    clientEmail: "",
+                    title: data.title,
+                    amount: data.amount,
+                    delay: data.delay,
+                    revisions: data.revisions,
+                    description: data.description,
+                    validityDays: data.validityDays,
+                  }),
+                });
+                if (!res.ok) return false;
+                sendMessage(selectedId, `Offre personnalisee : ${data.title} — ${data.amount}EUR (${data.delay}, ${data.revisions} revision(s))\n${data.description}`, "text");
+                return true;
+              } catch { return false; }
+            } : undefined}
             onStartAudioCall={handleStartAudioCall}
             onStartVideoCall={handleStartVideoCall}
             onMobileBack={handleMobileBack}

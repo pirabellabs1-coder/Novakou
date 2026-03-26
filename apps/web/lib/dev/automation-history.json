@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "h1774491701721",
+    "scenarioId": "",
+    "scenarioName": "Test E2E Scenario",
+    "action": "Scenario cree",
+    "time": "2026-03-26T02:21:41.721Z",
+    "badge": "auto"
+  },
+  {
+    "id": "h1774489595441",
+    "scenarioId": "",
+    "scenarioName": "Test E2E Scenario",
+    "action": "Scenario cree",
+    "time": "2026-03-26T01:46:35.441Z",
+    "badge": "auto"
+  }
+]

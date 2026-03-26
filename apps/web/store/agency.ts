@@ -102,6 +102,7 @@ interface AgencyState {
   deleteService: (id: string) => Promise<boolean>;
 
   // Order actions
+  acceptOrder: (id: string) => Promise<boolean>;
   deliverOrder: (id: string, message: string) => Promise<boolean>;
 
   // Finance actions
@@ -298,9 +299,17 @@ export const useAgencyStore = create<AgencyState>()((set, get) => ({
   },
 
   // Order actions
+  acceptOrder: async (id: string) => {
+    try {
+      await ordersApi.update(id, { status: "en_cours" });
+      await get().syncOrders();
+      return true;
+    } catch { return false; }
+  },
+
   deliverOrder: async (id: string, message: string) => {
     try {
-      await ordersApi.update(id, { status: "livre", deliveryMessage: message });
+      await ordersApi.update(id, { deliveryMessage: message, deliveryFiles: [] });
       await get().syncOrders();
       return true;
     } catch { return false; }

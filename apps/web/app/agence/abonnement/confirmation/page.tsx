@@ -134,7 +134,7 @@ function ConfirmationContent() {
       {/* Action buttons */}
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
-          onClick={() => router.push("/agence/dashboard")}
+          onClick={() => router.push("/agence")}
           className="flex-1 py-3 rounded-xl text-sm font-bold bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2"
         >
           <span className="material-symbols-outlined text-lg">dashboard</span>

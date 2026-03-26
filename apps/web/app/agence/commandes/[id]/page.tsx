@@ -26,7 +26,7 @@ const initials = (name: string) => (name || "??").split(" ").map((n) => n[0]).jo
 export default function AgenceCommandeDetail() {
   const { id } = useParams();
   const orderId = id as string;
-  const { orders, members, syncAll, deliverOrder } = useAgencyStore();
+  const { orders, members, syncAll, acceptOrder, deliverOrder } = useAgencyStore();
   const addToast = useToastStore((s) => s.addToast);
   const order = useMemo(() => orders.find((o) => o.id === orderId), [orders, orderId]);
 
@@ -35,6 +35,7 @@ export default function AgenceCommandeDetail() {
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [draftFiles, setDraftFiles] = useState<{ name: string; size: string }[]>([]);
+  const [accepting, setAccepting] = useState(false);
   const [delivering, setDelivering] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -88,6 +89,13 @@ export default function AgenceCommandeDetail() {
     addToast("success", "Fichier(s) ajoute(s)");
   }
 
+  async function handleAccept() {
+    setAccepting(true);
+    const ok = await acceptOrder(orderId);
+    addToast(ok ? "success" : "error", ok ? "Commande acceptee ! Travail demarre." : "Erreur lors de l'acceptation");
+    setAccepting(false);
+  }
+
   async function handleDeliver() {
     setDelivering(true);
     const ok = await deliverOrder(orderId, "Livraison effectuee par l'agence");
@@ -123,6 +131,24 @@ export default function AgenceCommandeDetail() {
       </div>
 
       <OrderPhasePipeline status={order.status} revisionsLeft={order.revisionsLeft} timeline={order.timeline} />
+
+      {/* Accept order button */}
+      {order.status === "en_attente" && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-amber-400 text-2xl">schedule</span>
+            <div>
+              <p className="font-bold text-white">Commande en attente d&apos;acceptation</p>
+              <p className="text-sm text-slate-400">Acceptez la commande pour commencer le travail.</p>
+            </div>
+          </div>
+          <button onClick={handleAccept} disabled={accepting}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-lg text-sm hover:bg-primary/90 disabled:opacity-50 shadow-lg shadow-primary/20 transition-all">
+            {accepting ? <span className="material-symbols-outlined animate-spin">progress_activity</span> : <span className="material-symbols-outlined">play_arrow</span>}
+            {accepting ? "Acceptation..." : "Accepter la commande"}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
@@ -240,47 +266,40 @@ export default function AgenceCommandeDetail() {
           </div>
         </div>
 
-        {/* Chat Panel */}
-        <div className="bg-neutral-dark rounded-xl border border-border-dark flex flex-col h-[700px]">
-          <div className="p-4 border-b border-border-dark flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">{initials(order.clientName)}</div>
-            <div className="flex-1">
-              <p className="text-sm font-bold text-white">{order.clientName}</p>
-              <p className="text-xs text-primary flex items-center gap-1"><span className="w-2 h-2 bg-primary rounded-full animate-pulse" />Client</p>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {order.messages.length === 0 && (
-              <div className="text-center py-10">
-                <span className="material-symbols-outlined text-3xl text-slate-600 mb-2">chat</span>
-                <p className="text-sm text-slate-500">Aucun message pour le moment.</p>
-              </div>
-            )}
-            {order.messages.map((m) => {
-              const isAgency = m.sender !== order.clientId;
-              return (
-                <div key={m.id} className={cn("flex", isAgency ? "justify-end" : "justify-start")}>
-                  <div className={cn("max-w-[85%] px-4 py-2.5 text-sm leading-relaxed",
-                    isAgency ? "bg-primary text-background-dark rounded-2xl rounded-tr-none" : "bg-background-dark text-slate-200 rounded-2xl rounded-tl-none border border-border-dark")}>
-                    <p className={cn("text-[10px] font-bold mb-1", isAgency ? "text-background-dark/70" : "text-slate-400")}>{m.senderName}</p>
-                    <p>{m.content}</p>
-                    <p className={cn("text-[10px] mt-1 text-right", isAgency ? "text-background-dark/60" : "text-slate-500")}>{fmtTime(m.timestamp)}</p>
+        {/* Timeline Panel */}
+        <div className="bg-neutral-dark rounded-xl border border-border-dark p-5 space-y-4">
+          <h3 className="text-sm font-bold flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-lg">history</span>Historique
+          </h3>
+          {order.timeline.length === 0 ? (
+            <p className="text-sm text-slate-500 text-center py-6">Aucun evenement pour le moment.</p>
+          ) : (
+            <div className="space-y-3">
+              {order.timeline.map((ev) => (
+                <div key={ev.id} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-sm">event</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-white">{ev.title}</p>
+                    <p className="text-xs text-slate-400">{ev.description}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{fmtDate(ev.timestamp)} · {fmtTime(ev.timestamp)}</p>
                   </div>
                 </div>
-              );
-            })}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="p-3 border-t border-border-dark flex items-center gap-2">
-            <button className="text-slate-500 hover:text-primary"><span className="material-symbols-outlined">attach_file</span></button>
-            <input value={newMessage} onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-              placeholder="Votre message..."
-              className="flex-1 px-3 py-2 bg-background-dark border border-border-dark rounded-lg text-sm text-white placeholder:text-slate-500 outline-none focus:border-primary/50" />
-            <button onClick={handleSendMessage} disabled={!newMessage.trim() || sending}
-              className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-background-dark hover:scale-105 active:scale-95 transition-transform disabled:opacity-50">
-              <span className="material-symbols-outlined text-lg">send</span>
-            </button>
+              ))}
+            </div>
+          )}
+
+          {/* Client info */}
+          <div className="border-t border-border-dark pt-4 mt-4">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Client</h4>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary text-sm font-bold">{initials(order.clientName)}</div>
+              <div>
+                <p className="text-sm font-bold text-white">{order.clientName}</p>
+                <Link href="/agence/messages" className="text-xs text-primary hover:underline">Envoyer un message</Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

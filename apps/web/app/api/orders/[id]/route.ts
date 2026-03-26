@@ -137,11 +137,11 @@ export async function PATCH(
           }).catch(() => {});
         }
       }
-      // Handle accepting an order (status changes to "en_cours") — only freelance can accept
+      // Handle accepting an order (status changes to "en_cours") — only freelance/agency can accept
       else if (status === "en_cours") {
-        if (session.user.id !== order.freelanceId) {
+        if (session.user.id !== order.freelanceId && (session.user as Record<string, unknown>).role !== "agence") {
           return NextResponse.json(
-            { error: "Seul le freelance peut accepter la commande" },
+            { error: "Seul le freelance ou l'agence peut accepter la commande" },
             { status: 403 }
           );
         }

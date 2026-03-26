@@ -45,9 +45,12 @@ function computeAmount(seconds: number): number {
   return Math.round((seconds / 3600) * HOURLY_RATE * 100) / 100;
 }
 
+const IS_DEV = process.env.DEV_MODE === "true";
+
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const userId = session?.user?.id || (IS_DEV ? "dev-user" : null);
+  if (!userId) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
   }
 
@@ -56,7 +59,7 @@ export async function GET(request: Request) {
 
   const allSessions = readSessions();
   const userSessions = allSessions
-    .filter((s) => s.userId === session.user.id && s.date === dateFilter)
+    .filter((s) => s.userId === userId && s.date === dateFilter)
     .map((s) => ({
       id: s.id,
       label: s.label,
@@ -73,7 +76,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const userId = session?.user?.id || (IS_DEV ? "dev-user" : null);
+  if (!userId) {
     return NextResponse.json({ error: "Authentification requise" }, { status: 401 });
   }
 
@@ -84,7 +88,7 @@ export async function POST(request: Request) {
     const now = new Date();
     const newSession: StoredSession = {
       id: "ps" + Date.now(),
-      userId: session.user.id,
+      userId,
       label: body.label || "Session de travail",
       start: now.toISOString(),
       end: null,
@@ -99,7 +103,7 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "pause") {
-    const idx = allSessions.findIndex((s) => s.id === body.id && s.userId === session.user.id);
+    const idx = allSessions.findIndex((s) => s.id === body.id && s.userId === userId);
     if (idx < 0) return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
     const s = allSessions[idx];
     if (s.status !== "running") return NextResponse.json({ error: "Session non active" }, { status: 400 });
@@ -113,7 +117,7 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "resume") {
-    const idx = allSessions.findIndex((s) => s.id === body.id && s.userId === session.user.id);
+    const idx = allSessions.findIndex((s) => s.id === body.id && s.userId === userId);
     if (idx < 0) return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
     const s = allSessions[idx];
     if (s.status !== "paused") return NextResponse.json({ error: "Session non en pause" }, { status: 400 });
@@ -127,7 +131,7 @@ export async function POST(request: Request) {
   }
 
   if (body.action === "stop") {
-    const idx = allSessions.findIndex((s) => s.id === body.id && s.userId === session.user.id);
+    const idx = allSessions.findIndex((s) => s.id === body.id && s.userId === userId);
     if (idx < 0) return NextResponse.json({ error: "Session introuvable" }, { status: 404 });
     const s = allSessions[idx];
     const now = new Date();

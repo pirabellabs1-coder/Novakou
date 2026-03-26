@@ -77,11 +77,13 @@ export default function ClientPayments() {
     financeSummary,
     loading,
     syncTransactions,
+    syncAll,
   } = useClientStore();
 
   useEffect(() => {
     syncTransactions();
-  }, [syncTransactions]);
+    syncAll();
+  }, [syncTransactions, syncAll]);
 
   const isLoading = loading.transactions;
 

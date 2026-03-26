@@ -100,7 +100,7 @@ export default function FacturesPage() {
     const pendingAmount = invoices.filter((inv) => inv.status === "en_attente" || inv.status === "en_retard")
       .reduce((s, inv) => s + inv.amount, 0);
     return { total, totalAmount, pendingAmount };
-  }, []);
+  }, [invoices]);
 
   function handleDownloadPDF(invoice: Invoice) {
     addToast("success", `Facture ${invoice.id} téléchargée en PDF`);

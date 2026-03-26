@@ -387,101 +387,33 @@ export default function OrderDetailPage() {
         <input ref={fileInputRef} type="file" multiple className="hidden" onChange={(e) => handleFileUpload(e.target.files)} />
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 border-b border-border-dark">
-        {(["chat", "fichiers"] as const).map((tab) => (
-          <button key={tab} onClick={() => setActiveTab(tab)}
-            className={cn("pb-3 text-sm font-bold capitalize relative transition-colors",
-              activeTab === tab ? "text-primary" : "text-slate-500 hover:text-slate-300"
-            )}>
-            {tab === "chat" ? "Messagerie" : `Fichiers (${order.files.length})`}
-            {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
-          </button>
+      {/* Fichiers */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary text-lg">folder</span>
+          Fichiers ({order.files.length})
+        </h3>
+        {order.files.length === 0 && (
+          <div className="bg-background-dark/50 border border-border-dark rounded-xl p-12 text-center">
+            <span className="material-symbols-outlined text-3xl text-slate-600 mb-2">folder_open</span>
+            <p className="text-slate-500">Aucun fichier pour cette commande.</p>
+          </div>
+        )}
+        {order.files.map((file) => (
+          <div key={file.id} className="flex items-center gap-4 bg-background-dark/50 border border-border-dark rounded-xl p-4 hover:border-primary/30 transition-all">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+              <span className="material-symbols-outlined">description</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm truncate">{file.name}</p>
+              <p className="text-xs text-slate-400">{file.size} · {file.uploadedBy === "freelance" ? "Vous" : order.clientName} · {formatDate(file.uploadedAt)}</p>
+            </div>
+            <button className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors" onClick={() => addToast("info", `Telechargement de ${file.name}`)}>
+              <span className="material-symbols-outlined">download</span>
+            </button>
+          </div>
         ))}
       </div>
-
-      {/* Chat Tab */}
-      {activeTab === "chat" && (
-        <div className="bg-background-dark/50 border border-border-dark rounded-xl overflow-hidden">
-          <div className="h-96 overflow-y-auto p-4 space-y-4">
-            {order.messages.map((msg) => (
-              <div key={msg.id} className={cn("flex gap-3", msg.sender === "freelance" ? "flex-row-reverse" : "")}>
-                <div className={cn("w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0",
-                  msg.sender === "freelance" ? "bg-primary/20 text-primary" : "bg-slate-700 text-slate-300"
-                )}>
-                  {msg.sender === "freelance" ? "V" : order.clientAvatar}
-                </div>
-                <div className={cn("max-w-[70%] rounded-2xl px-4 py-3",
-                  msg.sender === "freelance" ? "bg-primary/10 text-slate-100" : "bg-neutral-dark text-slate-200"
-                )}>
-                  <p className="text-xs font-bold mb-1">{msg.senderName}</p>
-                  {msg.type === "file" ? (
-                    <div className="flex items-center gap-2 bg-background-dark/50 rounded-lg px-3 py-2">
-                      <span className="material-symbols-outlined text-primary">description</span>
-                      <div>
-                        <p className="text-xs font-semibold">{msg.fileName}</p>
-                        <p className="text-[10px] text-slate-500">{msg.fileSize}</p>
-                      </div>
-                      <button className="ml-auto text-primary"><span className="material-symbols-outlined text-lg">download</span></button>
-                    </div>
-                  ) : (
-                    <p className="text-sm">{msg.content}</p>
-                  )}
-                  <p className="text-[10px] text-slate-500 mt-1.5">{formatDate(msg.timestamp)}</p>
-                </div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="border-t border-border-dark p-4">
-            <div className="flex gap-3">
-              <button onClick={() => fileInputRef.current?.click()} className="p-2.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors">
-                <span className="material-symbols-outlined">attach_file</span>
-              </button>
-              <input
-                type="text" value={message} onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
-                placeholder="Tapez votre message..."
-                className="flex-1 px-4 py-2.5 bg-neutral-dark border border-border-dark rounded-lg text-sm outline-none focus:ring-1 focus:ring-primary"
-              />
-              <button onClick={handleSendMessage} disabled={!message.trim()}
-                className="px-4 py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:bg-primary/90 disabled:opacity-50 transition-all">
-                <span className="material-symbols-outlined">send</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Files Tab */}
-      {activeTab === "fichiers" && (
-        <div className="space-y-3">
-          {order.files.length === 0 && (
-            <div className="bg-background-dark/50 border border-border-dark rounded-xl p-12 text-center">
-              <span className="material-symbols-outlined text-3xl text-slate-600 mb-2">folder_open</span>
-              <p className="text-slate-500">Aucun fichier pour cette commande.</p>
-            </div>
-          )}
-          {order.files.map((file) => (
-            <div key={file.id} className="flex items-center gap-4 bg-background-dark/50 border border-border-dark rounded-xl p-4 hover:border-primary/30 transition-all">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">description</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{file.name}</p>
-                <p className="text-xs text-slate-400">{file.size} · {file.uploadedBy === "freelance" ? "Vous" : order.clientName} · {formatDate(file.uploadedAt)}</p>
-              </div>
-              <button className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors" onClick={() => addToast("info", `Telechargement de ${file.name}`)}>
-                <span className="material-symbols-outlined">download</span>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Timeline is now always visible above the tabs */}
 
       {/* Review Section — shown when order is completed */}
       {order.status === "termine" && !hasExistingReview && !reviewSubmitted && (

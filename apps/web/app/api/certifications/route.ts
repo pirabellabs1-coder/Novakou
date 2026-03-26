@@ -124,17 +124,41 @@ export async function GET() {
   }
 
   const results = readResults().filter((r) => r.userId === userId);
+  const allQ = await getQuestions();
 
   return NextResponse.json({
     certifications: CERTIFICATIONS,
-    results: results.map((r) => ({
-      id: r.id,
-      certificationId: r.certificationId,
-      score: r.score,
-      passed: r.passed,
-      date: r.date,
-      answers: r.answers,
-    })),
+    results: results.map((r) => {
+      const cert = CERTIFICATIONS.find((c) => c.id === r.certificationId);
+      const questions = allQ[r.certificationId] || [];
+      let correctCount = 0;
+      const questionResults = questions.map((q, i) => {
+        const isCorrect = r.answers[i] === q.correctIndex;
+        if (isCorrect) correctCount++;
+        return {
+          questionId: q.id,
+          question: q.question,
+          options: q.options,
+          userAnswer: r.answers[i],
+          correctAnswer: q.correctIndex,
+          isCorrect,
+        };
+      });
+      return {
+        id: r.id,
+        certificationId: r.certificationId,
+        certificationName: cert?.name || "",
+        certificationCategory: cert?.category || "",
+        score: r.score,
+        passed: r.passed,
+        date: r.date,
+        answers: r.answers,
+        totalQuestions: questions.length,
+        correctCount,
+        questionResults,
+        certificateId: r.passed ? `CERT-${r.certificationId.toUpperCase().replace("CERT-", "")}-${r.id.replace("cr", "").toUpperCase()}` : null,
+      };
+    }),
   });
 }
 

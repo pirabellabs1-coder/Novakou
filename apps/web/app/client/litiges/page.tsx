@@ -203,11 +203,15 @@ export default function ClientDisputes() {
                 <span className="material-symbols-outlined text-lg">support_agent</span>
                 Contacter le support
               </button>
-              <button className="w-full py-2.5 border border-border-dark text-white text-sm font-semibold rounded-lg hover:bg-neutral-dark transition-colors flex items-center justify-center gap-2">
+              <button
+                onClick={() => { window.location.href = "/client/messages"; }}
+                className="w-full py-2.5 border border-border-dark text-white text-sm font-semibold rounded-lg hover:bg-neutral-dark transition-colors flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-lg">chat</span>
                 Envoyer un message au freelance
               </button>
-              <button className="w-full py-2.5 text-red-400 text-sm font-semibold hover:text-red-300 transition-colors flex items-center justify-center gap-2">
+              <button
+                onClick={() => { addToast("info", "Demande d'annulation envoyee au support."); }}
+                className="w-full py-2.5 text-red-400 text-sm font-semibold hover:text-red-300 transition-colors flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-lg">cancel</span>
                 Annuler le litige
               </button>

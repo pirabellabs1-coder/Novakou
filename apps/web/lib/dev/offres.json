@@ -1,5 +1,37 @@
 [
   {
+    "freelanceId": "dev-user",
+    "clientId": "test-client",
+    "client": "Client Test",
+    "clientEmail": "",
+    "title": "Test Offre E2E",
+    "amount": 250,
+    "delay": "7 jours",
+    "revisions": 2,
+    "description": "Ceci est un test automatise",
+    "validityDays": 14,
+    "id": "off_mn6ukaad",
+    "status": "en_attente",
+    "sentAt": "2026-03-26T02:22:15.828Z",
+    "expiresAt": "2026-04-09T02:22:15.828Z"
+  },
+  {
+    "freelanceId": "dev-user",
+    "clientId": "test-client",
+    "client": "Client Test",
+    "clientEmail": "",
+    "title": "Test Offre E2E",
+    "amount": 250,
+    "delay": "7 jours",
+    "revisions": 2,
+    "description": "Ceci est un test automatise",
+    "validityDays": 14,
+    "id": "off_mn6tba5q",
+    "status": "en_attente",
+    "sentAt": "2026-03-26T01:47:16.142Z",
+    "expiresAt": "2026-04-09T01:47:16.142Z"
+  },
+  {
     "id": "off_seed_001",
     "freelanceId": "user-freelance-001",
     "clientId": "dev-client-1",

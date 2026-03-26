@@ -793,12 +793,13 @@ export const useDashboardStore = create<DashboardState>()(
       createScenario: async (scenario) => {
         try {
           const result = await automationApi.createScenario(scenario);
+          const newScenario = result.scenario || result;
           set((s) => {
             const base = s.automation || { triggers: [], conditions: [], actions: [], scenarios: [] };
             return {
               automation: {
                 ...base,
-                scenarios: [...base.scenarios, result.scenario],
+                scenarios: [...base.scenarios, newScenario],
               },
             };
           });
@@ -849,13 +850,14 @@ export const useDashboardStore = create<DashboardState>()(
       updateScenario: async (id, scenario) => {
         try {
           const result = await automationApi.updateScenario(id, scenario);
+          const updated = result.scenario || result;
           set((s) => {
             if (!s.automation) return s;
             return {
               automation: {
                 ...s.automation,
                 scenarios: s.automation.scenarios.map((sc) =>
-                  sc.id === id ? result.scenario : sc
+                  sc.id === id ? updated : sc
                 ),
               },
             };
@@ -869,12 +871,13 @@ export const useDashboardStore = create<DashboardState>()(
       duplicateScenario: async (id) => {
         try {
           const result = await automationApi.duplicateScenario(id);
+          const duplicated = result.scenario || result;
           set((s) => {
             if (!s.automation) return s;
             return {
               automation: {
                 ...s.automation,
-                scenarios: [...s.automation.scenarios, result.scenario],
+                scenarios: [...s.automation.scenarios, duplicated],
               },
             };
           });

@@ -372,10 +372,10 @@ export default function FavorisPage() {
             </span>
           </div>
           <Link
-            href="/dashboard/favoris/freelances"
+            href="/explorer"
             className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
           >
-            Voir tout
+            Explorer
             <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </Link>
         </div>
@@ -408,10 +408,10 @@ export default function FavorisPage() {
             </span>
           </div>
           <Link
-            href="/dashboard/favoris/services"
+            href="/explorer"
             className="text-xs font-bold text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
           >
-            Voir tout
+            Explorer
             <span className="material-symbols-outlined text-sm">arrow_forward</span>
           </Link>
         </div>
