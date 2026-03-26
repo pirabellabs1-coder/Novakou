@@ -44,6 +44,8 @@ export function MessagingLayout({
     getMyConversations,
     getAllConversations,
     addSystemMessage,
+    addOfferMessage,
+    updateOfferStatus,
     syncFromApi,
     isLoading,
     isSynced,
@@ -248,10 +250,16 @@ export function MessagingLayout({
             }
             onAcceptOffer={async (offerId) => {
               try {
-                const res = await fetch(`/api/offres/${offerId}/accept`, { method: "POST" });
+                const res = await fetch("/api/conversations/offer", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ offerId, action: "accept" }),
+                });
                 if (!res.ok) throw new Error("Erreur acceptation");
-                // Reload messages to get the system message + updated offer status
+                // Update offer status in local state immediately
                 if (selectedId) {
+                  updateOfferStatus(selectedId, offerId, "acceptee");
+                  addSystemMessage(selectedId, "Offre acceptee ! La commande a ete creee. Le freelance a 3 jours pour valider.");
                   setTimeout(() => loadMessages(selectedId), 500);
                 }
               } catch (e) {
@@ -260,9 +268,15 @@ export function MessagingLayout({
             }}
             onRefuseOffer={async (offerId) => {
               try {
-                const res = await fetch(`/api/offres/${offerId}/refuse`, { method: "POST" });
+                const res = await fetch("/api/conversations/offer", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ offerId, action: "refuse" }),
+                });
                 if (!res.ok) throw new Error("Erreur refus");
+                // Update offer status in local state immediately
                 if (selectedId) {
+                  updateOfferStatus(selectedId, offerId, "refusee");
                   setTimeout(() => loadMessages(selectedId), 500);
                 }
               } catch (e) {
@@ -273,12 +287,13 @@ export function MessagingLayout({
               if (!selectedId) return false;
               try {
                 const recipient = selectedConv?.participants.find(p => p.id !== userId);
-                const res = await fetch("/api/offres", {
+                const res = await fetch("/api/conversations/offer", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    client: recipient?.name || "Client",
-                    clientEmail: "",
+                    conversationId: selectedId,
+                    recipientId: recipient?.id || "",
+                    recipientName: recipient?.name || "Client",
                     title: data.title,
                     amount: data.amount,
                     delay: data.delay,
@@ -288,8 +303,11 @@ export function MessagingLayout({
                   }),
                 });
                 if (!res.ok) return false;
-                // Reload messages to see the offer card (sent by API)
-                setTimeout(() => loadMessages(selectedId), 500);
+                const result = await res.json();
+                // Immediately add the offer message to the conversation
+                if (result.offerMessageData) {
+                  addOfferMessage(selectedId, result.offerMessageData);
+                }
                 return true;
               } catch { return false; }
             } : undefined}

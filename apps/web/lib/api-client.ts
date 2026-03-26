@@ -66,6 +66,7 @@ export interface ApiOrder {
   clientAvatar: string;
   clientCountry: string;
   freelanceId: string;
+  freelanceName: string;
   status: string;
   amount: number;
   commission: number;
@@ -856,6 +857,7 @@ export function mapApiOrderToLocal(o: ApiOrder): Order {
     clientName: o.clientName || "Client",
     clientAvatar: o.clientAvatar,
     clientCountry: o.clientCountry,
+    freelanceName: o.freelanceName || "Freelance",
     status: o.status as Order["status"],
     amount: o.amount,
     createdAt: (o.createdAt || new Date().toISOString()).slice(0, 10),

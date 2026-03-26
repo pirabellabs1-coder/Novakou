@@ -8,6 +8,7 @@ import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { OrderPhasePipeline } from "@/components/ui/order-phase-pipeline";
 import { reviewsApi, ordersApi, type ApiOrder } from "@/lib/api-client";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: string }> = {
   en_attente: { label: "En attente", color: "bg-amber-500/10 text-amber-400", icon: "schedule" },
@@ -470,6 +471,29 @@ export default function OrderDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Countdown Timers */}
+      {order.status === "en_attente" && (
+        <CountdownTimer
+          deadline={order.deadline}
+          totalDurationMs={3 * 24 * 60 * 60 * 1000}
+          label="Delai pour accepter la commande"
+          description="Vous devez accepter cette commande avant l'expiration du delai. Passe ce delai, la commande sera automatiquement annulee."
+          expiredText="Delai depasse — la commande va etre annulee automatiquement"
+          variant="amber"
+        />
+      )}
+
+      {order.status === "livre" && (
+        <CountdownTimer
+          deadline={new Date(new Date(order.deliveredAt || Date.now()).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()}
+          totalDurationMs={7 * 24 * 60 * 60 * 1000}
+          label="Delai de validation client"
+          description="Le client a 7 jours pour valider la livraison. Passe ce delai, la commande sera automatiquement validee et les fonds liberes."
+          expiredText="Delai depasse — validation automatique en cours, fonds en cours de liberation"
+          variant="blue"
+        />
+      )}
 
       {/* Info Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">

@@ -114,6 +114,8 @@ interface MessagingState {
   // Conversation management
   createConversation: (participants: MessageParticipant[], type: ConversationType, title?: string, orderId?: string) => string;
   addSystemMessage: (convId: string, content: string) => void;
+  addOfferMessage: (convId: string, offerData: NonNullable<UnifiedMessage["offerData"]>) => void;
+  updateOfferStatus: (convId: string, offerId: string, newStatus: string) => void;
   getMyConversations: () => UnifiedConversation[];
   getAllConversations: () => UnifiedConversation[];
 
@@ -189,6 +191,12 @@ function mapApiMessage(m: Record<string, unknown>): UnifiedMessage {
   if (linkPreviewData && Array.isArray(linkPreviewData) && linkPreviewData.length > 0) {
     mapped.linkPreviews = linkPreviewData;
     mapped.linkPreview = linkPreviewData[0];
+  }
+
+  // Map offer data if present
+  if (m.offerData) {
+    mapped.offerData = m.offerData as UnifiedMessage["offerData"];
+    mapped.type = "offer";
   }
 
   return mapped;
@@ -270,14 +278,27 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
               fileUrl: existing.fileUrl || newMsg.fileUrl,
               // Keep status from server if more advanced
               status: newMsg.status === "read" || existing.status === "read" ? "read" as const : newMsg.status,
+              // Preserve offer data from local state
+              offerData: existing.offerData || newMsg.offerData,
             };
           }
           return newMsg;
         });
 
+        // Preserve local-only messages (temp IDs, offer messages) not in API response
+        const apiIds = new Set(newMessages.map((m) => m.id));
+        const localOnly = existingMessages.filter((m) =>
+          !apiIds.has(m.id) && (m.id.startsWith("temp-") || m.type === "offer" || m.type === "system")
+        );
+
+        // Sort all messages by creation time
+        const finalMessages = [...merged, ...localOnly].sort(
+          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+
         return {
           conversations: s.conversations.map((c) =>
-            c.id === convId ? { ...c, messages: merged, unreadCount: 0 } : c
+            c.id === convId ? { ...c, messages: finalMessages, unreadCount: 0 } : c
           ),
         };
       });
@@ -618,6 +639,55 @@ export const useMessagingStore = create<MessagingState>()((set, get) => ({
               lastMessageTime: newMessage.createdAt,
             }
           : conv
+      ),
+    }));
+  },
+
+  addOfferMessage: (convId, offerData) => {
+    const { currentUserId, currentUserRole } = get();
+    const conv = get().conversations.find((c) => c.id === convId);
+    const me = conv?.participants.find((p) => p.id === currentUserId);
+
+    const newMessage: UnifiedMessage = {
+      id: genTempId(),
+      senderId: currentUserId,
+      senderName: me?.name ?? "Vous",
+      senderRole: currentUserRole,
+      content: `Offre: ${offerData.title} — ${offerData.amount} EUR`,
+      type: "offer",
+      offerData,
+      createdAt: new Date().toISOString(),
+      readBy: [currentUserId],
+      status: "sent",
+    };
+
+    set((s) => ({
+      conversations: s.conversations.map((c) =>
+        c.id === convId
+          ? {
+              ...c,
+              messages: [...c.messages, newMessage],
+              lastMessage: `Offre: ${offerData.title}`,
+              lastMessageTime: newMessage.createdAt,
+            }
+          : c
+      ),
+    }));
+  },
+
+  updateOfferStatus: (convId, offerId, newStatus) => {
+    set((s) => ({
+      conversations: s.conversations.map((c) =>
+        c.id === convId
+          ? {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.type === "offer" && m.offerData?.offerId === offerId
+                  ? { ...m, offerData: { ...m.offerData!, status: newStatus } }
+                  : m
+              ),
+            }
+          : c
       ),
     }));
   },

@@ -9,6 +9,7 @@ import { useToastStore } from "@/store/toast";
 import { ordersApi, reviewsApi, type ApiOrder } from "@/lib/api-client";
 import { OrderPhasePipeline } from "@/components/ui/order-phase-pipeline";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { CountdownTimer } from "@/components/ui/countdown-timer";
 
 // ---------------------------------------------------------------------------
 // Status badge mapping
@@ -388,6 +389,29 @@ export default function ClientOrderDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Countdown Timers */}
+      {order.status === "en_attente" && (
+        <CountdownTimer
+          deadline={order.deadline}
+          totalDurationMs={3 * 24 * 60 * 60 * 1000}
+          label="Attente de validation freelance"
+          description="Le freelance a 3 jours pour accepter votre commande. Passe ce delai, la commande sera automatiquement annulee et vous serez rembourse."
+          expiredText="Delai depasse — annulation automatique en cours"
+          variant="amber"
+        />
+      )}
+
+      {order.status === "livre" && (
+        <CountdownTimer
+          deadline={new Date(new Date(order.deliveredAt || Date.now()).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()}
+          totalDurationMs={7 * 24 * 60 * 60 * 1000}
+          label="Delai pour valider la livraison"
+          description="Vous avez 7 jours pour valider la livraison ou demander une revision. Passe ce delai, la commande sera automatiquement validee et les fonds liberes au freelance."
+          expiredText="Delai depasse — validation automatique en cours, les fonds vont etre liberes"
+          variant="blue"
+        />
+      )}
 
       {/* Main content grid */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">

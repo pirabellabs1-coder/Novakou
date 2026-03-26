@@ -39,6 +39,7 @@ export interface Order {
   clientName: string;
   clientAvatar: string;
   clientCountry: string;
+  freelanceName?: string;
   status: "en_attente" | "en_cours" | "livre" | "revision" | "termine" | "annule" | "litige";
   amount: number;
   createdAt: string;

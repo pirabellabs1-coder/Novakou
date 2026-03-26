@@ -183,6 +183,7 @@ export async function POST(request: NextRequest) {
         clientAvatar: clientInitials,
         clientCountry: "FR",
         freelanceId: service.userId,
+        freelanceName: service.vendorName || "Freelance",
         status: "en_attente",
         amount,
         commission,
