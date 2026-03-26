@@ -1,10 +1,30 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import type { Order } from "@/lib/demo-data";
+
+function ActionButton({ label, icon, onClick, variant = "primary" }: { label: string; icon: string; onClick: () => Promise<void>; variant?: "primary" | "emerald" }) {
+  const [loading, setLoading] = useState(false);
+  async function handle(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setLoading(true);
+    try { await onClick(); } finally { setLoading(false); }
+  }
+  const bg = variant === "emerald" ? "bg-emerald-500 hover:bg-emerald-600" : "bg-primary hover:bg-primary/90";
+  return (
+    <button onClick={handle} disabled={loading}
+      className={cn("px-3 py-1.5 text-white text-xs font-bold rounded-lg transition-all flex items-center gap-1 disabled:opacity-50", bg)}>
+      {loading
+        ? <span className="material-symbols-outlined text-xs animate-spin">progress_activity</span>
+        : <span className="material-symbols-outlined text-xs">{icon}</span>}
+      {loading ? "..." : label}
+    </button>
+  );
+}
 
 const TABS = [
   { label: "Toutes", filter: null },
@@ -58,23 +78,25 @@ export default function CommandesPage() {
     revenue: orders.filter((o) => ["termine", "livre"].includes(o.status)).reduce((s, o) => s + o.amount, 0),
   }), [orders]);
 
-  async function handleQuickAction(order: Order, action: string) {
-    if (action === "start" && order.status === "en_attente") {
-      const success = await apiAcceptOrder(order.id);
-      if (success) {
-        addToast("success", `Commande demarree`);
-      } else {
-        addToast("error", "Erreur lors du demarrage de la commande");
-      }
-    } else if (action === "deliver" && order.status === "en_cours") {
-      const success = await apiDeliverOrder(order.id, "Livraison effectuee", []);
-      if (success) {
-        addToast("success", `Commande livree`);
-      } else {
-        addToast("error", "Erreur lors de la livraison");
-      }
+  const handleAccept = useCallback(async (orderId: string) => {
+    const result = await apiAcceptOrder(orderId);
+    if (result.success) {
+      addToast("success", "Commande acceptee !");
+      syncFromApi();
+    } else {
+      addToast("error", result.error || "Erreur lors de l'acceptation");
     }
-  }
+  }, [apiAcceptOrder, addToast, syncFromApi]);
+
+  const handleDeliver = useCallback(async (orderId: string) => {
+    const result = await apiDeliverOrder(orderId, "Livraison effectuee", []);
+    if (result.success) {
+      addToast("success", "Commande livree !");
+      syncFromApi();
+    } else {
+      addToast("error", result.error || "Erreur lors de la livraison");
+    }
+  }, [apiDeliverOrder, addToast, syncFromApi]);
 
   function getDaysLeft(deadline: string): number {
     return Math.ceil((new Date(deadline).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -195,18 +217,12 @@ export default function CommandesPage() {
                     {sc?.label}
                   </span>
 
-                  {/* Quick actions */}
+                  {/* Quick actions with spinner */}
                   {order.status === "en_attente" && (
-                    <button onClick={(e) => { e.preventDefault(); handleQuickAction(order, "start"); }}
-                      className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all">
-                      Demarrer
-                    </button>
+                    <ActionButton label="Accepter" icon="play_arrow" onClick={() => handleAccept(order.id)} />
                   )}
                   {order.status === "en_cours" && (
-                    <button onClick={(e) => { e.preventDefault(); handleQuickAction(order, "deliver"); }}
-                      className="px-3 py-1.5 bg-emerald-500 text-white text-xs font-bold rounded-lg hover:bg-emerald-600 transition-all">
-                      Livrer
-                    </button>
+                    <ActionButton label="Livrer" icon="local_shipping" onClick={() => handleDeliver(order.id)} variant="emerald" />
                   )}
 
                   <span className="material-symbols-outlined text-slate-500 group-hover:text-primary transition-colors">arrow_forward</span>
