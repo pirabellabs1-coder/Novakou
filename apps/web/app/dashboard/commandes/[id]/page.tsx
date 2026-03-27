@@ -333,16 +333,16 @@ export default function OrderDetailPage() {
           Actions de la commande
         </h3>
 
-        {/* Step line */}
-        <div className="flex items-center gap-0 overflow-x-auto pb-2">
+        {/* Step line — spread evenly across full width */}
+        <div className="flex items-start justify-between overflow-x-auto pb-2">
           {/* Step 1: Accepter */}
           {(() => {
             const done = ["en_cours", "livre", "revision", "termine"].includes(order.status);
             const active = order.status === "en_attente";
             const cancelled = order.status === "annule";
             return (
-              <div className="flex items-center flex-shrink-0">
-                <div className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center gap-1.5 flex-1">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                     done ? "bg-emerald-500 border-emerald-500 text-white" :
@@ -361,7 +361,7 @@ export default function OrderDetailPage() {
                     </button>
                   )}
                 </div>
-                <div className={cn("w-8 h-0.5 mx-1", done ? "bg-emerald-500" : "bg-slate-700")} />
+                <div className={cn("h-0.5 flex-1 min-w-4 max-w-16 mx-1", done ? "bg-emerald-500" : "bg-slate-700")} />
               </div>
             );
           })()}
@@ -371,8 +371,8 @@ export default function OrderDetailPage() {
             const done = ["livre", "termine"].includes(order.status);
             const active = order.status === "en_cours" || order.status === "revision";
             return (
-              <div className="flex items-center flex-shrink-0">
-                <div className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center gap-1.5 flex-1">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                     done ? "bg-emerald-500 border-emerald-500 text-white" :
@@ -383,7 +383,7 @@ export default function OrderDetailPage() {
                   </div>
                   <span className={cn("text-[10px] font-bold text-center whitespace-nowrap", active ? "text-blue-400" : done ? "text-emerald-400" : "text-slate-500")}>En cours</span>
                 </div>
-                <div className={cn("w-8 h-0.5 mx-1", done ? "bg-emerald-500" : "bg-slate-700")} />
+                <div className={cn("h-0.5 flex-1 min-w-4 max-w-16 mx-1", done ? "bg-emerald-500" : "bg-slate-700")} />
               </div>
             );
           })()}
@@ -393,8 +393,8 @@ export default function OrderDetailPage() {
             const done = ["livre", "termine"].includes(order.status);
             const active = order.status === "en_cours" || order.status === "revision";
             return (
-              <div className="flex items-center flex-shrink-0">
-                <div className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center gap-1.5 flex-1">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                     done ? "bg-emerald-500 border-emerald-500 text-white" :
@@ -412,7 +412,7 @@ export default function OrderDetailPage() {
                     </button>
                   )}
                 </div>
-                <div className={cn("w-8 h-0.5 mx-1", order.status === "termine" ? "bg-emerald-500" : "bg-slate-700")} />
+                <div className={cn("h-0.5 flex-1 min-w-4 max-w-16 mx-1", order.status === "termine" ? "bg-emerald-500" : "bg-slate-700")} />
               </div>
             );
           })()}
@@ -422,8 +422,8 @@ export default function OrderDetailPage() {
             const done = order.status === "termine";
             const active = order.status === "livre";
             return (
-              <div className="flex items-center flex-shrink-0">
-                <div className="flex flex-col items-center gap-1.5">
+              <div className="flex items-center flex-1 min-w-0">
+                <div className="flex flex-col items-center gap-1.5 flex-1">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                     done ? "bg-emerald-500 border-emerald-500 text-white" :
@@ -439,7 +439,7 @@ export default function OrderDetailPage() {
                     <span className="text-[9px] text-amber-400/70 font-semibold">7j pour valider</span>
                   )}
                 </div>
-                <div className={cn("w-8 h-0.5 mx-1", done ? "bg-emerald-500" : "bg-slate-700")} />
+                <div className={cn("h-0.5 flex-1 min-w-4 max-w-16 mx-1", done ? "bg-emerald-500" : "bg-slate-700")} />
               </div>
             );
           })()}
@@ -448,7 +448,7 @@ export default function OrderDetailPage() {
           {(() => {
             const done = order.status === "termine";
             return (
-              <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+              <div className="flex flex-col items-center gap-1.5 min-w-0">
                 <div className={cn(
                   "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
                   done ? "bg-emerald-500 border-emerald-500 text-white" :

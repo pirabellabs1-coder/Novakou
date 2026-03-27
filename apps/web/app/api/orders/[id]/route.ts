@@ -104,7 +104,7 @@ export async function PATCH(
 
     const { id } = await params;
     const body = await request.json();
-    const { status, progress, deliveryMessage, deliveryFiles } = body;
+    const { status, progress, deliveryMessage, deliveryFiles, revisionComment } = body;
 
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {
       const order = orderStore.getById(id);
@@ -171,6 +171,29 @@ export async function PATCH(
         }
 
         updatedOrder = orderStore.update(id, updates);
+
+        // Add revision comment as order message + timeline event
+        if (status === "revision" && revisionComment && updatedOrder) {
+          orderStore.addMessage(id, {
+            sender: "client",
+            senderName: order.clientName || "Client",
+            content: `Revision demandee : ${revisionComment}`,
+            timestamp: new Date().toISOString(),
+            type: "system",
+          });
+          const currentOrder = orderStore.getById(id);
+          if (currentOrder) {
+            orderStore.update(id, {
+              timeline: [...currentOrder.timeline, {
+                id: `t${Date.now()}`,
+                type: "revision" as const,
+                title: "Revision demandee par le client",
+                description: revisionComment,
+                timestamp: new Date().toISOString(),
+              }],
+            });
+          }
+        }
 
         if (updatedOrder && status) {
           const statusLabels: Record<string, string> = {
@@ -441,16 +464,37 @@ export async function PATCH(
                 : order.clientId;
 
             if (statusLabels[prismaStatus]) {
+              const notifMessage = prismaStatus === "REVISION" && revisionComment
+                ? `Revision demandee : ${revisionComment}`
+                : `${statusLabels[prismaStatus]} pour ${order.service!.title}`;
+
               await tx.notification.create({
                 data: {
                   userId: notifyUserId,
                   title: statusLabels[prismaStatus],
-                  message: `${statusLabels[prismaStatus]} pour ${order.service!.title}`,
+                  message: notifMessage,
                   type: "ORDER",
                   read: false,
                   link: `/dashboard/commandes/${id}`,
                 },
               });
+            }
+
+            // Add revision comment as a message in the order conversation
+            if (prismaStatus === "REVISION" && revisionComment) {
+              const conversation = await tx.conversation.findUnique({
+                where: { orderId: id },
+              });
+              if (conversation) {
+                await tx.message.create({
+                  data: {
+                    conversationId: conversation.id,
+                    senderId: session.user.id,
+                    content: `Revision demandee : ${revisionComment}`,
+                    type: "SYSTEM",
+                  },
+                });
+              }
             }
 
             // When order is completed, create payment records and update service stats
