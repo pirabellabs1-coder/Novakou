@@ -156,11 +156,29 @@ export default function AgenceCommandeDetail() {
             <span className="font-bold text-white">{"\u20AC"}{(order.amount ?? 0).toLocaleString("fr-FR")}</span>
           </div>
         </div>
-        {sc && (
-          <span className={cn("inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full", sc.color)}>
-            <span className="material-symbols-outlined text-sm">{sc.icon}</span>{sc.label}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {sc && (
+            <span className={cn("inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full", sc.color)}>
+              <span className="material-symbols-outlined text-sm">{sc.icon}</span>{sc.label}
+            </span>
+          )}
+          {order.escrowStatus && (
+            <span className={cn("inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full",
+              order.escrowStatus === "held" || order.escrowStatus === "HELD" ? "bg-amber-500/10 text-amber-400" :
+              order.escrowStatus === "released" || order.escrowStatus === "RELEASED" ? "bg-emerald-500/10 text-emerald-400" :
+              order.escrowStatus === "disputed" || order.escrowStatus === "DISPUTED" ? "bg-red-500/10 text-red-400" :
+              order.escrowStatus === "refunded" || order.escrowStatus === "REFUNDED" ? "bg-slate-500/10 text-slate-400" :
+              "bg-slate-500/10 text-slate-400"
+            )}>
+              <span className="material-symbols-outlined text-xs">lock</span>
+              Escrow: {order.escrowStatus === "held" || order.escrowStatus === "HELD" ? "Bloque" :
+                order.escrowStatus === "released" || order.escrowStatus === "RELEASED" ? "Libere" :
+                order.escrowStatus === "disputed" || order.escrowStatus === "DISPUTED" ? "En litige" :
+                order.escrowStatus === "refunded" || order.escrowStatus === "REFUNDED" ? "Rembourse" :
+                order.escrowStatus}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ════════════════════════════════════════════════════════════════ */}

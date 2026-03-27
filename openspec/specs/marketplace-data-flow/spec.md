@@ -1,19 +1,19 @@
-## ADDED Requirements
+### Requirement: Services actifs visibles dans la marketplace
+Les services actifs (`status: ACTIF`) DOIVENT être visibles dans la marketplace. L'API `/api/public/services` DOIT retourner les données réelles depuis Prisma dans TOUS les environnements (dev et production), incluant : titre, prix, image principale, note moyenne réelle (calculée depuis les Reviews), nombre d'avis réel (`_count.reviews`), nombre de ventes réel (orders complétées `_count.orders` où `status IN (LIVRE, TERMINE)`), nom du freelancer, avatar, pays, badges vérification, et statut boost.
 
-### Requirement: Les services actifs DOIVENT être visibles dans la marketplace
-Le système SHALL retourner tous les services avec le status `ACTIF` lorsque la marketplace publique est consultée. La requête Prisma sur `/api/public/services` MUST utiliser les noms de champs corrects du schéma (`sortOrder` au lieu de `order` pour `ServiceMedia`).
+Le mode dual `IS_DEV` NE DOIT PLUS être utilisé pour les routes publiques de la marketplace. Les dev stores Zustand NE DOIVENT PAS être la source de données pour `/api/public/services` et `/api/public/top-services`.
 
-#### Scenario: Consultation de la marketplace services
-- **WHEN** un utilisateur (connecté ou non) accède à `/explorer`
-- **THEN** le système affiche tous les services avec `status: "ACTIF"` incluant titre, prix, image principale, note, et nom du freelance
+#### Scenario: Service avec ventes et avis réels
+- **WHEN** un service a 10 commandes complétées et 5 avis avec une moyenne de 4.3
+- **THEN** la card dans `/explorer` SHALL afficher "10 ventes", 4.3 étoiles, et "(5 avis)"
 
-#### Scenario: Consultation du détail d'un service
-- **WHEN** un utilisateur accède à `/services/[slug]`
-- **THEN** le système retourne le service complet avec ses médias triés par `sortOrder` ASC, ses packages, FAQ, extras, et le profil du freelance — sans erreur Prisma
+#### Scenario: Données identiques sur toutes les pages
+- **WHEN** un même service apparaît sur `/explorer`, la landing page, et `/agence/services`
+- **THEN** les données affichées (ventes, avis, note) SHALL être identiques car elles viennent de la même source Prisma
 
-#### Scenario: Service en attente non visible
-- **WHEN** un freelance crée un service (status `EN_ATTENTE`)
-- **THEN** ce service n'apparaît PAS dans la marketplace publique mais apparaît dans son dashboard avec le statut "En attente"
+#### Scenario: API retourne des données Prisma même en dev
+- **WHEN** `IS_DEV=true` et l'API `/api/public/services` est appelée
+- **THEN** la réponse SHALL contenir les données Prisma réelles, PAS les données des dev stores
 
 ### Requirement: Les projets ouverts DOIVENT être visibles dans l'explorateur de projets
 Le système SHALL retourner tous les projets avec le status `ouvert` lorsque l'explorateur de projets publics est consulté via `/api/public/projects`.

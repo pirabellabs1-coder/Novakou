@@ -103,22 +103,38 @@ export async function GET(request: NextRequest) {
       prisma.user.count({ where }),
     ]);
 
-    const result = users.map((u) => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role: u.role.toLowerCase(),
-      plan: u.plan.toLowerCase(),
-      status: u.status.toLowerCase(),
-      kycLevel: u.kyc,
-      country: u.country ?? null,
-      createdAt: u.createdAt,
-      lastLoginAt: u.lastLoginAt ?? null,
-      loginCount: u.loginCount,
-      ordersCount: u._count.ordersAsClient + u._count.ordersAsFreelance,
-      revenue: 0,
-      totalSpent: 0,
-    }));
+    // Calculate real revenue and spending per user via Prisma aggregates
+    const result = await Promise.all(
+      users.map(async (u) => {
+        const [revenueAgg, spentAgg] = await Promise.all([
+          prisma.order.aggregate({
+            where: { freelanceId: u.id, status: "TERMINE" },
+            _sum: { freelancerPayout: true },
+          }),
+          prisma.order.aggregate({
+            where: { clientId: u.id, status: { in: ["TERMINE", "LIVRE", "EN_COURS"] } },
+            _sum: { amount: true },
+          }),
+        ]);
+
+        return {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role.toLowerCase(),
+          plan: u.plan.toLowerCase(),
+          status: u.status.toLowerCase(),
+          kycLevel: u.kyc,
+          country: u.country ?? null,
+          createdAt: u.createdAt,
+          lastLoginAt: u.lastLoginAt ?? null,
+          loginCount: u.loginCount,
+          ordersCount: u._count.ordersAsClient + u._count.ordersAsFreelance,
+          revenue: Math.round((revenueAgg._sum.freelancerPayout ?? 0) * 100) / 100,
+          totalSpent: Math.round((spentAgg._sum.amount ?? 0) * 100) / 100,
+        };
+      })
+    );
 
     return NextResponse.json({ users: result, total });
   } catch (error) {

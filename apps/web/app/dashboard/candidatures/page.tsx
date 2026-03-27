@@ -37,6 +37,33 @@ interface Candidature {
   submittedAt: string;
 }
 
+interface Proposition {
+  id: string;
+  title: string;
+  description: string;
+  amount: number;
+  deliveryDays: number;
+  status: string;
+  createdAt: string;
+  viewedAt?: string | null;
+  acceptedAt?: string | null;
+  rejectedAt?: string | null;
+  expiresAt?: string | null;
+  service?: { id: string; title: string; slug: string } | null;
+  client?: { id: string; name: string; image?: string | null } | null;
+  order?: { id: string; status: string } | null;
+}
+
+const PROPOSITION_STATUS: Record<string, { label: string; color: string; icon: string }> = {
+  PENDING: { label: "En attente", color: "bg-yellow-500/10 text-yellow-400", icon: "schedule" },
+  SENT: { label: "Envoyee", color: "bg-blue-500/10 text-blue-400", icon: "send" },
+  VIEWED: { label: "Vue", color: "bg-indigo-500/10 text-indigo-400", icon: "visibility" },
+  ACCEPTED: { label: "Acceptee", color: "bg-emerald-500/10 text-emerald-400", icon: "check_circle" },
+  REJECTED: { label: "Refusee", color: "bg-red-500/10 text-red-400", icon: "cancel" },
+  EXPIRED: { label: "Expiree", color: "bg-slate-500/10 text-slate-400", icon: "timer_off" },
+  WITHDRAWN: { label: "Retiree", color: "bg-slate-500/10 text-slate-400", icon: "undo" },
+};
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -65,7 +92,12 @@ const FILTER_STATUSES = ["Toutes", "En attente", "Acceptées", "Refusées"];
 
 export default function CandidaturesPage() {
   const addToast = useToastStore((s) => s.addToast);
-  const [tab, setTab] = useState<"candidatures" | "explorer">("candidatures");
+  const [tab, setTab] = useState<"candidatures" | "propositions" | "explorer">("candidatures");
+
+  // Propositions state (offres sur services)
+  const [propositions, setPropositions] = useState<Proposition[]>([]);
+  const [loadingPropositions, setLoadingPropositions] = useState(false);
+  const [propositionFilter, setPropositionFilter] = useState("Toutes");
 
   // Candidatures state
   const [candidatures, setCandidatures] = useState<Candidature[]>([]);
@@ -88,6 +120,22 @@ export default function CandidaturesPage() {
   const [proposedPrice, setProposedPrice] = useState("");
   const [deliveryDays, setDeliveryDays] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch propositions (offres envoyees par le freelance)
+  const fetchPropositions = useCallback(async () => {
+    setLoadingPropositions(true);
+    try {
+      const res = await fetch("/api/propositions?role=freelance");
+      if (res.ok) {
+        const data = await res.json();
+        setPropositions(data.propositions || []);
+      }
+    } catch (err) {
+      console.error("Erreur chargement propositions:", err);
+    } finally {
+      setLoadingPropositions(false);
+    }
+  }, []);
 
   // Fetch candidatures
   const fetchCandidatures = useCallback(async () => {
@@ -123,8 +171,9 @@ export default function CandidaturesPage() {
 
   useEffect(() => {
     fetchCandidatures();
+    fetchPropositions();
     fetchProjects();
-  }, [fetchCandidatures, fetchProjects]);
+  }, [fetchCandidatures, fetchPropositions, fetchProjects]);
 
   // Submit candidature
   async function handleSubmit() {
@@ -217,6 +266,19 @@ export default function CandidaturesPage() {
         >
           <span className="material-symbols-outlined text-base align-middle mr-1.5">assignment</span>
           Mes candidatures
+        </button>
+        <button
+          onClick={() => setTab("propositions")}
+          className={cn(
+            "px-4 py-2 rounded-lg text-sm font-bold transition-all",
+            tab === "propositions" ? "bg-primary/10 text-primary" : "text-slate-500 hover:text-slate-300"
+          )}
+        >
+          <span className="material-symbols-outlined text-base align-middle mr-1.5">local_offer</span>
+          Mes propositions
+          {propositions.length > 0 && (
+            <span className="ml-1.5 bg-primary/20 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">{propositions.length}</span>
+          )}
         </button>
         <button
           onClick={() => setTab("explorer")}
@@ -318,7 +380,103 @@ export default function CandidaturesPage() {
       )}
 
       {/* ================================================================== */}
-      {/* TAB 2: Explorer les offres                                         */}
+      {/* TAB 2: Mes propositions (offres sur services)                       */}
+      {/* ================================================================== */}
+      {tab === "propositions" && (
+        <div className="space-y-6">
+          {/* Proposition filters */}
+          <div className="flex gap-2 flex-wrap">
+            {["Toutes", "En attente", "Acceptees", "Refusees", "Expirees"].map((f) => (
+              <button
+                key={f}
+                onClick={() => setPropositionFilter(f)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
+                  propositionFilter === f ? "bg-primary/10 text-primary" : "bg-background-dark/50 text-slate-500 hover:text-slate-300"
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          {/* Propositions list */}
+          {loadingPropositions ? (
+            <div className="flex justify-center py-12">
+              <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : propositions.filter((p) => {
+            if (propositionFilter === "Toutes") return true;
+            if (propositionFilter === "En attente") return ["PENDING", "SENT", "VIEWED"].includes(p.status);
+            if (propositionFilter === "Acceptees") return p.status === "ACCEPTED";
+            if (propositionFilter === "Refusees") return p.status === "REJECTED";
+            if (propositionFilter === "Expirees") return p.status === "EXPIRED";
+            return true;
+          }).length === 0 ? (
+            <div className="text-center py-12 bg-background-dark/50 rounded-xl border border-border-dark">
+              <span className="material-symbols-outlined text-4xl text-slate-500 mb-2 block">local_offer</span>
+              <p className="text-sm text-slate-400">Aucune proposition trouvee.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {propositions
+                .filter((p) => {
+                  if (propositionFilter === "Toutes") return true;
+                  if (propositionFilter === "En attente") return ["PENDING", "SENT", "VIEWED"].includes(p.status);
+                  if (propositionFilter === "Acceptees") return p.status === "ACCEPTED";
+                  if (propositionFilter === "Refusees") return p.status === "REJECTED";
+                  if (propositionFilter === "Expirees") return p.status === "EXPIRED";
+                  return true;
+                })
+                .map((p) => {
+                  const st = PROPOSITION_STATUS[p.status] || PROPOSITION_STATUS.PENDING;
+                  return (
+                    <div key={p.id} className="bg-background-dark/50 border border-border-dark rounded-xl p-4 hover:border-primary/30 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-sm truncate">{p.title}</h3>
+                            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full", st.color)}>
+                              <span className="material-symbols-outlined text-xs">{st.icon}</span>
+                              {st.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mb-2">
+                            {p.client?.name && <span>Client : {p.client.name} — </span>}
+                            {p.service?.title && <span>Service : {p.service.title}</span>}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-slate-400">
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">payments</span>
+                              {p.amount.toFixed(2)} EUR
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">schedule</span>
+                              {p.deliveryDays}j
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <span className="material-symbols-outlined text-sm">calendar_today</span>
+                              {new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                            </span>
+                          </div>
+                        </div>
+                        {p.order && (
+                          <a href={`/dashboard/commandes/${p.order.id}`} className="text-xs text-primary font-bold hover:underline flex items-center gap-1 whitespace-nowrap">
+                            <span className="material-symbols-outlined text-sm">open_in_new</span>
+                            Voir commande
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ================================================================== */}
+      {/* TAB 3: Explorer les offres                                         */}
       {/* ================================================================== */}
       {tab === "explorer" && (
         <div className="space-y-6">

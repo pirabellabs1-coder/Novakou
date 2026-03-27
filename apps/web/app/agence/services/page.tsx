@@ -8,6 +8,7 @@ import { useAgencyStore } from "@/store/agency";
 import { useToastStore } from "@/store/toast";
 import { cn } from "@/lib/utils";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { SeoEditor } from "@/components/dashboard/SeoEditor";
 import type { ApiService } from "@/lib/api-client";
 
 // ── Status helpers ──
@@ -61,6 +62,7 @@ export default function AgenceServicesPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<ApiService | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [seoService, setSeoService] = useState<{ id: string; title: string } | null>(null);
 
   useEffect(() => {
     syncServices();
@@ -330,6 +332,14 @@ export default function AgenceServicesPage() {
                   </Link>
 
                   <button
+                    onClick={() => setSeoService({ id: s.id, title: s.title })}
+                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+                    title="Optimiser le SEO"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">search_check</span>
+                  </button>
+
+                  <button
                     onClick={() => handleToggle(s)}
                     disabled={actionLoading === s.id}
                     className={cn(
@@ -379,6 +389,15 @@ export default function AgenceServicesPage() {
           variant="danger"
           onConfirm={handleDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {/* SEO Editor Modal */}
+      {seoService && (
+        <SeoEditor
+          serviceId={seoService.id}
+          serviceTitle={seoService.title}
+          onClose={() => setSeoService(null)}
         />
       )}
     </div>

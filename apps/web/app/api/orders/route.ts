@@ -77,19 +77,20 @@ export async function GET(request: NextRequest) {
       if (sideFilter === "buyer") {
         where = { clientId: session.user.id };
       } else if (sideFilter === "seller") {
-        const orConditions: Record<string, unknown>[] = [{ freelanceId: session.user.id }];
-        if (agencyProfileId) orConditions.push({ agencyId: agencyProfileId });
-        where = { OR: orConditions };
+        if (agencyProfileId) {
+          // Agency seller view: only agency orders, not personal freelance orders
+          where = { agencyId: agencyProfileId };
+        } else {
+          where = { freelanceId: session.user.id };
+        }
       } else if (session.user.role === "client" || userRole === "CLIENT") {
         where = { clientId: session.user.id };
+      } else if (agencyProfileId) {
+        // Agency default view: agency orders + orders as buyer (not personal freelance)
+        where = { OR: [{ agencyId: agencyProfileId }, { clientId: session.user.id }] };
       } else {
-        // Freelance/agence/admin: both buyer and seller
-        const orConditions: Record<string, unknown>[] = [
-          { freelanceId: session.user.id },
-          { clientId: session.user.id },
-        ];
-        if (agencyProfileId) orConditions.push({ agencyId: agencyProfileId });
-        where = { OR: orConditions };
+        // Freelance/admin: both buyer and seller
+        where = { OR: [{ freelanceId: session.user.id }, { clientId: session.user.id }] };
       }
 
       if (statusFilter) {

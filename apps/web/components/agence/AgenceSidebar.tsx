@@ -50,6 +50,7 @@ const SECTIONS: NavSection[] = [
       { label: "Sous-traitance", href: "/agence/sous-traitance", icon: "handshake" },
       { label: "Candidatures", href: "/agence/candidatures", icon: "description" },
       { label: "Offres", href: "/agence/offres", icon: "local_offer" },
+      { label: "Propositions", href: "/agence/propositions", icon: "send" },
     ],
   },
   {
@@ -67,6 +68,7 @@ const SECTIONS: NavSection[] = [
     icon: "account_balance",
     items: [
       { label: "Finances", href: "/agence/finances", icon: "payments" },
+      { label: "Escrow", href: "/agence/escrow", icon: "lock" },
       { label: "Factures", href: "/agence/factures", icon: "receipt_long" },
       { label: "Contrats", href: "/agence/contrats", icon: "handshake" },
     ],

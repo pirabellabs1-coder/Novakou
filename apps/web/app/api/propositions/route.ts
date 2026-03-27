@@ -28,9 +28,22 @@ export async function GET(request: NextRequest) {
     }
 
     // Production: Prisma
-    const where = role === "client"
-      ? { clientId: session.user.id }
-      : { freelanceId: session.user.id };
+    let where: Record<string, unknown>;
+    if (role === "client") {
+      where = { clientId: session.user.id };
+    } else {
+      // Freelance or Agency: include both freelanceId and agencyId
+      const orConditions: Record<string, unknown>[] = [{ freelanceId: session.user.id }];
+      // Check if user owns an agency
+      const agencyProfile = await prisma.agencyProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      });
+      if (agencyProfile) {
+        orConditions.push({ agencyId: agencyProfile.id });
+      }
+      where = orConditions.length > 1 ? { OR: orConditions } : orConditions[0];
+    }
 
     const propositions = await prisma.proposition.findMany({
       where,

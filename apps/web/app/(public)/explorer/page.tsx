@@ -138,8 +138,14 @@ function getCategorySlug(categoryName: string): string {
 function getBadgeLevel(badges: string[]): string {
   if (badges.includes("Elite")) return "Elite";
   if (badges.includes("Top Rated")) return "Top Rated";
-  if (badges.includes("Confirme") || badges.includes("Pro")) return "Confirme";
+  if (badges.includes("Confirme") || badges.includes("Pro") || badges.includes("Business")) return "Confirme";
+  if (badges.includes("Verifie")) return "Verifie";
+  if (badges.includes("Agence")) return "Agence";
   return "Nouveau";
+}
+
+function isAvatarUrl(avatar: string): boolean {
+  return avatar.startsWith("http") || avatar.startsWith("/") || avatar.startsWith("data:");
 }
 
 // ============================================================
@@ -212,7 +218,9 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
 function LevelBadge({ level }: { level: string }) {
   const config: Record<string, { bg: string; text: string }> = {
     "Nouveau": { bg: "bg-slate-500/15 dark:bg-slate-500/20", text: "text-slate-600 dark:text-slate-400" },
+    "Verifie": { bg: "bg-green-500/15 dark:bg-green-500/20", text: "text-green-600 dark:text-green-400" },
     "Confirme": { bg: "bg-blue-500/15 dark:bg-blue-500/20", text: "text-blue-600 dark:text-blue-400" },
+    "Agence": { bg: "bg-indigo-500/15 dark:bg-indigo-500/20", text: "text-indigo-600 dark:text-indigo-400" },
     "Top Rated": { bg: "bg-primary/15 dark:bg-primary/20", text: "text-primary" },
     "Elite": { bg: "bg-accent/15 dark:bg-accent/20", text: "text-amber-600 dark:text-accent" },
   };
@@ -222,6 +230,10 @@ function LevelBadge({ level }: { level: string }) {
       {level}
     </span>
   );
+}
+
+function trackServiceClick(serviceId: string) {
+  fetch(`/api/services/${serviceId}/track-click`, { method: "POST" }).catch(() => {});
 }
 
 function ServiceCard({
@@ -246,6 +258,7 @@ function ServiceCard({
     return (
       <Link
         href={`/services/${service.slug}`}
+        onClick={() => trackServiceClick(service.id)}
         className="group flex flex-col sm:flex-row gap-4 bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/40 dark:hover:border-primary/40 hover:shadow-lg transition-all p-3"
       >
         {/* Image */}
@@ -287,9 +300,13 @@ function ServiceCard({
         <div className="flex-1 flex flex-col justify-between min-w-0">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
-              <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-                {service.vendorAvatar ? service.vendorAvatar.slice(0, 2).toUpperCase() : "??"}
-              </div>
+              {service.vendorAvatar && isAvatarUrl(service.vendorAvatar) ? (
+                <img src={service.vendorAvatar} alt={service.vendorName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" loading="lazy" />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                  {(service.vendorName || "??").slice(0, 2).toUpperCase()}
+                </div>
+              )}
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{service.vendorName}</span>
               <LevelBadge level={vendorLevel} />
             </div>
@@ -327,6 +344,7 @@ function ServiceCard({
   return (
     <Link
       href={`/services/${service.slug}`}
+      onClick={() => trackServiceClick(service.id)}
       className="group flex flex-col bg-white dark:bg-neutral-dark rounded-xl border border-slate-200 dark:border-border-dark hover:border-primary/40 dark:hover:border-primary/40 hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
     >
       {/* Image */}
@@ -367,9 +385,13 @@ function ServiceCard({
       {/* Content */}
       <div className="flex flex-col flex-1 p-4">
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-            {service.vendorAvatar ? service.vendorAvatar.slice(0, 2).toUpperCase() : "??"}
-          </div>
+          {service.vendorAvatar && isAvatarUrl(service.vendorAvatar) ? (
+            <img src={service.vendorAvatar} alt={service.vendorName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" loading="lazy" />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+              {(service.vendorName || "??").slice(0, 2).toUpperCase()}
+            </div>
+          )}
           <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">{service.vendorName}</span>
           <LevelBadge level={vendorLevel} />
         </div>

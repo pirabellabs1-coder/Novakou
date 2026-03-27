@@ -8,6 +8,7 @@ import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { formatServiceTitle } from "@/lib/format-service-title";
 import { PLAN_RULES, normalizePlanName, formatUsage, type PlanName } from "@/lib/plans";
+import { SeoEditor } from "@/components/dashboard/SeoEditor";
 
 const TABS = ["Actifs", "En attente", "En pause", "Brouillons", "Refusés"];
 const STATUS_MAP: Record<string, string> = {
@@ -30,6 +31,7 @@ export default function ServicesPage() {
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [statsModal, setStatsModal] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [seoServiceId, setSeoServiceId] = useState<{ id: string; title: string } | null>(null);
   const perPage = 4;
 
   // Sync from API on mount to ensure fresh data
@@ -128,6 +130,15 @@ export default function ServicesPage() {
         onConfirm={() => deleteModal && handleDelete(deleteModal)}
         onCancel={() => setDeleteModal(null)}
       />
+
+      {/* SEO Editor Modal */}
+      {seoServiceId && (
+        <SeoEditor
+          serviceId={seoServiceId.id}
+          serviceTitle={seoServiceId.title}
+          onClose={() => setSeoServiceId(null)}
+        />
+      )}
 
       {/* Stats Modal */}
       {statsService && (
@@ -462,13 +473,13 @@ export default function ServicesPage() {
                         >
                           <span className="material-symbols-outlined">edit</span>
                         </Link>
-                        <Link
-                          href="/dashboard/services/seo"
+                        <button
+                          onClick={() => setSeoServiceId({ id: s.id, title: s.title })}
                           className="p-2 rounded-lg hover:bg-primary/20 text-primary transition-colors"
                           title="Optimiser le SEO"
                         >
                           <span className="material-symbols-outlined">search_check</span>
-                        </Link>
+                        </button>
                         <Link
                           href="/dashboard/boost"
                           className="p-2 rounded-lg hover:bg-amber-500/20 text-amber-400 transition-colors"

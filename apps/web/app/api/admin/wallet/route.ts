@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 
 // GET /api/admin/wallet — Get admin wallet + transactions + payouts
 export async function GET(request: NextRequest) {
@@ -20,22 +19,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = request.nextUrl;
     const section = searchParams.get("section"); // "transactions" | "payouts" | null (all)
 
-    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
-      // Dev mode: return mock wallet data
-      return NextResponse.json({
-        wallet: {
-          id: "admin-wallet-dev",
-          totalFeesHeld: 0,
-          totalFeesReleased: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        transactions: [],
-        payouts: [],
-      });
-    }
-
-    // Production: Prisma
+    // Always use Prisma — admin wallet is critical financial data
     let wallet = await prisma.adminWallet.findFirst();
     if (!wallet) {
       wallet = await prisma.adminWallet.create({ data: {} });
@@ -86,18 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Montant et methode requis" }, { status: 400 });
     }
 
-    if (IS_DEV && !USE_PRISMA_FOR_DATA) {
-      return NextResponse.json({
-        payout: {
-          id: `payout_${Date.now().toString(36)}`,
-          amount,
-          method,
-          status: "PAYOUT_PENDING",
-          createdAt: new Date().toISOString(),
-        },
-      });
-    }
-
+    // Always use Prisma
     let wallet = await prisma.adminWallet.findFirst();
     if (!wallet) {
       wallet = await prisma.adminWallet.create({ data: {} });

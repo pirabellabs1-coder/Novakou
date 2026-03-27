@@ -34,7 +34,8 @@ const TX_STATUS_META: Record<string, { label: string; cls: string }> = {
 };
 
 const MIN_WITHDRAWAL = 20;
-const COMMISSION_RATE = 0.1;
+// Agence plan: 1 EUR flat commission per sale (from PLAN_RULES.AGENCE)
+const COMMISSION_FLAT = 1; // EUR per transaction
 
 // ── Helpers ──
 
@@ -132,9 +133,9 @@ export default function AgenceFinances() {
       addToast("info", "Aucune transaction à exporter");
       return;
     }
-    const header = "Date,Type,Description,Montant,Commission (10%),Net,Statut";
+    const header = "Date,Type,Description,Montant,Commission (1 EUR),Net,Statut";
     const rows = sortedTransactions.map((t) => {
-      const commission = Math.abs(t.amount) * COMMISSION_RATE;
+      const commission = COMMISSION_FLAT;
       const net = Math.abs(t.amount) - commission;
       return `${t.date},${t.type},"${t.description}",${t.amount},${commission.toFixed(2)},${net.toFixed(2)},${t.status}`;
     });
@@ -335,7 +336,7 @@ export default function AgenceFinances() {
                   const typeMeta = TX_TYPE_META[tx.type] ?? TX_TYPE_META.vente;
                   const statusMeta = TX_STATUS_META[tx.status];
                   const absAmount = Math.abs(tx.amount);
-                  const commission = absAmount * COMMISSION_RATE;
+                  const commission = COMMISSION_FLAT;
                   const net = absAmount - commission;
 
                   return (
