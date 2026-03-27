@@ -600,7 +600,7 @@ export default function ClientOrderDetailPage() {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button key={star} onClick={() => setter(star)} className="transition-transform hover:scale-110">
                           <span className={cn("material-symbols-outlined text-2xl", star <= value ? "text-amber-400" : "text-slate-600")}
-                            style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                            style={{ fontVariationSettings: star <= value ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                         </button>
                       ))}
                     </div>

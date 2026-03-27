@@ -513,6 +513,14 @@ export async function PATCH(
                 data: { status: "COMPLETE" },
               });
 
+              // Increment service orderCount
+              if (order.serviceId) {
+                await tx.service.update({
+                  where: { id: order.serviceId },
+                  data: { orderCount: { increment: 1 } },
+                }).catch(() => {}); // ignore if service doesn't exist
+              }
+
               // Emit order.completed event (notification + email — outside tx)
               emitEvent("order.completed", {
                 orderId: order.id, serviceTitle: order.service!.title, amount: netAmount,

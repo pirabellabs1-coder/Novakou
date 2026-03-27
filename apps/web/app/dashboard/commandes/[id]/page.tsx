@@ -653,7 +653,7 @@ export default function OrderDetailPage() {
                           "material-symbols-outlined text-2xl",
                           star <= value ? "text-amber-400" : "text-slate-600"
                         )}
-                        style={{ fontVariationSettings: "'FILL' 1" }}
+                        style={{ fontVariationSettings: star <= value ? "'FILL' 1" : "'FILL' 0" }}
                       >
                         star
                       </span>

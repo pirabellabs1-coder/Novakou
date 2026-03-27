@@ -117,10 +117,10 @@ export async function GET(request: NextRequest) {
         delai: r.timeliness ?? 0,
         rating: r.rating,
         comment: r.comment || "",
-        reply: (r as any).reply || null,
-        repliedAt: (r as any).repliedAt?.toISOString() || null,
-        helpful: (r as any).helpful ?? 0,
-        reported: (r as any).reported ?? false,
+        reply: r.response || null,
+        repliedAt: r.response ? r.updatedAt.toISOString() : null,
+        helpful: 0,
+        reported: false,
         createdAt: r.createdAt.toISOString(),
       }));
 
@@ -256,6 +256,34 @@ export async function POST(request: NextRequest) {
         },
         include: { author: true, service: true },
       });
+
+      // Update service rating and ratingCount
+      if (order.serviceId) {
+        const allReviews = await prisma.review.findMany({
+          where: { serviceId: order.serviceId },
+          select: { rating: true },
+        });
+        const avgRating = allReviews.length > 0
+          ? Math.round((allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length) * 10) / 10
+          : 0;
+        await prisma.service.update({
+          where: { id: order.serviceId },
+          data: { rating: avgRating, ratingCount: allReviews.length },
+        });
+      }
+
+      // Update freelance profile stats
+      const allFreelanceReviews = await prisma.review.findMany({
+        where: { targetId: order.freelanceId },
+        select: { rating: true },
+      });
+      const freelanceAvg = allFreelanceReviews.length > 0
+        ? Math.round((allFreelanceReviews.reduce((sum, r) => sum + r.rating, 0) / allFreelanceReviews.length) * 10) / 10
+        : 0;
+      await prisma.freelancerProfile.updateMany({
+        where: { userId: order.freelanceId },
+        data: { completionRate: freelanceAvg },
+      }).catch(() => {}); // ignore if profile doesn't exist
 
       // Map to same shape as dev-store
       const review = {
