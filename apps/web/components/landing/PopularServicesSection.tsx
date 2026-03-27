@@ -89,7 +89,7 @@ export function PopularServicesSection() {
                     <InlineBadge badge={service.vendorBadges[0]} />
                   )}
                 </p>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <div className="flex items-center gap-1">
                     <span
                       className="material-symbols-outlined text-accent text-sm"
@@ -100,6 +100,15 @@ export function PopularServicesSection() {
                     <span className="text-sm font-bold">{service.rating.toFixed(1)}</span>
                     <span className="text-xs text-slate-400">({service.reviews})</span>
                   </div>
+                  {service.orderCount > 0 && (
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined text-emerald-500 text-sm">shopping_bag</span>
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{service.orderCount} {service.orderCount > 1 ? "ventes" : "vente"}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div />
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block">{t("from")}</span>
                     <span className="text-lg font-extrabold text-primary">{format(service.priceEur)}</span>

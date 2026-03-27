@@ -296,10 +296,18 @@ function ServiceCard({
             <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-2 mb-2">
               {formatServiceTitle(service.title)}
             </h3>
-            <div className="flex items-center gap-2 mb-2">
-              <StarRating rating={service.rating} />
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{service.rating}</span>
-              <span className="text-xs text-slate-500">({service.ratingCount})</span>
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <div className="flex items-center gap-1">
+                <StarRating rating={service.rating} />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{service.rating}</span>
+                <span className="text-xs text-slate-500">({service.ratingCount})</span>
+              </div>
+              {service.orderCount > 0 && (
+                <div className="flex items-center gap-1 text-xs text-slate-500">
+                  <span className="material-symbols-outlined text-sm text-emerald-500">shopping_bag</span>
+                  <span className="font-semibold text-slate-600 dark:text-slate-400">{service.orderCount} {service.orderCount > 1 ? "ventes" : "vente"}</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center justify-between">
@@ -370,10 +378,18 @@ function ServiceCard({
           {formatServiceTitle(service.title)}
         </h3>
 
-        <div className="flex items-center gap-2 mb-3">
-          <StarRating rating={service.rating} />
-          <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{service.rating}</span>
-          <span className="text-xs text-slate-500">({service.ratingCount})</span>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <div className="flex items-center gap-1">
+            <StarRating rating={service.rating} />
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{service.rating}</span>
+            <span className="text-xs text-slate-500">({service.ratingCount})</span>
+          </div>
+          {service.orderCount > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <span className="material-symbols-outlined text-sm text-emerald-500">shopping_bag</span>
+              <span className="font-semibold text-slate-600 dark:text-slate-400">{service.orderCount}</span>
+            </div>
+          )}
         </div>
 
         <div className="border-t border-slate-100 dark:border-border-dark pt-3 flex items-center justify-between">

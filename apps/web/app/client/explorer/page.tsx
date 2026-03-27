@@ -411,6 +411,12 @@ export default function ClientExplorer() {
                           <span key={t} className="text-[10px] bg-border-dark text-slate-400 px-2 py-0.5 rounded-full">{t}</span>
                         ))}
                       </div>
+                      {s.orderCount > 0 && (
+                        <div className="flex items-center gap-1 mb-3 text-xs text-slate-400">
+                          <span className="material-symbols-outlined text-sm text-emerald-500">shopping_bag</span>
+                          <span className="font-semibold">{s.orderCount} {s.orderCount > 1 ? "ventes" : "vente"}</span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between pt-3 border-t border-border-dark">
                         <div>
                           <p className="text-[10px] text-slate-500">À partir de</p>
@@ -464,6 +470,12 @@ export default function ClientExplorer() {
                           <span className="material-symbols-outlined text-xs">schedule</span>
                           {s.deliveryDays}j
                         </span>
+                        {s.orderCount > 0 && (
+                          <span className="flex items-center gap-0.5">
+                            <span className="material-symbols-outlined text-emerald-500 text-xs">shopping_bag</span>
+                            <span className="font-semibold text-slate-400">{s.orderCount}</span>
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex gap-1">
