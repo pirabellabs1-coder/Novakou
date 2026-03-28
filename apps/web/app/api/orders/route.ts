@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (!session?.user && !devMode) {
       return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
     }
-    const userId = session?.user?.id || "dev-user";
+    const userId = session?.user?.id || (IS_DEV ? "user-freelance-001" : "dev-user");
     const userRole = (session?.user as Record<string, unknown>)?.role as string || "freelance";
 
     const { searchParams } = request.nextUrl;

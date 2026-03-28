@@ -140,6 +140,13 @@ export interface StoredOrder {
   timeline: TimelineEvent[];
   files: OrderFile[];
   reviewed?: boolean;
+  // Dispute fields (set when status === "litige")
+  disputeStatus?: "ouvert" | "en_examen" | "resolu";
+  disputeReason?: string;
+  disputeVerdict?: "freelance" | "client" | "partiel" | null;
+  disputeVerdictNote?: string | null;
+  disputePartialPercent?: number | null;
+  disputeResolvedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -157,7 +164,7 @@ export interface OrderMessage {
 
 export interface TimelineEvent {
   id: string;
-  type: "created" | "started" | "delivered" | "revision" | "completed" | "cancelled" | "message";
+  type: "created" | "started" | "delivered" | "revision" | "completed" | "cancelled" | "message" | "dispute";
   title: string;
   description: string;
   timestamp: string;
@@ -906,6 +913,44 @@ function _getDefaultOrdersLegacy(): StoredOrder[] {
       createdAt: "2026-02-10T14:00:00", updatedAt: now,
     },
     {
+      id: "ORD-1010", serviceId: "s8", serviceTitle: "Charte Graphique Complète", category: "Design",
+      clientId: "dev-client-1", clientName: "Ousmane Ndiaye", clientAvatar: "ON", clientCountry: "SN",
+      freelanceId: "user-freelance-001", status: "termine" as const, amount: 600, commission: 90,
+      packageType: "premium" as const, deadline: "2026-02-10", deliveredAt: "2026-02-08", completedAt: "2026-02-09",
+      progress: 100, revisionsLeft: 0,
+      messages: [
+        { id: "m1", sender: "client" as const, senderName: "Ousmane Ndiaye", content: "Excellent travail sur la charte !", timestamp: "2026-02-09T14:00:00", type: "text" as const },
+      ],
+      timeline: [
+        { id: "t1", type: "created" as const, title: "Commande créée", description: "Forfait Premium - Charte Graphique", timestamp: "2026-01-25T09:00:00" },
+        { id: "t2", type: "started" as const, title: "Travail démarré", description: "Recherche visuelle", timestamp: "2026-01-26T10:00:00" },
+        { id: "t3", type: "delivered" as const, title: "Livraison effectuée", description: "Charte graphique complète livrée", timestamp: "2026-02-08T16:00:00" },
+        { id: "t4", type: "completed" as const, title: "Commande terminée", description: "Client satisfait", timestamp: "2026-02-09T14:00:00" },
+      ],
+      files: [
+        { id: "f1", name: "charte-graphique-v1.pdf", size: "15.2 MB", type: "pdf", uploadedBy: "freelance", uploadedAt: "2026-02-08T16:00:00", url: "#" },
+      ],
+      createdAt: "2026-01-25T09:00:00", updatedAt: now,
+    },
+    {
+      id: "ORD-1009", serviceId: "s3", serviceTitle: "Landing Page Responsive", category: "Développement Web",
+      clientId: "dev-client-1", clientName: "Awa Traore", clientAvatar: "AT", clientCountry: "ML",
+      freelanceId: "user-freelance-001", status: "termine" as const, amount: 350, commission: 52.5,
+      packageType: "standard" as const, deadline: "2026-01-30", deliveredAt: "2026-01-28", completedAt: "2026-01-29",
+      progress: 100, revisionsLeft: 0,
+      messages: [
+        { id: "m1", sender: "client" as const, senderName: "Awa Traore", content: "La page est superbe, merci !", timestamp: "2026-01-29T10:00:00", type: "text" as const },
+      ],
+      timeline: [
+        { id: "t1", type: "created" as const, title: "Commande créée", description: "Forfait Standard - Landing Page", timestamp: "2026-01-15T11:00:00" },
+        { id: "t2", type: "started" as const, title: "Travail démarré", description: "Développement en cours", timestamp: "2026-01-16T09:00:00" },
+        { id: "t3", type: "delivered" as const, title: "Livraison effectuée", description: "Landing page livrée", timestamp: "2026-01-28T14:00:00" },
+        { id: "t4", type: "completed" as const, title: "Commande terminée", description: "Validée par le client", timestamp: "2026-01-29T10:00:00" },
+      ],
+      files: [],
+      createdAt: "2026-01-15T11:00:00", updatedAt: now,
+    },
+    {
       id: "ORD-1008", serviceId: "s2", serviceTitle: "Pack 5 Articles Blog", category: "Contenu",
       clientId: "dev-client-1", clientName: "Marie Dupont", clientAvatar: "MD", clientCountry: "FR",
       freelanceId: "user-freelance-001", status: "termine", amount: 300, commission: 45,
@@ -925,6 +970,48 @@ function _getDefaultOrdersLegacy(): StoredOrder[] {
       ],
       createdAt: "2026-01-05T10:00:00", updatedAt: now,
     },
+    {
+      id: "ORD-1005", serviceId: "s3", serviceTitle: "Refonte Site E-commerce", category: "Développement Web",
+      clientId: "dev-client-1", clientName: "Fatou Sow", clientAvatar: "FS", clientCountry: "SN",
+      freelanceId: "user-freelance-001", freelanceName: "Gildas Lissanon", status: "litige" as const, amount: 950, commission: 142.5,
+      packageType: "premium" as const, deadline: "2026-03-20", deliveredAt: "2026-03-18", completedAt: null,
+      progress: 100, revisionsLeft: 0,
+      disputeStatus: "ouvert",
+      disputeReason: "Le client conteste la conformité de la livraison",
+      messages: [
+        { id: "m1", sender: "client", senderName: "Fatou Sow", content: "Le site ne correspond pas au brief fourni.", timestamp: "2026-03-22T14:00:00", type: "text" as const },
+        { id: "m2", sender: "freelance", senderName: "Gildas Lissanon", content: "J'ai suivi les specifications exactes du cahier des charges.", timestamp: "2026-03-22T15:30:00", type: "text" as const },
+      ],
+      timeline: [
+        { id: "t1", type: "created" as const, title: "Commande créée", description: "Forfait Premium - Refonte E-commerce", timestamp: "2026-03-01T10:00:00" },
+        { id: "t2", type: "started" as const, title: "Travail démarré", description: "Développement en cours", timestamp: "2026-03-02T09:00:00" },
+        { id: "t3", type: "delivered" as const, title: "Livraison effectuée", description: "Site livré avec documentation", timestamp: "2026-03-18T16:00:00" },
+        { id: "t4", type: "dispute" as const, title: "Litige ouvert", description: "Le client conteste la conformité de la livraison", timestamp: "2026-03-22T14:00:00" },
+      ],
+      files: [
+        { id: "f1", name: "site-ecommerce-v1.zip", size: "12.3 MB", type: "zip", uploadedBy: "freelance", uploadedAt: "2026-03-18T16:00:00", url: "#" },
+      ],
+      createdAt: "2026-03-01T10:00:00", updatedAt: now,
+    } as StoredOrder,
+    {
+      id: "ORD-1004", serviceId: "s6", serviceTitle: "Campagne Marketing Digital", category: "Marketing",
+      clientId: "dev-client-1", clientName: "Amadou Diallo", clientAvatar: "AD", clientCountry: "GN",
+      freelanceId: "user-freelance-001", freelanceName: "Gildas Lissanon", status: "litige" as const, amount: 500, commission: 75,
+      packageType: "standard" as const, deadline: "2026-03-12", deliveredAt: "2026-03-11", completedAt: null,
+      progress: 100, revisionsLeft: 1,
+      disputeStatus: "ouvert",
+      disputeReason: "Résultats non conformes aux objectifs promis",
+      messages: [
+        { id: "m1", sender: "client", senderName: "Amadou Diallo", content: "Les résultats promis n'ont pas été atteints.", timestamp: "2026-03-15T09:00:00", type: "text" as const },
+      ],
+      timeline: [
+        { id: "t1", type: "created" as const, title: "Commande créée", description: "Forfait Standard - Campagne Marketing", timestamp: "2026-02-25T08:00:00" },
+        { id: "t2", type: "delivered" as const, title: "Livraison effectuée", description: "Rapport de campagne envoyé", timestamp: "2026-03-11T17:00:00" },
+        { id: "t3", type: "dispute" as const, title: "Litige ouvert", description: "Résultats non conformes aux objectifs", timestamp: "2026-03-15T09:00:00" },
+      ],
+      files: [],
+      createdAt: "2026-02-25T08:00:00", updatedAt: now,
+    } as StoredOrder,
     {
       id: "ORD-1003", serviceId: "s4", serviceTitle: "Application Mobile React Native", category: "Développement",
       clientId: "dev-client-1", clientName: "Ibrahim Traore", clientAvatar: "IT", clientCountry: "BF",

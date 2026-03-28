@@ -5,6 +5,18 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import type { Prisma } from "@prisma/client";
 
+export interface PlanConfig {
+  price: number;
+  priceAnnual?: number;
+  maxServices: number;
+  maxCandidatures: number;
+  boostsPerMonth: number;
+  commissionType: "percentage" | "fixed";
+  commissionValue: number;
+  maxMembers?: number;
+  storageGB?: number;
+}
+
 export interface PlatformConfig {
   maintenanceMode: boolean;
   maintenanceMessage: string;
@@ -12,16 +24,18 @@ export interface PlatformConfig {
   defaultCurrency: string;
   enabledPaymentMethods: string[];
   commissions: {
-    gratuit: number;
-    pro: number;
-    business: number;
-    agence: number;
+    decouverte: number;
+    ascension: number;
+    sommet: number;
+    agence_starter: number;
+    empire: number;
   };
   plans: {
-    gratuit: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType?: string; commissionValue?: number };
-    pro: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType?: string; commissionValue?: number };
-    business: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType?: string; commissionValue?: number };
-    agence: { price: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; maxMembers: number; storageGB: number; commissionType?: string; commissionValue?: number };
+    decouverte: PlanConfig;
+    ascension: PlanConfig;
+    sommet: PlanConfig;
+    agence_starter: PlanConfig;
+    empire: PlanConfig;
   };
   announcementBanner: {
     enabled: boolean;
@@ -60,16 +74,18 @@ const DEFAULT_CONFIG: PlatformConfig = {
     "virement_sepa",
   ],
   commissions: {
-    gratuit: 12,
-    pro: 0,
-    business: 0,
-    agence: 0,
+    decouverte: 12,
+    ascension: 5,
+    sommet: 0,
+    agence_starter: 5,
+    empire: 0,
   },
   plans: {
-    gratuit: { price: 0, maxServices: 7, maxCandidatures: 10, boostsPerMonth: 0, commissionType: "percentage", commissionValue: 12 },
-    pro: { price: 15, maxServices: -1, maxCandidatures: 20, boostsPerMonth: 5, commissionType: "fixed", commissionValue: 1 },
-    business: { price: 45, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, commissionType: "fixed", commissionValue: 1 },
-    agence: { price: 99, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, maxMembers: 20, storageGB: 50, commissionType: "fixed", commissionValue: 1 },
+    decouverte: { price: 0, priceAnnual: 0, maxServices: 5, maxCandidatures: 10, boostsPerMonth: 0, commissionType: "percentage", commissionValue: 12 },
+    ascension: { price: 15, priceAnnual: 135, maxServices: 15, maxCandidatures: 30, boostsPerMonth: 3, commissionType: "percentage", commissionValue: 5 },
+    sommet: { price: 29.99, priceAnnual: 269.91, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, commissionType: "fixed", commissionValue: 1 },
+    agence_starter: { price: 20, priceAnnual: 180, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 5, commissionType: "percentage", commissionValue: 5, maxMembers: 5, storageGB: 10 },
+    empire: { price: 65, priceAnnual: 585, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 20, commissionType: "fixed", commissionValue: 0, maxMembers: 25, storageGB: 100 },
   },
   announcementBanner: {
     enabled: false,

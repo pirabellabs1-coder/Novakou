@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { MobileSidebarOverlay } from "@/components/ui/MobileSidebarOverlay";
 import { ToastContainer } from "@/components/ui/toast";
@@ -9,6 +9,7 @@ import { DashboardNotificationBell } from "@/components/dashboard/DashboardNotif
 import { KycRequiredBanner } from "@/components/kyc/KycRequiredBanner";
 import { AccessDeniedToast } from "@/components/auth/AccessDeniedToast";
 import { useDashboardStore } from "@/store/dashboard";
+import { normalizePlanName } from "@/lib/plans";
 
 const IS_DEV = process.env.NODE_ENV === "development";
 const NOTIFICATION_POLL_INTERVAL = IS_DEV ? 300_000 : 10_000; // 5min en dev, 10s en prod
@@ -18,8 +19,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const syncFromApi = useDashboardStore((s) => s.syncFromApi);
+  const changePlan = useDashboardStore((s) => s.changePlan);
   const refreshNotifications = useDashboardStore((s) => s.refreshNotifications);
+  const { data: session } = useSession();
   const hasSynced = useRef(false);
+
+  // Sync user plan from session into store
+  useEffect(() => {
+    const sessionPlan = (session?.user as Record<string, unknown>)?.plan as string | undefined;
+    if (sessionPlan) {
+      const normalized = normalizePlanName(sessionPlan);
+      changePlan(normalized.toLowerCase());
+    }
+  }, [session, changePlan]);
 
   // Sync from API on first mount
   useEffect(() => {

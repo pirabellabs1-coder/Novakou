@@ -241,6 +241,12 @@ export default function AdminDisputes() {
                     Rendre le verdict
                   </button>
                 )}
+                {d.status === "resolu" && d.verdict && (
+                  <div className="text-right">
+                    <span className={cn("text-xs font-bold", VERDICT_MAP[d.verdict]?.cls)}>{VERDICT_MAP[d.verdict]?.label || d.verdict}</span>
+                    {d.verdictNote && <p className="text-[10px] text-slate-500 mt-0.5 max-w-[200px] truncate">{d.verdictNote}</p>}
+                  </div>
+                )}
               </div>
             </div>
           </div>

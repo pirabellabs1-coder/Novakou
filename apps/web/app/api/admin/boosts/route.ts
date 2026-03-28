@@ -28,9 +28,14 @@ export async function GET() {
 
         return {
           ...b,
+          serviceTitle: service?.title ?? "Service supprime",
           serviceName: service?.title ?? "Service supprime",
+          freelanceName: user?.name ?? "Utilisateur inconnu",
           userName: user?.name ?? "Utilisateur inconnu",
           userEmail: user?.email ?? "",
+          totalCost: b.price ?? 0,
+          clicksGenerated: b.clicksGenerated ?? 0,
+          ordersGenerated: b.ordersGenerated ?? 0,
           isActive,
           tierConfig: BOOST_TIERS[b.tier as keyof typeof BOOST_TIERS],
         };
@@ -43,14 +48,18 @@ export async function GET() {
       const activeBoosts = enrichedBoosts.filter((b) => b.isActive);
       const totalRevenue = allBoosts.reduce((sum, b) => sum + b.price, 0);
       const totalViews = allBoosts.reduce((sum, b) => sum + b.viewsGenerated, 0);
+      const totalClicks = allBoosts.reduce((sum, b) => sum + (b.clicksGenerated ?? 0), 0);
+      const totalOrders = allBoosts.reduce((sum, b) => sum + (b.ordersGenerated ?? 0), 0);
 
       return NextResponse.json({
         boosts: enrichedBoosts.slice(0, 100),
         stats: {
-          total: allBoosts.length,
-          active: activeBoosts.length,
+          totalBoosts: allBoosts.length,
+          activeBoosts: activeBoosts.length,
           totalRevenue: Math.round(totalRevenue * 100) / 100,
           totalViews,
+          totalClicks,
+          totalOrders,
           cleaned,
         },
         tiers: BOOST_TIERS,

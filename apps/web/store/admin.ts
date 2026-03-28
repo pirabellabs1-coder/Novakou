@@ -808,17 +808,19 @@ export const useAdminStore = create<AdminState>()((set, get) => ({
 
   // ── Dispute actions ──
 
-  examineDispute: async (orderId) => {
+  examineDispute: async (disputeId) => {
     try {
-      await fetchAdmin("/api/admin/disputes", { method: "POST", body: JSON.stringify({ action: "examine", orderId }) });
+      const dispute = get().disputes.find(d => d.id === disputeId);
+      await fetchAdmin("/api/admin/disputes", { method: "POST", body: JSON.stringify({ action: "examine", disputeId, orderId: dispute?.orderId ?? disputeId }) });
       await get().syncDisputes();
       return true;
     } catch { return false; }
   },
 
-  resolveDispute: async (orderId, verdict, resolution, partialPercent?) => {
+  resolveDispute: async (disputeId, verdict, resolution, partialPercent?) => {
     try {
-      await fetchAdmin("/api/admin/disputes", { method: "POST", body: JSON.stringify({ action: "resolve", orderId, verdict, resolution, partialPercent }) });
+      const dispute = get().disputes.find(d => d.id === disputeId);
+      await fetchAdmin("/api/admin/disputes", { method: "POST", body: JSON.stringify({ action: "resolve", disputeId, orderId: dispute?.orderId ?? disputeId, verdict, resolution, partialPercent }) });
       await get().syncDisputes();
       return true;
     } catch { return false; }

@@ -178,13 +178,13 @@ export default function ProductivitePage() {
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-3">Mode Focus & Productivite</h1>
           <p className="text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-            Passez en Pro ou Business pour acceder au suivi de temps, aux preuves de travail et au mode focus.
+            Passez au plan Sommet ou Empire pour acceder au suivi de temps, aux preuves de travail et au mode focus.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/dashboard/abonnement"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-primary/20">
               <span className="material-symbols-outlined text-sm">workspace_premium</span>
-              Passer Pro - 15 EUR/mois
+              Passer Sommet - 29.99 EUR/mois
             </Link>
             <Link href="/dashboard/abonnement"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 border border-primary/30 text-primary font-bold rounded-xl hover:bg-primary/5 transition-all">
