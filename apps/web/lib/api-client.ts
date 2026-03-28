@@ -1011,7 +1011,7 @@ export function mapApiServiceToLocal(s: ApiService): Service {
     price: s.basePrice || 0,
     deliveryDays: s.deliveryDays || 7,
     revisions: s.revisions || 1,
-    status: s.status as Service["status"],
+    status: (s.status || "en_attente").toLowerCase() as Service["status"],
     views: s.views || 0,
     clicks: s.clicks || 0,
     orders: s.orderCount || 0,

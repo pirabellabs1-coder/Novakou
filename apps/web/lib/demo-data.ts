@@ -13,7 +13,7 @@ export interface Service {
   price: number;
   deliveryDays: number;
   revisions: number;
-  status: "actif" | "pause" | "brouillon";
+  status: "actif" | "pause" | "brouillon" | "en_attente" | "vedette" | "refuse";
   views: number;
   clicks: number;
   orders: number;

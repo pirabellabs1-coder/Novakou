@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { label: "Utilisateurs", href: "/admin/utilisateurs", icon: "people" },
   { label: "KYC", href: "/admin/kyc", icon: "verified" },
   { label: "Services", href: "/admin/services", icon: "work" },
+  { label: "Boosts", href: "/admin/boosts", icon: "rocket_launch" },
   { label: "Commandes", href: "/admin/commandes", icon: "shopping_cart" },
   { label: "Litiges", href: "/admin/litiges", icon: "gavel" },
   { label: "Finances", href: "/admin/finances", icon: "payments" },
