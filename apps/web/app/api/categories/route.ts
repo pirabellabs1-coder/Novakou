@@ -262,12 +262,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ subcategories: parent?.children || [] });
   }
 
-  // Return all top-level categories: try Prisma first, fall back to hardcoded list
+  // Return all top-level categories (parentId IS NULL): try Prisma first, fall back to hardcoded list
   try {
     const { prisma } = await import("@/lib/prisma");
     type CategoryRow = { id: string; name: string; slug: string; icon: string | null; color: string | null; description: string | null; order: number; isActive: boolean; parentId: string | null; createdAt: Date };
     const rows: CategoryRow[] = await prisma.category
-      .findMany({ orderBy: { order: "asc" } })
+      .findMany({ where: { parentId: null, isActive: true }, orderBy: { order: "asc" } })
       .catch(() => [] as CategoryRow[]);
 
     if (rows.length > 0) {
