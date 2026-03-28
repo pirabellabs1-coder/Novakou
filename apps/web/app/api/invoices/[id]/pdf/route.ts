@@ -80,7 +80,7 @@ export async function GET(
 
       const invoiceNumber = `FH-${order.id.slice(-8).toUpperCase()}`;
       const description = order.service?.title ?? order.title ?? "Commande FreelanceHigh";
-      const status = order.status === "COMPLETE" ? "payee" : "en_attente";
+      const status = order.status === "TERMINE" ? "payee" : "en_attente";
 
       const pdfBytes = generateInvoicePDF({
         id: invoiceNumber,

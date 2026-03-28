@@ -71,7 +71,7 @@ export async function GET() {
         totalPaid: order.amount,
         currency: order.currency,
         description: order.service?.title ?? order.title ?? "Commande FreelanceHigh",
-        status: order.status === "COMPLETE" ? "payee" : "en_attente",
+        status: order.status === "TERMINE" ? "payee" : "en_attente",
         createdAt: order.createdAt.toISOString(),
         role,
       });

@@ -253,9 +253,10 @@ export async function GET(request: NextRequest) {
   // Return all top-level categories: try Prisma first, fall back to hardcoded list
   try {
     const { prisma } = await import("@/lib/prisma");
-    const rows = await prisma.category
+    type CategoryRow = { id: string; name: string; slug: string; icon: string | null; color: string | null; description: string | null; order: number; isActive: boolean; parentId: string | null; createdAt: Date };
+    const rows: CategoryRow[] = await prisma.category
       .findMany({ orderBy: { order: "asc" } })
-      .catch(() => [] as typeof rows);
+      .catch(() => [] as CategoryRow[]);
 
     if (rows.length > 0) {
       return NextResponse.json({ categories: rows.map(normalisePrismaRow) });

@@ -150,6 +150,7 @@ export interface ApiFinanceSummary {
   pending: number;
   totalEarned: number;
   commissionThisMonth: number;
+  totalSpent?: number;
 }
 
 export interface ApiStats {

@@ -62,13 +62,13 @@ export async function GET() {
     try {
       const now = new Date();
       const allBoosts = await prisma.boost.findMany({
-        include: { service: { select: { title: true, freelanceId: true } } },
+        include: { service: { select: { title: true, userId: true } } },
         orderBy: { createdAt: "desc" },
         take: 100,
       });
 
       const enrichedBoosts = allBoosts.map((b) => {
-        const isActive = b.endDate ? b.endDate > now : false;
+        const isActive = b.endedAt ? b.endedAt > now : false;
         return {
           ...b,
           serviceName: b.service?.title ?? "Service supprime",
@@ -77,7 +77,7 @@ export async function GET() {
       });
 
       const activeCount = enrichedBoosts.filter((b) => b.isActive).length;
-      const totalRevenue = allBoosts.reduce((sum, b) => sum + (b.amount ?? 0), 0);
+      const totalRevenue = allBoosts.reduce((sum, b) => sum + (b.totalCost ?? 0), 0);
 
       return NextResponse.json({
         boosts: enrichedBoosts,
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { serviceId, type, startDate, endDate, amount } = body;
+    const { serviceId, type, startDate, endDate, durationDays, costPerDay, totalCost, userId } = body;
 
     if (!serviceId) {
       return NextResponse.json({ error: "serviceId requis" }, { status: 400 });
@@ -129,10 +129,13 @@ export async function POST(request: NextRequest) {
       const boost = await prisma.boost.create({
         data: {
           serviceId,
-          type,
-          startDate: startDate ? new Date(startDate) : new Date(),
-          endDate: endDate ? new Date(endDate) : null,
-          amount: amount ?? 0,
+          userId: userId ?? "",
+          type: type ?? "FEATURED",
+          durationDays: durationDays ?? 7,
+          costPerDay: costPerDay ?? 0,
+          totalCost: totalCost ?? 0,
+          startedAt: startDate ? new Date(startDate) : new Date(),
+          endedAt: endDate ? new Date(endDate) : null,
         },
       });
       return NextResponse.json({ success: true, boost });

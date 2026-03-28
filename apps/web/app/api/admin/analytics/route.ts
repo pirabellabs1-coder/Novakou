@@ -122,7 +122,7 @@ export async function GET(request: Request) {
       const paymentMethods: Record<string, number> = {};
       for (const tx of transactions) { const m = tx.method ?? "carte_bancaire"; paymentMethods[m] = (paymentMethods[m] ?? 0) + 1; }
 
-      const trafficStats30d = trackingStore.getStats({ period: period as "7d" | "30d" | "90d" | "12m" });
+      const trafficStats30d = trackingStore.getStats({ period: (period === "12m" ? "90d" : period) as "1d" | "7d" | "30d" | "90d" });
 
       return NextResponse.json({
         revenueByCategory: Object.entries(revenueByCategory).map(([category, data]) => ({ category, revenue: Math.round(data.revenue * 100) / 100, orders: data.orders })).sort((a, b) => b.revenue - a.revenue),
@@ -334,7 +334,7 @@ export async function GET(request: Request) {
     }
 
     // ── Traffic Analytics (from tracking store, period-aware) ──
-    const trafficStatsPeriod = trackingStore.getStats({ period: period as "7d" | "30d" | "90d" | "12m" });
+    const trafficStatsPeriod = trackingStore.getStats({ period: (period === "12m" ? "90d" : period) as "1d" | "7d" | "30d" | "90d" });
 
     return NextResponse.json({
       revenueByCategory,

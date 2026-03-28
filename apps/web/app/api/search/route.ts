@@ -273,7 +273,7 @@ export async function GET(req: NextRequest) {
         status: "ACTIF",
         OR: [
           { title: { contains: q, mode: "insensitive" } },
-          { description: { contains: q, mode: "insensitive" } },
+          { descriptionText: { contains: q, mode: "insensitive" } },
         ],
       },
       include: {

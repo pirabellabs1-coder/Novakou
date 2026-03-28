@@ -72,22 +72,25 @@ export async function GET() {
           avatar: true,
           role: true,
           plan: true,
-          badges: true,
           status: true,
+          freelancerProfile: { select: { badges: true } },
         },
         take: 100,
       });
 
-      const usersWithBadges = users.map((user) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        computedBadges: [] as string[],
-        manualBadges: (user.badges ?? []) as string[],
-        allBadges: (user.badges ?? []) as string[],
-        stats: { completedOrders: 0, completionRate: 0, avgRating: 0, reviewCount: 0 },
-      }));
+      const usersWithBadges = users.map((user) => {
+        const manualBadges = (user.freelancerProfile?.badges ?? []) as string[];
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          computedBadges: [] as string[],
+          manualBadges,
+          allBadges: manualBadges,
+          stats: { completedOrders: 0, completionRate: 0, avgRating: 0, reviewCount: 0 },
+        };
+      });
 
       usersWithBadges.sort((a, b) => b.allBadges.length - a.allBadges.length);
 
@@ -153,28 +156,28 @@ export async function POST(request: NextRequest) {
     // Production: Prisma
     const { prisma } = await import("@/lib/prisma");
     try {
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
+      const profile = await prisma.freelancerProfile.findUnique({
+        where: { userId },
         select: { badges: true },
       });
 
-      if (!user) {
+      if (!profile) {
         return NextResponse.json({ error: "Profil utilisateur introuvable" }, { status: 404 });
       }
 
-      const currentBadges = (user.badges ?? []) as string[];
+      const currentBadges = (profile.badges ?? []) as string[];
 
       if (action === "add") {
         if (currentBadges.includes(badge)) {
           return NextResponse.json({ error: "Badge deja assigne" }, { status: 409 });
         }
-        await prisma.user.update({
-          where: { id: userId },
+        await prisma.freelancerProfile.update({
+          where: { userId },
           data: { badges: [...currentBadges, badge] },
         });
       } else {
-        await prisma.user.update({
-          where: { id: userId },
+        await prisma.freelancerProfile.update({
+          where: { userId },
           data: { badges: currentBadges.filter((b) => b !== badge) },
         });
       }
