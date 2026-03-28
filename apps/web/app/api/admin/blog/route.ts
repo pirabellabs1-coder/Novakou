@@ -15,10 +15,12 @@ const blogUpdateSchema = z.object({
   excerpt: z.string().max(500).optional(),
   content: z.string().optional(),
   coverImage: z.string().optional(),
+  featuredImage: z.string().optional(),
   category: z.string().optional(),
   tags: z.array(z.string()).optional(),
   status: z.enum(["brouillon", "programme", "publie"]).optional(),
   publishDate: z.string().optional(),
+  scheduledAt: z.string().optional(),
 }).strict();
 
 function generateSlug(title: string): string {

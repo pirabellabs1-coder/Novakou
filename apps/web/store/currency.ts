@@ -18,7 +18,7 @@ export function formatCurrency(amountEur: number | undefined | null, currency: C
   const cur = CURRENCIES.find((c) => c.code === currency) ?? CURRENCIES[0];
   const converted = amountEur * cur.rate;
   if (currency === "FCFA") return `${Math.round(converted).toLocaleString("fr-FR")} FCFA`;
-  return `${cur.symbol}${converted.toLocaleString("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+  return `${cur.symbol}${converted.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 interface CurrencyState {

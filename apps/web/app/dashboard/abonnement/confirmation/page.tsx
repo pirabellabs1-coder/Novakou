@@ -29,7 +29,7 @@ function ConfirmationContent() {
   const nextBillingParam = searchParams.get("nextBilling");
 
   const planName = PLAN_NAMES[planId] || "Ascension";
-  const commission = PLAN_COMMISSIONS[planId] || "15%";
+  const commission = PLAN_COMMISSIONS[planId] || "12%";
 
   // Format next billing date
   let nextBillingDate: string;

@@ -118,11 +118,14 @@ export const authOptions: NextAuthOptions = {
               const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
               const validToken2 = crypto.createHmac("sha256", secret).update(`${email}:${prev}`).digest("hex");
 
-              if (
-                !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken1)) &&
-                !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken2))
-              ) {
-                throw new Error("REQUIRES_2FA");
+              const tokenBuf = Buffer.from(twoFactorToken);
+              const valid1Buf = Buffer.from(validToken1);
+              const valid2Buf = Buffer.from(validToken2);
+              const isValid =
+                (tokenBuf.length === valid1Buf.length && crypto.timingSafeEqual(tokenBuf, valid1Buf)) ||
+                (tokenBuf.length === valid2Buf.length && crypto.timingSafeEqual(tokenBuf, valid2Buf));
+              if (!isValid) {
+                throw new Error("INVALID_2FA_TOKEN");
               }
             }
             resetAttempts(email);
@@ -137,7 +140,7 @@ export const authOptions: NextAuthOptions = {
               formationsRole: userRecord.formationsRole as string | undefined,
             };
           } catch (err) {
-            if (err instanceof Error && (err.message.includes("tentatives") || err.message.includes("desactive") || err.message === "REQUIRES_2FA")) throw err;
+            if (err instanceof Error && (err.message.includes("tentatives") || err.message.includes("desactive") || err.message === "REQUIRES_2FA" || err.message === "INVALID_2FA_TOKEN")) throw err;
             console.error("[AUTH DEV] Erreur:", err);
             return null;
           }
@@ -188,11 +191,14 @@ export const authOptions: NextAuthOptions = {
             const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
             const validToken2 = crypto.createHmac("sha256", secret).update(`${email}:${prev}`).digest("hex");
 
-            if (
-              !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken1)) &&
-              !crypto.timingSafeEqual(Buffer.from(twoFactorToken), Buffer.from(validToken2))
-            ) {
-              throw new Error("REQUIRES_2FA");
+            const tokenBuf = Buffer.from(twoFactorToken);
+            const valid1Buf = Buffer.from(validToken1);
+            const valid2Buf = Buffer.from(validToken2);
+            const isValid =
+              (tokenBuf.length === valid1Buf.length && crypto.timingSafeEqual(tokenBuf, valid1Buf)) ||
+              (tokenBuf.length === valid2Buf.length && crypto.timingSafeEqual(tokenBuf, valid2Buf));
+            if (!isValid) {
+              throw new Error("INVALID_2FA_TOKEN");
             }
           }
 
@@ -469,5 +475,5 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: getAuthSecret(),
 };

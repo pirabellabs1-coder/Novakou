@@ -160,7 +160,7 @@ export default function BoostPage() {
 
   // Only show active services for boosting
   const activeServices = useMemo(
-    () => services.filter((s) => s.status === "actif"),
+    () => (services || []).filter((s) => s.status === "actif"),
     [services]
   );
 

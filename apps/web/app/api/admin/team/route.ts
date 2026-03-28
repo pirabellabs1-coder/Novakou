@@ -194,7 +194,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Production
-    await prisma.user.update({ where: { id: memberId }, data: {} }); // Verify exists
+    const user = await prisma.user.findUnique({ where: { id: memberId } });
+    if (!user || user.role !== "ADMIN") {
+      return NextResponse.json({ error: "Membre introuvable" }, { status: 404 });
+    }
+    await prisma.user.update({ where: { id: memberId }, data: { adminRole } });
     return NextResponse.json({ success: true, message: `Role mis a jour: ${adminRole}` });
   } catch (error) {
     console.error("[API /admin/team PATCH]", error);

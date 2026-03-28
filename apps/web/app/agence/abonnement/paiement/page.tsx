@@ -110,7 +110,13 @@ function PaiementContent() {
         return;
       }
 
-      // Redirect to agence confirmation
+      // Redirect to Stripe Checkout if URL provided
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      // Fallback: redirect to agence confirmation
       const params = new URLSearchParams({
         plan: plan.id,
         billing,
@@ -125,7 +131,7 @@ function PaiementContent() {
   }, [selectedMethod, loading, plan.id, billing, price, router]);
 
   // Free plan — no payment needed
-  if (plan.id === "free") {
+  if (plan.id === "free" || plan.id === "decouverte" || plan.monthlyPrice === 0) {
     return (
       <div className="max-w-lg mx-auto text-center py-16">
         <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">

@@ -210,15 +210,15 @@ export default function ClientExplorer() {
 
   // Check if a service is favorited
   const isFavorited = (serviceId: string) => {
-    return favorites.some(f => f.id === serviceId && f.type === "service");
+    return favorites.some(f => f.targetId === serviceId && f.type === "service");
   };
 
   const isFreelanceFavorited = (vendorId: string) => {
-    return favorites.some(f => f.id === vendorId && f.type === "freelance");
+    return favorites.some(f => f.targetId === vendorId && f.type === "freelance");
   };
 
   const isAgenceFavorited = (vendorId: string) => {
-    return favorites.some(f => f.id === vendorId && f.type === "agence");
+    return favorites.some(f => f.targetId === vendorId && f.type === "agence");
   };
 
   // Get initials from name

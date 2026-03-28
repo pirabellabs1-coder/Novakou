@@ -419,7 +419,8 @@ export const useClientStore = create<ClientState>()((set, get) => ({
   syncFavorites: async () => {
     set({ loading: { ...get().loading, favorites: true } });
     try {
-      const { favorites } = await favoritesApi.list();
+      const res = await favoritesApi.list();
+      const favorites = res?.favorites || [];
       set({
         favorites: favorites.map((f) => ({
           id: f.id,

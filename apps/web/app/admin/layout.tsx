@@ -27,6 +27,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const syncDashboard = useAdminStore((s) => s.syncDashboard);
 
+  // Hooks MUST be called unconditionally (React rules of hooks)
+  useEffect(() => {
+    if (session?.user?.role === "admin") {
+      syncDashboard();
+    }
+  }, [session?.user?.role, syncDashboard]);
+
+  useEffect(() => {
+    if (session?.user?.role !== "admin") return;
+    const interval = setInterval(() => {
+      syncDashboard();
+    }, ADMIN_POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [syncDashboard, session?.user?.role]);
+
   // Client-side admin role check (defense-in-depth — middleware also enforces this server-side)
   if (status === "loading") {
     return (
@@ -54,20 +69,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     );
   }
-
-  // Initial sync on mount
-  useEffect(() => {
-    syncDashboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Poll dashboard metrics every 30s for real-time alerts
-  useEffect(() => {
-    const interval = setInterval(() => {
-      syncDashboard();
-    }, ADMIN_POLL_INTERVAL);
-    return () => clearInterval(interval);
-  }, [syncDashboard]);
 
   return (
     <div style={ADMIN_CSS_VARS} className="flex h-screen overflow-hidden bg-background-dark text-slate-100">

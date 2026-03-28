@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface AgenceHeaderProps {
@@ -9,6 +9,9 @@ interface AgenceHeaderProps {
 }
 
 export function AgenceHeader({ onMenuClick }: AgenceHeaderProps) {
+  const { data: session } = useSession();
+  const agencyName = session?.user?.name || "Mon Agence";
+  const agencyInitials = agencyName.split(" ").filter(Boolean).map(w => w[0]).join("").toUpperCase().slice(0, 2) || "AG";
   return (
     <header className="h-16 flex-shrink-0 flex items-center justify-between px-6 lg:px-8 border-b border-border-dark bg-background-dark/80 backdrop-blur-md sticky top-0 z-30">
       <div className="flex items-center gap-3 flex-1">
@@ -30,7 +33,7 @@ export function AgenceHeader({ onMenuClick }: AgenceHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <NotificationBell userId="u11" notificationsHref="/agence/parametres" />
+        <NotificationBell userId={session?.user?.id || ""} notificationsHref="/agence/parametres" />
 
         <Link href="/agence/aide" className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
           <span className="material-symbols-outlined text-xl">help</span>
@@ -50,9 +53,9 @@ export function AgenceHeader({ onMenuClick }: AgenceHeaderProps) {
         </button>
 
         <Link href="/agence/profil" className="hidden sm:flex items-center gap-3 ml-2 pl-3 border-l border-border-dark">
-          <span className="text-sm font-medium text-white">TechCorp Agency</span>
+          <span className="text-sm font-medium text-white">{agencyName}</span>
           <div className="w-9 h-9 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center overflow-hidden">
-            <span className="text-primary text-xs font-bold">TC</span>
+            <span className="text-primary text-xs font-bold">{agencyInitials}</span>
           </div>
         </Link>
       </div>

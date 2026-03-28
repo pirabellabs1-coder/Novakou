@@ -144,7 +144,7 @@ export default function CandidaturesPage() {
       const res = await fetch("/api/candidatures");
       if (res.ok) {
         const data = await res.json();
-        setCandidatures(data.candidatures);
+        setCandidatures(data.candidatures || []);
       }
     } catch (err) {
       console.error("Erreur chargement candidatures:", err);

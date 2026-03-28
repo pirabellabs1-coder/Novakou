@@ -199,6 +199,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Offre introuvable" }, { status: 404 });
     }
 
+    // Authorization: only the client (recipient) can accept/refuse
+    if (offre.clientId && offre.clientId !== userId) {
+      return NextResponse.json({ error: "Vous n'etes pas autorise a modifier cette offre" }, { status: 403 });
+    }
+
     if (action === "accept") {
       const commission = calculateCommissionEur(normalizePlanName(offre.freelance?.plan || "gratuit"), offre.amount);
 

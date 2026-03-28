@@ -178,7 +178,7 @@ export default function UserDetailPage() {
 
   async function handleResetPassword() {
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await fetch(`/api/admin/users/${id}/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: id }),

@@ -757,7 +757,7 @@ export const useDashboardStore = create<DashboardState>()(
       },
 
       // Subscription
-      currentPlan: "ascension",
+      currentPlan: "decouverte",
       changePlan: (planId) => set({ currentPlan: planId }),
 
       // Affiliation

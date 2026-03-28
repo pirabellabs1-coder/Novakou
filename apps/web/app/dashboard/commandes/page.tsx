@@ -57,7 +57,7 @@ export default function CommandesPage() {
   const [sortBy, setSortBy] = useState<"date" | "amount">("date");
 
   const filtered = useMemo(() => {
-    let result = [...orders];
+    let result = [...(orders || [])];
     if (activeTab) result = result.filter((o) => o.status === activeTab);
     if (search) {
       const q = search.toLowerCase();
@@ -71,12 +71,13 @@ export default function CommandesPage() {
     return result;
   }, [orders, activeTab, search, sortBy]);
 
+  const safeOrders = orders || [];
   const stats = useMemo(() => ({
-    total: orders.length,
-    active: orders.filter((o) => ["en_cours", "en_attente", "revision"].includes(o.status)).length,
-    completed: orders.filter((o) => o.status === "termine").length,
-    revenue: orders.filter((o) => ["termine", "livre"].includes(o.status)).reduce((s, o) => s + o.amount, 0),
-  }), [orders]);
+    total: safeOrders.length,
+    active: safeOrders.filter((o) => ["en_cours", "en_attente", "revision"].includes(o.status)).length,
+    completed: safeOrders.filter((o) => o.status === "termine").length,
+    revenue: safeOrders.filter((o) => ["termine", "livre"].includes(o.status)).reduce((s, o) => s + o.amount, 0),
+  }), [safeOrders]);
 
   const handleAccept = useCallback(async (orderId: string) => {
     const result = await apiAcceptOrder(orderId);
