@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useToastStore } from "@/store/toast";
 import { formatServiceTitle } from "@/lib/format-service-title";
+import { useCurrencyStore } from "@/store/currency";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -11,16 +13,20 @@ import { formatServiceTitle } from "@/lib/format-service-title";
 
 type MarketplaceService = {
   id: string;
+  slug: string;
   title: string;
   sellerName: string;
   sellerType: "freelance" | "agence";
   rating: number;
   reviewsCount: number;
+  orderCount: number;
   price: number;
   deliveryDays: number;
   tags: string[];
   category: string;
   categoryIcon: string;
+  image: string;
+  vendorAvatar: string;
 };
 
 type ClientOffer = {
@@ -53,11 +59,7 @@ type Agency = {
 // Demo data
 // ---------------------------------------------------------------------------
 
-const DEMO_SERVICES: MarketplaceService[] = [];
-
-const DEMO_OFFERS: ClientOffer[] = [];
-
-const DEMO_AGENCIES: Agency[] = [];
+// Data is fetched from API on mount — no more hardcoded demos
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -150,18 +152,24 @@ function ServiceCard({
 }) {
   return (
     <div className="group flex flex-col rounded-2xl bg-background-dark/50 border border-border-dark hover:border-primary/40 transition-all overflow-hidden">
-      {/* Image placeholder */}
+      {/* Image */}
       <div className="relative h-40 bg-neutral-dark flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, transparent, transparent 20px, rgb(var(--color-primary)) 20px, rgb(var(--color-primary)) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, rgb(var(--color-primary)) 20px, rgb(var(--color-primary)) 21px)",
-          }}
-        />
-        <span className="material-symbols-outlined text-primary/20 text-[56px]">
-          {service.categoryIcon}
-        </span>
+        {service.image ? (
+          <img src={service.image} alt={service.title} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+        ) : (
+          <>
+            <div
+              className="absolute inset-0 opacity-5"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(0deg, transparent, transparent 20px, rgb(var(--color-primary)) 20px, rgb(var(--color-primary)) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, rgb(var(--color-primary)) 20px, rgb(var(--color-primary)) 21px)",
+              }}
+            />
+            <span className="material-symbols-outlined text-primary/20 text-[56px]">
+              {service.categoryIcon}
+            </span>
+          </>
+        )}
         {/* Category badge */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-background-dark/80 backdrop-blur-sm px-2.5 py-1 rounded-lg">
           <span className="material-symbols-outlined text-primary text-[14px]">
@@ -186,9 +194,13 @@ function ServiceCard({
       <div className="flex flex-col flex-1 p-4">
         {/* Seller name */}
         <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-primary text-[14px]">person</span>
-          </div>
+          {service.vendorAvatar ? (
+            <img src={service.vendorAvatar} alt={service.sellerName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" loading="lazy" />
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-primary text-[14px]">person</span>
+            </div>
+          )}
           <span className="text-xs font-semibold text-slate-400 truncate">
             {service.sellerName}
           </span>
@@ -211,11 +223,17 @@ function ServiceCard({
           ))}
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-2 mb-3">
+        {/* Rating + Sales */}
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
           <StarRating rating={service.rating} size={12} />
-          <span className="text-xs font-bold text-slate-300">{service.rating}</span>
+          <span className="text-xs font-bold text-slate-300">{service.rating.toFixed(1)}</span>
           <span className="text-[11px] text-slate-500">({service.reviewsCount} avis)</span>
+          {service.orderCount > 0 && (
+            <span className="flex items-center gap-1 text-[11px] text-slate-500">
+              <span className="material-symbols-outlined text-emerald-500 text-sm">shopping_bag</span>
+              <span className="font-semibold">{service.orderCount} {service.orderCount > 1 ? "ventes" : "vente"}</span>
+            </span>
+          )}
         </div>
 
         {/* Spacer */}
@@ -236,7 +254,8 @@ function ServiceCard({
 
         {/* Actions */}
         <div className="flex gap-2">
-          <button
+          <Link
+            href={`/services/${service.slug || service.id}`}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-bold transition-all",
               "bg-primary/10 text-primary hover:bg-primary/20"
@@ -244,7 +263,7 @@ function ServiceCard({
           >
             <span className="material-symbols-outlined text-[16px]">visibility</span>
             Voir
-          </button>
+          </Link>
           <button
             onClick={() => onContact(service.sellerName)}
             className={cn(
@@ -722,13 +741,79 @@ function ApplyModal({
 // Main page
 // ---------------------------------------------------------------------------
 
+// Map API category icon
+const CATEGORY_ICON_MAP: Record<string, string> = {
+  "Developpement": "code",
+  "Développement Web": "code",
+  "Développement": "code",
+  "Design": "palette",
+  "Design UI/UX": "palette",
+  "Marketing": "campaign",
+  "Marketing Digital": "campaign",
+  "Redaction": "edit_note",
+  "Rédaction": "edit_note",
+  "Video": "videocam",
+  "Data & IA": "analytics",
+};
+
+function getCategoryIcon(categoryName: string): string {
+  for (const [key, icon] of Object.entries(CATEGORY_ICON_MAP)) {
+    if (categoryName.toLowerCase().includes(key.toLowerCase())) return icon;
+  }
+  return "category";
+}
+
 export default function ExplorerPage() {
   const addToast = useToastStore((s) => s.addToast);
+  const { format } = useCurrencyStore();
 
   // View state
   const [activeView, setActiveView] = useState<ViewTab>("services");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  // API-fetched data
+  const [apiServices, setApiServices] = useState<MarketplaceService[]>([]);
+  const [apiOffers, setApiOffers] = useState<ClientOffer[]>([]);
+  const [apiAgencies, setApiAgencies] = useState<Agency[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch services from the public API
+  const fetchServices = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/public/services?limit=50");
+      if (res.ok) {
+        const data = await res.json();
+        const services: MarketplaceService[] = (data.services || []).map((s: Record<string, unknown>) => ({
+          id: s.id as string,
+          slug: s.slug as string || "",
+          title: s.title as string || "",
+          sellerName: s.vendorName as string || "Freelance",
+          sellerType: ((s.vendorBadges as string[]) || []).includes("Agence") ? "agence" as const : "freelance" as const,
+          rating: Number(s.rating) || 0,
+          reviewsCount: Number(s.ratingCount) || 0,
+          orderCount: Number(s.orderCount) || 0,
+          price: Number(s.basePrice) || 0,
+          deliveryDays: Number(s.deliveryDays) || 0,
+          tags: (s.tags as string[]) || [],
+          category: s.category as string || "",
+          categoryIcon: getCategoryIcon(s.category as string || ""),
+          image: s.image as string || "",
+          vendorAvatar: s.vendorAvatar as string || "",
+        }));
+        setApiServices(services);
+      }
+    } catch (err) {
+      console.error("[Explorer] Failed to fetch services:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchServices();
+  }, [fetchServices]);
 
   // Modals
   const [contactModal, setContactModal] = useState<{ open: boolean; name: string }>({
@@ -745,7 +830,7 @@ export default function ExplorerPage() {
   // ---------------------------------------------------------------------------
 
   const filteredServices = useMemo(() => {
-    let result = DEMO_SERVICES;
+    let result = apiServices;
     if (selectedCategory !== "all") {
       result = result.filter((s) => s.category === selectedCategory);
     }
@@ -759,28 +844,28 @@ export default function ExplorerPage() {
       );
     }
     return result;
-  }, [search, selectedCategory]);
+  }, [search, selectedCategory, apiServices]);
 
   const filteredOffers = useMemo(() => {
-    if (!search) return DEMO_OFFERS;
+    if (!search) return apiOffers;
     const q = search.toLowerCase();
-    return DEMO_OFFERS.filter(
+    return apiOffers.filter(
       (o) =>
         o.title.toLowerCase().includes(q) ||
         o.clientName.toLowerCase().includes(q) ||
         o.skills.some((s) => s.toLowerCase().includes(q))
     );
-  }, [search]);
+  }, [search, apiOffers]);
 
   const filteredAgencies = useMemo(() => {
-    if (!search) return DEMO_AGENCIES;
+    if (!search) return apiAgencies;
     const q = search.toLowerCase();
-    return DEMO_AGENCIES.filter(
+    return apiAgencies.filter(
       (a) =>
         a.name.toLowerCase().includes(q) ||
         a.specialities.some((s) => s.toLowerCase().includes(q))
     );
-  }, [search]);
+  }, [search, apiAgencies]);
 
   // ---------------------------------------------------------------------------
   // Handlers

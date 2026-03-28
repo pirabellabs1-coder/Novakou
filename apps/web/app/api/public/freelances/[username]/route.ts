@@ -66,6 +66,7 @@ async function handleProductionMode(username: string) {
       basePrice: s.basePrice,
       rating: s.rating,
       ratingCount: s.ratingCount,
+      orderCount: s.orderCount,
       image: primaryMedia?.url || (s.images as string[])?.[0] || "",
       categoryName: s.category?.name || "",
     };
@@ -203,6 +204,7 @@ async function handleDevMode(username: string) {
       basePrice: s.basePrice,
       rating: s.rating,
       ratingCount: s.ratingCount,
+      orderCount: s.orderCount ?? 0,
       image: s.mainImage,
       categoryName: s.categoryName,
     }));

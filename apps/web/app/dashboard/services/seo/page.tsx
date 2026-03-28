@@ -81,7 +81,16 @@ function checkIcon(status: SeoCheckItem["status"]): { icon: string; color: strin
 
 export default function SeoPage() {
   const services = useDashboardStore((s) => s.services);
+  const lastSyncAt = useDashboardStore((s) => s.lastSyncAt);
+  const syncFromApi = useDashboardStore((s) => s.syncFromApi);
   const addToast = useToastStore((s) => s.addToast);
+
+  // Sync services from API on mount if not already synced
+  useEffect(() => {
+    if (!lastSyncAt) {
+      syncFromApi();
+    }
+  }, [lastSyncAt, syncFromApi]);
 
   // Service selection
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");

@@ -29,6 +29,7 @@ interface ServiceCard {
   basePrice: number;
   rating: number;
   ratingCount: number;
+  orderCount: number;
   image: string;
   categoryName: string;
 }
@@ -1293,11 +1294,17 @@ export default function FreelanceProfilePage() {
                       {formatServiceTitle(service.title)}
                     </h4>
 
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-3 flex-wrap">
                       <StarRating rating={service.rating ?? 0} />
                       <span className="text-xs text-slate-500">
                         {(service.rating ?? 0).toFixed(1)} ({service.ratingCount ?? 0} {t("reviews")})
                       </span>
+                      {(service.orderCount ?? 0) > 0 && (
+                        <span className="flex items-center gap-1 text-xs text-slate-500">
+                          <span className="material-symbols-outlined text-emerald-500 text-sm">shopping_bag</span>
+                          <span className="font-semibold">{service.orderCount} {service.orderCount > 1 ? "ventes" : "vente"}</span>
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-border-dark">

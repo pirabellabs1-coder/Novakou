@@ -65,25 +65,33 @@ export async function GET() {
         }
       }
 
-      // Freelance: use wallet model
+      // Freelance: use wallet model + Order fallback
       const wallet = await prisma.walletFreelance.findUnique({
         where: { userId },
       });
 
-      // Fallback: if no wallet yet, compute from payments
-      if (!wallet) {
-        const [completedAgg, pendingAgg] = await Promise.all([
-          prisma.payment.aggregate({ where: { payeeId: userId, status: "COMPLETE" }, _sum: { amount: true } }),
-          prisma.payment.aggregate({ where: { payeeId: userId, status: "EN_ATTENTE" }, _sum: { amount: true } }),
-        ]);
+      // Always compute from Orders as a fallback/supplement
+      const [completedOrdersAgg, pendingOrdersAgg, paymentAgg, pendingPaymentAgg] = await Promise.all([
+        prisma.order.aggregate({ where: { freelanceId: userId, status: "TERMINE" }, _sum: { freelancerPayout: true, amount: true } }),
+        prisma.order.aggregate({ where: { freelanceId: userId, status: { in: ["EN_ATTENTE", "EN_COURS", "REVISION"] } }, _sum: { amount: true } }),
+        prisma.payment.aggregate({ where: { payeeId: userId, status: "COMPLETE" }, _sum: { amount: true } }),
+        prisma.payment.aggregate({ where: { payeeId: userId, status: "EN_ATTENTE" }, _sum: { amount: true } }),
+      ]);
 
-        return NextResponse.json({
-          available: Math.round((completedAgg._sum.amount ?? 0) * 100) / 100,
-          pending: Math.round((pendingAgg._sum.amount ?? 0) * 100) / 100,
-          totalEarned: Math.round((completedAgg._sum.amount ?? 0) * 100) / 100,
-          commissionThisMonth: 0,
-        });
-      }
+      // Use whichever source has data: wallet, payments, or orders
+      const walletAvailable = wallet?.balance ?? 0;
+      const walletPending = wallet?.pending ?? 0;
+      const walletTotalEarned = wallet?.totalEarned ?? 0;
+
+      const orderTotalEarned = Math.round((completedOrdersAgg._sum.freelancerPayout ?? completedOrdersAgg._sum.amount ?? 0) * 100) / 100;
+      const orderPending = Math.round((pendingOrdersAgg._sum.amount ?? 0) * 100) / 100;
+      const paymentTotal = Math.round((paymentAgg._sum.amount ?? 0) * 100) / 100;
+      const paymentPending = Math.round((pendingPaymentAgg._sum.amount ?? 0) * 100) / 100;
+
+      // Pick the best available value (highest non-zero)
+      const available = Math.round(Math.max(walletAvailable, paymentTotal) * 100) / 100;
+      const pending = Math.round(Math.max(walletPending, orderPending, paymentPending) * 100) / 100;
+      const totalEarned = Math.round(Math.max(walletTotalEarned, orderTotalEarned, paymentTotal) * 100) / 100;
 
       // Commission this month
       const now = new Date();
@@ -94,9 +102,9 @@ export async function GET() {
       });
 
       return NextResponse.json({
-        available: Math.round((wallet.balance) * 100) / 100,
-        pending: Math.round((wallet.pending) * 100) / 100,
-        totalEarned: Math.round((wallet.totalEarned) * 100) / 100,
+        available,
+        pending,
+        totalEarned,
         commissionThisMonth: Math.round(Math.abs(commissionAgg._sum.platformFee ?? 0) * 100) / 100,
       });
     }

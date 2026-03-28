@@ -80,7 +80,27 @@ export async function GET(request: NextRequest) {
       take: section === "transactions" ? 100 : 10,
     });
 
-    return NextResponse.json({ wallet, transactions });
+    // If wallet has 0 values, supplement from Order/Payment data
+    let walletData: { id: string; balance: number; pending: number; totalEarned: number; createdAt: Date; updatedAt: Date } = wallet;
+    if (wallet.balance === 0 && wallet.pending === 0 && wallet.totalEarned === 0) {
+      const [completedOrdersAgg, pendingOrdersAgg, paymentAgg] = await Promise.all([
+        prisma.order.aggregate({ where: { freelanceId: userId, status: "TERMINE" }, _sum: { freelancerPayout: true, amount: true } }),
+        prisma.order.aggregate({ where: { freelanceId: userId, status: { in: ["EN_ATTENTE", "EN_COURS", "REVISION"] } }, _sum: { amount: true } }),
+        prisma.payment.aggregate({ where: { payeeId: userId, status: "COMPLETE" }, _sum: { amount: true } }),
+      ]);
+      const orderEarned = Math.round((completedOrdersAgg._sum.freelancerPayout ?? completedOrdersAgg._sum.amount ?? 0) * 100) / 100;
+      const orderPending = Math.round((pendingOrdersAgg._sum.amount ?? 0) * 100) / 100;
+      const paymentEarned = Math.round((paymentAgg._sum.amount ?? 0) * 100) / 100;
+      const totalEarned = Math.max(orderEarned, paymentEarned);
+      walletData = {
+        ...wallet,
+        balance: totalEarned,
+        pending: orderPending,
+        totalEarned,
+      };
+    }
+
+    return NextResponse.json({ wallet: walletData, transactions });
   } catch (error) {
     console.error("[API /wallet GET]", error);
     return NextResponse.json({ error: "Erreur lors de la recuperation du wallet" }, { status: 500 });

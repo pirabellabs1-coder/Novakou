@@ -155,8 +155,15 @@ function tierBadgeClass(tier: BoostTier): string {
 // ============================================================
 
 export default function BoostPage() {
-  const { services } = useDashboardStore();
+  const { services, syncFromApi, lastSyncAt } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
+
+  // Sync services from API on mount if not already synced
+  useEffect(() => {
+    if (!lastSyncAt) {
+      syncFromApi();
+    }
+  }, [lastSyncAt, syncFromApi]);
 
   // Only show active services for boosting
   const activeServices = useMemo(
