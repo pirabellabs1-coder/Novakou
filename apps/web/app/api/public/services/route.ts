@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(50, Number(searchParams.get("limit")) || 12);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { status: "ACTIF" };
+    const where: any = { status: { in: ["ACTIF", "VEDETTE"] } };
 
     if (q) {
       where.OR = [
@@ -95,6 +95,7 @@ export async function GET(req: NextRequest) {
         vendorCountry: s.user?.country || "",
         vendorBadges: buildBadges(s.user, s.agency),
         isBoosted: s.isBoosted,
+        isVedette: s.status === "VEDETTE",
         tags: s.tags || [],
       })),
       total,

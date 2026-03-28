@@ -46,12 +46,12 @@ export async function PATCH(
           return NextResponse.json({ success: true, message: `Service "${service.title}" refuse` });
         }
         case "feature": {
-          serviceStore.update(id, { status: "actif" as typeof service.status, isBoosted: true });
+          serviceStore.update(id, { status: "vedette" as typeof service.status, isBoosted: true });
           emitEvent("service.approved", { serviceId: id, serviceTitle: service.title, userId: service.userId, userName, userEmail }).catch(() => {});
           return NextResponse.json({ success: true, message: `Service "${service.title}" mis en vedette` });
         }
         case "unfeature": {
-          serviceStore.update(id, { status: "actif", isBoosted: false });
+          serviceStore.update(id, { status: "actif" as typeof service.status, isBoosted: false });
           return NextResponse.json({ success: true, message: `Service "${service.title}" retire de la vedette` });
         }
         case "pause": {

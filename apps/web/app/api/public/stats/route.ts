@@ -67,7 +67,7 @@ export async function GET() {
       prisma.user.count({ where: { role: "CLIENT", status: "ACTIF" } }),
       prisma.user.count({ where: { role: "AGENCE", status: "ACTIF" } }),
       prisma.user.count(),
-      prisma.service.count({ where: { status: "ACTIF" } }),
+      prisma.service.count({ where: { status: { in: ["ACTIF", "VEDETTE"] } } }),
       prisma.order.count({ where: { status: "TERMINE" } }),
       prisma.order.count(),
       prisma.payment.aggregate({

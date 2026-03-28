@@ -30,6 +30,7 @@ interface MarketplaceService {
   vendorCountry: string;
   vendorBadges: string[];
   isBoosted: boolean;
+  isVedette?: boolean;
   tags: string[];
   favorited?: boolean;
 }
@@ -280,13 +281,19 @@ function ServiceCard({
               <span className="material-symbols-outlined text-white/80 text-5xl">{catIcon}</span>
             </div>
           )}
-          {service.isBoosted && (
+          {service.isVedette && (
+            <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600/90 text-white backdrop-blur-sm">
+              <span className="material-symbols-outlined text-xs">star</span>
+              En vedette
+            </span>
+          )}
+          {!service.isVedette && service.isBoosted && (
             <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/90 text-white backdrop-blur-sm">
               <span className="material-symbols-outlined text-xs">bolt</span>
               Sponsorise
             </span>
           )}
-          <div className={cn("absolute top-2 left-2", service.isBoosted && "top-9")}>
+          <div className={cn("absolute top-2 left-2", (service.isVedette || service.isBoosted) && "top-9")}>
             <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-md">
               {service.category}
             </span>
@@ -366,13 +373,19 @@ function ServiceCard({
             <span className="material-symbols-outlined text-white/80 text-6xl">{catIcon}</span>
           </div>
         )}
-        {service.isBoosted && (
+        {service.isVedette && (
+          <span className="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600/90 text-white backdrop-blur-sm">
+            <span className="material-symbols-outlined text-xs">star</span>
+            En vedette
+          </span>
+        )}
+        {!service.isVedette && service.isBoosted && (
           <span className="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/90 text-white backdrop-blur-sm">
             <span className="material-symbols-outlined text-xs">bolt</span>
             Sponsorise
           </span>
         )}
-        <div className={cn("absolute top-2.5 left-2.5", service.isBoosted && "top-9")}>
+        <div className={cn("absolute top-2.5 left-2.5", (service.isVedette || service.isBoosted) && "top-9")}>
           <span className="bg-black/50 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-md">
             {service.category}
           </span>

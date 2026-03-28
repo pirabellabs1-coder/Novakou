@@ -53,7 +53,7 @@ async function handleProductionMode(username: string) {
 
   // Get active services
   const services = await prisma.service.findMany({
-    where: { userId: user.id, status: "ACTIF" },
+    where: { userId: user.id, status: { in: ["ACTIF", "VEDETTE"] } },
     include: { media: true, category: true },
   });
 

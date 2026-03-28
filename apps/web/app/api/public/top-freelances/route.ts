@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
       where: { role: { in: ["FREELANCE", "AGENCE"] }, status: "ACTIF" },
       include: {
         freelancerProfile: true,
-        services: { where: { status: "ACTIF" } },
+        services: { where: { status: { in: ["ACTIF", "VEDETTE"] } } },
         reviewsReceived: true,
         ordersAsFreelance: {
           where: { status: "TERMINE" },

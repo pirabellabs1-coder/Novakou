@@ -244,8 +244,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ tags: category?.tags || [] });
   }
 
-  // Get subcategories for a parent (hardcoded list only — subcategories not in DB yet)
+  // Get subcategories for a parent — try Prisma first, fallback to hardcoded
   if (parentId) {
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const subs = await prisma.category.findMany({
+        where: { parentId, isActive: true },
+        orderBy: { order: "asc" },
+        select: { id: true, name: true, slug: true, icon: true },
+      });
+      if (subs.length > 0) {
+        return NextResponse.json({ subcategories: subs });
+      }
+    } catch {}
+    // Fallback to hardcoded
     const parent = CATEGORIES.find((c) => c.id === parentId);
     return NextResponse.json({ subcategories: parent?.children || [] });
   }

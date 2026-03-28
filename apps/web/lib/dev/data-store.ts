@@ -58,7 +58,7 @@ export interface StoredService {
   images: string[];
   mainImage: string;
   videoUrl: string;
-  status: "brouillon" | "en_attente" | "actif" | "pause" | "refuse";
+  status: "brouillon" | "en_attente" | "actif" | "vedette" | "pause" | "refuse";
   refuseReason?: string;
   views: number;
   clicks: number;
@@ -702,7 +702,7 @@ export const serviceStore = {
   },
 
   getFeedServices(): StoredService[] {
-    return this.getAll().filter((s) => s.status === "actif");
+    return this.getAll().filter((s) => s.status === "actif" || s.status === "vedette");
   },
 
   getById(id: string): StoredService | null {

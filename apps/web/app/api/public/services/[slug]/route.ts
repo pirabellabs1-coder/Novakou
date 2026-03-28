@@ -20,7 +20,7 @@ async function handleProductionMode(slug: string) {
   const service = await prisma.service.findFirst({
     where: {
       OR: [{ slug }, { id: slug }],
-      status: "ACTIF",
+      status: { in: ["ACTIF", "VEDETTE"] },
     },
     include: {
       media: { orderBy: { sortOrder: "asc" } },
@@ -62,14 +62,14 @@ async function handleProductionMode(slug: string) {
 
   // Other services by same vendor
   const otherServices = await prisma.service.findMany({
-    where: { userId: service.userId, id: { not: service.id }, status: "ACTIF" },
+    where: { userId: service.userId, id: { not: service.id }, status: { in: ["ACTIF", "VEDETTE"] } },
     include: { media: true },
     take: 4,
   });
 
   // Similar services in same category
   const similarServices = await prisma.service.findMany({
-    where: { categoryId: service.categoryId, id: { not: service.id }, status: "ACTIF" },
+    where: { categoryId: service.categoryId, id: { not: service.id }, status: { in: ["ACTIF", "VEDETTE"] } },
     include: { media: true, user: { select: { name: true } } },
     take: 4,
   });

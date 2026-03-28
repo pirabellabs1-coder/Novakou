@@ -100,7 +100,7 @@ export async function GET(
 
     // Services
     const services = await prisma.service.findMany({
-      where: { agencyId: agencyProfile.id, status: "ACTIF" },
+      where: { agencyId: agencyProfile.id, status: { in: ["ACTIF", "VEDETTE"] } },
       take: 6,
       orderBy: { orderCount: "desc" },
       include: {

@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get("limit") || "6", 10), 20);
 
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {
-      const allServices = serviceStore.getAll().filter((s) => s.status === "actif");
+      const allServices = serviceStore.getAll().filter((s) => s.status === "actif" || s.status === "vedette");
       const allReviews = reviewStore.getAll();
 
       const scored = allServices.map((s) => {
@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
           service: s,
           reviewCount,
           score:
+            (s.status === "vedette" ? 0.2 : 0) +
             (s.rating / 5) * 0.35 +
             Math.min(s.orderCount / 100, 1) * 0.25 +
             Math.min(reviewCount / 50, 1) * 0.2 +
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     }
 
     const services = await prisma.service.findMany({
-      where: { status: "ACTIF" },
+      where: { status: { in: ["ACTIF", "VEDETTE"] } },
       orderBy: [{ isBoosted: "desc" }, { rating: "desc" }, { orderCount: "desc" }],
       take: limit * 2, // Fetch extra to score and pick top
       include: {
@@ -59,10 +60,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Score: weighted combination of rating, order count, review count, views, boost
+    // Score: weighted combination of rating, order count, review count, views, boost, vedette
     const scored = services.map((s) => ({
       service: s,
       score:
+        (s.status === "VEDETTE" ? 0.2 : 0) +
         (s.rating / 5) * 0.35 +
         Math.min(s.orderCount / 100, 1) * 0.25 +
         Math.min((s._count.reviews || s.ratingCount) / 50, 1) * 0.2 +
