@@ -11,6 +11,11 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get("sort") || "recent";
     const page = Math.max(1, Number(searchParams.get("page")) || 1);
     const limit = Math.min(50, Number(searchParams.get("limit")) || 12);
+    const q = searchParams.get("q")?.toLowerCase() || "";
+    const budgetMin = Number(searchParams.get("budgetMin")) || 0;
+    const budgetMax = Number(searchParams.get("budgetMax")) || 0;
+    const deadline = searchParams.get("deadline") || "";
+    const contractType = searchParams.get("contractType") || "";
 
     // Dev mode local only
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {
@@ -21,6 +26,19 @@ export async function GET(req: NextRequest) {
           (p) => p.category.toLowerCase() === category.toLowerCase()
         );
       if (urgency) projects = projects.filter((p) => p.urgency === urgency);
+      if (q) {
+        projects = projects.filter(
+          (p) =>
+            p.title.toLowerCase().includes(q) ||
+            p.description.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q) ||
+            (p.skills || []).some((s: string) => s.toLowerCase().includes(q))
+        );
+      }
+      if (budgetMin > 0) projects = projects.filter((p) => p.budgetMax >= budgetMin);
+      if (budgetMax > 0) projects = projects.filter((p) => p.budgetMin <= budgetMax);
+      if (deadline) projects = projects.filter((p) => new Date(p.deadline) <= new Date(deadline));
+      if (contractType && contractType !== "tous") projects = projects.filter((p) => p.contractType === contractType);
 
       switch (sort) {
         case "budget_asc":
@@ -59,6 +77,17 @@ export async function GET(req: NextRequest) {
     const where: any = { status: "ouvert" };
     if (category) where.category = category;
     if (urgency) where.urgency = urgency;
+    if (contractType && contractType !== "tous") where.contractType = contractType;
+    if (budgetMin > 0) where.budgetMax = { ...where.budgetMax, gte: budgetMin };
+    if (budgetMax > 0) where.budgetMin = { ...where.budgetMin, lte: budgetMax };
+    if (deadline) where.deadline = { lte: new Date(deadline) };
+    if (q) {
+      where.OR = [
+        { title: { contains: q, mode: "insensitive" } },
+        { description: { contains: q, mode: "insensitive" } },
+        { skills: { hasSome: [q] } },
+      ];
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let orderBy: any = { createdAt: "desc" };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { useCurrencyStore } from "@/store/currency";
@@ -1151,7 +1151,7 @@ export default function OffresProjectsPage() {
     setCurrentPage(1);
   }, []);
 
-  // Fetch projects from API
+  // Fetch projects from API — all filters sent server-side
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -1161,10 +1161,16 @@ export default function OffresProjectsPage() {
     if (categoryApiValue) {
       params.set("category", categoryApiValue);
     }
-    // Map urgency filter to API param
     if (urgency !== "toutes") {
       params.set("urgency", urgency);
     }
+    if (search.trim()) {
+      params.set("q", search.trim());
+    }
+    if (budgetMin) params.set("budgetMin", budgetMin);
+    if (budgetMax) params.set("budgetMax", budgetMax);
+    if (deadline) params.set("deadline", deadline);
+    if (contractType !== "tous") params.set("contractType", contractType);
     params.set("sort", sort);
     params.set("page", currentPage.toString());
     params.set("limit", ITEMS_PER_PAGE.toString());
@@ -1183,60 +1189,15 @@ export default function OffresProjectsPage() {
         setTotalPagesFromApi(1);
         setLoading(false);
       });
-  }, [category, urgency, sort, currentPage]);
+  }, [category, urgency, search, budgetMin, budgetMax, deadline, contractType, sort, currentPage]);
 
-  // Apply client-side filters that the API doesn't handle
-  const filteredProjects = useMemo(() => {
-    let result = [...projects];
+  // Projects are already filtered by the API — no client-side filter needed
+  const filteredProjects = projects;
 
-    // Search (client-side because the API doesn't support text search)
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.skills.some((s) => s.toLowerCase().includes(q)) ||
-          p.clientName.toLowerCase().includes(q)
-      );
-    }
-
-    // Budget min (client-side)
-    if (budgetMin) {
-      const min = parseFloat(budgetMin);
-      if (!isNaN(min)) {
-        result = result.filter((p) => p.budgetMax >= min);
-      }
-    }
-
-    // Budget max (client-side)
-    if (budgetMax) {
-      const max = parseFloat(budgetMax);
-      if (!isNaN(max)) {
-        result = result.filter((p) => p.budgetMin <= max);
-      }
-    }
-
-    // Deadline (client-side)
-    if (deadline) {
-      result = result.filter(
-        (p) => new Date(p.deadline) <= new Date(deadline)
-      );
-    }
-
-    // Contract type (client-side)
-    if (contractType !== "tous") {
-      result = result.filter((p) => p.contractType === contractType);
-    }
-
-    return result;
-  }, [projects, search, budgetMin, budgetMax, deadline, contractType]);
-
-  // Reset page when server-side filters change
+  // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [category, urgency, sort]);
+  }, [category, urgency, search, budgetMin, budgetMax, deadline, contractType, sort]);
 
   const handleSelectProject = useCallback((project: Project) => {
     setSelectedProject(project);
@@ -1246,10 +1207,8 @@ export default function OffresProjectsPage() {
     setSelectedProject(null);
   }, []);
 
-  // Determine what total to show (API total vs filtered count)
-  const displayTotal = hasFilters && (search || budgetMin || budgetMax || deadline || contractType !== "tous")
-    ? filteredProjects.length
-    : totalFromApi;
+  // Total is always from the API since all filtering is server-side
+  const displayTotal = totalFromApi;
 
   const sidebarContent = (
     <FilterSidebar
