@@ -68,7 +68,6 @@ const SECTIONS: NavSection[] = [
     items: [
       { label: "Finances", href: "/dashboard/finances", icon: "payments" },
       { label: "Factures", href: "/dashboard/factures", icon: "receipt_long" },
-      { label: "Paiements", href: "/dashboard/paiements", icon: "account_balance_wallet" },
       { label: "Escrow", href: "/dashboard/escrow", icon: "lock" },
     ],
   },

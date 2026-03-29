@@ -31,6 +31,33 @@ const WITHDRAWAL_METHODS = [
   { id: "wise", label: "Wise", icon: "language" },
 ];
 
+interface PaymentMethod {
+  id: string;
+  type: "visa" | "orange_money" | "paypal" | "sepa" | "wave" | "mtn_momo";
+  label: string;
+  detail: string;
+  icon: string;
+  isDefault: boolean;
+}
+
+const ADD_METHOD_OPTIONS = [
+  { id: "carte", label: "Carte bancaire", icon: "credit_card", description: "Visa, Mastercard" },
+  { id: "orange", label: "Orange Money", icon: "phone_android", description: "Afrique francophone" },
+  { id: "wave", label: "Wave", icon: "waves", description: "Senegal, Cote d'Ivoire" },
+  { id: "mtn", label: "MTN MoMo", icon: "phone_android", description: "Mobile Money MTN" },
+  { id: "paypal", label: "PayPal", icon: "account_balance", description: "International" },
+  { id: "sepa", label: "Virement SEPA", icon: "account_balance", description: "Europe" },
+];
+
+const METHOD_TYPE_ICONS: Record<string, string> = {
+  visa: "credit_card",
+  orange_money: "phone_android",
+  paypal: "account_balance",
+  sepa: "account_balance",
+  wave: "waves",
+  mtn_momo: "phone_android",
+};
+
 export default function FinancesPage() {
   const { transactions, addTransaction, apiRequestWithdrawal, stats: apiStats, syncStats, wallet, walletTransactions, syncWallet } = useDashboardStore();
   const [loading, setLoading] = useState(true);
@@ -69,6 +96,13 @@ export default function FinancesPage() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawMethod, setWithdrawMethod] = useState("sepa");
   const [withdrawing, setWithdrawing] = useState(false);
+
+  // Payment methods state
+  const [methods, setMethods] = useState<PaymentMethod[]>([
+    { id: "pm-1", type: "orange_money", label: "Orange Money", detail: "+221 77 123 4567", icon: "phone_android", isDefault: true },
+    { id: "pm-2", type: "sepa", label: "Virement SEPA", detail: "FR76 •••• 4242", icon: "account_balance", isDefault: false },
+  ]);
+  const [showAddMethod, setShowAddMethod] = useState(false);
 
   const balances = useMemo(() => {
     // Prefer wallet data (from /api/wallet) if available
@@ -146,6 +180,38 @@ export default function FinancesPage() {
     a.click();
     URL.revokeObjectURL(url);
     addToast("success", "Export CSV téléchargé !");
+  }
+
+  function handleSetDefault(id: string) {
+    setMethods((prev) => prev.map((m) => ({ ...m, isDefault: m.id === id })));
+    const method = methods.find((m) => m.id === id);
+    addToast("success", `${method?.label} definie comme methode par defaut`);
+  }
+
+  function handleRemoveMethod(id: string) {
+    const method = methods.find((m) => m.id === id);
+    if (method?.isDefault) {
+      addToast("error", "Impossible de supprimer la methode par defaut");
+      return;
+    }
+    setMethods((prev) => prev.filter((m) => m.id !== id));
+    addToast("success", `${method?.label} supprimee`);
+  }
+
+  function handleAddMethod(type: string) {
+    const option = ADD_METHOD_OPTIONS.find((o) => o.id === type);
+    if (!option) return;
+    const newMethod: PaymentMethod = {
+      id: "pm-" + Date.now(),
+      type: type as PaymentMethod["type"],
+      label: option.label,
+      detail: "Configuration en attente...",
+      icon: option.icon,
+      isDefault: false,
+    };
+    setMethods((prev) => [...prev, newMethod]);
+    setShowAddMethod(false);
+    addToast("success", `${option.label} ajoutee avec succes`);
   }
 
   if (error) {
@@ -263,6 +329,101 @@ export default function FinancesPage() {
               className="px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-slate-200 transition-colors">
               Annuler
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Methods */}
+      <div className="bg-background-dark/50 border border-border-dark rounded-xl shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b border-border-dark flex justify-between items-center">
+          <h3 className="font-bold text-lg flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-lg">credit_card</span>
+            Methodes de paiement
+          </h3>
+          <button
+            onClick={() => setShowAddMethod(true)}
+            className="flex items-center gap-2 px-4 py-2 border border-border-dark rounded-lg text-sm font-semibold text-slate-300 hover:border-primary/50 transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">add</span>
+            Ajouter
+          </button>
+        </div>
+        <div className="divide-y divide-border-dark">
+          {methods.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-2xl text-slate-400">credit_card_off</span>
+              </div>
+              <p className="font-semibold text-sm">Aucune methode de paiement</p>
+              <p className="text-xs text-slate-500 mt-1">Ajoutez une methode pour effectuer des retraits.</p>
+            </div>
+          ) : (
+            methods.map((method) => (
+              <div key={method.id} className="flex items-center gap-4 px-4 sm:px-6 py-4 hover:bg-primary/5 transition-colors">
+                <div className={cn(
+                  "w-12 h-12 rounded-xl flex items-center justify-center",
+                  method.type === "visa" ? "bg-blue-500/10 text-blue-400" :
+                  method.type === "orange_money" ? "bg-orange-500/10 text-orange-400" :
+                  method.type === "paypal" ? "bg-indigo-500/10 text-indigo-400" :
+                  method.type === "sepa" ? "bg-emerald-500/10 text-emerald-400" :
+                  method.type === "wave" ? "bg-cyan-500/10 text-cyan-400" :
+                  "bg-amber-500/10 text-amber-400"
+                )}>
+                  <span className="material-symbols-outlined text-xl">{METHOD_TYPE_ICONS[method.type] ?? method.icon}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm">{method.label}</p>
+                    {method.isDefault && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wide">
+                        Par defaut
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5 font-mono">{method.detail}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {!method.isDefault && (
+                    <button onClick={() => handleSetDefault(method.id)} title="Definir par defaut"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors">
+                      <span className="material-symbols-outlined text-lg">star</span>
+                    </button>
+                  )}
+                  <button onClick={() => handleRemoveMethod(method.id)} title="Supprimer"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                    <span className="material-symbols-outlined text-lg">delete</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Add Method Modal */}
+      {showAddMethod && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAddMethod(false)} />
+          <div className="relative bg-background-dark border border-border-dark rounded-2xl p-6 max-w-md w-full shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold">Ajouter une methode de paiement</h3>
+              <button onClick={() => setShowAddMethod(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-primary/10 transition-colors">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {ADD_METHOD_OPTIONS.map((option) => (
+                <button key={option.id} onClick={() => handleAddMethod(option.id)}
+                  className="flex flex-col items-center gap-2 p-4 rounded-xl border border-border-dark hover:border-primary hover:bg-primary/5 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors">
+                    <span className="material-symbols-outlined text-xl">{option.icon}</span>
+                  </div>
+                  <span className="text-sm font-bold">{option.label}</span>
+                  <span className="text-[10px] text-slate-500">{option.description}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
