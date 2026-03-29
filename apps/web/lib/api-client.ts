@@ -1046,6 +1046,8 @@ export function mapApiOrderToLocal(o: ApiOrder): Order {
     freelanceName: o.freelanceName || "Freelance",
     status: (o.status || "en_attente").toLowerCase() as Order["status"],
     amount: o.amount,
+    platformFee: o.platformFee ?? Math.round(o.amount * 0.2 * 100) / 100,
+    freelancerPayout: o.freelancerPayout ?? Math.round(o.amount * 0.8 * 100) / 100,
     createdAt: (o.createdAt || new Date().toISOString()).slice(0, 10),
     deadline: (o.deadline || new Date().toISOString()).slice(0, 10),
     deliveredAt: o.deliveredAt,

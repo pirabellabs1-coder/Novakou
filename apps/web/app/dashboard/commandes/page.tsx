@@ -76,7 +76,7 @@ export default function CommandesPage() {
     total: safeOrders.length,
     active: safeOrders.filter((o) => ["en_cours", "en_attente", "revision"].includes(o.status)).length,
     completed: safeOrders.filter((o) => o.status === "termine").length,
-    revenue: safeOrders.filter((o) => ["termine", "livre"].includes(o.status)).reduce((s, o) => s + o.amount, 0),
+    revenue: safeOrders.filter((o) => ["termine", "livre"].includes(o.status)).reduce((s, o) => s + (o.freelancerPayout ?? o.amount * 0.8), 0),
   }), [safeOrders]);
 
   const handleAccept = useCallback(async (orderId: string) => {
@@ -212,8 +212,11 @@ export default function CommandesPage() {
                     </div>
                   )}
 
-                  {/* Amount */}
-                  <p className="text-sm font-bold">€{(order.amount ?? 0).toLocaleString("fr-FR")}</p>
+                  {/* Amount (net freelancer payout) */}
+                  <div className="text-right">
+                    <p className="text-sm font-bold">€{(order.freelancerPayout ?? order.amount * 0.8).toLocaleString("fr-FR")}</p>
+                    <p className="text-[10px] text-slate-500">sur €{(order.amount ?? 0).toLocaleString("fr-FR")}</p>
+                  </div>
 
                   {/* Status */}
                   <span className={cn("inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold border", sc?.color || "bg-slate-500/10 text-slate-400 border-slate-500/20")}>

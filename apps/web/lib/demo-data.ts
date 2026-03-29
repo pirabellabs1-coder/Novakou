@@ -46,6 +46,8 @@ export interface Order {
   freelanceName?: string;
   status: "en_attente" | "en_cours" | "livre" | "revision" | "termine" | "annule" | "litige";
   amount: number;
+  platformFee: number;
+  freelancerPayout: number;
   createdAt: string;
   deadline: string;
   deliveredAt: string | null;

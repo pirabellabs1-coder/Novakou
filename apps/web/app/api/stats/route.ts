@@ -87,14 +87,14 @@ export async function GET() {
       }
     } catch { /* WalletFreelance may not exist yet */ }
 
-    const paymentEarned = Math.round((earned._sum.amount ?? 0) * 100) / 100;
-    const paymentPending = Math.round((pending._sum.amount ?? 0) * 100) / 100;
+    // Use wallet as primary source of truth; fallback to orders only if wallet is empty
     const orderEarned = Math.round((completedOrdersAgg._sum.freelancerPayout ?? completedOrdersAgg._sum.amount ?? 0) * 100) / 100;
     const orderPending = Math.round((pendingOrdersAgg._sum.amount ?? 0) * 100) / 100;
 
-    const summaryAvailable = Math.round(Math.max(walletData.balance, paymentEarned, orderEarned) * 100) / 100;
-    const summaryPending = Math.round(Math.max(walletData.pending, paymentPending, orderPending) * 100) / 100;
-    const summaryTotalEarned = Math.round(Math.max(walletData.totalEarned, paymentEarned, orderEarned) * 100) / 100;
+    const hasWallet = walletData.balance > 0 || walletData.pending > 0 || walletData.totalEarned > 0;
+    const summaryAvailable = Math.round((hasWallet ? walletData.balance : orderEarned) * 100) / 100;
+    const summaryPending = Math.round((hasWallet ? walletData.pending : orderPending) * 100) / 100;
+    const summaryTotalEarned = Math.round((hasWallet ? walletData.totalEarned : orderEarned) * 100) / 100;
 
     const currentMonth = monthlyRevenue[monthlyRevenue.length - 1]?.revenue ?? 0;
     const previousMonth = monthlyRevenue[monthlyRevenue.length - 2]?.revenue ?? 0;

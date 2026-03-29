@@ -15,6 +15,8 @@ interface Invoice {
   client: string;
   description: string;
   amount: number;
+  platformFee: number;
+  freelancerPayout: number;
   status: "payee" | "en_attente" | "en_retard";
 }
 
@@ -56,6 +58,8 @@ export default function FacturesPage() {
         client: o.clientName,
         description: o.serviceTitle,
         amount: o.amount,
+        platformFee: o.platformFee ?? Math.round(o.amount * 0.2 * 100) / 100,
+        freelancerPayout: o.freelancerPayout ?? Math.round(o.amount * 0.8 * 100) / 100,
         status: (o.status === "termine" ? "payee" : "en_attente") as Invoice["status"],
       }));
   }, [orders]);
@@ -96,9 +100,9 @@ export default function FacturesPage() {
   // Stats
   const stats = useMemo(() => {
     const total = invoices.length;
-    const totalAmount = invoices.reduce((s, inv) => s + inv.amount, 0);
+    const totalAmount = invoices.reduce((s, inv) => s + inv.freelancerPayout, 0);
     const pendingAmount = invoices.filter((inv) => inv.status === "en_attente" || inv.status === "en_retard")
-      .reduce((s, inv) => s + inv.amount, 0);
+      .reduce((s, inv) => s + inv.freelancerPayout, 0);
     return { total, totalAmount, pendingAmount };
   }, [invoices]);
 
@@ -144,13 +148,13 @@ export default function FacturesPage() {
 
         <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-xl p-6">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Montant total</p>
+            <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Gains nets</p>
             <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
               <span className="material-symbols-outlined text-lg">payments</span>
             </div>
           </div>
           <AnimatedCounter value={stats.totalAmount} prefix="€" className="text-3xl font-extrabold block" />
-          <p className="text-xs text-slate-500 mt-1">Toutes factures confondues</p>
+          <p className="text-xs text-slate-500 mt-1">Apres commission plateforme</p>
         </div>
 
         <div className="bg-white dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-xl p-6">
@@ -253,8 +257,9 @@ export default function FacturesPage() {
                     <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300 max-w-[200px] truncate">
                       {invoice.description}
                     </td>
-                    <td className="px-6 py-4 text-sm font-bold">
-                      €{(invoice.amount ?? 0).toLocaleString("fr-FR")}
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-bold">€{(invoice.freelancerPayout ?? 0).toLocaleString("fr-FR")}</p>
+                      <p className="text-[10px] text-slate-500">sur €{(invoice.amount ?? 0).toLocaleString("fr-FR")}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className={cn("inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold", s?.color)}>
@@ -327,16 +332,16 @@ export default function FacturesPage() {
                 <span className="text-sm font-semibold">{detailInvoice.description}</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-border-dark">
-                <span className="text-sm text-slate-500">Montant HT</span>
-                <span className="text-sm font-semibold">€{(detailInvoice.amount * 0.8).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
+                <span className="text-sm text-slate-500">Montant client</span>
+                <span className="text-sm font-semibold">€{(detailInvoice.amount ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-border-dark">
-                <span className="text-sm text-slate-500">TVA (20%)</span>
-                <span className="text-sm font-semibold">€{(detailInvoice.amount * 0.2).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
+                <span className="text-sm text-slate-500">Commission FreelanceHigh</span>
+                <span className="text-sm font-semibold text-red-400">-€{(detailInvoice.platformFee ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-border-dark">
-                <span className="text-sm text-slate-500">Montant TTC</span>
-                <span className="text-lg font-extrabold text-primary">€{(detailInvoice.amount ?? 0).toLocaleString("fr-FR")}</span>
+                <span className="text-sm text-slate-500">Votre gain net</span>
+                <span className="text-lg font-extrabold text-primary">€{(detailInvoice.freelancerPayout ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center py-3">
                 <span className="text-sm text-slate-500">Statut</span>

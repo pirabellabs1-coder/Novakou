@@ -102,20 +102,18 @@ export async function GET() {
         prisma.payment.aggregate({ where: { payeeId: userId, status: "EN_ATTENTE" }, _sum: { amount: true } }),
       ]);
 
-      // Use whichever source has data: wallet, payments, or orders
+      // Wallet is the primary source of truth; fallback to orders only if wallet is empty
       const walletAvailable = wallet?.balance ?? 0;
       const walletPending = wallet?.pending ?? 0;
       const walletTotalEarned = wallet?.totalEarned ?? 0;
 
       const orderTotalEarned = Math.round((completedOrdersAgg._sum.freelancerPayout ?? completedOrdersAgg._sum.amount ?? 0) * 100) / 100;
       const orderPending = Math.round((pendingOrdersAgg._sum.amount ?? 0) * 100) / 100;
-      const paymentTotal = Math.round((paymentAgg._sum.amount ?? 0) * 100) / 100;
-      const paymentPending = Math.round((pendingPaymentAgg._sum.amount ?? 0) * 100) / 100;
 
-      // Pick the best available value (highest non-zero)
-      const available = Math.round(Math.max(walletAvailable, paymentTotal) * 100) / 100;
-      const pending = Math.round(Math.max(walletPending, orderPending, paymentPending) * 100) / 100;
-      const totalEarned = Math.round(Math.max(walletTotalEarned, orderTotalEarned, paymentTotal) * 100) / 100;
+      const hasWallet = walletAvailable > 0 || walletPending > 0 || walletTotalEarned > 0;
+      const available = Math.round((hasWallet ? walletAvailable : orderTotalEarned) * 100) / 100;
+      const pending = Math.round((hasWallet ? walletPending : orderPending) * 100) / 100;
+      const totalEarned = Math.round((hasWallet ? walletTotalEarned : orderTotalEarned) * 100) / 100;
 
       // Commission this month
       const now = new Date();

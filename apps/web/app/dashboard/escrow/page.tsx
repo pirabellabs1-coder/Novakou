@@ -107,10 +107,11 @@ export default function EscrowPage() {
     let released = 0;
     let inDispute = 0;
     for (const o of allOrders) {
-      const amt = o.amount ?? 0;
-      if (["en_attente", "en_cours"].includes(o.status)) inEscrow += amt;
-      else if (o.status === "termine") released += amt;
-      else if (o.status === "litige") inDispute += amt;
+      const gross = o.amount ?? 0;
+      const net = o.freelancerPayout ?? gross * 0.8;
+      if (["en_attente", "en_cours"].includes(o.status)) inEscrow += gross;
+      else if (o.status === "termine") released += net;
+      else if (o.status === "litige") inDispute += gross;
     }
     return { inEscrow, released, inDispute, total: inEscrow + released + inDispute };
   }, [allOrders]);
@@ -178,7 +179,7 @@ export default function EscrowPage() {
           <p className="text-3xl font-extrabold">{fmt(summary.inEscrow)} <span className="text-sm font-bold text-white/70">EUR</span></p>
         </div>
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Liberes</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Liberes (net)</p>
           <p className="text-3xl font-extrabold text-emerald-400">{fmt(summary.released)} <span className="text-sm font-bold text-slate-500">EUR</span></p>
         </div>
         <div className="bg-background-dark/50 border border-border-dark rounded-xl p-5">
@@ -299,7 +300,9 @@ export default function EscrowPage() {
                     <span className="material-symbols-outlined text-sm">{order.escrow.icon}</span>
                     {order.escrow.label}
                   </span>
-                  <p className="text-sm font-bold w-20 text-right flex-shrink-0">&euro;{fmt(order.amount ?? 0)}</p>
+                  <p className="text-sm font-bold w-20 text-right flex-shrink-0">
+                    &euro;{fmt(order.status === "termine" ? (order.freelancerPayout ?? (order.amount ?? 0) * 0.8) : (order.amount ?? 0))}
+                  </p>
                 </button>
               ))}
             </div>
