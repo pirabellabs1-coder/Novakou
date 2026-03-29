@@ -86,10 +86,10 @@ export default function ClientReviews() {
 
   const isLoading = loading.reviews || loading.orders;
 
-  // Completed orders that do not have a review yet
+  // Completed orders that do not have a review yet (exclude disputed orders)
   const pendingReviewOrders = useMemo(() => {
     return orders.filter(
-      o => o.status === "termine" && !reviews.find(r => r.orderId === o.id)
+      o => o.status === "termine" && !["litige", "dispute"].includes((o.status || "").toLowerCase()) && !reviews.find(r => r.orderId === o.id)
     );
   }, [orders, reviews]);
 
@@ -117,7 +117,7 @@ export default function ClientReviews() {
       return;
     }
     setSubmittingOrderId(orderId);
-    const ok = await submitReview({
+    const result = await submitReview({
       orderId,
       qualite: form.qualite,
       communication: form.communication,
@@ -125,7 +125,7 @@ export default function ClientReviews() {
       comment: form.comment || undefined,
     });
     setSubmittingOrderId(null);
-    if (ok) {
+    if (result === true) {
       addToast("success", "Avis publié avec succès !");
       setNewRating(prev => {
         const next = { ...prev };
@@ -133,7 +133,7 @@ export default function ClientReviews() {
         return next;
       });
     } else {
-      addToast("error", "Erreur lors de la publication de l'avis");
+      addToast("error", typeof result === "string" ? result : "Erreur lors de la publication de l'avis");
     }
   }
 

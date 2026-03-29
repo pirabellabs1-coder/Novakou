@@ -11,7 +11,7 @@ const projectUpdateSchema = z.object({
   description: z.string().max(5000).optional(),
   budget: z.number().positive().optional(),
   deadline: z.string().optional(),
-  status: z.enum(["ouvert", "pourvu", "ferme", "annule", "brouillon"]).optional(),
+  status: z.enum(["ouvert", "pourvu", "ferme", "annule", "brouillon", "suspendu"]).optional(),
   skills: z.array(z.string()).optional(),
 }).strict();
 

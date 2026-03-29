@@ -107,6 +107,7 @@ interface ClientState {
   notifications: ApiNotification[];
   unreadCount: number;
   transactions: ApiTransaction[];
+  credits: number;
   proposals: ClientProposal[];
   activities: ClientActivity[];
   paymentMethods: ApiPaymentMethod[];
@@ -137,6 +138,7 @@ interface ClientState {
   syncTransactions: () => Promise<void>;
   syncProposals: () => Promise<void>;
   syncStats: () => Promise<void>;
+  syncFinanceSummary: () => Promise<void>;
   syncPaymentMethods: () => Promise<void>;
   syncSupportTickets: () => Promise<void>;
   syncSessions: () => Promise<void>;
@@ -145,13 +147,15 @@ interface ClientState {
   createProject: (data: Record<string, unknown>) => Promise<boolean>;
   updateProject: (id: string, data: Record<string, unknown>) => Promise<boolean>;
   closeProject: (id: string) => Promise<boolean>;
+  pauseProject: (id: string) => Promise<boolean>;
+  resumeProject: (id: string) => Promise<boolean>;
   deleteProject: (id: string) => Promise<boolean>;
   acceptCandidature: (projectId: string, candidatureId: string) => Promise<boolean>;
   rejectCandidature: (projectId: string, candidatureId: string) => Promise<boolean>;
   validateDelivery: (orderId: string) => Promise<{ success: boolean; error?: string }>;
   requestRevision: (orderId: string, comment: string) => Promise<{ success: boolean; error?: string }>;
   openDispute: (orderId: string, data: Record<string, unknown>) => Promise<{ success: boolean; error?: string }>;
-  submitReview: (data: { orderId: string; qualite: number; communication: number; delai: number; comment?: string }) => Promise<boolean>;
+  submitReview: (data: { orderId: string; qualite: number; communication: number; delai: number; comment?: string }) => Promise<true | string>;
   toggleFavorite: (type: ClientFavorite["type"], targetId: string, name: string, avatar: string, rating: number, specialty: string) => Promise<boolean>;
   addPaymentMethod: (data: Record<string, unknown>) => Promise<boolean>;
   removePaymentMethod: (id: string) => Promise<boolean>;
@@ -193,6 +197,7 @@ export const useClientStore = create<ClientState>()((set, get) => ({
   notifications: [],
   unreadCount: 0,
   transactions: [],
+  credits: 0,
   proposals: [],
   activities: [],
   paymentMethods: [],
@@ -251,7 +256,10 @@ export const useClientStore = create<ClientState>()((set, get) => ({
         }));
       }
       if (ordersRes.status === "fulfilled") updates.orders = ordersRes.value?.orders || [];
-      if (financeRes.status === "fulfilled") updates.financeSummary = financeRes.value;
+      if (financeRes.status === "fulfilled") {
+        updates.financeSummary = financeRes.value;
+        updates.credits = (financeRes.value as Record<string, unknown>)?.credits as number ?? 0;
+      }
       if (transactionsRes.status === "fulfilled") updates.transactions = transactionsRes.value?.transactions || [];
       if (reviewsRes.status === "fulfilled") {
         updates.reviews = reviewsRes.value.reviews || [];
@@ -458,7 +466,7 @@ export const useClientStore = create<ClientState>()((set, get) => ({
     try {
       const { orders } = get();
       const disputes: ClientDispute[] = orders
-        .filter((o) => o.status === "litige")
+        .filter((o) => ["litige", "dispute"].includes((o.status || "").toLowerCase()))
         .map((o) => ({
           id: `dispute-${o.id}`,
           orderId: o.id,
@@ -558,6 +566,15 @@ export const useClientStore = create<ClientState>()((set, get) => ({
     }
   },
 
+  syncFinanceSummary: async () => {
+    try {
+      const data = await financesApi.summary();
+      set({ financeSummary: data, credits: (data as Record<string, unknown>)?.credits as number ?? 0 });
+    } catch {
+      // Silently fail — financeSummary stays at previous value or null
+    }
+  },
+
   syncPaymentMethods: async () => {
     set({ loading: { ...get().loading, paymentMethods: true } });
     try {
@@ -613,6 +630,22 @@ export const useClientStore = create<ClientState>()((set, get) => ({
     try {
       await projectsApi.update(id, { status: "ferme" });
       set((s) => ({ projects: s.projects.map((p) => p.id === id ? { ...p, status: "ferme" as const } : p) }));
+      return true;
+    } catch { return false; }
+  },
+
+  pauseProject: async (id) => {
+    try {
+      await projectsApi.update(id, { status: "suspendu" });
+      set((s) => ({ projects: s.projects.map((p) => p.id === id ? { ...p, status: "suspendu" } : p) }));
+      return true;
+    } catch { return false; }
+  },
+
+  resumeProject: async (id) => {
+    try {
+      await projectsApi.update(id, { status: "ouvert" });
+      set((s) => ({ projects: s.projects.map((p) => p.id === id ? { ...p, status: "ouvert" } : p) }));
       return true;
     } catch { return false; }
   },
@@ -680,7 +713,10 @@ export const useClientStore = create<ClientState>()((set, get) => ({
       await reviewsApi.create(data);
       await get().syncReviews();
       return true;
-    } catch { return false; }
+    } catch (err: unknown) {
+      const msg = (err as { message?: string })?.message || "Erreur lors de la publication de l'avis";
+      return msg;
+    }
   },
 
   toggleFavorite: async (type, targetId, name, avatar, rating, specialty) => {

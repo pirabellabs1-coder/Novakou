@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
+import { canBoost as checkCanBoost, normalizePlanName, getPlanLimits } from "@/lib/plans";
 
 // ============================================================
 // Types
@@ -90,8 +91,13 @@ function tierBadgeClass(tier: BoostTier): string {
 // ============================================================
 
 export default function BoostPage() {
-  const { services, syncFromApi, lastSyncAt } = useDashboardStore();
+  const { services, syncFromApi, lastSyncAt, currentPlan } = useDashboardStore();
   const addToast = useToastStore((s) => s.addToast);
+
+  // Plan detection for boost access
+  const planKey = normalizePlanName(currentPlan);
+  const planLimits = getPlanLimits(planKey);
+  const planAllowsBoost = planLimits.boostLimit > 0;
 
   // Sync services from API on mount if not already synced
   useEffect(() => {
@@ -187,8 +193,9 @@ export default function BoostPage() {
       }
 
       addToast("success", data.message || "Boost active avec succes !");
-      // Refresh boost data
+      // Refresh boost data and services list
       await fetchBoostData(selectedServiceId);
+      syncFromApi();
     } catch (err) {
       console.error("[Boost] Activate error:", err);
       addToast("error", "Erreur reseau. Veuillez reessayer.");
@@ -253,8 +260,27 @@ export default function BoostPage() {
         </Link>
       </div>
 
+      {/* Plan doesn't allow boosts */}
+      {!planAllowsBoost && (
+        <div className="bg-amber-500/5 rounded-2xl border border-amber-500/20 p-8 sm:p-12 text-center mb-8">
+          <span className="material-symbols-outlined text-5xl text-amber-400 mb-4 block">lock</span>
+          <h3 className="text-lg font-bold mb-2">Boost non disponible</h3>
+          <p className="text-sm text-slate-400 mb-4">
+            Votre plan <span className="text-white font-semibold">{planLimits.name}</span> ne permet pas de booster des services.
+            Passez a un plan superieur pour debloquer les boosts.
+          </p>
+          <Link
+            href="/dashboard/abonnement"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold transition-colors"
+          >
+            <span className="material-symbols-outlined text-lg">upgrade</span>
+            Voir les plans
+          </Link>
+        </div>
+      )}
+
       {/* No active services */}
-      {activeServices.length === 0 && (
+      {planAllowsBoost && activeServices.length === 0 && (
         <div className="bg-primary/5 rounded-2xl border border-primary/10 p-12 text-center">
           <span className="material-symbols-outlined text-5xl text-slate-400 mb-4 block">
             rocket_launch
@@ -273,7 +299,7 @@ export default function BoostPage() {
         </div>
       )}
 
-      {activeServices.length > 0 && (
+      {planAllowsBoost && activeServices.length > 0 && (
         <div className="space-y-8">
           {/* Service Selector */}
           <div className="bg-primary/5 rounded-2xl border border-primary/10 p-6">

@@ -47,16 +47,19 @@ export default function ClientInvoices() {
     invoices,
     loading,
     invoicePeriod,
+    financeSummary,
     setInvoicePeriod,
     syncInvoices,
     syncOrders,
+    syncFinanceSummary,
     sendInvoiceByEmail,
   } = useClientStore();
 
   useEffect(() => {
     // syncInvoices depends on orders being loaded first
     syncOrders().then(() => syncInvoices()).catch(() => {});
-  }, [syncOrders, syncInvoices]);
+    syncFinanceSummary();
+  }, [syncOrders, syncInvoices, syncFinanceSummary]);
 
   const isLoading = loading.invoices || loading.orders;
   const safeInvoices = invoices || [];
@@ -198,14 +201,34 @@ export default function ClientInvoices() {
           </div>
         </div>
         <div className="bg-neutral-dark rounded-xl border border-border-dark p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-primary text-base sm:text-2xl">payments</span>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+            <span className="material-symbols-outlined text-emerald-400 text-base sm:text-2xl">payments</span>
           </div>
           <div className="min-w-0">
-            <p className="text-base sm:text-xl font-black text-white truncate">{isLoading ? "-" : `${totalVisible.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} \u20ac`}</p>
-            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Montant</p>
+            <p className="text-base sm:text-xl font-black text-white truncate">{isLoading ? "-" : `${(financeSummary?.totalSpent ?? totalVisible).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} \u20ac`}</p>
+            <p className="text-[9px] sm:text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Total depense</p>
           </div>
         </div>
+      </div>
+
+      {/* Credits card */}
+      <div className="bg-neutral-dark rounded-xl border border-border-dark p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
+            <span className="material-symbols-outlined text-violet-400 text-2xl">account_balance_wallet</span>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Credits disponibles</p>
+            <p className="text-xl font-black text-white">{(useClientStore.getState().credits || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} &euro;</p>
+          </div>
+        </div>
+        <button
+          onClick={() => addToast("info", "Rechargement de credits bientot disponible")}
+          className="px-4 py-2 bg-violet-500/10 text-violet-400 text-xs font-bold rounded-lg hover:bg-violet-500/20 transition-colors flex items-center gap-1.5"
+        >
+          <span className="material-symbols-outlined text-sm">add</span>
+          Recharger
+        </button>
       </div>
 
       {/* Filters row */}

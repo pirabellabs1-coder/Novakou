@@ -103,6 +103,28 @@ export const PLAN_RULES = {
 
 export type PlanName = keyof typeof PLAN_RULES;
 
+/** Full plan config as served by /api/plans/live (admin overrides merged on defaults) */
+export interface LivePlanConfig {
+  name: string;
+  nameEn: string;
+  commissionType: "percentage" | "fixed";
+  commissionValue: number;
+  priceMonthly: number;
+  priceAnnual: number;
+  serviceLimit: number;
+  applicationLimit: number;
+  boostLimit: number;
+  scenarioLimit: number;
+  certificationLimit: number;
+  productiviteAccess: boolean;
+  teamLimit: number;
+  crmAccess: boolean;
+  cloudStorageGB: number;
+  apiAccess: boolean;
+  supportLevel: "email" | "prioritaire" | "dedie" | "vip";
+  features: string[];
+}
+
 /** Lowercase plan IDs for client-side / JWT usage */
 export type PlanId = "decouverte" | "ascension" | "sommet" | "agence_starter" | "empire";
 
@@ -330,3 +352,6 @@ export function getRemainingCount(used: number, limit: number): number {
   if (!isFinite(limit)) return Infinity;
   return Math.max(0, limit - used);
 }
+
+// NOTE: useLivePlans() hook is in lib/use-live-plans.ts (separate "use client" file)
+// to avoid importing React hooks in server-side code that imports lib/plans.ts

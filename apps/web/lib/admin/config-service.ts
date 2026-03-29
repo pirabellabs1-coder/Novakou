@@ -7,14 +7,21 @@ import type { Prisma } from "@prisma/client";
 
 export interface PlanConfig {
   price: number;
-  priceAnnual?: number;
+  priceAnnual: number;
   maxServices: number;
   maxCandidatures: number;
   boostsPerMonth: number;
   commissionType: "percentage" | "fixed";
   commissionValue: number;
-  maxMembers?: number;
-  storageGB?: number;
+  scenarioLimit: number;
+  certificationLimit: number;
+  productiviteAccess: boolean;
+  teamLimit: number;
+  crmAccess: boolean;
+  cloudStorageGB: number;
+  apiAccess: boolean;
+  supportLevel: "email" | "prioritaire" | "dedie" | "vip";
+  features: string[];
 }
 
 export interface PlatformConfig {
@@ -81,11 +88,11 @@ const DEFAULT_CONFIG: PlatformConfig = {
     empire: 0,
   },
   plans: {
-    decouverte: { price: 0, priceAnnual: 0, maxServices: 5, maxCandidatures: 10, boostsPerMonth: 0, commissionType: "percentage", commissionValue: 12 },
-    ascension: { price: 15, priceAnnual: 135, maxServices: 15, maxCandidatures: 30, boostsPerMonth: 3, commissionType: "percentage", commissionValue: 5 },
-    sommet: { price: 29.99, priceAnnual: 269.91, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, commissionType: "fixed", commissionValue: 1 },
-    agence_starter: { price: 20, priceAnnual: 180, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 5, commissionType: "percentage", commissionValue: 5, maxMembers: 5, storageGB: 10 },
-    empire: { price: 65, priceAnnual: 585, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 20, commissionType: "fixed", commissionValue: 0, maxMembers: 25, storageGB: 100 },
+    decouverte: { price: 0, priceAnnual: 0, maxServices: 5, maxCandidatures: 10, boostsPerMonth: 0, commissionType: "percentage", commissionValue: 12, scenarioLimit: 0, certificationLimit: 0, productiviteAccess: false, teamLimit: 0, crmAccess: false, cloudStorageGB: 0, apiAccess: false, supportLevel: "email", features: ["5 services actifs", "10 candidatures/mois", "Commission 12%", "Support email", "Profil public"] },
+    ascension: { price: 15, priceAnnual: 135, maxServices: 15, maxCandidatures: 30, boostsPerMonth: 3, commissionType: "percentage", commissionValue: 5, scenarioLimit: 3, certificationLimit: 1, productiviteAccess: false, teamLimit: 0, crmAccess: false, cloudStorageGB: 0, apiAccess: false, supportLevel: "prioritaire", features: ["15 services actifs", "30 candidatures/mois", "Commission 5%", "3 boosts/mois", "1 certification IA/mois", "3 scénarios automatisés", "Statistiques avancées", "Support prioritaire"] },
+    sommet: { price: 29.99, priceAnnual: 269.91, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 10, commissionType: "fixed", commissionValue: 1, scenarioLimit: 10, certificationLimit: -1, productiviteAccess: true, teamLimit: 0, crmAccess: false, cloudStorageGB: 0, apiAccess: true, supportLevel: "dedie", features: ["Services illimités", "Candidatures illimitées", "Commission 1€/vente", "10 boosts/mois", "Certifications IA illimitées", "10 scénarios automatisés", "Outils de productivité", "Clés API & Webhooks", "Support dédié"] },
+    agence_starter: { price: 20, priceAnnual: 180, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 5, commissionType: "percentage", commissionValue: 5, scenarioLimit: 3, certificationLimit: 1, productiviteAccess: false, teamLimit: 5, crmAccess: true, cloudStorageGB: 10, apiAccess: false, supportLevel: "prioritaire", features: ["Services illimités", "Candidatures illimitées", "Commission 5%", "5 boosts/mois", "Jusqu'à 5 membres", "CRM clients", "10 GB stockage", "Support prioritaire"] },
+    empire: { price: 65, priceAnnual: 585, maxServices: -1, maxCandidatures: -1, boostsPerMonth: 20, commissionType: "fixed", commissionValue: 0, scenarioLimit: -1, certificationLimit: -1, productiviteAccess: true, teamLimit: 25, crmAccess: true, cloudStorageGB: 100, apiAccess: true, supportLevel: "vip", features: ["Services illimités", "Candidatures illimitées", "0% commission", "20 boosts/mois", "Certifications IA illimitées", "Scénarios illimités", "Outils de productivité", "Jusqu'à 25 membres d'équipe", "CRM clients intégré", "100 GB cloud partagé", "Clés API & Webhooks", "Support VIP dédié"] },
   },
   announcementBanner: {
     enabled: false,

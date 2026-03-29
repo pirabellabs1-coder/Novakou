@@ -108,10 +108,10 @@ export default function ClientDashboard() {
   const recentOrders = useMemo(() => (store.orders || []).slice(0, 5), [store.orders]);
 
   // KPI values
-  const activeProjectsCount = store.stats?.activeOrders || (store.projects || []).filter((p) => p.status === "actif").length;
-  const totalSpent = store.stats?.summary?.totalSpent ?? store.financeSummary?.totalSpent ?? 0;
-  const activeOrdersCount = store.stats?.activeOrders || 0;
-  const completedOrders = store.stats?.completedOrders || 0;
+  const activeProjectsCount = (store.projects || []).filter((p) => p.status === "actif" || p.status === "ouvert").length;
+  const totalSpent = store.financeSummary?.totalSpent ?? store.stats?.summary?.totalSpent ?? (store.orders || []).reduce((sum, o) => sum + (o.amount || 0), 0);
+  const activeOrdersCount = store.stats?.activeOrders || (store.orders || []).filter((o) => ["en_cours", "en_attente", "revision"].includes(o.status)).length;
+  const completedOrders = store.stats?.completedOrders || (store.orders || []).filter((o) => o.status === "termine" || o.status === "livre").length;
 
   const isLoadingStats = store.loading.stats || store.loading.all;
 
@@ -227,31 +227,63 @@ export default function ClientDashboard() {
           <div className="bg-neutral-dark rounded-xl border border-border-dark p-3 sm:p-4 lg:p-5">
             <h2 className="text-base font-bold text-white mb-4">Répartition des Commandes</h2>
             {orderStatusData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={180} className="sm:!h-[240px]">
-                <PieChart>
-                  <Pie
-                    data={orderStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={({ name, value }) => `${name} (${value})`}
-                    labelLine={false}
-                  >
-                    {orderStatusData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<ChartTooltip />} />
-                  <Legend
-                    verticalAlign="bottom"
-                    iconType="circle"
-                    wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+              <>
+              {/* Desktop: labels inline + legend */}
+              <div className="hidden sm:block">
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={orderStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      dataKey="value"
+                      label={({ name, value }) => `${name} (${value})`}
+                      labelLine={false}
+                    >
+                      {orderStatusData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                    <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: "12px", color: "#94a3b8" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Mobile: no inline labels, legend only below */}
+              <div className="sm:hidden">
+                <ResponsiveContainer width="100%" height={160}>
+                  <PieChart>
+                    <Pie
+                      data={orderStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={65}
+                      paddingAngle={3}
+                      dataKey="value"
+                      label={false}
+                      labelLine={false}
+                    >
+                      {orderStatusData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 mt-2">
+                  {orderStatusData.map((entry, index) => (
+                    <div key={entry.name} className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: PIE_COLORS[index % PIE_COLORS.length] }} />
+                      {entry.name} ({entry.value})
+                    </div>
+                  ))}
+                </div>
+              </div>
+              </>
             ) : (
               <div className="h-60 flex items-center justify-center text-slate-500 text-sm">
                 Aucune commande pour le moment

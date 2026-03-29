@@ -7,20 +7,19 @@ import { useAgencyStore } from "@/store/agency";
 import { profileApi } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import {
-  PLAN_RULES,
   PLAN_ORDER,
-  PLAN_FEATURES,
   PLAN_VISIBILITY,
-  getCommissionLabel,
   formatLimit,
   normalizePlanName,
   type PlanName,
+  type LivePlanConfig,
 } from "@/lib/plans";
+import { useLivePlans } from "@/lib/use-live-plans";
 
 const agencyPlans = PLAN_ORDER.filter((k) => PLAN_VISIBILITY.agence.includes(k));
 
 // ---------------------------------------------------------------------------
-// Plan data — derived from centralized PLAN_RULES
+// Plan data — now derived dynamically inside the component via useLivePlans()
 // ---------------------------------------------------------------------------
 interface Plan {
   id: string;
@@ -33,32 +32,43 @@ interface Plan {
   highlight?: boolean;
 }
 
-const PLANS: Plan[] = agencyPlans.map((key) => {
-  const r = PLAN_RULES[key];
-  return {
-    id: key.toLowerCase(),
-    key,
-    name: r.name,
-    priceMonthly: r.priceMonthly,
-    priceAnnual: r.priceAnnual,
-    commission: getCommissionLabel(key),
-    features: PLAN_FEATURES[key],
-    highlight: key === "EMPIRE",
-  };
-});
+function getCommLabel(r: LivePlanConfig): string {
+  if (r.commissionValue === 0) return "0%";
+  if (r.commissionType === "percentage") return `${r.commissionValue}%`;
+  return `${r.commissionValue}\u20AC/vente`;
+}
 
-// Feature comparison rows — derived from PLAN_RULES (agency plans only)
-const COMPARISON_ROWS = [
-  { label: "Services actifs", values: agencyPlans.map((k) => formatLimit(PLAN_RULES[k].serviceLimit)) },
-  { label: "Candidatures/mois", values: agencyPlans.map((k) => formatLimit(PLAN_RULES[k].applicationLimit)) },
-  { label: "Boost publicitaire", values: agencyPlans.map((k) => PLAN_RULES[k].boostLimit === 0 ? "Non" : `${PLAN_RULES[k].boostLimit}/mois`) },
-  { label: "Commission", values: agencyPlans.map((k) => getCommissionLabel(k)) },
-  { label: "Certification IA", values: agencyPlans.map((k) => PLAN_RULES[k].certificationLimit === 0 ? "Non" : PLAN_RULES[k].certificationLimit === Infinity ? "Illimité" : `${PLAN_RULES[k].certificationLimit}/mois`) },
-  { label: "Clés API", values: agencyPlans.map((k) => PLAN_RULES[k].apiAccess ? "Oui" : "Non") },
-  { label: "Membres équipe", values: agencyPlans.map((k) => PLAN_RULES[k].teamLimit > 0 ? `${PLAN_RULES[k].teamLimit} max` : "-") },
-  { label: "Stockage ressources", values: agencyPlans.map((k) => PLAN_RULES[k].cloudStorageGB > 0 ? `${PLAN_RULES[k].cloudStorageGB} GB` : "-") },
-  { label: "Support", values: agencyPlans.map((k) => ({ email: "Email", prioritaire: "Prioritaire", dedie: "Dédié", vip: "VIP dédié" })[PLAN_RULES[k].supportLevel] || PLAN_RULES[k].supportLevel) },
-];
+const SUPPORT_LABELS: Record<string, string> = { email: "Email", prioritaire: "Prioritaire", dedie: "Dédié", vip: "VIP dédié" };
+
+function buildPlans(livePlans: Record<PlanName, LivePlanConfig>, liveFeatures: Record<PlanName, string[]>): Plan[] {
+  return agencyPlans.map((key) => {
+    const r = livePlans[key];
+    return {
+      id: key.toLowerCase(),
+      key,
+      name: r.name,
+      priceMonthly: r.priceMonthly,
+      priceAnnual: r.priceAnnual,
+      commission: getCommLabel(r),
+      features: liveFeatures[key],
+      highlight: key === "EMPIRE",
+    };
+  });
+}
+
+function buildComparisonRows(livePlans: Record<PlanName, LivePlanConfig>): { label: string; values: string[] }[] {
+  return [
+    { label: "Services actifs", values: agencyPlans.map((k) => formatLimit(livePlans[k].serviceLimit)) },
+    { label: "Candidatures/mois", values: agencyPlans.map((k) => formatLimit(livePlans[k].applicationLimit)) },
+    { label: "Boost publicitaire", values: agencyPlans.map((k) => livePlans[k].boostLimit === 0 ? "Non" : `${livePlans[k].boostLimit}/mois`) },
+    { label: "Commission", values: agencyPlans.map((k) => getCommLabel(livePlans[k])) },
+    { label: "Certification IA", values: agencyPlans.map((k) => livePlans[k].certificationLimit === 0 ? "Non" : !isFinite(livePlans[k].certificationLimit) ? "Illimité" : `${livePlans[k].certificationLimit}/mois`) },
+    { label: "Clés API", values: agencyPlans.map((k) => livePlans[k].apiAccess ? "Oui" : "Non") },
+    { label: "Membres équipe", values: agencyPlans.map((k) => livePlans[k].teamLimit > 0 ? `${livePlans[k].teamLimit} max` : "-") },
+    { label: "Stockage ressources", values: agencyPlans.map((k) => livePlans[k].cloudStorageGB > 0 ? `${livePlans[k].cloudStorageGB} GB` : "-") },
+    { label: "Support", values: agencyPlans.map((k) => SUPPORT_LABELS[livePlans[k].supportLevel] || livePlans[k].supportLevel) },
+  ];
+}
 
 // ---------------------------------------------------------------------------
 // Types for dynamic data
@@ -79,18 +89,19 @@ interface SubscriptionData {
   paymentMethod: string | null;
 }
 
-// Plan limits for usage stats display — derived from PLAN_RULES
-const PLAN_LIMITS: Record<string, { members: number | null; storage: number; services: number | null; boosts: number | null }> = Object.fromEntries(
-  agencyPlans.map((k) => {
-    const r = PLAN_RULES[k];
-    return [k.toLowerCase(), {
-      members: r.teamLimit || 0,
-      storage: r.cloudStorageGB,
-      services: isFinite(r.serviceLimit) ? r.serviceLimit : null,
-      boosts: r.boostLimit > 0 ? r.boostLimit : 0,
-    }];
-  })
-);
+function buildPlanLimits(livePlans: Record<PlanName, LivePlanConfig>): Record<string, { members: number | null; storage: number; services: number | null; boosts: number | null }> {
+  return Object.fromEntries(
+    agencyPlans.map((k) => {
+      const r = livePlans[k];
+      return [k.toLowerCase(), {
+        members: r.teamLimit || 0,
+        storage: r.cloudStorageGB,
+        services: isFinite(r.serviceLimit) ? r.serviceLimit : null,
+        boosts: r.boostLimit > 0 ? r.boostLimit : 0,
+      }];
+    })
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -102,6 +113,12 @@ export default function AgenceAbonnement() {
   const [showChangePlan, setShowChangePlan] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const { addToast } = useToastStore();
+  const { plans: livePlans, features: liveFeatures } = useLivePlans();
+
+  // Derived data from live plans
+  const PLANS = buildPlans(livePlans, liveFeatures);
+  const COMPARISON_ROWS = buildComparisonRows(livePlans);
+  const PLAN_LIMITS = buildPlanLimits(livePlans);
 
   // Dynamic data state
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
@@ -117,7 +134,7 @@ export default function AgenceAbonnement() {
   const currentPlanKey = normalizePlanName(rawPlanId);
   const currentPlanId = currentPlanKey.toLowerCase();
   const currentPlan = PLANS.find((p) => p.key === currentPlanKey) ?? PLANS[0];
-  const limits = PLAN_LIMITS[currentPlanId] ?? PLAN_LIMITS.decouverte;
+  const limits = PLAN_LIMITS[currentPlanId] ?? PLAN_LIMITS[agencyPlans[0].toLowerCase()];
 
   // Compute real usage stats
   const membersCount = members.length;
@@ -471,7 +488,7 @@ export default function AgenceAbonnement() {
             >
               Annuel
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-                -{Math.round((1 - PLAN_RULES.AGENCE_STARTER.priceAnnual / (PLAN_RULES.AGENCE_STARTER.priceMonthly * 12)) * 100)}%
+                -{Math.round((1 - livePlans.AGENCE_STARTER.priceAnnual / (livePlans.AGENCE_STARTER.priceMonthly * 12)) * 100)}%
               </span>
             </button>
           </div>

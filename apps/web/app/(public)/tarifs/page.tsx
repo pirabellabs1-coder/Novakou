@@ -5,14 +5,13 @@ import { useTranslations } from "next-intl";
 import { useCurrencyStore } from "@/store/currency";
 import { cn } from "@/lib/utils";
 import {
-  PLAN_RULES,
   PLAN_ORDER,
-  PLAN_FEATURES,
   PLAN_VISIBILITY,
-  getCommissionLabel,
   formatLimit,
   type PlanName,
+  type LivePlanConfig,
 } from "@/lib/plans";
+import { useLivePlans } from "@/lib/use-live-plans";
 
 const freelancePlans = PLAN_ORDER.filter((k) => PLAN_VISIBILITY.freelance.includes(k));
 const agencyPlans = PLAN_ORDER.filter((k) => PLAN_VISIBILITY.agence.includes(k));
@@ -49,33 +48,34 @@ const SUPPORT_LABELS: Record<string, string> = {
   vip: "VIP dédié",
 };
 
-function getCellValue(plan: PlanName, key: string): string {
-  const rules = PLAN_RULES[plan];
+function getCommLabel(plan: LivePlanConfig): string {
+  if (plan.commissionValue === 0) return "0%";
+  if (plan.commissionType === "percentage") return `${plan.commissionValue}%`;
+  return `${plan.commissionValue}\u20AC/vente`;
+}
+
+function getCellValue(plan: LivePlanConfig, key: string): string {
   switch (key) {
     case "serviceLimit":
     case "applicationLimit":
     case "boostLimit":
     case "scenarioLimit":
     case "certificationLimit":
-      return formatLimit(rules[key as keyof typeof rules] as number);
+      return formatLimit(plan[key as keyof LivePlanConfig] as number);
     case "commission":
-      return getCommissionLabel(plan);
+      return getCommLabel(plan);
     case "productiviteAccess":
     case "crmAccess":
     case "apiAccess":
-      return (rules[key as keyof typeof rules] as boolean) ? "✓" : "—";
-    case "teamLimit": {
-      const val = rules.teamLimit;
-      return val > 0 ? `${val} max` : "—";
-    }
-    case "cloudStorageGB": {
-      const val = rules.cloudStorageGB;
-      return val > 0 ? `${val} GB` : "—";
-    }
+      return (plan[key as keyof LivePlanConfig] as boolean) ? "\u2713" : "\u2014";
+    case "teamLimit":
+      return plan.teamLimit > 0 ? `${plan.teamLimit} max` : "\u2014";
+    case "cloudStorageGB":
+      return plan.cloudStorageGB > 0 ? `${plan.cloudStorageGB} GB` : "\u2014";
     case "supportLevel":
-      return SUPPORT_LABELS[rules.supportLevel] || rules.supportLevel;
+      return SUPPORT_LABELS[plan.supportLevel] || plan.supportLevel;
     default:
-      return "—";
+      return "\u2014";
   }
 }
 
@@ -84,6 +84,7 @@ export default function TarifsPage() {
   const [annual, setAnnual] = useState(false);
   const { format } = useCurrencyStore();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const { plans: livePlans, features: liveFeatures, isLoading } = useLivePlans();
 
   const FAQ = [
     {
@@ -96,7 +97,7 @@ export default function TarifsPage() {
     },
     {
       q: "Comment fonctionne la commission ?",
-      a: "La commission est prélevée automatiquement sur chaque vente réussie. Découverte : 12%, Ascension : 5%, Sommet : 1€ fixe par vente, Empire : 0% — vous gardez tout !",
+      a: "La commission est prélevée automatiquement sur chaque vente réussie. Découverte : 12%, Ascension : 5%, Sommet : 1\u20AC fixe par vente, Empire : 0% \u2014 vous gardez tout !",
     },
     {
       q: "Quelles méthodes de paiement acceptez-vous ?",
@@ -104,7 +105,7 @@ export default function TarifsPage() {
     },
     {
       q: "Quelle est la difference entre les plans Freelance et Agence ?",
-      a: "Les plans Decouverte, Ascension et Sommet sont conçus pour les freelances individuels. Les plans Agence Starter et Empire sont dedies aux agences avec gestion d'equipe, CRM clients, et stockage partage. Agence Starter offre jusqu'a 5 membres et Empire jusqu'a 25 avec 0% de commission.",
+      a: "Les plans Decouverte, Ascension et Sommet sont con��us pour les freelances individuels. Les plans Agence Starter et Empire sont dedies aux agences avec gestion d'equipe, CRM clients, et stockage partage. Agence Starter offre jusqu'a 5 membres et Empire jusqu'a 25 avec 0% de commission.",
     },
     {
       q: "Quelle est la différence avec Fiverr ou Upwork ?",
@@ -141,231 +142,252 @@ export default function TarifsPage() {
           </div>
         </div>
 
+        {/* Loading skeleton */}
+        {isLoading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="bg-neutral-dark rounded-2xl border border-border-dark p-6 animate-pulse">
+                <div className="h-6 w-24 bg-border-dark rounded mb-4" />
+                <div className="h-10 w-32 bg-border-dark rounded mb-6" />
+                <div className="space-y-3">
+                  {[0, 1, 2, 3].map((j) => <div key={j} className="h-4 w-full bg-border-dark rounded" />)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Freelance plans */}
-        <div className="mb-14 sm:mb-20">
-          <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">Pour les Freelances</h2>
-          <p className="text-sm text-slate-400 text-center mb-8">Boostez votre carriere et gagnez plus.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {freelancePlans.map((planKey) => {
-              const rules = PLAN_RULES[planKey];
-              const features = PLAN_FEATURES[planKey];
-              const isPopular = planKey === PLAN_POPULAR;
-              const color = PLAN_COLORS[planKey];
-              const price = annual ? rules.priceAnnual : rules.priceMonthly;
-              const commLabel = getCommissionLabel(planKey);
+        {!isLoading && (
+          <div className="mb-14 sm:mb-20">
+            <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">Pour les Freelances</h2>
+            <p className="text-sm text-slate-400 text-center mb-8">Boostez votre carriere et gagnez plus.</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {freelancePlans.map((planKey) => {
+                const rules = livePlans[planKey];
+                const features = liveFeatures[planKey];
+                const isPopular = planKey === PLAN_POPULAR;
+                const color = PLAN_COLORS[planKey];
+                const price = annual ? rules.priceAnnual : rules.priceMonthly;
+                const commLabel = getCommLabel(rules);
 
-              return (
-                <div
-                  key={planKey}
-                  className={cn(
-                    "relative bg-neutral-dark rounded-2xl border-2 p-5 sm:p-6 flex flex-col",
-                    isPopular && "mt-4 md:mt-0",
-                    color,
-                    isPopular && "ring-2 ring-primary/30 md:scale-[1.02]"
-                  )}
-                >
-                  {isPopular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">
-                      Populaire
-                    </div>
-                  )}
-
-                  <h3 className="text-xl font-bold text-white mb-1">{rules.name}</h3>
-                  <p className="text-xs text-slate-500 mb-4">
-                    {planKey === "DECOUVERTE" && "Pour commencer"}
-                    {planKey === "ASCENSION" && "Commission divisée par 2"}
-                    {planKey === "SOMMET" && "1\u20AC fixe, peu importe le montant"}
-                  </p>
-
-                  <div className="mb-2">
-                    <span className="text-3xl sm:text-4xl font-black text-white">
-                      {rules.priceMonthly === 0 ? "Gratuit" : format(annual ? Math.round(price / 12 * 100) / 100 : price)}
-                    </span>
-                    {rules.priceMonthly > 0 && (
-                      <span className="text-slate-500 text-sm">/mois</span>
-                    )}
-                  </div>
-                  {annual && rules.priceMonthly > 0 && (
-                    <p className="text-xs text-slate-500 mb-4">
-                      {format(price)}/an — Économisez {format(rules.priceMonthly * 12 - rules.priceAnnual)}/an
-                    </p>
-                  )}
-                  {!annual && rules.priceMonthly > 0 && (
-                    <p className="text-xs text-slate-500 mb-4">&nbsp;</p>
-                  )}
-                  {rules.priceMonthly === 0 && (
-                    <p className="text-xs text-slate-500 mb-4">Pour toujours</p>
-                  )}
-
-                  <div className="text-center py-2 px-3 rounded-lg mb-6 bg-primary/10 border border-primary/30">
-                    <span className="text-sm font-bold text-primary">
-                      Commission : {commLabel}
-                    </span>
-                  </div>
-
-                  <ul className="space-y-2.5 flex-1 mb-6">
-                    {features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                        <span className="material-symbols-outlined text-primary text-sm mt-0.5 shrink-0">check</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <a
-                    href={rules.priceMonthly === 0 ? "/inscription" : "/dashboard/abonnement"}
+                return (
+                  <div
+                    key={planKey}
                     className={cn(
-                      "w-full py-3 rounded-xl text-sm font-bold transition-colors text-center block",
-                      isPopular
-                        ? "bg-primary text-white hover:bg-primary/90"
-                        : "bg-border-dark text-white hover:bg-border-dark/80"
+                      "relative bg-neutral-dark rounded-2xl border-2 p-5 sm:p-6 flex flex-col",
+                      isPopular && "mt-4 md:mt-0",
+                      color,
+                      isPopular && "ring-2 ring-primary/30 md:scale-[1.02]"
                     )}
                   >
-                    {rules.priceMonthly === 0 ? "Commencer gratuitement" : `Choisir ${rules.name}`}
-                  </a>
-                </div>
-              );
-            })}
+                    {isPopular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1 rounded-full">
+                        Populaire
+                      </div>
+                    )}
+
+                    <h3 className="text-xl font-bold text-white mb-1">{rules.name}</h3>
+                    <p className="text-xs text-slate-500 mb-4">
+                      {planKey === "DECOUVERTE" && "Pour commencer"}
+                      {planKey === "ASCENSION" && "Commission divisée par 2"}
+                      {planKey === "SOMMET" && "1\u20AC fixe, peu importe le montant"}
+                    </p>
+
+                    <div className="mb-2">
+                      <span className="text-3xl sm:text-4xl font-black text-white">
+                        {rules.priceMonthly === 0 ? "Gratuit" : format(annual ? Math.round(price / 12 * 100) / 100 : price)}
+                      </span>
+                      {rules.priceMonthly > 0 && (
+                        <span className="text-slate-500 text-sm">/mois</span>
+                      )}
+                    </div>
+                    {annual && rules.priceMonthly > 0 && (
+                      <p className="text-xs text-slate-500 mb-4">
+                        {format(price)}/an — Économisez {format(rules.priceMonthly * 12 - rules.priceAnnual)}/an
+                      </p>
+                    )}
+                    {!annual && rules.priceMonthly > 0 && (
+                      <p className="text-xs text-slate-500 mb-4">&nbsp;</p>
+                    )}
+                    {rules.priceMonthly === 0 && (
+                      <p className="text-xs text-slate-500 mb-4">Pour toujours</p>
+                    )}
+
+                    <div className="text-center py-2 px-3 rounded-lg mb-6 bg-primary/10 border border-primary/30">
+                      <span className="text-sm font-bold text-primary">
+                        Commission : {commLabel}
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2.5 flex-1 mb-6">
+                      {features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                          <span className="material-symbols-outlined text-primary text-sm mt-0.5 shrink-0">check</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <a
+                      href={rules.priceMonthly === 0 ? "/inscription" : "/dashboard/abonnement"}
+                      className={cn(
+                        "w-full py-3 rounded-xl text-sm font-bold transition-colors text-center block",
+                        isPopular
+                          ? "bg-primary text-white hover:bg-primary/90"
+                          : "bg-border-dark text-white hover:bg-border-dark/80"
+                      )}
+                    >
+                      {rules.priceMonthly === 0 ? "Commencer gratuitement" : `Choisir ${rules.name}`}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Agency plans */}
-        <div className="mb-14 sm:mb-20">
-          <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">Pour les Agences</h2>
-          <p className="text-sm text-slate-400 text-center mb-8">Gerez votre equipe et vos clients avec des outils dedies.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {agencyPlans.map((planKey) => {
-              const rules = PLAN_RULES[planKey];
-              const features = PLAN_FEATURES[planKey];
-              const color = PLAN_COLORS[planKey];
-              const price = annual ? rules.priceAnnual : rules.priceMonthly;
-              const commLabel = getCommissionLabel(planKey);
-              const isEmpire = planKey === "EMPIRE";
+        {!isLoading && (
+          <div className="mb-14 sm:mb-20">
+            <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-2">Pour les Agences</h2>
+            <p className="text-sm text-slate-400 text-center mb-8">Gerez votre equipe et vos clients avec des outils dedies.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+              {agencyPlans.map((planKey) => {
+                const rules = livePlans[planKey];
+                const features = liveFeatures[planKey];
+                const color = PLAN_COLORS[planKey];
+                const price = annual ? rules.priceAnnual : rules.priceMonthly;
+                const commLabel = getCommLabel(rules);
+                const isEmpire = planKey === "EMPIRE";
 
-              return (
-                <div
-                  key={planKey}
-                  className={cn(
-                    "relative bg-neutral-dark rounded-2xl border-2 p-5 sm:p-6 flex flex-col",
-                    color,
-                    isEmpire && "ring-2 ring-emerald-500/30"
-                  )}
-                >
-                  {isEmpire && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-                      Premium
-                    </div>
-                  )}
-
-                  <h3 className="text-xl font-bold text-white mb-1">{rules.name}</h3>
-                  <p className="text-xs text-slate-500 mb-4">
-                    {planKey === "AGENCE_STARTER" && "L'essentiel pour demarrer en agence"}
-                    {planKey === "EMPIRE" && "0% commission + equipe elargie"}
-                  </p>
-
-                  <div className="mb-2">
-                    <span className="text-3xl sm:text-4xl font-black text-white">
-                      {format(annual ? Math.round(price / 12 * 100) / 100 : price)}
-                    </span>
-                    <span className="text-slate-500 text-sm">/mois</span>
-                  </div>
-                  {annual && (
-                    <p className="text-xs text-slate-500 mb-4">
-                      {format(price)}/an — Économisez {format(rules.priceMonthly * 12 - rules.priceAnnual)}/an
-                    </p>
-                  )}
-                  {!annual && (
-                    <p className="text-xs text-slate-500 mb-4">&nbsp;</p>
-                  )}
-
-                  <div className={cn(
-                    "text-center py-2 px-3 rounded-lg mb-6",
-                    isEmpire ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-blue-500/10 border border-blue-500/30"
-                  )}>
-                    <span className={cn(
-                      "text-sm font-bold",
-                      isEmpire ? "text-emerald-400" : "text-blue-400"
-                    )}>
-                      Commission : {commLabel}
-                    </span>
-                  </div>
-
-                  <ul className="space-y-2.5 flex-1 mb-6">
-                    {features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                        <span className="material-symbols-outlined text-primary text-sm mt-0.5 shrink-0">check</span>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-
-                  <a
-                    href="/agence/abonnement"
+                return (
+                  <div
+                    key={planKey}
                     className={cn(
-                      "w-full py-3 rounded-xl text-sm font-bold transition-colors text-center block",
-                      isEmpire
-                        ? "bg-emerald-600 text-white hover:bg-emerald-500"
-                        : "bg-blue-600 text-white hover:bg-blue-500"
+                      "relative bg-neutral-dark rounded-2xl border-2 p-5 sm:p-6 flex flex-col",
+                      color,
+                      isEmpire && "ring-2 ring-emerald-500/30"
                     )}
                   >
-                    Choisir {rules.name}
-                  </a>
-                </div>
-              );
-            })}
+                    {isEmpire && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-4 py-1 rounded-full">
+                        Premium
+                      </div>
+                    )}
+
+                    <h3 className="text-xl font-bold text-white mb-1">{rules.name}</h3>
+                    <p className="text-xs text-slate-500 mb-4">
+                      {planKey === "AGENCE_STARTER" && "L'essentiel pour demarrer en agence"}
+                      {planKey === "EMPIRE" && "0% commission + equipe elargie"}
+                    </p>
+
+                    <div className="mb-2">
+                      <span className="text-3xl sm:text-4xl font-black text-white">
+                        {format(annual ? Math.round(price / 12 * 100) / 100 : price)}
+                      </span>
+                      <span className="text-slate-500 text-sm">/mois</span>
+                    </div>
+                    {annual && (
+                      <p className="text-xs text-slate-500 mb-4">
+                        {format(price)}/an — Économisez {format(rules.priceMonthly * 12 - rules.priceAnnual)}/an
+                      </p>
+                    )}
+                    {!annual && (
+                      <p className="text-xs text-slate-500 mb-4">&nbsp;</p>
+                    )}
+
+                    <div className={cn(
+                      "text-center py-2 px-3 rounded-lg mb-6",
+                      isEmpire ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-blue-500/10 border border-blue-500/30"
+                    )}>
+                      <span className={cn(
+                        "text-sm font-bold",
+                        isEmpire ? "text-emerald-400" : "text-blue-400"
+                      )}>
+                        Commission : {commLabel}
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2.5 flex-1 mb-6">
+                      {features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
+                          <span className="material-symbols-outlined text-primary text-sm mt-0.5 shrink-0">check</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+
+                    <a
+                      href="/agence/abonnement"
+                      className={cn(
+                        "w-full py-3 rounded-xl text-sm font-bold transition-colors text-center block",
+                        isEmpire
+                          ? "bg-emerald-600 text-white hover:bg-emerald-500"
+                          : "bg-blue-600 text-white hover:bg-blue-500"
+                      )}
+                    >
+                      Choisir {rules.name}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Comparison table */}
-        <div className="mb-14 sm:mb-20">
-          <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-8">Comparaison complete</h2>
-          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
-            <table className="w-full border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-border-dark">
-                  <th className="text-left text-sm font-semibold text-slate-400 py-4 px-4 w-48">Fonctionnalité</th>
-                  <th colSpan={3} className="text-center text-xs font-bold text-slate-500 uppercase tracking-wider py-2 px-4 border-b border-primary/20">Freelances</th>
-                  <th colSpan={2} className="text-center text-xs font-bold text-slate-500 uppercase tracking-wider py-2 px-4 border-b border-blue-500/20">Agences</th>
-                </tr>
-                <tr className="border-b border-border-dark">
-                  <th className="py-2 px-4" />
-                  {PLAN_ORDER.map((planKey) => (
-                    <th key={planKey} className={cn("text-center text-sm font-bold py-3 px-4", planKey === PLAN_POPULAR ? "text-primary" : "text-white")}>
-                      {PLAN_RULES[planKey].name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {/* Price row */}
-                <tr className="border-b border-border-dark/50">
-                  <td className="text-sm text-slate-400 py-3 px-4 font-semibold">Prix/mois</td>
-                  {PLAN_ORDER.map((planKey) => (
-                    <td key={planKey} className="text-center text-sm text-white py-3 px-4 font-bold">
-                      {PLAN_RULES[planKey].priceMonthly === 0 ? "Gratuit" : `${PLAN_RULES[planKey].priceMonthly}\u20AC`}
-                    </td>
-                  ))}
-                </tr>
-                {COMPARISON_ROWS.map((row) => (
-                  <tr key={row.key} className="border-b border-border-dark/50">
-                    <td className="text-sm text-slate-400 py-3 px-4">{row.label}</td>
-                    {PLAN_ORDER.map((planKey) => {
-                      const val = getCellValue(planKey, row.key);
-                      return (
-                        <td key={planKey} className={cn(
-                          "text-center text-sm py-3 px-4",
-                          val === "\u2014" ? "text-slate-600" : val === "\u2713" ? "text-primary font-bold" : "text-slate-300"
-                        )}>
-                          {val}
-                        </td>
-                      );
-                    })}
+        {!isLoading && (
+          <div className="mb-14 sm:mb-20">
+            <h2 className="text-xl sm:text-2xl font-bold text-white text-center mb-8">Comparaison complete</h2>
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+              <table className="w-full border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="border-b border-border-dark">
+                    <th className="text-left text-sm font-semibold text-slate-400 py-4 px-4 w-48">Fonctionnalité</th>
+                    <th colSpan={3} className="text-center text-xs font-bold text-slate-500 uppercase tracking-wider py-2 px-4 border-b border-primary/20">Freelances</th>
+                    <th colSpan={2} className="text-center text-xs font-bold text-slate-500 uppercase tracking-wider py-2 px-4 border-b border-blue-500/20">Agences</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  <tr className="border-b border-border-dark">
+                    <th className="py-2 px-4" />
+                    {PLAN_ORDER.map((planKey) => (
+                      <th key={planKey} className={cn("text-center text-sm font-bold py-3 px-4", planKey === PLAN_POPULAR ? "text-primary" : "text-white")}>
+                        {livePlans[planKey].name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Price row */}
+                  <tr className="border-b border-border-dark/50">
+                    <td className="text-sm text-slate-400 py-3 px-4 font-semibold">Prix/mois</td>
+                    {PLAN_ORDER.map((planKey) => (
+                      <td key={planKey} className="text-center text-sm text-white py-3 px-4 font-bold">
+                        {livePlans[planKey].priceMonthly === 0 ? "Gratuit" : `${livePlans[planKey].priceMonthly}\u20AC`}
+                      </td>
+                    ))}
+                  </tr>
+                  {COMPARISON_ROWS.map((row) => (
+                    <tr key={row.key} className="border-b border-border-dark/50">
+                      <td className="text-sm text-slate-400 py-3 px-4">{row.label}</td>
+                      {PLAN_ORDER.map((planKey) => {
+                        const val = getCellValue(livePlans[planKey], row.key);
+                        return (
+                          <td key={planKey} className={cn(
+                            "text-center text-sm py-3 px-4",
+                            val === "\u2014" ? "text-slate-600" : val === "\u2713" ? "text-primary font-bold" : "text-slate-300"
+                          )}>
+                            {val}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* FAQ */}
         <div className="max-w-3xl mx-auto w-full">

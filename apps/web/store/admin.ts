@@ -181,7 +181,7 @@ export interface AdminConfig {
   defaultCurrency: string;
   enabledPaymentMethods: string[];
   commissions: Record<string, number>;
-  plans: Record<string, { price: number; commission: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number }>;
+  plans: Record<string, { price: number; priceAnnual: number; commission: number; maxServices: number; maxCandidatures: number; boostsPerMonth: number; commissionType: string; commissionValue: number; scenarioLimit: number; certificationLimit: number; productiviteAccess: boolean; teamLimit: number; crmAccess: boolean; cloudStorageGB: number; apiAccess: boolean; supportLevel: string; features: string[] }>;
   announcementBanner: { enabled: boolean; message: string; type: string; dismissible: boolean };
   moderation: { autoApproveServices: boolean; requireKycForPublish: boolean; minKycLevel: number };
   languages: string[];

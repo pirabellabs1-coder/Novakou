@@ -16,8 +16,10 @@ const TABS = [
 
 const STATUS_MAP: Record<string, { label: string; cls: string }> = {
   actif: { label: "Actif", cls: "bg-primary/20 text-primary" },
+  ouvert: { label: "Ouvert", cls: "bg-primary/20 text-primary" },
+  suspendu: { label: "Suspendu", cls: "bg-amber-500/20 text-amber-400" },
   termine: { label: "Terminé", cls: "bg-slate-500/20 text-slate-400" },
-  brouillon: { label: "Brouillon", cls: "bg-amber-500/20 text-amber-400" },
+  brouillon: { label: "Brouillon", cls: "bg-slate-600/20 text-slate-500" },
 };
 
 function SkeletonCard() {
@@ -59,6 +61,8 @@ export default function ClientProjects() {
     setProjectFilter,
     syncProjects,
     deleteProject,
+    pauseProject,
+    resumeProject,
     loading,
   } = useClientStore();
   const { addToast } = useToastStore();
@@ -91,6 +95,24 @@ export default function ClientProjects() {
       addToast("success", "Projet supprimé");
     } else {
       addToast("error", "Erreur lors de la suppression");
+    }
+  }
+
+  async function handlePause(id: string) {
+    const ok = await pauseProject(id);
+    if (ok) {
+      addToast("success", "Projet suspendu");
+    } else {
+      addToast("error", "Erreur lors de la suspension");
+    }
+  }
+
+  async function handleResume(id: string) {
+    const ok = await resumeProject(id);
+    if (ok) {
+      addToast("success", "Projet réactivé");
+    } else {
+      addToast("error", "Erreur lors de la réactivation");
     }
   }
 
@@ -269,6 +291,22 @@ export default function ClientProjects() {
                   >
                     Modifier
                   </button>
+                  {(p.status === "actif" || p.status === "ouvert") && (
+                    <button
+                      onClick={() => handlePause(p.id)}
+                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 bg-amber-500/10 text-amber-400 text-xs font-semibold rounded-lg hover:bg-amber-500/20 transition-colors text-center"
+                    >
+                      Suspendre
+                    </button>
+                  )}
+                  {p.status === "suspendu" && (
+                    <button
+                      onClick={() => handleResume(p.id)}
+                      className="flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-lg hover:bg-emerald-500/20 transition-colors text-center"
+                    >
+                      Reprendre
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(p.id)}
                     className="flex-1 sm:flex-initial px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500/10 text-red-400 text-xs font-semibold rounded-lg hover:bg-red-500/20 transition-colors text-center"

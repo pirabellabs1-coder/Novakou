@@ -6,14 +6,13 @@ import { cn } from "@/lib/utils";
 import { useDashboardStore, useToastStore } from "@/store/dashboard";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
-  PLAN_RULES,
   PLAN_ORDER,
-  PLAN_FEATURES,
   PLAN_VISIBILITY,
   getCommissionLabel,
   normalizePlanName,
   type PlanName,
 } from "@/lib/plans";
+import { useLivePlans } from "@/lib/use-live-plans";
 
 const visiblePlans = PLAN_ORDER.filter((k) => PLAN_VISIBILITY.freelance.includes(k));
 
@@ -36,9 +35,10 @@ export default function AbonnementPage() {
   const addToast = useToastStore((s) => s.addToast);
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const { plans: livePlans, features: liveFeatures } = useLivePlans();
 
   const currentPlanKey = normalizePlanName(rawPlan);
-  const currentRules = PLAN_RULES[currentPlanKey] ?? PLAN_RULES.DECOUVERTE;
+  const currentRules = livePlans[currentPlanKey] ?? livePlans.DECOUVERTE;
   const style = PLAN_STYLES[currentPlanKey] ?? PLAN_STYLES.DECOUVERTE;
   const currentIndex = visiblePlans.indexOf(currentPlanKey);
 
@@ -156,8 +156,8 @@ export default function AbonnementPage() {
       {/* Plans grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {visiblePlans.map((planKey, idx) => {
-          const rules = PLAN_RULES[planKey];
-          const features = PLAN_FEATURES[planKey];
+          const rules = livePlans[planKey];
+          const features = liveFeatures[planKey];
           const isCurrent = planKey === currentPlanKey;
           const s = PLAN_STYLES[planKey];
           const price = billing === "annual" && rules.priceAnnual > 0

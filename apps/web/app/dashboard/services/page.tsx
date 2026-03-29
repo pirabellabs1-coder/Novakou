@@ -371,7 +371,12 @@ export default function ServicesPage() {
                               </span>
                             )}
                           </p>
-                          <p className="text-xs text-primary/50 mt-0.5">A partir de {s.price}€ · {s.category}</p>
+                          <p className="text-xs text-primary/50 mt-0.5">
+                            A partir de {s.price}€ · {s.category}
+                            {s.isBoosted && s.boostedUntil && (
+                              <span className="ml-1 text-amber-400/60">· Boost expire {new Date(s.boostedUntil).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
+                            )}
+                          </p>
                         </div>
                       </div>
                     </td>

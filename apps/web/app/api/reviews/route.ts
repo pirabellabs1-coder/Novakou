@@ -175,6 +175,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Block reviews on disputed orders
+      if (["litige", "dispute"].includes((order.status || "").toLowerCase())) {
+        return NextResponse.json(
+          { error: "Impossible de laisser un avis pour une commande en litige" },
+          { status: 400 }
+        );
+      }
+
       // Order must be completed
       if (order.status !== "termine") {
         return NextResponse.json(
@@ -223,6 +231,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { error: "Seul le client peut laisser un avis" },
           { status: 403 }
+        );
+      }
+
+      // Block reviews on disputed orders
+      if (["LITIGE", "DISPUTE"].includes(order.status)) {
+        return NextResponse.json(
+          { error: "Impossible de laisser un avis pour une commande en litige" },
+          { status: 400 }
         );
       }
 
