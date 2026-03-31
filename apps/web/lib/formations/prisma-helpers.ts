@@ -59,6 +59,7 @@ export const formationDetailInclude = {
           order: true,
           isFree: true,
           quiz: { select: { id: true, passingScore: true } },
+          resources: { select: { id: true, name: true } },
         },
       },
     },

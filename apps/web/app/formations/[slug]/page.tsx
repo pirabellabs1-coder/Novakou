@@ -297,17 +297,17 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const title = formation.title;
   const desc = formation.description;
   const shortDesc = formation.shortDesc;
-  const learnPoints = formation.learnPoints;
-  const requirements = formation.requirements;
+  const learnPoints = formation.learnPoints ?? [];
+  const requirements = formation.requirements ?? [];
   const targetAudience = formation.targetAudience;
   const catName = formation.category.name;
   const instrBio = locale === "fr" ? formation.instructeur.bioFr : (formation.instructeur.bioEn || formation.instructeur.bioFr);
   const instrAvatar = formation.instructeur.user.avatar || formation.instructeur.user.image;
 
   const sections = formation.sections ?? [];
-  const totalLessons = sections.reduce((s, sec) => s + sec.lessons.length, 0);
-  const freeLessons = sections.reduce((s, sec) => s + sec.lessons.filter((l) => l.isFree).length, 0);
-  const totalResources = sections.reduce((s, sec) => s + sec.lessons.reduce((ls, l) => ls + l.resources.length, 0), 0);
+  const totalLessons = sections.reduce((s, sec) => s + (sec.lessons ?? []).length, 0);
+  const freeLessons = sections.reduce((s, sec) => s + (sec.lessons ?? []).filter((l) => l.isFree).length, 0);
+  const totalResources = sections.reduce((s, sec) => s + (sec.lessons ?? []).reduce((ls, l) => ls + (l.resources ?? []).length, 0), 0);
 
   // Flash promo price
   const flashDiscountedPrice = formation.flashPromo
