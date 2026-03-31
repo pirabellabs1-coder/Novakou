@@ -286,7 +286,7 @@ export default function AdminConfiguration() {
                             type="number"
                             value={plan.price}
                             onChange={e => {
-                              const updated = { ...(draft.plans || {}), [planName]: { ...plan, price: Number(e.target.value) } };
+                              const updated = { ...(draft.plans || {}), [planName]: { ...plan, price: Number(e.target.value) } } as AdminConfig["plans"];
                               setDraft({ ...draft, plans: updated });
                             }}
                             className="w-16 px-2 py-1 rounded border border-border-dark bg-background-dark text-white text-sm text-center outline-none focus:border-primary"
@@ -297,7 +297,7 @@ export default function AdminConfiguration() {
                             type="number"
                             value={plan.commission}
                             onChange={e => {
-                              const updated = { ...(draft.plans || {}), [planName]: { ...plan, commission: Number(e.target.value) } };
+                              const updated = { ...(draft.plans || {}), [planName]: { ...plan, commission: Number(e.target.value) } } as AdminConfig["plans"];
                               setDraft({ ...draft, plans: updated });
                             }}
                             className="w-16 px-2 py-1 rounded border border-border-dark bg-background-dark text-white text-sm text-center outline-none focus:border-primary"
@@ -310,7 +310,7 @@ export default function AdminConfiguration() {
                             type="number"
                             value={plan.boostsPerMonth}
                             onChange={e => {
-                              const updated = { ...(draft.plans || {}), [planName]: { ...plan, boostsPerMonth: Number(e.target.value) } };
+                              const updated = { ...(draft.plans || {}), [planName]: { ...plan, boostsPerMonth: Number(e.target.value) } } as AdminConfig["plans"];
                               setDraft({ ...draft, plans: updated });
                             }}
                             className="w-16 px-2 py-1 rounded border border-border-dark bg-background-dark text-white text-sm text-center outline-none focus:border-primary"

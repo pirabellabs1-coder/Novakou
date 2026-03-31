@@ -1,4 +1,5 @@
 // FreelanceHigh — Types TypeScript formations platform
+// Aligned with Prisma schema (single-language fields with `locale`)
 
 // ── Enums ──
 
@@ -12,8 +13,7 @@ export type InstructeurStatus = "EN_ATTENTE" | "APPROUVE" | "SUSPENDU";
 
 export interface FormationCategory {
   id: string;
-  nameFr: string;
-  nameEn: string;
+  name: string;
   slug: string;
   icon: string | null;
   color: string | null;
@@ -49,10 +49,8 @@ export interface InstructeurPublic {
 export interface FormationCard {
   id: string;
   slug: string;
-  titleFr: string;
-  titleEn: string;
-  shortDescFr: string | null;
-  shortDescEn: string | null;
+  title: string;
+  shortDesc: string | null;
   thumbnail: string | null;
   level: FormationLevel;
   language: string[];
@@ -69,8 +67,7 @@ export interface FormationCard {
   createdAt: Date;
   category: {
     id: string;
-    nameFr: string;
-    nameEn: string;
+    name: string;
     slug: string;
     icon: string | null;
     color: string | null;
@@ -91,18 +88,15 @@ export interface FormationWithInstructor extends FormationCard {
 
 export interface SectionWithLessons {
   id: string;
-  titleFr: string;
-  titleEn: string;
-  descFr: string | null;
-  descEn: string | null;
+  title: string;
+  desc: string | null;
   order: number;
   lessons: LessonPublic[];
 }
 
 export interface LessonPublic {
   id: string;
-  titleFr: string;
-  titleEn: string;
+  title: string;
   type: LessonType;
   duration: number | null;
   order: number;
@@ -111,8 +105,7 @@ export interface LessonPublic {
 }
 
 export interface LessonForPlayer extends LessonPublic {
-  descFr: string | null;
-  descEn: string | null;
+  desc: string | null;
   content: string | null;
   videoUrl: string | null;
   pdfUrl: string | null;
@@ -123,17 +116,15 @@ export interface LessonForPlayer extends LessonPublic {
 
 export interface QuestionPublic {
   id: string;
-  textFr: string;
-  textEn: string;
+  text: string;
   type: QuestionType;
-  options: { textFr: string; textEn: string; value: string }[];
+  options: { text: string; value: string }[];
   order: number;
 }
 
 export interface QuizPublic {
   id: string;
-  titleFr: string;
-  titleEn: string;
+  title: string;
   passingScore: number;
   timeLimit: number | null;
   questions: QuestionPublic[];
@@ -151,26 +142,19 @@ export interface QuizResult {
     questionId: string;
     isCorrect: boolean;
     correctAnswer: string;
-    explanationFr: string | null;
-    explanationEn: string | null;
+    explanation: string | null;
   }[];
 }
 
 export interface FormationDetail {
   id: string;
   slug: string;
-  titleFr: string;
-  titleEn: string;
-  shortDescFr: string | null;
-  shortDescEn: string | null;
-  descriptionFr: string | null;
-  descriptionEn: string | null;
-  learnPointsFr: string[];
-  learnPointsEn: string[];
-  requirementsFr: string[];
-  requirementsEn: string[];
-  targetAudienceFr: string | null;
-  targetAudienceEn: string | null;
+  title: string;
+  shortDesc: string | null;
+  description: string | null;
+  learnPoints: string[];
+  requirements: string[];
+  targetAudience: string | null;
   thumbnail: string | null;
   previewVideo: string | null;
   level: FormationLevel;
@@ -235,8 +219,7 @@ export interface CertificatePublic {
   issuedAt: Date;
   revokedAt: Date | null;
   formation: {
-    titleFr: string;
-    titleEn: string;
+    title: string;
     duration: number;
     instructeur: {
       user: { name: string };
@@ -291,8 +274,7 @@ export interface InstructorStats {
   studentsByMonth: { month: string; count: number }[];
   topFormations: {
     id: string;
-    titleFr: string;
-    titleEn: string;
+    title: string;
     students: number;
     revenue: number;
     rating: number;
@@ -301,8 +283,7 @@ export interface InstructorStats {
 
 export interface InstructorTransaction {
   id: string;
-  formationTitleFr: string;
-  formationTitleEn: string;
+  formationTitle: string;
   studentName: string;
   amount: number; // brut
   net: number;    // 70%
@@ -317,10 +298,8 @@ export type CohortStatus = "OUVERT" | "COMPLET" | "EN_COURS" | "TERMINE" | "ANNU
 
 export interface FormationCohortCard {
   id: string;
-  titleFr: string;
-  titleEn: string;
-  descriptionFr: string | null;
-  descriptionEn: string | null;
+  title: string;
+  description: string | null;
   startDate: string;
   endDate: string;
   enrollmentDeadline: string;
@@ -335,14 +314,12 @@ export interface FormationCohortCard {
   formation: {
     id: string;
     slug: string;
-    titleFr: string;
-    titleEn: string;
+    title: string;
     thumbnail: string | null;
     duration: number;
     level: FormationLevel;
     category: {
-      nameFr: string;
-      nameEn: string;
+      name: string;
       slug: string;
     };
     instructeur: {

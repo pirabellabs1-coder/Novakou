@@ -458,13 +458,13 @@ export const authOptions: NextAuthOptions = {
               const { prisma } = await import("@freelancehigh/db");
               const dbUser = await prisma.user.findUnique({
                 where: { id: token.id },
-                select: { kyc: true, plan: true, adminRole: true },
+                select: { kyc: true, plan: true, role: true },
               });
               if (dbUser) {
                 token.kyc = dbUser.kyc;
                 token.plan = mapPlanName(dbUser.plan.toLowerCase());
-                if (token.role === "admin") {
-                  token.adminRole = (dbUser as Record<string, unknown>).adminRole as string || "super_admin";
+                if (token.role === "admin" || dbUser.role === "ADMIN") {
+                  token.adminRole = "super_admin";
                 }
               }
             }

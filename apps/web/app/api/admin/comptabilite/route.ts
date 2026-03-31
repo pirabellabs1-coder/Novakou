@@ -66,13 +66,13 @@ function buildDevResponse(start: Date, end: Date, period: string) {
   const startISO = start.toISOString();
   const endISO = end.toISOString();
 
-  const orders = orderStore.getAll().filter((o: Record<string, unknown>) => {
-    const d = (o.createdAt as string) || "";
+  const orders = orderStore.getAll().filter((o) => {
+    const d = ((o as unknown as Record<string, unknown>).createdAt as string) || "";
     return d >= startISO && d <= endISO;
   });
 
-  const boosts = boostStore.getAll().filter((b: Record<string, unknown>) => {
-    const d = (b.startedAt as string) || "";
+  const boosts = boostStore.getAll().filter((b) => {
+    const d = ((b as unknown as Record<string, unknown>).startedAt as string) || "";
     return d >= startISO && d <= endISO;
   });
 
@@ -85,7 +85,7 @@ function buildDevResponse(start: Date, end: Date, period: string) {
 
   // Orders → achats
   for (const o of orders) {
-    const order = o as Record<string, unknown>;
+    const order = o as unknown as Record<string, unknown>;
     const amount = Number(order.amount) || 0;
     const commission = Number(order.platformFee) || Math.round(amount * 0.12 * 100) / 100;
     const status = ((order.status as string) || "").toLowerCase();
@@ -120,7 +120,7 @@ function buildDevResponse(start: Date, end: Date, period: string) {
 
   // Boosts
   for (const b of boosts) {
-    const boost = b as Record<string, unknown>;
+    const boost = b as unknown as Record<string, unknown>;
     const price = Number(boost.price) || 0;
     revenueBoosts += price;
     operations.push({

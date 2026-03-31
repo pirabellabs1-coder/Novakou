@@ -8,9 +8,13 @@ export interface BadgeInput {
   role?: string;       // "freelance" | "client" | "agence" | "admin"
   plan?: string | null; // "free" | "pro" | "business" | "agence"
   kyc?: number | null;  // 0-4
+  kycLevel?: number | null; // alias for kyc (backward compat)
   avgRating: number;    // 0-5
   completedOrders: number;
+  completionRate?: number; // 0-100
   createdAt?: string | Date | null; // account creation date
+  isInstructor?: boolean;
+  totalRevenue?: number;
 }
 
 /**
@@ -19,7 +23,7 @@ export interface BadgeInput {
  */
 export function computeBadges(input: BadgeInput): string[] {
   const badges: string[] = [];
-  const kyc = input.kyc ?? 0;
+  const kyc = input.kyc ?? input.kycLevel ?? 0;
   const plan = (input.plan ?? "free").toUpperCase();
   const role = (input.role ?? "freelance").toLowerCase();
 

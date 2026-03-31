@@ -5,6 +5,7 @@ import {
   getSignedUrl,
   type StorageBucket,
 } from "@/lib/supabase-storage";
+import { uploadImage } from "@/lib/cloudinary";
 
 const IS_DEV = process.env.DEV_MODE === "true";
 
@@ -123,33 +124,61 @@ export async function POST(req: NextRequest) {
     // Build a unique path scoped to the user
     const storagePath = `${userId}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${extension}`;
 
-    // Try Supabase Storage upload
-    const result = await uploadFile(bucket, storagePath, buffer, file.type);
-
-    if (!result) {
-      console.error("[Upload File] Supabase Storage upload failed — check SUPABASE_SERVICE_ROLE_KEY and bucket existence");
-      return NextResponse.json(
-        { error: "Stockage indisponible. Verifiez la configuration Supabase Storage." },
-        { status: 503 }
-      );
+    // Try Supabase Storage upload (may throw on read-only filesystem like Vercel)
+    let supabaseResult: { url: string; path: string } | null = null;
+    try {
+      supabaseResult = await uploadFile(bucket, storagePath, buffer, file.type);
+    } catch (storageErr) {
+      console.warn("[Upload File] Supabase Storage failed:", storageErr);
     }
 
-    // Generate a signed URL with 1-hour expiry for private buckets
-    const signedUrl = await getSignedUrl(bucket, result.path, 3600);
+    if (supabaseResult) {
+      const signedUrl = await getSignedUrl(bucket, supabaseResult.path, 3600);
+      return NextResponse.json({
+        success: true,
+        file: {
+          id: `file-${Date.now()}`,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: signedUrl || supabaseResult.url,
+          path: supabaseResult.path,
+          bucket,
+          uploadedAt: new Date().toISOString(),
+        },
+      });
+    }
 
-    return NextResponse.json({
-      success: true,
-      file: {
-        id: `file-${Date.now()}`,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: signedUrl || result.url,
-        path: result.path,
-        bucket,
-        uploadedAt: new Date().toISOString(),
-      },
-    });
+    // Fallback: Cloudinary for image files when Supabase Storage is unavailable
+    const isImageFile = ["png", "jpg", "jpeg", "gif", "webp"].includes(extension);
+    if (isImageFile) {
+      const cloudinaryResult = await uploadImage(buffer, {
+        folder: `freelancehigh/${bucket}`,
+        publicId: `${userId}_${Date.now()}`,
+      });
+
+      if (cloudinaryResult) {
+        return NextResponse.json({
+          success: true,
+          file: {
+            id: cloudinaryResult.publicId,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            url: cloudinaryResult.url,
+            path: cloudinaryResult.publicId,
+            bucket,
+            uploadedAt: new Date().toISOString(),
+          },
+        });
+      }
+    }
+
+    console.error("[Upload File] Storage unavailable — Supabase and Cloudinary both failed");
+    return NextResponse.json(
+      { error: "Stockage indisponible. Veuillez reessayer." },
+      { status: 503 }
+    );
   } catch (error) {
     console.error("[Upload File] Error:", error);
     return NextResponse.json(

@@ -13,7 +13,7 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(categories);
+    return NextResponse.json({ categories });
   } catch (error) {
     console.error("[GET /api/formations/categories]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

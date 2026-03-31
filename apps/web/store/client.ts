@@ -22,7 +22,7 @@ export interface ClientProject {
   skills: string[];
   urgency: "normale" | "urgente" | "tres_urgente";
   visibility: "public" | "prive";
-  status: "ouvert" | "pourvu" | "ferme" | "brouillon" | "actif" | "termine";
+  status: "ouvert" | "pourvu" | "ferme" | "brouillon" | "actif" | "termine" | "suspendu";
   candidatures: number;
   progress: number;
   createdAt: string;
@@ -258,7 +258,7 @@ export const useClientStore = create<ClientState>()((set, get) => ({
       if (ordersRes.status === "fulfilled") updates.orders = ordersRes.value?.orders || [];
       if (financeRes.status === "fulfilled") {
         updates.financeSummary = financeRes.value;
-        updates.credits = (financeRes.value as Record<string, unknown>)?.credits as number ?? 0;
+        updates.credits = (financeRes.value as unknown as Record<string, unknown>)?.credits as number ?? 0;
       }
       if (transactionsRes.status === "fulfilled") updates.transactions = transactionsRes.value?.transactions || [];
       if (reviewsRes.status === "fulfilled") {
@@ -569,7 +569,7 @@ export const useClientStore = create<ClientState>()((set, get) => ({
   syncFinanceSummary: async () => {
     try {
       const data = await financesApi.summary();
-      set({ financeSummary: data, credits: (data as Record<string, unknown>)?.credits as number ?? 0 });
+      set({ financeSummary: data, credits: (data as unknown as Record<string, unknown>)?.credits as number ?? 0 });
     } catch {
       // Silently fail — financeSummary stays at previous value or null
     }

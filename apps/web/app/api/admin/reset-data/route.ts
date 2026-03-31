@@ -144,7 +144,7 @@ export async function POST() {
     // ── Batch 6: Reset admin wallets to zero ──
     try {
       const wallets = await prisma.adminWallet.updateMany({
-        data: { balance: 0, totalCommissions: 0, totalPayouts: 0 },
+        data: { totalFeesHeld: 0, totalFeesReleased: 0 },
       });
       summary.adminWalletsReset = wallets.count;
     } catch {

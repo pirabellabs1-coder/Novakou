@@ -57,186 +57,26 @@ async function simpleHash(password: string): string {
 // ── Data Definitions ──
 
 const FORMATION_CATEGORIES = [
-  {
-    id: createId(),
-    nameFr: "Développement Web",
-    nameEn: "Web Development",
-    slug: "developpement-web",
-    icon: "code",
-    color: "#3B82F6",
-    order: 1,
-  },
-  {
-    id: createId(),
-    nameFr: "Design & Créativité",
-    nameEn: "Design & Creativity",
-    slug: "design-creativite",
-    icon: "palette",
-    color: "#EC4899",
-    order: 2,
-  },
-  {
-    id: createId(),
-    nameFr: "Marketing Digital",
-    nameEn: "Digital Marketing",
-    slug: "marketing-digital",
-    icon: "campaign",
-    color: "#EF4444",
-    order: 3,
-  },
-  {
-    id: createId(),
-    nameFr: "Intelligence Artificielle",
-    nameEn: "Artificial Intelligence",
-    slug: "intelligence-artificielle",
-    icon: "smart_toy",
-    color: "#6366F1",
-    order: 4,
-  },
-  {
-    id: createId(),
-    nameFr: "Business & Freelancing",
-    nameEn: "Business & Freelancing",
-    slug: "business-freelancing",
-    icon: "briefcase",
-    color: "#7C3AED",
-    order: 5,
-  },
-  {
-    id: createId(),
-    nameFr: "Développement Mobile",
-    nameEn: "Mobile Development",
-    slug: "developpement-mobile",
-    icon: "smartphone",
-    color: "#06B6D4",
-    order: 6,
-  },
-  {
-    id: createId(),
-    nameFr: "Cybersécurité",
-    nameEn: "Cybersecurity",
-    slug: "cybersecurite",
-    icon: "security",
-    color: "#475569",
-    order: 7,
-  },
-  {
-    id: createId(),
-    nameFr: "Data Science & Analytics",
-    nameEn: "Data Science & Analytics",
-    slug: "data-science-analytics",
-    icon: "analytics",
-    color: "#0EA5E9",
-    order: 8,
-  },
-  {
-    id: createId(),
-    nameFr: "Cloud & DevOps",
-    nameEn: "Cloud & DevOps",
-    slug: "cloud-devops",
-    icon: "cloud",
-    color: "#F97316",
-    order: 9,
-  },
-  {
-    id: createId(),
-    nameFr: "Photographie & Vidéo",
-    nameEn: "Photography & Video",
-    slug: "photographie-video",
-    icon: "photo_camera",
-    color: "#D946EF",
-    order: 10,
-  },
-  {
-    id: createId(),
-    nameFr: "Musique & Audio",
-    nameEn: "Music & Audio",
-    slug: "musique-audio",
-    icon: "music_note",
-    color: "#F59E0B",
-    order: 11,
-  },
-  {
-    id: createId(),
-    nameFr: "Langues & Communication",
-    nameEn: "Languages & Communication",
-    slug: "langues-communication",
-    icon: "translate",
-    color: "#14B8A6",
-    order: 12,
-  },
-  {
-    id: createId(),
-    nameFr: "Finance & Comptabilité",
-    nameEn: "Finance & Accounting",
-    slug: "finance-comptabilite",
-    icon: "account_balance",
-    color: "#22C55E",
-    order: 13,
-  },
-  {
-    id: createId(),
-    nameFr: "Gestion de Projet",
-    nameEn: "Project Management",
-    slug: "gestion-de-projet",
-    icon: "assignment",
-    color: "#8B5CF6",
-    order: 14,
-  },
-  {
-    id: createId(),
-    nameFr: "Santé & Bien-être",
-    nameEn: "Health & Wellness",
-    slug: "sante-bien-etre",
-    icon: "spa",
-    color: "#F43F5E",
-    order: 15,
-  },
-  {
-    id: createId(),
-    nameFr: "Droit & Juridique",
-    nameEn: "Law & Legal",
-    slug: "droit-juridique",
-    icon: "gavel",
-    color: "#78716C",
-    order: 16,
-  },
-  {
-    id: createId(),
-    nameFr: "Éducation & Enseignement",
-    nameEn: "Education & Teaching",
-    slug: "education-enseignement",
-    icon: "school",
-    color: "#2563EB",
-    order: 17,
-  },
-  {
-    id: createId(),
-    nameFr: "Sciences & Ingénierie",
-    nameEn: "Science & Engineering",
-    slug: "sciences-ingenierie",
-    icon: "science",
-    color: "#059669",
-    order: 18,
-  },
-  {
-    id: createId(),
-    nameFr: "Rédaction & Contenu",
-    nameEn: "Writing & Content",
-    slug: "redaction-contenu",
-    icon: "edit_note",
-    color: "#4F46E5",
-    order: 19,
-  },
-  {
-    id: createId(),
-    nameFr: "Blockchain & Web3",
-    nameEn: "Blockchain & Web3",
-    slug: "blockchain-web3",
-    icon: "token",
-    color: "#A855F7",
-    order: 20,
-  },
+  { id: createId(), name: "Développement Web", slug: "developpement-web", icon: "code", color: "#3B82F6", order: 1 },
+  { id: createId(), name: "Design & Créativité", slug: "design-creativite", icon: "palette", color: "#EC4899", order: 2 },
+  { id: createId(), name: "Marketing Digital", slug: "marketing-digital", icon: "campaign", color: "#EF4444", order: 3 },
+  { id: createId(), name: "Intelligence Artificielle", slug: "intelligence-artificielle", icon: "smart_toy", color: "#6366F1", order: 4 },
+  { id: createId(), name: "Business & Freelancing", slug: "business-freelancing", icon: "briefcase", color: "#7C3AED", order: 5 },
+  { id: createId(), name: "Développement Mobile", slug: "developpement-mobile", icon: "smartphone", color: "#06B6D4", order: 6 },
+  { id: createId(), name: "Cybersécurité", slug: "cybersecurite", icon: "security", color: "#475569", order: 7 },
+  { id: createId(), name: "Data Science & Analytics", slug: "data-science-analytics", icon: "analytics", color: "#0EA5E9", order: 8 },
+  { id: createId(), name: "Cloud & DevOps", slug: "cloud-devops", icon: "cloud", color: "#F97316", order: 9 },
+  { id: createId(), name: "Photographie & Vidéo", slug: "photographie-video", icon: "photo_camera", color: "#D946EF", order: 10 },
+  { id: createId(), name: "Musique & Audio", slug: "musique-audio", icon: "music_note", color: "#F59E0B", order: 11 },
+  { id: createId(), name: "Langues & Communication", slug: "langues-communication", icon: "translate", color: "#14B8A6", order: 12 },
+  { id: createId(), name: "Finance & Comptabilité", slug: "finance-comptabilite", icon: "account_balance", color: "#22C55E", order: 13 },
+  { id: createId(), name: "Gestion de Projet", slug: "gestion-de-projet", icon: "assignment", color: "#8B5CF6", order: 14 },
+  { id: createId(), name: "Santé & Bien-être", slug: "sante-bien-etre", icon: "spa", color: "#F43F5E", order: 15 },
+  { id: createId(), name: "Droit & Juridique", slug: "droit-juridique", icon: "gavel", color: "#78716C", order: 16 },
+  { id: createId(), name: "Éducation & Enseignement", slug: "education-enseignement", icon: "school", color: "#2563EB", order: 17 },
+  { id: createId(), name: "Sciences & Ingénierie", slug: "sciences-ingenierie", icon: "science", color: "#059669", order: 18 },
+  { id: createId(), name: "Rédaction & Contenu", slug: "redaction-contenu", icon: "edit_note", color: "#4F46E5", order: 19 },
+  { id: createId(), name: "Blockchain & Web3", slug: "blockchain-web3", icon: "token", color: "#A855F7", order: 20 },
 ];
 
 const ADMIN_USERS = [
@@ -341,339 +181,276 @@ const APPRENANT_USERS = Array.from({ length: 20 }, (_, i) => {
   };
 });
 
-// Formations data with variety of topics
+// Formations data with variety of topics (schema uses single-language fields with `locale`)
 const FORMATIONS_DATA = [
   {
-    titleFr: "React & Next.js : Le Guide Complet 2026",
-    titleEn: "React & Next.js: The Complete Guide 2026",
-    shortDescFr: "Apprenez React et Next.js de zéro à expert avec des projets concrets",
-    shortDescEn: "Learn React and Next.js from zero to expert with real projects",
-    descriptionFr: "Cette formation complète vous guide pas à pas dans la maîtrise de React et Next.js 14. Vous apprendrez le App Router, les Server Components, le SSR, le SSG, et bien plus. À travers 5 projets pratiques, vous deviendrez un développeur React autonome et compétent.",
-    descriptionEn: "This complete course guides you step by step to master React and Next.js 14. You will learn App Router, Server Components, SSR, SSG, and much more. Through 5 practical projects, you will become an autonomous and competent React developer.",
+    title: "React & Next.js : Le Guide Complet 2026",
+    shortDesc: "Apprenez React et Next.js de zéro à expert avec des projets concrets",
+    description: "Cette formation complète vous guide pas à pas dans la maîtrise de React et Next.js 14. Vous apprendrez le App Router, les Server Components, le SSR, le SSG, et bien plus. À travers 5 projets pratiques, vous deviendrez un développeur React autonome et compétent.",
     level: "INTERMEDIAIRE" as const,
     price: 49.99,
     originalPrice: 89.99,
     duration: 1800,
-    categoryIdx: 0, // Développement Web
-    instructeurIdx: 0, // Sophie
+    categoryIdx: 0,
+    instructeurIdx: 0,
     status: "ACTIF" as const,
-    learnPointsFr: ["Maîtriser React 19 et ses hooks avancés", "Construire des applications avec Next.js 14 App Router", "Implémenter le SSR, SSG et ISR", "Gérer l'état avec Zustand et TanStack Query", "Déployer sur Vercel"],
-    learnPointsEn: ["Master React 19 and advanced hooks", "Build applications with Next.js 14 App Router", "Implement SSR, SSG, and ISR", "Manage state with Zustand and TanStack Query", "Deploy on Vercel"],
-    requirementsFr: ["Connaissances de base en HTML, CSS et JavaScript", "Un ordinateur avec Node.js installé"],
-    requirementsEn: ["Basic knowledge of HTML, CSS and JavaScript", "A computer with Node.js installed"],
+    learnPoints: ["Maîtriser React 19 et ses hooks avancés", "Construire des applications avec Next.js 14 App Router", "Implémenter le SSR, SSG et ISR", "Gérer l'état avec Zustand et TanStack Query", "Déployer sur Vercel"],
+    requirements: ["Connaissances de base en HTML, CSS et JavaScript", "Un ordinateur avec Node.js installé"],
   },
   {
-    titleFr: "Maîtriser Tailwind CSS & shadcn/ui",
-    titleEn: "Master Tailwind CSS & shadcn/ui",
-    shortDescFr: "Créez des interfaces modernes et accessibles avec Tailwind et shadcn/ui",
-    shortDescEn: "Create modern and accessible interfaces with Tailwind and shadcn/ui",
-    descriptionFr: "Découvrez comment construire des interfaces utilisateur élégantes avec Tailwind CSS et la bibliothèque shadcn/ui. De la mise en page responsive au design system complet, cette formation couvre tout ce qu'il faut savoir.",
-    descriptionEn: "Discover how to build elegant user interfaces with Tailwind CSS and the shadcn/ui library. From responsive layout to complete design system, this course covers everything you need to know.",
+    title: "Maîtriser Tailwind CSS & shadcn/ui",
+    shortDesc: "Créez des interfaces modernes et accessibles avec Tailwind et shadcn/ui",
+    description: "Découvrez comment construire des interfaces utilisateur élégantes avec Tailwind CSS et la bibliothèque shadcn/ui. De la mise en page responsive au design system complet, cette formation couvre tout ce qu'il faut savoir.",
     level: "DEBUTANT" as const,
     price: 29.99,
     originalPrice: 49.99,
     duration: 900,
-    categoryIdx: 0, // Développement Web
-    instructeurIdx: 0, // Sophie
+    categoryIdx: 0,
+    instructeurIdx: 0,
     status: "ACTIF" as const,
-    learnPointsFr: ["Maîtriser les classes utilitaires de Tailwind CSS", "Installer et personnaliser shadcn/ui", "Créer un design system complet", "Concevoir des layouts responsive"],
-    learnPointsEn: ["Master Tailwind CSS utility classes", "Install and customize shadcn/ui", "Create a complete design system", "Design responsive layouts"],
-    requirementsFr: ["Connaissances en HTML et CSS", "Bases de React"],
-    requirementsEn: ["HTML and CSS knowledge", "React basics"],
+    learnPoints: ["Maîtriser les classes utilitaires de Tailwind CSS", "Installer et personnaliser shadcn/ui", "Créer un design system complet", "Concevoir des layouts responsive"],
+    requirements: ["Connaissances en HTML et CSS", "Bases de React"],
   },
   {
-    titleFr: "UI/UX Design : De l'Idée au Prototype",
-    titleEn: "UI/UX Design: From Idea to Prototype",
-    shortDescFr: "Apprenez à concevoir des interfaces intuitives avec Figma",
-    shortDescEn: "Learn to design intuitive interfaces with Figma",
-    descriptionFr: "Formez-vous au design d'interface et d'expérience utilisateur. Vous apprendrez à réaliser des wireframes, des maquettes et des prototypes interactifs avec Figma. Études de cas réels et projets pratiques inclus.",
-    descriptionEn: "Train in interface and user experience design. You will learn to create wireframes, mockups and interactive prototypes with Figma. Real case studies and practical projects included.",
+    title: "UI/UX Design : De l'Idée au Prototype",
+    shortDesc: "Apprenez à concevoir des interfaces intuitives avec Figma",
+    description: "Formez-vous au design d'interface et d'expérience utilisateur. Vous apprendrez à réaliser des wireframes, des maquettes et des prototypes interactifs avec Figma. Études de cas réels et projets pratiques inclus.",
     level: "TOUS_NIVEAUX" as const,
     price: 39.99,
     originalPrice: 69.99,
     duration: 1200,
-    categoryIdx: 1, // Design
-    instructeurIdx: 1, // Marc
+    categoryIdx: 1,
+    instructeurIdx: 1,
     status: "ACTIF" as const,
-    learnPointsFr: ["Maîtriser Figma de A à Z", "Mener une recherche utilisateur", "Créer des wireframes et prototypes", "Appliquer les principes d'accessibilité"],
-    learnPointsEn: ["Master Figma from A to Z", "Conduct user research", "Create wireframes and prototypes", "Apply accessibility principles"],
-    requirementsFr: ["Aucun prérequis technique"],
-    requirementsEn: ["No technical prerequisites"],
+    learnPoints: ["Maîtriser Figma de A à Z", "Mener une recherche utilisateur", "Créer des wireframes et prototypes", "Appliquer les principes d'accessibilité"],
+    requirements: ["Aucun prérequis technique"],
   },
   {
-    titleFr: "Branding & Identité Visuelle pour Freelances",
-    titleEn: "Branding & Visual Identity for Freelancers",
-    shortDescFr: "Construisez une marque personnelle forte qui attire les clients",
-    shortDescEn: "Build a strong personal brand that attracts clients",
-    descriptionFr: "Dans cette formation, vous apprendrez à créer une identité visuelle professionnelle. Du logo à la charte graphique, en passant par les supports de communication, vous aurez tous les outils pour vous démarquer.",
-    descriptionEn: "In this course, you will learn to create a professional visual identity. From logo to brand guidelines, including communication materials, you will have all the tools to stand out.",
+    title: "Branding & Identité Visuelle pour Freelances",
+    shortDesc: "Construisez une marque personnelle forte qui attire les clients",
+    description: "Dans cette formation, vous apprendrez à créer une identité visuelle professionnelle. Du logo à la charte graphique, en passant par les supports de communication, vous aurez tous les outils pour vous démarquer.",
     level: "DEBUTANT" as const,
     price: 24.99,
     originalPrice: null,
     duration: 600,
-    categoryIdx: 1, // Design
-    instructeurIdx: 1, // Marc
+    categoryIdx: 1,
+    instructeurIdx: 1,
     status: "ACTIF" as const,
-    learnPointsFr: ["Créer un logo professionnel", "Définir une charte graphique", "Choisir typographies et couleurs", "Créer des templates réutilisables"],
-    learnPointsEn: ["Create a professional logo", "Define brand guidelines", "Choose typography and colors", "Create reusable templates"],
-    requirementsFr: ["Notions de base en design graphique souhaitées"],
-    requirementsEn: ["Basic graphic design knowledge preferred"],
+    learnPoints: ["Créer un logo professionnel", "Définir une charte graphique", "Choisir typographies et couleurs", "Créer des templates réutilisables"],
+    requirements: ["Notions de base en design graphique souhaitées"],
   },
   {
-    titleFr: "SEO & Content Marketing : Stratégie Complète",
-    titleEn: "SEO & Content Marketing: Complete Strategy",
-    shortDescFr: "Dominez les résultats Google et développez votre audience organique",
-    shortDescEn: "Dominate Google results and grow your organic audience",
-    descriptionFr: "Formation complète sur le référencement naturel et le marketing de contenu. Apprenez à positionner vos pages en première page Google, à créer du contenu qui convertit, et à mesurer vos résultats avec Google Analytics.",
-    descriptionEn: "Complete training on SEO and content marketing. Learn to rank your pages on Google's first page, create converting content, and measure your results with Google Analytics.",
+    title: "SEO & Content Marketing : Stratégie Complète",
+    shortDesc: "Dominez les résultats Google et développez votre audience organique",
+    description: "Formation complète sur le référencement naturel et le marketing de contenu. Apprenez à positionner vos pages en première page Google, à créer du contenu qui convertit, et à mesurer vos résultats avec Google Analytics.",
     level: "INTERMEDIAIRE" as const,
     price: 34.99,
     originalPrice: 59.99,
     duration: 1080,
-    categoryIdx: 2, // Marketing Digital
-    instructeurIdx: 2, // Fatou
+    categoryIdx: 2,
+    instructeurIdx: 2,
     status: "ACTIF" as const,
-    learnPointsFr: ["Maîtriser le SEO on-page et off-page", "Créer une stratégie de contenu", "Utiliser Google Search Console et Analytics", "Optimiser la conversion"],
-    learnPointsEn: ["Master on-page and off-page SEO", "Create a content strategy", "Use Google Search Console and Analytics", "Optimize conversion"],
-    requirementsFr: ["Site web ou blog existant recommandé"],
-    requirementsEn: ["Existing website or blog recommended"],
+    learnPoints: ["Maîtriser le SEO on-page et off-page", "Créer une stratégie de contenu", "Utiliser Google Search Console et Analytics", "Optimiser la conversion"],
+    requirements: ["Site web ou blog existant recommandé"],
   },
   {
-    titleFr: "Node.js & API REST : Architecture Backend",
-    titleEn: "Node.js & REST API: Backend Architecture",
-    shortDescFr: "Construisez des APIs performantes et sécurisées avec Node.js",
-    shortDescEn: "Build performant and secure APIs with Node.js",
-    descriptionFr: "Apprenez à concevoir et développer des APIs REST robustes avec Node.js, Express/Fastify, et Prisma. Cette formation couvre l'authentification JWT, la validation des données, les tests et le déploiement.",
-    descriptionEn: "Learn to design and develop robust REST APIs with Node.js, Express/Fastify, and Prisma. This course covers JWT authentication, data validation, testing, and deployment.",
+    title: "Node.js & API REST : Architecture Backend",
+    shortDesc: "Construisez des APIs performantes et sécurisées avec Node.js",
+    description: "Apprenez à concevoir et développer des APIs REST robustes avec Node.js, Express/Fastify, et Prisma. Cette formation couvre l'authentification JWT, la validation des données, les tests et le déploiement.",
     level: "AVANCE" as const,
     price: 59.99,
     originalPrice: 99.99,
     duration: 2400,
-    categoryIdx: 0, // Développement Web
-    instructeurIdx: 0, // Sophie
+    categoryIdx: 0,
+    instructeurIdx: 0,
     status: "BROUILLON" as const,
-    learnPointsFr: ["Architecturer des APIs REST professionnelles", "Implémenter JWT et OAuth", "Utiliser Prisma avec PostgreSQL", "Tester avec Jest et Supertest"],
-    learnPointsEn: ["Architect professional REST APIs", "Implement JWT and OAuth", "Use Prisma with PostgreSQL", "Test with Jest and Supertest"],
-    requirementsFr: ["JavaScript avancé", "Expérience avec Node.js de base"],
-    requirementsEn: ["Advanced JavaScript", "Basic Node.js experience"],
+    learnPoints: ["Architecturer des APIs REST professionnelles", "Implémenter JWT et OAuth", "Utiliser Prisma avec PostgreSQL", "Tester avec Jest et Supertest"],
+    requirements: ["JavaScript avancé", "Expérience avec Node.js de base"],
   },
   {
-    titleFr: "Introduction au Prompt Engineering avec ChatGPT",
-    titleEn: "Introduction to Prompt Engineering with ChatGPT",
-    shortDescFr: "Apprenez à formuler des prompts efficaces pour exploiter l'IA",
-    shortDescEn: "Learn to formulate effective prompts to leverage AI",
-    descriptionFr: "Découvrez les techniques de prompt engineering pour tirer le meilleur de ChatGPT et des modèles de langage. Applications concrètes pour le travail freelance : rédaction, code, marketing, et plus.",
-    descriptionEn: "Discover prompt engineering techniques to get the most out of ChatGPT and language models. Practical applications for freelance work: writing, code, marketing, and more.",
+    title: "Introduction au Prompt Engineering avec ChatGPT",
+    shortDesc: "Apprenez à formuler des prompts efficaces pour exploiter l'IA",
+    description: "Découvrez les techniques de prompt engineering pour tirer le meilleur de ChatGPT et des modèles de langage. Applications concrètes pour le travail freelance : rédaction, code, marketing, et plus.",
     level: "DEBUTANT" as const,
     price: 19.99,
     originalPrice: null,
     duration: 480,
-    categoryIdx: 3, // IA
-    instructeurIdx: 2, // Fatou
+    categoryIdx: 3,
+    instructeurIdx: 2,
     status: "BROUILLON" as const,
-    learnPointsFr: ["Comprendre le fonctionnement des LLM", "Maîtriser les techniques de prompting", "Automatiser des tâches avec l'IA", "Intégrer l'IA dans son workflow"],
-    learnPointsEn: ["Understand how LLMs work", "Master prompting techniques", "Automate tasks with AI", "Integrate AI into your workflow"],
-    requirementsFr: ["Aucun prérequis technique"],
-    requirementsEn: ["No technical prerequisites"],
+    learnPoints: ["Comprendre le fonctionnement des LLM", "Maîtriser les techniques de prompting", "Automatiser des tâches avec l'IA", "Intégrer l'IA dans son workflow"],
+    requirements: ["Aucun prérequis technique"],
   },
   {
-    titleFr: "Facebook & Instagram Ads pour Débutants",
-    titleEn: "Facebook & Instagram Ads for Beginners",
-    shortDescFr: "Créez vos premières campagnes publicitaires rentables",
-    shortDescEn: "Create your first profitable ad campaigns",
-    descriptionFr: "Apprenez à créer et optimiser des campagnes publicitaires sur Facebook et Instagram. De la création d'audience au retargeting, en passant par l'A/B testing, cette formation vous donne toutes les clés.",
-    descriptionEn: "Learn to create and optimize advertising campaigns on Facebook and Instagram. From audience creation to retargeting, including A/B testing, this course gives you all the keys.",
+    title: "Facebook & Instagram Ads pour Débutants",
+    shortDesc: "Créez vos premières campagnes publicitaires rentables",
+    description: "Apprenez à créer et optimiser des campagnes publicitaires sur Facebook et Instagram. De la création d'audience au retargeting, en passant par l'A/B testing, cette formation vous donne toutes les clés.",
     level: "DEBUTANT" as const,
     price: 0,
     originalPrice: null,
     duration: 360,
-    categoryIdx: 2, // Marketing Digital
-    instructeurIdx: 2, // Fatou
+    categoryIdx: 2,
+    instructeurIdx: 2,
     status: "EN_ATTENTE" as const,
-    learnPointsFr: ["Configurer le Business Manager", "Créer des audiences ciblées", "Concevoir des publicités qui convertissent", "Analyser les performances"],
-    learnPointsEn: ["Set up Business Manager", "Create targeted audiences", "Design converting ads", "Analyze performance"],
-    requirementsFr: ["Un compte Facebook actif"],
-    requirementsEn: ["An active Facebook account"],
+    learnPoints: ["Configurer le Business Manager", "Créer des audiences ciblées", "Concevoir des publicités qui convertissent", "Analyser les performances"],
+    requirements: ["Un compte Facebook actif"],
   },
   {
-    titleFr: "Lancer son Business de Freelance en Afrique",
-    titleEn: "Launch Your Freelance Business in Africa",
-    shortDescFr: "Le guide pratique pour devenir freelance prospère depuis l'Afrique",
-    shortDescEn: "The practical guide to becoming a prosperous freelancer from Africa",
-    descriptionFr: "Formation spécialement conçue pour les freelances africains. Couvre la gestion financière, la facturation en multi-devises, le positionnement international, et les méthodes de paiement Mobile Money.",
-    descriptionEn: "Course specifically designed for African freelancers. Covers financial management, multi-currency billing, international positioning, and Mobile Money payment methods.",
+    title: "Lancer son Business de Freelance en Afrique",
+    shortDesc: "Le guide pratique pour devenir freelance prospère depuis l'Afrique",
+    description: "Formation spécialement conçue pour les freelances africains. Couvre la gestion financière, la facturation en multi-devises, le positionnement international, et les méthodes de paiement Mobile Money.",
     level: "TOUS_NIVEAUX" as const,
     price: 14.99,
     originalPrice: 29.99,
     duration: 720,
-    categoryIdx: 4, // Business & Freelancing
-    instructeurIdx: 2, // Fatou
+    categoryIdx: 4,
+    instructeurIdx: 2,
     status: "EN_ATTENTE" as const,
-    learnPointsFr: ["Définir son positionnement et ses tarifs", "Gérer la facturation multi-devises", "Trouver des clients internationaux", "Maîtriser les outils de productivité"],
-    learnPointsEn: ["Define your positioning and rates", "Manage multi-currency billing", "Find international clients", "Master productivity tools"],
-    requirementsFr: ["Avoir une compétence à vendre"],
-    requirementsEn: ["Have a skill to sell"],
+    learnPoints: ["Définir son positionnement et ses tarifs", "Gérer la facturation multi-devises", "Trouver des clients internationaux", "Maîtriser les outils de productivité"],
+    requirements: ["Avoir une compétence à vendre"],
   },
   {
-    titleFr: "TypeScript Avancé : Patterns et Bonnes Pratiques",
-    titleEn: "Advanced TypeScript: Patterns and Best Practices",
-    shortDescFr: "Passez au niveau supérieur avec les types avancés de TypeScript",
-    shortDescEn: "Level up with TypeScript's advanced types",
-    descriptionFr: "Plongez dans les fonctionnalités avancées de TypeScript : generics, types conditionnels, infer, template literal types, et patterns architecturaux. Formation destinée aux développeurs qui veulent écrire du code TypeScript de qualité production.",
-    descriptionEn: "Dive into TypeScript's advanced features: generics, conditional types, infer, template literal types, and architectural patterns. Course for developers who want to write production-quality TypeScript code.",
+    title: "TypeScript Avancé : Patterns et Bonnes Pratiques",
+    shortDesc: "Passez au niveau supérieur avec les types avancés de TypeScript",
+    description: "Plongez dans les fonctionnalités avancées de TypeScript : generics, types conditionnels, infer, template literal types, et patterns architecturaux. Formation destinée aux développeurs qui veulent écrire du code TypeScript de qualité production.",
     level: "AVANCE" as const,
     price: 44.99,
     originalPrice: 79.99,
     duration: 1500,
-    categoryIdx: 0, // Développement Web
-    instructeurIdx: 0, // Sophie
+    categoryIdx: 0,
+    instructeurIdx: 0,
     status: "ARCHIVE" as const,
-    learnPointsFr: ["Maîtriser les generics avancés", "Implémenter des types conditionnels", "Créer des types utilitaires", "Appliquer les patterns TypeScript"],
-    learnPointsEn: ["Master advanced generics", "Implement conditional types", "Create utility types", "Apply TypeScript patterns"],
-    requirementsFr: ["Expérience avec TypeScript basique", "Connaissance de JavaScript ES6+"],
-    requirementsEn: ["Experience with basic TypeScript", "Knowledge of JavaScript ES6+"],
+    learnPoints: ["Maîtriser les generics avancés", "Implémenter des types conditionnels", "Créer des types utilitaires", "Appliquer les patterns TypeScript"],
+    requirements: ["Expérience avec TypeScript basique", "Connaissance de JavaScript ES6+"],
   },
 ];
 
-// Section/Lesson templates for ACTIF formations
-const SECTION_TEMPLATES: Record<number, { titleFr: string; titleEn: string; lessons: { titleFr: string; titleEn: string; type: "VIDEO" | "TEXTE"; duration: number }[] }[]> = {
+// Section/Lesson templates for ACTIF formations (schema: title, not titleFr/titleEn)
+const SECTION_TEMPLATES: Record<number, { title: string; lessons: { title: string; type: "VIDEO" | "TEXTE"; duration: number }[] }[]> = {
   // Formation 0: React & Next.js
   0: [
     {
-      titleFr: "Introduction et Configuration",
-      titleEn: "Introduction and Setup",
+      title: "Introduction et Configuration",
       lessons: [
-        { titleFr: "Bienvenue dans la formation", titleEn: "Welcome to the course", type: "VIDEO", duration: 8 },
-        { titleFr: "Installation de l'environnement", titleEn: "Environment setup", type: "VIDEO", duration: 15 },
-        { titleFr: "Premiers pas avec React", titleEn: "First steps with React", type: "VIDEO", duration: 22 },
-        { titleFr: "Ressources et documentation", titleEn: "Resources and documentation", type: "TEXTE", duration: 5 },
+        { title: "Bienvenue dans la formation", type: "VIDEO", duration: 8 },
+        { title: "Installation de l'environnement", type: "VIDEO", duration: 15 },
+        { title: "Premiers pas avec React", type: "VIDEO", duration: 22 },
+        { title: "Ressources et documentation", type: "TEXTE", duration: 5 },
       ],
     },
     {
-      titleFr: "Les Fondamentaux de React",
-      titleEn: "React Fundamentals",
+      title: "Les Fondamentaux de React",
       lessons: [
-        { titleFr: "Composants et JSX", titleEn: "Components and JSX", type: "VIDEO", duration: 25 },
-        { titleFr: "Props et State", titleEn: "Props and State", type: "VIDEO", duration: 30 },
-        { titleFr: "Hooks essentiels : useState, useEffect", titleEn: "Essential hooks: useState, useEffect", type: "VIDEO", duration: 35 },
-        { titleFr: "Gestion des événements", titleEn: "Event handling", type: "VIDEO", duration: 20 },
-        { titleFr: "Exercice pratique : Todo App", titleEn: "Practical exercise: Todo App", type: "TEXTE", duration: 45 },
+        { title: "Composants et JSX", type: "VIDEO", duration: 25 },
+        { title: "Props et State", type: "VIDEO", duration: 30 },
+        { title: "Hooks essentiels : useState, useEffect", type: "VIDEO", duration: 35 },
+        { title: "Gestion des événements", type: "VIDEO", duration: 20 },
+        { title: "Exercice pratique : Todo App", type: "TEXTE", duration: 45 },
       ],
     },
     {
-      titleFr: "Next.js 14 App Router",
-      titleEn: "Next.js 14 App Router",
+      title: "Next.js 14 App Router",
       lessons: [
-        { titleFr: "Architecture du App Router", titleEn: "App Router architecture", type: "VIDEO", duration: 28 },
-        { titleFr: "Server Components vs Client Components", titleEn: "Server Components vs Client Components", type: "VIDEO", duration: 32 },
-        { titleFr: "Layouts et Loading States", titleEn: "Layouts and Loading States", type: "VIDEO", duration: 22 },
-        { titleFr: "Récapitulatif du module", titleEn: "Module recap", type: "TEXTE", duration: 10 },
+        { title: "Architecture du App Router", type: "VIDEO", duration: 28 },
+        { title: "Server Components vs Client Components", type: "VIDEO", duration: 32 },
+        { title: "Layouts et Loading States", type: "VIDEO", duration: 22 },
+        { title: "Récapitulatif du module", type: "TEXTE", duration: 10 },
       ],
     },
   ],
   // Formation 1: Tailwind CSS & shadcn/ui
   1: [
     {
-      titleFr: "Découverte de Tailwind CSS",
-      titleEn: "Discovering Tailwind CSS",
+      title: "Découverte de Tailwind CSS",
       lessons: [
-        { titleFr: "Qu'est-ce que Tailwind CSS ?", titleEn: "What is Tailwind CSS?", type: "VIDEO", duration: 12 },
-        { titleFr: "Installation et configuration", titleEn: "Installation and configuration", type: "VIDEO", duration: 18 },
-        { titleFr: "Classes utilitaires essentielles", titleEn: "Essential utility classes", type: "VIDEO", duration: 25 },
+        { title: "Qu'est-ce que Tailwind CSS ?", type: "VIDEO", duration: 12 },
+        { title: "Installation et configuration", type: "VIDEO", duration: 18 },
+        { title: "Classes utilitaires essentielles", type: "VIDEO", duration: 25 },
       ],
     },
     {
-      titleFr: "Mise en Page Responsive",
-      titleEn: "Responsive Layout",
+      title: "Mise en Page Responsive",
       lessons: [
-        { titleFr: "Flexbox avec Tailwind", titleEn: "Flexbox with Tailwind", type: "VIDEO", duration: 20 },
-        { titleFr: "CSS Grid avec Tailwind", titleEn: "CSS Grid with Tailwind", type: "VIDEO", duration: 22 },
-        { titleFr: "Points de rupture et mobile-first", titleEn: "Breakpoints and mobile-first", type: "VIDEO", duration: 18 },
-        { titleFr: "Guide des breakpoints", titleEn: "Breakpoints guide", type: "TEXTE", duration: 8 },
+        { title: "Flexbox avec Tailwind", type: "VIDEO", duration: 20 },
+        { title: "CSS Grid avec Tailwind", type: "VIDEO", duration: 22 },
+        { title: "Points de rupture et mobile-first", type: "VIDEO", duration: 18 },
+        { title: "Guide des breakpoints", type: "TEXTE", duration: 8 },
       ],
     },
     {
-      titleFr: "shadcn/ui : Composants Accessibles",
-      titleEn: "shadcn/ui: Accessible Components",
+      title: "shadcn/ui : Composants Accessibles",
       lessons: [
-        { titleFr: "Introduction à shadcn/ui", titleEn: "Introduction to shadcn/ui", type: "VIDEO", duration: 15 },
-        { titleFr: "Installer et personnaliser les composants", titleEn: "Install and customize components", type: "VIDEO", duration: 28 },
-        { titleFr: "Créer son design system", titleEn: "Create your design system", type: "VIDEO", duration: 35 },
+        { title: "Introduction à shadcn/ui", type: "VIDEO", duration: 15 },
+        { title: "Installer et personnaliser les composants", type: "VIDEO", duration: 28 },
+        { title: "Créer son design system", type: "VIDEO", duration: 35 },
       ],
     },
   ],
   // Formation 2: UI/UX Design
   2: [
     {
-      titleFr: "Fondamentaux du UX Design",
-      titleEn: "UX Design Fundamentals",
+      title: "Fondamentaux du UX Design",
       lessons: [
-        { titleFr: "Qu'est-ce que le UX Design ?", titleEn: "What is UX Design?", type: "VIDEO", duration: 15 },
-        { titleFr: "Recherche utilisateur : méthodes", titleEn: "User research: methods", type: "VIDEO", duration: 25 },
-        { titleFr: "Personas et parcours utilisateur", titleEn: "Personas and user journeys", type: "VIDEO", duration: 20 },
-        { titleFr: "Check-list de recherche UX", titleEn: "UX research checklist", type: "TEXTE", duration: 10 },
+        { title: "Qu'est-ce que le UX Design ?", type: "VIDEO", duration: 15 },
+        { title: "Recherche utilisateur : méthodes", type: "VIDEO", duration: 25 },
+        { title: "Personas et parcours utilisateur", type: "VIDEO", duration: 20 },
+        { title: "Check-list de recherche UX", type: "TEXTE", duration: 10 },
       ],
     },
     {
-      titleFr: "Prise en Main de Figma",
-      titleEn: "Getting Started with Figma",
+      title: "Prise en Main de Figma",
       lessons: [
-        { titleFr: "Interface et outils de base", titleEn: "Interface and basic tools", type: "VIDEO", duration: 30 },
-        { titleFr: "Composants et variantes", titleEn: "Components and variants", type: "VIDEO", duration: 35 },
-        { titleFr: "Auto Layout avancé", titleEn: "Advanced Auto Layout", type: "VIDEO", duration: 28 },
+        { title: "Interface et outils de base", type: "VIDEO", duration: 30 },
+        { title: "Composants et variantes", type: "VIDEO", duration: 35 },
+        { title: "Auto Layout avancé", type: "VIDEO", duration: 28 },
       ],
     },
   ],
   // Formation 3: Branding
   3: [
     {
-      titleFr: "Les Bases du Branding",
-      titleEn: "Branding Basics",
+      title: "Les Bases du Branding",
       lessons: [
-        { titleFr: "Qu'est-ce qu'une marque ?", titleEn: "What is a brand?", type: "VIDEO", duration: 12 },
-        { titleFr: "Définir son positionnement", titleEn: "Define your positioning", type: "VIDEO", duration: 18 },
-        { titleFr: "Étude de cas : marques africaines", titleEn: "Case study: African brands", type: "TEXTE", duration: 15 },
+        { title: "Qu'est-ce qu'une marque ?", type: "VIDEO", duration: 12 },
+        { title: "Définir son positionnement", type: "VIDEO", duration: 18 },
+        { title: "Étude de cas : marques africaines", type: "TEXTE", duration: 15 },
       ],
     },
     {
-      titleFr: "Création du Logo",
-      titleEn: "Logo Creation",
+      title: "Création du Logo",
       lessons: [
-        { titleFr: "Principes de création de logo", titleEn: "Logo creation principles", type: "VIDEO", duration: 22 },
-        { titleFr: "Atelier pratique : votre logo", titleEn: "Workshop: your logo", type: "VIDEO", duration: 40 },
-        { titleFr: "Déclinaisons et usages", titleEn: "Variations and uses", type: "VIDEO", duration: 15 },
-        { titleFr: "Brief créatif template", titleEn: "Creative brief template", type: "TEXTE", duration: 5 },
+        { title: "Principes de création de logo", type: "VIDEO", duration: 22 },
+        { title: "Atelier pratique : votre logo", type: "VIDEO", duration: 40 },
+        { title: "Déclinaisons et usages", type: "VIDEO", duration: 15 },
+        { title: "Brief créatif template", type: "TEXTE", duration: 5 },
       ],
     },
   ],
   // Formation 4: SEO & Content Marketing
   4: [
     {
-      titleFr: "Fondamentaux du SEO",
-      titleEn: "SEO Fundamentals",
+      title: "Fondamentaux du SEO",
       lessons: [
-        { titleFr: "Comment fonctionne Google", titleEn: "How Google works", type: "VIDEO", duration: 18 },
-        { titleFr: "Recherche de mots-clés", titleEn: "Keyword research", type: "VIDEO", duration: 25 },
-        { titleFr: "SEO on-page : les essentiels", titleEn: "On-page SEO: the essentials", type: "VIDEO", duration: 30 },
-        { titleFr: "Checklist SEO on-page", titleEn: "On-page SEO checklist", type: "TEXTE", duration: 8 },
+        { title: "Comment fonctionne Google", type: "VIDEO", duration: 18 },
+        { title: "Recherche de mots-clés", type: "VIDEO", duration: 25 },
+        { title: "SEO on-page : les essentiels", type: "VIDEO", duration: 30 },
+        { title: "Checklist SEO on-page", type: "TEXTE", duration: 8 },
       ],
     },
     {
-      titleFr: "Stratégie de Contenu",
-      titleEn: "Content Strategy",
+      title: "Stratégie de Contenu",
       lessons: [
-        { titleFr: "Créer un calendrier éditorial", titleEn: "Create an editorial calendar", type: "VIDEO", duration: 20 },
-        { titleFr: "Rédiger pour le web", titleEn: "Writing for the web", type: "VIDEO", duration: 22 },
-        { titleFr: "Mesurer les résultats avec Analytics", titleEn: "Measure results with Analytics", type: "VIDEO", duration: 28 },
+        { title: "Créer un calendrier éditorial", type: "VIDEO", duration: 20 },
+        { title: "Rédiger pour le web", type: "VIDEO", duration: 22 },
+        { title: "Mesurer les résultats avec Analytics", type: "VIDEO", duration: 28 },
       ],
     },
     {
-      titleFr: "SEO Technique et Netlinking",
-      titleEn: "Technical SEO and Link Building",
+      title: "SEO Technique et Netlinking",
       lessons: [
-        { titleFr: "Optimisation technique du site", titleEn: "Technical site optimization", type: "VIDEO", duration: 25 },
-        { titleFr: "Stratégie de backlinks", titleEn: "Backlink strategy", type: "VIDEO", duration: 22 },
-        { titleFr: "Outils SEO recommandés", titleEn: "Recommended SEO tools", type: "TEXTE", duration: 10 },
+        { title: "Optimisation technique du site", type: "VIDEO", duration: 25 },
+        { title: "Stratégie de backlinks", type: "VIDEO", duration: 22 },
+        { title: "Outils SEO recommandés", type: "TEXTE", duration: 10 },
       ],
     },
   ],
@@ -693,53 +470,43 @@ const REVIEW_COMMENTS_FR = [
   "Vraiment top ! Je suis passé de débutant à un niveau confortable grâce à cette formation.",
 ];
 
-// Digital product data
+// Digital product data (schema: title, description — single locale)
 const DIGITAL_PRODUCTS_DATA = [
   {
-    titleFr: "Guide Complet du Freelance en Afrique (eBook)",
-    titleEn: "Complete African Freelancer Guide (eBook)",
-    descriptionFr: "Un guide de 150 pages couvrant tout ce qu'il faut savoir pour démarrer et réussir en tant que freelance en Afrique francophone. Inclut des templates de contrats et de factures.",
-    descriptionEn: "A 150-page guide covering everything you need to know to start and succeed as a freelancer in francophone Africa. Includes contract and invoice templates.",
+    title: "Guide Complet du Freelance en Afrique (eBook)",
+    description: "Un guide de 150 pages couvrant tout ce qu'il faut savoir pour démarrer et réussir en tant que freelance en Afrique francophone. Inclut des templates de contrats et de factures.",
     productType: "EBOOK" as const,
     price: 14.99,
     categoryIdx: 4,
     instructeurIdx: 2,
   },
   {
-    titleFr: "Pack de 50 Templates Figma pour Apps Mobile",
-    titleEn: "50 Figma Templates Pack for Mobile Apps",
-    descriptionFr: "Collection de 50 écrans UI prêts à l'emploi pour vos projets d'applications mobiles. Inclut onboarding, dashboards, profils, paramètres et plus.",
-    descriptionEn: "Collection of 50 ready-to-use UI screens for your mobile app projects. Includes onboarding, dashboards, profiles, settings, and more.",
+    title: "Pack de 50 Templates Figma pour Apps Mobile",
+    description: "Collection de 50 écrans UI prêts à l'emploi pour vos projets d'applications mobiles. Inclut onboarding, dashboards, profils, paramètres et plus.",
     productType: "TEMPLATE" as const,
     price: 29.99,
     categoryIdx: 1,
     instructeurIdx: 1,
   },
   {
-    titleFr: "Checklist SEO 2026 (PDF)",
-    titleEn: "SEO Checklist 2026 (PDF)",
-    descriptionFr: "La checklist SEO la plus complète pour 2026. 120 points de contrôle organisés par catégorie : technique, contenu, backlinks, local SEO.",
-    descriptionEn: "The most complete SEO checklist for 2026. 120 checkpoints organized by category: technical, content, backlinks, local SEO.",
+    title: "Checklist SEO 2026 (PDF)",
+    description: "La checklist SEO la plus complète pour 2026. 120 points de contrôle organisés par catégorie : technique, contenu, backlinks, local SEO.",
     productType: "PDF" as const,
     price: 9.99,
     categoryIdx: 2,
     instructeurIdx: 2,
   },
   {
-    titleFr: "Kit de Branding Complet pour Freelances",
-    titleEn: "Complete Branding Kit for Freelancers",
-    descriptionFr: "Tout ce qu'il faut pour créer votre identité visuelle : templates de logo, palettes de couleurs, choix typographiques, modèles de cartes de visite et présentations.",
-    descriptionEn: "Everything you need to create your visual identity: logo templates, color palettes, typography choices, business card models and presentations.",
+    title: "Kit de Branding Complet pour Freelances",
+    description: "Tout ce qu'il faut pour créer votre identité visuelle : templates de logo, palettes de couleurs, choix typographiques, modèles de cartes de visite et présentations.",
     productType: "TEMPLATE" as const,
     price: 19.99,
     categoryIdx: 1,
     instructeurIdx: 1,
   },
   {
-    titleFr: "Modèles de Contrats Freelance (Pack PDF)",
-    titleEn: "Freelance Contract Templates (PDF Pack)",
-    descriptionFr: "Pack de 10 modèles de contrats adaptés au freelancing en Afrique francophone : contrat de prestation, NDA, devis type, conditions générales, et plus.",
-    descriptionEn: "Pack of 10 contract templates adapted for freelancing in francophone Africa: service contract, NDA, standard quote, general terms, and more.",
+    title: "Modèles de Contrats Freelance (Pack PDF)",
+    description: "Pack de 10 modèles de contrats adaptés au freelancing en Afrique francophone : contrat de prestation, NDA, devis type, conditions générales, et plus.",
     productType: "PDF" as const,
     price: 12.99,
     categoryIdx: 4,
@@ -801,7 +568,7 @@ async function main() {
   for (const cat of FORMATION_CATEGORIES) {
     const created = await prisma.formationCategory.create({ data: cat });
     categories.push(created);
-    console.log(`  + ${cat.nameFr}`);
+    console.log(`  + ${cat.name}`);
   }
 
   // ── Step 2: Create Users ──
@@ -913,7 +680,7 @@ async function main() {
   const formations = [];
   for (let i = 0; i < FORMATIONS_DATA.length; i++) {
     const f = FORMATIONS_DATA[i];
-    const slug = slugify(f.titleFr);
+    const slug = slugify(f.title);
     const category = categories[f.categoryIdx];
     const instructeur = instructeurProfiles[f.instructeurIdx];
     const isFree = f.price === 0;
@@ -922,16 +689,12 @@ async function main() {
       data: {
         id: createId(),
         slug,
-        titleFr: f.titleFr,
-        titleEn: f.titleEn,
-        shortDescFr: f.shortDescFr,
-        shortDescEn: f.shortDescEn,
-        descriptionFr: f.descriptionFr,
-        descriptionEn: f.descriptionEn,
-        learnPointsFr: f.learnPointsFr,
-        learnPointsEn: f.learnPointsEn,
-        requirementsFr: f.requirementsFr,
-        requirementsEn: f.requirementsEn,
+        title: f.title,
+        shortDesc: f.shortDesc,
+        description: f.description,
+        learnPoints: f.learnPoints,
+        requirements: f.requirements,
+        locale: "fr",
         level: f.level,
         price: f.price,
         originalPrice: f.originalPrice,
@@ -951,7 +714,7 @@ async function main() {
       },
     });
     formations.push(formation);
-    console.log(`  + [${f.status}] ${f.titleFr}`);
+    console.log(`  + [${f.status}] ${f.title}`);
   }
 
   // ── Step 4: Create Sections and Lessons for ACTIF formations ──
@@ -970,8 +733,7 @@ async function main() {
       const section = await prisma.section.create({
         data: {
           id: createId(),
-          titleFr: sectionData.titleFr,
-          titleEn: sectionData.titleEn,
+          title: sectionData.title,
           order: sIdx,
           formationId: formation.id,
         },
@@ -982,21 +744,20 @@ async function main() {
         const lesson = await prisma.lesson.create({
           data: {
             id: createId(),
-            titleFr: lessonData.titleFr,
-            titleEn: lessonData.titleEn,
+            title: lessonData.title,
             type: lessonData.type,
             duration: lessonData.duration,
             order: lIdx,
             isFree: lIdx === 0 && sIdx === 0, // First lesson of first section is free
             sectionId: section.id,
             videoUrl: lessonData.type === "VIDEO" ? `https://www.youtube.com/watch?v=dQw4w9WgXcQ` : null,
-            content: lessonData.type === "TEXTE" ? `<h2>${lessonData.titleFr}</h2><p>Contenu de la leçon texte. Ce contenu serait remplacé par le vrai contenu en production.</p>` : null,
+            content: lessonData.type === "TEXTE" ? `<h2>${lessonData.title}</h2><p>Contenu de la leçon texte. Ce contenu serait remplacé par le vrai contenu en production.</p>` : null,
           },
         });
         allLessons.push({ id: lesson.id, formationId: formation.id });
       }
     }
-    console.log(`  + Sections/Lessons pour: ${formation.titleFr}`);
+    console.log(`  + Sections/Lessons pour: ${formation.title}`);
   }
 
   // ── Step 5: Create Enrollments ──
@@ -1061,11 +822,10 @@ async function main() {
     await prisma.digitalProduct.create({
       data: {
         id: createId(),
-        slug: slugify(product.titleFr),
-        titleFr: product.titleFr,
-        titleEn: product.titleEn,
-        descriptionFr: product.descriptionFr,
-        descriptionEn: product.descriptionEn,
+        slug: slugify(product.title),
+        title: product.title,
+        description: product.description,
+        locale: "fr",
         productType: product.productType,
         price: product.price,
         categoryId: category.id,
@@ -1078,7 +838,7 @@ async function main() {
         tags: ["freelance", "afrique", "francophone"],
       },
     });
-    console.log(`  + ${product.titleFr}`);
+    console.log(`  + ${product.title}`);
   }
 
   // ── Step 8: Create Formation Cohorts ──
@@ -1086,10 +846,8 @@ async function main() {
   const cohortFormations = actifFormations.slice(0, 3);
   const cohortData = [
     {
-      titleFr: "Cohorte Janvier 2026",
-      titleEn: "January 2026 Cohort",
-      descriptionFr: "Apprenez ensemble avec un groupe motivé. Sessions de mentorat incluses.",
-      descriptionEn: "Learn together with a motivated group. Mentoring sessions included.",
+      title: "Cohorte Janvier 2026",
+      description: "Apprenez ensemble avec un groupe motivé. Sessions de mentorat incluses.",
       durationDays: 42,
       maxParticipants: 30,
       price: 79.99,
@@ -1097,10 +855,8 @@ async function main() {
       status: "TERMINE" as const,
     },
     {
-      titleFr: "Cohorte Mars 2026",
-      titleEn: "March 2026 Cohort",
-      descriptionFr: "Rejoignez notre cohorte de mars. Accompagnement personnalisé et projets de groupe.",
-      descriptionEn: "Join our March cohort. Personalized support and group projects.",
+      title: "Cohorte Mars 2026",
+      description: "Rejoignez notre cohorte de mars. Accompagnement personnalisé et projets de groupe.",
       durationDays: 56,
       maxParticipants: 25,
       price: 89.99,
@@ -1108,10 +864,8 @@ async function main() {
       status: "EN_COURS" as const,
     },
     {
-      titleFr: "Cohorte Mai 2026",
-      titleEn: "May 2026 Cohort",
-      descriptionFr: "Inscriptions ouvertes pour la cohorte de mai. Places limitées !",
-      descriptionEn: "Registration open for the May cohort. Limited spots!",
+      title: "Cohorte Mai 2026",
+      description: "Inscriptions ouvertes pour la cohorte de mai. Places limitées !",
       durationDays: 42,
       maxParticipants: 20,
       price: 69.99,
@@ -1143,10 +897,8 @@ async function main() {
       data: {
         id: createId(),
         formationId: formation.id,
-        titleFr: cohort.titleFr,
-        titleEn: cohort.titleEn,
-        descriptionFr: cohort.descriptionFr,
-        descriptionEn: cohort.descriptionEn,
+        title: cohort.title,
+        description: cohort.description,
         startDate,
         endDate,
         enrollmentDeadline,
@@ -1163,7 +915,7 @@ async function main() {
         ],
       },
     });
-    console.log(`  + ${cohort.titleFr} (${cohort.status})`);
+    console.log(`  + ${cohort.title} (${cohort.status})`);
   }
 
   // ── Step 9: Create Formation Reviews ──

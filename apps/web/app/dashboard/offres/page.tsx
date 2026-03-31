@@ -9,6 +9,7 @@ interface Offre {
   id: string;
   client: string;
   clientId?: string;
+  clientEmail?: string;
   title: string;
   amount: number;
   delay: string;
@@ -38,6 +39,7 @@ const TABS = [
 type NewOffer = {
   client: string;
   clientId: string;
+  clientEmail: string;
   title: string;
   amount: string;
   delay: string;
@@ -49,6 +51,7 @@ type NewOffer = {
 const EMPTY_FORM: NewOffer = {
   client: "",
   clientId: "",
+  clientEmail: "",
   title: "",
   amount: "",
   delay: "",
@@ -176,6 +179,7 @@ export default function OffresPage() {
   function handleDuplicate(offre: Offre) {
     setForm({
       client: offre.client,
+      clientId: offre.clientId || "",
       clientEmail: offre.clientEmail || "",
       title: offre.title,
       amount: String(offre.amount),

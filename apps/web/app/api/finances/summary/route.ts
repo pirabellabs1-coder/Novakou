@@ -18,12 +18,12 @@ export async function GET() {
       // Client in dev mode: calculate from orders
       if (userRole === "client") {
         const allOrders = orderStore.getAll();
-        const clientOrders = allOrders.filter((o: Record<string, unknown>) => o.clientId === session.user.id);
+        const clientOrders = allOrders.filter((o) => (o as unknown as Record<string, unknown>).clientId === session.user.id);
         let totalSpent = 0;
         let pending = 0;
         for (const o of clientOrders) {
-          const amount = Number((o as Record<string, unknown>).amount) || 0;
-          const status = ((o as Record<string, unknown>).status as string || "").toLowerCase();
+          const amount = Number((o as unknown as Record<string, unknown>).amount) || 0;
+          const status = ((o as unknown as Record<string, unknown>).status as string || "").toLowerCase();
           if (status === "termine" || status === "livre") totalSpent += amount;
           else if (["en_attente", "en_cours", "revision"].includes(status)) pending += amount;
         }
