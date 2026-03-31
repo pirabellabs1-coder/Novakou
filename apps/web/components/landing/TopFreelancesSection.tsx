@@ -66,14 +66,11 @@ export function TopFreelancesSection() {
                 {/* Motif decoratif */}
                 <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/10" />
                 <div className="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/10" />
-                {/* Badge */}
-                {f.badges && f.badges.length > 0 ? (
-                  <div className="absolute top-3 right-3 z-10">
-                    <BadgeDisplay badges={f.badges} size="sm" maxDisplay={1} />
-                  </div>
-                ) : f.badge ? (
-                  <div className="absolute top-3 right-3 z-10 bg-white/20 backdrop-blur-md text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full uppercase tracking-widest border border-white/30">
-                    {f.badge}
+                {/* Badge — fond blanc opaque pour contraster avec le gradient vert */}
+                {(f.badges && f.badges.length > 0) || f.badge ? (
+                  <div className="absolute top-3 right-3 z-10 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-[10px] font-extrabold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs text-accent" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                    {f.badges?.[0] || f.badge}
                   </div>
                 ) : null}
                 {/* Location */}
