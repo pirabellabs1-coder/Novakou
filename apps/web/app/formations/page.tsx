@@ -84,7 +84,7 @@ export default function FormationsLandingPage() {
       fetch("/api/formations?limit=4&sort=recent").then((r) => r.json()),
       fetch("/api/formations?limit=4&sort=note").then((r) => r.json()),
     ]).then(([cats, form, st, prods, recent, rated]) => {
-      setCategories(Array.isArray(cats) ? cats : []);
+      setCategories(Array.isArray(cats) ? cats : (cats?.categories ?? []));
       setFeatured(Array.isArray(form?.formations) ? form.formations : []);
       setStats(st);
       setProducts(Array.isArray(prods?.products) ? prods.products : []);

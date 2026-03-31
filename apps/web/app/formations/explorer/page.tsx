@@ -399,7 +399,7 @@ export default function ExplorerFormationsPage() {
   useEffect(() => {
     fetch("/api/formations/categories")
       .then((r) => r.json())
-      .then((d) => setCategories(Array.isArray(d) ? d : []))
+      .then((d) => setCategories(Array.isArray(d) ? d : (d?.categories ?? [])))
       .catch(() => {});
   }, []);
 
