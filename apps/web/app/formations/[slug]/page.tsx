@@ -17,6 +17,8 @@ import { useEntityTracker } from "@/lib/tracking/useEntityTracker";
 import { StockCounter } from "@/components/formations/StockCounter";
 import { firePixelEvent } from "@/components/formations/PixelTracker";
 import DynamicIcon from "@/components/ui/DynamicIcon";
+import FormationCard from "@/components/formations/FormationCard";
+import type { FormationCardData } from "@/components/formations/FormationCard";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -158,6 +160,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const router = useRouter();
 
   const [formation, setFormation] = useState<Formation | null>(null);
+  const [similarFormations, setSimilarFormations] = useState<FormationCardData[]>([]);
 
   // Track formation view — APRES la declaration de formation
   useEntityTracker("formation", formation?.id ?? null);
@@ -170,6 +173,8 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showAllReviews, setShowAllReviews] = useState(false);
+  const [showAllLearnPoints, setShowAllLearnPoints] = useState(false);
+  const [showSharePopover, setShowSharePopover] = useState(false);
 
   useEffect(() => {
     fetch(`/api/formations/${slug}`)
@@ -192,12 +197,23 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
   useEffect(() => {
     if (!session?.user || !formation) return;
-    // Check enrollment
     fetch(`/api/formations/${formation.id}/progress`)
       .then((r) => r.json())
       .then((d) => setIsEnrolled(!!d.enrollment))
       .catch(() => {});
   }, [session, formation]);
+
+  // Fetch similar formations
+  useEffect(() => {
+    if (!formation?.category?.slug) return;
+    fetch(`/api/formations?category=${formation.category.slug}&limit=4&sort=populaire`)
+      .then((r) => r.json())
+      .then((data) => {
+        const items = (data.formations ?? []).filter((f: FormationCardData) => f.id !== formation.id).slice(0, 4);
+        setSimilarFormations(items);
+      })
+      .catch(() => {});
+  }, [formation]);
 
   const addToCart = async () => {
     if (!session?.user) { router.push("/formations/connexion"); return; }
@@ -419,16 +435,23 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
                 {/* What you'll learn */}
                 {learnPoints.length > 0 && (
-                  <div className="border rounded-xl p-6">
+                  <div className="border border-green-200 dark:border-green-900 rounded-xl p-6 bg-green-50/50 dark:bg-green-950/10">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">{t("what_you_learn")}</h2>
-                    <div className="grid sm:grid-cols-2 gap-2">
-                      {learnPoints.map((point, i) => (
-                        <div key={i} className="flex items-start gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {learnPoints.slice(0, showAllLearnPoints ? learnPoints.length : 6).map((point, i) => (
+                        <div key={i} className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <CheckCircle className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                          </div>
                           <span className="text-sm text-slate-700 dark:text-slate-300">{point}</span>
                         </div>
                       ))}
                     </div>
+                    {learnPoints.length > 6 && (
+                      <button onClick={() => setShowAllLearnPoints(!showAllLearnPoints)} className="mt-3 text-sm text-primary font-medium hover:underline">
+                        {showAllLearnPoints ? (locale === "fr" ? "Voir moins" : "Show less") : (locale === "fr" ? `Voir tout (${learnPoints.length})` : `Show all (${learnPoints.length})`)}
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -436,14 +459,20 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                 {requirements.length > 0 && (
                   <div>
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{t("requirements")}</h2>
-                    <ul className="space-y-1.5">
+                    <ul className="space-y-2">
                       {requirements.map((req, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-300">
-                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0" />
+                        <li key={i} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                          <div className="w-5 h-5 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                          </div>
                           {req}
                         </li>
                       ))}
                     </ul>
+                    <div className="mt-3 inline-flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400">
+                      <BarChart className="w-3.5 h-3.5" />
+                      {levelLabel}
+                    </div>
                   </div>
                 )}
 
@@ -578,7 +607,23 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                 {instrBio && (
                   <div>
                     <h3 className="font-semibold text-slate-900 dark:text-white mb-2">{locale === "fr" ? "À propos" : "About"}</h3>
-                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{instrBio}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{instrBio}</p>
+                  </div>
+                )}
+
+                {/* Social links */}
+                {(formation.instructeur.linkedin || formation.instructeur.website) && (
+                  <div className="flex items-center gap-3">
+                    {formation.instructeur.linkedin && (
+                      <a href={formation.instructeur.linkedin} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 text-xs font-medium px-3 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/40 transition-colors">
+                        💼 LinkedIn
+                      </a>
+                    )}
+                    {formation.instructeur.website && (
+                      <a href={formation.instructeur.website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                        🌐 {locale === "fr" ? "Site web" : "Website"}
+                      </a>
+                    )}
                   </div>
                 )}
 
@@ -602,23 +647,24 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                     <StarRating rating={formation.rating} size="lg" />
                     <p className="text-xs text-slate-500 mt-1">{t("tab_reviews")} ({(formation.reviewsCount ?? 0).toLocaleString()})</p>
                   </div>
-                  {/* Bars */}
+                  {/* Bars with counts */}
                   <div className="flex-1 space-y-1.5">
                     {[5, 4, 3, 2, 1].map((star) => {
                       const count = (formation.reviews ?? []).filter((r) => r.rating === star).length;
                       const pct = (formation.reviews ?? []).length ? (count / (formation.reviews ?? []).length) * 100 : 0;
                       return (
-                        <div key={star} className="flex items-center gap-2 text-xs text-slate-500">
-                          <span className="w-3 text-right">{star}</span>
+                        <div key={star} className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer hover:opacity-80 transition-opacity">
+                          <span className="w-3 text-right font-medium">{star}</span>
                           <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                          <div className="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
-                            <div className="bg-amber-400 h-full rounded-full" style={{ width: `${pct}%` }} />
+                          <div className="flex-1 bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                            <div className="bg-amber-400 h-full rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                           </div>
-                          <span className="w-8 text-right">{Math.round(pct)}%</span>
+                          <span className="w-12 text-right tabular-nums">{count} <span className="text-slate-400">({Math.round(pct)}%)</span></span>
                         </div>
                       );
                     })}
                   </div>
+                  <p className="text-center text-xs text-slate-400 mt-2">{formation.studentsCount.toLocaleString()} {t("students")}</p>
                 </div>
 
                 {/* Review list */}
@@ -903,19 +949,44 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                     </div>
                   )}
 
-                  {/* Share */}
-                  <button
-                    onClick={() => { if (navigator.clipboard) navigator.clipboard.writeText(window.location.href); }}
-                    className="mt-4 w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-slate-700 transition-colors"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    {t("share")}
-                  </button>
+                  {/* Share popover */}
+                  <div className="mt-4 relative">
+                    <button
+                      onClick={() => setShowSharePopover(!showSharePopover)}
+                      className="w-full flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-slate-700 transition-colors"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                      {t("share")}
+                    </button>
+                    {showSharePopover && (
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 flex gap-2 z-50">
+                        <button onClick={() => { navigator.clipboard?.writeText(window.location.href); setShowSharePopover(false); }} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-xs text-slate-600 dark:text-slate-300" title="Copy">📋</button>
+                        <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}&text=${encodeURIComponent(title)}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-xs" title="Twitter/X">𝕏</a>
+                        <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-xs" title="LinkedIn">💼</a>
+                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(typeof window !== "undefined" ? window.location.href : "")}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-xs" title="Facebook">📘</a>
+                        <a href={`https://wa.me/?text=${encodeURIComponent(title + " " + (typeof window !== "undefined" ? window.location.href : ""))}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-xs" title="WhatsApp">💬</a>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Similar formations */}
+        {similarFormations.length > 0 && (
+          <div className="mt-12 mb-8">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
+              {locale === "fr" ? "Formations similaires" : "Similar courses"}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {similarFormations.map((f) => (
+                <FormationCard key={f.id} formation={f} lang={locale === "en" ? "en" : "fr"} compact />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mobile purchase bar */}
         <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 dark:bg-neutral-dark border-t dark:border-border-dark p-4 flex items-center gap-3 shadow-lg z-30">

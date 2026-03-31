@@ -7,6 +7,12 @@ import { useRouter } from "next/navigation";
 import FormationCard from "@/components/formations/FormationCard";
 import DigitalProductCard from "@/components/formations/DigitalProductCard";
 import DynamicIcon from "@/components/ui/DynamicIcon";
+import AnimatedCounter from "@/components/formations/AnimatedCounter";
+import TrustBar from "@/components/formations/TrustBar";
+import TestimonialCarousel from "@/components/formations/TestimonialCarousel";
+import TopInstructors from "@/components/formations/TopInstructors";
+import LearningPaths from "@/components/formations/LearningPaths";
+import { Shield } from "lucide-react";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -103,17 +109,11 @@ export default function FormationsLandingPage() {
     }
   };
 
-  const formatStatValue = (n: number): string => {
-    if (n >= 1000) return `${Math.floor(n / 1000)}K+`;
-    if (n > 0) return `${n}+`;
-    return "0";
-  };
-
   const STATS = [
-    { value: stats ? formatStatValue(stats.apprenants) : "—", label: t("stats_learners") },
-    { value: stats ? formatStatValue(stats.formations) : "—", label: t("stats_courses") },
-    { value: stats ? formatStatValue(stats.instructeurs) : "—", label: t("stats_instructors") },
-    { value: stats?.averageRating ? `${stats.averageRating}/5` : "—", label: t("stats_satisfaction") },
+    { value: stats?.apprenants ?? 0, suffix: "+", label: t("stats_learners") },
+    { value: stats?.formations ?? 0, suffix: "+", label: t("stats_courses") },
+    { value: stats?.instructeurs ?? 0, suffix: "+", label: t("stats_instructors") },
+    { value: stats?.averageRating ?? 0, suffix: "/5", decimals: 1, label: t("stats_satisfaction") },
   ];
 
   const HOW_IT_WORKS = [
@@ -140,8 +140,10 @@ export default function FormationsLandingPage() {
                 {t("badge_label")}
               </span>
 
-              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-[1.1] tracking-tight">
-                {t("hero_title")}
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold leading-[1.1] tracking-tight">
+                <span className="bg-gradient-to-r from-white via-primary/90 to-accent bg-clip-text text-transparent">
+                  {t("hero_title")}
+                </span>
               </h1>
               <p className="text-sm sm:text-lg lg:text-xl text-slate-300 max-w-xl leading-relaxed">
                 {t("hero_subtitle")}
@@ -188,13 +190,18 @@ export default function FormationsLandingPage() {
         {/* Stats */}
         <div className="max-w-5xl mx-auto -mt-8 relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
           {STATS.map((stat) => (
-            <div key={stat.label} className="text-center bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-200 dark:border-slate-700">
-              <div className="text-2xl font-extrabold text-primary mb-1">{stat.value}</div>
+            <div key={stat.label} className="text-center bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-xl border border-slate-200 dark:border-slate-700">
+              <div className="text-2xl font-extrabold text-primary mb-1">
+                <AnimatedCounter value={stat.value} suffix={stat.suffix} decimals={stat.decimals ?? 0} />
+              </div>
               <div className="text-xs text-slate-500 font-semibold">{stat.label}</div>
             </div>
           ))}
         </div>
       </section>
+
+      {/* ── TRUST BAR ────────────────────────────────────────────── */}
+      <TrustBar />
 
       {/* ── CATÉGORIES ──────────────────────────────────────────── */}
       <section className="py-20 px-6 bg-slate-50 dark:bg-slate-800/50">
@@ -219,7 +226,8 @@ export default function FormationsLandingPage() {
                   <Link
                     key={cat.id}
                     href={`/formations/categories/${cat.slug}`}
-                    className={`group bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-primary/30 transition-all duration-300 text-center flex flex-col items-center gap-3${index >= 6 ? " hidden sm:flex" : ""}`}
+                    className={`group bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-primary/30 transition-all duration-300 text-center flex flex-col items-center gap-3 relative overflow-hidden${index >= 6 ? " hidden sm:flex" : ""}`}
+                    style={{ borderLeftWidth: 3, borderLeftColor: cat.color ?? "#0e7c66" }}
                   >
                     <DynamicIcon name={cat.icon ?? "library_books"} className="w-8 h-8 group-hover:scale-110 transition-transform duration-300" />
                     <div>
@@ -364,6 +372,26 @@ export default function FormationsLandingPage() {
           </div>
         </section>
       )}
+
+      {/* ── PARCOURS D'APPRENTISSAGE ────────────────────────────── */}
+      <LearningPaths />
+
+      {/* ── GARANTIE ──────────────────────────────────────────────── */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="flex items-center gap-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-2xl p-6">
+          <Shield className="w-10 h-10 text-green-600 flex-shrink-0" />
+          <div>
+            <p className="font-bold text-green-800 dark:text-green-300">{t("guarantee_title")}</p>
+            <p className="text-sm text-green-700 dark:text-green-400">{t("guarantee_desc")}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── TÉMOIGNAGES ───────────────────────────────────────────── */}
+      <TestimonialCarousel />
+
+      {/* ── TOP INSTRUCTEURS ──────────────────────────────────────── */}
+      <TopInstructors />
 
       {/* ── COMMENT ÇA MARCHE ────────────────────────────────────── */}
       <section className="py-20 px-6 bg-slate-50 dark:bg-slate-800/50">

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { Search, X, Star, Clock, Users, Award, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import DynamicIcon from "@/components/ui/DynamicIcon";
+import { Search, X, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, LayoutGrid, List, SlidersHorizontal } from "lucide-react";
+import FormationCard from "@/components/formations/FormationCard";
+import type { FormationCardData } from "@/components/formations/FormationCard";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -14,27 +14,6 @@ interface Category {
   name: string;
   slug: string;
   _count?: { formations: number };
-}
-
-interface Formation {
-  id: string;
-  slug: string;
-  title: string;
-  shortDesc: string | null;
-  thumbnail: string | null;
-  price: number;
-  originalPrice: number | null;
-  isFree: boolean;
-  rating: number;
-  reviewsCount: number;
-  studentsCount: number;
-  duration: number;
-  level: string;
-  hasCertificate: boolean;
-  createdAt: string;
-  publishedAt: string | null;
-  category: { name: string; color: string | null; slug: string };
-  instructeur: { user: { name: string; avatar: string | null; image: string | null } };
 }
 
 interface FiltersState {
@@ -46,238 +25,22 @@ interface FiltersState {
   language: string;
 }
 
-// ── Helpers ────────────────────────────────────────────────────
-
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h ${m}m`;
-}
-
-function formatPrice(price: number, isFree: boolean, freeLabel: string): string {
-  if (isFree) return freeLabel;
-  return `${price.toFixed(0)}\u00A0\u20AC`;
-}
-
-function isNew(createdAt: string): boolean {
-  const d = new Date(createdAt);
-  const now = new Date();
-  return (now.getTime() - d.getTime()) < 30 * 24 * 60 * 60 * 1000;
-}
-
 const ITEMS_PER_PAGE = 12;
 
-// ── Components ─────────────────────────────────────────────────
-
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          className={`w-3.5 h-3.5 ${s <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "text-slate-600"}`}
-        />
-      ))}
-    </span>
-  );
-}
-
-function FormationCard({ formation, locale, t }: { formation: Formation; locale: string; t: ReturnType<typeof useTranslations> }) {
-  const title = formation.title;
-  const catName = formation.category.name;
-  const instructorName = formation.instructeur?.user?.name ?? "Instructeur";
-  const avatarUrl = formation.instructeur?.user?.avatar || formation.instructeur?.user?.image;
-  const thumbnail = formation.thumbnail;
-  const showBestseller = formation.studentsCount > 100;
-  const showNew = isNew(formation.createdAt) && !showBestseller;
-  const discountPct = formation.originalPrice && formation.originalPrice > formation.price
-    ? Math.round((1 - formation.price / formation.originalPrice) * 100)
-    : null;
-
-  return (
-    <Link
-      href={`/formations/${formation.slug}`}
-      className="group block rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 hover:border-emerald-500/30 transition-all duration-200 overflow-hidden"
-    >
-      {/* Thumbnail */}
-      <div className="relative aspect-video overflow-hidden bg-slate-100 dark:bg-slate-800 dark:bg-slate-700">
-        {thumbnail ? (
-          <img src={thumbnail} alt={title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <DynamicIcon name="school" className="w-10 h-10 opacity-20" />
-          </div>
-        )}
-        {showBestseller && (
-          <span className="absolute top-2.5 left-2.5 bg-amber-400 text-amber-900 text-xs font-bold px-2.5 py-1 rounded-md">
-            {t("bestseller")}
-          </span>
-        )}
-        {showNew && (
-          <span className="absolute top-2.5 left-2.5 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-md">
-            {t("new")}
-          </span>
-        )}
-        {discountPct && (
-          <span className="absolute top-2.5 right-2.5 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-md">
-            -{discountPct}%
-          </span>
-        )}
-      </div>
-
-      {/* Body */}
-      <div className="p-4">
-        {/* Category badge */}
-        <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2 bg-emerald-500/10 text-emerald-400">
-          {catName}
-        </span>
-
-        {/* Title */}
-        <h3 className="font-semibold text-slate-900 dark:text-white text-sm leading-snug mb-2 line-clamp-2 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
-          {title}
-        </h3>
-
-        {/* Instructor */}
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-5 h-5 rounded-full bg-emerald-500/20 overflow-hidden flex-shrink-0">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={instructorName} className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-xs flex items-center justify-center h-full text-emerald-400 font-medium">
-                {(instructorName || "?").charAt(0)}
-              </span>
-            )}
-          </div>
-          <span className="text-xs text-slate-400 truncate">{instructorName}</span>
-        </div>
-
-        {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <span className="text-sm font-bold text-amber-400">{formation.rating.toFixed(1)}</span>
-          <StarRating rating={formation.rating} />
-          <span className="text-xs text-slate-500">({(formation.reviewsCount ?? 0).toLocaleString()})</span>
-        </div>
-
-        {/* Meta */}
-        <div className="flex items-center gap-3 text-xs text-slate-500 mb-4">
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5" />
-            {formatDuration(formation.duration)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Users className="w-3.5 h-3.5" />
-            {formation.studentsCount.toLocaleString()}
-          </span>
-          {formation.hasCertificate && (
-            <span className="flex items-center gap-1 text-emerald-400">
-              <Award className="w-3.5 h-3.5" />
-            </span>
-          )}
-        </div>
-
-        {/* Price */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-2">
-            <span className={`font-bold text-lg ${formation.isFree ? "text-emerald-500 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
-              {formatPrice(formation.price, formation.isFree, t("free"))}
-            </span>
-            {formation.originalPrice && formation.originalPrice > formation.price && (
-              <span className="text-xs text-slate-500 line-through">
-                {formation.originalPrice.toFixed(0)}&nbsp;&euro;
-              </span>
-            )}
-          </div>
-          <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 dark:bg-slate-700">
-            {t("level_" + formation.level.toLowerCase().replace("tous_niveaux", "tous").replace("débutant", "debutant").replace("intermédiaire", "intermediaire").replace("avancé", "avance"))}
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-// ── Empty State ─────────────────────────────────────────────────
-
-function EmptyState({
-  onReset,
-  categories,
-  locale,
-  t,
-}: {
-  onReset: () => void;
-  categories: Category[];
-  locale: string;
-  t: ReturnType<typeof useTranslations>;
-}) {
-  const popularCategories = categories.slice(0, 6);
-
-  return (
-    <div className="text-center py-16">
-      <div className="w-20 h-20 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
-        <Search className="w-8 h-8 text-emerald-400" />
-      </div>
-      <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-        {locale === "fr" ? "Aucune formation trouvée" : "No courses found"}
-      </h3>
-      <p className="text-slate-400 mb-6 max-w-md mx-auto">
-        {locale === "fr"
-          ? "Essayez de modifier vos filtres ou explorez nos catégories populaires."
-          : "Try adjusting your filters or explore our popular categories."}
-      </p>
-      <button
-        onClick={onReset}
-        className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors mb-10"
-      >
-        {t("filter_reset")}
-      </button>
-
-      {/* Suggested categories */}
-      {popularCategories.length > 0 && (
-        <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
-          <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
-            {locale === "fr" ? "Catégories populaires" : "Popular categories"}
-          </h4>
-          <div className="flex flex-wrap justify-center gap-3">
-            {popularCategories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/formations/explorer?category=${cat.slug}`}
-                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-sm font-medium text-slate-600 dark:text-slate-300 hover:border-emerald-500/40 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all"
-              >
-                {cat.name}
-                {cat._count && (
-                  <span className="ml-1.5 text-slate-500">({cat._count.formations})</span>
-                )}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Back to Top Button ──────────────────────────────────────────
+// ── Helper Components ──────────────────────────────────────────
 
 function BackToTop() {
   const [visible, setVisible] = useState(false);
-
   useEffect(() => {
-    function onScroll() {
-      setVisible(window.scrollY > 600);
-    }
+    function onScroll() { setVisible(window.scrollY > 600); }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
   if (!visible) return null;
-
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 flex items-center justify-center transition-all"
+      className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg flex items-center justify-center transition-all"
       aria-label="Retour en haut"
     >
       <ChevronUp className="w-5 h-5" />
@@ -285,31 +48,115 @@ function BackToTop() {
   );
 }
 
-// ── Filter Dropdown ─────────────────────────────────────────────
-
-function FilterDropdown({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (val: string) => void;
-}) {
+function FilterDropdown({ value, options, onChange }: { value: string; options: { value: string; label: string }[]; onChange: (val: string) => void }) {
   return (
     <div className="relative">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="appearance-none text-sm font-medium px-4 py-2 pr-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 cursor-pointer transition-all"
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="appearance-none text-sm font-medium px-4 py-2 pr-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 cursor-pointer transition-all">
+        {options.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
       </select>
       <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+    </div>
+  );
+}
+
+// ── Sidebar Filters (desktop) ──────────────────────────────────
+
+function SidebarFilters({
+  filters, categories, levelOptions, priceOptions, durationOptions,
+  onUpdateFilter, onReset, locale,
+}: {
+  filters: FiltersState; categories: Category[];
+  levelOptions: { value: string; label: string }[];
+  priceOptions: { value: string; label: string }[];
+  durationOptions: { value: string; label: string }[];
+  onUpdateFilter: (key: keyof FiltersState, val: string) => void;
+  onReset: () => void; locale: string;
+}) {
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    category: true, level: true, price: true, duration: true,
+  });
+
+  const toggle = (key: string) => setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const SectionHeader = ({ id, title }: { id: string; title: string }) => (
+    <button onClick={() => toggle(id)} className="flex items-center justify-between w-full py-2 text-sm font-semibold text-slate-900 dark:text-white">
+      {title}
+      {expandedSections[id] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+    </button>
+  );
+
+  return (
+    <div className="w-[250px] flex-shrink-0 space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <SlidersHorizontal className="w-4 h-4" />
+          {locale === "fr" ? "Filtres" : "Filters"}
+        </h3>
+        {(filters.categorySlug || filters.level || filters.priceRange || filters.durationRange) && (
+          <button onClick={onReset} className="text-xs text-red-500 hover:text-red-400">{locale === "fr" ? "Réinitialiser" : "Clear"}</button>
+        )}
+      </div>
+
+      {/* Category */}
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-2">
+        <SectionHeader id="category" title={locale === "fr" ? "Catégorie" : "Category"} />
+        {expandedSections.category && (
+          <div className="space-y-1 max-h-48 overflow-y-auto">
+            {categories.map((cat) => (
+              <label key={cat.id} className="flex items-center gap-2 py-1 cursor-pointer group">
+                <input type="checkbox" checked={filters.categorySlug === cat.slug} onChange={() => onUpdateFilter("categorySlug", filters.categorySlug === cat.slug ? "" : cat.slug)} className="rounded border-slate-300 text-primary focus:ring-primary/30" />
+                <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white truncate flex-1">{cat.name}</span>
+                {cat._count && <span className="text-xs text-slate-400">{cat._count.formations}</span>}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Level */}
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-2">
+        <SectionHeader id="level" title={locale === "fr" ? "Niveau" : "Level"} />
+        {expandedSections.level && (
+          <div className="space-y-1">
+            {levelOptions.map((opt) => (
+              <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer group">
+                <input type="radio" name="level" checked={filters.level === opt.value} onChange={() => onUpdateFilter("level", opt.value)} className="text-primary focus:ring-primary/30" />
+                <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Price */}
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-2">
+        <SectionHeader id="price" title={locale === "fr" ? "Prix" : "Price"} />
+        {expandedSections.price && (
+          <div className="space-y-1">
+            {priceOptions.map((opt) => (
+              <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer group">
+                <input type="radio" name="price" checked={filters.priceRange === opt.value} onChange={() => onUpdateFilter("priceRange", opt.value)} className="text-primary focus:ring-primary/30" />
+                <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Duration */}
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-2">
+        <SectionHeader id="duration" title={locale === "fr" ? "Durée" : "Duration"} />
+        {expandedSections.duration && (
+          <div className="space-y-1">
+            {durationOptions.map((opt) => (
+              <label key={opt.value} className="flex items-center gap-2 py-1 cursor-pointer group">
+                <input type="radio" name="duration" checked={filters.durationRange === opt.value} onChange={() => onUpdateFilter("durationRange", opt.value)} className="text-primary focus:ring-primary/30" />
+                <span className="text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -319,12 +166,13 @@ function FilterDropdown({
 export default function ExplorerFormationsPage() {
   const t = useTranslations("formations");
   const locale = useLocale();
+  const lang = locale === "en" ? "en" : "fr";
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [formations, setFormations] = useState<Formation[]>([]);
+  const [formations, setFormations] = useState<FormationCardData[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(() => {
@@ -334,6 +182,10 @@ export default function ExplorerFormationsPage() {
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [sort, setSort] = useState(searchParams.get("sort") || "populaire");
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+    if (typeof window !== "undefined") return (localStorage.getItem("fh-explorer-view") as "grid" | "list") || "grid";
+    return "grid";
+  });
 
   const [filters, setFilters] = useState<FiltersState>({
     search: searchParams.get("q") || "",
@@ -348,7 +200,6 @@ export default function ExplorerFormationsPage() {
   const isInitialMount = useRef(true);
   const [searchInput, setSearchInput] = useState(filters.search);
 
-  // Helper to sync filters/sort/page to URL
   const updateURL = useCallback((newFilters: FiltersState, newSort: string, newPage: number) => {
     const params = new URLSearchParams();
     if (newFilters.search) params.set("q", newFilters.search);
@@ -365,7 +216,6 @@ export default function ExplorerFormationsPage() {
 
   const fetchFormations = useCallback(async (f: FiltersState, s: string, p: number) => {
     setLoading(true);
-
     const params = new URLSearchParams();
     if (f.search) params.set("q", f.search);
     if (f.categorySlug) params.set("category", f.categorySlug);
@@ -382,13 +232,9 @@ export default function ExplorerFormationsPage() {
       const res = await fetch(`/api/formations?${params.toString()}`);
       if (!res.ok) throw new Error("API error");
       const data = await res.json();
-      const items: Formation[] = data.formations ?? [];
-      const tot: number = data.total ?? 0;
-      const tp: number = data.totalPages ?? 1;
-
-      setFormations(items);
-      setTotal(tot);
-      setTotalPages(tp);
+      setFormations(data.formations ?? []);
+      setTotal(data.total ?? 0);
+      setTotalPages(data.totalPages ?? 1);
     } catch {
       setFetchError(true);
     } finally {
@@ -405,11 +251,9 @@ export default function ExplorerFormationsPage() {
 
   useEffect(() => {
     if (isInitialMount.current) {
-      // On initial mount, use page from URL
       isInitialMount.current = false;
       fetchFormations(filters, sort, page);
     } else {
-      // On subsequent filter/sort changes, reset to page 1
       setPage(1);
       fetchFormations(filters, sort, 1);
       updateURL(filters, sort, 1);
@@ -430,8 +274,7 @@ export default function ExplorerFormationsPage() {
   };
 
   const resetFilters = () => {
-    const fresh: FiltersState = { search: "", categorySlug: "", level: "", priceRange: "", durationRange: "", language: "" };
-    setFilters(fresh);
+    setFilters({ search: "", categorySlug: "", level: "", priceRange: "", durationRange: "", language: "" });
     setSearchInput("");
     setSort("populaire");
   };
@@ -444,7 +287,10 @@ export default function ExplorerFormationsPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const hasActiveFilters = filters.search || filters.categorySlug || filters.level || filters.priceRange || filters.durationRange || filters.language;
+  const toggleView = (mode: "grid" | "list") => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") localStorage.setItem("fh-explorer-view", mode);
+  };
 
   const levelOptions = [
     { value: "", label: locale === "fr" ? "Tous les niveaux" : "All levels" },
@@ -470,12 +316,6 @@ export default function ExplorerFormationsPage() {
     { value: "over10h", label: t("duration_over10h") },
   ];
 
-  const languageOptions = [
-    { value: "", label: locale === "fr" ? "Toutes les langues" : "All languages" },
-    { value: "fr", label: "Français" },
-    { value: "en", label: "English" },
-  ];
-
   const sortOptions = [
     { value: "populaire", label: t("sort_popular") },
     { value: "note", label: t("sort_rated") },
@@ -484,37 +324,47 @@ export default function ExplorerFormationsPage() {
     { value: "prix_desc", label: t("sort_price_desc") },
   ];
 
+  // Active filters as chips
+  const activeChips: { label: string; onRemove: () => void }[] = [];
+  if (filters.categorySlug) {
+    const cat = categories.find((c) => c.slug === filters.categorySlug);
+    activeChips.push({ label: cat?.name || filters.categorySlug, onRemove: () => updateFilter("categorySlug", "") });
+  }
+  if (filters.level) {
+    const lvl = levelOptions.find((o) => o.value === filters.level);
+    activeChips.push({ label: lvl?.label || filters.level, onRemove: () => updateFilter("level", "") });
+  }
+  if (filters.priceRange) {
+    const pr = priceOptions.find((o) => o.value === filters.priceRange);
+    activeChips.push({ label: pr?.label || filters.priceRange, onRemove: () => updateFilter("priceRange", "") });
+  }
+  if (filters.durationRange) {
+    const dr = durationOptions.find((o) => o.value === filters.durationRange);
+    activeChips.push({ label: dr?.label || filters.durationRange, onRemove: () => updateFilter("durationRange", "") });
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <BackToTop />
 
       {/* ── Header / Search ─────────────────────────────────────── */}
-      <div className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800">
+      <div className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">
             {locale === "fr" ? "Explorer les formations" : "Explore courses"}
           </h1>
-          <p className="text-slate-400 text-sm mb-6">
-            {locale === "fr"
-              ? "Développez vos compétences avec nos formations professionnelles"
-              : "Build your skills with our professional courses"}
+          <p className="text-slate-500 text-sm mb-6">
+            {locale === "fr" ? "Développez vos compétences avec nos formations professionnelles" : "Build your skills with our professional courses"}
           </p>
-
-          {/* Search bar */}
           <div className="relative max-w-2xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
             <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              type="text" value={searchInput} onChange={(e) => handleSearchChange(e.target.value)}
               placeholder={t("hero_search_placeholder")}
-              className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all"
+              className="w-full pl-12 pr-10 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
             {searchInput && (
-              <button
-                onClick={() => handleSearchChange("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-              >
+              <button onClick={() => handleSearchChange("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors">
                 <X className="w-4 h-4" />
               </button>
             )}
@@ -522,216 +372,163 @@ export default function ExplorerFormationsPage() {
         </div>
       </div>
 
-      {/* ── Categories (horizontal) ─────────────────────────────── */}
-      <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
-            <button
-              onClick={() => updateFilter("categorySlug", "")}
-              className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                !filters.categorySlug
-                  ? "bg-emerald-500 text-white"
-                  : "bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-              }`}
-            >
+      {/* ── Mobile category chips ─────────────────────────────────── */}
+      <div className="lg:hidden border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide">
+            <button onClick={() => updateFilter("categorySlug", "")} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${!filters.categorySlug ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"}`}>
               {locale === "fr" ? "Toutes" : "All"}
             </button>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => updateFilter("categorySlug", filters.categorySlug === cat.slug ? "" : cat.slug)}
-                className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  filters.categorySlug === cat.slug
-                    ? "bg-emerald-500 text-white"
-                    : "bg-white dark:bg-slate-900 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                }`}
-              >
+            {categories.slice(0, 10).map((cat) => (
+              <button key={cat.id} onClick={() => updateFilter("categorySlug", filters.categorySlug === cat.slug ? "" : cat.slug)} className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${filters.categorySlug === cat.slug ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"}`}>
                 {cat.name}
-                {cat._count && <span className="ml-1 opacity-60">({cat._count.formations})</span>}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Filters (horizontal) ────────────────────────────────── */}
-      <div className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 py-3 overflow-x-auto scrollbar-hide">
-            <FilterDropdown
-              label={locale === "fr" ? "Niveau" : "Level"}
-              value={filters.level}
-              options={levelOptions}
-              onChange={(v) => updateFilter("level", v)}
-            />
-            <FilterDropdown
-              label={locale === "fr" ? "Prix" : "Price"}
-              value={filters.priceRange}
-              options={priceOptions}
-              onChange={(v) => updateFilter("priceRange", v)}
-            />
-            <FilterDropdown
-              label={locale === "fr" ? "Durée" : "Duration"}
-              value={filters.durationRange}
-              options={durationOptions}
-              onChange={(v) => updateFilter("durationRange", v)}
-            />
-            <FilterDropdown
-              label={locale === "fr" ? "Langue" : "Language"}
-              value={filters.language}
-              options={languageOptions}
-              onChange={(v) => updateFilter("language", v)}
-            />
-
+      {/* ── Mobile filters row ────────────────────────────────────── */}
+      <div className="lg:hidden border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center gap-2 py-3 overflow-x-auto scrollbar-hide">
+            <FilterDropdown value={filters.level} options={levelOptions} onChange={(v) => updateFilter("level", v)} />
+            <FilterDropdown value={filters.priceRange} options={priceOptions} onChange={(v) => updateFilter("priceRange", v)} />
+            <FilterDropdown value={filters.durationRange} options={durationOptions} onChange={(v) => updateFilter("durationRange", v)} />
             <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
-
-            <FilterDropdown
-              label={locale === "fr" ? "Trier" : "Sort"}
-              value={sort}
-              options={sortOptions}
-              onChange={setSort}
-            />
-
-            {hasActiveFilters && (
-              <>
-                <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
-                <button
-                  onClick={resetFilters}
-                  className="flex-shrink-0 flex items-center gap-1 text-sm text-red-400 hover:text-red-300 font-medium px-3 py-2 transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  {locale === "fr" ? "Réinitialiser" : "Clear"}
-                </button>
-              </>
-            )}
+            <FilterDropdown value={sort} options={sortOptions} onChange={setSort} />
           </div>
         </div>
       </div>
 
-      {/* ── Results ──────────────────────────────────────────────── */}
+      {/* ── Main Content ──────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Results count */}
-        {!loading && (
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-slate-400">
-              {t("courses_found", { count: total })}
-              {filters.search && (
-                <span className="ml-1">
-                  {locale === "fr" ? "pour" : "for"} <strong className="text-slate-900 dark:text-white">&quot;{filters.search}&quot;</strong>
-                </span>
-              )}
-            </p>
+        <div className="flex gap-8">
+          {/* Desktop Sidebar */}
+          <div className="hidden lg:block sticky top-4 self-start">
+            <SidebarFilters
+              filters={filters} categories={categories}
+              levelOptions={levelOptions} priceOptions={priceOptions} durationOptions={durationOptions}
+              onUpdateFilter={updateFilter} onReset={resetFilters} locale={locale}
+            />
           </div>
-        )}
 
-        {/* Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 dark:bg-slate-800 overflow-hidden animate-pulse"
-              >
-                <div className="aspect-video bg-slate-200 dark:bg-slate-700" />
-                <div className="p-4 space-y-3">
-                  <div className="h-3 rounded w-1/3 bg-slate-200 dark:bg-slate-700" />
-                  <div className="h-4 rounded w-4/5 bg-slate-200 dark:bg-slate-700" />
-                  <div className="h-3 rounded w-1/2 bg-slate-200 dark:bg-slate-700" />
-                  <div className="h-3 rounded w-2/3 bg-slate-200 dark:bg-slate-700" />
-                  <div className="h-5 rounded w-1/4 bg-slate-200 dark:bg-slate-700" />
+          {/* Results */}
+          <div className="flex-1 min-w-0">
+            {/* Results header */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                {!loading && (
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    <strong className="text-slate-900 dark:text-white">{total}</strong> {locale === "fr" ? "résultats" : "results"}
+                    {filters.search && (
+                      <span> {locale === "fr" ? "pour" : "for"} <strong className="text-primary">&ldquo;{filters.search}&rdquo;</strong></span>
+                    )}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Desktop sort */}
+                <div className="hidden lg:block">
+                  <FilterDropdown value={sort} options={sortOptions} onChange={setSort} />
+                </div>
+                {/* View toggle */}
+                <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                  <button onClick={() => toggleView("grid")} className={`p-2 transition-colors ${viewMode === "grid" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-700"}`} title="Grid">
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => toggleView("list")} className={`p-2 transition-colors ${viewMode === "list" ? "bg-primary text-white" : "text-slate-500 hover:text-slate-700"}`} title="List">
+                    <List className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : fetchError ? (
-          <div className="text-center py-16">
-            <div className="text-4xl mb-4">⚠️</div>
-            <p className="text-slate-700 dark:text-slate-300 font-medium mb-2">
-              {locale === "fr" ? "Impossible de charger les formations" : "Failed to load courses"}
-            </p>
-            <button
-              onClick={() => fetchFormations(filters, sort, page)}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors"
-            >
-              {locale === "fr" ? "Réessayer" : "Retry"}
-            </button>
-          </div>
-        ) : formations.length === 0 ? (
-          <EmptyState onReset={resetFilters} categories={categories} locale={locale} t={t} />
-        ) : (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {formations.map((f) => (
-                <FormationCard key={f.id} formation={f} locale={locale} t={t} />
-              ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <nav className="mt-10 flex items-center justify-center gap-1" aria-label="Pagination">
-                {/* Previous button */}
-                <button
-                  onClick={() => goToPage(page - 1)}
-                  disabled={page <= 1}
-                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  {locale === "fr" ? "Prec." : "Prev"}
+            {/* Active filter chips */}
+            {activeChips.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                {activeChips.map((chip, i) => (
+                  <span key={i} className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">
+                    {chip.label}
+                    <button onClick={chip.onRemove} className="hover:text-primary/70"><X className="w-3 h-3" /></button>
+                  </span>
+                ))}
+                <button onClick={resetFilters} className="text-xs text-red-500 hover:text-red-400 font-medium">
+                  {locale === "fr" ? "Effacer tout" : "Clear all"}
                 </button>
-
-                {/* Page numbers */}
-                {(() => {
-                  const pages: (number | "ellipsis")[] = [];
-                  if (totalPages <= 7) {
-                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                  } else {
-                    pages.push(1);
-                    if (page > 3) pages.push("ellipsis");
-                    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
-                      pages.push(i);
-                    }
-                    if (page < totalPages - 2) pages.push("ellipsis");
-                    pages.push(totalPages);
-                  }
-                  return pages.map((p, idx) =>
-                    p === "ellipsis" ? (
-                      <span key={`ellipsis-${idx}`} className="px-2 py-2 text-sm text-slate-500">...</span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => goToPage(p)}
-                        className={`min-w-[2.25rem] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          p === page
-                            ? "bg-emerald-500 text-white shadow-sm"
-                            : "text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  );
-                })()}
-
-                {/* Next button */}
-                <button
-                  onClick={() => goToPage(page + 1)}
-                  disabled={page >= totalPages}
-                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 dark:text-slate-400 hover:text-slate-900 dark:text-white dark:hover:text-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  {locale === "fr" ? "Suiv." : "Next"}
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </nav>
+              </div>
             )}
 
-            {/* Total count */}
-            <p className="text-center text-sm text-slate-500 mt-4">
-              {locale === "fr"
-                ? `${total} formation${total > 1 ? "s" : ""} au total`
-                : `${total} course${total > 1 ? "s" : ""} total`}
-            </p>
-          </>
-        )}
+            {/* Grid/List */}
+            {loading ? (
+              <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" : "space-y-4"}>
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden animate-pulse">
+                    <div className="aspect-video bg-slate-200 dark:bg-slate-700" />
+                    <div className="p-4 space-y-3">
+                      <div className="h-3 rounded w-1/3 bg-slate-200 dark:bg-slate-700" />
+                      <div className="h-4 rounded w-4/5 bg-slate-200 dark:bg-slate-700" />
+                      <div className="h-5 rounded w-1/4 bg-slate-200 dark:bg-slate-700" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : fetchError ? (
+              <div className="text-center py-16">
+                <p className="text-slate-700 dark:text-slate-300 font-medium mb-2">{locale === "fr" ? "Impossible de charger les formations" : "Failed to load courses"}</p>
+                <button onClick={() => fetchFormations(filters, sort, page)} className="bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">
+                  {locale === "fr" ? "Réessayer" : "Retry"}
+                </button>
+              </div>
+            ) : formations.length === 0 ? (
+              <div className="text-center py-16">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{t("no_courses")}</h3>
+                <p className="text-slate-500 mb-6">{locale === "fr" ? "Essayez de modifier vos filtres." : "Try adjusting your filters."}</p>
+                <button onClick={resetFilters} className="bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-2.5 rounded-lg transition-colors">{t("filter_reset")}</button>
+              </div>
+            ) : (
+              <>
+                <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5" : "space-y-4"}>
+                  {formations.map((f) => (
+                    <FormationCard key={f.id} formation={f} lang={lang} listView={viewMode === "list"} />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <nav className="mt-10 flex items-center justify-center gap-1">
+                    <button onClick={() => goToPage(page - 1)} disabled={page <= 1} className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                      <ChevronLeft className="w-4 h-4" />{locale === "fr" ? "Préc." : "Prev"}
+                    </button>
+                    {(() => {
+                      const pages: (number | "ellipsis")[] = [];
+                      if (totalPages <= 7) {
+                        for (let i = 1; i <= totalPages; i++) pages.push(i);
+                      } else {
+                        pages.push(1);
+                        if (page > 3) pages.push("ellipsis");
+                        for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
+                        if (page < totalPages - 2) pages.push("ellipsis");
+                        pages.push(totalPages);
+                      }
+                      return pages.map((p, idx) =>
+                        p === "ellipsis" ? <span key={`e${idx}`} className="px-2 py-2 text-sm text-slate-500">...</span> : (
+                          <button key={p} onClick={() => goToPage(p)} className={`min-w-[2.25rem] px-3 py-2 rounded-lg text-sm font-medium transition-colors ${p === page ? "bg-primary text-white shadow-sm" : "text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p}</button>
+                        )
+                      );
+                    })()}
+                    <button onClick={() => goToPage(page + 1)} disabled={page >= totalPages} className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                      {locale === "fr" ? "Suiv." : "Next"}<ChevronRight className="w-4 h-4" />
+                    </button>
+                  </nav>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
