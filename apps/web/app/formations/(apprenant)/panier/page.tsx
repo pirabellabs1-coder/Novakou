@@ -177,11 +177,11 @@ export default function PanierPage() {
   const items = cart?.items ?? [];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-        <ShoppingCart className="w-6 h-6" />
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-8 flex items-center gap-3">
+        <ShoppingCart className="w-7 h-7" />
         {fr ? "Mon panier" : "My Cart"}
-        {items.length > 0 && <span className="text-slate-400 font-normal text-base">({items.length})</span>}
+        {items.length > 0 && <span className="text-slate-400 font-normal text-lg">({items.length})</span>}
       </h1>
 
       {items.length === 0 ? (
@@ -200,7 +200,7 @@ export default function PanierPage() {
               const title = item.formation.title;
               const h = Math.floor(item.formation.duration / 60);
               return (
-                <div key={item.id} className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-4 flex gap-4">
+                <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-4 flex gap-4 hover:shadow-md hover:border-primary/20 transition-all duration-200">
                   {/* Thumbnail */}
                   <div className="w-32 h-20 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 dark:from-primary/20 dark:to-blue-900/20 overflow-hidden">
                     {item.formation.thumbnail ? (
@@ -255,8 +255,8 @@ export default function PanierPage() {
 
           {/* Summary */}
           <div className="lg:w-80 flex-shrink-0">
-            <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark rounded-xl border dark:border-border-dark p-6 sticky top-8">
-              <h2 className="font-bold text-slate-900 dark:text-white dark:text-slate-100 mb-4">{fr ? "Récapitulatif" : "Summary"}</h2>
+            <div className="backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-xl sticky top-24">
+              <h2 className="font-bold text-lg text-slate-900 dark:text-white mb-4">{fr ? "Récapitulatif" : "Summary"}</h2>
 
               {/* Promo code */}
               <div className="mb-4">
@@ -317,7 +317,7 @@ export default function PanierPage() {
               <button
                 onClick={checkout}
                 disabled={checkingOut}
-                className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
               >
                 {checkingOut ? (
                   <span className="flex items-center gap-2">

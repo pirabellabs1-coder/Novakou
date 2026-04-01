@@ -8,6 +8,7 @@ import { z } from "zod";
 import { generateCertificateCode, generateCertificatePDF } from "@/lib/formations/certificate-generator";
 import { sendCertificateIssuedEmail } from "@/lib/email/formations";
 import { uploadFile } from "@/lib/supabase-storage";
+import { ensureUserInDb } from "@/lib/formations/ensure-user";
 
 const submitSchema = z.object({
   quizId: z.string(),
@@ -24,6 +25,7 @@ export async function POST(
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const body = await req.json();
     const { quizId, answers } = submitSchema.parse(body);

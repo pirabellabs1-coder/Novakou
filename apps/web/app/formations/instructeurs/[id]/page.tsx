@@ -147,9 +147,26 @@ export default function InstructeurPublicPage({ params }: { params: Promise<{ id
 
   useEffect(() => {
     fetch(`/api/formations/instructeurs/${id}`)
-      .then((r) => r.json())
-      .then((d) => { setInstructeur(d.instructeur ?? null); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then((r) => {
+        if (!r.ok) {
+          console.error(`[Instructeur] API returned ${r.status} for id=${id}`);
+          setInstructeur(null);
+          setLoading(false);
+          return null;
+        }
+        return r.json();
+      })
+      .then((d) => {
+        if (d) {
+          setInstructeur(d.instructeur ?? null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error("[Instructeur] Fetch error:", err);
+        setInstructeur(null);
+        setLoading(false);
+      });
   }, [id]);
 
   const t = (fr: string, en: string) => (lang === "fr" ? fr : en);
@@ -324,15 +341,15 @@ export default function InstructeurPublicPage({ params }: { params: Promise<{ id
         {/* ============================================================ */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           {[
-            { icon: "groups", label: t("Étudiants", "Students"), value: instructeur.totalStudents.toLocaleString(), color: "text-primary" },
-            { icon: "school", label: t("Formations", "Courses"), value: instructeur._count.formations.toString(), color: "text-emerald-500" },
-            { icon: "star", label: t("Note moyenne", "Avg rating"), value: avgRating, color: "text-blue-500" },
-            { icon: "trending_up", label: t("Taux complétion", "Completion"), value: `${instructeur.completionRate ?? 0}%`, color: "text-amber-500" },
+            { icon: "groups", label: t("Étudiants", "Students"), value: instructeur.totalStudents.toLocaleString(), gradient: "from-primary/10 to-indigo-100 dark:from-primary/20 dark:to-indigo-900/20", iconColor: "text-primary" },
+            { icon: "school", label: t("Formations", "Courses"), value: instructeur._count.formations.toString(), gradient: "from-emerald-50 to-green-100 dark:from-emerald-900/20 dark:to-green-900/20", iconColor: "text-emerald-500" },
+            { icon: "star", label: t("Note moyenne", "Avg rating"), value: avgRating, gradient: "from-blue-50 to-sky-100 dark:from-blue-900/20 dark:to-sky-900/20", iconColor: "text-blue-500" },
+            { icon: "trending_up", label: t("Taux complétion", "Completion"), value: `${instructeur.completionRate ?? 0}%`, gradient: "from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20", iconColor: "text-amber-500" },
           ].map((s) => (
-            <div key={s.label} className="bg-primary/5 dark:bg-white/5 rounded-xl border border-primary/10 p-4 text-center">
-              <span className={cn("material-symbols-outlined text-2xl mb-1", s.color)}>{s.icon}</span>
+            <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-2xl border border-slate-200/50 dark:border-slate-700/50 p-5 text-center hover:shadow-lg hover:scale-[1.02] transition-all duration-300`}>
+              <span className={cn("material-symbols-outlined text-2xl mb-1", s.iconColor)}>{s.icon}</span>
               <p className="text-2xl font-black text-slate-900 dark:text-white">{s.value}</p>
-              <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>

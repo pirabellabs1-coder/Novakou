@@ -49,8 +49,16 @@ export async function POST(request: Request) {
 
       const existing = devStore.findByEmail(email);
       if (existing) {
-        // Si l'utilisateur existe et qu'un formationsRole est demande, on met a jour
         if (formationsRole) {
+          // Reject if user already has a DIFFERENT formations role
+          const currentRole = (existing as unknown as Record<string, unknown>).formationsRole as string | undefined;
+          if (currentRole && currentRole !== formationsRole) {
+            const roleLabel = currentRole === "instructeur" ? "instructeur" : "apprenant";
+            return NextResponse.json({
+              error: `Ce compte est deja enregistre en tant que ${roleLabel}. Vous ne pouvez pas etre instructeur et apprenant avec le meme email.`,
+            }, { status: 409 });
+          }
+          // Same role or no existing role — update
           devStore.update(existing.id, { formationsRole } as Record<string, unknown>);
           return NextResponse.json({
             success: true,
@@ -99,8 +107,15 @@ export async function POST(request: Request) {
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      // Si l'utilisateur existe et qu'un formationsRole est demande, on met a jour
       if (formationsRole) {
+        // Reject if user already has a DIFFERENT formations role
+        if (existing.formationsRole && existing.formationsRole !== formationsRole) {
+          const roleLabel = existing.formationsRole === "instructeur" ? "instructeur" : "apprenant";
+          return NextResponse.json({
+            error: `Ce compte est deja enregistre en tant que ${roleLabel}. Vous ne pouvez pas etre instructeur et apprenant avec le meme email.`,
+          }, { status: 409 });
+        }
+        // Same role or no existing role — update
         await prisma.user.update({
           where: { id: existing.id },
           data: { formationsRole },

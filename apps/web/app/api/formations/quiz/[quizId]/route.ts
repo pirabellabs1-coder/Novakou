@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
+import { ensureUserInDb } from "@/lib/formations/ensure-user";
 
 export async function GET(
   _req: NextRequest,
@@ -15,6 +16,7 @@ export async function GET(
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },

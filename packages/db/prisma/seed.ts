@@ -1449,6 +1449,53 @@ async function main() {
   }
   console.log(`  + ${enrollments.length} enrollments created`);
 
+  // ── Step 5b: Create LessonProgress for enrollments ──
+  console.log("\nCreating lesson progress records...");
+  let lessonProgressCount = 0;
+
+  for (const enrollment of enrollments) {
+    // Get all lessons for this formation
+    const formationLessons = allLessons.filter((l) => l.formationId === enrollment.formationId);
+    if (formationLessons.length === 0) continue;
+
+    // Determine how many lessons to mark as completed based on progress
+    const completedLessonCount = Math.floor((enrollment.progress / 100) * formationLessons.length);
+
+    for (let i = 0; i < completedLessonCount; i++) {
+      const lesson = formationLessons[i];
+      const isQuiz = lesson.type === "QUIZ";
+      const score = isQuiz ? randomInt(70, 100) : null;
+      const daysAgo = randomInt(1, 60);
+
+      await prisma.lessonProgress.create({
+        data: {
+          enrollmentId: enrollment.id,
+          lessonId: lesson.id,
+          completed: true,
+          score,
+          watchedPct: isQuiz ? null : randomInt(80, 100),
+          completedAt: new Date(Date.now() - daysAgo * 86400000),
+        },
+      });
+      lessonProgressCount++;
+    }
+  }
+  console.log(`  + ${lessonProgressCount} lesson progress records created`);
+
+  // ── Step 5c: Sync studentsCount on formations ──
+  console.log("\nSyncing studentsCount on formations...");
+  const enrollmentCountByFormation = new Map<string, number>();
+  for (const e of enrollments) {
+    enrollmentCountByFormation.set(e.formationId, (enrollmentCountByFormation.get(e.formationId) ?? 0) + 1);
+  }
+  for (const [formationId, count] of enrollmentCountByFormation) {
+    await prisma.formation.update({
+      where: { id: formationId },
+      data: { studentsCount: count },
+    });
+  }
+  console.log(`  + Synced studentsCount for ${enrollmentCountByFormation.size} formations`);
+
   // ── Step 6: Create Certificates ──
   console.log("\nCreating certificates...");
   const completedEnrollments = enrollments.filter((e) => e.progress === 100);

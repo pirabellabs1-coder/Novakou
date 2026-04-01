@@ -402,17 +402,17 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
     <div className="min-h-screen bg-white dark:bg-slate-900 dark:bg-neutral-dark">
       {/* Toast notification */}
       {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all animate-in slide-in-from-top-2 ${
+        <div className={`fixed top-4 right-4 z-50 px-5 py-3.5 rounded-2xl shadow-2xl text-sm font-medium transition-all animate-in slide-in-from-top-2 backdrop-blur-sm ${
           toast.type === "success"
-            ? "bg-green-600 text-white"
-            : "bg-red-600 text-white"
+            ? "bg-green-600/95 text-white"
+            : "bg-red-600/95 text-white"
         }`}>
           {toast.message}
         </div>
       )}
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-slate-400 mb-4">
             <Link href="/formations" className="hover:text-white transition-colors">{locale === "fr" ? "Formations" : "Courses"}</Link>
@@ -603,14 +603,14 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                     const isExpanded = expandedSections.has(section.id);
 
                     return (
-                      <div key={section.id} className="border rounded-xl overflow-hidden">
+                      <div key={section.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
                         <button
                           onClick={() => {
                             const next = new Set(expandedSections);
                             if (isExpanded) next.delete(section.id); else next.add(section.id);
                             setExpandedSections(next);
                           }}
-                          className="w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 dark:bg-slate-800 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors text-left"
+                          className="w-full flex items-center justify-between p-4 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 text-left"
                         >
                           <div className="flex items-center gap-3">
                             {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
@@ -765,7 +765,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                 {/* Review list */}
                 <div className="space-y-4">
                   {displayedReviews.map((review) => (
-                    <div key={review.id} className="border-b pb-4 last:border-0">
+                    <div key={review.id} className="border-b pb-4 last:border-0 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 -mx-2 px-2 rounded-lg transition-colors duration-200">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-full bg-primary/10 flex-shrink-0 overflow-hidden">
                           {review.user.avatar || review.user.image ? (
@@ -885,8 +885,8 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
           {/* Right column — Sticky purchase card */}
           <div className="hidden lg:block w-80 flex-shrink-0">
-            <div className="sticky top-8">
-              <div className="bg-white dark:bg-slate-900 dark:bg-neutral-dark border border-slate-200 dark:border-slate-700 dark:border-border-dark rounded-2xl shadow-xl overflow-hidden">
+            <div className="sticky top-24">
+              <div className="backdrop-blur-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden">
                 {/* Preview thumbnail / video */}
                 <div className="aspect-video bg-slate-100 dark:bg-slate-800 relative">
                   {formation.thumbnail ? (
@@ -959,7 +959,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                       <button
                         onClick={buyNow}
                         disabled={addingToCart}
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100 flex items-center justify-center gap-2"
                       >
                         <Zap className="w-4 h-4" />
                         {addingToCart ? "..." : t("buy_now")}
@@ -967,7 +967,7 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
                       <button
                         onClick={addToCart}
                         disabled={addingToCart}
-                        className="w-full border border-slate-300 text-slate-700 font-medium py-2.5 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-semibold py-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:border-primary/50 transition-all duration-200 disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         <ShoppingCart className="w-4 h-4" />
                         {t("add_to_cart")}

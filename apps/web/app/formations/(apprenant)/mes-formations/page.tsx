@@ -158,10 +158,10 @@ export default function MesFormationsPage() {
   });
 
   const statCards = [
-    { icon: BookOpen, label: fr ? "En cours" : "In Progress", value: stats.inProgress, color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-900/20", trend: null },
-    { icon: TrendingUp, label: fr ? "Complétées" : "Completed", value: stats.completed, color: "text-green-600", bg: "bg-green-50 dark:bg-green-900/20", trend: stats.completed > 0 ? "+100%" : null },
-    { icon: Award, label: fr ? "Certifications" : "Certificates", value: stats.certificates, color: "text-purple-600", bg: "bg-purple-50 dark:bg-purple-900/20", trend: null },
-    { icon: Clock, label: fr ? "Heures d'apprentissage" : "Learning Hours", value: stats.totalHours, suffix: "h", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-900/20", trend: null },
+    { icon: BookOpen, label: fr ? "En cours" : "In Progress", value: stats.inProgress, gradient: "from-blue-500 to-blue-600", iconBg: "bg-white/20", trend: null },
+    { icon: TrendingUp, label: fr ? "Complétées" : "Completed", value: stats.completed, gradient: "from-emerald-500 to-emerald-600", iconBg: "bg-white/20", trend: stats.completed > 0 ? "+100%" : null },
+    { icon: Award, label: fr ? "Certifications" : "Certificates", value: stats.certificates, gradient: "from-amber-500 to-amber-600", iconBg: "bg-white/20", trend: null },
+    { icon: Clock, label: fr ? "Heures d'apprentissage" : "Learning Hours", value: stats.totalHours, suffix: "h", gradient: "from-purple-500 to-purple-600", iconBg: "bg-white/20", trend: null },
   ];
 
   if (loading) {
@@ -184,9 +184,9 @@ export default function MesFormationsPage() {
   return (
     <div className="max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
             {fr ? "Mes formations" : "My Courses"}
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -218,21 +218,21 @@ export default function MesFormationsPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {statCards.map((s) => (
-          <div key={s.label} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6">
+          <div key={s.label} className={`bg-gradient-to-br ${s.gradient} rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all duration-300 p-6 text-white`}>
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-11 h-11 rounded-xl ${s.bg} flex items-center justify-center`}>
-                <s.icon className={`w-5 h-5 ${s.color}`} />
+              <div className={`w-11 h-11 rounded-xl ${s.iconBg} flex items-center justify-center`}>
+                <s.icon className="w-5 h-5 text-white" />
               </div>
               {s.trend && (
-                <span className="text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-white bg-white/20 px-2 py-0.5 rounded-full">
                   {s.trend}
                 </span>
               )}
             </div>
-            <p className="text-2xl font-extrabold text-slate-900 dark:text-white">
+            <p className="text-2xl font-extrabold text-white">
               <AnimatedCounter value={typeof s.value === "number" ? s.value : 0} suffix={s.suffix || ""} />
             </p>
-            <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+            <p className="text-xs text-white/80 mt-1">{s.label}</p>
           </div>
         ))}
       </div>
@@ -516,7 +516,7 @@ export default function MesFormationsPage() {
             const isCompleted = enrollment.progress >= 100;
 
             return (
-              <div key={enrollment.id} className="bg-white dark:bg-slate-900 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/20 hover:shadow-sm transition-all p-4">
+              <div key={enrollment.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary/30 hover:shadow-lg transition-all duration-300 p-4">
                 <div className="flex gap-4">
                   {/* Thumbnail */}
                   <div className="w-40 h-24 flex-shrink-0 rounded-lg bg-gradient-to-br from-primary/10 to-blue-100 dark:from-primary/20 dark:to-blue-900/20 overflow-hidden relative">
@@ -550,9 +550,9 @@ export default function MesFormationsPage() {
 
                     {/* Progress bar */}
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="flex-1 bg-slate-100 dark:bg-slate-800 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                      <div className="flex-1 bg-slate-100 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                         <div
-                          className={`h-full rounded-full transition-all ${isCompleted ? "bg-green-500" : "bg-primary"}`}
+                          className={`h-full rounded-full transition-all duration-500 ${isCompleted ? "bg-gradient-to-r from-green-400 to-emerald-500" : "bg-gradient-to-r from-primary to-blue-500"}`}
                           style={{ width: `${enrollment.progress}%` }}
                         />
                       </div>

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { FORMATIONS_CONFIG } from "@/lib/formations/config";
+import { ensureUserInDb } from "@/lib/formations/ensure-user";
 
 export async function GET(_req: NextRequest) {
   try {
@@ -12,6 +13,7 @@ export async function GET(_req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const userId = session.user.id;
 
@@ -64,6 +66,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const userId = session.user.id;
     const body = await req.json();
