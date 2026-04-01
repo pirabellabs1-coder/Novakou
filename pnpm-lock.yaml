@@ -243,10 +243,16 @@ importers:
       '@prisma/client':
         specifier: ^5.22.0
         version: 5.22.0(prisma@5.22.0)
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
     devDependencies:
       '@paralleldrive/cuid2':
         specifier: ^2.2.2
         version: 2.3.1
+      '@types/bcryptjs':
+        specifier: ^2.4.6
+        version: 2.4.6
       prisma:
         specifier: ^5.22.0
         version: 5.22.0

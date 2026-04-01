@@ -30,9 +30,11 @@ export async function GET(
       return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
     }
 
+    // Get session once for all auth checks
+    const session = await getServerSession(authOptions);
+
     // Non-ACTIF formations are only visible to their owner or admin
     if (formation.status !== "ACTIF") {
-      const session = await getServerSession(authOptions);
       const isAdmin = session?.user?.role === "admin";
       const isOwner = session?.user?.id && formation.instructeur?.userId === session.user.id;
       if (!isAdmin && !isOwner) {
@@ -46,6 +48,27 @@ export async function GET(
         where: { id: formation.id },
         data: { viewsCount: { increment: 1 } },
       }).catch(() => {});
+    }
+
+    // Check enrollment + favorite status for authenticated user
+    let isEnrolled = false;
+    let enrollment: { id: string; progress: number; completedAt: Date | null } | null = null;
+    let isFavorite = false;
+
+    if (session?.user) {
+      const [enrollmentResult, favoriteResult] = await Promise.all([
+        prisma.enrollment.findUnique({
+          where: { userId_formationId: { userId: session.user.id, formationId: formation.id } },
+          select: { id: true, progress: true, completedAt: true },
+        }),
+        prisma.formationFavorite.findUnique({
+          where: { userId_formationId: { userId: session.user.id, formationId: formation.id } },
+          select: { id: true },
+        }),
+      ]);
+      isEnrolled = !!enrollmentResult;
+      enrollment = enrollmentResult;
+      isFavorite = !!favoriteResult;
     }
 
     // Include cohorts if group formation
@@ -76,7 +99,7 @@ export async function GET(
     // Filter out maxUsage-exceeded promos in JS
     const flashPromo = flashPromos.find((p) => !p.maxUsage || p.usageCount < p.maxUsage) ?? null;
 
-    return NextResponse.json({ ...formation, flashPromo, cohorts });
+    return NextResponse.json({ ...formation, flashPromo, cohorts, isEnrolled, enrollment, isFavorite });
   } catch (error) {
     console.error("[GET /api/formations/[id]]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

@@ -4,6 +4,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import { createId } from "@paralleldrive/cuid2";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -44,14 +45,9 @@ function generateCertCode(): string {
   return code;
 }
 
-// Simple password hash (SHA-256 hex) for seed data only
-// In production, bcryptjs is used via apps/web
-async function simpleHash(password: string): string {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+// Password hash using bcryptjs (matches auth system)
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 10);
 }
 
 // ── Data Definitions ──
@@ -1184,6 +1180,8 @@ async function main() {
   await prisma.digitalProductReview.deleteMany({});
   await prisma.digitalProductPurchase.deleteMany({});
   await prisma.cartItem.deleteMany({});
+  await prisma.formationFavorite.deleteMany({});
+  await prisma.promoCode.deleteMany({});
   await prisma.flashPromotion.deleteMany({});
   await prisma.marketingEvent.deleteMany({});
   await prisma.abandonedCart.deleteMany({});
@@ -1219,7 +1217,7 @@ async function main() {
 
   // ── Step 2: Create Users ──
   console.log("\nCreating admin users...");
-  const passwordHash = await simpleHash("TestPassword123!");
+  const passwordHash = await hashPassword("TestPassword123!");
   const adminUsers = [];
   for (const admin of ADMIN_USERS) {
     const user = await prisma.user.upsert({
@@ -1562,6 +1560,48 @@ async function main() {
   }
   console.log(`  + ${reviewCount} reviews created`);
 
+  // ── Step: Create Promo Codes ──
+  console.log("\nCreating promo codes...");
+  const promoCodes = [
+    { code: "BIENVENUE20", discountPct: 20, maxUsage: 100, expiresAt: new Date(Date.now() + 90 * 86400000), isActive: true, formationIds: [] },
+    { code: "FLASH50", discountPct: 50, maxUsage: 10, expiresAt: new Date(Date.now() + 7 * 86400000), isActive: true, formationIds: actifFormations.slice(0, 3).map((f) => f.id) },
+    { code: "EXPIRE2024", discountPct: 30, maxUsage: 50, expiresAt: new Date("2024-12-31"), isActive: false, formationIds: [] },
+    { code: "VIP10", discountPct: 10, maxUsage: null, expiresAt: null, isActive: true, formationIds: [] },
+  ];
+  for (const pc of promoCodes) {
+    await prisma.promoCode.create({ data: { ...pc, usageCount: pc.code === "EXPIRE2024" ? 50 : randomInt(0, 5) } });
+  }
+  console.log(`  + ${promoCodes.length} promo codes created`);
+
+  // ── Step: Create Cart Items for test users ──
+  console.log("\nCreating cart items...");
+  let cartItemCount = 0;
+  // Add 2-3 formations to first 3 apprenant carts (not already enrolled)
+  for (const user of apprenantUsers.slice(0, 3)) {
+    const userEnrollments = enrollments.filter((e) => e.userId === user.id);
+    const enrolledIds = new Set(userEnrollments.map((e) => e.formationId));
+    const available = actifFormations.filter((f) => !enrolledIds.has(f.id));
+    const toAdd = available.slice(0, randomInt(1, 3));
+    for (const f of toAdd) {
+      await prisma.cartItem.create({ data: { userId: user.id, formationId: f.id } });
+      cartItemCount++;
+    }
+  }
+  console.log(`  + ${cartItemCount} cart items created`);
+
+  // ── Step: Create Formation Favorites ──
+  console.log("\nCreating formation favorites...");
+  let favCount = 0;
+  for (const user of apprenantUsers) {
+    const numFavs = randomInt(1, 4);
+    const shuffled = [...actifFormations].sort(() => Math.random() - 0.5);
+    for (const f of shuffled.slice(0, numFavs)) {
+      await prisma.formationFavorite.create({ data: { userId: user.id, formationId: f.id } }).catch(() => {});
+      favCount++;
+    }
+  }
+  console.log(`  + ${favCount} favorites created`);
+
   // ── Summary ──
   console.log("\n=== Seed Complete ===");
   console.log(`  Categories:          ${categories.length}`);
@@ -1577,6 +1617,9 @@ async function main() {
   console.log(`  Digital Products:    ${DIGITAL_PRODUCTS_DATA.length}`);
   console.log(`  Cohorts:             ${cohortData.length}`);
   console.log(`  Reviews:             ${reviewCount}`);
+  console.log(`  Promo Codes:         ${promoCodes.length}`);
+  console.log(`  Cart Items:          ${cartItemCount}`);
+  console.log(`  Favorites:           ${favCount}`);
   console.log(`\nAll test users password: TestPassword123! (SHA-256 hash)`);
   console.log("Note: In production, use bcryptjs for password hashing.\n");
 }
