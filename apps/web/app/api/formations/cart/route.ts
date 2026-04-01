@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { z } from "zod";
+import { ensureUserInDb } from "@/lib/formations/ensure-user";
 
 const cartItemInclude = {
   formation: {
@@ -41,6 +42,7 @@ export async function GET(req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     // Vérifier si un code promo est passé
     const { searchParams } = new URL(req.url);
@@ -110,6 +112,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const body = await req.json();
     const { formationId } = addItemSchema.parse(body);

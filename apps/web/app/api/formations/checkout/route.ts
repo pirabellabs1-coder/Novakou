@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth/config";
 import prisma from "@freelancehigh/db";
 import { z } from "zod";
 import { PaymentService } from "@/lib/payments/service";
+import { ensureUserInDb } from "@/lib/formations/ensure-user";
 
 const checkoutSchema = z.object({
   promoCode: z.string().optional(),
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const body = await req.json();
     const { promoCode, locale } = checkoutSchema.parse(body);

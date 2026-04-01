@@ -8,6 +8,7 @@ import prisma from "@freelancehigh/db";
 import { calculateProgress, generateCertificateCode } from "@/lib/formations/prisma-helpers";
 import { sendCertificateIssuedEmail } from "@/lib/email/formations";
 import { z } from "zod";
+import { ensureUserInDb } from "@/lib/formations/ensure-user";
 
 export async function GET(
   _req: NextRequest,
@@ -19,6 +20,7 @@ export async function GET(
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const enrollment = await prisma.enrollment.findFirst({
       where: { formationId: id, userId: session.user.id },
@@ -56,6 +58,7 @@ export async function PUT(
     if (!session?.user) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
+    await ensureUserInDb(session as { user: { id: string; email: string; name: string } });
 
     const body = await req.json();
     const { lessonId, completed, watchedPct, score } = updateProgressSchema.parse(body);
