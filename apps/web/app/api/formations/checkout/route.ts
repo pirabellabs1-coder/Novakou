@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       totalAmount += Math.max(0, price * (1 - effectiveDiscount / 100));
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3450";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
     const formationIds = activeItems.map((i) => i.formationId);
 
     // All free items → skip payment, create enrollments directly

@@ -120,6 +120,7 @@ export default function PanierPage() {
 
   const checkout = async () => {
     setCheckingOut(true);
+    setError(null);
     try {
       const res = await fetch("/api/formations/checkout", {
         method: "POST",
@@ -129,10 +130,22 @@ export default function PanierPage() {
           locale,
         }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Erreur" }));
+        setError(err.error || (fr ? "Erreur lors du paiement" : "Payment error"));
+        setCheckingOut(false);
+        return;
+      }
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setCheckingOut(false);
+      if (data.mock) {
+        router.push(`/formations/succes?session_id=${data.sessionId}`);
+      } else if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setCheckingOut(false);
+      }
     } catch {
+      setError(fr ? "Erreur réseau" : "Network error");
       setCheckingOut(false);
     }
   };

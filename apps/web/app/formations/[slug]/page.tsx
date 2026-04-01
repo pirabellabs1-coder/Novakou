@@ -183,6 +183,12 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
   const [showAllLearnPoints, setShowAllLearnPoints] = useState(false);
   const [showSharePopover, setShowSharePopover] = useState(false);
   const [previewLessonId, setPreviewLessonId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (message: string, type: "success" | "error" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
   useEffect(() => {
     fetch(`/api/formations/${slug}`)
@@ -256,19 +262,27 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
     if (!formation) return;
     setAddingToCart(true);
     try {
-      await fetch("/api/formations/cart", {
+      const res = await fetch("/api/formations/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ formationId: formation.id }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Erreur" }));
+        showToast(err.error || (locale === "fr" ? "Erreur lors de l'ajout" : "Error adding to cart"), "error");
+        return;
+      }
       firePixelEvent("AddToCart", {
         value: formation.price,
         currency: "EUR",
         content_id: formation.id,
         content_name: formation.title,
       });
-      router.push("/formations/panier");
-    } catch {}
+      showToast(locale === "fr" ? "Formation ajoutée au panier !" : "Course added to cart!");
+      setTimeout(() => router.push("/formations/panier"), 800);
+    } catch {
+      showToast(locale === "fr" ? "Erreur réseau" : "Network error", "error");
+    }
     finally { setAddingToCart(false); }
   };
 
@@ -277,19 +291,35 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
     if (!formation) return;
     setAddingToCart(true);
     try {
-      await fetch("/api/formations/cart", {
+      const cartRes = await fetch("/api/formations/cart", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ formationId: formation.id }),
       });
+      if (!cartRes.ok) {
+        const err = await cartRes.json().catch(() => ({ error: "Erreur" }));
+        showToast(err.error || (locale === "fr" ? "Erreur lors de l'ajout" : "Error adding to cart"), "error");
+        return;
+      }
       const res = await fetch("/api/formations/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ promoCode: promoApplied?.code }),
+        body: JSON.stringify({ promoCode: promoApplied?.code, locale }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Erreur" }));
+        showToast(err.error || (locale === "fr" ? "Erreur lors du paiement" : "Payment error"), "error");
+        return;
+      }
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch {}
+      if (data.mock) {
+        router.push(`/formations/succes?session_id=${data.sessionId}`);
+      } else if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      showToast(locale === "fr" ? "Erreur réseau" : "Network error", "error");
+    }
     finally { setAddingToCart(false); }
   };
 
@@ -370,6 +400,16 @@ export default function FormationDetailPage({ params }: { params: Promise<{ slug
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 dark:bg-neutral-dark">
+      {/* Toast notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-xl shadow-lg text-sm font-medium transition-all animate-in slide-in-from-top-2 ${
+          toast.type === "success"
+            ? "bg-green-600 text-white"
+            : "bg-red-600 text-white"
+        }`}>
+          {toast.message}
+        </div>
+      )}
       {/* Hero Header */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">

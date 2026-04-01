@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Ce produit a atteint sa limite de ventes" }, { status: 400 });
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3450";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
 
     // Helper to create purchase record
     const createPurchase = async (paidAmount: number, sessionId: string | null) => {
