@@ -38,6 +38,7 @@ export async function GET(_req: NextRequest) {
       score: cert.score,
       issuedAt: cert.issuedAt,
       pdfUrl: cert.pdfUrl,
+      formationId: cert.formationId,
       enrollment: {
         formation: {
           title: cert.enrollment.formation.title,

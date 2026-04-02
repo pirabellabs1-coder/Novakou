@@ -44,6 +44,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       score: raw.score,
       issuedAt: raw.issuedAt,
       pdfUrl: raw.pdfUrl,
+      formationId: raw.formationId,
       user: raw.user,
       formation: {
         title: raw.enrollment.formation.title,
