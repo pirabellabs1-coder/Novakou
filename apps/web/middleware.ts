@@ -42,8 +42,7 @@ const PUBLIC_ROUTES = [
 // Routes auth — accessibles uniquement si NON connecte
 const AUTH_ROUTES = ["/connexion", "/inscription", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe", "/onboarding"];
 
-// Routes auth formations — accessibles même si connecté (pas de conflit avec la session principale)
-const FORMATIONS_AUTH_ROUTES = ["/formations/connexion", "/formations/inscription"];
+
 
 // Routes protegees par role
 const ROLE_ROUTES: Record<string, string[]> = {
@@ -179,82 +178,7 @@ export async function middleware(req: NextRequest) {
     return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
   }
 
-  // ── FORMATIONS SPACE — completely isolated from main app role routing ──
-  // All /formations/* routes are handled here and NEVER fall through to
-  // the main app role-based checks (lines below). This prevents a user with
-  // role="client" from being redirected to /client while browsing formations.
-  if (pathname.startsWith("/formations")) {
-    // 1. Auth routes — always accessible (even if connected)
-    if (FORMATIONS_AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
-      return withLocaleCookie(NextResponse.next());
-    }
 
-    // 2. Instructeur routes — need auth + formationsRole=instructeur or role=admin
-    if (pathname.startsWith("/formations/instructeur")) {
-      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-      if (!token) {
-        return withLocaleCookie(NextResponse.redirect(new URL("/formations/connexion", req.url)));
-      }
-      const formationsRole = token.formationsRole as string | undefined;
-      const userRole = token.role as string | undefined;
-      if (userRole !== "admin" && formationsRole !== "instructeur") {
-        return withLocaleCookie(NextResponse.redirect(new URL("/formations/mes-formations", req.url)));
-      }
-      return withLocaleCookie(NextResponse.next());
-    }
-
-    // 3. Admin routes — need role=admin
-    if (pathname.startsWith("/formations/admin")) {
-      const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-      if (!token) {
-        return withLocaleCookie(NextResponse.redirect(new URL("/formations/connexion", req.url)));
-      }
-      const userRole = token.role as string | undefined;
-      if (userRole !== "admin") {
-        return withLocaleCookie(NextResponse.redirect(new URL("/formations/connexion", req.url)));
-      }
-      return withLocaleCookie(NextResponse.next());
-    }
-
-    // 4. Public formations routes — catalog, detail pages, categories, etc.
-    const FORMATIONS_PUBLIC_PREFIXES = [
-      "/formations/categories",
-      "/formations/explorer",
-      "/formations/produits",
-      "/formations/cohorts",
-      "/formations/instructeurs",
-      "/formations/apprenants",
-      "/formations/devenir-instructeur",
-      "/formations/vente",
-      "/formations/verification",
-      "/formations/f",
-    ];
-    if (
-      pathname === "/formations" ||
-      FORMATIONS_PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"))
-    ) {
-      return withLocaleCookie(NextResponse.next());
-    }
-
-    // 5. Formation detail page — /formations/[slug] (single segment, public)
-    // Matches /formations/some-slug but NOT /formations/some-slug/sub-path
-    // (sub-paths like /formations/apprendre/xxx are protected by catch-all below)
-    const afterFormations = pathname.slice("/formations/".length);
-    if (afterFormations && !afterFormations.includes("/")) {
-      // Single segment = formation detail page (public)
-      return withLocaleCookie(NextResponse.next());
-    }
-
-    // 6. Catch-all: any other /formations/* route requires authentication
-    // This covers: mes-formations, mes-produits, mes-cohorts, certificats,
-    // favoris, parametres, panier, paiement, apprendre, succes, echec,
-    // mes-achats, mes-avis, mes-discussions, and any future routes.
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    if (!token) {
-      return withLocaleCookie(NextResponse.redirect(new URL("/formations/connexion", req.url)));
-    }
-    return withLocaleCookie(NextResponse.next());
-  }
 
   // Routes publiques — toujours accessibles
   if (isPublicRoute(pathname)) {

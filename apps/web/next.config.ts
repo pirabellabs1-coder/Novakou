@@ -78,12 +78,7 @@ const nextConfig: NextConfig = {
       { source: "/register", destination: "/inscription", permanent: true },
       { source: "/signup", destination: "/inscription", permanent: true },
       { source: "/signin", destination: "/connexion", permanent: true },
-      { source: "/formations/produits-numeriques", destination: "/formations/produits", permanent: true },
-      // Instructor URL aliases
-      { source: "/formations/instructeur/verification-kyc", destination: "/formations/instructeur/kyc", permanent: true },
-      { source: "/formations/instructeur/codes-promo", destination: "/formations/instructeur/promotions", permanent: true },
-      { source: "/formations/instructeur/marketing/flash-sales", destination: "/formations/instructeur/marketing/flash", permanent: true },
-      { source: "/formations/instructeur/produits-numeriques/:path*", destination: "/formations/instructeur/produits/:path*", permanent: true },
+
     ];
   },
   // Optimisations production

@@ -15,7 +15,6 @@ export const PLAN_RULES = {
     applicationLimit: 10,
     boostLimit: 0,
     scenarioLimit: 0,
-    certificationLimit: 0,
     productiviteAccess: false,
     teamLimit: 0,
     crmAccess: false,
@@ -34,7 +33,6 @@ export const PLAN_RULES = {
     applicationLimit: 30,
     boostLimit: 3,
     scenarioLimit: 3,
-    certificationLimit: 1,
     productiviteAccess: false,
     teamLimit: 0,
     crmAccess: false,
@@ -53,7 +51,6 @@ export const PLAN_RULES = {
     applicationLimit: Infinity,
     boostLimit: 10,
     scenarioLimit: 10,
-    certificationLimit: Infinity,
     productiviteAccess: true,
     teamLimit: 0,
     crmAccess: false,
@@ -72,7 +69,6 @@ export const PLAN_RULES = {
     applicationLimit: Infinity,
     boostLimit: 5,
     scenarioLimit: 3,
-    certificationLimit: 1,
     productiviteAccess: false,
     teamLimit: 5,
     crmAccess: true,
@@ -91,7 +87,6 @@ export const PLAN_RULES = {
     applicationLimit: Infinity,
     boostLimit: 20,
     scenarioLimit: Infinity,
-    certificationLimit: Infinity,
     productiviteAccess: true,
     teamLimit: 25,
     crmAccess: true,
@@ -115,7 +110,6 @@ export interface LivePlanConfig {
   applicationLimit: number;
   boostLimit: number;
   scenarioLimit: number;
-  certificationLimit: number;
   productiviteAccess: boolean;
   teamLimit: number;
   crmAccess: boolean;
@@ -154,7 +148,6 @@ export const PLAN_FEATURES: Record<PlanName, string[]> = {
     "30 candidatures/mois",
     "Commission 5%",
     "3 boosts/mois",
-    "1 certification IA/mois",
     "3 scénarios automatisés",
     "Statistiques avancées",
     "Support prioritaire",
@@ -164,7 +157,6 @@ export const PLAN_FEATURES: Record<PlanName, string[]> = {
     "Candidatures illimitées",
     "Commission 1€/vente",
     "10 boosts/mois",
-    "Certifications IA illimitées",
     "10 scénarios automatisés",
     "Outils de productivité",
     "Clés API & Webhooks",
@@ -185,7 +177,6 @@ export const PLAN_FEATURES: Record<PlanName, string[]> = {
     "Candidatures illimitées",
     "0% commission",
     "20 boosts/mois",
-    "Certifications IA illimitées",
     "Scénarios illimités",
     "Outils de productivité",
     "Jusqu'à 25 membres d'équipe",
@@ -279,10 +270,6 @@ export function canBoost(plan: PlanName, monthlyCount: number): boolean {
 
 export function canCreateScenario(plan: PlanName, currentCount: number): boolean {
   return currentCount < PLAN_RULES[plan].scenarioLimit;
-}
-
-export function canTakeCertification(plan: PlanName, monthlyCount: number): boolean {
-  return monthlyCount < PLAN_RULES[plan].certificationLimit;
 }
 
 export function hasProductiviteAccess(plan: PlanName): boolean {

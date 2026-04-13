@@ -1,0 +1,28 @@
+﻿
+> freelancehigh@0.0.1 build C:\FreelanceHigh
+> turbo run build
+
+node.exe : 'turbo' is not 
+recognized as an internal 
+or external command,
+At C:\Users\HP\AppData\Roa
+ming\npm\pnpm.ps1:24 
+char:5
++     & "node$exe"  "$base
+dir/node_modules/pnpm/bin/
+pnpm.cjs" $args
++     ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: ('  
+  turbo' is not ...tern   
+ al command,:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+operable program or batch 
+file.
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

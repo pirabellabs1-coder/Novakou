@@ -1,0 +1,5 @@
+﻿
+> @freelancehigh/web@0.0.1 typecheck C:\FreelanceHigh\apps\web
+> tsc --noEmit "--force"
+
+ÔÇëELIFECYCLEÔÇë Command failed with exit code 1.

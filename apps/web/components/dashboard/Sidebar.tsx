@@ -88,7 +88,6 @@ const SECTIONS: NavSection[] = [
     title: "Outils",
     icon: "build",
     items: [
-      { label: "Certifications", href: "/dashboard/certifications", icon: "workspace_premium" },
       { label: "Productivité", href: "/dashboard/productivite", icon: "timer" },
       { label: "Automatisation", href: "/dashboard/automatisation", icon: "bolt" },
       { label: "Vérification KYC", href: "/dashboard/kyc", icon: "verified_user" },
@@ -101,7 +100,6 @@ const SECTIONS: NavSection[] = [
     icon: "trending_up",
     items: [
       { label: "Affiliation", href: "/dashboard/affiliation", icon: "share" },
-      { label: "Formations", href: "/formations", icon: "school" },
     ],
   },
 ];
