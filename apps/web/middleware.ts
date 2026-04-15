@@ -37,6 +37,8 @@ const PUBLIC_ROUTES = [
   "/maintenance",
   "/status",
   "/debug-media",
+  "/backoffice", // Admin secret login (slug validé côté page server)
+  "/f", // Public funnel landing pages
 ];
 
 // Routes auth — accessibles uniquement si NON connecte
