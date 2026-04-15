@@ -121,11 +121,22 @@ export async function POST(request: Request) {
     // If Moneroo is not configured (e.g. dev mode without keys), simulate a successful payment
     if (!isMonerooConfigured()) {
       const internalRef = `dev:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+      const mockUrl = new URL("/formations/payment/return", appUrl);
+      mockUrl.searchParams.set("mock", "1");
+      mockUrl.searchParams.set("ref", internalRef);
+      if (formationIds.length > 0) mockUrl.searchParams.set("fids", formationIds.join(","));
+      if (productIds.length > 0) mockUrl.searchParams.set("pids", productIds.join(","));
+      if (appliedCode) mockUrl.searchParams.set("code", appliedCode);
+      if (userId) mockUrl.searchParams.set("uid", userId);
       return NextResponse.json({
         data: {
           mock: true,
-          checkout_url: `/formations/payment/return?mock=1&ref=${encodeURIComponent(internalRef)}&fids=${encodeURIComponent(formationIds.join(","))}&pids=${encodeURIComponent(productIds.join(","))}&code=${encodeURIComponent(appliedCode ?? "")}`,
+          checkout_url: mockUrl.pathname + mockUrl.search,
           internalRef,
+          amount: totalAmount,
+          subTotal,
+          discountAmount,
+          appliedCode,
         },
       });
     }
@@ -137,11 +148,19 @@ export async function POST(request: Request) {
     const [first, ...rest] = fName.split(" ");
     const last = rest.join(" ") || first;
 
+    // Phone number from body — required for Mobile Money methods
+    const phoneRaw: string | undefined = body.phone?.toString().replace(/\s/g, "") || undefined;
+
     const moneroo = await initPayment({
       amount: totalAmount,
       currency: "XOF", // FCFA West Africa CFA franc
       description: `Achat FreelanceHigh — ${formations.length + products.length} produit(s)`,
-      customer: { email: userEmail!, first_name: first || "Apprenant", last_name: last || "—" },
+      customer: {
+        email: userEmail!,
+        first_name: first || "Apprenant",
+        last_name: last || "—",
+        phone: phoneRaw,
+      },
       return_url: `${appUrl}/formations/payment/return?ref=${encodeURIComponent(internalRef)}`,
       metadata: {
         userId,

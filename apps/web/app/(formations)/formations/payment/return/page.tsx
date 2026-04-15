@@ -31,7 +31,13 @@ function ReturnInner() {
           const res = await fetch("/api/formations/checkout", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ formationIds: fids, productIds: pids, discountCode: code, paymentMethod: "mock" }),
+            body: JSON.stringify({
+              formationIds: fids,
+              productIds: pids,
+              discountCode: code,
+              paymentMethod: "mock",
+              clearCart: true,
+            }),
           });
           const json = await res.json();
           if (json.data?.success) {
