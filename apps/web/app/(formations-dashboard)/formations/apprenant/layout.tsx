@@ -28,6 +28,7 @@ const navGroups = [
     label: "Accompagnement",
     items: [
       { icon: "support_agent", label: "Mes mentors", href: "/formations/apprenant/mentors" },
+      { icon: "forum",         label: "Messages",    href: "/formations/messages" },
     ],
   },
   {

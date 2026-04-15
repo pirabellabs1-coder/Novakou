@@ -323,25 +323,34 @@ function MentorCard({ mentor }: { mentor: typeof mentors[0] }) {
         {/* Bio */}
         <p className="text-xs text-[#5c647a] leading-relaxed line-clamp-2 flex-1 mb-4">{mentor.bio}</p>
 
-        {/* Session info + CTA */}
-        <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-3">
+        {/* Session info + CTAs */}
+        <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-2">
           <div>
             <p className="font-extrabold text-[#006e2f] text-base">{mentor.sessionPrice.toLocaleString("fr-FR")} <span className="text-xs font-bold text-[#5c647a]">FCFA</span></p>
             <p className="text-[10px] text-[#5c647a]">{mentor.sessionDuration} · ≈{Math.round(mentor.sessionPrice / 655.957)} €</p>
           </div>
-          <Link
-            href={mentor.available ? `/formations/inscription?role=mentor&mentorId=${mentor.id}` : "#"}
-            className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex-shrink-0 ${
-              mentor.available
-                ? "bg-[#006e2f] text-white hover:bg-[#005a26] shadow-sm hover:shadow-md"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[14px]">
-              {mentor.available ? "calendar_add_on" : "event_busy"}
-            </span>
-            {mentor.available ? "Réserver" : "Complet"}
-          </Link>
+          <div className="flex gap-1.5">
+            <Link
+              href={`/formations/mentors/${mentor.id}`}
+              className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs font-bold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors flex-shrink-0"
+              title="Voir le profil complet"
+            >
+              <span className="material-symbols-outlined text-[14px]">person</span>
+            </Link>
+            <Link
+              href={mentor.available ? `/formations/inscription?role=mentor&mentorId=${mentor.id}` : "#"}
+              className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex-shrink-0 ${
+                mentor.available
+                  ? "bg-[#006e2f] text-white hover:bg-[#005a26] shadow-sm hover:shadow-md"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[14px]">
+                {mentor.available ? "calendar_add_on" : "event_busy"}
+              </span>
+              {mentor.available ? "Réserver" : "Complet"}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

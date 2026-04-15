@@ -1,7 +1,10 @@
 // Lazy Prisma client — evite "@prisma/client did not initialize" pendant le build Vercel
 // Le client n'est instancie qu'au premier appel reel (pas a l'import)
+//
+// IMPORTANT: The generated client lives in ../generated/client (see schema.prisma).
+// We import types from that path so TypeScript knows about MentorProfile, PlatformRevenue, etc.
 
-import type { PrismaClient as PrismaClientType } from "@prisma/client";
+import type { PrismaClient as PrismaClientType } from "../generated/client";
 
 const globalForPrisma = globalThis as unknown as {
   __prisma?: PrismaClientType;
@@ -12,7 +15,7 @@ let _prisma: PrismaClientType | null = globalForPrisma.__prisma ?? null;
 function getPrisma(): PrismaClientType {
   if (!_prisma) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaClient } = require("@prisma/client") as {
+    const { PrismaClient } = require("../generated/client") as {
       PrismaClient: new (opts?: Record<string, unknown>) => PrismaClientType;
     };
     _prisma = new PrismaClient({
@@ -36,4 +39,4 @@ export const prisma: PrismaClientType = new Proxy({} as PrismaClientType, {
 export default prisma;
 
 // Re-export de tous les types Prisma (types purs, pas d'initialisation runtime)
-export type * from "@prisma/client";
+export type * from "../generated/client";

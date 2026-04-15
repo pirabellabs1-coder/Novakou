@@ -1,152 +1,90 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-// Simulated product data indexed by slug
-const productData: Record<
-  string,
-  {
-    title: string;
-    seller: string;
-    sellerInitial: string;
-    sellerBio: string;
-    rating: number;
-    reviews: number;
-    students: number;
-    type: string;
-    category: string;
-    price: number;
-    description: string;
-    learnings: string[];
-    requirements: string[];
-    modules: { title: string; lessons: number; duration: string }[];
-    reviewsList: { author: string; initial: string; rating: number; comment: string; date: string }[];
-    gradient: string;
-    icon: string;
-  }
-> = {
-  "masterclass-facebook-ads-2024": {
-    title: "Masterclass Facebook & Instagram Ads",
-    seller: "Éric Mensah",
-    sellerInitial: "EM",
-    sellerBio: "Expert en publicité digitale avec +6 ans d'expérience. A géré +2 M$ de budgets publicitaires.",
-    rating: 4.9,
-    reviews: 312,
-    students: 1840,
-    type: "Formation vidéo",
-    category: "Marketing",
-    price: 75000,
-    description:
-      "Cette masterclass vous enseigne les stratégies avancées de publicité Facebook et Instagram utilisées par les agences marketing professionnelles. Vous apprendrez à créer des campagnes rentables, à cibler les bonnes audiences et à optimiser vos budgets pour maximiser votre ROI.",
-    learnings: [
-      "Créer des campagnes publicitaires rentables sur Facebook & Instagram",
-      "Maîtriser le Pixel Facebook et les audiences personnalisées",
-      "Optimiser les coûts d'acquisition et maximiser le ROI",
-      "Créer des visuels et vidéos qui convertissent",
-      "Analyser les métriques et ajuster les campagnes en temps réel",
-      "Stratégies de retargeting avancées pour augmenter les conversions",
-    ],
-    requirements: [
-      "Avoir un compte Facebook & Instagram actif",
-      "Aucune expérience en publicité requise",
-      "Disponibilité de 3-4h par semaine pour pratiquer",
-    ],
-    modules: [
-      { title: "Fondamentaux du Business Manager", lessons: 6, duration: "1h 20min" },
-      { title: "Créer sa première campagne", lessons: 8, duration: "2h 10min" },
-      { title: "Ciblage & Audiences avancées", lessons: 10, duration: "3h 05min" },
-      { title: "Créatifs qui convertissent", lessons: 7, duration: "2h 40min" },
-      { title: "Pixel & Suivi des conversions", lessons: 5, duration: "1h 45min" },
-      { title: "Optimisation & Scaling", lessons: 9, duration: "2h 55min" },
-    ],
-    reviewsList: [
-      {
-        author: "Kouassi Arnaud",
-        initial: "KA",
-        rating: 5,
-        comment: "Formation exceptionnelle ! J'ai lancé ma première campagne et obtenu un ROI de 300% dès le premier mois. Éric explique très clairement.",
-        date: "12 mars 2026",
-      },
-      {
-        author: "Aminata Traoré",
-        initial: "AT",
-        rating: 5,
-        comment: "La section sur le retargeting m'a littéralement transformé mon business. Je recommande à tous les e-commerçants africains.",
-        date: "3 mars 2026",
-      },
-      {
-        author: "Jean-Baptiste Kra",
-        initial: "JK",
-        rating: 4,
-        comment: "Très bonne formation, complète et bien structurée. Quelques exemples pourraient être plus adaptés au marché francophone.",
-        date: "18 fév. 2026",
-      },
-    ],
-    gradient: "from-blue-500 to-purple-600",
-    icon: "ads_click",
-  },
-  default: {
-    title: "Formation Premium",
-    seller: "Formateur Expert",
-    sellerInitial: "FE",
-    sellerBio: "Expert certifié avec plus de 5 ans d'expérience dans son domaine.",
-    rating: 4.8,
-    reviews: 150,
-    students: 900,
-    type: "Formation vidéo",
-    category: "Digital",
-    price: 55000,
-    description:
-      "Une formation complète pour maîtriser les compétences essentielles du marché digital africain. Des contenus pratiques créés par un expert reconnu.",
-    learnings: [
-      "Maîtriser les fondamentaux du domaine",
-      "Appliquer les meilleures pratiques du secteur",
-      "Créer des projets concrets et professionnels",
-      "Développer une stratégie adaptée au marché africain",
-    ],
-    requirements: [
-      "Aucun prérequis technique nécessaire",
-      "Un ordinateur ou smartphone avec accès internet",
-    ],
-    modules: [
-      { title: "Introduction & Fondamentaux", lessons: 5, duration: "1h 00min" },
-      { title: "Pratiques avancées", lessons: 8, duration: "2h 30min" },
-      { title: "Projets pratiques", lessons: 6, duration: "2h 00min" },
-      { title: "Stratégie & Optimisation", lessons: 7, duration: "2h 15min" },
-    ],
-    reviewsList: [
-      {
-        author: "Utilisateur vérifié",
-        initial: "UV",
-        rating: 5,
-        comment: "Excellente formation, très pratique et bien structurée. Je recommande vivement !",
-        date: "10 avr. 2026",
-      },
-    ],
-    gradient: "from-[#006e2f] to-[#22c55e]",
-    icon: "school",
-  },
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface Review {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  user: { id: string; name: string | null; image: string | null };
+}
+
+interface Instructeur {
+  id: string;
+  userId: string;
+  name: string | null;
+  image: string | null;
+  bio: string | null;
+  expertise: string[];
+  yearsExp: number;
+}
+
+interface Product {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  descriptionFormat: string;
+  productType: string;
+  banner: string | null;
+  price: number;
+  originalPrice: number | null;
+  currency: string;
+  rating: number;
+  reviewsCount: number;
+  salesCount: number;
+  viewsCount: number;
+  tags: string[];
+  maxBuyers: number | null;
+  currentBuyers: number;
+  category: { id: string; slug: string; name: string } | null;
+  instructeur: Instructeur;
+  reviews: Review[];
+  createdAt: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
+
+function initials(name: string | null) {
+  if (!name) return "?";
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
+}
+
+function timeAgo(iso: string) {
+  const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+  if (d < 1) return "Aujourd'hui";
+  if (d < 30) return `Il y a ${d}j`;
+  if (d < 365) return `Il y a ${Math.floor(d / 30)} mois`;
+  return `Il y a ${Math.floor(d / 365)} an(s)`;
+}
+
+const PRODUCT_TYPE_LABELS: Record<string, { label: string; icon: string }> = {
+  EBOOK: { label: "Ebook", icon: "menu_book" },
+  TEMPLATE: { label: "Template", icon: "dashboard_customize" },
+  NOTION: { label: "Template Notion", icon: "article" },
+  PACK: { label: "Pack", icon: "inventory_2" },
+  CHECKLIST: { label: "Checklist", icon: "checklist" },
+  LICENCE: { label: "Licence", icon: "verified" },
+  AUDIO: { label: "Audio", icon: "headphones" },
+  VIDEO: { label: "Vidéo", icon: "videocam" },
 };
 
-function formatFCFA(n: number) {
-  return n.toLocaleString("fr-FR") + " FCFA";
-}
-
-function toEur(fcfa: number) {
-  return Math.round(fcfa / 655.957);
-}
-
-function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md" }) {
-  const sizeClass = size === "md" ? "text-[18px]" : "text-[14px]";
+function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
         <span
           key={s}
-          className={`material-symbols-outlined ${sizeClass} text-yellow-400`}
+          className="material-symbols-outlined"
           style={{
-            fontVariationSettings: s <= Math.floor(rating) ? "'FILL' 1" : "'FILL' 0",
+            fontSize: `${size}px`,
+            color: s <= Math.round(rating) ? "#f59e0b" : "#d1d5db",
+            fontVariationSettings: "'FILL' 1",
           }}
         >
           star
@@ -156,369 +94,356 @@ function StarRating({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
   );
 }
 
+// ─── Main ──────────────────────────────────────────────────────────────────────
 export default function ProduitPageClient({ slug }: { slug: string }) {
-  const product = productData[slug] || productData["default"];
-  const [activeTab, setActiveTab] = useState<"description" | "contenu" | "avis">("description");
-  const [expandedModule, setExpandedModule] = useState<number | null>(0);
+  const router = useRouter();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await fetch(`/api/formations/public/produit/${slug}`);
+        if (!res.ok) throw new Error();
+        const json = await res.json();
+        setProduct(json.data);
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [slug]);
+
+  function handleBuyNow() {
+    if (!product) return;
+    router.push(`/formations/checkout?pids=${product.id}`);
+  }
+
+  async function handleAddToCart() {
+    if (!product || addingToCart) return;
+    setAddingToCart(true);
+    try {
+      const res = await fetch("/api/formations/apprenant/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      });
+      if (res.ok) {
+        setAddedToCart(true);
+        setTimeout(() => setAddedToCart(false), 2500);
+      }
+    } finally {
+      setAddingToCart(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f7f9fb] animate-pulse">
+        <div className="h-64 bg-gray-200" />
+        <div className="max-w-5xl mx-auto px-6 py-8 space-y-4">
+          <div className="h-10 w-2/3 bg-gray-200 rounded-xl" />
+          <div className="h-40 bg-gray-200 rounded-2xl" />
+          <div className="h-60 bg-gray-200 rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
+          <span className="material-symbols-outlined text-gray-300 text-5xl">inventory_2</span>
+          <h2 className="text-lg font-bold text-[#191c1e] mt-3">Produit introuvable</h2>
+          <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
+            Ce produit n&apos;existe pas ou n&apos;est plus disponible.
+          </p>
+          <Link
+            href="/formations/explorer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold"
+            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+          >
+            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            Voir le catalogue
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const typeInfo = PRODUCT_TYPE_LABELS[product.productType] ?? { label: product.productType, icon: "inventory_2" };
+  const discount = product.originalPrice && product.originalPrice > product.price
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-      {/* Breadcrumb */}
-      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-[#5c647a]">
-          <Link href="/formations" className="hover:text-[#006e2f] transition-colors">
-            Accueil
+    <div className="min-h-screen bg-[#f7f9fb]">
+      {/* Hero */}
+      <div
+        className="relative h-64 md:h-80"
+        style={{
+          background: product.banner
+            ? `url(${product.banner}) center/cover`
+            : "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #22c55e 100%)",
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-black/60" />
+        <div className="absolute top-4 left-4">
+          <Link
+            href="/formations/explorer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold hover:bg-white/20 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            Catalogue
           </Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-          <Link href="/formations/explorer" className="hover:text-[#006e2f] transition-colors">
-            Explorer
-          </Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-          <span className="text-[#191c1e] font-medium truncate max-w-[200px]">{product.title}</span>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left column — 60% */}
-          <div className="flex-1 min-w-0">
-            {/* Thumbnail */}
-            <div
-              className={`relative w-full aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${product.gradient} mb-6 flex items-center justify-center`}
-            >
-              <span className="material-symbols-outlined text-white/30 text-[100px]">
-                {product.icon}
-              </span>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <button className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-colors">
-                  <span className="material-symbols-outlined text-white text-[36px]">
-                    play_arrow
+      <div className="max-w-5xl mx-auto px-4 md:px-6 -mt-20 relative z-10 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          {/* Main content */}
+          <div className="lg:col-span-2 space-y-5">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#006e2f]/10 text-[#006e2f]">
+                  <span className="material-symbols-outlined text-[13px]">{typeInfo.icon}</span>
+                  {typeInfo.label}
+                </span>
+                {product.category && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-[#5c647a]">
+                    {product.category.name}
                   </span>
-                </button>
+                )}
+                {product.salesCount > 100 && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
+                    <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                      local_fire_department
+                    </span>
+                    BESTSELLER
+                  </span>
+                )}
               </div>
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <span className="text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#006e2f] text-white">
-                  {product.category}
-                </span>
-                <span className="text-[9px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white/90 text-[#191c1e]">
-                  {product.type}
-                </span>
-              </div>
-            </div>
 
-            {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] tracking-tight mb-3 leading-tight">
-              {product.title}
-            </h1>
+              <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">
+                {product.title}
+              </h1>
 
-            {/* Meta */}
-            <div className="flex flex-wrap items-center gap-4 mb-6 text-sm">
-              <div className="flex items-center gap-1.5">
-                <StarRating rating={product.rating} />
-                <span className="font-bold text-[#191c1e]">{product.rating}</span>
-                <span className="text-[#5c647a]">({product.reviews} avis)</span>
-              </div>
-              <div className="flex items-center gap-1 text-[#5c647a]">
-                <span className="material-symbols-outlined text-[16px]">group</span>
-                <span>{product.students.toLocaleString()} apprenants</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div
-                  className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold"
-                  style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-                >
-                  {product.sellerInitial}
+              <div className="flex items-center gap-4 mt-3 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <StarRating rating={product.rating} size={16} />
+                  <span className="text-sm font-bold text-[#191c1e]">
+                    {product.rating > 0 ? product.rating.toFixed(1) : "Nouveau"}
+                  </span>
+                  {product.reviewsCount > 0 && (
+                    <span className="text-xs text-[#5c647a]">({product.reviewsCount})</span>
+                  )}
                 </div>
-                <span className="text-[#5c647a]">
-                  par <span className="font-semibold text-[#191c1e]">{product.seller}</span>
+                <span className="text-xs text-[#5c647a] flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">shopping_bag</span>
+                  {fmt(product.salesCount)} vente{product.salesCount > 1 ? "s" : ""}
+                </span>
+                <span className="text-xs text-[#5c647a] flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">visibility</span>
+                  {fmt(product.viewsCount)} vue{product.viewsCount > 1 ? "s" : ""}
                 </span>
               </div>
+
+              {product.tags && product.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-4">
+                  {product.tags.slice(0, 6).map((t) => (
+                    <span key={t} className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Tabs */}
-            <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 p-1 mb-6 w-fit">
-              {(["description", "contenu", "avis"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold capitalize transition-all duration-200 ${
-                    activeTab === tab
-                      ? "bg-[#006e2f] text-white shadow-sm"
-                      : "text-[#5c647a] hover:text-[#191c1e]"
-                  }`}
-                >
-                  {tab === "description" ? "Description" : tab === "contenu" ? "Contenu du cours" : "Avis"}
-                </button>
-              ))}
+            {/* Description */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+              <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">Description</h2>
+              {product.description ? (
+                <div className="text-sm text-[#5c647a] leading-relaxed whitespace-pre-wrap">
+                  {product.description}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Aucune description fournie.</p>
+              )}
             </div>
 
-            {/* Tab content */}
-            {activeTab === "description" && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="font-bold text-[#191c1e] mb-3">À propos de cette formation</h3>
-                  <p className="text-sm text-[#5c647a] leading-relaxed">{product.description}</p>
-                </div>
+            {/* Reviews */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+              <h2 className="text-lg font-extrabold text-[#191c1e] mb-4 flex items-center gap-2">
+                Avis des acheteurs
+                <span className="text-sm font-semibold text-[#5c647a]">
+                  ({product.reviewsCount})
+                </span>
+              </h2>
 
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="font-bold text-[#191c1e] mb-4">Ce que vous allez apprendre</h3>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {product.learnings.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <span className="material-symbols-outlined text-[#006e2f] text-[18px] mt-0.5 flex-shrink-0">
-                          check_circle
-                        </span>
-                        <span className="text-sm text-[#5c647a] leading-snug">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {product.reviews.length === 0 ? (
+                <div className="text-center py-8">
+                  <span className="material-symbols-outlined text-gray-300 text-5xl">reviews</span>
+                  <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour ce produit pour l&apos;instant.</p>
                 </div>
-
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="font-bold text-[#191c1e] mb-4">Prérequis</h3>
-                  <ul className="space-y-2">
-                    {product.requirements.map((req, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <span className="material-symbols-outlined text-[#5c647a] text-[16px] mt-0.5 flex-shrink-0">
-                          arrow_right
-                        </span>
-                        <span className="text-sm text-[#5c647a]">{req}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Seller card */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="font-bold text-[#191c1e] mb-4">Votre formateur</h3>
-                  <div className="flex items-start gap-4">
-                    <div
-                      className="w-14 h-14 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
-                      style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-                    >
-                      {product.sellerInitial}
-                    </div>
-                    <div>
-                      <p className="font-bold text-[#191c1e]">{product.seller}</p>
-                      <p className="text-xs text-[#5c647a] mt-1 leading-relaxed">{product.sellerBio}</p>
-                      <div className="flex items-center gap-3 mt-3">
-                        <div className="flex items-center gap-1 text-xs text-[#5c647a]">
-                          <StarRating rating={product.rating} />
-                          <span className="font-bold text-[#191c1e]">{product.rating}</span>
+              ) : (
+                <div className="space-y-4">
+                  {product.reviews.map((r) => (
+                    <div key={r.id} className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
+                          {r.user.image ? (
+                            <img src={r.user.image} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            initials(r.user.name)
+                          )}
                         </div>
-                        <span className="text-xs text-[#5c647a]">
-                          {product.students.toLocaleString()} apprenants
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === "contenu" && (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <p className="text-sm text-[#5c647a]">
-                    <strong className="text-[#191c1e]">{product.modules.length} modules</strong> ·{" "}
-                    <strong className="text-[#191c1e]">
-                      {product.modules.reduce((a, m) => a + m.lessons, 0)} leçons
-                    </strong>
-                  </p>
-                </div>
-                <div className="divide-y divide-gray-100">
-                  {product.modules.map((mod, i) => (
-                    <div key={i}>
-                      <button
-                        onClick={() => setExpandedModule(expandedModule === i ? null : i)}
-                        className="w-full flex items-center justify-between px-6 py-4 hover:bg-[#f7f9fb] transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                            style={{ background: "#006e2f" }}
-                          >
-                            {i + 1}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-bold text-[#191c1e]">{r.user.name ?? "Acheteur"}</p>
+                            <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
                           </div>
-                          <span className="font-semibold text-[#191c1e] text-sm">{mod.title}</span>
+                          <StarRating rating={r.rating} size={13} />
+                          <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed">{r.comment}</p>
                         </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className="text-xs text-[#5c647a]">
-                            {mod.lessons} leçons · {mod.duration}
-                          </span>
-                          <span
-                            className="material-symbols-outlined text-[18px] text-[#5c647a] transition-transform duration-200"
-                            style={{ transform: expandedModule === i ? "rotate(180deg)" : "rotate(0deg)" }}
-                          >
-                            expand_more
-                          </span>
-                        </div>
-                      </button>
-                      {expandedModule === i && (
-                        <div className="px-6 pb-4 pt-1 bg-[#f7f9fb]">
-                          {Array.from({ length: mod.lessons }, (_, j) => (
-                            <div key={j} className="flex items-center gap-2.5 py-1.5">
-                              <span className="material-symbols-outlined text-[16px] text-[#5c647a]">
-                                play_circle
-                              </span>
-                              <span className="text-xs text-[#5c647a]">
-                                Leçon {j + 1} — {mod.title}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {activeTab === "avis" && (
-              <div className="space-y-4">
-                {/* Rating summary */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm flex items-center gap-6">
-                  <div className="text-center">
-                    <p className="text-5xl font-extrabold text-[#191c1e]">{product.rating}</p>
-                    <StarRating rating={product.rating} size="md" />
-                    <p className="text-xs text-[#5c647a] mt-1">{product.reviews} avis</p>
-                  </div>
-                  <div className="flex-1 space-y-1.5">
-                    {[5, 4, 3, 2, 1].map((s) => (
-                      <div key={s} className="flex items-center gap-2">
-                        <span className="text-xs text-[#5c647a] w-2">{s}</span>
-                        <span
-                          className="material-symbols-outlined text-yellow-400 text-[14px]"
-                          style={{ fontVariationSettings: "'FILL' 1" }}
-                        >
-                          star
-                        </span>
-                        <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-yellow-400"
-                            style={{ width: s === 5 ? "75%" : s === 4 ? "18%" : "5%" }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {product.reviewsList.map((review, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-                        >
-                          {review.initial}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-[#191c1e] text-sm">{review.author}</p>
-                          <div className="flex items-center gap-1">
-                            <StarRating rating={review.rating} />
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-[10px] text-[#5c647a]">{review.date}</span>
-                    </div>
-                    <p className="text-sm text-[#5c647a] leading-relaxed">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* Right column — Sticky price card */}
-          <div className="lg:w-80 xl:w-96 flex-shrink-0">
-            <div className="sticky top-24">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 mb-4">
-                {/* Price */}
-                <div className="mb-5">
-                  <p className="text-3xl font-extrabold text-[#006e2f] tracking-tight">
-                    {formatFCFA(product.price)}
-                  </p>
-                  <p className="text-sm text-[#5c647a]">≈ {toEur(product.price)} €</p>
-                </div>
-
-                {/* CTAs */}
-                <div className="space-y-3 mb-5">
-                  <Link
-                    href="/formations/checkout"
-                    className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
-                    style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">bolt</span>
-                    Acheter maintenant
-                  </Link>
-                  <button className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl border-2 border-[#006e2f] text-[#006e2f] font-bold text-sm hover:bg-[#006e2f]/5 transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">shopping_cart</span>
-                    Ajouter au panier
-                  </button>
-                </div>
-
-                {/* Guarantee */}
-                <div className="flex items-center gap-2 p-3 rounded-xl bg-green-50 mb-5">
-                  <span className="material-symbols-outlined text-[#006e2f] text-[20px]">
-                    verified_user
+          {/* Sidebar */}
+          <div className="space-y-5">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-4">
+              <div className="mb-4">
+                {discount > 0 && (
+                  <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700 mb-2">
+                    -{discount}%
                   </span>
-                  <p className="text-xs font-semibold text-[#006e2f]">
-                    Garantie satisfait ou remboursé 30 jours
-                  </p>
+                )}
+                <div className="flex items-baseline gap-2">
+                  <p className="text-3xl font-extrabold text-[#006e2f]">{fmt(product.price)}</p>
+                  <span className="text-sm font-bold text-[#5c647a]">FCFA</span>
                 </div>
-
-                {/* Seller info */}
-                <div className="flex items-center gap-3 pb-5 border-b border-gray-100 mb-5">
-                  <div
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
-                    style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-                  >
-                    {product.sellerInitial}
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#191c1e] text-sm">{product.seller}</p>
-                    <div className="flex items-center gap-1.5">
-                      <StarRating rating={product.rating} />
-                      <span className="text-xs font-bold text-[#191c1e]">{product.rating}</span>
-                    </div>
-                    <p className="text-[10px] text-[#5c647a]">
-                      {product.students.toLocaleString()} apprenants
-                    </p>
-                  </div>
-                </div>
-
-                {/* Details */}
-                <div className="space-y-2.5">
-                  {[
-                    { icon: "play_circle", label: `${product.modules.reduce((a, m) => a + m.lessons, 0)} leçons vidéo` },
-                    { icon: "download", label: "Accès à vie + téléchargements" },
-                    { icon: "devices", label: "Accès mobile, tablette, desktop" },
-                    { icon: "workspace_premium", label: "Certificat de réussite" },
-                    { icon: "headset_mic", label: "Support formateur inclus" },
-                  ].map((detail) => (
-                    <div key={detail.label} className="flex items-center gap-2.5">
-                      <span className="material-symbols-outlined text-[#5c647a] text-[16px]">
-                        {detail.icon}
-                      </span>
-                      <span className="text-xs text-[#5c647a]">{detail.label}</span>
-                    </div>
-                  ))}
-                </div>
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <p className="text-sm text-gray-400 line-through">{fmt(product.originalPrice)} FCFA</p>
+                )}
+                <p className="text-xs text-[#5c647a] mt-1">
+                  ≈ {Math.round(product.price / 655.957)} EUR
+                </p>
               </div>
 
-              {/* Share / Gift */}
-              <div className="flex gap-2">
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-[#5c647a] hover:text-[#191c1e] hover:border-gray-300 transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">share</span>
-                  Partager
+              {product.maxBuyers && (
+                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-amber-800 font-semibold">Stock limité</span>
+                    <span className="text-amber-800 font-bold">
+                      {product.currentBuyers} / {product.maxBuyers}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 bg-amber-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-amber-500 rounded-full"
+                      style={{ width: `${Math.min(100, (product.currentBuyers / product.maxBuyers) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <button
+                  onClick={handleBuyNow}
+                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
+                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                >
+                  <span className="material-symbols-outlined text-[18px]">bolt</span>
+                  Acheter maintenant
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-[#5c647a] hover:text-[#191c1e] hover:border-gray-300 transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">card_giftcard</span>
-                  Offrir
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart}
+                  className="w-full py-3 rounded-xl text-[#006e2f] font-bold text-sm border-2 border-[#006e2f]/20 hover:border-[#006e2f]/40 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {addingToCart ? (
+                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  ) : addedToCart ? (
+                    <>
+                      <span className="material-symbols-outlined text-[18px]">check</span>
+                      Ajouté au panier
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                      Ajouter au panier
+                    </>
+                  )}
                 </button>
+              </div>
+
+              <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
+                <div className="flex items-center gap-2 text-xs text-[#5c647a]">
+                  <span className="material-symbols-outlined text-[#006e2f] text-[16px]">download</span>
+                  Accès immédiat après paiement
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#5c647a]">
+                  <span className="material-symbols-outlined text-[#006e2f] text-[16px]">verified_user</span>
+                  Paiement sécurisé 100%
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[#5c647a]">
+                  <span className="material-symbols-outlined text-[#006e2f] text-[16px]">event_available</span>
+                  Remboursement 14 jours
+                </div>
               </div>
             </div>
+
+            {/* Instructeur card */}
+            <Link
+              href={`/formations/instructeurs/${product.instructeur.userId}`}
+              className="block bg-white rounded-2xl border border-gray-100 p-5 hover:border-[#006e2f]/30 transition-colors"
+            >
+              <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-2">Proposé par</p>
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold flex-shrink-0">
+                  {product.instructeur.image ? (
+                    <img src={product.instructeur.image} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    initials(product.instructeur.name)
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-[#191c1e] truncate">
+                    {product.instructeur.name ?? "Vendeur"}
+                  </p>
+                  <p className="text-xs text-[#5c647a]">
+                    {product.instructeur.yearsExp > 0
+                      ? `${product.instructeur.yearsExp} an(s) d'expérience`
+                      : "Nouveau vendeur"}
+                  </p>
+                </div>
+                <span className="material-symbols-outlined text-[#5c647a] text-[18px]">chevron_right</span>
+              </div>
+              {product.instructeur.bio && (
+                <p className="text-xs text-[#5c647a] mt-3 line-clamp-2 leading-relaxed">
+                  {product.instructeur.bio}
+                </p>
+              )}
+              {product.instructeur.expertise && product.instructeur.expertise.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {product.instructeur.expertise.slice(0, 3).map((e) => (
+                    <span key={e} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">
+                      {e}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </Link>
           </div>
         </div>
       </div>

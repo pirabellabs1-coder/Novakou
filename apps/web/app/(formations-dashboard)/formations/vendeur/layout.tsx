@@ -24,7 +24,7 @@ const navItems: NavItem[] = [
   { icon: "campaign", label: "Marketing", href: "/formations/vendeur/marketing", section: "Croissance" },
   { icon: "bolt", label: "Automatisations", href: "/formations/vendeur/automatisations", section: "Croissance" },
   // Engagement
-  { icon: "chat_bubble", label: "Messages", href: "/formations/vendeur/messages", section: "Engagement" },
+  { icon: "chat_bubble", label: "Messages", href: "/formations/messages", section: "Engagement" },
   { icon: "groups", label: "Communauté", href: "/formations/vendeur/communaute", section: "Engagement" },
   { icon: "support_agent", label: "Coaching", href: "/formations/vendeur/coaching", section: "Engagement", badge: "Pro" },
   { icon: "folder_open", label: "Ressources", href: "/formations/vendeur/ressources", section: "Engagement" },

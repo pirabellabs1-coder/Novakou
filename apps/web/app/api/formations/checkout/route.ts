@@ -10,6 +10,7 @@ import {
 } from "@/lib/email/formations";
 import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
 import crypto from "crypto";
+import { cookies } from "next/headers";
 
 /**
  * POST /api/formations/checkout
@@ -151,6 +152,33 @@ export async function POST(request: Request) {
     const totalAmount = Math.max(0, subTotal - discountAmount);
     const sessionRef = `${paymentMethod}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
 
+    // ── Affiliate attribution ─────────────────────────────────────────────
+    // Reads the `fh_aff_code` cookie set when visitor landed via an affiliate link.
+    let affiliateProfile: {
+      id: string;
+      programId: string;
+      userId: string;
+    } | null = null;
+    let affiliateCommissionRate = 0;
+    try {
+      const cookieStore = await cookies();
+      // Primary cookie name used by the AffiliateTracker component
+      const affCookie =
+        cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
+      if (affCookie) {
+        const prof = await prisma.affiliateProfile.findUnique({
+          where: { affiliateCode: affCookie },
+          select: { id: true, programId: true, userId: true, status: true, program: { select: { commissionPct: true, isActive: true } } },
+        });
+        if (prof && prof.status === "ACTIVE" && prof.program.isActive) {
+          affiliateProfile = { id: prof.id, programId: prof.programId, userId: prof.userId };
+          affiliateCommissionRate = (prof.program.commissionPct ?? 0) / 100;
+        }
+      }
+    } catch (err) {
+      console.warn("[checkout affiliate cookie]", err);
+    }
+
     // ─── Payment processing (placeholder for real integration) ───
     // TODO: integrate CinetPay / Stripe properly
     // For now, if paymentMethod is "card" + Stripe configured → would create payment intent
@@ -184,14 +212,59 @@ export async function POST(request: Request) {
           stripeSessionId: sessionRef,
         },
       });
+
+      // Affiliate commission (if any) comes out of the platform's 5% share, NOT the vendor's
+      const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+      const commissionAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+      const vendorNet = Math.round(finalPrice * VENDOR_NET_RATE);
+
       await prisma.instructeurProfile.update({
         where: { id: f.instructeurId },
-        data: { totalEarned: { increment: finalPrice * VENDOR_NET_RATE } },
+        data: { totalEarned: { increment: vendorNet } },
       });
       await prisma.formation.update({
         where: { id: f.id },
         data: { studentsCount: { increment: 1 } },
       });
+
+      // Track platform revenue
+      await prisma.platformRevenue.create({
+        data: {
+          orderId: enrollment.id,
+          orderType: "formation",
+          grossAmount: finalPrice,
+          commissionRate: PLATFORM_COMMISSION_RATE,
+          commissionAmount,
+          vendorAmount: vendorNet,
+          affiliateId: affiliateProfile?.id ?? null,
+          affiliateAmount: affAmount,
+          paymentRef: sessionRef,
+          currency: "XOF",
+        },
+      }).catch((e) => console.warn("[platformRevenue]", e));
+
+      // Create affiliate commission record
+      if (affiliateProfile && affAmount > 0) {
+        await prisma.affiliateCommission.create({
+          data: {
+            affiliateId: affiliateProfile.id,
+            orderId: enrollment.id,
+            orderType: "formation",
+            orderAmount: finalPrice,
+            commissionPct: affiliateCommissionRate * 100,
+            commissionAmount: affAmount,
+            status: "PENDING", // will be approved after refund window
+          },
+        }).catch((e) => console.warn("[affiliateCommission]", e));
+        await prisma.affiliateProfile.update({
+          where: { id: affiliateProfile.id },
+          data: {
+            totalConversions: { increment: 1 },
+            pendingEarnings: { increment: affAmount },
+          },
+        }).catch((e) => console.warn("[affiliateProfile update]", e));
+      }
+
       createdEnrollments.push({ id: enrollment.id, title: f.title, price: finalPrice });
     }
 
@@ -207,14 +280,56 @@ export async function POST(request: Request) {
           stripeSessionId: sessionRef,
         },
       });
+
+      const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+      const commissionAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+      const vendorNet = Math.round(finalPrice * VENDOR_NET_RATE);
+
       await prisma.instructeurProfile.update({
         where: { id: p.instructeurId },
-        data: { totalEarned: { increment: finalPrice * VENDOR_NET_RATE } },
+        data: { totalEarned: { increment: vendorNet } },
       });
       await prisma.digitalProduct.update({
         where: { id: p.id },
         data: { salesCount: { increment: 1 } },
       });
+
+      await prisma.platformRevenue.create({
+        data: {
+          orderId: purchase.id,
+          orderType: "product",
+          grossAmount: finalPrice,
+          commissionRate: PLATFORM_COMMISSION_RATE,
+          commissionAmount,
+          vendorAmount: vendorNet,
+          affiliateId: affiliateProfile?.id ?? null,
+          affiliateAmount: affAmount,
+          paymentRef: sessionRef,
+          currency: "XOF",
+        },
+      }).catch((e) => console.warn("[platformRevenue]", e));
+
+      if (affiliateProfile && affAmount > 0) {
+        await prisma.affiliateCommission.create({
+          data: {
+            affiliateId: affiliateProfile.id,
+            orderId: purchase.id,
+            orderType: "product",
+            orderAmount: finalPrice,
+            commissionPct: affiliateCommissionRate * 100,
+            commissionAmount: affAmount,
+            status: "PENDING",
+          },
+        }).catch((e) => console.warn("[affiliateCommission]", e));
+        await prisma.affiliateProfile.update({
+          where: { id: affiliateProfile.id },
+          data: {
+            totalConversions: { increment: 1 },
+            pendingEarnings: { increment: affAmount },
+          },
+        }).catch((e) => console.warn("[affiliateProfile update]", e));
+      }
+
       createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
     }
 

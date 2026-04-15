@@ -118,6 +118,9 @@ export async function POST(request: Request) {
       });
     }
 
+    // App URL for return redirects (used in both mock and real Moneroo flows)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
     // If Moneroo is not configured (e.g. dev mode without keys), simulate a successful payment
     if (!isMonerooConfigured()) {
       const internalRef = `dev:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
@@ -142,7 +145,6 @@ export async function POST(request: Request) {
     }
 
     // Init real Moneroo payment
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const internalRef = `mnr:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
     const fName = userName ?? userEmail?.split("@")[0] ?? "Apprenant";
     const [first, ...rest] = fName.split(" ");

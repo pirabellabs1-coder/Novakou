@@ -18,14 +18,24 @@ export async function GET(req: NextRequest) {
       prisma.enrollment.findMany({
         where: { userId },
         include: {
-          formation: { select: { id: true, title: true, thumbnail: true, customCategory: true } },
+          formation: {
+            select: {
+              id: true, title: true, thumbnail: true, customCategory: true,
+              instructeur: { select: { user: { select: { id: true } } } },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),
       prisma.digitalProductPurchase.findMany({
         where: { userId },
         include: {
-          product: { select: { id: true, title: true, productType: true, banner: true } },
+          product: {
+            select: {
+              id: true, title: true, productType: true, banner: true,
+              instructeur: { select: { user: { select: { id: true } } } },
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -47,6 +57,7 @@ export async function GET(req: NextRequest) {
         status: e.completedAt ? "COMPLETED" : "ACTIVE",
         createdAt: e.createdAt.toISOString(),
         progress: e.progress,
+        instructeurUserId: (e.formation as { instructeur?: { user?: { id?: string } } })?.instructeur?.user?.id ?? null,
       })),
       ...purchaseList.map((p) => ({
         id: p.id,
@@ -59,6 +70,7 @@ export async function GET(req: NextRequest) {
         status: "COMPLETED" as const,
         createdAt: p.createdAt.toISOString(),
         progress: 100,
+        instructeurUserId: (p.product as { instructeur?: { user?: { id?: string } } })?.instructeur?.user?.id ?? null,
       })),
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 

@@ -248,6 +248,13 @@ model User {
   refundRequests      RefundRequest[]           @relation("UserRefundRequests")
   discussionReports   DiscussionReport[]        @relation("UserDiscussionReports")
 
+  // Mentor relations
+  mentorProfile  MentorProfile?  @relation("UserMentorProfile")
+  mentorBookings MentorBooking[] @relation("UserMentorBookings")
+
+  // Tracking
+  registrationSource String?
+
   @@index([email])
   @@index([role])
   @@index([status])
@@ -2295,4 +2302,97 @@ model FormationsConfig {
 
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
+}
+
+// ── Mentor Space ──────────────────────────────────────────────────────────────
+
+model MentorProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation("UserMentorProfile", fields: [userId], references: [id], onDelete: Cascade)
+
+  specialty       String   @default("")
+  bio             String   @default("") @db.Text
+  domain          String?  // Marketing | Dev | Design | Business | ...
+  coverImage      String?
+  sessionPrice    Float    @default(25000)
+  sessionDuration Int      @default(60)   // minutes
+  languages       String[] @default([])
+  badges          String[] @default([])
+  isAvailable     Boolean  @default(true)
+  isVerified      Boolean  @default(false)
+
+  // Stats (denormalized for display)
+  totalSessions Int   @default(0)
+  totalStudents Int   @default(0)
+  rating        Float @default(0)
+  reviewsCount  Int   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bookings MentorBooking[]
+
+  @@index([userId])
+  @@index([domain])
+  @@index([isAvailable])
+}
+
+model MentorBooking {
+  id              String        @id @default(cuid())
+  mentorId        String
+  mentor          MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  studentId       String
+  student         User          @relation("UserMentorBookings", fields: [studentId], references: [id], onDelete: Cascade)
+
+  status          MentorBookingStatus @default(PENDING)
+  scheduledAt     DateTime
+  durationMinutes Int              @default(60)
+  paidAmount      Float            @default(0)
+  sessionNotes    String?          @db.Text
+  meetingLink     String?
+  stripeSessionId String?
+
+  // Post-session
+  studentRating  Int?     // 1-5
+  studentReview  String?  @db.Text
+  mentorFeedback String?  @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mentorId])
+  @@index([studentId])
+  @@index([status])
+  @@index([scheduledAt])
+}
+
+enum MentorBookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+// ── Platform Revenue (commission tracking) ───────────────────────────────────
+
+model PlatformRevenue {
+  id              String   @id @default(cuid())
+  orderId         String   // enrollment id, product purchase id, or mentor booking id
+  orderType       String   // "formation" | "product" | "mentor"
+  grossAmount     Float    // total paid by customer
+  commissionRate  Float    // % taken (e.g. 0.05 for 5%)
+  commissionAmount Float   // platform's share (grossAmount * commissionRate)
+  vendorAmount    Float    // vendor's net share (grossAmount - commissionAmount - affiliateAmount)
+  affiliateId     String?  // if sale came via affiliate
+  affiliateAmount Float    @default(0)
+  paymentRef      String?  // Moneroo / Stripe / etc. reference
+  currency        String   @default("XOF")
+
+  createdAt DateTime @default(now())
+
+  @@index([orderType])
+  @@index([createdAt])
+  @@index([affiliateId])
 }

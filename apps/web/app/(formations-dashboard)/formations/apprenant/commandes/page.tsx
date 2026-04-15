@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 type OrderType = "formation" | "product" | "mentor";
 type OrderStatus = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PENDING" | "CONFIRMED";
@@ -18,6 +19,7 @@ type Order = {
   status: string;
   createdAt: string;
   progress: number;
+  instructeurUserId: string | null;
 };
 
 type FilterValue = "all" | OrderType;
@@ -66,7 +68,27 @@ function SkeletonRow() {
 }
 
 export default function CommandesPage() {
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterValue>("all");
+  const [contactingId, setContactingId] = useState<string | null>(null);
+
+  async function handleContact(instructeurUserId: string, orderId: string) {
+    setContactingId(orderId);
+    try {
+      const res = await fetch("/api/formations/messages/conversations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otherUserId: instructeurUserId }),
+      });
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      router.push(`/formations/messages/${json.data.id}`);
+    } catch {
+      router.push("/formations/messages");
+    } finally {
+      setContactingId(null);
+    }
+  }
 
   const { data, isLoading } = useQuery({
     queryKey: ["apprenant-commandes", activeFilter],
@@ -176,7 +198,7 @@ export default function CommandesPage() {
                       </div>
                     </div>
 
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex flex-wrap gap-2">
                       <Link href={`/formations/apprenant/commandes/${order.id}`}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors">
                         <span className="material-symbols-outlined text-[14px] text-[#5c647a]">receipt_long</span>
@@ -189,6 +211,19 @@ export default function CommandesPage() {
                           <span className="material-symbols-outlined text-[14px]">play_arrow</span>
                           Accéder
                         </Link>
+                      )}
+                      {order.instructeurUserId && (
+                        <button
+                          onClick={() => handleContact(order.instructeurUserId!, order.id)}
+                          disabled={contactingId === order.id}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#006e2f]/30 text-xs font-semibold text-[#006e2f] hover:bg-[#006e2f]/5 transition-colors disabled:opacity-50">
+                          {contactingId === order.id ? (
+                            <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                          ) : (
+                            <span className="material-symbols-outlined text-[14px]">forum</span>
+                          )}
+                          Contacter l'instructeur
+                        </button>
                       )}
                     </div>
                   </div>
