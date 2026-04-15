@@ -31,6 +31,7 @@ export async function GET() {
       pendingProductsList,
       pendingReports,
       pendingRefunds,
+      platformRevenueAgg,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { createdAt: { gte: startOfToday } } }),
@@ -96,13 +97,22 @@ export async function GET() {
       }),
       prisma.discussionReport.count(),
       prisma.refundRequest.count({ where: { status: "PENDING" } }),
+      prisma.platformRevenue.aggregate({
+        _sum: { commissionAmount: true, grossAmount: true, affiliateAmount: true },
+        _count: { id: true },
+      }),
     ]);
 
     // Total revenue (lifetime)
     const totalEnrollmentRevenue = allEnrollments.reduce((s, e) => s + (e.refundedAt ? 0 : e.paidAmount), 0);
     const totalPurchaseRevenue = allPurchases.reduce((s, p) => s + p.paidAmount, 0);
     const totalRevenue = totalEnrollmentRevenue + totalPurchaseRevenue;
-    const platformCommission = totalRevenue * 0.05;
+
+    // Platform commission from real PlatformRevenue ledger (precise), fallback to 5% estimate
+    const realCommission = platformRevenueAgg._sum.commissionAmount ?? 0;
+    const realAffiliatePaid = platformRevenueAgg._sum.affiliateAmount ?? 0;
+    const realGross = platformRevenueAgg._sum.grossAmount ?? 0;
+    const platformCommission = realCommission > 0 ? realCommission : totalRevenue * 0.05;
 
     // Transactions this month
     const enrollmentsThisMonth = allEnrollments.filter((e) => e.createdAt >= startOfMonth);
@@ -181,6 +191,9 @@ export async function GET() {
         kpis: {
           totalRevenue,
           platformCommission,
+          affiliatePayouts: realAffiliatePaid,
+          ledgerGross: realGross,
+          ledgerCount: platformRevenueAgg._count.id,
           totalUsers,
           newUsersToday,
           totalProducts: totalFormations + totalDigitalProducts,
