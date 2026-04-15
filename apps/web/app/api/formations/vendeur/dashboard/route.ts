@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
 const PLATFORM_FEE = PLATFORM_COMMISSION_RATE; // 5% platform commission (single source of truth)
@@ -17,6 +18,7 @@ export async function GET() {
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
     // Get instructeur profile with formations + products
+    await getOrCreateInstructeur(userId); // ensure profile exists
     const profile = await prisma.instructeurProfile.findUnique({
       where: { userId },
       select: {

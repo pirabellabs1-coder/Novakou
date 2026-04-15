@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 const PLATFORM_FEE = 0.20;
 
@@ -19,6 +20,7 @@ export async function GET(request: Request) {
     const period = searchParams.get("period") ?? "6m";
     const monthsBack = period === "3m" ? 3 : period === "12m" ? 12 : 6;
 
+    await getOrCreateInstructeur(userId); // ensure profile exists
     const profile = await prisma.instructeurProfile.findUnique({
       where: { userId },
       select: {

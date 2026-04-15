@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 export async function GET() {
   try {
@@ -12,6 +13,9 @@ export async function GET() {
     }
     const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+    // Ensure the instructor profile exists (idempotent)
+    await getOrCreateInstructeur(userId);
 
     const [user, profile] = await Promise.all([
       prisma.user.findUnique({

@@ -3,12 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 async function getProfile(userId: string) {
-  return prisma.instructeurProfile.findUnique({
-    where: { userId },
-    select: { id: true },
-  });
+  return getOrCreateInstructeur(userId);
 }
 
 export async function GET() {
