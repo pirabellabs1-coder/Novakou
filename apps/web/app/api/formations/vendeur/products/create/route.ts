@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { DigitalProductType } from "@prisma/client";
-import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
+import { resolveVendorContext } from "@/lib/formations/active-user";
 
 function slugify(text: string): string {
   return text
@@ -38,56 +38,19 @@ export async function POST(request: Request) {
     if (!session?.user && !IS_DEV) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-    const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
-    if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-    // ── Self-healing profile ensure ──────────────────────────────────────
-    // 1. Look for existing profile
-    let profile = await prisma.instructeurProfile.findUnique({ where: { userId } });
-
-    if (!profile) {
-      // 2. Verify user exists in DB
-      const userRow = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true, email: true },
-      });
-      if (!userRow) {
-        return NextResponse.json(
-          {
-            error: `Session expirée. Votre identifiant (${userId.slice(0, 8)}…) n'existe plus en base. Déconnectez-vous et reconnectez-vous.`,
-            code: "USER_NOT_FOUND",
-          },
-          { status: 401 }
-        );
-      }
-
-      // 3. Try to create
-      try {
-        profile = await prisma.instructeurProfile.create({
-          data: { userId, status: "APPROUVE" },
-        });
-      } catch (createErr) {
-        // Race condition? Try findUnique again
-        profile = await prisma.instructeurProfile.findUnique({ where: { userId } });
-        if (!profile) {
-          const msg = createErr instanceof Error ? createErr.message : String(createErr);
-          console.error("[products/create] profile create failed for userId=" + userId, createErr);
-          return NextResponse.json(
-            {
-              error: `Création du profil vendeur impossible : ${msg.slice(0, 160)}`,
-              code: "PROFILE_CREATE_FAILED",
-              detail: msg,
-            },
-            { status: 500 }
-          );
-        }
-      }
-
-      // Align role (non-blocking)
-      prisma.user
-        .update({ where: { id: userId }, data: { formationsRole: "instructeur" } })
-        .catch(() => null);
+    // Resolve the real active user (by id OR email fallback) AND ensure instructeur profile
+    const ctx = await resolveVendorContext(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    if (!ctx) {
+      return NextResponse.json(
+        { error: "Impossible de résoudre votre session. Déconnectez-vous et reconnectez-vous." },
+        { status: 401 }
+      );
     }
+    const userId = ctx.userId;
+    const profile = { id: ctx.instructeurId };
 
     const body = await request.json();
     const {

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 async function getInstructeur(userId: string) {
@@ -63,47 +64,18 @@ export async function POST(request: Request) {
     if (!session?.user && !IS_DEV)
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-    const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
-    if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-
-    // Self-healing: ensure the instructeur profile exists, create it if not.
-    // No dependency on helper — everything inline to guarantee no edge case.
-    let inst = await prisma.instructeurProfile.findUnique({ where: { userId } });
-    if (!inst) {
-      // Verify user exists
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { id: true },
-      });
-      if (!user) {
-        return NextResponse.json(
-          { error: "Session expirée — veuillez vous reconnecter", code: "USER_NOT_FOUND" },
-          { status: 401 }
-        );
-      }
-      // Create profile
-      try {
-        inst = await prisma.instructeurProfile.create({
-          data: { userId, status: "APPROUVE" },
-        });
-        await prisma.user
-          .update({ where: { id: userId }, data: { formationsRole: "instructeur" } })
-          .catch(() => null);
-      } catch (createErr) {
-        // Maybe a race — try to refetch
-        inst = await prisma.instructeurProfile.findUnique({ where: { userId } });
-        if (!inst) {
-          console.error("[funnels POST] Profile create failed:", createErr);
-          return NextResponse.json(
-            {
-              error: "Impossible de créer le profil vendeur",
-              detail: createErr instanceof Error ? createErr.message : String(createErr),
-            },
-            { status: 500 }
-          );
-        }
-      }
+    // Resolve the real active user (by id OR email fallback) + upsert instructeur profile
+    const ctx = await resolveVendorContext(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    if (!ctx) {
+      return NextResponse.json(
+        { error: "Impossible de résoudre votre session. Déconnectez-vous et reconnectez-vous." },
+        { status: 401 }
+      );
     }
+    const userId = ctx.userId;
+    const inst = { id: ctx.instructeurId };
 
     const body = await request.json();
     const { name, productId, formationId } = body as {

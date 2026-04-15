@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 async function getProfile(userId: string) {

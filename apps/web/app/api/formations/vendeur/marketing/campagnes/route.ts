@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { resolveVendorContext } from "@/lib/formations/active-user";
 
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
 async function getProfileId(userId: string) { return _gii(userId); }
@@ -44,9 +45,9 @@ export async function POST(request: Request) {
     const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-    const _upsert = await prisma.instructeurProfile.upsert({ where: { userId }, create: { userId, status: "APPROUVE" }, update: {} }).catch((e) => { console.error("[profile upsert]", e); return null; });
-    const pid = _upsert?.id ?? null;
-    if (!pid) return NextResponse.json({ error: "Impossible de créer votre profil vendeur" }, { status: 500 });
+    const _ctx = await resolveVendorContext(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
+    if (!_ctx) return NextResponse.json({ error: "Impossible de résoudre votre session. Déconnectez-vous et reconnectez-vous." }, { status: 401 });
+    const pid = _ctx.instructeurId;
 
     const body = await request.json();
     const { name, destinationUrl, utmSource, utmMedium, utmCampaign, utmContent } = body;
