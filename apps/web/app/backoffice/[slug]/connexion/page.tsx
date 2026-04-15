@@ -17,10 +17,10 @@ export default async function SecretAdminLoginPage({
 }) {
   const { slug } = await params;
 
-  const expectedSlug = process.env.ADMIN_LOGIN_SLUG;
+  const expectedSlug = process.env.ADMIN_LOGIN_SLUG?.trim();
 
-  // Server-side slug validation — timing-safe string compare
-  if (!expectedSlug || slug !== expectedSlug) {
+  // Server-side slug validation — trim both sides to ignore newline / space artifacts
+  if (!expectedSlug || slug.trim() !== expectedSlug) {
     notFound();
   }
 
