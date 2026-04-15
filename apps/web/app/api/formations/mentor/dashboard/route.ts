@@ -15,21 +15,34 @@ export async function GET() {
     const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
+    // Verify user exists before trying to create a mentor profile
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    if (!existingUser) {
+      console.warn("[mentor/dashboard] User not found for id:", userId);
+      return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
+    }
+
     // Get or create mentor profile
     let profile = await prisma.mentorProfile.findUnique({ where: { userId } });
     if (!profile) {
-      // Auto-create profile for user with formationsRole = mentor / instructeur
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
-      profile = await prisma.mentorProfile.create({
-        data: {
-          userId,
-          specialty: "",
-          bio: "",
-          sessionPrice: 25000,
-          sessionDuration: 60,
-          isAvailable: true,
-        },
-      });
+      try {
+        profile = await prisma.mentorProfile.create({
+          data: {
+            userId,
+            specialty: "",
+            bio: "",
+            sessionPrice: 25000,
+            sessionDuration: 60,
+            isAvailable: true,
+          },
+        });
+      } catch (createErr) {
+        console.error("[mentor/dashboard] Failed to auto-create profile:", createErr);
+        return NextResponse.json({ error: "Impossible de créer le profil mentor" }, { status: 500 });
+      }
     }
 
     const now = new Date();
@@ -130,7 +143,8 @@ export async function GET() {
     });
   } catch (err) {
     console.error("[mentor/dashboard]", err);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: "Erreur serveur", detail: message }, { status: 500 });
   }
 }
 

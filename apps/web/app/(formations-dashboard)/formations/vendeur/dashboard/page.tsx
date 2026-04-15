@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 type Dashboard = {
   kpis: {
@@ -47,26 +46,10 @@ function timeAgo(dateStr: string) {
 }
 
 export default function VendeurDashboard() {
-  const qc = useQueryClient();
-  const [seedMessage, setSeedMessage] = useState<string | null>(null);
-
   const { data: response, isLoading } = useQuery<{ data: Dashboard | null }>({
     queryKey: ["vendeur-dashboard"],
     queryFn: () => fetch("/api/formations/vendeur/dashboard").then((r) => r.json()),
     staleTime: 30_000,
-  });
-
-  const seedMutation = useMutation({
-    mutationFn: () => fetch("/api/formations/admin/seed-products", { method: "POST" }).then((r) => r.json()),
-    onSuccess: (res) => {
-      if (res.error) { setSeedMessage(`Erreur : ${res.error}`); return; }
-      const s = res.summary ?? { formationsCreated: 0, productsCreated: 0, skipped: 0 };
-      setSeedMessage(`✓ ${s.formationsCreated} formation(s) + ${s.productsCreated} produit(s) ajoutés${s.skipped > 0 ? ` (${s.skipped} déjà existants)` : ""}.`);
-      qc.invalidateQueries({ queryKey: ["vendeur-dashboard"] });
-      qc.invalidateQueries({ queryKey: ["public-explorer"] });
-      qc.invalidateQueries({ queryKey: ["public-stats"] });
-      qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
-    },
   });
 
   const d = response?.data;
@@ -86,36 +69,27 @@ export default function VendeurDashboard() {
           </h1>
         </header>
 
-        {/* Seed banner — only shown when there are 0 products */}
+        {/* Empty state — onboarding without demo seeding (real vendor flow) */}
         {hasNoProducts && (
           <div className="mb-10 bg-zinc-900 text-white p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex-1">
               <span className="text-[#22c55e] font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block">
-                Démarrage rapide
+                Bienvenue
               </span>
               <h3 className="text-xl md:text-2xl font-bold tracking-tight mb-2">
-                Aucun produit sur la plateforme
+                Publiez votre premier produit
               </h3>
               <p className="text-sm text-zinc-400 max-w-xl">
-                Ajoutez 3 formations vidéo + 2 produits digitaux d&apos;exemple (marketing, freelance, dev web, copywriting, templates Notion) pour tester la marketplace. Vous pourrez les modifier ou les supprimer ensuite.
+                Créez une formation vidéo, un ebook, un template ou un pack digital en quelques minutes.
+                Vous commencez à vendre dès la publication — aucun frais d&apos;abonnement, seulement 5 % de commission sur chaque vente.
               </p>
-              {seedMessage && (
-                <p className="text-xs text-[#22c55e] mt-3 font-mono">{seedMessage}</p>
-              )}
             </div>
             <div className="flex gap-0 flex-shrink-0">
-              <button
-                onClick={() => seedMutation.mutate()}
-                disabled={seedMutation.isPending}
-                className="px-8 py-4 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-50"
-              >
-                {seedMutation.isPending ? "Ajout en cours…" : "Ajouter 5 produits démo"}
-              </button>
               <Link
                 href="/formations/vendeur/produits/creer"
-                className="px-8 py-4 bg-zinc-800 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors"
+                className="px-8 py-4 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors"
               >
-                Créer le mien
+                Créer mon premier produit
               </Link>
             </div>
           </div>
