@@ -331,15 +331,15 @@ export default function AutomationsPage() {
                           Activer
                         </button>
                       )}
-                      {/* Rename */}
-                      <button
-                        onClick={() => startEdit(wf)}
+                      {/* Edit in full visual editor */}
+                      <a
+                        href={`/formations/vendeur/automatisations/${wf.id}`}
                         className="flex items-center gap-1 text-xs font-semibold text-[#191c1e] hover:bg-gray-100 px-2 py-1 rounded-lg transition-colors"
-                        title="Renommer"
+                        title="Éditer le workflow"
                       >
                         <span className="material-symbols-outlined text-[14px]">edit</span>
                         Éditer
-                      </button>
+                      </a>
                       {/* Delete */}
                       <button
                         onClick={() => {
