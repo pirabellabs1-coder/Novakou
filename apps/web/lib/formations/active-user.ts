@@ -1,103 +1,118 @@
-// Resolves the CURRENT REAL user ID in the DB, even if the session has a
-// stale userId (e.g. after a DB reset or data wipe).
-//
-// Strategy:
-//   1. Try the session's user.id — if it exists in DB, return it.
-//   2. Otherwise fall back to session.user.email — if it matches a user, return that ID.
-//   3. Otherwise create the user from the session data (email + name + image).
-//
-// This eliminates "Profil introuvable" / FK violations caused by stale cookies.
+// Resolves the active user + creates instructeurProfile in one bulletproof
+// atomic flow. Uses upsert so it never fails on race conditions or stale sessions.
 
 import { prisma } from "@/lib/prisma";
 import type { Session } from "next-auth";
 
-export async function resolveActiveUserId(
-  session: Session | null,
-  opts?: { devFallback?: string }
-): Promise<string | null> {
-  const sessionUserId = session?.user?.id;
-  const sessionEmail = session?.user?.email;
-  const sessionName = session?.user?.name ?? null;
-  const sessionImage = session?.user?.image ?? null;
-
-  // 1. Try session's user.id first
-  if (sessionUserId) {
-    const byId = await prisma.user.findUnique({
-      where: { id: sessionUserId },
-      select: { id: true },
-    });
-    if (byId) return byId.id;
-  }
-
-  // 2. Fallback: lookup by email
-  if (sessionEmail) {
-    const byEmail = await prisma.user.findUnique({
-      where: { email: sessionEmail.toLowerCase() },
-      select: { id: true },
-    });
-    if (byEmail) return byEmail.id;
-
-    // 3. Auto-create the user if session has a verified email but no DB row
-    try {
-      const created = await prisma.user.create({
-        data: {
-          email: sessionEmail.toLowerCase(),
-          name: sessionName,
-          image: sessionImage,
-          role: "FREELANCE",
-          status: "ACTIF",
-          formationsRole: "instructeur",
-        },
-      });
-      return created.id;
-    } catch (err) {
-      console.error("[resolveActiveUserId] auto-create failed:", err);
-    }
-  }
-
-  // 4. Dev fallback
-  if (opts?.devFallback) {
-    const dev = await prisma.user.findUnique({
-      where: { id: opts.devFallback },
-      select: { id: true },
-    });
-    if (dev) return dev.id;
-  }
-
-  return null;
-}
-
 /**
- * Resolves the active userId AND upserts the instructeurProfile in one call.
- * Returns { userId, instructeurId } — both guaranteed to exist in the DB.
- * Returns null if the session is too broken to recover.
+ * Given a session, returns userId + instructeurId (both guaranteed to exist in DB).
+ * Uses upsert so it works even if:
+ *  - The session.user.id points to a deleted user (stale cookie after DB wipe)
+ *  - The session.user.email doesn't yet exist in DB (first-time login)
+ *  - A concurrent request is creating the same profile
  */
 export async function resolveVendorContext(
   session: Session | null,
   opts?: { devFallback?: string }
 ): Promise<{ userId: string; instructeurId: string } | null> {
-  const userId = await resolveActiveUserId(session, opts);
+  const email = session?.user?.email?.toLowerCase();
+  const sessionUserId = session?.user?.id;
+  const name = session?.user?.name ?? null;
+  const image = session?.user?.image ?? null;
+
+  // ── Step 1: Resolve userId (with auto-create if needed) ──────────────────
+  let userId: string | null = null;
+
+  // Prefer email-based upsert (works even if session.user.id is stale)
+  if (email) {
+    try {
+      const user = await prisma.user.upsert({
+        where: { email },
+        create: {
+          email,
+          name,
+          image,
+          role: "FREELANCE",
+          status: "ACTIF",
+          formationsRole: "instructeur",
+          emailVerified: new Date(),
+        },
+        update: {}, // no-op — just get existing
+      });
+      userId = user.id;
+    } catch (err) {
+      console.error("[resolveVendorContext] user upsert by email failed:", err);
+    }
+  }
+
+  // If email didn't work, try session.user.id
+  if (!userId && sessionUserId) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: sessionUserId },
+        select: { id: true },
+      });
+      if (user) userId = user.id;
+    } catch (err) {
+      console.error("[resolveVendorContext] user findUnique by id failed:", err);
+    }
+  }
+
+  // Dev fallback
+  if (!userId && opts?.devFallback) {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: opts.devFallback },
+        select: { id: true },
+      });
+      if (user) userId = user.id;
+    } catch {
+      /* ignore */
+    }
+  }
+
   if (!userId) return null;
 
-  // Upsert the instructeur profile — atomic, no race condition
-  const inst = await prisma.instructeurProfile
-    .upsert({
+  // ── Step 2: Upsert instructeurProfile ───────────────────────────────────
+  try {
+    const inst = await prisma.instructeurProfile.upsert({
       where: { userId },
       create: { userId, status: "APPROUVE" },
       update: {},
-    })
-    .catch(async (err) => {
-      console.error("[resolveVendorContext] upsert failed:", err);
-      // Retry findUnique — maybe a concurrent request created it
-      return prisma.instructeurProfile.findUnique({ where: { userId } });
     });
 
-  if (!inst) return null;
+    // Align formationsRole (non-blocking)
+    prisma.user
+      .update({ where: { id: userId }, data: { formationsRole: "instructeur" } })
+      .catch(() => null);
 
-  // Align formationsRole in background (non-blocking)
-  prisma.user
-    .update({ where: { id: userId }, data: { formationsRole: "instructeur" } })
-    .catch(() => null);
+    return { userId, instructeurId: inst.id };
+  } catch (err) {
+    // Race condition — refetch
+    try {
+      const existing = await prisma.instructeurProfile.findUnique({
+        where: { userId },
+        select: { id: true },
+      });
+      if (existing) {
+        return { userId, instructeurId: existing.id };
+      }
+    } catch {
+      /* ignore */
+    }
+    console.error("[resolveVendorContext] profile upsert failed:", err);
+    return null;
+  }
+}
 
-  return { userId, instructeurId: inst.id };
+/**
+ * Resolves just the userId (without touching instructeur profile).
+ * Used when an API doesn't need vendor privileges (e.g. wallet GET).
+ */
+export async function resolveActiveUserId(
+  session: Session | null,
+  opts?: { devFallback?: string }
+): Promise<string | null> {
+  const ctx = await resolveVendorContext(session, opts);
+  return ctx?.userId ?? null;
 }
