@@ -84,7 +84,7 @@ export function StepPricingDescription({ role }: { role: string }) {
                 <strong className="text-emerald-400">{netAmount} EUR</strong>
               </p>
               <p className="text-xs text-slate-500 mt-1">
-                Commission Novakou : {getCommissionLabel(planName)} (Plan {planName.charAt(0) + planName.slice(1).toLowerCase()})
+                Commission FreelanceHigh : {getCommissionLabel(planName)} (Plan {planName.charAt(0) + planName.slice(1).toLowerCase()})
               </p>
             </div>
           )}

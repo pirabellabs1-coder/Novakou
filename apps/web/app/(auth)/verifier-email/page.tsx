@@ -208,7 +208,7 @@ export default function VerifierEmailPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
-            <h1 className="text-2xl font-extrabold text-primary">Novakou</h1>
+            <h1 className="text-2xl font-extrabold text-primary">FreelanceHigh</h1>
           </Link>
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="material-symbols-outlined text-primary text-3xl">mail</span>

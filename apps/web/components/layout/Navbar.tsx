@@ -32,7 +32,7 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-primary flex-shrink-0">
           <span className="material-symbols-outlined text-2xl sm:text-3xl font-bold">public</span>
-          <h2 className="text-lg sm:text-xl font-extrabold tracking-tight dark:text-slate-100">Novakou</h2>
+          <h2 className="text-lg sm:text-xl font-extrabold tracking-tight dark:text-slate-100">FreelanceHigh</h2>
         </Link>
 
         {/* Nav desktop */}

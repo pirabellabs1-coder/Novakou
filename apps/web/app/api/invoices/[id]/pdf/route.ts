@@ -47,7 +47,7 @@ export async function GET(
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="Novakou-${invoice.invoiceNumber}.pdf"`,
+          "Content-Disposition": `attachment; filename="FreelanceHigh-${invoice.invoiceNumber}.pdf"`,
           "Cache-Control": "private, no-cache",
         },
       });
@@ -79,7 +79,7 @@ export async function GET(
       }
 
       const invoiceNumber = `FH-${order.id.slice(-8).toUpperCase()}`;
-      const description = order.service?.title ?? order.title ?? "Commande Novakou";
+      const description = order.service?.title ?? order.title ?? "Commande FreelanceHigh";
       const status = order.status === "TERMINE" ? "payee" : "en_attente";
 
       const pdfBytes = generateInvoicePDF({
@@ -96,7 +96,7 @@ export async function GET(
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="Novakou-${invoiceNumber}.pdf"`,
+          "Content-Disposition": `attachment; filename="FreelanceHigh-${invoiceNumber}.pdf"`,
           "Cache-Control": "private, no-cache",
         },
       });

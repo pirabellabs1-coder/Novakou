@@ -1,5 +1,5 @@
 /**
- * Novakou — Email Templates : Admin alerts (dark mode)
+ * FreelanceHigh — Email Templates : Admin alerts (dark mode)
  * Ces emails sont envoyes aux admins lors d'evenements importants.
  */
 

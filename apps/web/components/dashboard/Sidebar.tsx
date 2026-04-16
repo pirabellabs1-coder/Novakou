@@ -190,7 +190,7 @@ export function Sidebar({ collapsed = false, onToggle, onClose }: SidebarProps) 
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold leading-none text-white">Novakou</h1>
+            <h1 className="text-lg font-bold leading-none text-white">FreelanceHigh</h1>
             <p className="text-xs text-primary/60">Espace Freelance</p>
           </div>
         )}

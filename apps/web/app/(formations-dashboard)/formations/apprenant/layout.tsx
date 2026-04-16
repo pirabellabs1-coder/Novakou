@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 
 const navGroups = [
@@ -265,6 +265,13 @@ export default function ApprenantLayout({ children }: { children: React.ReactNod
             <span className="material-symbols-outlined text-[16px]">explore</span>
             Explorer le catalogue
           </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/formations" })}
+            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200"
+          >
+            <span className="material-symbols-outlined text-[16px]">logout</span>
+            Se déconnecter
+          </button>
         </div>
       </aside>
 

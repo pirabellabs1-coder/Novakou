@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — WebRTC Signaling via Postgres API + BroadcastChannel
+// FreelanceHigh — WebRTC Signaling via Postgres API + BroadcastChannel
 // Postgres API: cross-browser/cross-device signaling (works on Vercel serverless)
 // BroadcastChannel: same-browser instant fallback
 // ============================================================

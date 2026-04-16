@@ -1,10 +1,10 @@
-// Novakou — Emails transactionnels pour la section Formations
+// FreelanceHigh — Emails transactionnels pour la section Formations
 
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 // Domain noreply@freelancehigh.com is verified — DNS configured in Vercel
-const FROM = process.env.EMAIL_FROM || "Novakou <noreply@freelancehigh.com>";
+const FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
 
 // ── Layout HTML commun formations ──
@@ -18,7 +18,7 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
+      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">FreelanceHigh</h1>
       <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">🎓 FORMATIONS</p>
     </div>
     <!-- Content -->
@@ -27,13 +27,13 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
     </div>
     <!-- Footer -->
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">${lang === "fr" ? "L'équipe Novakou" : "The Novakou Team"}</p>
+      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">${lang === "fr" ? "L'équipe FreelanceHigh" : "The FreelanceHigh Team"}</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
         <a href="${APP_URL}/formations" style="color:#6C2BD9;text-decoration:none;">Formations</a> ·
         <a href="${APP_URL}/formations/mes-formations" style="color:#6C2BD9;text-decoration:none;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
         <a href="${APP_URL}/contact" style="color:#6C2BD9;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Fondée par" : "Founded by"} Lissanon Gildas</p>
+      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 FreelanceHigh — ${lang === "fr" ? "Fondée par" : "Founded by"} Lissanon Gildas</p>
     </div>
   </div>
 </body>
@@ -197,8 +197,8 @@ export async function sendCertificateIssuedEmail(params: {
   );
 
   const subject = isFr
-    ? `🏆 Votre certificat Novakou est prêt — ${formationTitle}`
-    : `🏆 Your Novakou certificate is ready — ${formationTitle}`;
+    ? `🏆 Votre certificat FreelanceHigh est prêt — ${formationTitle}`
+    : `🏆 Your FreelanceHigh certificate is ready — ${formationTitle}`;
 
   return resend.emails.send({ from: FROM, to: email, subject, html });
 }
@@ -214,7 +214,7 @@ export async function sendInstructorApplicationEmail(params: {
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">📋 Candidature reçue !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, nous avons bien reçu votre candidature pour devenir instructeur sur Novakou.
+      Bonjour ${name}, nous avons bien reçu votre candidature pour devenir instructeur sur FreelanceHigh.
     </p>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       Notre équipe examinera votre dossier dans les <strong>48 heures</strong> ouvrées. Vous recevrez un email
@@ -230,7 +230,7 @@ export async function sendInstructorApplicationEmail(params: {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: "📋 Candidature instructeur reçue — Novakou",
+    subject: "📋 Candidature instructeur reçue — FreelanceHigh",
     html,
   });
 }
@@ -246,7 +246,7 @@ export async function sendInstructorApprovedEmail(params: {
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">🎉 Félicitations, vous êtes maintenant instructeur !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, votre candidature pour devenir instructeur sur Novakou a été <strong>approuvée</strong>.
+      Bonjour ${name}, votre candidature pour devenir instructeur sur FreelanceHigh a été <strong>approuvée</strong>.
     </p>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       Vous pouvez maintenant créer et publier vos formations. Vous toucherez <strong>70% des revenus</strong>
@@ -263,7 +263,7 @@ export async function sendInstructorApprovedEmail(params: {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: "🎉 Candidature approuvée — Bienvenue chez les instructeurs Novakou !",
+    subject: "🎉 Candidature approuvée — Bienvenue chez les instructeurs FreelanceHigh !",
     html,
   });
 }
@@ -297,7 +297,7 @@ export async function sendInstructorRejectedEmail(params: {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: "Réponse à votre candidature instructeur — Novakou",
+    subject: "Réponse à votre candidature instructeur — FreelanceHigh",
     html,
   });
 }
@@ -317,7 +317,7 @@ export async function sendFormationApprovedEmail(params: {
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">✅ Formation approuvée et publiée !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
       Bonjour ${name}, votre formation <strong>${formationTitle}</strong> a été approuvée par notre équipe et est maintenant
-      visible dans le marketplace Novakou.
+      visible dans le marketplace FreelanceHigh.
     </p>
     ${successBadge(`${formationTitle} est maintenant en ligne`)}
     ${button("Voir ma formation en ligne", publicUrl)}
@@ -549,7 +549,7 @@ export async function sendAbandonedCartEmail1(params: {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: "🛒 Votre panier vous attend — Novakou",
+    subject: "🛒 Votre panier vous attend — FreelanceHigh",
     html,
   });
 }
@@ -586,7 +586,7 @@ export async function sendAbandonedCartEmail2(params: {
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: "📚 Votre formation vous attend — Novakou",
+    subject: "📚 Votre formation vous attend — FreelanceHigh",
     html,
   });
 }

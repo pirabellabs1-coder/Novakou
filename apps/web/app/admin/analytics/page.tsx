@@ -108,7 +108,7 @@ export default function AdminAnalytics() {
               <span className="material-symbols-outlined text-primary">bar_chart</span>
               Analytics Plateforme
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Vue complète des performances de Novakou.</p>
+            <p className="text-slate-400 text-sm mt-1">Vue complète des performances de FreelanceHigh.</p>
           </div>
         </div>
         <AnalyticsSkeleton />
@@ -164,7 +164,7 @@ export default function AdminAnalytics() {
             <span className="material-symbols-outlined text-primary">bar_chart</span>
             Analytics Plateforme
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Vue complète des performances de Novakou.</p>
+          <p className="text-slate-400 text-sm mt-1">Vue complète des performances de FreelanceHigh.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button

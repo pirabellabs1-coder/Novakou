@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Novakou — Affiliate & UTM Tracker
+ * FreelanceHigh — Affiliate & UTM Tracker
  *
  * Composant invisible (rendu null) place dans le layout racine.
  * A chaque montage :

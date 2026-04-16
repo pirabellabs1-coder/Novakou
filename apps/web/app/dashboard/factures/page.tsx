@@ -336,7 +336,7 @@ export default function FacturesPage() {
                 <span className="text-sm font-semibold">€{(detailInvoice.amount ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-border-dark">
-                <span className="text-sm text-slate-500">Commission Novakou</span>
+                <span className="text-sm text-slate-500">Commission FreelanceHigh</span>
                 <span className="text-sm font-semibold text-red-400">-€{(detailInvoice.platformFee ?? 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })}</span>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-border-dark">

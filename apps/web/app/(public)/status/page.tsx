@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Statut des services",
-  description: "Etat en temps reel de l'infrastructure Novakou.",
+  description: "Etat en temps reel de l'infrastructure FreelanceHigh.",
 };
 
 const SERVICES = [
@@ -48,7 +48,7 @@ export default function StatusPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4">Statut des services</h1>
           <p className="text-lg text-slate-500">
-            Etat de l&apos;infrastructure Novakou.
+            Etat de l&apos;infrastructure FreelanceHigh.
           </p>
         </div>
 

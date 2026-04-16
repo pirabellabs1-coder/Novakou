@@ -102,7 +102,7 @@ function InviteModal({
         <div>
           <label className="block text-sm font-semibold mb-2">Message personnel (optionnel)</label>
           <textarea value={message} onChange={(e) => setMessage(e.target.value)}
-            placeholder="Rejoins Novakou, la plateforme freelance qui monte !" rows={3}
+            placeholder="Rejoins FreelanceHigh, la plateforme freelance qui monte !" rows={3}
             className="w-full px-4 py-3 bg-background-dark/50 border border-border-dark rounded-lg text-sm outline-none focus:ring-1 focus:ring-primary placeholder:text-slate-600 resize-none" />
         </div>
         <div className="flex gap-3 pt-1">
@@ -148,13 +148,13 @@ export default function AffiliationPage() {
   }
 
   function handleShare(platform: string) {
-    const text = encodeURIComponent("Rejoins Novakou, la plateforme freelance qui eleve ta carriere au plus haut niveau !");
+    const text = encodeURIComponent("Rejoins FreelanceHigh, la plateforme freelance qui eleve ta carriere au plus haut niveau !");
     const url = encodeURIComponent(referralLink);
     const urls: Record<string, string> = {
       whatsapp: `https://wa.me/?text=${text}%20${url}`,
       twitter: `https://twitter.com/intent/tweet?text=${text}&url=${url}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${url}`,
-      email: `mailto:?subject=${encodeURIComponent("Rejoins Novakou")}&body=${text}%20${url}`,
+      email: `mailto:?subject=${encodeURIComponent("Rejoins FreelanceHigh")}&body=${text}%20${url}`,
     };
     const target = urls[platform];
     if (target) window.open(target, "_blank", "noopener,noreferrer");

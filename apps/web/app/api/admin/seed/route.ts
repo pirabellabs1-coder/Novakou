@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
             kyc: 4,
             plan: "BUSINESS",
             status: "ACTIF",
-            name: "Admin Novakou",
+            name: "Admin FreelanceHigh",
           },
         });
         return NextResponse.json({ ok: true, message: "Admin mis a jour", id: existing.id });
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
           data: {
             email,
             passwordHash,
-            name: "Admin Novakou",
+            name: "Admin FreelanceHigh",
             role: "ADMIN",
             kyc: 4,
             plan: "BUSINESS",

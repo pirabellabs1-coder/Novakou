@@ -73,7 +73,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           </div>
           {!collapsed && (
             <div>
-              <h1 className="text-sm font-black text-white leading-none">Novakou</h1>
+              <h1 className="text-sm font-black text-white leading-none">FreelanceHigh</h1>
               <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Administration</p>
             </div>
           )}

@@ -1,6 +1,6 @@
 /**
  * Invoice PDF generation using jsPDF.
- * Generates branded Novakou invoices.
+ * Generates branded FreelanceHigh invoices.
  */
 import { jsPDF } from "jspdf";
 
@@ -36,7 +36,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("Novakou", margin, 18);
+  doc.text("FreelanceHigh", margin, 18);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
@@ -107,7 +107,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   doc.setTextColor(...GRAY_TEXT);
 
   const emitterLines = [
-    "Novakou SAS",
+    "FreelanceHigh SAS",
     "123 Avenue de la Tech",
     "75001 Paris, France",
     "contact@freelancehigh.com",
@@ -115,7 +115,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   ];
 
   const recipientLines = [
-    invoice.customerName || "Client Novakou",
+    invoice.customerName || "Client FreelanceHigh",
     invoice.customerEmail || "",
   ].filter(Boolean);
 
@@ -227,7 +227,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   doc.setFontSize(7);
   doc.setTextColor(...GRAY_TEXT);
   doc.text(
-    "Novakou SAS — La plateforme freelance qui eleve votre carriere au plus haut niveau",
+    "FreelanceHigh SAS — La plateforme freelance qui eleve votre carriere au plus haut niveau",
     pageWidth / 2,
     footerY,
     { align: "center" }

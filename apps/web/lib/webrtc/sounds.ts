@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Call Sound Manager
+// FreelanceHigh — Call Sound Manager
 // Gestion des sons d'appel via Web Audio API
 // Sons generes programmatiquement (pas de fichiers audio)
 // ============================================================

@@ -1,5 +1,5 @@
 /**
- * Novakou — Email Templates : KYC (dark mode)
+ * FreelanceHigh — Email Templates : KYC (dark mode)
  */
 
 import { sendEmail, getAppUrl } from "@/lib/email";
@@ -40,5 +40,5 @@ export async function sendKycRejectedDarkEmail(email: string, name: string, leve
     ${textDark("Vous pouvez soumettre une nouvelle demande apres avoir corrige les elements mentionnes.")}
     ${buttonDark("Soumettre a nouveau", `${getAppUrl()}/dashboard/kyc`, "amber")}
   `);
-  return sendEmail({ to: email, subject: "Verification KYC refusee — Novakou", html });
+  return sendEmail({ to: email, subject: "Verification KYC refusee — FreelanceHigh", html });
 }

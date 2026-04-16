@@ -260,7 +260,7 @@ export async function PATCH(
             transactionStore.add({
               userId: order.freelanceId,
               type: "commission",
-              description: `Commission Novakou - ${order.id}`,
+              description: `Commission FreelanceHigh - ${order.id}`,
               amount: -order.commission,
               status: "complete",
               date: now,

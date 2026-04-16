@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         // Redirect to PDF generation endpoint
         return NextResponse.json({
           downloadUrl: `/api/invoices/${invoice.id}/pdf`,
-          filename: `Novakou-${invoice.invoiceNumber}.pdf`,
+          filename: `FreelanceHigh-${invoice.invoiceNumber}.pdf`,
           type: "redirect",
         });
       }
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         // Certificate downloads go through the formations API
         return NextResponse.json({
           downloadUrl: `/api/formations/${id}/certificate`,
-          filename: `Novakou-Certificat.pdf`,
+          filename: `FreelanceHigh-Certificat.pdf`,
           type: "redirect",
         });
       }
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
         const invoiceNumber = `FH-${order.id.slice(-8).toUpperCase()}`;
         return NextResponse.json({
           downloadUrl: `/api/invoices/${order.id}/pdf`,
-          filename: `Novakou-${invoiceNumber}.pdf`,
+          filename: `FreelanceHigh-${invoiceNumber}.pdf`,
           type: "redirect",
         });
       } catch (dbError) {
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
       // Certificate downloads go through the formations API
       return NextResponse.json({
         downloadUrl: `/api/formations/${id}/certificate`,
-        filename: `Novakou-Certificat.pdf`,
+        filename: `FreelanceHigh-Certificat.pdf`,
         type: "redirect",
       });
     }

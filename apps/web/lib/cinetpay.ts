@@ -1,4 +1,4 @@
-// CinetPay API client for Novakou
+// CinetPay API client for FreelanceHigh
 // Handles Mobile Money payments for 17 African countries
 // Orange Money, Wave, MTN MoMo, Moov Money
 //

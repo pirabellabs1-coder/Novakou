@@ -109,7 +109,7 @@ export default function TarifsPage() {
     },
     {
       q: "Quelle est la différence avec Fiverr ou Upwork ?",
-      a: "Fiverr prend 20% de commission sur chaque vente. Upwork prend 10-15%. Chez Novakou, dès le plan gratuit vous ne payez que 12%. Et avec Empire, c'est 0%. De plus, nous supportons Orange Money et Wave nativement.",
+      a: "Fiverr prend 20% de commission sur chaque vente. Upwork prend 10-15%. Chez FreelanceHigh, dès le plan gratuit vous ne payez que 12%. Et avec Empire, c'est 0%. De plus, nous supportons Orange Money et Wave nativement.",
     },
   ];
 

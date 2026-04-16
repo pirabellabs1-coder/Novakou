@@ -139,7 +139,7 @@ export default function AffiliationPage() {
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
                 {t("hero_title")}{" "}
-                <span className="text-primary">Novakou</span>
+                <span className="text-primary">FreelanceHigh</span>
               </h1>
 
               <p className="text-lg sm:text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">

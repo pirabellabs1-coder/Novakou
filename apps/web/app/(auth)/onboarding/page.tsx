@@ -63,7 +63,7 @@ function OnboardingContent() {
             </h1>
 
             <p className="text-slate-600 dark:text-slate-400 text-lg lg:text-xl font-normal max-w-xl">
-              Novakou est la plateforme de référence pour propulser votre carrière internationale tout en célébrant vos racines.
+              FreelanceHigh est la plateforme de référence pour propulser votre carrière internationale tout en célébrant vos racines.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -109,7 +109,7 @@ function OnboardingContent() {
         {/* Value Proposition */}
         <section className="w-full py-16 flex flex-col gap-12">
           <div className="flex flex-col gap-4 text-center items-center">
-            <h2 className="text-slate-900 dark:text-white text-3xl lg:text-4xl font-bold">Pourquoi rejoindre Novakou ?</h2>
+            <h2 className="text-slate-900 dark:text-white text-3xl lg:text-4xl font-bold">Pourquoi rejoindre FreelanceHigh ?</h2>
             <div className="h-1.5 w-24 bg-accent rounded-full"></div>
             <p className="text-slate-600 dark:text-slate-400 text-base max-w-2xl mt-2">
               Découvrez une expérience d&apos;onboarding conçue pour valoriser vos compétences uniques sur la scène internationale.
@@ -208,14 +208,14 @@ function OnboardingContent() {
             <div className="size-8 bg-primary/20 flex items-center justify-center rounded-lg text-primary">
               <span className="material-symbols-outlined">language</span>
             </div>
-            <h2 className="text-slate-900 dark:text-white text-lg font-bold">Novakou</h2>
+            <h2 className="text-slate-900 dark:text-white text-lg font-bold">FreelanceHigh</h2>
           </div>
           <div className="flex gap-8 text-sm text-slate-500 dark:text-slate-400 font-medium">
             <Link href="/cgu" className="hover:text-primary">Conditions</Link>
             <Link href="/confidentialite" className="hover:text-primary">Confidentialité</Link>
             <Link href="/contact" className="hover:text-primary">Contact</Link>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">© 2026 Novakou. Tous droits réservés.</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">© 2026 FreelanceHigh. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

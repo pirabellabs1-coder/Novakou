@@ -77,7 +77,7 @@ export async function GET(
     // Add watermark if enabled
     if (product.watermarkEnabled) {
       const font = await previewPdf.embedFont(StandardFonts.HelveticaBold);
-      const watermarkText = "APERÇU - Novakou";
+      const watermarkText = "APERÇU - FreelanceHigh";
 
       for (let i = 0; i < previewPdf.getPageCount(); i++) {
         const page = previewPdf.getPage(i);
@@ -106,7 +106,7 @@ export async function GET(
 
     const endTitle = "Fin de l'apercu";
     const endSubtitle = `Cet apercu contient ${previewPageCount} page(s) sur ${totalPages}.`;
-    const endCta = "Achetez le produit complet sur Novakou";
+    const endCta = "Achetez le produit complet sur FreelanceHigh";
 
     endPage.drawText(endTitle, {
       x: (ew - endFont.widthOfTextAtSize(endTitle, 28)) / 2,

@@ -18,7 +18,7 @@ const CATEGORIES = [
 const FAQS = [
   { q: "Comment puis-je modifier mon adresse de paiement ?", a: "Rendez-vous dans Paramètres > Paiements & Facturation pour modifier vos informations de paiement. Les changements sont effectifs immédiatement." },
   { q: "Que faire si un freelance ne répond plus à mes messages ?", a: "Si un freelance ne répond pas dans les 48h, vous pouvez nous contacter via le support ou ouvrir un litige depuis la page Commandes." },
-  { q: "Quels sont les frais de service de Novakou ?", a: "Les frais de service sont de 3% sur chaque transaction pour le client. Ce taux finance l'escrow, la médiation et la sécurité de la plateforme." },
+  { q: "Quels sont les frais de service de FreelanceHigh ?", a: "Les frais de service sont de 3% sur chaque transaction pour le client. Ce taux finance l'escrow, la médiation et la sécurité de la plateforme." },
   { q: "Comment devenir un client vérifié ?", a: "Complétez votre profil entreprise, vérifiez votre email et votre téléphone. La vérification KYC niveau 3 est optionnelle mais augmente votre crédibilité." },
   { q: "Comment fonctionne le système d'escrow ?", a: "Lorsque vous passez une commande, les fonds sont bloqués en escrow. Ils ne sont libérés au freelance qu'après votre validation de la livraison." },
   { q: "Puis-je demander un remboursement ?", a: "Oui, vous pouvez demander un remboursement en ouvrant un litige. Notre équipe examinera votre demande et rendra une décision sous 48h à 7 jours." },

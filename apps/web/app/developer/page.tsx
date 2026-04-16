@@ -114,7 +114,7 @@ export default function DeveloperPage() {
         <div className="mb-10">
           <h1 className="text-3xl font-extrabold mb-1">Gestion des Cles API et Webhooks</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Configurez vos acces techniques pour integrer les services Novakou a vos
+            Configurez vos acces techniques pour integrer les services FreelanceHigh a vos
             applications.
           </p>
         </div>

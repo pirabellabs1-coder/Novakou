@@ -1,5 +1,5 @@
 /**
- * Novakou — Dark Mode Email Layout
+ * FreelanceHigh — Dark Mode Email Layout
  * Layout et helpers HTML pour les emails en theme sombre.
  */
 
@@ -16,7 +16,7 @@ export function emailLayoutDark(content: string): string {
   <div style="max-width:600px;margin:0 auto;background:#0B1120;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;border:1px solid #1E293B;">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
+      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">FreelanceHigh</h1>
       <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">LA PLATEFORME FREELANCE</p>
     </div>
     <!-- Content -->
@@ -25,13 +25,13 @@ export function emailLayoutDark(content: string): string {
     </div>
     <!-- Footer -->
     <div style="padding:24px 40px;background:#0F172A;border-top:1px solid #1E293B;text-align:center;">
-      <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
+      <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">L'equipe FreelanceHigh</p>
       <p style="color:#475569;font-size:11px;margin:0;">
         <a href="${getAppUrl()}/cgu" style="color:#8B5CF6;text-decoration:none;">CGU</a> ·
         <a href="${getAppUrl()}/confidentialite" style="color:#8B5CF6;text-decoration:none;">Confidentialite</a> ·
         <a href="${getAppUrl()}/contact" style="color:#8B5CF6;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Fondee par Lissanon Gildas</p>
+      <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 FreelanceHigh — Fondee par Lissanon Gildas</p>
     </div>
   </div>
 </body>

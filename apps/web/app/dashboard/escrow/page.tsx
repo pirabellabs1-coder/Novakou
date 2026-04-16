@@ -46,7 +46,7 @@ function getOrderEscrowSteps(orderStatus: string, amount: number) {
       status: "completed" as const,
     },
     {
-      title: "Fonds Securises par Novakou",
+      title: "Fonds Securises par FreelanceHigh",
       description: "Les fonds sont securises sur la plateforme. Aucune partie ne peut y acceder unilateralement avant validation.",
       status: "completed" as const,
     },
@@ -64,7 +64,7 @@ function getOrderEscrowSteps(orderStatus: string, amount: number) {
 
   // Special case: litige
   if (orderStatus === "litige") {
-    steps[2] = { ...steps[2], status: "in_progress", description: "Un litige est en cours. Les fonds restent geles jusqu'a resolution par l'equipe Novakou." };
+    steps[2] = { ...steps[2], status: "in_progress", description: "Un litige est en cours. Les fonds restent geles jusqu'a resolution par l'equipe FreelanceHigh." };
     steps[3] = { ...steps[3], status: "pending", description: "Les fonds seront liberes selon le verdict de l'equipe de mediation." };
   }
 
@@ -166,7 +166,7 @@ export default function EscrowPage() {
             Securite des Paiements par Escrow
           </h2>
           <p className="text-slate-400 mt-1">
-            Vos fonds sont proteges par le systeme d&apos;escrow Novakou. Chaque etape est tracable et securisee.
+            Vos fonds sont proteges par le systeme d&apos;escrow FreelanceHigh. Chaque etape est tracable et securisee.
           </p>
         </div>
       </div>
@@ -315,7 +315,7 @@ export default function EscrowPage() {
           <div className="bg-background-dark/50 border border-border-dark rounded-xl p-6">
             <div className="flex items-center gap-2 mb-5">
               <span className="material-symbols-outlined text-primary text-xl">gpp_good</span>
-              <h3 className="font-bold">Garanties Novakou</h3>
+              <h3 className="font-bold">Garanties FreelanceHigh</h3>
             </div>
             <div className="space-y-4">
               {[

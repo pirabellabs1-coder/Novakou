@@ -46,13 +46,13 @@ export default function AProposPage() {
         <div className="text-center mb-20">
           <span className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-semibold px-4 py-2 rounded-full mb-6">
             <span className="material-symbols-outlined text-lg">info</span>
-            A propos de Novakou
+            A propos de FreelanceHigh
           </span>
           <h1 className="text-4xl md:text-5xl font-black text-white mb-6">
             La plateforme freelance qui eleve<br />votre carriere au plus haut niveau
           </h1>
           <p className="text-lg text-slate-400 max-w-3xl mx-auto">
-            Novakou connecte les talents freelances d&apos;Afrique francophone, de la diaspora et du monde
+            FreelanceHigh connecte les talents freelances d&apos;Afrique francophone, de la diaspora et du monde
             entier avec des clients qui recherchent l&apos;excellence. Fondee en 2026 par Lissanon Gildas.
           </p>
         </div>
@@ -74,7 +74,7 @@ export default function AProposPage() {
           <div className="bg-neutral-dark rounded-2xl border border-border-dark p-8 md:p-12">
             <div className="max-w-3xl mx-auto space-y-4 text-slate-300 leading-relaxed">
               <p>
-                Novakou est nee d&apos;un constat simple : les freelances d&apos;Afrique francophone
+                FreelanceHigh est nee d&apos;un constat simple : les freelances d&apos;Afrique francophone
                 et de la diaspora n&apos;ont pas acces aux memes opportunites que leurs homologues europeens
                 ou nord-americains.
               </p>
@@ -126,7 +126,7 @@ export default function AProposPage() {
 
         {/* CTA */}
         <div className="bg-neutral-dark rounded-2xl border border-primary/20 p-8 text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Rejoignez Novakou</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">Rejoignez FreelanceHigh</h2>
           <p className="text-slate-400 mb-6">
             Que vous soyez freelance, client ou agence, votre place est ici.
           </p>

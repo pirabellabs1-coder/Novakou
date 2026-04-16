@@ -1,4 +1,4 @@
-// Novakou — Admin Email Templates
+// FreelanceHigh — Admin Email Templates
 // Uses sendEmail from lib/email/index.ts — single source of truth for Resend
 
 import { sendEmail, emailLayout, button, getAppUrl } from "@/lib/email";
@@ -26,30 +26,30 @@ export async function sendAdminBroadcastEmail(
     </div>
     ${button("Acceder a la plateforme", getAppUrl())}
   `);
-  return sendEmail({ to: email, subject: `${title} — Novakou`, html });
+  return sendEmail({ to: email, subject: `${title} — FreelanceHigh`, html });
 }
 
 // ── Account Suspended Email ──
 export async function sendAccountSuspendedEmail(email: string, name: string, reason?: string) {
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Compte suspendu</h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">Bonjour ${name}, votre compte Novakou a ete temporairement suspendu.</p>
+    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">Bonjour ${name}, votre compte FreelanceHigh a ete temporairement suspendu.</p>
     ${reason ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:0 0 24px;"><p style="color:#dc2626;font-weight:600;margin:0 0 4px;">Motif :</p><p style="color:#991b1b;margin:0;">${reason}</p></div>` : ""}
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">Si vous pensez que cette suspension est une erreur, contactez notre equipe de support.</p>
     ${button("Contacter le support", `${getAppUrl()}/contact`)}
   `);
-  return sendEmail({ to: email, subject: "Compte suspendu — Novakou", html });
+  return sendEmail({ to: email, subject: "Compte suspendu — FreelanceHigh", html });
 }
 
 // ── Account Banned Email ──
 export async function sendAccountBannedEmail(email: string, name: string, reason?: string) {
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Compte banni</h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">Bonjour ${name}, votre compte Novakou a ete definitivement banni.</p>
+    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">Bonjour ${name}, votre compte FreelanceHigh a ete definitivement banni.</p>
     ${reason ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:0 0 24px;"><p style="color:#dc2626;font-weight:600;margin:0 0 4px;">Motif :</p><p style="color:#991b1b;margin:0;">${reason}</p></div>` : ""}
     ${button("Contacter le support", `${getAppUrl()}/contact`)}
   `);
-  return sendEmail({ to: email, subject: "Compte banni — Novakou", html });
+  return sendEmail({ to: email, subject: "Compte banni — FreelanceHigh", html });
 }
 
 // ── Admin Team Invitation Email ──
@@ -67,7 +67,7 @@ export async function sendAdminTeamInviteEmail(email: string, inviterName: strin
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Invitation a l'equipe d'administration</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour, <strong>${inviterName}</strong> vous invite a rejoindre l'equipe d'administration de Novakou
+      Bonjour, <strong>${inviterName}</strong> vous invite a rejoindre l'equipe d'administration de FreelanceHigh
       en tant que <strong>${roleLabel}</strong>.
     </p>
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;text-align:center;margin:0 0 24px;">
@@ -76,5 +76,5 @@ export async function sendAdminTeamInviteEmail(email: string, inviterName: strin
     ${button("Accepter l'invitation", `${getAppUrl()}/admin`)}
     <p style="color:#9ca3af;font-size:12px;margin:24px 0 0;">Si vous n'attendiez pas cette invitation, vous pouvez ignorer cet email.</p>
   `);
-  return sendEmail({ to: email, subject: `Invitation equipe admin — Novakou`, html });
+  return sendEmail({ to: email, subject: `Invitation equipe admin — FreelanceHigh`, html });
 }

@@ -1,5 +1,5 @@
 /**
- * API Client — Fonctions d'accès aux API routes Novakou
+ * API Client — Fonctions d'accès aux API routes FreelanceHigh
  * Utilisé par les composants et les stores pour communiquer avec le backend.
  */
 

@@ -1,5 +1,5 @@
 /**
- * Novakou — Marketing Event Bus
+ * FreelanceHigh — Marketing Event Bus
  *
  * Bus d'evenements in-process pour la propagation temps reel des evenements marketing.
  * Singleton qui permet aux differents modules de s'abonner aux evenements

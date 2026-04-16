@@ -99,7 +99,7 @@ const FAQ_ITEMS: FaqItem[] = [
     id: "4",
     question: "Comment fonctionne le système d'escrow (séquestre) ?",
     answer:
-      "Lorsqu'un client passe une commande, les fonds sont automatiquement bloqués en séquestre. Ils ne sont libérés dans votre portefeuille qu'une fois la livraison validée par le client. En cas de litige, les fonds restent gelés jusqu'à résolution par l'équipe Novakou. Ce système garantit la sécurité financière pour les deux parties.",
+      "Lorsqu'un client passe une commande, les fonds sont automatiquement bloqués en séquestre. Ils ne sont libérés dans votre portefeuille qu'une fois la livraison validée par le client. En cas de litige, les fonds restent gelés jusqu'à résolution par l'équipe FreelanceHigh. Ce système garantit la sécurité financière pour les deux parties.",
     category: "Finances",
   },
   {
@@ -137,7 +137,7 @@ const USEFUL_LINKS = [
   { label: "Politique de confidentialité", icon: "privacy_tip", href: "/confidentialite" },
   { label: "Guide de démarrage Agence", icon: "rocket_launch", href: "#" },
   { label: "Documentation API", icon: "code", href: "#" },
-  { label: "Blog Novakou", icon: "article", href: "/blog" },
+  { label: "Blog FreelanceHigh", icon: "article", href: "/blog" },
   { label: "Statut des services", icon: "monitor_heart", href: "/status" },
 ];
 

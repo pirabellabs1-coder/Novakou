@@ -69,7 +69,7 @@ export default function AbonnementPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `Novakou-${invoice.id}.pdf`;
+        a.download = `FreelanceHigh-${invoice.id}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
       } else {
@@ -77,7 +77,7 @@ export default function AbonnementPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `Novakou-${invoice.id}.pdf`;
+        a.download = `FreelanceHigh-${invoice.id}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
       }

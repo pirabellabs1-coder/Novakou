@@ -24,8 +24,8 @@ const t = {
       "Partagez votre reussite sur LinkedIn pour valoriser votre profil professionnel !",
     linkedInCta: "Partager sur LinkedIn",
     footer:
-      "Ce certificat est verifie et valide par Novakou. Il peut etre partage avec vos employeurs et clients potentiels.",
-    team: "L'equipe Novakou",
+      "Ce certificat est verifie et valide par FreelanceHigh. Il peut etre partage avec vos employeurs et clients potentiels.",
+    team: "L'equipe FreelanceHigh",
   },
   en: {
     subject: (title: string) => `Congratulations! Your certificate for "${title}"`,
@@ -41,8 +41,8 @@ const t = {
       "Share your achievement on LinkedIn to enhance your professional profile!",
     linkedInCta: "Share on LinkedIn",
     footer:
-      "This certificate is verified and validated by Novakou. It can be shared with your employers and potential clients.",
-    team: "The Novakou Team",
+      "This certificate is verified and validated by FreelanceHigh. It can be shared with your employers and potential clients.",
+    team: "The FreelanceHigh Team",
   },
 };
 
@@ -101,7 +101,7 @@ export function CertificateEmail({
               margin: 0,
             }}
           >
-            Novakou
+            FreelanceHigh
           </h1>
           <p
             style={{
@@ -397,7 +397,7 @@ export function CertificateEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
+            &copy; 2026 FreelanceHigh — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
           </p>
         </div>
       </div>

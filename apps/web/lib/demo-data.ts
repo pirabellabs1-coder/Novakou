@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Comprehensive Demo Data
+// FreelanceHigh — Comprehensive Demo Data
 // All data for the fully functional freelance dashboard
 // ============================================================
 

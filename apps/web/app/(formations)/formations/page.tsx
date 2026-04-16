@@ -30,7 +30,8 @@ export default async function FormationsPage() {
           </p>
 
           <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center md:justify-start">
-            <button
+            <Link
+              href="/formations/inscription?role=vendeur"
               className="text-white px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg font-bold flex items-center justify-center gap-3 hover:scale-105 transition-transform"
               style={{
                 background: "linear-gradient(to right, #006e2f, #22c55e)",
@@ -39,10 +40,14 @@ export default async function FormationsPage() {
             >
               <span>Lancer ma boutique</span>
               <span className="material-symbols-outlined">rocket_launch</span>
-            </button>
-            <button className="px-6 md:px-8 py-3 md:py-4 bg-[#f2f4f6] text-[#191c1e] font-bold rounded-full border border-[#bccbb9]/20 hover:bg-[#eceef0] transition-colors">
-              Voir les démos
-            </button>
+            </Link>
+            <Link
+              href="/formations/explorer"
+              className="px-6 md:px-8 py-3 md:py-4 bg-[#f2f4f6] text-[#191c1e] font-bold rounded-full border border-[#bccbb9]/20 hover:bg-[#eceef0] transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[18px]">explore</span>
+              Explorer le catalogue
+            </Link>
           </div>
 
           <div className="flex items-center gap-4 pt-2 justify-center md:justify-start">
@@ -369,6 +374,145 @@ export default async function FormationsPage() {
         </div>
       </section>
 
+      {/* ── 10B. AVIS & TÉMOIGNAGES ──────────────────────────────── */}
+      <section className="py-16 md:py-24 px-4 md:px-8 bg-slate-50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Ils nous font confiance</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight">
+              Des créateurs qui ont tout changé
+            </h2>
+            <p className="text-[#5c647a] text-base md:text-lg mt-4 max-w-2xl mx-auto">
+              Témoignages authentiques d&apos;entrepreneurs qui vivent aujourd&apos;hui de leurs produits digitaux.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                name: "Aminata Diallo",
+                role: "Coach business · Dakar",
+                initial: "AD",
+                text: "En 3 mois sur Novakou, j'ai vendu pour 2,4 M FCFA. La plateforme fait TOUT le travail technique — je me concentre juste sur mes élèves.",
+                rating: 5,
+                gradient: "from-[#006e2f] to-[#22c55e]",
+              },
+              {
+                name: "Jean-Baptiste Kouassi",
+                role: "Formateur marketing · Abidjan",
+                initial: "JK",
+                text: "J'étais sur Systeme.io avant. Novakou est 3x moins cher et parle français africain. Les Mobile Money en natif c'est décisif pour ma clientèle.",
+                rating: 5,
+                gradient: "from-[#f59e0b] to-[#dc2626]",
+              },
+              {
+                name: "Marie-Claire Assouma",
+                role: "Créatrice templates · Lomé",
+                initial: "MA",
+                text: "Je ne savais rien du marketing. Les tunnels pré-construits de Novakou m'ont donné une page de vente qui convertit à 4%. 450 ventes en 2 mois.",
+                rating: 5,
+                gradient: "from-[#7c3aed] to-[#a855f7]",
+              },
+            ].map((t) => (
+              <div key={t.name} className="bg-white rounded-2xl border border-gray-100 p-6 md:p-7 hover:shadow-xl hover:-translate-y-1 transition-all">
+                <div className="flex gap-0.5 mb-4">
+                  {Array.from({ length: t.rating }).map((_, i) => (
+                    <span key={i} className="material-symbols-outlined text-[16px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                  ))}
+                </div>
+                <p className="text-sm text-[#191c1e] leading-relaxed mb-5 italic">&ldquo;{t.text}&rdquo;</p>
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${t.gradient} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                    {t.initial}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-[#191c1e]">{t.name}</p>
+                    <p className="text-[11px] text-[#5c647a]">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10C. ACADÉMIE / RESSOURCES ───────────────────────────── */}
+      <section className="py-16 md:py-24 px-4 md:px-8 max-w-7xl mx-auto">
+        <div className="flex items-end justify-between mb-8 md:mb-12 flex-wrap gap-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Académie Novakou</p>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] tracking-tight">
+              Apprenez à vendre <span className="text-[#006e2f]">comme un pro</span>
+            </h2>
+            <p className="text-[#5c647a] text-base md:text-lg mt-3 max-w-2xl">
+              Guides gratuits, études de cas et stratégies testées sur le marché africain francophone.
+            </p>
+          </div>
+          <Link
+            href="/formations/blog"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-[#006e2f]/5 text-[#006e2f] font-bold text-sm hover:bg-[#006e2f]/10 transition-colors"
+          >
+            Voir tous les articles
+            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {[
+            {
+              slug: "lancer-son-premier-produit-digital",
+              category: "Guide",
+              title: "Comment lancer son premier produit digital en Afrique francophone",
+              excerpt: "De l'idée à la première vente : la méthode complète adaptée au marché africain.",
+              readTime: "8 min",
+              gradient: "linear-gradient(135deg, #006e2f, #22c55e)",
+              icon: "rocket_launch",
+            },
+            {
+              slug: "tunnels-de-vente-101",
+              category: "Marketing",
+              title: "Tunnels de vente : la méthode qui multiplie vos conversions par 3",
+              excerpt: "Hero, urgence, témoignages, upsell — chaque pièce expliquée avec exemples concrets.",
+              readTime: "12 min",
+              gradient: "linear-gradient(135deg, #4f46e5, #a855f7)",
+              icon: "filter_alt",
+            },
+            {
+              slug: "mobile-money-pour-vendeurs",
+              category: "Paiements",
+              title: "Mobile Money : tout ce qu'un vendeur doit savoir en 2026",
+              excerpt: "Orange Money, Wave, MTN : comment choisir et recevoir vos paiements sereinement.",
+              readTime: "6 min",
+              gradient: "linear-gradient(135deg, #f59e0b, #dc2626)",
+              icon: "smartphone",
+            },
+          ].map((a) => (
+            <Link
+              key={a.slug}
+              href={`/formations/blog/${a.slug}`}
+              className="group block bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all"
+            >
+              <div className="aspect-[16/9] flex items-center justify-center relative" style={{ background: a.gradient }}>
+                <span className="material-symbols-outlined text-white text-[56px] opacity-40">{a.icon}</span>
+                <span className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider text-white bg-black/25 backdrop-blur px-2 py-1 rounded-full">
+                  {a.category}
+                </span>
+              </div>
+              <div className="p-5">
+                <h3 className="text-base font-extrabold text-[#191c1e] leading-snug line-clamp-2 mb-2 group-hover:text-[#006e2f] transition-colors">
+                  {a.title}
+                </h3>
+                <p className="text-sm text-[#5c647a] leading-relaxed line-clamp-2 mb-3">{a.excerpt}</p>
+                <div className="flex items-center gap-1.5 text-[11px] text-[#5c647a]">
+                  <span className="material-symbols-outlined text-[12px]">schedule</span>
+                  {a.readTime} de lecture
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* ── 11. CTA FINAL ────────────────────────────────────────── */}
       <section className="py-16 md:py-24 px-4 md:px-8 relative overflow-hidden">
         <div className="max-w-5xl mx-auto bg-slate-900 squircle p-8 md:p-16 text-center relative overflow-hidden">
@@ -380,18 +524,22 @@ export default async function FormationsPage() {
             Rejoignez la nouvelle élite des créateurs digitaux et commencez à vendre dès aujourd&apos;hui.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center relative z-10">
-            <button
-              className="text-white px-8 md:px-10 py-4 md:py-5 rounded-full text-lg md:text-xl font-extrabold hover:scale-105 transition-transform"
+            <Link
+              href="/formations/inscription?role=vendeur"
+              className="text-white px-8 md:px-10 py-4 md:py-5 rounded-full text-lg md:text-xl font-extrabold hover:scale-105 transition-transform inline-block"
               style={{
                 background: "linear-gradient(to right, #006e2f, #22c55e)",
                 boxShadow: "0 25px 50px rgba(0,110,47,0.4)",
               }}
             >
               Démarrer gratuitement
-            </button>
-            <button className="px-8 md:px-10 py-4 md:py-5 bg-white/10 text-white rounded-full text-lg md:text-xl font-bold border border-white/20 hover:bg-white/20 transition-colors">
+            </Link>
+            <Link
+              href="/formations/contact"
+              className="px-8 md:px-10 py-4 md:py-5 bg-white/10 text-white rounded-full text-lg md:text-xl font-bold border border-white/20 hover:bg-white/20 transition-colors inline-block"
+            >
               Parler à un expert
-            </button>
+            </Link>
           </div>
           <p className="text-slate-500 mt-6 text-sm italic relative z-10">Pas de carte bancaire requise. Annulez à tout moment.</p>
         </div>

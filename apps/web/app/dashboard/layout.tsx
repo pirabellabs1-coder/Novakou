@@ -84,7 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="flex items-center gap-2 min-w-0">
               <span className="material-symbols-outlined text-primary hidden sm:block">rocket_launch</span>
-              <span className="font-bold text-lg text-white">Novakou</span>
+              <span className="font-bold text-lg text-white">FreelanceHigh</span>
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">

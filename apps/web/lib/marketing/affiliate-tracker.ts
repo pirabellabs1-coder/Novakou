@@ -1,5 +1,5 @@
 /**
- * Novakou — Affiliate Tracker
+ * FreelanceHigh — Affiliate Tracker
  *
  * Fonctions utilitaires pour le suivi des affilies :
  * - Generation de codes affilies uniques

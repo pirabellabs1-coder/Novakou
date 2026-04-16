@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Unified Messaging Store (API-first)
+// FreelanceHigh — Unified Messaging Store (API-first)
 // Real-time via Socket.io when available, polling fallback
 // ============================================================
 

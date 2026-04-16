@@ -44,7 +44,7 @@ function getOrderEscrowSteps(orderStatus: string, amount: number | null | undefi
   const fmt = (n: number | null | undefined) => (n ?? 0).toLocaleString("fr-FR");
   const steps = [
     { title: "Paiement Client Effectue", description: `Le client a effectue le paiement de ${fmt(safeAmount)} EUR.`, status: "completed" as const },
-    { title: "Fonds Securises par Novakou", description: "Les fonds sont securises sur la plateforme.", status: "completed" as const },
+    { title: "Fonds Securises par FreelanceHigh", description: "Les fonds sont securises sur la plateforme.", status: "completed" as const },
     {
       title: "Validation des Livrables",
       description: "Le client examine les livrables. Une fois approuves, les fonds seront liberes.",

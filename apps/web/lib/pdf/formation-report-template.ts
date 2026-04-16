@@ -41,7 +41,7 @@ export function generateInstructorReportPDF(data: InstructorReportData): ArrayBu
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text("Novakou", margin, 18);
+  doc.text("FreelanceHigh", margin, 18);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Rapport de formation — Instructeur", margin, 28);
@@ -172,7 +172,7 @@ export function generateInstructorReportPDF(data: InstructorReportData): ArrayBu
     doc.setPage(i);
     doc.setFontSize(7);
     doc.setTextColor(...GRAY_TEXT);
-    doc.text(`Novakou — Rapport généré le ${formatDate(data.generatedAt)}`, margin, 290);
+    doc.text(`FreelanceHigh — Rapport généré le ${formatDate(data.generatedAt)}`, margin, 290);
     doc.text(`Page ${i}/${pages}`, pageW - margin, 290, { align: "right" });
   }
 
@@ -213,7 +213,7 @@ export function generateLearnerReportPDF(data: LearnerReportData): ArrayBuffer {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(20);
   doc.setFont("helvetica", "bold");
-  doc.text("Novakou", margin, 18);
+  doc.text("FreelanceHigh", margin, 18);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text("Rapport de progression — Apprenant", margin, 28);
@@ -309,7 +309,7 @@ export function generateLearnerReportPDF(data: LearnerReportData): ArrayBuffer {
     doc.setPage(i);
     doc.setFontSize(7);
     doc.setTextColor(...GRAY_TEXT);
-    doc.text(`Novakou — Rapport généré le ${formatDate(data.generatedAt)}`, margin, 290);
+    doc.text(`FreelanceHigh — Rapport généré le ${formatDate(data.generatedAt)}`, margin, 290);
     doc.text(`Page ${i}/${pages}`, pageW - margin, 290, { align: "right" });
   }
 

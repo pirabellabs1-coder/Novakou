@@ -21,7 +21,7 @@ export default async function CookiesPage() {
           <p className="text-sm text-amber-400/80 mb-2 italic">{t("french_only_notice")}</p>
         )}
         <p className="text-sm text-slate-500 mb-12">
-          La présente Politique de Cookies explique comment Novakou (accessible à l&apos;adresse https://www.freelancehigh.com) utilise les cookies et technologies similaires pour vous reconnaître lorsque vous visitez notre plateforme. Elle explique ce que sont ces technologies, pourquoi nous les utilisons, et comment vous pouvez gérer vos préférences.
+          La présente Politique de Cookies explique comment FreelanceHigh (accessible à l&apos;adresse https://www.freelancehigh.com) utilise les cookies et technologies similaires pour vous reconnaître lorsque vous visitez notre plateforme. Elle explique ce que sont ces technologies, pourquoi nous les utilisons, et comment vous pouvez gérer vos préférences.
         </p>
 
         <div className="space-y-8">
@@ -85,13 +85,13 @@ export default async function CookiesPage() {
                       <td className="py-3 px-4 font-mono text-xs">csrf-token</td>
                       <td className="py-3 px-4">Protection contre les attaques par falsification de requêtes inter-sites (CSRF)</td>
                       <td className="py-3 px-4">Session</td>
-                      <td className="py-3 px-4">Novakou</td>
+                      <td className="py-3 px-4">FreelanceHigh</td>
                     </tr>
                     <tr>
                       <td className="py-3 px-4 font-mono text-xs">cookie-consent</td>
                       <td className="py-3 px-4">Mémorisation de vos préférences de cookies (acceptation ou refus)</td>
                       <td className="py-3 px-4">12 mois</td>
-                      <td className="py-3 px-4">Novakou</td>
+                      <td className="py-3 px-4">FreelanceHigh</td>
                     </tr>
                   </tbody>
                 </table>
@@ -237,7 +237,7 @@ export default async function CookiesPage() {
             <h2 className="text-xl font-bold text-white mb-4">3. Cookies tiers</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Certains cookies sont déposés par des services tiers intégrés à notre Plateforme. Nous n&apos;avons pas de contrôle direct sur ces cookies. Voici les services tiers susceptibles de déposer des cookies lors de votre utilisation de Novakou :
+              Certains cookies sont déposés par des services tiers intégrés à notre Plateforme. Nous n&apos;avons pas de contrôle direct sur ces cookies. Voici les services tiers susceptibles de déposer des cookies lors de votre utilisation de FreelanceHigh :
             </p>
 
             <div className="space-y-4">
@@ -368,7 +368,7 @@ export default async function CookiesPage() {
             <h2 className="text-xl font-bold text-white mb-4">7. Cookies que nous n&apos;utilisons PAS</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Pour votre information, voici les types de cookies que Novakou n&apos;utilise <strong className="text-slate-300">pas</strong> :
+              Pour votre information, voici les types de cookies que FreelanceHigh n&apos;utilise <strong className="text-slate-300">pas</strong> :
             </p>
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 ml-4">
               <li><strong className="text-slate-300">Cookies publicitaires :</strong> nous n&apos;affichons pas de publicité tierce sur la Plateforme et ne partageons pas vos données à des fins publicitaires.</li>

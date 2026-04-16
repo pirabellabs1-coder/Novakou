@@ -266,7 +266,7 @@ export function SeoEditor({ serviceId, serviceTitle, onClose }: SeoEditorProps) 
               <h3 className="text-sm font-semibold mb-2">Apercu Google</h3>
               <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-white dark:bg-slate-900">
                 <p className="text-blue-600 dark:text-blue-400 text-base font-medium truncate">
-                  {metaTitle || serviceTitle} | Novakou
+                  {metaTitle || serviceTitle} | FreelanceHigh
                 </p>
                 <p className="text-green-700 dark:text-green-500 text-xs mt-0.5">
                   freelancehigh.com/services/{seo?.slug || "..."}

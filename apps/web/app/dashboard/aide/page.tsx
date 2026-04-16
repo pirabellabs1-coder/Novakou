@@ -56,7 +56,7 @@ export default function AidePage() {
         </h1>
         <p className="text-slate-400 max-w-xl mx-auto">
           Trouvez des reponses a vos questions sur le fonctionnement de
-          Novakou, vos services, paiements, commandes et bien plus.
+          FreelanceHigh, vos services, paiements, commandes et bien plus.
         </p>
       </header>
 

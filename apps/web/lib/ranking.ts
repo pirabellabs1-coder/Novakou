@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Ranking & Scoring Algorithms
+// FreelanceHigh — Ranking & Scoring Algorithms
 // Shared library for landing page, marketplace, and boost rotation
 // ============================================================
 

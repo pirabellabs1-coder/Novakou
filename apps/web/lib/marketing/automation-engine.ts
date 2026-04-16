@@ -1,5 +1,5 @@
 /**
- * Novakou — Marketing Automation Engine
+ * FreelanceHigh — Marketing Automation Engine
  *
  * Moteur trigger-condition-action central du systeme marketing.
  * En mode DEV (DEV_MODE=true), les workflows sont stockes dans un fichier JSON local.
@@ -146,7 +146,7 @@ const SEED_WORKFLOWS: WorkflowDefinition[] = [
     triggerType: "USER_SIGNUP",
     isActive: true,
     actions: [
-      { type: "SEND_EMAIL", config: { template: "welcome", subject: "Bienvenue sur Novakou !" } },
+      { type: "SEND_EMAIL", config: { template: "welcome", subject: "Bienvenue sur FreelanceHigh !" } },
       { type: "ADD_TAG", config: { tag: "new_user" } },
       { type: "ENROLL_SEQUENCE", config: { sequenceId: "seq-onboarding" } },
     ],

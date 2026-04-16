@@ -1,5 +1,5 @@
 /**
- * Unified badge computation for Novakou.
+ * Unified badge computation for FreelanceHigh.
  * Single source of truth — ALL APIs must use this.
  * Format: Title Case, no accents.
  */

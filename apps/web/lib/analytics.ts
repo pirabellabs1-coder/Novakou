@@ -1,4 +1,4 @@
-// Novakou — Analytics event tracking (internal tracker + GA fallback)
+// FreelanceHigh — Analytics event tracking (internal tracker + GA fallback)
 
 import { tracker } from "./tracking/tracker";
 import type { TrackingEventType } from "./tracking/types";

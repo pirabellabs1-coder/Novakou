@@ -21,7 +21,7 @@ export default async function CguPage() {
           <p className="text-sm text-amber-400/80 mb-2 italic">{t("french_only_notice")}</p>
         )}
         <p className="text-sm text-slate-500 mb-12">
-          Les présentes Conditions Générales d&apos;Utilisation (ci-après &quot;CGU&quot;) régissent l&apos;accès et l&apos;utilisation de la plateforme Novakou. En accédant à la plateforme ou en créant un compte, vous acceptez l&apos;intégralité des présentes CGU.
+          Les présentes Conditions Générales d&apos;Utilisation (ci-après &quot;CGU&quot;) régissent l&apos;accès et l&apos;utilisation de la plateforme FreelanceHigh. En accédant à la plateforme ou en créant un compte, vous acceptez l&apos;intégralité des présentes CGU.
         </p>
 
         <div className="space-y-8">
@@ -32,15 +32,15 @@ export default async function CguPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">1.1 Objet</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Les présentes Conditions Générales d&apos;Utilisation ont pour objet de définir les modalités et conditions dans lesquelles la société Novakou (ci-après &quot;la Plateforme&quot;, &quot;nous&quot;, &quot;notre&quot;) met à disposition des utilisateurs sa marketplace de services numériques en ligne, accessible à l&apos;adresse https://www.freelancehigh.com et via toutes les applications mobiles associées.
+              Les présentes Conditions Générales d&apos;Utilisation ont pour objet de définir les modalités et conditions dans lesquelles la société FreelanceHigh (ci-après &quot;la Plateforme&quot;, &quot;nous&quot;, &quot;notre&quot;) met à disposition des utilisateurs sa marketplace de services numériques en ligne, accessible à l&apos;adresse https://www.freelancehigh.com et via toutes les applications mobiles associées.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou est une plateforme d&apos;intermédiation qui met en relation des prestataires de services numériques (freelances et agences) avec des donneurs d&apos;ordres (clients), dans un cadre sécurisé et professionnel. La Plateforme n&apos;est pas partie aux contrats conclus entre les Utilisateurs.
+              FreelanceHigh est une plateforme d&apos;intermédiation qui met en relation des prestataires de services numériques (freelances et agences) avec des donneurs d&apos;ordres (clients), dans un cadre sécurisé et professionnel. La Plateforme n&apos;est pas partie aux contrats conclus entre les Utilisateurs.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">1.2 Définitions</h3>
             <div className="text-sm text-slate-400 leading-relaxed space-y-3">
-              <p><strong className="text-slate-300">Plateforme :</strong> désigne le site web Novakou accessible à l&apos;adresse https://www.freelancehigh.com, ainsi que l&apos;ensemble de ses fonctionnalités, applications et services associés.</p>
+              <p><strong className="text-slate-300">Plateforme :</strong> désigne le site web FreelanceHigh accessible à l&apos;adresse https://www.freelancehigh.com, ainsi que l&apos;ensemble de ses fonctionnalités, applications et services associés.</p>
               <p><strong className="text-slate-300">Utilisateur :</strong> désigne toute personne physique ou morale inscrite sur la Plateforme, quel que soit son rôle (Freelance, Client ou Agence).</p>
               <p><strong className="text-slate-300">Freelance :</strong> désigne un Utilisateur inscrit en tant que prestataire de services indépendant, proposant ses compétences et services via la Plateforme.</p>
               <p><strong className="text-slate-300">Client :</strong> désigne un Utilisateur inscrit en tant que donneur d&apos;ordres, recherchant et commandant des services sur la Plateforme.</p>
@@ -144,7 +144,7 @@ export default async function CguPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">4.2 Modération des services</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Tout service publié est soumis à un processus de modération par l&apos;équipe Novakou avant d&apos;être visible sur la marketplace. La modération vérifie la conformité du service avec les présentes CGU, la qualité de la description et des visuels, l&apos;absence de contenu interdit, et la cohérence des tarifs proposés.
+              Tout service publié est soumis à un processus de modération par l&apos;équipe FreelanceHigh avant d&apos;être visible sur la marketplace. La modération vérifie la conformité du service avec les présentes CGU, la qualité de la description et des visuels, l&apos;absence de contenu interdit, et la cohérence des tarifs proposés.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
               La Plateforme peut approuver le service, demander des modifications, ou refuser la publication avec un motif détaillé. Ce processus de modération vise à maintenir la qualité globale de la marketplace et à protéger les Clients.
@@ -327,7 +327,7 @@ export default async function CguPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">9.2 Processus de médiation</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Après ouverture du litige, les parties disposent d&apos;un délai de 48 heures pour soumettre leurs arguments, preuves et justificatifs (captures d&apos;écran, fichiers, correspondances). L&apos;équipe de médiation Novakou examine l&apos;ensemble des éléments fournis et rend un verdict dans un délai de 5 jours ouvrés maximum.
+              Après ouverture du litige, les parties disposent d&apos;un délai de 48 heures pour soumettre leurs arguments, preuves et justificatifs (captures d&apos;écran, fichiers, correspondances). L&apos;équipe de médiation FreelanceHigh examine l&apos;ensemble des éléments fournis et rend un verdict dans un délai de 5 jours ouvrés maximum.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">9.3 Verdicts possibles</h3>
@@ -388,7 +388,7 @@ export default async function CguPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">11.3 Droits sur la Plateforme</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              L&apos;ensemble des éléments de la Plateforme (code source, design, logos, textes, base de données, fonctionnalités) sont la propriété exclusive de Novakou et sont protégés par le droit d&apos;auteur et le droit des marques. Toute reproduction, représentation ou utilisation non autorisée de ces éléments est interdite et peut faire l&apos;objet de poursuites judiciaires.
+              L&apos;ensemble des éléments de la Plateforme (code source, design, logos, textes, base de données, fonctionnalités) sont la propriété exclusive de FreelanceHigh et sont protégés par le droit d&apos;auteur et le droit des marques. Toute reproduction, représentation ou utilisation non autorisée de ces éléments est interdite et peut faire l&apos;objet de poursuites judiciaires.
             </p>
           </section>
 
@@ -398,7 +398,7 @@ export default async function CguPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">12.1 Rôle d&apos;intermédiaire</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou agit exclusivement en tant qu&apos;intermédiaire technique entre les Clients et les Prestataires. La Plateforme n&apos;est en aucun cas partie aux contrats conclus entre les Utilisateurs et ne peut être tenue responsable de la qualité, de la conformité ou de l&apos;exécution des services commandés.
+              FreelanceHigh agit exclusivement en tant qu&apos;intermédiaire technique entre les Clients et les Prestataires. La Plateforme n&apos;est en aucun cas partie aux contrats conclus entre les Utilisateurs et ne peut être tenue responsable de la qualité, de la conformité ou de l&apos;exécution des services commandés.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">12.2 Garanties limitées</h3>
@@ -469,7 +469,7 @@ export default async function CguPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">15.1 Suspension par la Plateforme</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou se réserve le droit de suspendre temporairement ou définitivement tout compte d&apos;Utilisateur en cas de : violation des présentes CGU, fourniture d&apos;informations fausses ou frauduleuses, comportement abusif répété envers d&apos;autres Utilisateurs, tentative de fraude financière, taux de litiges anormalement élevé, activité suspecte détectée sur le compte, non-respect des lois et réglementations en vigueur.
+              FreelanceHigh se réserve le droit de suspendre temporairement ou définitivement tout compte d&apos;Utilisateur en cas de : violation des présentes CGU, fourniture d&apos;informations fausses ou frauduleuses, comportement abusif répété envers d&apos;autres Utilisateurs, tentative de fraude financière, taux de litiges anormalement élevé, activité suspecte détectée sur le compte, non-respect des lois et réglementations en vigueur.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
               En cas de suspension, l&apos;Utilisateur est informé par email avec un motif détaillé. Les fonds en cours de traitement sont traités conformément à leur statut d&apos;escrow au moment de la suspension. L&apos;Utilisateur peut contester la suspension en contactant l&apos;équipe support.
@@ -556,7 +556,7 @@ export default async function CguPage() {
             <h2 className="text-xl font-bold text-white mb-4">Article 20 — Programme d&apos;affiliation</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              La Plateforme propose un programme d&apos;affiliation permettant aux Utilisateurs de recommander Novakou et de percevoir des commissions sur les inscriptions et transactions générées par leurs filleuls. Chaque Utilisateur dispose d&apos;un lien de parrainage unique accessible depuis son espace personnel.
+              La Plateforme propose un programme d&apos;affiliation permettant aux Utilisateurs de recommander FreelanceHigh et de percevoir des commissions sur les inscriptions et transactions générées par leurs filleuls. Chaque Utilisateur dispose d&apos;un lien de parrainage unique accessible depuis son espace personnel.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed">
               Les conditions et taux de commission du programme d&apos;affiliation sont détaillés dans la page dédiée <Link href="/affiliation" className="text-primary hover:underline">Programme d&apos;affiliation</Link>. La Plateforme se réserve le droit de modifier les conditions du programme d&apos;affiliation à tout moment, avec notification préalable aux participants.
@@ -568,7 +568,7 @@ export default async function CguPage() {
             <h2 className="text-xl font-bold text-white mb-4">Article 21 — Modifications des CGU</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou se réserve le droit de modifier les présentes CGU à tout moment. Les modifications substantielles sont notifiées aux Utilisateurs par email et par notification in-app au moins 30 jours avant leur entrée en vigueur. La poursuite de l&apos;utilisation de la Plateforme après l&apos;entrée en vigueur des modifications vaut acceptation des nouvelles CGU.
+              FreelanceHigh se réserve le droit de modifier les présentes CGU à tout moment. Les modifications substantielles sont notifiées aux Utilisateurs par email et par notification in-app au moins 30 jours avant leur entrée en vigueur. La poursuite de l&apos;utilisation de la Plateforme après l&apos;entrée en vigueur des modifications vaut acceptation des nouvelles CGU.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed">
               En cas de désaccord avec les modifications, l&apos;Utilisateur peut supprimer son compte conformément à l&apos;Article 15.2. Les anciennes versions des CGU sont archivées et consultables sur demande.
@@ -611,7 +611,7 @@ export default async function CguPage() {
             <h2 className="text-xl font-bold text-white mb-4">Article 24 — Formations et Produits Numériques</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Le présent article régit les conditions spécifiques applicables à la section Formations de la Plateforme Novakou, incluant les formations en ligne, les cohortes, les certificats de complétion et les produits numériques commercialisés par les Instructeurs.
+              Le présent article régit les conditions spécifiques applicables à la section Formations de la Plateforme FreelanceHigh, incluant les formations en ligne, les cohortes, les certificats de complétion et les produits numériques commercialisés par les Instructeurs.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">24.1 Définitions spécifiques aux formations</h3>
@@ -620,7 +620,7 @@ export default async function CguPage() {
             </p>
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 mb-4 ml-4">
               <li><strong className="text-slate-300">Formation :</strong> un cours en ligne composé de modules, leçons, vidéos, ressources téléchargeables et éventuellement de quiz ou d&apos;exercices, publié par un Instructeur sur la Plateforme.</li>
-              <li><strong className="text-slate-300">Instructeur :</strong> un Utilisateur dont la candidature a été approuvée par Novakou et qui dispose des droits de publication de formations et de produits numériques sur la Plateforme.</li>
+              <li><strong className="text-slate-300">Instructeur :</strong> un Utilisateur dont la candidature a été approuvée par FreelanceHigh et qui dispose des droits de publication de formations et de produits numériques sur la Plateforme.</li>
               <li><strong className="text-slate-300">Apprenant :</strong> un Utilisateur inscrit à une ou plusieurs formations sur la Plateforme, qu&apos;elles soient gratuites ou payantes.</li>
               <li><strong className="text-slate-300">Certificat de complétion :</strong> un document numérique généré automatiquement par la Plateforme attestant qu&apos;un Apprenant a complété l&apos;intégralité d&apos;une formation (100 % de progression) et, le cas échéant, obtenu le score minimum requis aux quiz.</li>
               <li><strong className="text-slate-300">Cohorte :</strong> une session de formation avec dates de début et de fin définies, un nombre de places limité, et un accompagnement structuré par l&apos;Instructeur.</li>
@@ -632,9 +632,9 @@ export default async function CguPage() {
               La publication de formations sur la Plateforme est soumise aux conditions suivantes :
             </p>
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 mb-4 ml-4">
-              <li>L&apos;Instructeur doit avoir soumis une candidature approuvée par l&apos;équipe Novakou.</li>
+              <li>L&apos;Instructeur doit avoir soumis une candidature approuvée par l&apos;équipe FreelanceHigh.</li>
               <li>Chaque formation doit contenir au minimum un titre, une description, un programme structuré et du contenu pédagogique (vidéo, texte ou ressources).</li>
-              <li>Toute formation publiée est soumise à un processus de modération avant d&apos;être visible publiquement. Novakou se réserve le droit de refuser, demander des modifications ou retirer une formation qui ne respecte pas les critères de qualité ou les présentes CGU.</li>
+              <li>Toute formation publiée est soumise à un processus de modération avant d&apos;être visible publiquement. FreelanceHigh se réserve le droit de refuser, demander des modifications ou retirer une formation qui ne respecte pas les critères de qualité ou les présentes CGU.</li>
               <li>L&apos;Instructeur est seul responsable de l&apos;exactitude, de la qualité et de la mise à jour du contenu de ses formations.</li>
               <li>L&apos;Instructeur garantit qu&apos;il dispose de tous les droits de propriété intellectuelle nécessaires sur le contenu publié et qu&apos;il ne porte atteinte à aucun droit de tiers.</li>
             </ul>
@@ -644,9 +644,9 @@ export default async function CguPage() {
               En publiant des formations ou des produits numériques sur la Plateforme, l&apos;Instructeur accepte les conditions financières suivantes :
             </p>
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 mb-4 ml-4">
-              <li><strong className="text-slate-300">Partage des revenus :</strong> l&apos;Instructeur perçoit 70 % du prix de vente net (hors taxes et frais de transaction) de chaque inscription payante à ses formations et de chaque vente de produit numérique. Novakou retient 30 % au titre de ses frais de plateforme, d&apos;hébergement, de paiement et de marketing.</li>
+              <li><strong className="text-slate-300">Partage des revenus :</strong> l&apos;Instructeur perçoit 70 % du prix de vente net (hors taxes et frais de transaction) de chaque inscription payante à ses formations et de chaque vente de produit numérique. FreelanceHigh retient 30 % au titre de ses frais de plateforme, d&apos;hébergement, de paiement et de marketing.</li>
               <li><strong className="text-slate-300">Paiements :</strong> les revenus sont calculés mensuellement et virés sur le portefeuille de l&apos;Instructeur dans un délai de 30 jours après la fin du mois civil. L&apos;Instructeur peut ensuite retirer ses fonds selon les méthodes de retrait disponibles (virement SEPA, Mobile Money, PayPal, Wise).</li>
-              <li><strong className="text-slate-300">Licence non-exclusive :</strong> l&apos;Instructeur accorde à Novakou une licence non-exclusive, mondiale et révocable d&apos;héberger, afficher, promouvoir et distribuer ses formations et produits numériques sur la Plateforme et ses canaux de communication.</li>
+              <li><strong className="text-slate-300">Licence non-exclusive :</strong> l&apos;Instructeur accorde à FreelanceHigh une licence non-exclusive, mondiale et révocable d&apos;héberger, afficher, promouvoir et distribuer ses formations et produits numériques sur la Plateforme et ses canaux de communication.</li>
               <li><strong className="text-slate-300">Droit de retrait :</strong> l&apos;Instructeur peut retirer ses formations de la vente à tout moment. Les apprenants déjà inscrits conservent leur accès conformément à l&apos;article 24.4. Les revenus acquis restent dus à l&apos;Instructeur.</li>
             </ul>
 
@@ -657,7 +657,7 @@ export default async function CguPage() {
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 mb-4 ml-4">
               <li><strong className="text-slate-300">Durée d&apos;accès :</strong> l&apos;accès à une formation achetée est illimité dans le temps, tant que la Plateforme est en service et que la formation n&apos;a pas été retirée par son auteur. En cas de retrait par l&apos;Instructeur, l&apos;Apprenant conserve l&apos;accès au contenu déjà acquis pendant une période minimale de 12 mois.</li>
               <li><strong className="text-slate-300">Usage personnel :</strong> l&apos;accès est strictement personnel et non transférable. Le partage de compte, la revente, la copie ou la redistribution du contenu d&apos;une formation est strictement interdit et constitue une violation des présentes CGU pouvant entraîner la suspension du compte.</li>
-              <li><strong className="text-slate-300">Révocation :</strong> Novakou se réserve le droit de révoquer l&apos;accès d&apos;un Apprenant en cas de violation des CGU, de fraude ou d&apos;abus. En cas de révocation abusive, l&apos;Apprenant peut contester la décision via le support.</li>
+              <li><strong className="text-slate-300">Révocation :</strong> FreelanceHigh se réserve le droit de révoquer l&apos;accès d&apos;un Apprenant en cas de violation des CGU, de fraude ou d&apos;abus. En cas de révocation abusive, l&apos;Apprenant peut contester la décision via le support.</li>
             </ul>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">24.5 Cohortes</h3>
@@ -668,7 +668,7 @@ export default async function CguPage() {
               <li><strong className="text-slate-300">Inscription limitée :</strong> les cohortes disposent d&apos;un nombre de places défini par l&apos;Instructeur. L&apos;inscription est ouverte jusqu&apos;à la date limite ou jusqu&apos;au remplissage complet, selon le premier événement survenu.</li>
               <li><strong className="text-slate-300">Dates de session :</strong> chaque cohorte a une date de début et une date de fin. Le contenu et l&apos;accompagnement sont dispensés selon un calendrier défini par l&apos;Instructeur.</li>
               <li><strong className="text-slate-300">Conditions d&apos;annulation :</strong> une inscription à une cohorte peut être annulée avec remboursement intégral jusqu&apos;à 7 jours avant la date de début. Après le début de la cohorte, aucun remboursement n&apos;est possible sauf en cas de force majeure ou de manquement avéré de l&apos;Instructeur.</li>
-              <li><strong className="text-slate-300">Engagement de l&apos;Instructeur :</strong> l&apos;Instructeur s&apos;engage à fournir l&apos;accompagnement décrit dans la fiche de la cohorte. En cas de non-respect, les apprenants peuvent solliciter un remboursement auprès du support Novakou.</li>
+              <li><strong className="text-slate-300">Engagement de l&apos;Instructeur :</strong> l&apos;Instructeur s&apos;engage à fournir l&apos;accompagnement décrit dans la fiche de la cohorte. En cas de non-respect, les apprenants peuvent solliciter un remboursement auprès du support FreelanceHigh.</li>
             </ul>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">24.6 Certificats de complétion</h3>
@@ -677,7 +677,7 @@ export default async function CguPage() {
             </p>
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 mb-4 ml-4">
               <li><strong className="text-slate-300">Conditions d&apos;obtention :</strong> un certificat est généré automatiquement lorsque l&apos;Apprenant a complété 100 % du contenu de la formation et, si la formation comporte des quiz notés, obtenu le score minimum requis défini par l&apos;Instructeur.</li>
-              <li><strong className="text-slate-300">Valeur informative :</strong> les certificats délivrés par Novakou ont une <strong className="text-slate-300">valeur informative uniquement</strong>. Ils ne constituent ni un diplôme reconnu par l&apos;État, ni une certification professionnelle au sens de la loi. Ils attestent de la complétion d&apos;un parcours de formation sur la Plateforme.</li>
+              <li><strong className="text-slate-300">Valeur informative :</strong> les certificats délivrés par FreelanceHigh ont une <strong className="text-slate-300">valeur informative uniquement</strong>. Ils ne constituent ni un diplôme reconnu par l&apos;État, ni une certification professionnelle au sens de la loi. Ils attestent de la complétion d&apos;un parcours de formation sur la Plateforme.</li>
               <li><strong className="text-slate-300">Vérification :</strong> chaque certificat dispose d&apos;un identifiant unique et d&apos;un QR code permettant à des tiers (employeurs, recruteurs) de vérifier son authenticité via une page de vérification publique sur la Plateforme.</li>
               <li><strong className="text-slate-300">Conservation :</strong> les certificats sont conservés indéfiniment dans le compte de l&apos;Apprenant et restent accessibles même après la suppression de la formation par l&apos;Instructeur.</li>
             </ul>
@@ -700,7 +700,7 @@ export default async function CguPage() {
             <ul className="text-sm text-slate-400 leading-relaxed list-disc list-inside space-y-2 mb-4 ml-4">
               <li><strong className="text-slate-300">Garantie 30 jours :</strong> l&apos;Apprenant dispose d&apos;un délai de 30 jours à compter de la date d&apos;achat pour demander un remboursement intégral, sans justification, à condition d&apos;avoir consulté moins de 30 % du contenu total de la formation.</li>
               <li><strong className="text-slate-300">Conditions d&apos;exclusion :</strong> le remboursement est refusé si l&apos;Apprenant a consulté plus de 30 % du contenu, s&apos;il a obtenu le certificat de complétion, ou si la demande intervient au-delà du délai de 30 jours.</li>
-              <li><strong className="text-slate-300">Procédure :</strong> la demande de remboursement se fait via le support Novakou. Le remboursement est effectué par le même moyen de paiement utilisé lors de l&apos;achat dans un délai de 14 jours ouvrables.</li>
+              <li><strong className="text-slate-300">Procédure :</strong> la demande de remboursement se fait via le support FreelanceHigh. Le remboursement est effectué par le même moyen de paiement utilisé lors de l&apos;achat dans un délai de 14 jours ouvrables.</li>
               <li><strong className="text-slate-300">Formations gratuites :</strong> les formations gratuites ne sont pas concernées par cette politique.</li>
             </ul>
 
@@ -723,7 +723,7 @@ export default async function CguPage() {
               <li><strong className="text-slate-300">Système de notation :</strong> les apprenants peuvent évaluer une formation sur une échelle de 1 à 5 étoiles, accompagnée d&apos;un commentaire textuel. L&apos;évaluation ne peut être soumise qu&apos;après avoir complété au minimum 50 % du contenu de la formation.</li>
               <li><strong className="text-slate-300">Règles :</strong> les évaluations doivent être honnêtes, factuelles et porter uniquement sur la qualité du contenu pédagogique. Les avis contenant des propos injurieux, diffamatoires, discriminatoires ou sans rapport avec la formation seront supprimés.</li>
               <li><strong className="text-slate-300">Droit de réponse :</strong> l&apos;Instructeur peut répondre publiquement à chaque avis. Les réponses doivent rester professionnelles et constructives.</li>
-              <li><strong className="text-slate-300">Authenticité :</strong> les faux avis (achetés, échangés entre Instructeurs, ou créés par des comptes fictifs) sont strictement interdits et entraînent la suspension du compte. Novakou se réserve le droit de vérifier l&apos;authenticité des évaluations.</li>
+              <li><strong className="text-slate-300">Authenticité :</strong> les faux avis (achetés, échangés entre Instructeurs, ou créés par des comptes fictifs) sont strictement interdits et entraînent la suspension du compte. FreelanceHigh se réserve le droit de vérifier l&apos;authenticité des évaluations.</li>
             </ul>
           </section>
 

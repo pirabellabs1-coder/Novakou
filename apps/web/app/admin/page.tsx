@@ -146,7 +146,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Administration</h1>
-          <p className="text-slate-400 text-sm mt-1">Vue globale de la plateforme Novakou.</p>
+          <p className="text-slate-400 text-sm mt-1">Vue globale de la plateforme FreelanceHigh.</p>
         </div>
         <div className="flex items-center gap-3">
           <button

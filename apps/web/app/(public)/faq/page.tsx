@@ -21,10 +21,10 @@ const FAQ_DATA: FaqCategory[] = [
     icon: "help",
     color: "text-primary",
     items: [
-      { q: "Qu'est-ce que Novakou ?", a: "Novakou est une plateforme de freelancing internationale, pensee pour l'Afrique francophone, la diaspora et le marche international. Elle met en relation freelances, clients et agences." },
-      { q: "Comment fonctionne Novakou ?", a: "Les freelances publient des services, les clients commandent. Les paiements sont securises par un systeme d'escrow (sequestre). Les fonds sont liberes apres validation de la livraison." },
-      { q: "Novakou est-il gratuit ?", a: "L'inscription est gratuite. Un plan Gratuit avec 20% de commission est disponible. Des plans Pro (15%), Business (10%) et Agence (8%) offrent plus de fonctionnalites." },
-      { q: "Dans quels pays Novakou est-il disponible ?", a: "Novakou est accessible dans le monde entier, avec un focus particulier sur l'Afrique francophone (Senegal, Cote d'Ivoire, Cameroun, etc.), la France et la diaspora." },
+      { q: "Qu'est-ce que FreelanceHigh ?", a: "FreelanceHigh est une plateforme de freelancing internationale, pensee pour l'Afrique francophone, la diaspora et le marche international. Elle met en relation freelances, clients et agences." },
+      { q: "Comment fonctionne FreelanceHigh ?", a: "Les freelances publient des services, les clients commandent. Les paiements sont securises par un systeme d'escrow (sequestre). Les fonds sont liberes apres validation de la livraison." },
+      { q: "FreelanceHigh est-il gratuit ?", a: "L'inscription est gratuite. Un plan Gratuit avec 20% de commission est disponible. Des plans Pro (15%), Business (10%) et Agence (8%) offrent plus de fonctionnalites." },
+      { q: "Dans quels pays FreelanceHigh est-il disponible ?", a: "FreelanceHigh est accessible dans le monde entier, avec un focus particulier sur l'Afrique francophone (Senegal, Cote d'Ivoire, Cameroun, etc.), la France et la diaspora." },
       { q: "Quelles langues sont supportees ?", a: "Francais (principal) et anglais. L'arabe et l'espagnol sont prevus dans les prochaines versions." },
     ],
   },
@@ -33,10 +33,10 @@ const FAQ_DATA: FaqCategory[] = [
     icon: "person",
     color: "text-emerald-400",
     items: [
-      { q: "Comment devenir freelance sur Novakou ?", a: "Inscrivez-vous en choisissant le role 'Freelance', completez votre profil et publiez votre premier service. C'est gratuit." },
+      { q: "Comment devenir freelance sur FreelanceHigh ?", a: "Inscrivez-vous en choisissant le role 'Freelance', completez votre profil et publiez votre premier service. C'est gratuit." },
       { q: "Combien de services puis-je publier ?", a: "Le plan Gratuit permet 3 services actifs. Le plan Pro permet 15, et les plans Business/Agence sont illimites." },
       { q: "Comment suis-je paye ?", a: "Apres validation de votre livraison par le client, les fonds sont liberes dans votre portefeuille. Vous pouvez retirer via virement SEPA, Mobile Money (Orange, Wave, MTN), PayPal ou Wise." },
-      { q: "Quelle est la commission Novakou ?", a: "Elle depend de votre plan : 20% (Gratuit), 15% (Pro a 15€/mois), 10% (Business a 45€/mois) ou 8% (Agence a 99€/mois)." },
+      { q: "Quelle est la commission FreelanceHigh ?", a: "Elle depend de votre plan : 20% (Gratuit), 15% (Pro a 15€/mois), 10% (Business a 45€/mois) ou 8% (Agence a 99€/mois)." },
       { q: "Comment obtenir un badge Verifie ?", a: "Completez la verification KYC : email verifie (niveau 1), telephone (niveau 2), piece d'identite (niveau 3) et verification professionnelle (niveau 4 — badge Elite)." },
     ],
   },
@@ -115,7 +115,7 @@ export default function FaqPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black text-white mb-4">Questions frequentes</h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-8">
-            Trouvez rapidement les reponses a vos questions sur Novakou.
+            Trouvez rapidement les reponses a vos questions sur FreelanceHigh.
           </p>
 
           {/* Search */}

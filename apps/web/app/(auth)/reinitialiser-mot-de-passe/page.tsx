@@ -128,7 +128,7 @@ function ReinitialiserMotDePasseContent() {
             <div className="bg-accent p-2 rounded-lg">
               <span className="material-symbols-outlined text-[#11211e] font-bold text-3xl">work</span>
             </div>
-            <h1 className="text-white text-3xl font-extrabold tracking-tight">Novakou</h1>
+            <h1 className="text-white text-3xl font-extrabold tracking-tight">FreelanceHigh</h1>
           </div>
 
           <h2 className="text-white text-5xl font-black leading-tight mb-6">
@@ -136,7 +136,7 @@ function ReinitialiserMotDePasseContent() {
           </h2>
 
           <p className="text-white/80 text-lg mb-10 leading-relaxed">
-            Un bon mot de passe protège votre compte, vos finances et vos données professionnelles sur Novakou.
+            Un bon mot de passe protège votre compte, vos finances et vos données professionnelles sur FreelanceHigh.
           </p>
 
           <div className="flex gap-4">
@@ -166,7 +166,7 @@ function ReinitialiserMotDePasseContent() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
             <span className="material-symbols-outlined text-primary text-3xl">work</span>
-            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">Novakou</h1>
+            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">FreelanceHigh</h1>
           </div>
 
           {tokenMissing ? (

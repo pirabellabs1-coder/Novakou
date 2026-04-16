@@ -142,7 +142,7 @@ export default function AdminComptabilite() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `comptabilite_Novakou_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `comptabilite_FreelanceHigh_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     addToast("success", `CSV exporte (${filtered.length} operations)`);
@@ -164,7 +164,7 @@ export default function AdminComptabilite() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `recapitulatif_Novakou_${new Date().toISOString().slice(0, 10)}.pdf`;
+      a.download = `recapitulatif_FreelanceHigh_${new Date().toISOString().slice(0, 10)}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
       addToast("success", "Recapitulatif PDF telecharge");

@@ -195,7 +195,7 @@ export default function AdminFormationsLoginPage() {
               <span className="material-symbols-outlined text-2xl text-indigo-500">school</span>
             </div>
             <h1 className="text-xl font-bold text-white">Admin Formations</h1>
-            <p className="text-slate-500 text-xs mt-1">Novakou — Acces restreint</p>
+            <p className="text-slate-500 text-xs mt-1">FreelanceHigh — Acces restreint</p>
           </div>
 
           {error && (

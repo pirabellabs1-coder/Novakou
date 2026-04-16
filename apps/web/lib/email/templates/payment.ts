@@ -1,5 +1,5 @@
 /**
- * Novakou — Email Templates : Paiements & Retraits (dark mode)
+ * FreelanceHigh — Email Templates : Paiements & Retraits (dark mode)
  */
 
 import { sendEmail, getAppUrl } from "@/lib/email";
@@ -15,7 +15,7 @@ export async function sendPaymentSuccessEmail(
 ) {
   const html = emailLayoutDark(`
     ${headingDark("Paiement recu !")}
-    ${textDark(`Bonjour ${name}, un paiement a ete credite sur votre portefeuille Novakou.`)}
+    ${textDark(`Bonjour ${name}, un paiement a ete credite sur votre portefeuille FreelanceHigh.`)}
     ${amountDark(`${data.amount.toFixed(2)} EUR`, data.serviceTitle)}
     ${buttonDark("Voir mes finances", `${getAppUrl()}/dashboard/finances`, "green")}
   `);
@@ -82,5 +82,5 @@ export async function sendWithdrawalRejectedEmail(
     ${textDark("Les fonds restent disponibles sur votre portefeuille.")}
     ${buttonDark("Contacter le support", `${getAppUrl()}/contact`, "red")}
   `);
-  return sendEmail({ to: email, subject: "Retrait refuse — Novakou", html });
+  return sendEmail({ to: email, subject: "Retrait refuse — FreelanceHigh", html });
 }

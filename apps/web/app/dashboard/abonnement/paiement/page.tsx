@@ -387,7 +387,7 @@ function PaiementContent() {
               <span className="text-primary cursor-pointer hover:underline">
                 politique de confidentialite
               </span>{" "}
-              de Novakou.
+              de FreelanceHigh.
             </p>
           </div>
         </div>

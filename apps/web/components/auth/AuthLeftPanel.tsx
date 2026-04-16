@@ -59,7 +59,7 @@ export function AuthLeftPanel({
             <Zap className="h-6 w-6 text-white fill-white" />
           </div>
           <span className="text-white text-xl font-extrabold tracking-tight">
-            Novakou
+            FreelanceHigh
           </span>
         </Link>
       </div>

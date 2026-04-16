@@ -70,7 +70,7 @@ export async function GET() {
         netAmount: order.freelancerPayout,
         totalPaid: order.amount,
         currency: order.currency,
-        description: order.service?.title ?? order.title ?? "Commande Novakou",
+        description: order.service?.title ?? order.title ?? "Commande FreelanceHigh",
         status: order.status === "TERMINE" ? "payee" : "en_attente",
         createdAt: order.createdAt.toISOString(),
         role,

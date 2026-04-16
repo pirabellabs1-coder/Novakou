@@ -1,8 +1,8 @@
 import { ServiceWizard } from "@/components/services/wizard/ServiceWizard";
 
 export const metadata = {
-  title: "Créer un service | Agence Novakou",
-  description: "Créez et publiez un service pour votre agence sur Novakou",
+  title: "Créer un service | Agence FreelanceHigh",
+  description: "Créez et publiez un service pour votre agence sur FreelanceHigh",
 };
 
 export default function CreateAgencyServicePage() {

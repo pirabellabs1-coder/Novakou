@@ -28,7 +28,7 @@ export const HELP_CATEGORIES: HelpCategory[] = [
     id: "demarrer",
     name: "Demarrer",
     icon: "rocket_launch",
-    description: "Premiers pas sur Novakou et configuration initiale",
+    description: "Premiers pas sur FreelanceHigh et configuration initiale",
   },
   {
     id: "services",
@@ -83,10 +83,10 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     id: "1",
     slug: "premiers-pas-freelancehigh",
-    title: "Premiers pas sur Novakou",
+    title: "Premiers pas sur FreelanceHigh",
     category: "demarrer",
     content: `
-<p>Bienvenue sur Novakou ! Cette plateforme vous permet de proposer vos services a une clientele internationale, avec un accent particulier sur l'Afrique francophone et la diaspora.</p>
+<p>Bienvenue sur FreelanceHigh ! Cette plateforme vous permet de proposer vos services a une clientele internationale, avec un accent particulier sur l'Afrique francophone et la diaspora.</p>
 <p>Apres votre inscription, vous accedez a votre tableau de bord freelance. C'est votre centre de commande : vous y retrouvez vos revenus, vos commandes actives, vos messages et vos statistiques de performance.</p>
 <p>Pour demarrer efficacement, nous vous recommandons de suivre ces etapes dans l'ordre :</p>
 <ol>
@@ -106,7 +106,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Comprendre la verification KYC",
     category: "demarrer",
     content: `
-<p>Le KYC (Know Your Customer) est un processus de verification progressive qui renforce la confiance entre les utilisateurs de la plateforme. Novakou utilise 4 niveaux de verification.</p>
+<p>Le KYC (Know Your Customer) est un processus de verification progressive qui renforce la confiance entre les utilisateurs de la plateforme. FreelanceHigh utilise 4 niveaux de verification.</p>
 <h3>Niveau 1 — Email verifie</h3>
 <p>Des votre inscription, un code OTP est envoye a votre adresse email. En le confirmant, vous accedez aux fonctionnalites de base : navigation sur le marketplace, consultation des profils et messagerie limitee.</p>
 <h3>Niveau 2 — Telephone verifie</h3>
@@ -126,10 +126,10 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Naviguer dans le tableau de bord",
     category: "demarrer",
     content: `
-<p>Le tableau de bord Novakou est concu pour vous donner une vue d'ensemble instantanee de votre activite. Voici un tour d'horizon des sections principales.</p>
+<p>Le tableau de bord FreelanceHigh est concu pour vous donner une vue d'ensemble instantanee de votre activite. Voici un tour d'horizon des sections principales.</p>
 <p><strong>Barre laterale gauche</strong> — Votre menu de navigation principal. Vous y trouvez tous les liens vers vos services, commandes, finances, messages, profil, parametres et cette page d'aide. Sur mobile, elle se transforme en menu hamburger.</p>
 <p><strong>Panneau central</strong> — L'espace de travail principal. C'est la que s'affichent les pages que vous consultez : dashboard, liste de commandes, wizard de creation de service, etc.</p>
-<p><strong>En-tete superieur</strong> — Contient le logo Novakou et la cloche de notifications. Un badge rouge indique le nombre de notifications non lues.</p>
+<p><strong>En-tete superieur</strong> — Contient le logo FreelanceHigh et la cloche de notifications. Un badge rouge indique le nombre de notifications non lues.</p>
 <p><strong>Cartes statistiques</strong> — Sur la page d'accueil du dashboard, quatre cartes vous montrent vos revenus totaux, les montants en attente, le nombre de commandes en cours et les messages non lus. Ces chiffres se mettent a jour en temps reel.</p>
 <p>Utilisez les raccourcis clavier pour naviguer plus rapidement : appuyez sur <kbd>/</kbd> pour ouvrir la recherche rapide depuis n'importe quelle page.</p>
 `,
@@ -144,7 +144,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Comment creer un service",
     category: "services",
     content: `
-<p>Creer un service est la premiere etape pour commencer a vendre sur Novakou. Le wizard de creation vous guide en 4 etapes simples.</p>
+<p>Creer un service est la premiere etape pour commencer a vendre sur FreelanceHigh. Le wizard de creation vous guide en 4 etapes simples.</p>
 <h3>Etape 1 — Informations generales</h3>
 <p>Choisissez un titre accrocheur (maximum 80 caracteres), selectionnez une categorie et une sous-categorie, ajoutez des tags pertinents et redigez une description detaillee de votre offre. La description doit expliquer clairement ce que le client recevra.</p>
 <h3>Etape 2 — Forfaits et tarification</h3>
@@ -164,7 +164,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Configurer les forfaits de votre service",
     category: "services",
     content: `
-<p>Les forfaits sont le coeur de votre offre commerciale. Un bon agencement de forfaits augmente significativement votre taux de conversion. Novakou vous permet de definir 3 niveaux.</p>
+<p>Les forfaits sont le coeur de votre offre commerciale. Un bon agencement de forfaits augmente significativement votre taux de conversion. FreelanceHigh vous permet de definir 3 niveaux.</p>
 <h3>Forfait Basique</h3>
 <p>C'est votre offre d'entree. Elle doit etre attractive et accessible pour inciter les clients a passer commande. Incluez le strict minimum de votre prestation avec un delai raisonnable. Exemple : pour un logo, le forfait Basique pourrait inclure 1 concept, 1 revision et une livraison en 5 jours.</p>
 <h3>Forfait Standard</h3>
@@ -183,7 +183,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Ajouter des images et une video a votre service",
     category: "services",
     content: `
-<p>Les visuels sont determinants pour attirer l'attention des acheteurs sur le marketplace. Novakou vous permet d'ajouter jusqu'a 5 images et 1 video de presentation par service.</p>
+<p>Les visuels sont determinants pour attirer l'attention des acheteurs sur le marketplace. FreelanceHigh vous permet d'ajouter jusqu'a 5 images et 1 video de presentation par service.</p>
 <h3>Images</h3>
 <p>Utilisez des images de haute qualite qui illustrent concretement votre travail. Les formats acceptes sont JPG, PNG et WebP, avec une taille maximale de 10 Mo par image. La resolution recommandee est de 1200x800 pixels minimum.</p>
 <p>La premiere image est celle qui apparait dans la vignette du marketplace — choisissez-la avec soin. Elle doit etre visuellement impactante et donner immediatement une idee de votre prestation.</p>
@@ -210,7 +210,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 <p>Ajoutez 3 a 5 tags pertinents. Les tags aident le moteur de recherche a comprendre la nature de votre service. Consultez les tags populaires dans votre categorie pour vous inspirer.</p>
 <h3>La categorie</h3>
 <p>Choisissez la categorie et la sous-categorie les plus precises possible. Un service bien categorise est mieux reference et apparait aux bons acheteurs.</p>
-<p>Novakou utilise la recherche full-text PostgreSQL pour indexer vos services. Les mots-cles dans le titre ont plus de poids que ceux dans la description. Mettez a jour regulierement votre service pour maintenir sa visibilite.</p>
+<p>FreelanceHigh utilise la recherche full-text PostgreSQL pour indexer vos services. Les mots-cles dans le titre ont plus de poids que ceux dans la description. Mettez a jour regulierement votre service pour maintenir sa visibilite.</p>
 `,
     relatedArticles: ["creer-un-service", "ajouter-images-service", "mettre-en-pause-service"],
     updatedAt: "2026-02-18",
@@ -221,7 +221,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Mettre en pause ou supprimer un service",
     category: "services",
     content: `
-<p>Il peut arriver que vous souhaitiez temporairement retirer un service du marketplace sans le supprimer definitivement. Novakou propose deux options.</p>
+<p>Il peut arriver que vous souhaitiez temporairement retirer un service du marketplace sans le supprimer definitivement. FreelanceHigh propose deux options.</p>
 <h3>Mise en pause</h3>
 <p>La mise en pause desactive votre service sur le marketplace : il n'apparait plus dans les resultats de recherche et les clients ne peuvent plus le commander. Cependant, toutes vos statistiques, avis et donnees sont conserves. Vous pouvez reactiver le service a tout moment en un clic.</p>
 <p>Cette option est ideale si vous partez en vacances (combinez-la avec le mode vacances de votre profil), si vous etes temporairement surcharge de commandes, ou si vous souhaitez mettre a jour votre offre avant de la republier.</p>
@@ -241,7 +241,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Comprendre le cycle d'une commande",
     category: "commandes",
     content: `
-<p>Chaque commande sur Novakou suit un cycle de vie precis. Comprendre ce cycle vous aide a gerer efficacement vos projets et a satisfaire vos clients.</p>
+<p>Chaque commande sur FreelanceHigh suit un cycle de vie precis. Comprendre ce cycle vous aide a gerer efficacement vos projets et a satisfaire vos clients.</p>
 <h3>1. Nouvelle commande</h3>
 <p>Lorsqu'un client passe commande, vous recevez une notification. Les fonds sont immediatement places en sequestre (escrow). Vous avez 24 heures pour accepter ou refuser la commande. Si vous ne reagissez pas, la commande est automatiquement acceptee.</p>
 <h3>2. En cours</h3>
@@ -262,7 +262,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Livrer une commande",
     category: "commandes",
     content: `
-<p>La livraison est l'etape cruciale de chaque commande. Voici comment proceder correctement sur Novakou.</p>
+<p>La livraison est l'etape cruciale de chaque commande. Voici comment proceder correctement sur FreelanceHigh.</p>
 <h3>Preparer vos fichiers</h3>
 <p>Rassemblez tous les livrables dans les formats convenus avec le client. Si le forfait inclut les fichiers source, n'oubliez pas de les joindre. Les formats acceptes incluent tous les types de fichiers courants : images, documents, archives ZIP, fichiers de design, code source, etc.</p>
 <h3>Envoyer la livraison</h3>
@@ -299,7 +299,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Demander une extension de delai",
     category: "commandes",
     content: `
-<p>Parfois, des imprevus surviennent et vous ne pouvez pas respecter le delai de livraison initial. Novakou vous permet de demander une extension de delai aupres de votre client.</p>
+<p>Parfois, des imprevus surviennent et vous ne pouvez pas respecter le delai de livraison initial. FreelanceHigh vous permet de demander une extension de delai aupres de votre client.</p>
 <h3>Comment proceder</h3>
 <p>Depuis la page de detail de la commande, cliquez sur "Demander une extension". Indiquez le nouveau delai souhaite et expliquez brievement la raison de votre demande. Le client recoit une notification et peut accepter ou refuser.</p>
 <h3>Impact sur votre profil</h3>
@@ -318,11 +318,11 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Methodes de retrait disponibles",
     category: "paiements",
     content: `
-<p>Novakou propose plusieurs methodes de retrait adaptees a votre localisation geographique. Toutes les methodes sont accessibles depuis la section <strong>Finances</strong> de votre tableau de bord.</p>
+<p>FreelanceHigh propose plusieurs methodes de retrait adaptees a votre localisation geographique. Toutes les methodes sont accessibles depuis la section <strong>Finances</strong> de votre tableau de bord.</p>
 <h3>Mobile Money (Afrique)</h3>
 <p>C'est la methode privilegiee pour les freelances en Afrique francophone. Les operateurs supportes incluent Orange Money (Senegal, Cote d'Ivoire, Cameroun, Mali, Burkina Faso), Wave (Senegal, Cote d'Ivoire), et MTN Mobile Money (Cote d'Ivoire, Cameroun). Le retrait est generalement credite en moins de 24 heures via CinetPay.</p>
 <h3>Virement SEPA</h3>
-<p>Pour les freelances en zone euro (France, Belgique, etc.), le virement SEPA est la methode la plus economique. Le delai de reception est de 1 a 3 jours ouvrables. Aucun frais supplementaire n'est applique par Novakou pour les virements SEPA.</p>
+<p>Pour les freelances en zone euro (France, Belgique, etc.), le virement SEPA est la methode la plus economique. Le delai de reception est de 1 a 3 jours ouvrables. Aucun frais supplementaire n'est applique par FreelanceHigh pour les virements SEPA.</p>
 <h3>PayPal</h3>
 <p>Disponible dans la plupart des pays. Les fonds sont credites sur votre compte PayPal sous 24 a 48 heures. Des frais PayPal standard s'appliquent a la reception.</p>
 <h3>Wise (TransferWise)</h3>
@@ -335,10 +335,10 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     id: "14",
     slug: "comprendre-commissions",
-    title: "Comprendre les commissions Novakou",
+    title: "Comprendre les commissions FreelanceHigh",
     category: "paiements",
     content: `
-<p>Novakou preleve une commission sur chaque transaction pour financer le fonctionnement de la plateforme, le systeme d'escrow, le support client et le developpement de nouvelles fonctionnalites.</p>
+<p>FreelanceHigh preleve une commission sur chaque transaction pour financer le fonctionnement de la plateforme, le systeme d'escrow, le support client et le developpement de nouvelles fonctionnalites.</p>
 <h3>Taux de commission par plan</h3>
 <p>Le taux de commission depend de votre plan d'abonnement actuel :</p>
 <ul>
@@ -362,7 +362,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Portefeuille multi-devises",
     category: "paiements",
     content: `
-<p>Novakou vous offre un portefeuille multi-devises qui vous permet de gerer vos fonds dans plusieurs monnaies simultanement.</p>
+<p>FreelanceHigh vous offre un portefeuille multi-devises qui vous permet de gerer vos fonds dans plusieurs monnaies simultanement.</p>
 <h3>Devises supportees</h3>
 <p>Votre portefeuille peut detenir des soldes en EUR (Euro), FCFA (Franc CFA), USD (Dollar americain), GBP (Livre sterling) et MAD (Dirham marocain). La devise par defaut de la plateforme est l'Euro.</p>
 <h3>Conversion entre devises</h3>
@@ -380,14 +380,14 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Facturation et documents comptables",
     category: "paiements",
     content: `
-<p>Novakou genere automatiquement des factures pour chaque transaction, ce qui vous simplifie la gestion comptable.</p>
+<p>FreelanceHigh genere automatiquement des factures pour chaque transaction, ce qui vous simplifie la gestion comptable.</p>
 <h3>Factures de vente</h3>
-<p>A chaque commande terminee, une facture PDF est generee contenant le detail de la prestation, le montant brut, la commission Novakou prelevee et le montant net credite dans votre portefeuille. Ces factures sont telechargables depuis la section <strong>Finances > Factures</strong>.</p>
+<p>A chaque commande terminee, une facture PDF est generee contenant le detail de la prestation, le montant brut, la commission FreelanceHigh prelevee et le montant net credite dans votre portefeuille. Ces factures sont telechargables depuis la section <strong>Finances > Factures</strong>.</p>
 <h3>Factures d'abonnement</h3>
 <p>Si vous avez un plan payant (Pro, Business ou Agence), une facture mensuelle est emise pour le montant de votre abonnement. Ces factures sont conformes et incluent les mentions legales requises.</p>
 <h3>Export comptable</h3>
 <p>Vous pouvez exporter l'ensemble de vos transactions au format CSV pour les importer dans votre logiciel de comptabilite. Un rapport annuel recapitulatif est egalement disponible en PDF pour faciliter vos declarations fiscales.</p>
-<p><strong>Note importante :</strong> Novakou fournit les documents pour faciliter votre gestion, mais ne constitue pas un conseil fiscal. Consultez un comptable ou un expert fiscal pour vos obligations declaratives specifiques a votre pays de residence.</p>
+<p><strong>Note importante :</strong> FreelanceHigh fournit les documents pour faciliter votre gestion, mais ne constitue pas un conseil fiscal. Consultez un comptable ou un expert fiscal pour vos obligations declaratives specifiques a votre pays de residence.</p>
 `,
     relatedArticles: ["comprendre-commissions", "methodes-retrait", "plans-abonnement"],
     updatedAt: "2026-02-21",
@@ -400,7 +400,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Completer et optimiser votre profil",
     category: "profil",
     content: `
-<p>Un profil complet et soigne est votre meilleure carte de visite sur Novakou. Les clients consultent votre profil avant de passer commande — c'est souvent le facteur decisif.</p>
+<p>Un profil complet et soigne est votre meilleure carte de visite sur FreelanceHigh. Les clients consultent votre profil avant de passer commande — c'est souvent le facteur decisif.</p>
 <h3>Photo de profil</h3>
 <p>Utilisez une photo professionnelle de qualite, bien eclairee, ou votre visage est clairement visible. Les profils avec photo recoivent 3 fois plus de clics que ceux sans.</p>
 <h3>Bio et titre professionnel</h3>
@@ -440,7 +440,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Badges et certifications",
     category: "profil",
     content: `
-<p>Les badges Novakou sont des marqueurs de confiance affiches sur votre profil public. Ils aident les clients a evaluer rapidement votre fiabilite et votre expertise.</p>
+<p>Les badges FreelanceHigh sont des marqueurs de confiance affiches sur votre profil public. Ils aident les clients a evaluer rapidement votre fiabilite et votre expertise.</p>
 <h3>Types de badges</h3>
 <ul>
 <li><strong>Verifie :</strong> attribue automatiquement lorsque votre KYC atteint le niveau 3 (piece d'identite verifiee).</li>
@@ -450,7 +450,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 <li><strong>Elite :</strong> le plus haut niveau, reserve aux freelances ayant atteint le KYC niveau 4 et repondant a des criteres stricts de performance.</li>
 </ul>
 <h3>Certifications IA (V3)</h3>
-<p>Novakou preparera des tests de competences surveilles par intelligence artificielle. En reussissant un test, vous obtiendrez un badge de certification affiche sur votre profil. Les domaines couverts incluront le developpement web, le design graphique, la redaction, le marketing digital et bien d'autres.</p>
+<p>FreelanceHigh preparera des tests de competences surveilles par intelligence artificielle. En reussissant un test, vous obtiendrez un badge de certification affiche sur votre profil. Les domaines couverts incluront le developpement web, le design graphique, la redaction, le marketing digital et bien d'autres.</p>
 <p>Les badges sont reevalues periodiquement. Maintenez une qualite de service elevee pour conserver vos badges.</p>
 `,
     relatedArticles: ["completer-profil", "verification-kyc", "ajouter-portfolio"],
@@ -464,14 +464,14 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Ouvrir un litige",
     category: "litiges",
     content: `
-<p>Si vous rencontrez un differend avec un client que vous ne parvenez pas a resoudre par la messagerie, Novakou met a votre disposition un systeme de litiges equitable.</p>
+<p>Si vous rencontrez un differend avec un client que vous ne parvenez pas a resoudre par la messagerie, FreelanceHigh met a votre disposition un systeme de litiges equitable.</p>
 <h3>Quand ouvrir un litige</h3>
 <p>Ouvrez un litige lorsque le client demande des modifications qui sortent du cadre de la commande initiale, refuse de valider une livraison conforme, ou adopte un comportement abusif. Essayez toujours de resoudre le probleme a l'amiable d'abord — les litiges doivent rester un dernier recours.</p>
 <h3>Comment proceder</h3>
 <p>Depuis la page de detail de la commande concernee, cliquez sur "Ouvrir un litige". Decrivez precisement le probleme, joignez des preuves (captures d'ecran, fichiers, extraits de conversation) et selectionnez la resolution souhaitee.</p>
 <h3>Ce qui se passe ensuite</h3>
-<p>Les fonds de la commande sont immediatement geles (escrow_status = 'disputed'). Un moderateur Novakou examine le dossier sous 48 a 72 heures. Les deux parties peuvent soumettre des preuves supplementaires pendant cette periode.</p>
-<p><strong>Important :</strong> conservez toujours vos echanges dans le chat integre de la plateforme plutot que sur des messageries externes. Les messages dans le chat Novakou constituent des preuves recevables en cas de litige.</p>
+<p>Les fonds de la commande sont immediatement geles (escrow_status = 'disputed'). Un moderateur FreelanceHigh examine le dossier sous 48 a 72 heures. Les deux parties peuvent soumettre des preuves supplementaires pendant cette periode.</p>
+<p><strong>Important :</strong> conservez toujours vos echanges dans le chat integre de la plateforme plutot que sur des messageries externes. Les messages dans le chat FreelanceHigh constituent des preuves recevables en cas de litige.</p>
 `,
     relatedArticles: ["processus-resolution-litige", "comprendre-cycle-commande"],
     updatedAt: "2026-03-02",
@@ -482,12 +482,12 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Processus de resolution d'un litige",
     category: "litiges",
     content: `
-<p>Le systeme de resolution des litiges Novakou est concu pour etre rapide, equitable et transparent pour les deux parties.</p>
+<p>Le systeme de resolution des litiges FreelanceHigh est concu pour etre rapide, equitable et transparent pour les deux parties.</p>
 <h3>Etapes du processus</h3>
 <ol>
 <li><strong>Ouverture :</strong> L'une des parties ouvre un litige. Les fonds sont geles et un dossier est cree.</li>
 <li><strong>Collecte de preuves :</strong> Chaque partie dispose de 48 heures pour soumettre ses arguments et preuves (messages, fichiers, captures d'ecran, brief initial).</li>
-<li><strong>Examen par un moderateur :</strong> Un membre de l'equipe Novakou examine l'ensemble du dossier, y compris l'historique complet de la commande et des echanges.</li>
+<li><strong>Examen par un moderateur :</strong> Un membre de l'equipe FreelanceHigh examine l'ensemble du dossier, y compris l'historique complet de la commande et des echanges.</li>
 <li><strong>Verdict :</strong> Le moderateur rend une decision : fonds liberes en faveur du freelance, remboursement total au client, ou remboursement partiel avec repartition equitable.</li>
 </ol>
 <h3>Apres le verdict</h3>
@@ -513,7 +513,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
 <p>Si vous preferez, vous pouvez recevoir le code par SMS sur votre numero de telephone verifie. Cette methode est moins securisee que le TOTP (risque de SIM swapping) mais reste meilleure que pas de 2FA du tout.</p>
 <h3>Codes de secours</h3>
 <p>Lors de l'activation du 2FA, des codes de secours a usage unique vous sont fournis. Conservez-les precieusement dans un endroit sur (gestionnaire de mots de passe, impression papier). Ils vous permettront de vous connecter si vous perdez l'acces a votre application d'authentification.</p>
-<p><strong>Recommandation forte :</strong> activez le 2FA des que possible, surtout si votre portefeuille Novakou contient des fonds. C'est une protection essentielle contre le vol de compte.</p>
+<p><strong>Recommandation forte :</strong> activez le 2FA des que possible, surtout si votre portefeuille FreelanceHigh contient des fonds. C'est une protection essentielle contre le vol de compte.</p>
 `,
     relatedArticles: ["connexions-suspectes", "verification-kyc"],
     updatedAt: "2026-03-04",
@@ -524,14 +524,14 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "Connexions suspectes et sessions actives",
     category: "securite",
     content: `
-<p>Novakou surveille les connexions a votre compte et vous alerte en cas d'activite suspecte. Vous pouvez consulter et gerer vos sessions actives a tout moment.</p>
+<p>FreelanceHigh surveille les connexions a votre compte et vous alerte en cas d'activite suspecte. Vous pouvez consulter et gerer vos sessions actives a tout moment.</p>
 <h3>Alertes de connexion</h3>
 <p>Chaque fois qu'une connexion est detectee depuis un nouvel appareil ou une nouvelle localisation geographique, vous recevez un email d'alerte. L'email contient les details de la connexion : appareil, navigateur, systeme d'exploitation, localisation approximative et adresse IP.</p>
 <h3>Sessions actives</h3>
 <p>Depuis <strong>Parametres > Securite > Sessions actives</strong>, vous voyez la liste de toutes les sessions ouvertes sur votre compte. Pour chaque session, vous pouvez voir l'appareil, le navigateur, la localisation et la derniere activite. La session actuelle est marquee d'un badge "Actif maintenant".</p>
 <h3>Revoquer une session</h3>
 <p>Si vous identifiez une session que vous ne reconnaissez pas, cliquez sur "Deconnecter" pour la revoquer immediatement. Vous pouvez aussi utiliser le bouton "Deconnecter toutes les autres sessions" pour une reinitialisation complete.</p>
-<p>En cas de suspicion de compromission, changez immediatement votre mot de passe et activez le 2FA si ce n'est pas deja fait. Contactez le support Novakou si vous pensez que votre compte a ete utilise frauduleusement.</p>
+<p>En cas de suspicion de compromission, changez immediatement votre mot de passe et activez le 2FA si ce n'est pas deja fait. Contactez le support FreelanceHigh si vous pensez que votre compte a ete utilise frauduleusement.</p>
 `,
     relatedArticles: ["configurer-2fa", "verification-kyc"],
     updatedAt: "2026-02-25",
@@ -541,10 +541,10 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     id: "24",
     slug: "plans-abonnement",
-    title: "Plans d'abonnement Novakou",
+    title: "Plans d'abonnement FreelanceHigh",
     category: "abonnements",
     content: `
-<p>Novakou propose 4 plans pour s'adapter a tous les niveaux d'activite, du debutant au professionnel confirme.</p>
+<p>FreelanceHigh propose 4 plans pour s'adapter a tous les niveaux d'activite, du debutant au professionnel confirme.</p>
 <h3>Plan Gratuit</h3>
 <p>Ideal pour demarrer. Vous pouvez publier jusqu'a 3 services actifs et envoyer 5 candidatures par mois. La commission sur les ventes est de 20%. C'est un excellent moyen de tester la plateforme sans engagement.</p>
 <h3>Plan Pro — 15 EUR/mois</h3>

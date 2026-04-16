@@ -195,7 +195,7 @@ export default function AdminMarketplaceLoginPage() {
               <span className="material-symbols-outlined text-2xl text-red-500">store</span>
             </div>
             <h1 className="text-xl font-bold text-white">Admin Marketplace</h1>
-            <p className="text-slate-500 text-xs mt-1">Novakou — Acces restreint</p>
+            <p className="text-slate-500 text-xs mt-1">FreelanceHigh — Acces restreint</p>
           </div>
 
           {error && (

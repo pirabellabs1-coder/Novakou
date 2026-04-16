@@ -23,7 +23,7 @@ const t = {
     cta: "Commencer a apprendre",
     footer:
       "Satisfait ou rembourse 30 jours. Contactez le support si vous avez des questions.",
-    team: "L'equipe Novakou",
+    team: "L'equipe FreelanceHigh",
   },
   en: {
     subject: (title: string) => `Your enrollment in "${title}" is confirmed!`,
@@ -36,7 +36,7 @@ const t = {
     cta: "Start learning",
     footer:
       "30-day money-back guarantee. Contact support if you have any questions.",
-    team: "The Novakou Team",
+    team: "The FreelanceHigh Team",
   },
 };
 
@@ -89,7 +89,7 @@ export function FormationPurchaseEmail({
               margin: 0,
             }}
           >
-            Novakou
+            FreelanceHigh
           </h1>
           <p
             style={{
@@ -325,7 +325,7 @@ export function FormationPurchaseEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
+            &copy; 2026 FreelanceHigh — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
           </p>
         </div>
       </div>

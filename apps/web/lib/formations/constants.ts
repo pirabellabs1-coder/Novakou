@@ -1,4 +1,4 @@
-// Novakou — Constantes centralisées
+// FreelanceHigh — Constantes centralisées
 // Valeur unique de la commission plateforme — utilisée partout
 
 /** Pourcentage de commission prélevé par la plateforme sur chaque vente (5%). */

@@ -1,5 +1,5 @@
 /**
- * Novakou — Event Dispatcher
+ * FreelanceHigh — Event Dispatcher
  * Point d'entree unique pour emettre des evenements (notification + email).
  *
  * Usage :

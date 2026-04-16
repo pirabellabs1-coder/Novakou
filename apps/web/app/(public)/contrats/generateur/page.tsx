@@ -371,7 +371,7 @@ function ContractPreview({
         {/* Logo + brand */}
         <div className="flex items-center gap-2 mb-6">
           <span className="material-symbols-outlined text-primary text-2xl">public</span>
-          <span className="text-lg font-extrabold tracking-tight">Novakou</span>
+          <span className="text-lg font-extrabold tracking-tight">FreelanceHigh</span>
         </div>
 
         {/* Title */}

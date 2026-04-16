@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 type NavItem = {
   icon: string;
@@ -263,6 +263,16 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
             <span className="material-symbols-outlined text-[18px]">add_circle</span>
             {(!collapsed || mobileOpen) && "Créer un produit"}
           </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: "/formations" })}
+            title={collapsed && !mobileOpen ? "Se déconnecter" : undefined}
+            className={`mt-2 flex items-center justify-center gap-2 w-full rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200 ${
+              collapsed && !mobileOpen ? "py-2 px-2" : "py-2.5 px-4"
+            }`}
+          >
+            <span className="material-symbols-outlined text-[16px]">logout</span>
+            {(!collapsed || mobileOpen) && "Se déconnecter"}
+          </button>
         </div>
       </aside>
 

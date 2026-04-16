@@ -1,5 +1,5 @@
 /**
- * Novakou — Email Sequence Processor
+ * FreelanceHigh — Email Sequence Processor
  *
  * Traitement des sequences email automatisees etape par etape.
  * Gere l'inscription des utilisateurs dans les sequences, l'execution
@@ -148,7 +148,7 @@ const SEED_STEPS: SequenceStepRecord[] = [
     stepOrder: 0,
     stepType: "EMAIL",
     subjectFr: "Bienvenue ! Voici comment bien demarrer",
-    bodyFr: "Bonjour {{name}}, bienvenue sur Novakou ! Decouvrez nos formations...",
+    bodyFr: "Bonjour {{name}}, bienvenue sur FreelanceHigh ! Decouvrez nos formations...",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

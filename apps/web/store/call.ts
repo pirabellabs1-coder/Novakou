@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Call Store
+// FreelanceHigh — Call Store
 // Store Zustand pour l'état d'appel en cours
 // ============================================================
 

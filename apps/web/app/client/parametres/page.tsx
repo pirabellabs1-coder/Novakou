@@ -22,7 +22,7 @@ const NOTIFICATION_ITEMS_DEFAULT = [
   { id: "3", label: "Livraison commande", desc: "Quand un freelance livre une commande", email: true, push: false },
   { id: "4", label: "Paiement effectué", desc: "Confirmation de paiement", email: true, push: false },
   { id: "5", label: "Rappels de délais", desc: "Quand une deadline approche", email: false, push: true },
-  { id: "6", label: "Newsletter", desc: "Actualités et conseils Novakou", email: false, push: false },
+  { id: "6", label: "Newsletter", desc: "Actualités et conseils FreelanceHigh", email: false, push: false },
 ];
 
 export default function ClientSettings() {
@@ -176,7 +176,7 @@ export default function ClientSettings() {
                     </div>
                     <div>
                       <p className="text-xl font-bold text-white">{profileForm.fullName || "Votre nom"}</p>
-                      <p className="text-sm text-slate-400">Client Novakou</p>
+                      <p className="text-sm text-slate-400">Client FreelanceHigh</p>
                     </div>
                   </div>
 

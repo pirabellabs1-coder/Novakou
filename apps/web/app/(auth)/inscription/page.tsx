@@ -142,7 +142,7 @@ const LEFT_CONTENT = [
   },
   {
     headline: "Vous êtes prêt à décoller !",
-    subtitle: "Votre profil est configuré. Découvrez tout ce que Novakou peut vous offrir.",
+    subtitle: "Votre profil est configuré. Découvrez tout ce que FreelanceHigh peut vous offrir.",
     items: [
       { icon: "rocket_launch", text: "Lancez-vous dès maintenant" },
       { icon: "shield", text: "Environnement sécurisé et vérifié" },
@@ -176,7 +176,7 @@ function LeftPanel({ step }: { step: number }) {
           <div className="bg-accent p-2 rounded-lg">
             <span className="material-symbols-outlined text-[#11211e] font-bold text-3xl">work</span>
           </div>
-          <h1 className="text-white text-3xl font-extrabold tracking-tight">Novakou</h1>
+          <h1 className="text-white text-3xl font-extrabold tracking-tight">FreelanceHigh</h1>
         </div>
 
         <h2 className="text-white text-4xl lg:text-5xl font-black leading-tight mb-6">
@@ -1076,7 +1076,7 @@ export default function InscriptionPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-6 justify-center">
             <span className="material-symbols-outlined text-primary text-3xl">work</span>
-            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">Novakou</h1>
+            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">FreelanceHigh</h1>
           </div>
 
           {/* Step indicator */}

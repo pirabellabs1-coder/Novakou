@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Plan Rules & Enforcement (Modèle "Élévation")
+// FreelanceHigh — Plan Rules & Enforcement (Modèle "Élévation")
 // Authoritative source of truth for subscription plan limits
 // ============================================================
 

@@ -671,7 +671,7 @@ export default function SecuritePage() {
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               Ne partagez jamais vos codes de recuperation 2FA avec qui que ce soit.
-              Conservez-les dans un endroit sur et hors ligne. Novakou ne vous
+              Conservez-les dans un endroit sur et hors ligne. FreelanceHigh ne vous
               demandera jamais vos codes par email ou telephone.
             </p>
             <div className="flex items-start gap-2 pt-1">

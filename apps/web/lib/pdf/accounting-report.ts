@@ -40,7 +40,7 @@ export function generateAccountingReport(data: AccountingReportData): Uint8Array
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("Novakou", 20, 20);
+  doc.text("FreelanceHigh", 20, 20);
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
@@ -125,7 +125,7 @@ export function generateAccountingReport(data: AccountingReportData): Uint8Array
   const footerY = doc.internal.pageSize.getHeight() - 15;
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
-  doc.text("Novakou — La plateforme freelance qui eleve votre carriere au plus haut niveau", pageWidth / 2, footerY, { align: "center" });
+  doc.text("FreelanceHigh — La plateforme freelance qui eleve votre carriere au plus haut niveau", pageWidth / 2, footerY, { align: "center" });
   doc.text("Document genere automatiquement — Ne constitue pas une facture officielle", pageWidth / 2, footerY + 4, { align: "center" });
 
   return doc.output("arraybuffer") as unknown as Uint8Array;

@@ -66,7 +66,7 @@ export function ConnectedNavbar() {
           <span className="material-symbols-outlined text-primary text-lg">rocket_launch</span>
         </div>
         <span className="text-white font-bold text-base hidden sm:block">
-          Novakou
+          FreelanceHigh
         </span>
       </Link>
 

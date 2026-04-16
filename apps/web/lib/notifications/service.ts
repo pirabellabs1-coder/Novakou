@@ -1,5 +1,5 @@
 /**
- * Novakou — Notification Service
+ * FreelanceHigh — Notification Service
  * Point unique de creation de notifications in-app (dev store ou Prisma).
  */
 

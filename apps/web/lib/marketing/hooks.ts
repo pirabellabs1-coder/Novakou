@@ -1,5 +1,5 @@
 /**
- * Novakou — Marketing Hooks
+ * FreelanceHigh — Marketing Hooks
  *
  * Point d'entree central qui connecte les evenements plateforme
  * (achats, inscriptions, abandons, completions) au moteur marketing.

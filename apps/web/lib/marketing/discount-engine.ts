@@ -1,5 +1,5 @@
 /**
- * Novakou — Discount Engine
+ * FreelanceHigh — Discount Engine
  *
  * Logique de validation et d'application des codes de reduction.
  * Gere les codes promo classiques et les offres flash temporaires.

@@ -47,7 +47,7 @@ const t = {
       `Vous pouvez telecharger ce produit ${n} fois. Conservez bien votre fichier.`,
     support:
       "Un probleme avec votre telechargement ? Contactez notre support.",
-    team: "L'equipe Novakou",
+    team: "L'equipe FreelanceHigh",
   },
   en: {
     subject: (title: string) => `Your product "${title}" is ready!`,
@@ -65,7 +65,7 @@ const t = {
       `You can download this product ${n} times. Please keep your file safe.`,
     support:
       "Having trouble with your download? Contact our support team.",
-    team: "The Novakou Team",
+    team: "The FreelanceHigh Team",
   },
 };
 
@@ -122,7 +122,7 @@ export function ProductDeliveryEmail({
               margin: 0,
             }}
           >
-            Novakou
+            FreelanceHigh
           </h1>
           <p
             style={{
@@ -379,7 +379,7 @@ export function ProductDeliveryEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
+            &copy; 2026 FreelanceHigh — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
           </p>
         </div>
       </div>

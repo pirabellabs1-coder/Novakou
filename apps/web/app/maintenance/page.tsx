@@ -61,7 +61,7 @@ export default function MaintenancePage() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <span className="material-symbols-outlined text-[#6C2BD9] text-3xl">rocket_launch</span>
-          <span className="font-bold text-2xl text-white">Novakou</span>
+          <span className="font-bold text-2xl text-white">FreelanceHigh</span>
         </div>
 
         {/* Maintenance icon */}
@@ -102,7 +102,7 @@ export default function MaintenancePage() {
         </div>
 
         <p className="text-[10px] text-slate-700 mt-8">
-          © 2026 Novakou — Fondee par Lissanon Gildas
+          © 2026 FreelanceHigh — Fondee par Lissanon Gildas
         </p>
       </div>
     </div>

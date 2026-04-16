@@ -83,7 +83,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   const orderId = paymentIntent.metadata?.order_id;
   const platform = paymentIntent.metadata?.platform;
 
-  // Only handle Novakou marketplace payment intents
+  // Only handle FreelanceHigh marketplace payment intents
   if (platform !== "freelancehigh" || !orderId) {
     console.log(
       `[Stripe Webhook] payment_intent.succeeded — not a marketplace payment, skipping (pi=${paymentIntent.id})`

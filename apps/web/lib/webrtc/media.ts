@@ -1,5 +1,5 @@
 // ============================================================
-// Novakou — Media Utilities
+// FreelanceHigh — Media Utilities
 // Fonctions utilitaires pour getUserMedia, getDisplayMedia
 // ============================================================
 

@@ -272,7 +272,7 @@ export default function AgenceSecuritePage() {
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
               Ne partagez jamais vos codes de récupération 2FA. Conservez-les dans un endroit sûr et hors ligne.
-              Novakou ne vous demandera jamais vos codes par email.
+              FreelanceHigh ne vous demandera jamais vos codes par email.
             </p>
           </div>
         </div>

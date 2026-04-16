@@ -5,7 +5,7 @@ import { checkRateLimit, recordFailedAttempt } from "@/lib/auth/rate-limiter";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "contact@freelancehigh.com";
-const FROM = process.env.EMAIL_FROM || "Novakou <noreply@freelancehigh.com>";
+const FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
 
 export async function POST(request: NextRequest) {
   try {

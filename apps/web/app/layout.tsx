@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL("https://freelancehigh.com"),
     title: {
       default: t("default_title"),
-      template: "%s | Novakou",
+      template: "%s | FreelanceHigh",
     },
     description: t("default_description"),
     icons: {
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "fr_FR",
-      siteName: "Novakou",
+      siteName: "FreelanceHigh",
     },
   };
 }

@@ -118,7 +118,7 @@ export default function ApiDocsPage() {
               Documentation API
             </h1>
             <p className="text-lg text-slate-400 leading-relaxed max-w-2xl">
-              Bienvenue sur la documentation officielle de l&apos;API Novakou. Intégrez
+              Bienvenue sur la documentation officielle de l&apos;API FreelanceHigh. Intégrez
               les fonctionnalités de notre marketplace directement dans vos applications,
               automatisez vos processus de recrutement et gérez vos transactions en toute
               sécurité.
@@ -137,7 +137,7 @@ export default function ApiDocsPage() {
               </h2>
               <div className="text-slate-400 space-y-4">
                 <p>
-                  L&apos;API Novakou est organisee autour de{" "}
+                  L&apos;API FreelanceHigh est organisee autour de{" "}
                   <strong className="text-white">REST</strong>. Notre API dispose d&apos;URLs
                   previsibles axees sur les ressources, accepte les corps de requete encodes en
                   JSON, renvoie des reponses JSON et utilise les codes de reponse HTTP standard.

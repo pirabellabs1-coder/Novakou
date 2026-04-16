@@ -21,7 +21,7 @@ export default async function ConfidentialitePage() {
           <p className="text-sm text-amber-400/80 mb-2 italic">{t("french_only_notice")}</p>
         )}
         <p className="text-sm text-slate-500 mb-12">
-          Novakou s&apos;engage à protéger la vie privée de ses utilisateurs. La présente Politique de Confidentialité décrit comment nous collectons, utilisons, stockons et protégeons vos données personnelles lorsque vous utilisez notre plateforme, conformément au Règlement Général sur la Protection des Données (RGPD - Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
+          FreelanceHigh s&apos;engage à protéger la vie privée de ses utilisateurs. La présente Politique de Confidentialité décrit comment nous collectons, utilisons, stockons et protégeons vos données personnelles lorsque vous utilisez notre plateforme, conformément au Règlement Général sur la Protection des Données (RGPD - Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
         </p>
 
         <div className="space-y-8">
@@ -31,10 +31,10 @@ export default async function ConfidentialitePage() {
             <h2 className="text-xl font-bold text-white mb-4">1. Responsable du traitement</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Le responsable du traitement des données personnelles collectées sur la plateforme Novakou est :
+              Le responsable du traitement des données personnelles collectées sur la plateforme FreelanceHigh est :
             </p>
             <div className="bg-white/5 rounded-lg p-4 text-sm text-slate-400 space-y-2 mb-4">
-              <p><strong className="text-slate-300">Dénomination :</strong> Novakou</p>
+              <p><strong className="text-slate-300">Dénomination :</strong> FreelanceHigh</p>
               <p><strong className="text-slate-300">Représentant légal :</strong> Lissanon Gildas, Fondateur &amp; CEO</p>
               <p><strong className="text-slate-300">Adresse email :</strong> contact@freelancehigh.com</p>
               <p><strong className="text-slate-300">Site web :</strong> https://www.freelancehigh.com</p>
@@ -448,7 +448,7 @@ export default async function ConfidentialitePage() {
             <h2 className="text-xl font-bold text-white mb-4">11. Protection des mineurs</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed">
-              La Plateforme Novakou est destinée aux personnes âgées d&apos;au moins 18 ans. Nous ne collectons pas sciemment de données personnelles auprès de mineurs. Si nous prenons connaissance qu&apos;un mineur nous a fourni des données personnelles, nous supprimerons ces données dans les meilleurs délais. Si vous êtes un parent ou un tuteur légal et que vous pensez que votre enfant nous a fourni des données personnelles, veuillez nous contacter à privacy@freelancehigh.com.
+              La Plateforme FreelanceHigh est destinée aux personnes âgées d&apos;au moins 18 ans. Nous ne collectons pas sciemment de données personnelles auprès de mineurs. Si nous prenons connaissance qu&apos;un mineur nous a fourni des données personnelles, nous supprimerons ces données dans les meilleurs délais. Si vous êtes un parent ou un tuteur légal et que vous pensez que votre enfant nous a fourni des données personnelles, veuillez nous contacter à privacy@freelancehigh.com.
             </p>
           </section>
 
@@ -474,7 +474,7 @@ export default async function ConfidentialitePage() {
             <h2 className="text-xl font-bold text-white mb-4">13. Données relatives aux formations et à l&apos;apprentissage</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              La Plateforme Novakou propose une section Formations permettant aux Utilisateurs de suivre des formations en ligne, de participer à des cohortes et d&apos;acquérir des produits numériques. Cette activité entraîne la collecte et le traitement de catégories de données spécifiques, décrites ci-après.
+              La Plateforme FreelanceHigh propose une section Formations permettant aux Utilisateurs de suivre des formations en ligne, de participer à des cohortes et d&apos;acquérir des produits numériques. Cette activité entraîne la collecte et le traitement de catégories de données spécifiques, décrites ci-après.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">13.1 Données d&apos;apprentissage collectées</h3>
@@ -602,7 +602,7 @@ export default async function ConfidentialitePage() {
               <p><strong className="text-slate-300">Délégué à la Protection des Données (DPO) :</strong> privacy@freelancehigh.com</p>
               <p><strong className="text-slate-300">Support général :</strong> contact@freelancehigh.com</p>
               <p><strong className="text-slate-300">Centre d&apos;aide :</strong> <Link href="/aide" className="text-primary hover:underline">https://www.freelancehigh.com/aide</Link></p>
-              <p><strong className="text-slate-300">Responsable du traitement :</strong> Novakou — Lissanon Gildas, Fondateur</p>
+              <p><strong className="text-slate-300">Responsable du traitement :</strong> FreelanceHigh — Lissanon Gildas, Fondateur</p>
             </div>
           </section>
 

@@ -1,4 +1,4 @@
-// Types pour le système de tracking interne Novakou
+// Types pour le système de tracking interne FreelanceHigh
 
 export type TrackingEventType =
   | "page_view"

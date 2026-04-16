@@ -178,7 +178,7 @@ function ConnexionContent() {
               <div className="bg-accent p-2 rounded-lg">
                 <span className="material-symbols-outlined text-[#11211e] font-bold text-3xl">work</span>
               </div>
-              <h1 className="text-white text-3xl font-extrabold tracking-tight">Novakou</h1>
+              <h1 className="text-white text-3xl font-extrabold tracking-tight">FreelanceHigh</h1>
             </div>
             <h2 className="text-white text-5xl font-black leading-tight mb-6">
               Verification en deux etapes
@@ -195,7 +195,7 @@ function ConnexionContent() {
           <div className="w-full max-w-md">
             <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
               <span className="material-symbols-outlined text-primary text-3xl">work</span>
-              <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">Novakou</h1>
+              <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">FreelanceHigh</h1>
             </div>
 
             <div className="mb-8 text-center">
@@ -291,7 +291,7 @@ function ConnexionContent() {
             <div className="bg-accent p-2 rounded-lg">
               <span className="material-symbols-outlined text-[#11211e] font-bold text-3xl">work</span>
             </div>
-            <h1 className="text-white text-3xl font-extrabold tracking-tight">Novakou</h1>
+            <h1 className="text-white text-3xl font-extrabold tracking-tight">FreelanceHigh</h1>
           </div>
 
           <h2 className="text-white text-5xl font-black leading-tight mb-6">
@@ -327,7 +327,7 @@ function ConnexionContent() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
             <span className="material-symbols-outlined text-primary text-3xl">work</span>
-            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">Novakou</h1>
+            <h1 className="text-slate-900 dark:text-slate-100 text-2xl font-bold">FreelanceHigh</h1>
           </div>
 
           <div className="mb-8">

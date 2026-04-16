@@ -156,7 +156,7 @@ export default function AdminConfiguration() {
             <span className="material-symbols-outlined text-primary">tune</span>
             Configuration Plateforme
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Paramètres globaux de Novakou. Toute modification est appliquée immédiatement.</p>
+          <p className="text-slate-400 text-sm mt-1">Paramètres globaux de FreelanceHigh. Toute modification est appliquée immédiatement.</p>
         </div>
         {saving && (
           <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">

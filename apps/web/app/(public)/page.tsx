@@ -20,13 +20,13 @@ export async function generateMetadata(): Promise<Metadata> {
       title: t("og_title"),
       description: t("og_description"),
       url: "https://freelancehigh.com",
-      siteName: "Novakou",
+      siteName: "FreelanceHigh",
       locale: "fr_FR",
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
-      title: "Novakou",
+      title: "FreelanceHigh",
       description: t("twitter_description"),
     },
     alternates: {
@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       "application/ld+json": JSON.stringify({
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: "Novakou",
+        name: "FreelanceHigh",
         url: "https://freelancehigh.com",
         description: t("description"),
         foundingDate: "2026",

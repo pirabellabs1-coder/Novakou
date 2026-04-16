@@ -33,7 +33,7 @@ export default async function MentionsLegalesPage() {
               Le site https://www.freelancehigh.com (ci-après &quot;le Site&quot; ou &quot;la Plateforme&quot;) est édité par :
             </p>
             <div className="bg-white/5 rounded-lg p-6 text-sm text-slate-400 space-y-3">
-              <p><strong className="text-slate-300">Dénomination :</strong> Novakou</p>
+              <p><strong className="text-slate-300">Dénomination :</strong> FreelanceHigh</p>
               <p><strong className="text-slate-300">Fondateur &amp; Directeur de la publication :</strong> Lissanon Gildas</p>
               <p><strong className="text-slate-300">Statut :</strong> Entrepreneur individuel / Société en cours de création</p>
               <p><strong className="text-slate-300">Email :</strong> contact@freelancehigh.com</p>
@@ -41,7 +41,7 @@ export default async function MentionsLegalesPage() {
               <p><strong className="text-slate-300">Année de création :</strong> 2026</p>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed mt-4">
-              Le directeur de la publication est Lissanon Gildas, en sa qualité de fondateur de Novakou. Il est joignable à l&apos;adresse email contact@freelancehigh.com.
+              Le directeur de la publication est Lissanon Gildas, en sa qualité de fondateur de FreelanceHigh. Il est joignable à l&apos;adresse email contact@freelancehigh.com.
             </p>
           </section>
 
@@ -117,13 +117,13 @@ export default async function MentionsLegalesPage() {
             <h2 className="text-xl font-bold text-white mb-4">3. Activité de la Plateforme</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou est une plateforme d&apos;intermédiation en ligne (marketplace) qui met en relation des prestataires de services numériques (freelances et agences) avec des donneurs d&apos;ordres (clients) dans un cadre sécurisé et professionnel.
+              FreelanceHigh est une plateforme d&apos;intermédiation en ligne (marketplace) qui met en relation des prestataires de services numériques (freelances et agences) avec des donneurs d&apos;ordres (clients) dans un cadre sécurisé et professionnel.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
               La Plateforme n&apos;est pas employeur des freelances ou des membres d&apos;agences inscrits. Elle fournit un espace technique permettant la mise en relation, la gestion de commandes, le paiement sécurisé via escrow et la résolution de litiges. Les contrats de prestation sont conclus directement entre les Utilisateurs.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Le marché principal de Novakou est l&apos;Afrique francophone, la diaspora africaine et le marché international. La devise de référence est l&apos;euro (EUR), avec conversion automatique vers le FCFA, l&apos;USD, le GBP et le MAD.
+              Le marché principal de FreelanceHigh est l&apos;Afrique francophone, la diaspora africaine et le marché international. La devise de référence est l&apos;euro (EUR), avec conversion automatique vers le FCFA, l&apos;USD, le GBP et le MAD.
             </p>
           </section>
 
@@ -131,25 +131,25 @@ export default async function MentionsLegalesPage() {
           <section className="bg-neutral-dark rounded-xl border border-border-dark p-8">
             <h2 className="text-xl font-bold text-white mb-4">4. Propriété intellectuelle</h2>
 
-            <h3 className="text-base font-semibold text-white mt-6 mb-3">4.1 Droits de Novakou</h3>
+            <h3 className="text-base font-semibold text-white mt-6 mb-3">4.1 Droits de FreelanceHigh</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              L&apos;ensemble des éléments composant le Site et la Plateforme — code source, architecture technique, design graphique, ergonomie, logos, marques, textes, illustrations, animations, bases de données, fonctionnalités logicielles — sont la propriété exclusive de Novakou ou font l&apos;objet d&apos;une autorisation d&apos;utilisation.
+              L&apos;ensemble des éléments composant le Site et la Plateforme — code source, architecture technique, design graphique, ergonomie, logos, marques, textes, illustrations, animations, bases de données, fonctionnalités logicielles — sont la propriété exclusive de FreelanceHigh ou font l&apos;objet d&apos;une autorisation d&apos;utilisation.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
               Ces éléments sont protégés par les lois françaises et internationales relatives à la propriété intellectuelle, notamment le Code de la propriété intellectuelle, le droit d&apos;auteur, le droit des marques et le droit sui generis des bases de données.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Toute reproduction, représentation, modification, publication, adaptation, exploitation totale ou partielle de ces éléments, par quelque procédé que ce soit, est strictement interdite sans l&apos;autorisation écrite préalable de Novakou. Toute utilisation non autorisée constitue une contrefaçon passible de poursuites judiciaires.
+              Toute reproduction, représentation, modification, publication, adaptation, exploitation totale ou partielle de ces éléments, par quelque procédé que ce soit, est strictement interdite sans l&apos;autorisation écrite préalable de FreelanceHigh. Toute utilisation non autorisée constitue une contrefaçon passible de poursuites judiciaires.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">4.2 Marques</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Le nom &quot;Novakou&quot;, le logo Novakou et le slogan &quot;La plateforme freelance qui élève votre carrière au plus haut niveau&quot; sont des marques de Novakou. Leur reproduction ou utilisation non autorisée est interdite.
+              Le nom &quot;FreelanceHigh&quot;, le logo FreelanceHigh et le slogan &quot;La plateforme freelance qui élève votre carrière au plus haut niveau&quot; sont des marques de FreelanceHigh. Leur reproduction ou utilisation non autorisée est interdite.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">4.3 Contenus utilisateurs</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Les contenus publiés par les Utilisateurs (descriptions de services, images de portfolio, avis) restent la propriété de leurs auteurs respectifs. En publiant du contenu sur la Plateforme, l&apos;Utilisateur accorde à Novakou une licence non exclusive, mondiale et gratuite d&apos;utiliser, reproduire et afficher ce contenu dans le cadre du fonctionnement et de la promotion de la Plateforme. Les conditions détaillées relatives à la propriété intellectuelle des livrables de commandes sont définies dans les <Link href="/cgu" className="text-primary hover:underline">Conditions Générales d&apos;Utilisation</Link> (Article 11).
+              Les contenus publiés par les Utilisateurs (descriptions de services, images de portfolio, avis) restent la propriété de leurs auteurs respectifs. En publiant du contenu sur la Plateforme, l&apos;Utilisateur accorde à FreelanceHigh une licence non exclusive, mondiale et gratuite d&apos;utiliser, reproduire et afficher ce contenu dans le cadre du fonctionnement et de la promotion de la Plateforme. Les conditions détaillées relatives à la propriété intellectuelle des livrables de commandes sont définies dans les <Link href="/cgu" className="text-primary hover:underline">Conditions Générales d&apos;Utilisation</Link> (Article 11).
             </p>
           </section>
 
@@ -158,10 +158,10 @@ export default async function MentionsLegalesPage() {
             <h2 className="text-xl font-bold text-white mb-4">5. Données personnelles</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou collecte et traite des données personnelles dans le cadre de l&apos;utilisation de sa Plateforme. Le traitement de ces données est conforme au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
+              FreelanceHigh collecte et traite des données personnelles dans le cadre de l&apos;utilisation de sa Plateforme. Le traitement de ces données est conforme au Règlement Général sur la Protection des Données (RGPD — Règlement UE 2016/679) et à la loi Informatique et Libertés du 6 janvier 1978 modifiée.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Le responsable du traitement des données est Lissanon Gildas, en sa qualité de fondateur de Novakou.
+              Le responsable du traitement des données est Lissanon Gildas, en sa qualité de fondateur de FreelanceHigh.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
               Les données personnelles des Utilisateurs sont principalement stockées sur des serveurs situés au sein de l&apos;Union européenne (Supabase, région eu-central-1 Frankfurt, Allemagne). Les documents sensibles (KYC, livrables de commandes) sont chiffrés au repos et ne sont jamais stockés en dehors de l&apos;UE.
@@ -211,22 +211,22 @@ export default async function MentionsLegalesPage() {
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">8.1 Disponibilité du service</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou s&apos;efforce de maintenir le Site accessible 24 heures sur 24, 7 jours sur 7. Toutefois, l&apos;accès au Site peut être temporairement interrompu pour des raisons de maintenance technique, de mise à jour, de force majeure, ou en raison de défaillances des prestataires d&apos;hébergement. Novakou ne saurait être tenue responsable des conséquences de ces interruptions.
+              FreelanceHigh s&apos;efforce de maintenir le Site accessible 24 heures sur 24, 7 jours sur 7. Toutefois, l&apos;accès au Site peut être temporairement interrompu pour des raisons de maintenance technique, de mise à jour, de force majeure, ou en raison de défaillances des prestataires d&apos;hébergement. FreelanceHigh ne saurait être tenue responsable des conséquences de ces interruptions.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">8.2 Contenu du site</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Novakou s&apos;efforce de fournir des informations aussi précises et à jour que possible sur le Site. Toutefois, la Plateforme ne saurait être tenue responsable des omissions, inexactitudes ou carences dans la mise à jour des informations, qu&apos;elles soient de son fait ou du fait de tiers partenaires.
+              FreelanceHigh s&apos;efforce de fournir des informations aussi précises et à jour que possible sur le Site. Toutefois, la Plateforme ne saurait être tenue responsable des omissions, inexactitudes ou carences dans la mise à jour des informations, qu&apos;elles soient de son fait ou du fait de tiers partenaires.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">8.3 Contenus utilisateurs</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              En tant que plateforme d&apos;intermédiation, Novakou met en relation des prestataires et des clients mais n&apos;est pas partie aux contrats conclus entre eux. La Plateforme n&apos;est pas responsable de la qualité, de la conformité ou de l&apos;exécution des services proposés par les Utilisateurs. Un système de modération, d&apos;évaluations et de résolution de litiges est mis en place pour garantir la qualité des échanges.
+              En tant que plateforme d&apos;intermédiation, FreelanceHigh met en relation des prestataires et des clients mais n&apos;est pas partie aux contrats conclus entre eux. La Plateforme n&apos;est pas responsable de la qualité, de la conformité ou de l&apos;exécution des services proposés par les Utilisateurs. Un système de modération, d&apos;évaluations et de résolution de litiges est mis en place pour garantir la qualité des échanges.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">8.4 Liens hypertextes</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Le Site peut contenir des liens hypertextes vers d&apos;autres sites internet (profils utilisateurs vers LinkedIn, GitHub, etc.). Novakou n&apos;exerce aucun contrôle sur le contenu de ces sites tiers et décline toute responsabilité quant à leur contenu et aux traitements de données qu&apos;ils effectuent.
+              Le Site peut contenir des liens hypertextes vers d&apos;autres sites internet (profils utilisateurs vers LinkedIn, GitHub, etc.). FreelanceHigh n&apos;exerce aucun contrôle sur le contenu de ces sites tiers et décline toute responsabilité quant à leur contenu et aux traitements de données qu&apos;ils effectuent.
             </p>
           </section>
 
@@ -238,7 +238,7 @@ export default async function MentionsLegalesPage() {
               Les présentes mentions légales sont régies par le droit français. En cas de différend, et après tentative de résolution amiable, les tribunaux compétents de Paris, France, seront seuls compétents pour connaître du litige.
             </p>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Conformément aux dispositions du Code de la consommation concernant le règlement amiable des litiges, Novakou adhère au Service du Médiateur accessible par voie électronique. Après démarche préalable écrite des consommateurs vis-à-vis de Novakou, le Service du Médiateur peut être saisi pour tout litige de consommation dont le règlement n&apos;a pas abouti.
+              Conformément aux dispositions du Code de la consommation concernant le règlement amiable des litiges, FreelanceHigh adhère au Service du Médiateur accessible par voie électronique. Après démarche préalable écrite des consommateurs vis-à-vis de FreelanceHigh, le Service du Médiateur peut être saisi pour tout litige de consommation dont le règlement n&apos;a pas abouti.
             </p>
           </section>
 
@@ -247,7 +247,7 @@ export default async function MentionsLegalesPage() {
             <h2 className="text-xl font-bold text-white mb-4">10. Signalement de contenus illicites</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Conformément à l&apos;article 6 de la loi n°2004-575 du 21 juin 2004 pour la Confiance dans l&apos;Économie Numérique (LCEN), toute personne peut signaler un contenu manifestement illicite présent sur la Plateforme en contactant Novakou à l&apos;adresse :
+              Conformément à l&apos;article 6 de la loi n°2004-575 du 21 juin 2004 pour la Confiance dans l&apos;Économie Numérique (LCEN), toute personne peut signaler un contenu manifestement illicite présent sur la Plateforme en contactant FreelanceHigh à l&apos;adresse :
             </p>
             <div className="bg-white/5 rounded-lg p-4 text-sm text-slate-400">
               <p><strong className="text-slate-300">Email de signalement :</strong> abuse@freelancehigh.com</p>
@@ -262,12 +262,12 @@ export default async function MentionsLegalesPage() {
             <h2 className="text-xl font-bold text-white mb-4">11. Crédits</h2>
 
             <div className="text-sm text-slate-400 space-y-3">
-              <p><strong className="text-slate-300">Conception et développement :</strong> Novakou — Lissanon Gildas</p>
+              <p><strong className="text-slate-300">Conception et développement :</strong> FreelanceHigh — Lissanon Gildas</p>
               <p><strong className="text-slate-300">Framework frontend :</strong> Next.js 14 (Vercel Inc.)</p>
               <p><strong className="text-slate-300">Composants UI :</strong> shadcn/ui + Radix UI</p>
               <p><strong className="text-slate-300">Icônes :</strong> Material Symbols (Google)</p>
               <p><strong className="text-slate-300">Polices :</strong> Inter (Google Fonts)</p>
-              <p><strong className="text-slate-300">Images et illustrations :</strong> Propres à Novakou ou sous licence libre</p>
+              <p><strong className="text-slate-300">Images et illustrations :</strong> Propres à FreelanceHigh ou sous licence libre</p>
             </div>
           </section>
 
@@ -292,17 +292,17 @@ export default async function MentionsLegalesPage() {
             <h2 className="text-xl font-bold text-white mb-4">13. Section Formations</h2>
 
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              En complément de son activité principale de marketplace freelance, Novakou opère une <strong className="text-slate-300">section Formations</strong> permettant la publication, la commercialisation et le suivi de formations en ligne, de cohortes accompagnées et de produits numériques (e-books, templates, ressources, licences).
+              En complément de son activité principale de marketplace freelance, FreelanceHigh opère une <strong className="text-slate-300">section Formations</strong> permettant la publication, la commercialisation et le suivi de formations en ligne, de cohortes accompagnées et de produits numériques (e-books, templates, ressources, licences).
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">13.1 Rôle additionnel : Instructeur</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              En plus des rôles de Freelance, Client et Agence, la Plateforme reconnaît le rôle d&apos;<strong className="text-slate-300">Instructeur</strong>, accessible sur candidature et après approbation par l&apos;équipe Novakou. Les Instructeurs peuvent créer et publier des formations, gérer des cohortes, commercialiser des produits numériques et percevoir 70 % des revenus générés par leurs ventes.
+              En plus des rôles de Freelance, Client et Agence, la Plateforme reconnaît le rôle d&apos;<strong className="text-slate-300">Instructeur</strong>, accessible sur candidature et après approbation par l&apos;équipe FreelanceHigh. Les Instructeurs peuvent créer et publier des formations, gérer des cohortes, commercialiser des produits numériques et percevoir 70 % des revenus générés par leurs ventes.
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">13.2 Nature des certificats</h3>
             <p className="text-sm text-slate-400 leading-relaxed mb-4">
-              Les certificats de complétion délivrés par la Plateforme Novakou ont une <strong className="text-slate-300">valeur purement informative</strong>. Ils attestent de la complétion d&apos;un parcours de formation sur la Plateforme mais ne constituent en aucun cas un diplôme reconnu par l&apos;État, une certification professionnelle ou une qualification au sens du Code du travail ou du Code de l&apos;éducation. Novakou n&apos;est pas un organisme de formation enregistré et ne délivre pas de certifications au sens du Répertoire National des Certifications Professionnelles (RNCP).
+              Les certificats de complétion délivrés par la Plateforme FreelanceHigh ont une <strong className="text-slate-300">valeur purement informative</strong>. Ils attestent de la complétion d&apos;un parcours de formation sur la Plateforme mais ne constituent en aucun cas un diplôme reconnu par l&apos;État, une certification professionnelle ou une qualification au sens du Code du travail ou du Code de l&apos;éducation. FreelanceHigh n&apos;est pas un organisme de formation enregistré et ne délivre pas de certifications au sens du Répertoire National des Certifications Professionnelles (RNCP).
             </p>
 
             <h3 className="text-base font-semibold text-white mt-6 mb-3">13.3 Renvoi aux CGU</h3>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 
 const navItems = [
@@ -189,6 +189,13 @@ export default function AffiliéLayout({ children }: { children: React.ReactNode
               Gagnez {commissionPct}% sur chaque vente générée via vos liens.
             </p>
           </div>
+          <button
+            onClick={() => signOut({ callbackUrl: "/formations" })}
+            className="mt-3 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-400 text-xs font-semibold hover:bg-red-500/10 transition-colors border border-red-500/20"
+          >
+            <span className="material-symbols-outlined text-[16px]">logout</span>
+            Se déconnecter
+          </button>
         </div>
       </aside>
 
