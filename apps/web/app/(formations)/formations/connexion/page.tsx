@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { getDashboardForFormationsRole } from "@/lib/formations/role-routing";
 
 function ConnexionInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/formations/vendeur/dashboard";
+  const callbackUrlParam = searchParams.get("callbackUrl");
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -32,7 +33,8 @@ function ConnexionInner() {
 
       if (result?.error) {
         if (result.error === "REQUIRES_2FA") {
-          router.push(`/formations/2fa?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(callbackUrl)}`);
+          const cb = callbackUrlParam ?? "/formations/apprenant/dashboard";
+          router.push(`/formations/2fa?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(cb)}`);
           return;
         }
         setError(
@@ -44,8 +46,14 @@ function ConnexionInner() {
         return;
       }
 
-      // Redirect to appropriate dashboard based on URL param or default
-      router.push(callbackUrl);
+      // After login — fetch fresh session to get formationsRole, then redirect to correct dashboard
+      const freshSession = await getSession();
+      const user = freshSession?.user as { role?: string; formationsRole?: string } | undefined;
+      const target = callbackUrlParam ?? getDashboardForFormationsRole(
+        user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
+        user?.role
+      );
+      router.push(target);
       router.refresh();
     } catch {
       setError("Erreur réseau. Veuillez réessayer.");
@@ -58,7 +66,7 @@ function ConnexionInner() {
     setError(null);
     // Set pending formationsRole cookie before OAuth redirect
     document.cookie = "pendingFormationsRole=; path=/; max-age=0";
-    await signIn("google", { callbackUrl });
+    await signIn("google", { callbackUrl: callbackUrlParam ?? "/formations/apprenant/dashboard" });
   }
 
   return (

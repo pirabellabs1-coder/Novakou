@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import { RoleGuard } from "@/components/formations/RoleGuard";
 
 const navGroups = [
   {
@@ -102,6 +103,14 @@ function getInitials(name?: string | null): string {
 }
 
 export default function ApprenantLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RoleGuard requiredRole="apprenant">
+      <ApprenantLayoutInner>{children}</ApprenantLayoutInner>
+    </RoleGuard>
+  );
+}
+
+function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session, status } = useSession();

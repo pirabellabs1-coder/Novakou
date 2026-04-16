@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "paiements";
 
@@ -13,15 +14,26 @@ interface NotifPref {
 }
 
 export default function ParametresPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<SettingsTab>("profil");
 
-  // Profil
-  const [prenom, setPrenom] = useState("Alex");
-  const [nom, setNom] = useState("Rivera");
-  const [bio, setBio] = useState(
-    "Freelance en marketing digital basé à Abidjan. Passionné par l'automatisation et la croissance en ligne."
-  );
+  // Profil — prefilled with real user data
+  const [prenom, setPrenom] = useState("");
+  const [nom, setNom] = useState("");
+  const [bio, setBio] = useState("");
   const [saved, setSaved] = useState(false);
+
+  // Load user data when session becomes available
+  useEffect(() => {
+    if (!session?.user) return;
+    const fullName = session.user.name ?? "";
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length > 0 && !prenom) setPrenom(parts[0]);
+    if (parts.length > 1 && !nom) setNom(parts.slice(1).join(" "));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  const email = session?.user?.email ?? "";
 
   // Securite
   const [twoFa, setTwoFa] = useState(false);
@@ -114,7 +126,7 @@ export default function ParametresPage() {
                       className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold"
                       style={{ background: "linear-gradient(135deg, #006e2f 0%, #22c55e 100%)" }}
                     >
-                      {prenom[0]}{nom[0]}
+                      {(prenom[0] ?? "A").toUpperCase()}{(nom[0] ?? "").toUpperCase()}
                     </div>
                     <button
                       className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#006e2f] rounded-full flex items-center justify-center border-2 border-white hover:bg-[#005a26] transition-colors"
@@ -126,8 +138,8 @@ export default function ParametresPage() {
                     </button>
                   </div>
                   <div>
-                    <p className="font-semibold text-[#191c1e] text-sm mb-1">{prenom} {nom}</p>
-                    <p className="text-xs text-[#5c647a] mb-3">Apprenant · Abidjan, Côte d&apos;Ivoire</p>
+                    <p className="font-semibold text-[#191c1e] text-sm mb-1">{prenom || "Apprenant"} {nom}</p>
+                    <p className="text-xs text-[#5c647a] mb-3">Apprenant · {email || "—"}</p>
                     <div className="flex gap-2">
                       <button className="px-4 py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
                         style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
@@ -179,7 +191,7 @@ export default function ParametresPage() {
                       </span>
                       <input
                         type="email"
-                        value="alex.rivera@email.com"
+                        value={email}
                         disabled
                         className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 text-sm text-[#5c647a] bg-gray-50 cursor-not-allowed"
                       />

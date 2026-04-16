@@ -14,7 +14,7 @@ const registerSchema = z.object({
   name: z.string().min(2, "Le nom est requis"),
   role: z.enum(["freelance", "client", "agence"]).default("client"),
   country: z.string().max(100).optional(),
-  formationsRole: z.enum(["apprenant", "instructeur"]).optional(),
+  formationsRole: z.enum(["apprenant", "instructeur", "mentor", "affilie"]).optional(),
 });
 
 const IS_DEV_MODE = process.env.DEV_MODE === "true";

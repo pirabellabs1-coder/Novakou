@@ -78,11 +78,28 @@ export async function POST(req: NextRequest) {
     let program = await prisma.affiliateProgram.findFirst({ where: { isActive: true, applyToAll: true } });
 
     if (!program) {
-      // Create platform default program if none exists
-      // Note: requires an InstructeurProfile — skip gracefully if model not migrated
-      return NextResponse.json({
-        error: "Programme d'affiliation non configuré. Contactez l'administrateur.",
-      }, { status: 503 });
+      // Auto-create a platform-wide default program using the first available admin instructeur
+      const adminInstructeur = await prisma.instructeurProfile.findFirst({
+        orderBy: { createdAt: "asc" },
+        select: { id: true },
+      });
+      if (!adminInstructeur) {
+        return NextResponse.json({
+          error: "Aucun programme d'affiliation disponible pour le moment. Veuillez réessayer plus tard.",
+        }, { status: 503 });
+      }
+      program = await prisma.affiliateProgram.create({
+        data: {
+          instructeurId: adminInstructeur.id,
+          name: "Programme affiliation Novakou",
+          description: "Programme d'affiliation par défaut de la plateforme. 40% de commission sur chaque vente.",
+          commissionPct: 40,
+          cookieDays: 30,
+          isActive: true,
+          autoApprove: true,
+          applyToAll: true,
+        },
+      });
     }
 
     // Generate unique affiliate code from user name

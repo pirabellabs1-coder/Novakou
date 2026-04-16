@@ -8,11 +8,12 @@ import { signIn } from "next-auth/react";
 type TabType = "vendeur" | "apprenant" | "mentor" | "affilie";
 const VALID_ROLES: TabType[] = ["vendeur", "apprenant", "mentor", "affilie"];
 
-const roleToFormationsRole: Record<string, "instructeur" | "apprenant" | undefined> = {
+// Map tab choice → formationsRole stored in DB (single source of truth for routing)
+const roleToFormationsRole: Record<string, "instructeur" | "apprenant" | "mentor" | "affilie" | undefined> = {
   vendeur: "instructeur",
   apprenant: "apprenant",
-  mentor: "apprenant",
-  affilie: "apprenant",
+  mentor: "mentor",
+  affilie: "affilie",
 };
 
 function InscriptionInner() {
@@ -43,7 +44,8 @@ function InscriptionInner() {
   const redirectAfterAuth = callbackUrl ?? (
     activeTab === "vendeur" ? "/formations/vendeur/dashboard" :
     activeTab === "mentor" ? "/formations/mentor/dashboard" :
-    "/formations/apprenant/mes-formations"
+    activeTab === "affilie" ? "/formations/affilie/dashboard" :
+    "/formations/apprenant/dashboard"
   );
 
   async function handleGoogle() {

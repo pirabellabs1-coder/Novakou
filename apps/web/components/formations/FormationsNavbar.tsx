@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { getDashboardForFormationsRole, getRoleLabel } from "@/lib/formations/role-routing";
 
 function initials(name: string | null | undefined) {
   if (!name) return "?";
@@ -40,12 +41,15 @@ function UserMenu({
 
   const isAdmin = role === "ADMIN";
   const isVendor = formationsRole === "instructeur";
-  const dashboardHref = isAdmin
-    ? "/formations/admin/dashboard"
-    : isVendor
-    ? "/formations/vendeur/dashboard"
-    : "/formations/apprenant/dashboard";
-  const dashboardLabel = isAdmin ? "Espace admin" : isVendor ? "Mon espace vendeur" : "Mon espace";
+  const isMentor = formationsRole === "mentor";
+  const isAffilie = formationsRole === "affilie";
+  const dashboardHref = getDashboardForFormationsRole(formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined, role);
+  const dashboardLabel = isAdmin ? "Espace admin"
+    : isVendor ? "Mon espace vendeur"
+    : isMentor ? "Mon espace mentor"
+    : isAffilie ? "Mon espace affilié"
+    : "Mon espace apprenant";
+  const roleLabel = isAdmin ? "Admin" : getRoleLabel(formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined);
 
   return (
     <div ref={ref} className="relative">
@@ -74,9 +78,9 @@ function UserMenu({
                 <p className="text-[11px] text-[#5c647a] truncate">{email}</p>
               </div>
             </div>
-            {(isVendor || isAdmin) && (
+            {formationsRole && (
               <span className="inline-block mt-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f] text-white uppercase tracking-wider">
-                {isAdmin ? "Admin" : "Vendeur"}
+                {roleLabel}
               </span>
             )}
           </div>

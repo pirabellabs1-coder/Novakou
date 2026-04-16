@@ -466,7 +466,7 @@ export default function ExplorerPage() {
 
       {/* Toolbar — clean modern design with grouped controls */}
       <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 flex items-center gap-4 flex-wrap">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-4 flex items-center gap-3 overflow-x-auto no-scrollbar md:flex-wrap md:overflow-visible">
 
           {/* GROUPE 1 : Type tabs (icônes + label + count) */}
           <div className="inline-flex items-center bg-gray-100 p-1 rounded-xl">

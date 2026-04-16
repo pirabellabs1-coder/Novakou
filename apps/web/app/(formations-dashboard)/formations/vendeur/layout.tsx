@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { RoleGuard } from "@/components/formations/RoleGuard";
 
 type NavItem = {
   icon: string;
@@ -45,6 +46,14 @@ function getInitials(name?: string | null): string {
 }
 
 export default function VendeurLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RoleGuard requiredRole="instructeur">
+      <VendeurLayoutInner>{children}</VendeurLayoutInner>
+    </RoleGuard>
+  );
+}
+
+function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   // Collapsed sidebar on desktop (persisted in localStorage)

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { RoleGuard } from "@/components/formations/RoleGuard";
 import { useQuery } from "@tanstack/react-query";
 
 const navItems = [
@@ -36,6 +37,14 @@ function AffiliéFooter() {
 }
 
 export default function AffiliéLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <RoleGuard requiredRole="affilie">
+      <AffiliéLayoutInner>{children}</AffiliéLayoutInner>
+    </RoleGuard>
+  );
+}
+
+function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: session } = useSession();
