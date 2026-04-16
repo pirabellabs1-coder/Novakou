@@ -584,7 +584,7 @@ export default function ExplorerPage() {
       {/* Full-width grid — sidebar removed */}
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 pb-16">
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="aspect-[4/5] bg-gray-100 animate-pulse" />
@@ -625,7 +625,7 @@ export default function ExplorerPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {displayedItems.map((item, idx) => (
               <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
             ))}

@@ -2,6 +2,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 
+/** Strip HTML tags for safe display in cards */
+function stripHtml(html: string | null | undefined): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 type Item = {
   href: string;
   img: string | null;
@@ -71,7 +77,7 @@ async function fetchBestSellers(): Promise<Item[]> {
           : "bg-amber-100 text-amber-700",
         rating: f.rating,
         title: f.title,
-        desc: f.shortDesc || f.description?.slice(0, 60) || "",
+        desc: f.shortDesc || stripHtml(f.description)?.slice(0, 80) || "",
         priceFcfa: f.price,
         salesCount: f.studentsCount,
         isFree: f.isFree,
@@ -92,7 +98,7 @@ async function fetchBestSellers(): Promise<Item[]> {
           : "bg-amber-100 text-amber-700",
         rating: p.rating,
         title: p.title,
-        desc: p.description?.slice(0, 60) || "",
+        desc: stripHtml(p.description)?.slice(0, 80) || "",
         priceFcfa: p.price,
         salesCount: p.salesCount,
         isFree: p.isFree,
@@ -133,12 +139,12 @@ export async function BestSellers() {
   }
 
   return (
-    <div className="flex gap-5 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pb-6">
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
-          className="min-w-[260px] md:min-w-[300px] bg-white squircle shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:-translate-y-2 transition-all duration-300 flex-shrink-0 block"
+          className="bg-white squircle shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:-translate-y-2 transition-all duration-300 block"
         >
           <div className="h-40 md:h-48 overflow-hidden rounded-t-[2rem] relative bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
             {item.img ? (
