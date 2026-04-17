@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { PopupType, PopupTrigger } from "@prisma/client";
 
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
@@ -21,7 +22,7 @@ export async function GET() {
     const pid = _ctx.instructeurId;
 
     const popups = await prisma.smartPopup.findMany({
-      where: { instructeurId: pid },
+      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "desc" },
     });
 
@@ -55,8 +56,7 @@ export async function POST(request: Request) {
     }
 
     const popup = await prisma.smartPopup.create({
-      data: {
-        instructeurId: pid,
+      data: { instructeurId: pid, shopId: activeShopId,
         name: name.trim(),
         popupType: popupType as PopupType,
         trigger: trigger as PopupTrigger,

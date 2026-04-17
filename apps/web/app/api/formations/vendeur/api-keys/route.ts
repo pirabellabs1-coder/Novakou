@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import crypto from "crypto";
 
 /**
@@ -50,9 +51,10 @@ export async function GET() {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
     if (!ctx) return NextResponse.json({ data: [] });
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
     const keys = await prisma.vendorApiKey.findMany({
-      where: { instructeurId: ctx.instructeurId },
+      where: { instructeurId: ctx.instructeurId, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -117,8 +119,7 @@ export async function POST(request: Request) {
     const keyHash = hashKey(raw);
 
     const saved = await prisma.vendorApiKey.create({
-      data: {
-        instructeurId: ctx.instructeurId,
+      data: { instructeurId: ctx.instructeurId, shopId: activeShopId,
         name: name.trim().slice(0, 80),
         keyPrefix: prefix,
         keyHash,

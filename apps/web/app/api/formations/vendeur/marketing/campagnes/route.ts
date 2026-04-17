@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
 async function getProfileId(userId: string) { return _gii(userId); }
 
@@ -28,7 +29,7 @@ export async function GET() {
     const pid = _ctx.instructeurId;
 
     const campaigns = await prisma.campaignTracker.findMany({
-      where: { instructeurId: pid },
+      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "desc" },
     });
 
@@ -66,8 +67,7 @@ export async function POST(request: Request) {
     }
 
     const campaign = await prisma.campaignTracker.create({
-      data: {
-        instructeurId: pid,
+      data: { instructeurId: pid, shopId: activeShopId,
         name: name.trim(),
         slug,
         destinationUrl: destinationUrl.trim(),

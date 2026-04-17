@@ -37,6 +37,7 @@ type Formation = {
   rating: number;
   studentsCount: number;
   reviewsCount: number;
+  hiddenFromMarketplace?: boolean;
   sections: Section[];
 };
 
@@ -60,6 +61,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   const [shortDesc, setShortDesc] = useState("");
   const [price, setPrice] = useState(0);
   const [thumbnail, setThumbnail] = useState("");
+  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
 
@@ -77,6 +79,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       setShortDesc(formation.shortDesc ?? "");
       setPrice(formation.price);
       setThumbnail(formation.thumbnail ?? "");
+      setHiddenFromMarketplace(!!formation.hiddenFromMarketplace);
       setDirty(false);
       if (formation.sections[0]?.lessons[0]) {
         setSelectedLessonId(formation.sections[0].lessons[0].id);
@@ -114,7 +117,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   }
 
   function saveDraft() {
-    saveMutation.mutate({ title, shortDesc, price, thumbnail });
+    saveMutation.mutate({ title, shortDesc, price, thumbnail, hiddenFromMarketplace });
   }
 
   const status = STATUS_MAP[formation?.status ?? "BROUILLON"] ?? STATUS_MAP.BROUILLON;
@@ -346,6 +349,23 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                       placeholder="https://..."
                       className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none tabular-nums text-xs transition-colors"
                     />
+                  </div>
+
+                  <div className="space-y-2 pt-2">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Visibilité marketplace</label>
+                    <div className="flex items-center justify-between gap-3 py-2 border-b border-[#bccbb9]">
+                      <span className="text-xs text-zinc-700">
+                        {hiddenFromMarketplace ? "Caché du marketplace public" : "Visible sur /explorer + Best-sellers"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onFieldChange(setHiddenFromMarketplace, !hiddenFromMarketplace)}
+                        className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${hiddenFromMarketplace ? "bg-[#006e2f]" : "bg-zinc-300"}`}
+                        aria-pressed={hiddenFromMarketplace}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${hiddenFromMarketplace ? "left-5" : "left-0.5"}`} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

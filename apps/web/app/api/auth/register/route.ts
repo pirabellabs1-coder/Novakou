@@ -80,11 +80,7 @@ export async function POST(request: Request) {
         ...(formationsRole ? { formationsRole } : {}),
       });
 
-      // Emit welcome + verification events
-      emitEvent("system.welcome", {
-        userId: user.id, userName: name, userEmail: email,
-      }).catch((err) => console.error("[REGISTER] emitEvent welcome error:", err));
-
+      // Send verification code only — welcome email fires AFTER OTP verification
       try {
         const { storeOTP } = await import("@/lib/auth/otp");
         const code = await storeOTP(email);
@@ -167,11 +163,37 @@ export async function POST(request: Request) {
       }
     }
 
-    // Emit welcome + verification events
-    emitEvent("system.welcome", {
-      userId: user.id, userName: name, userEmail: email,
-    }).catch((err) => console.error("[REGISTER] emitEvent welcome error:", err));
+    // Auto-create instructeur profile + primary boutique for formations vendor signups
+    if (formationsRole === "instructeur") {
+      try {
+        const instProfile = await prisma.instructeurProfile.upsert({
+          where: { userId: user.id },
+          update: {},
+          create: { userId: user.id, status: "EN_ATTENTE" },
+        });
+        // Primary blank shop on first signup
+        const baseSlug = (name || email.split("@")[0])
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 30) || "boutique";
+        const slug = `${baseSlug}-${Date.now().toString(36)}`;
+        await prisma.vendorShop.create({
+          data: {
+            instructeurId: instProfile.id,
+            name: name || "Ma boutique",
+            slug,
+            isPrimary: true,
+          },
+        });
+      } catch (shopErr) {
+        console.error("[REGISTER] Auto-create instructor + shop error:", shopErr);
+      }
+    }
 
+    // Send verification code only — welcome email fires AFTER OTP verification
     try {
       const { storeOTP } = await import("@/lib/auth/otp");
       const code = await storeOTP(email);

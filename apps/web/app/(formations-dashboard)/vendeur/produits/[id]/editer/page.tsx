@@ -27,6 +27,7 @@ interface Product {
   status: string;
   fileUrl: string | null;
   downloadable: boolean;
+  hiddenFromMarketplace: boolean;
   category: { id: string; slug: string; name: string } | null;
 }
 
@@ -66,6 +67,7 @@ export default function EditerProduitPage() {
   const [originalPrice, setOriginalPrice] = useState<string>("");
   const [tagsInput, setTagsInput] = useState("");
   const [fileUrl, setFileUrl] = useState("");
+  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
 
@@ -87,6 +89,7 @@ export default function EditerProduitPage() {
       setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
       setTagsInput((product.tags ?? []).join(", "));
       setFileUrl(product.fileUrl ?? "");
+      setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
       setDirty(false);
     }
   }, [product]);
@@ -136,6 +139,7 @@ export default function EditerProduitPage() {
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
       tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
       fileUrl,
+      hiddenFromMarketplace,
     });
   }
 
@@ -343,6 +347,37 @@ export default function EditerProduitPage() {
           <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Fichier à livrer</h2>
           <p className="text-xs text-[#5c647a] mb-4">Le fichier que les acheteurs téléchargeront après leur paiement.</p>
           <FileUploader value={fileUrl} onChange={(url) => track(setFileUrl, url)} />
+        </div>
+
+        {/* Section: Visibilité marketplace */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Visibilité</h2>
+          <p className="text-xs text-[#5c647a] mb-4">
+            Choisissez où ce produit apparaît. Vos boutiques personnalisées l&apos;affichent toujours.
+          </p>
+          <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/30 cursor-pointer">
+            <div>
+              <p className="text-sm font-bold text-[#191c1e]">Cacher du marketplace public</p>
+              <p className="text-xs text-[#5c647a] mt-0.5">
+                Quand activé, ce produit est invisible sur <code>/explorer</code> et la home Novakou. Il
+                reste vendable depuis votre/vos boutique(s) seulement.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => track(setHiddenFromMarketplace, !hiddenFromMarketplace)}
+              className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
+                hiddenFromMarketplace ? "bg-[#006e2f]" : "bg-gray-200"
+              }`}
+              aria-pressed={hiddenFromMarketplace}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
+                  hiddenFromMarketplace ? "left-6" : "left-0.5"
+                }`}
+              />
+            </button>
+          </label>
         </div>
 
         {/* Danger zone */}

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 async function getProfile(userId: string) {
@@ -21,7 +22,7 @@ export async function GET() {
     if (!profile) return NextResponse.json({ data: [] });
 
     const codes = await prisma.discountCode.findMany({
-      where: { instructeurId: profile.id },
+      where: { instructeurId: profile.id, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { usages: true } } },
     });
@@ -55,8 +56,7 @@ export async function POST(request: Request) {
     if (existing) return NextResponse.json({ error: "Ce code existe déjà" }, { status: 409 });
 
     const created = await prisma.discountCode.create({
-      data: {
-        instructeurId: profile.id,
+      data: { instructeurId: profile.id, shopId: activeShopId,
         code: code.toUpperCase().trim(),
         discountType,
         discountValue: parseFloat(discountValue),

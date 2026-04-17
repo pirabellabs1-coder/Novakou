@@ -4,11 +4,12 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 /**
  * GET /api/vendeur/catalog
  * Returns a flat list of the vendor's purchasable items (formations + digital products)
- * for use in the funnel product picker.
+ * for use in the funnel product picker. Filtered by ACTIVE SHOP.
  */
 export async function GET() {
   try {
@@ -21,9 +22,14 @@ export async function GET() {
     });
     if (!ctx) return NextResponse.json({ data: [] });
 
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    const shopFilter = activeShopId ? { shopId: activeShopId } : {};
+
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
-        where: { instructeurId: ctx.instructeurId },
+        where: { instructeurId: ctx.instructeurId, ...shopFilter },
         select: {
           id: true,
           title: true,
@@ -38,7 +44,7 @@ export async function GET() {
         orderBy: { createdAt: "desc" },
       }),
       prisma.digitalProduct.findMany({
-        where: { instructeurId: ctx.instructeurId },
+        where: { instructeurId: ctx.instructeurId, ...shopFilter },
         select: {
           id: true,
           title: true,

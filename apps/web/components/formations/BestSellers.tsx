@@ -26,7 +26,7 @@ async function fetchBestSellers(): Promise<Item[]> {
     // Fetch top formations + top products, merge and sort
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
-        where: { status: "ACTIF" },
+        where: { status: "ACTIF", hiddenFromMarketplace: false },
         orderBy: [{ studentsCount: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
         take: 6,
         select: {
@@ -43,7 +43,7 @@ async function fetchBestSellers(): Promise<Item[]> {
         },
       }),
       prisma.digitalProduct.findMany({
-        where: { status: "ACTIF" },
+        where: { status: "ACTIF", hiddenFromMarketplace: false },
         orderBy: [{ salesCount: "desc" }, { rating: "desc" }, { createdAt: "desc" }],
         take: 6,
         select: {

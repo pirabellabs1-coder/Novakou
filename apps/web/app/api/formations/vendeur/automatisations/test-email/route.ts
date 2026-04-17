@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { sendEmail } from "@/lib/email";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
@@ -24,6 +25,7 @@ export async function POST(request: Request) {
     });
     if (!ctx) {
       return NextResponse.json({ error: "Session invalide" }, { status: 401 });
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     }
 
     // Resolve recipient email

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { DigitalProductType } from "@prisma/client";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 function slugify(text: string): string {
   return text
@@ -51,6 +52,11 @@ export async function POST(request: Request) {
     }
     const userId = ctx.userId;
     const profile = { id: ctx.instructeurId };
+
+    // Multi-shop : tag the new product with the active shop
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
 
     const body = await request.json();
     const {
@@ -108,6 +114,7 @@ export async function POST(request: Request) {
           duration: totalDuration,
           status: publish ? "ACTIF" : "BROUILLON",
           instructeurId: profile.id,
+          shopId: activeShopId,
           sections: validModules.length > 0 ? {
             create: validModules
               .filter((m) => m.title?.trim())
@@ -168,6 +175,7 @@ export async function POST(request: Request) {
           isFree: parseFloat(price) === 0,
           status: publish ? "ACTIF" : "BROUILLON",
           instructeurId: profile.id,
+          shopId: activeShopId,
         },
       });
 

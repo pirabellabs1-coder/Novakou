@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
 async function getProfileId(userId: string) { return _gii(userId); }
 
@@ -19,7 +20,7 @@ export async function GET() {
     if (!pid) return NextResponse.json({ data: { programs: [], stats: { totalAffiliates: 0, activeAffiliates: 0, totalClicks: 0, totalConversions: 0, totalEarned: 0, pendingEarnings: 0 } } });
 
     const programs = await prisma.affiliateProgram.findMany({
-      where: { instructeurId: pid },
+      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
       include: {
         affiliates: {
           include: { user: { select: { name: true, email: true } } },
@@ -62,12 +63,11 @@ export async function POST(request: Request) {
 
     if (!name) return NextResponse.json({ error: "Nom requis" }, { status: 400 });
 
-    const existing = await prisma.affiliateProgram.findFirst({ where: { instructeurId: pid } });
+    const existing = await prisma.affiliateProgram.findFirst({ where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) } });
     if (existing) return NextResponse.json({ error: "Vous avez déjà un programme actif" }, { status: 409 });
 
     const program = await prisma.affiliateProgram.create({
-      data: {
-        instructeurId: pid,
+      data: { instructeurId: pid, shopId: activeShopId,
         name: name.trim(),
         description: description?.trim() || null,
         commissionPct: parseFloat(commissionPct) || 20,

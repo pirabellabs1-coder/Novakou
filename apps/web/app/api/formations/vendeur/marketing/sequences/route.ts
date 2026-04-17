@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { EmailSequenceTrigger } from "@prisma/client";
 
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
@@ -26,8 +27,7 @@ export async function POST(request: Request) {
     if (!name || !trigger) return NextResponse.json({ error: "Nom et déclencheur requis" }, { status: 400 });
 
     const sequence = await prisma.emailSequence.create({
-      data: {
-        instructeurId: pid,
+      data: { instructeurId: pid, shopId: activeShopId,
         name: name.trim(),
         description: description?.trim() || null,
         trigger: trigger as EmailSequenceTrigger,

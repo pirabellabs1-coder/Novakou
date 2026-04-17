@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
+import { ShopProvider } from "@/components/formations/ShopProvider";
+import ShopSwitcher from "@/components/formations/ShopSwitcher";
 
 type NavItem = {
   icon: string;
@@ -53,7 +55,9 @@ function getInitials(name?: string | null): string {
 export default function VendeurLayout({ children }: { children: React.ReactNode }) {
   return (
     <RoleGuard requiredRole="instructeur">
-      <VendeurLayoutInner>{children}</VendeurLayoutInner>
+      <ShopProvider>
+        <VendeurLayoutInner>{children}</VendeurLayoutInner>
+      </ShopProvider>
     </RoleGuard>
   );
 }
@@ -123,6 +127,9 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>storefront</span>
           <span className="text-amber-700 text-[11px] font-semibold">Espace Vendeur</span>
         </div>
+
+        {/* Active shop switcher */}
+        <ShopSwitcher />
 
         <div className="flex-1" />
 

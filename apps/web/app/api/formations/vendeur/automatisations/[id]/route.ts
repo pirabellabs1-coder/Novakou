@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { AutomationTriggerType, WorkflowStatus } from "@prisma/client";
 
 type Params = { params: Promise<{ id: string }> };
@@ -13,6 +14,7 @@ async function ensureOwnership(session: Awaited<ReturnType<typeof getServerSessi
     devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
   });
   if (!ctx) return null;
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
   const wf = await prisma.automationWorkflow.findFirst({
     where: { id: workflowId, instructeurId: ctx.instructeurId },
   });

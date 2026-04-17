@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 async function getInstructeur(userId: string) {
@@ -37,7 +38,7 @@ export async function GET() {
     if (!inst) return NextResponse.json({ data: [] });
 
     const funnels = await prisma.salesFunnel.findMany({
-      where: { instructeurId: inst.id },
+      where: { instructeurId: inst.id, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { updatedAt: "desc" },
       include: {
         steps: { orderBy: { stepOrder: "asc" } },
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
         { error: "Impossible de résoudre votre session. Déconnectez-vous et reconnectez-vous." },
         { status: 401 }
       );
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     }
     const userId = ctx.userId;
     const inst = { id: ctx.instructeurId };
@@ -173,8 +175,7 @@ export async function POST(request: Request) {
     ];
 
     const funnel = await prisma.salesFunnel.create({
-      data: {
-        instructeurId: inst.id,
+      data: { instructeurId: inst.id, shopId: activeShopId,
         name: name.trim(),
         slug,
         theme: defaultTheme,

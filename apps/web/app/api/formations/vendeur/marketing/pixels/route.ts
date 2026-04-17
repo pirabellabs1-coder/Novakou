@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { PixelType } from "@prisma/client";
 
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
@@ -21,7 +22,7 @@ export async function GET() {
     const pid = _ctx.instructeurId;
 
     const pixels = await prisma.marketingPixel.findMany({
-      where: { instructeurId: pid },
+      where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "asc" },
     });
 
@@ -79,7 +80,7 @@ export async function DELETE(request: Request) {
     const type = searchParams.get("type") as PixelType | null;
     if (!type) return NextResponse.json({ error: "type requis" }, { status: 400 });
 
-    await prisma.marketingPixel.deleteMany({ where: { instructeurId: pid, type } });
+    await prisma.marketingPixel.deleteMany({ where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}), type } });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[pixels DELETE]", err);

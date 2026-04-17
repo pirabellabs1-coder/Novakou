@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { EmailSequenceTrigger } from "@prisma/client";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
@@ -14,6 +15,7 @@ async function ensureOwnership(session: Awaited<ReturnType<typeof getServerSessi
     devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
   });
   if (!ctx) return null;
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
   // Primary lookup : via instructeurProfile.id (stable unique key)
   let seq = await prisma.emailSequence.findFirst({

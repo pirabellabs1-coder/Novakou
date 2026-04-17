@@ -42,7 +42,7 @@ const PUBLIC_ROUTES = [
 ];
 
 // Routes auth — accessibles uniquement si NON connecte
-const AUTH_ROUTES = ["/connexion", "/inscription", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe", "/onboarding"];
+const AUTH_ROUTES = ["/connexion", "/inscription", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe", "/onboarding", "/verifier-email", "/2fa"];
 
 
 

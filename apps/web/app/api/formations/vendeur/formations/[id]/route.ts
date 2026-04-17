@@ -21,7 +21,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         id: true, slug: true, title: true, shortDesc: true, description: true,
         thumbnail: true, previewVideo: true, price: true, originalPrice: true,
         customCategory: true, status: true, rating: true, studentsCount: true,
-        reviewsCount: true, createdAt: true, updatedAt: true,
+        reviewsCount: true, hiddenFromMarketplace: true, createdAt: true, updatedAt: true,
         sections: {
           orderBy: { order: "asc" },
           select: {
@@ -69,6 +69,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         price: body.price !== undefined ? parseFloat(body.price) : undefined,
         originalPrice: body.originalPrice !== undefined ? (body.originalPrice ? parseFloat(body.originalPrice) : null) : undefined,
         status: body.status ?? undefined,
+        hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
       },
     });
 

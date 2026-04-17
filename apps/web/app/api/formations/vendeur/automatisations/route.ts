@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { AutomationTriggerType, WorkflowStatus } from "@prisma/client";
 
 import { getInstructeurId as _gii } from "@/lib/formations/instructeur";
@@ -22,12 +23,12 @@ export async function GET() {
 
     const [workflows, sequences] = await Promise.all([
       prisma.automationWorkflow.findMany({
-        where: { instructeurId: pid },
+        where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
         orderBy: { createdAt: "desc" },
         include: { _count: { select: { logs: true } } },
       }),
       prisma.emailSequence.findMany({
-        where: { instructeurId: pid },
+        where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
         orderBy: { createdAt: "desc" },
         include: { _count: { select: { steps: true, enrollments: true } } },
       }),
@@ -59,8 +60,7 @@ export async function POST(request: Request) {
     }
 
     const workflow = await prisma.automationWorkflow.create({
-      data: {
-        instructeurId: pid,
+      data: { instructeurId: pid, shopId: activeShopId,
         name: name.trim(),
         description: description?.trim() || null,
         triggerType: triggerType as AutomationTriggerType,

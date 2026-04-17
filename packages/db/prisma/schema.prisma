@@ -974,6 +974,8 @@ model VendorShop {
   customDomainAddedAt  DateTime?
 
   instructeur InstructeurProfile @relation("InstructeurShops", fields: [instructeurId], references: [id], onDelete: Cascade)
+  formations  Formation[]        @relation("ShopFormations")
+  products    DigitalProduct[]   @relation("ShopProducts")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1040,6 +1042,13 @@ model Formation {
   publishedAt  DateTime?
   scheduledAt  DateTime?
   refuseReason String?
+
+  // Visibilité — true = exclusivement dans la boutique du vendeur, pas dans /explorer
+  hiddenFromMarketplace Boolean @default(false)
+
+  // Multi-shop : à quelle boutique du vendeur appartient ce produit
+  shopId String?
+  shop   VendorShop? @relation("ShopFormations", fields: [shopId], references: [id], onDelete: SetNull)
 
   // Wizard brouillon
   draftStep Int?
@@ -1304,6 +1313,7 @@ model PromoCode {
 model InstructorWithdrawal {
   id             String    @id @default(cuid())
   instructeurId  String
+  shopId          String?
   amount         Float
   method         String // "virement", "paypal", "wave", "orange_money", "mtn"
   accountDetails Json // IBAN, email PayPal, numéro mobile...
@@ -1411,6 +1421,13 @@ model DigitalProduct {
   // Statut
   status       DigitalProductStatus @default(BROUILLON)
   refuseReason String?
+
+  // Visibilité — true = exclusivement dans la boutique du vendeur, pas dans /explorer
+  hiddenFromMarketplace Boolean @default(false)
+
+  // Multi-shop : à quelle boutique du vendeur appartient ce produit
+  shopId String?
+  shop   VendorShop? @relation("ShopProducts", fields: [shopId], references: [id], onDelete: SetNull)
 
   // Relations
   instructeurId   String
@@ -1524,6 +1541,7 @@ model AbandonedCart {
 model MarketingPixel {
   id            String    @id @default(cuid())
   instructeurId String
+  shopId          String?
   type          PixelType
   pixelId       String // ID du pixel (ex: "123456789012345" pour Facebook)
   isActive      Boolean   @default(true)
@@ -1798,6 +1816,7 @@ enum WorkflowStatus {
 model AffiliateProgram {
   id              String   @id @default(cuid())
   instructeurId   String
+  shopId          String?
   name            String
   description     String?  @db.Text
   commissionPct   Float    @default(20) // default 20%
@@ -1900,6 +1919,7 @@ model AffiliateCommission {
 model DiscountCode {
   id              String        @id @default(cuid())
   instructeurId   String
+  shopId          String?
   code            String        @unique
   discountType    DiscountType  @default(PERCENTAGE)
   discountValue   Float // percentage (0-100) or fixed amount
@@ -1952,6 +1972,7 @@ model DiscountUsage {
 model EmailSequence {
   id             String               @id @default(cuid())
   instructeurId  String
+  shopId          String?
   name           String
   description    String?              @db.Text
   trigger        EmailSequenceTrigger
@@ -2028,6 +2049,7 @@ model EmailSequenceEnrollment {
 model SalesFunnel {
   id               String  @id @default(cuid())
   instructeurId    String
+  shopId          String?
   name             String
   slug             String  @unique
   description      String? @db.Text
@@ -2109,6 +2131,7 @@ model FunnelEvent {
 model SmartPopup {
   id               String       @id @default(cuid())
   instructeurId    String
+  shopId          String?
   name             String
   popupType        PopupType    @default(DISCOUNT)
   trigger          PopupTrigger @default(TIME_DELAY)
@@ -2175,6 +2198,7 @@ model PopupImpression {
 model CampaignTracker {
   id               String  @id @default(cuid())
   instructeurId    String
+  shopId          String?
   name             String
   slug             String  @unique // used in URLs
   // UTM parameters
@@ -2229,6 +2253,7 @@ model CampaignEvent {
 model AutomationWorkflow {
   id              String                @id @default(cuid())
   instructeurId   String
+  shopId          String?
   name            String
   description     String?               @db.Text
   status          WorkflowStatus        @default(DRAFT)
@@ -2376,11 +2401,7 @@ model MentorProfile {
   rating        Float @default(0)
   reviewsCount  Int   @default(0)
 
-  // Boutique publique (custom domain)
-  shopSlug             String?   @unique
-  customDomain         String?   @unique
-  customDomainVerified Boolean   @default(false)
-  customDomainAddedAt  DateTime?
+  // Note: les mentors n'ont PAS de boutique custom (réservé aux vendeurs).
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2392,7 +2413,6 @@ model MentorProfile {
   @@index([userId])
   @@index([domain])
   @@index([isAvailable])
-  @@index([customDomain])
 }
 
 model MentorAvailability {
@@ -2535,6 +2555,7 @@ model PlatformRevenue {
 model VendorIntegration {
   id            String             @id @default(cuid())
   instructeurId String
+  shopId          String?
   instructeur   InstructeurProfile @relation("InstructeurIntegrations", fields: [instructeurId], references: [id], onDelete: Cascade)
   provider      String             // "brevo" | "make" | "zapier" | "n8n" | "convertkit" | "systemeio"
   connected     Boolean            @default(false)
@@ -2554,6 +2575,7 @@ model VendorIntegration {
 model VendorWebhook {
   id            String             @id @default(cuid())
   instructeurId String
+  shopId          String?
   instructeur   InstructeurProfile @relation("InstructeurWebhooks", fields: [instructeurId], references: [id], onDelete: Cascade)
   url           String             @db.Text
   events        String[]           @default([]) // e.g. ["order.created", "order.paid", "refund.issued"]
@@ -2573,6 +2595,7 @@ model VendorWebhook {
 model VendorApiKey {
   id            String             @id @default(cuid())
   instructeurId String
+  shopId          String?
   instructeur   InstructeurProfile @relation("InstructeurApiKeys", fields: [instructeurId], references: [id], onDelete: Cascade)
   name          String              // ex: "Prod server", "Staging integration"
   keyPrefix     String              // 8 premiers char visibles (ex: "nk_live_ab12")

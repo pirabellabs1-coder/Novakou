@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 
 export async function GET() {
@@ -16,12 +17,18 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ data: null });
     const userId = ctx.userId;
 
+    // Multi-shop : ne montrer que les produits de la boutique active
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+
     const profile = await prisma.instructeurProfile.findUnique({
       where: { userId },
       select: {
         id: true,
         totalEarned: true,
         formations: {
+          where: activeShopId ? { shopId: activeShopId } : undefined,
           orderBy: { createdAt: "desc" },
           select: {
             id: true,
@@ -41,6 +48,7 @@ export async function GET() {
           },
         },
         digitalProducts: {
+          where: activeShopId ? { shopId: activeShopId } : undefined,
           orderBy: { createdAt: "desc" },
           select: {
             id: true,

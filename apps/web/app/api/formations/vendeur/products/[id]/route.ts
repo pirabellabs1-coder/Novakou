@@ -20,7 +20,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         id: true, slug: true, title: true, description: true, descriptionFormat: true,
         productType: true, banner: true, price: true, originalPrice: true,
         rating: true, reviewsCount: true, salesCount: true, viewsCount: true,
-        tags: true, status: true, fileUrl: true, downloadable: true,
+        tags: true, status: true, fileUrl: true,
+        hiddenFromMarketplace: true,
         createdAt: true, updatedAt: true,
         category: { select: { id: true, slug: true, name: true } },
       },
@@ -60,6 +61,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         tags: Array.isArray(body.tags) ? body.tags : undefined,
         status: body.status ?? undefined,
         fileUrl: body.fileUrl !== undefined ? (body.fileUrl || null) : undefined,
+        hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
       },
     });
 

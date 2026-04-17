@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { computeHoldStatus, HOLD_PERIOD_HOURS } from "@/lib/formations/escrow";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 /**
  * GET /api/formations/wallet
@@ -59,18 +60,30 @@ export async function GET() {
       refusedReason: string | null;
     }> = [];
     if (inst) {
-      // Fetch all paid sales for this vendor (enrollments + digital product purchases).
-      // We use createdAt as the sale timestamp (Option A — no extra DB field).
+      // Multi-shop : per-shop wallet — filter sales by active shop's products
+      const activeShopId = await getActiveShopId(session, {
+        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+      });
+
+      // Fetch paid sales for this vendor's ACTIVE SHOP only (enrollments + digital products).
       const [enrollments, productSales] = await Promise.all([
         prisma.enrollment.findMany({
           where: {
-            formation: { instructeurId: inst.id },
+            formation: {
+              instructeurId: inst.id,
+              ...(activeShopId ? { shopId: activeShopId } : {}),
+            },
             refundedAt: null,
           },
           select: { paidAmount: true, createdAt: true },
         }),
         prisma.digitalProductPurchase.findMany({
-          where: { product: { instructeurId: inst.id } },
+          where: {
+            product: {
+              instructeurId: inst.id,
+              ...(activeShopId ? { shopId: activeShopId } : {}),
+            },
+          },
           select: { paidAmount: true, createdAt: true },
         }),
       ]);
@@ -82,12 +95,12 @@ export async function GET() {
       const { grossReleased, grossPending, netReleased, netPending } =
         computeHoldStatus(allSales);
 
-      // Subtract pending + treated withdrawals from the net released amount.
-      // Vendor withdrawals are those WITHOUT `_mentor` suffix (mentor retraits use the suffix).
+      // Subtract withdrawals — also filtered to the active shop
       const allVendorW = await prisma.instructorWithdrawal.findMany({
         where: {
           instructeurId: inst.id,
           NOT: { method: { endsWith: "_mentor" } },
+          ...(activeShopId ? { shopId: activeShopId } : {}),
         },
         orderBy: { createdAt: "desc" },
         select: {
@@ -324,17 +337,29 @@ export async function POST(request: Request) {
       if (!inst)
         return NextResponse.json({ error: "Profil vendeur introuvable" }, { status: 404 });
 
-      // Recompute the released (withdrawable) net amount using the same 24h hold logic as GET.
+      // Multi-shop : compute available + record withdrawal scoped to the active shop
+      const activeShopId = await getActiveShopId(session, {
+        devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+      });
+
       const [enrollments, productSales] = await Promise.all([
         prisma.enrollment.findMany({
           where: {
-            formation: { instructeurId: inst.id },
+            formation: {
+              instructeurId: inst.id,
+              ...(activeShopId ? { shopId: activeShopId } : {}),
+            },
             refundedAt: null,
           },
           select: { paidAmount: true, createdAt: true },
         }),
         prisma.digitalProductPurchase.findMany({
-          where: { product: { instructeurId: inst.id } },
+          where: {
+            product: {
+              instructeurId: inst.id,
+              ...(activeShopId ? { shopId: activeShopId } : {}),
+            },
+          },
           select: { paidAmount: true, createdAt: true },
         }),
       ]);
@@ -343,11 +368,12 @@ export async function POST(request: Request) {
         ...productSales.map((p) => ({ paidAmount: p.paidAmount, timestamp: p.createdAt })),
       ]);
 
-      // Subtract previous vendor withdrawals (without the `_mentor` suffix).
+      // Subtract previous withdrawals scoped to active shop
       const wAgg = await prisma.instructorWithdrawal.aggregate({
         where: {
           instructeurId: inst.id,
           NOT: { method: { endsWith: "_mentor" } },
+          ...(activeShopId ? { shopId: activeShopId } : {}),
           status: { in: ["EN_ATTENTE", "TRAITE"] },
         },
         _sum: { amount: true },
@@ -363,6 +389,7 @@ export async function POST(request: Request) {
       const withdrawal = await prisma.instructorWithdrawal.create({
         data: {
           instructeurId: inst.id,
+          shopId: activeShopId,
           amount,
           method,
           accountDetails,

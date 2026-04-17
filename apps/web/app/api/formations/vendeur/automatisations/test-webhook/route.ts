@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
+import { getActiveShopId } from "@/lib/formations/active-shop";
 function isValidUrl(raw: unknown): raw is string {
   if (typeof raw !== "string") return false;
   try {
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
     if (!ctx) return NextResponse.json({ error: "Session invalide" }, { status: 401 });
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
     const body = await request.json().catch(() => ({}));
     if (!isValidUrl(body.url)) {

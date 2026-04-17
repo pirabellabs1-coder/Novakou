@@ -31,7 +31,8 @@ async function resolve(hostParam: string) {
 
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
-        where: { instructeurId: shop.instructeur.id, status: "ACTIF" },
+        // Multi-shop : seulement les produits de CETTE boutique
+        where: { shopId: shop.id, status: "ACTIF" },
         select: {
           id: true, slug: true, title: true, thumbnail: true,
           price: true, isFree: true, rating: true, studentsCount: true,
@@ -40,7 +41,7 @@ async function resolve(hostParam: string) {
         take: 24,
       }),
       prisma.digitalProduct.findMany({
-        where: { instructeurId: shop.instructeur.id, status: "ACTIF" },
+        where: { shopId: shop.id, status: "ACTIF" },
         select: {
           id: true, slug: true, title: true, banner: true,
           price: true, isFree: true, rating: true, salesCount: true,

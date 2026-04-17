@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
+import { getActiveShopId } from "@/lib/formations/active-shop";
 const ALLOWED_PROVIDERS = ["brevo", "make", "zapier", "n8n", "convertkit", "systemeio"];
 
 /**
@@ -21,9 +22,10 @@ export async function GET() {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
     if (!ctx) return NextResponse.json({ data: [] });
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
     const rows = await prisma.vendorIntegration.findMany({
-      where: { instructeurId: ctx.instructeurId },
+      where: { instructeurId: ctx.instructeurId, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "asc" },
       select: {
         id: true,
@@ -155,7 +157,7 @@ export async function DELETE(request: Request) {
     }
 
     await prisma.vendorIntegration.updateMany({
-      where: { instructeurId: ctx.instructeurId, provider },
+      where: { instructeurId: ctx.instructeurId, ...(activeShopId ? { shopId: activeShopId } : {}), provider },
       data: { connected: false },
     });
 

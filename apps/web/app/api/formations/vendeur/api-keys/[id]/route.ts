@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
+import { getActiveShopId } from "@/lib/formations/active-shop";
 type Params = { params: Promise<{ id: string }> };
 
 /**
@@ -22,6 +23,7 @@ export async function DELETE(_req: Request, { params }: Params) {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
     });
     if (!ctx) return NextResponse.json({ error: "Session invalide" }, { status: 401 });
+    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
 
     // Verify ownership before revoke
     const key = await prisma.vendorApiKey.findFirst({

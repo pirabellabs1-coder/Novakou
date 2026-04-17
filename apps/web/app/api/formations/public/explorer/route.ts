@@ -11,8 +11,9 @@ export async function GET(request: Request) {
     const minRating = searchParams.get("minRating") ? parseFloat(searchParams.get("minRating")!) : 0;
     const sort = searchParams.get("sort") ?? "relevance"; // relevance | price-asc | price-desc | rating | recent
 
-    const formationWhere: Record<string, unknown> = { status: "ACTIF" };
-    const productWhere: Record<string, unknown> = { status: "ACTIF" };
+    // Exclure les produits que les vendeurs ont marqués comme cachés du marketplace
+    const formationWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
+    const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
 
     if (search) {
       formationWhere.OR = [

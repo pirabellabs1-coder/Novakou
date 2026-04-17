@@ -95,19 +95,45 @@ export async function PUT(request: Request) {
       );
     }
 
-    // Mark email as verified
+    // Mark email as verified + send welcome email (only the FIRST time)
+    let userIdForWelcome = "";
+    let userNameForWelcome = "";
+    let isFirstVerification = false;
+
     if (IS_DEV_MODE) {
       const { devStore } = await import("@/lib/dev/dev-store");
       const user = devStore.findByEmail(email);
       if (user) {
+        const userRec = user as unknown as Record<string, unknown>;
+        isFirstVerification = !userRec.emailVerified;
         devStore.update(user.id, { emailVerified: new Date().toISOString() } as Record<string, unknown>);
+        userIdForWelcome = user.id;
+        userNameForWelcome = user.name;
       }
     } else {
       const { prisma } = await import("@freelancehigh/db");
+      const before = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true, name: true, emailVerified: true },
+      });
+      if (before) {
+        isFirstVerification = !before.emailVerified;
+        userIdForWelcome = before.id;
+        userNameForWelcome = before.name ?? email.split("@")[0];
+      }
       await prisma.user.update({
         where: { email },
         data: { emailVerified: new Date() },
       });
+    }
+
+    // Welcome email (only on first verification)
+    if (isFirstVerification && userIdForWelcome) {
+      emitEvent("system.welcome", {
+        userId: userIdForWelcome,
+        userName: userNameForWelcome,
+        userEmail: email,
+      }).catch((err) => console.error("[VERIFY-EMAIL] welcome event error:", err));
     }
 
     return NextResponse.json({

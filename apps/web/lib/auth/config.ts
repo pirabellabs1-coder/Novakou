@@ -386,6 +386,36 @@ export const authOptions: NextAuthOptions = {
                 }
               }
 
+              // Auto-create instructeur profile + primary boutique for OAuth vendor signups
+              if (pendingFormationsRole === "instructeur") {
+                try {
+                  const instProfile = await prisma.instructeurProfile.upsert({
+                    where: { userId: dbUser.id },
+                    update: {},
+                    create: { userId: dbUser.id, status: "EN_ATTENTE" },
+                  });
+                  const baseName = user.name || email.split("@")[0];
+                  const baseSlug = baseName
+                    .toLowerCase()
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^a-z0-9]+/g, "-")
+                    .replace(/^-|-$/g, "")
+                    .slice(0, 30) || "boutique";
+                  const slug = `${baseSlug}-${Date.now().toString(36)}`;
+                  await prisma.vendorShop.create({
+                    data: {
+                      instructeurId: instProfile.id,
+                      name: baseName,
+                      slug,
+                      isPrimary: true,
+                    },
+                  });
+                } catch (shopErr) {
+                  console.error("[AUTH OAuth] Auto-create instructeur+shop error:", shopErr);
+                }
+              }
+
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
                 sendWelcomeEmail(email, user.name || email.split("@")[0]).catch((err) =>
