@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // Upload to Cloudinary
     const result = await uploadImage(buffer, {
-      folder: "freelancehigh/services",
+      folder: "novakou/services",
       publicId: `svc_${session.user.id}_${Date.now()}`,
     });
 

@@ -25,9 +25,9 @@ function validateImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
 }
 
 const FOLDER_MAP: Record<string, string> = {
-  avatar: "freelancehigh/avatars",
-  service: "freelancehigh/services",
-  portfolio: "freelancehigh/portfolio",
+  avatar: "novakou/avatars",
+  service: "novakou/services",
+  portfolio: "novakou/portfolio",
 };
 
 function extFromMime(mime: string): string {
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
     // Try Cloudinary first (if configured, typically in production)
     const hasCloudinary = !!process.env.CLOUDINARY_URL;
     if (hasCloudinary) {
-      const cloudinaryFolder = FOLDER_MAP[folder] || "freelancehigh/uploads";
+      const cloudinaryFolder = FOLDER_MAP[folder] || "novakou/uploads";
       const result = await uploadImage(buffer, {
         folder: cloudinaryFolder,
         publicId: `${session.user.id}_${Date.now()}`,

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 
 export async function GET(request: Request) {
   try {
@@ -17,10 +18,16 @@ export async function GET(request: Request) {
     if (!ctx) return NextResponse.json({ data: [] });
     const profile = { id: ctx.instructeurId };
 
+    // Multi-shop : transactions de la boutique active uniquement
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    const shopFilter = activeShopId ? { shopId: activeShopId } : {};
+
     // Fetch enrollments and digital product purchases in parallel
     const [enrollments, purchases] = await Promise.all([
       prisma.enrollment.findMany({
-        where: { formation: { instructeurId: profile.id } },
+        where: { formation: { instructeurId: profile.id, ...shopFilter } },
         orderBy: { createdAt: "desc" },
         take: 200,
         select: {
@@ -34,7 +41,7 @@ export async function GET(request: Request) {
         },
       }),
       prisma.digitalProductPurchase.findMany({
-        where: { product: { instructeurId: profile.id } },
+        where: { product: { instructeurId: profile.id, ...shopFilter } },
         orderBy: { createdAt: "desc" },
         take: 200,
         select: {

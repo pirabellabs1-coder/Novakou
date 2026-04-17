@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
@@ -22,6 +23,12 @@ export async function GET() {
     if (!ctx) return NextResponse.json({ data: null });
     const userId = ctx.userId;
 
+    // Multi-shop : restreindre les stats à la boutique active
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    const shopFilter = activeShopId ? { shopId: activeShopId } : {};
+
     // Get instructeur profile with formations + products — use resolved userId
     const profile = await prisma.instructeurProfile.findUnique({
       where: { userId },
@@ -30,6 +37,7 @@ export async function GET() {
         totalEarned: true,
         status: true,
         formations: {
+          where: shopFilter,
           select: {
             id: true,
             title: true,
@@ -52,6 +60,7 @@ export async function GET() {
           },
         },
         digitalProducts: {
+          where: shopFilter,
           select: {
             id: true,
             title: true,
@@ -147,7 +156,7 @@ export async function GET() {
     // ── Recent sales (with buyer names — separate query) ──
     const [recentEnrollments, recentPurchases] = await Promise.all([
       prisma.enrollment.findMany({
-        where: { formation: { instructeurId: profile.id } },
+        where: { formation: { instructeurId: profile.id, ...(activeShopId ? { shopId: activeShopId } : {}) } },
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
@@ -160,7 +169,7 @@ export async function GET() {
         },
       }),
       prisma.digitalProductPurchase.findMany({
-        where: { product: { instructeurId: profile.id } },
+        where: { product: { instructeurId: profile.id, ...(activeShopId ? { shopId: activeShopId } : {}) } },
         orderBy: { createdAt: "desc" },
         take: 5,
         select: {
