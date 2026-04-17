@@ -62,7 +62,7 @@ export function emailLayout(content: string): string {
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
       <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
       <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">LA PLATEFORME FREELANCE</p>
     </div>
@@ -74,9 +74,9 @@ export function emailLayout(content: string): string {
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
       <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        <a href="${getAppUrl()}/cgu" style="color:#6C2BD9;text-decoration:none;">CGU</a> ·
-        <a href="${getAppUrl()}/confidentialite" style="color:#6C2BD9;text-decoration:none;">Confidentialite</a> ·
-        <a href="${getAppUrl()}/contact" style="color:#6C2BD9;text-decoration:none;">Contact</a>
+        <a href="${getAppUrl()}/cgu" style="color:#006e2f;text-decoration:none;">CGU</a> ·
+        <a href="${getAppUrl()}/confidentialite" style="color:#006e2f;text-decoration:none;">Confidentialite</a> ·
+        <a href="${getAppUrl()}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
       </p>
       <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Fondee par Lissanon Gildas</p>
     </div>
@@ -86,7 +86,7 @@ export function emailLayout(content: string): string {
 }
 
 export function button(text: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;background:#6C2BD9;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin:16px 0;">${text}</a>`;
+  return `<a href="${url}" style="display:inline-block;background:#006e2f;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin:16px 0;">${text}</a>`;
 }
 
 // ── 1. Email de bienvenue ──
@@ -114,7 +114,7 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
     </div>
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 0;">
       Si vous avez des questions, n'hesitez pas a nous contacter a
-      <a href="mailto:support@novakou.com" style="color:#6C2BD9;">support@novakou.com</a>
+      <a href="mailto:support@novakou.com" style="color:#006e2f;">support@novakou.com</a>
     </p>
     <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— Lissanon Gildas, Fondateur</p>
   `);
@@ -134,8 +134,8 @@ export async function sendVerificationEmail(email: string, name: string, code: s
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
       Bonjour ${name}, voici votre code de verification :
     </p>
-    <div style="background:#f3f0ff;border:2px solid #6C2BD9;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#6C2BD9;">${code}</span>
+    <div style="background:#ecfdf5;border:2px solid #006e2f;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
+      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#006e2f;">${code}</span>
     </div>
     <p style="color:#6b7280;font-size:13px;margin:0;">
       Ce code expire dans <strong>10 minutes</strong>. Ne le partagez avec personne.
@@ -181,7 +181,7 @@ export async function sendOrderConfirmationEmail(
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:0 0 24px;">
       <table style="width:100%;border-collapse:collapse;">
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Service</td><td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${order.serviceTitle}</td></tr>
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant</td><td style="color:#6C2BD9;font-weight:700;text-align:right;font-size:16px;">${order.amount.toFixed(2)} EUR</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${order.amount.toFixed(2)} EUR</td></tr>
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Date limite</td><td style="color:#111827;text-align:right;font-size:14px;">${order.deadline}</td></tr>
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Reference</td><td style="color:#111827;text-align:right;font-size:14px;">${order.id}</td></tr>
       </table>
@@ -206,7 +206,7 @@ export async function sendNewMessageEmail(
 ) {
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Nouveau message de ${senderName}</h2>
-    <div style="background:#f9fafb;border-left:4px solid #6C2BD9;padding:16px 20px;margin:0 0 24px;border-radius:0 8px 8px 0;">
+    <div style="background:#f9fafb;border-left:4px solid #006e2f;padding:16px 20px;margin:0 0 24px;border-radius:0 8px 8px 0;">
       <p style="color:#4b5563;margin:0;font-style:italic;">"${messagePreview.slice(0, 200)}${messagePreview.length > 200 ? "..." : ""}"</p>
     </div>
     ${button("Repondre", conversationUrl)}
@@ -252,7 +252,7 @@ export async function sendNewOrderFreelanceEmail(
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:0 0 24px;">
       <table style="width:100%;border-collapse:collapse;">
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Service</td><td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${order.serviceTitle}</td></tr>
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant</td><td style="color:#6C2BD9;font-weight:700;text-align:right;font-size:16px;">${order.amount.toFixed(2)} EUR</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${order.amount.toFixed(2)} EUR</td></tr>
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Client</td><td style="color:#111827;text-align:right;font-size:14px;">${order.clientName}</td></tr>
       </table>
     </div>

@@ -1,7 +1,3 @@
-/**
- * Legacy: vérification du domaine sur la boutique PRIMAIRE.
- * Pour gérer plusieurs boutiques: /api/formations/vendeur/shops/[id]/domain/verify
- */
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
@@ -10,7 +6,11 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { verifyDomain, dnsInstructions } from "@/lib/vercel-domains";
 
-export async function POST() {
+type Params = { params: Promise<{ id: string }> };
+
+/** POST — re-trigger Vercel verification on this shop's domain. */
+export async function POST(_req: Request, { params }: Params) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   if (!session?.user && !IS_DEV)
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
@@ -20,10 +20,10 @@ export async function POST() {
   if (!ctx) return NextResponse.json({ error: "Profil introuvable" }, { status: 404 });
 
   const shop = await prisma.vendorShop.findFirst({
-    where: { instructeurId: ctx.instructeurId, isPrimary: true },
+    where: { id, instructeurId: ctx.instructeurId },
   });
   if (!shop?.customDomain)
-    return NextResponse.json({ error: "Aucun domaine connecté" }, { status: 400 });
+    return NextResponse.json({ error: "Aucun domaine connecté à cette boutique" }, { status: 400 });
 
   const result = await verifyDomain(shop.customDomain);
   if (!result.ok) {

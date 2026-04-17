@@ -17,7 +17,7 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
       <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
       <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">🎓 FORMATIONS</p>
     </div>
@@ -29,9 +29,9 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
       <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">${lang === "fr" ? "L'équipe Novakou" : "The Novakou Team"}</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
-        <a href="${APP_URL}" style="color:#6C2BD9;text-decoration:none;">Formations</a> ·
-        <a href="${APP_URL}/apprenant/mes-formations" style="color:#6C2BD9;text-decoration:none;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
-        <a href="${APP_URL}/contact" style="color:#6C2BD9;text-decoration:none;">Contact</a>
+        <a href="${APP_URL}" style="color:#006e2f;text-decoration:none;">Formations</a> ·
+        <a href="${APP_URL}/apprenant/mes-formations" style="color:#006e2f;text-decoration:none;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
+        <a href="${APP_URL}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
       </p>
       <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Fondée par" : "Founded by"} Lissanon Gildas</p>
     </div>
@@ -41,7 +41,7 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
 }
 
 function button(text: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;background:#6C2BD9;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin:16px 0;">${text}</a>`;
+  return `<a href="${url}" style="display:inline-block;background:#006e2f;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin:16px 0;">${text}</a>`;
 }
 
 function successBadge(text: string): string {
@@ -83,7 +83,7 @@ export async function sendEnrollmentConfirmedEmail(params: {
         </tr>
         <tr>
           <td style="color:#6b7280;padding:4px 0;font-size:14px;">${isFr ? "Montant payé" : "Amount paid"}</td>
-          <td style="color:#6C2BD9;font-weight:700;text-align:right;font-size:16px;">${paidAmount.toFixed(2)} €</td>
+          <td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${paidAmount.toFixed(2)} €</td>
         </tr>
         <tr>
           <td style="color:#6b7280;padding:4px 0;font-size:14px;">${isFr ? "Accès" : "Access"}</td>
@@ -169,19 +169,19 @@ export async function sendCertificateIssuedEmail(params: {
         : `You have successfully completed <strong>${formationTitle}</strong> with a score of <strong>${score}%</strong>.`
       }
     </p>
-    <div style="background:linear-gradient(135deg,#f0e8ff,#e8f4ff);border:2px solid #6C2BD9;border-radius:16px;padding:32px;text-align:center;margin:0 0 24px;">
-      <p style="color:#6C2BD9;font-size:13px;font-weight:600;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">
+    <div style="background:linear-gradient(135deg,#dcfce7,#ecfdf5);border:2px solid #006e2f;border-radius:16px;padding:32px;text-align:center;margin:0 0 24px;">
+      <p style="color:#006e2f;font-size:13px;font-weight:600;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">
         ${isFr ? "Certificat d'accomplissement" : "Certificate of Completion"}
       </p>
       <p style="color:#111827;font-size:20px;font-weight:800;margin:0 0 8px;">${name}</p>
       <p style="color:#6b7280;font-size:14px;margin:0 0 16px;">${formationTitle}</p>
       <p style="color:#9ca3af;font-size:12px;margin:0;">
-        ${isFr ? "Code de vérification" : "Verification code"} : <strong style="color:#6C2BD9;">${certificateCode}</strong>
+        ${isFr ? "Code de vérification" : "Verification code"} : <strong style="color:#006e2f;">${certificateCode}</strong>
       </p>
     </div>
     ${pdfUrl ? button(isFr ? "Télécharger le certificat PDF" : "Download PDF Certificate", pdfUrl) : ""}
     <p style="margin:0 0 8px;">
-      <a href="${verifyUrl}" style="color:#6C2BD9;font-size:13px;">
+      <a href="${verifyUrl}" style="color:#006e2f;font-size:13px;">
         🔗 ${isFr ? "Partager le lien de vérification" : "Share verification link"}
       </a>
     </p>
@@ -255,7 +255,7 @@ export async function sendInstructorApprovedEmail(params: {
     ${successBadge("Candidature approuvée ✓")}
     ${button("Créer ma première formation", `${APP_URL}/vendeur/produits/creer`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
-      Visitez votre <a href="${APP_URL}/vendeur/dashboard" style="color:#6C2BD9;">espace instructeur</a>
+      Visitez votre <a href="${APP_URL}/vendeur/dashboard" style="color:#006e2f;">espace instructeur</a>
       pour gérer vos formations et suivre vos revenus.
     </p>
   `);
@@ -387,7 +387,7 @@ export async function sendWithdrawalRequestEmail(params: {
       <table style="width:100%;border-collapse:collapse;">
         <tr>
           <td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant demandé</td>
-          <td style="color:#6C2BD9;font-weight:700;text-align:right;font-size:18px;">${amount.toFixed(2)} €</td>
+          <td style="color:#006e2f;font-weight:700;text-align:right;font-size:18px;">${amount.toFixed(2)} €</td>
         </tr>
         <tr>
           <td style="color:#6b7280;padding:4px 0;font-size:14px;">Méthode</td>
@@ -480,8 +480,8 @@ export async function sendLicenseKeyEmail(params: {
         : `Your purchase of <strong>${productTitle}</strong> includes a unique license key.`
       }
     </p>
-    <div style="background:#f0e8ff;border:2px solid #6C2BD9;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
-      <p style="color:#6C2BD9;font-size:13px;font-weight:600;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">
+    <div style="background:#dcfce7;border:2px solid #006e2f;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
+      <p style="color:#006e2f;font-size:13px;font-weight:600;margin:0 0 8px;text-transform:uppercase;letter-spacing:1px;">
         ${isFr ? "Clé de licence" : "License Key"}
       </p>
       <p style="color:#111827;font-size:24px;font-weight:800;font-family:monospace;margin:0;letter-spacing:2px;">${licenseKey}</p>
@@ -526,7 +526,7 @@ export async function sendAbandonedCartEmail1(params: {
             <span style="color:#111827;font-size:14px;font-weight:600;">${item.title}</span>
           </div>
         </td>
-        <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;color:#6C2BD9;font-weight:700;">${item.price.toFixed(2)} €</td>
+        <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;color:#006e2f;font-weight:700;">${item.price.toFixed(2)} €</td>
       </tr>
     `
     )
@@ -672,8 +672,8 @@ export async function sendFailedPaymentEmail(params: {
     ${button(isFr ? "Réessayer le paiement" : "Retry payment", retryUrl)}
     <p style="color:#9ca3af;font-size:12px;margin:16px 0 0;">
       ${isFr
-        ? `Besoin d'aide ? <a href="${APP_URL}/contact" style="color:#6C2BD9;">Contactez le support</a>`
-        : `Need help? <a href="${APP_URL}/contact" style="color:#6C2BD9;">Contact support</a>`
+        ? `Besoin d'aide ? <a href="${APP_URL}/contact" style="color:#006e2f;">Contactez le support</a>`
+        : `Need help? <a href="${APP_URL}/contact" style="color:#006e2f;">Contact support</a>`
       }
     </p>
   `,
@@ -734,7 +734,7 @@ export async function sendCohortEnrollmentEmail(params: {
         </tr>
         <tr>
           <td style="color:#6b7280;padding:4px 0;font-size:14px;">${isFr ? "Montant payé" : "Amount paid"}</td>
-          <td style="color:#6C2BD9;font-weight:700;text-align:right;font-size:16px;">${paidAmount.toFixed(2)} €</td>
+          <td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${paidAmount.toFixed(2)} €</td>
         </tr>
       </table>
     </div>

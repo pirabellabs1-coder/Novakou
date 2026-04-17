@@ -21,7 +21,7 @@ export function MessageNotificationEmail({
   return (
     <div style={{ fontFamily: "Arial, sans-serif", maxWidth: "600px", margin: "0 auto", padding: "40px 20px" }}>
       <div style={{ textAlign: "center", marginBottom: "32px" }}>
-        <h1 style={{ color: "#6C2BD9", fontSize: "24px", margin: 0 }}>Novakou</h1>
+        <h1 style={{ color: "#006e2f", fontSize: "24px", margin: 0 }}>Novakou</h1>
       </div>
 
       <div style={{ backgroundColor: "#f8f9fa", borderRadius: "12px", padding: "32px" }}>
@@ -38,7 +38,7 @@ export function MessageNotificationEmail({
             href={messagesUrl}
             style={{
               display: "inline-block",
-              backgroundColor: "#6C2BD9",
+              backgroundColor: "#006e2f",
               color: "#ffffff",
               padding: "12px 32px",
               borderRadius: "8px",

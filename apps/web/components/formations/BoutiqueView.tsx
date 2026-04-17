@@ -20,6 +20,7 @@ interface Owner {
   bio: string | null;
   kind: "vendor" | "mentor";
   domain: string | null;
+  themeColor?: string | null;
 }
 
 function fmtFCFA(n: number) {

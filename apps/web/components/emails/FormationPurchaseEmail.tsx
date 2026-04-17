@@ -76,7 +76,7 @@ export function FormationPurchaseEmail({
         {/* Header */}
         <div
           style={{
-            background: "linear-gradient(135deg, #6C2BD9, #8B5CF6)",
+            background: "linear-gradient(135deg, #006e2f, #22c55e)",
             padding: "32px 40px",
             textAlign: "center",
           }}
@@ -228,7 +228,7 @@ export function FormationPurchaseEmail({
                   </td>
                   <td
                     style={{
-                      color: "#6C2BD9",
+                      color: "#006e2f",
                       fontWeight: 700,
                       textAlign: "right",
                       fontSize: "16px",
@@ -268,7 +268,7 @@ export function FormationPurchaseEmail({
               href={formationUrl}
               style={{
                 display: "inline-block",
-                background: "#6C2BD9",
+                background: "#006e2f",
                 color: "#ffffff",
                 padding: "14px 32px",
                 borderRadius: "8px",
@@ -310,14 +310,14 @@ export function FormationPurchaseEmail({
           <p style={{ color: "#9ca3af", fontSize: "11px", margin: 0 }}>
             <a
               href="https://novakou.com"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               Formations
             </a>{" "}
             ·{" "}
             <a
               href="https://novakou.com/contact"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               Contact
             </a>

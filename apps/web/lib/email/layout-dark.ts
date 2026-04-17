@@ -15,7 +15,7 @@ export function emailLayoutDark(content: string): string {
 <body style="margin:0;padding:0;background:#030712;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:600px;margin:0 auto;background:#0B1120;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;border:1px solid #1E293B;">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;">
+    <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
       <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
       <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">LA PLATEFORME FREELANCE</p>
     </div>
@@ -27,9 +27,9 @@ export function emailLayoutDark(content: string): string {
     <div style="padding:24px 40px;background:#0F172A;border-top:1px solid #1E293B;text-align:center;">
       <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
       <p style="color:#475569;font-size:11px;margin:0;">
-        <a href="${getAppUrl()}/cgu" style="color:#8B5CF6;text-decoration:none;">CGU</a> ·
-        <a href="${getAppUrl()}/confidentialite" style="color:#8B5CF6;text-decoration:none;">Confidentialite</a> ·
-        <a href="${getAppUrl()}/contact" style="color:#8B5CF6;text-decoration:none;">Contact</a>
+        <a href="${getAppUrl()}/cgu" style="color:#22c55e;text-decoration:none;">CGU</a> ·
+        <a href="${getAppUrl()}/confidentialite" style="color:#22c55e;text-decoration:none;">Confidentialite</a> ·
+        <a href="${getAppUrl()}/contact" style="color:#22c55e;text-decoration:none;">Contact</a>
       </p>
       <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Fondee par Lissanon Gildas</p>
     </div>
@@ -43,7 +43,7 @@ export function emailLayoutDark(content: string): string {
 type ButtonColor = "primary" | "green" | "blue" | "red" | "amber";
 
 const BUTTON_COLORS: Record<ButtonColor, string> = {
-  primary: "#6C2BD9",
+  primary: "#006e2f",
   green: "#10B981",
   blue: "#0EA5E9",
   red: "#EF4444",
@@ -63,7 +63,7 @@ export function cardDark(content: string): string {
 
 // ── Info block (left-border highlight) ──
 
-export function infoDark(content: string, borderColor: string = "#6C2BD9"): string {
+export function infoDark(content: string, borderColor: string = "#006e2f"): string {
   return `<div style="background:#111827;border-left:4px solid ${borderColor};padding:16px 20px;margin:0 0 24px;border-radius:0 8px 8px 0;"><p style="color:#CBD5E1;margin:0;line-height:1.6;">${content}</p></div>`;
 }
 
@@ -83,7 +83,7 @@ export function amountDark(amount: string, label?: string, positive: boolean = t
 
 export function tableRowDark(label: string, value: string, highlight: boolean = false): string {
   const valueStyle = highlight
-    ? "color:#8B5CF6;font-weight:700;text-align:right;font-size:16px;"
+    ? "color:#22c55e;font-weight:700;text-align:right;font-size:16px;"
     : "color:#E5E7EB;font-weight:600;text-align:right;font-size:14px;";
   return `<tr><td style="color:#94A3B8;padding:6px 0;font-size:14px;">${label}</td><td style="${valueStyle}">${value}</td></tr>`;
 }

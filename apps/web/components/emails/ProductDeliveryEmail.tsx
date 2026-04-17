@@ -109,7 +109,7 @@ export function ProductDeliveryEmail({
         {/* Header */}
         <div
           style={{
-            background: "linear-gradient(135deg, #6C2BD9, #8B5CF6)",
+            background: "linear-gradient(135deg, #006e2f, #22c55e)",
             padding: "32px 40px",
             textAlign: "center",
           }}
@@ -183,8 +183,8 @@ export function ProductDeliveryEmail({
             <span
               style={{
                 display: "inline-block",
-                background: "#f0e8ff",
-                color: "#6C2BD9",
+                background: "#dcfce7",
+                color: "#006e2f",
                 padding: "6px 16px",
                 borderRadius: "20px",
                 fontSize: "13px",
@@ -260,7 +260,7 @@ export function ProductDeliveryEmail({
                   </td>
                   <td
                     style={{
-                      color: "#6C2BD9",
+                      color: "#006e2f",
                       fontWeight: 700,
                       textAlign: "right",
                       fontSize: "16px",
@@ -300,7 +300,7 @@ export function ProductDeliveryEmail({
               href={downloadUrl}
               style={{
                 display: "inline-block",
-                background: "#6C2BD9",
+                background: "#006e2f",
                 color: "#ffffff",
                 padding: "14px 32px",
                 borderRadius: "8px",
@@ -364,14 +364,14 @@ export function ProductDeliveryEmail({
           <p style={{ color: "#9ca3af", fontSize: "11px", margin: 0 }}>
             <a
               href="https://novakou.com"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               Formations
             </a>{" "}
             ·{" "}
             <a
               href="https://novakou.com/contact"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               Contact
             </a>

@@ -933,6 +933,7 @@ model InstructeurProfile {
   withdrawals     InstructorWithdrawal[] @relation("InstructeurWithdrawals")
   digitalProducts DigitalProduct[]       @relation("InstructeurProducts")
   marketingPixels MarketingPixel[]       @relation("InstructeurPixels")
+  shops           VendorShop[]           @relation("InstructeurShops")
 
   // Marketing relations
   affiliatePrograms   AffiliateProgram[]   @relation("InstructeurAffiliatePrograms")
@@ -951,6 +952,34 @@ model InstructeurProfile {
 
   @@index([status])
   @@index([userId])
+  @@index([customDomain])
+}
+
+/// VendorShop — multi-shop pour vendeur (max 5 par instructeur, validé côté API).
+/// Chaque shop a son URL/domaine/nom propre. Le catalogue produits reste partagé
+/// via instructeurId (les produits du vendeur s'affichent dans toutes ses boutiques).
+model VendorShop {
+  id                    String    @id @default(cuid())
+  instructeurId         String
+  name                  String
+  slug                  String    @unique
+  description           String?   @db.Text
+  logoUrl               String?
+  themeColor            String?   // hex e.g. "#006e2f"
+  isPrimary             Boolean   @default(false)
+
+  // Custom domain (par boutique)
+  customDomain         String?    @unique
+  customDomainVerified Boolean    @default(false)
+  customDomainAddedAt  DateTime?
+
+  instructeur InstructeurProfile @relation("InstructeurShops", fields: [instructeurId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instructeurId])
+  @@index([slug])
   @@index([customDomain])
 }
 

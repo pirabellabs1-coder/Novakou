@@ -25,7 +25,7 @@ export async function sendWelcomeDarkEmail(email: string, name: string, dashboar
     <div style="margin:16px 0;">
       ${buttonDark("Verifier mon identite", kycUrl, "green")}
     </div>
-    ${mutedDark(`Si vous avez des questions, n'hesitez pas a nous contacter a <a href="mailto:support@novakou.com" style="color:#8B5CF6;">support@novakou.com</a>`)}
+    ${mutedDark(`Si vous avez des questions, n'hesitez pas a nous contacter a <a href="mailto:support@novakou.com" style="color:#22c55e;">support@novakou.com</a>`)}
     <p style="color:#CBD5E1;margin:24px 0 0;font-style:italic;">— Lissanon Gildas, Fondateur</p>
   `);
   return sendEmail({ to: email, subject: "Bienvenue sur Novakou !", html });
@@ -39,8 +39,8 @@ export async function sendVerificationDarkEmail(email: string, name: string, cod
   const html = emailLayoutDark(`
     ${headingDark("Verifiez votre adresse email")}
     ${textDark(`Bonjour ${name}, voici votre code de verification :`)}
-    <div style="background:#111827;border:2px solid #8B5CF6;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#8B5CF6;">${code}</span>
+    <div style="background:#111827;border:2px solid #22c55e;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
+      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#22c55e;">${code}</span>
     </div>
     ${mutedDark("Ce code expire dans <strong>10 minutes</strong>. Ne le partagez avec personne.")}
   `);

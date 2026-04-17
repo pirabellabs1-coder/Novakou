@@ -88,7 +88,7 @@ export function CertificateEmail({
         {/* Header */}
         <div
           style={{
-            background: "linear-gradient(135deg, #6C2BD9, #8B5CF6)",
+            background: "linear-gradient(135deg, #006e2f, #22c55e)",
             padding: "32px 40px",
             textAlign: "center",
           }}
@@ -144,8 +144,8 @@ export function CertificateEmail({
           {/* Certificate card */}
           <div
             style={{
-              background: "linear-gradient(135deg, #f0e8ff, #e8f4ff)",
-              border: "2px solid #6C2BD9",
+              background: "linear-gradient(135deg, #dcfce7, #ecfdf5)",
+              border: "2px solid #006e2f",
               borderRadius: "16px",
               padding: "32px",
               textAlign: "center",
@@ -154,7 +154,7 @@ export function CertificateEmail({
           >
             <p
               style={{
-                color: "#6C2BD9",
+                color: "#006e2f",
                 fontSize: "13px",
                 fontWeight: 600,
                 margin: "0 0 8px",
@@ -296,7 +296,7 @@ export function CertificateEmail({
               href={certificateUrl}
               style={{
                 display: "inline-block",
-                background: "#6C2BD9",
+                background: "#006e2f",
                 color: "#ffffff",
                 padding: "14px 32px",
                 borderRadius: "8px",
@@ -375,21 +375,21 @@ export function CertificateEmail({
           <p style={{ color: "#9ca3af", fontSize: "11px", margin: 0 }}>
             <a
               href="https://novakou.com"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               Formations
             </a>{" "}
             ·{" "}
             <a
               href="https://novakou.com/apprenant/certificats"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               {locale === "fr" ? "Mes certificats" : "My certificates"}
             </a>{" "}
             ·{" "}
             <a
               href="https://novakou.com/contact"
-              style={{ color: "#6C2BD9", textDecoration: "none" }}
+              style={{ color: "#006e2f", textDecoration: "none" }}
             >
               Contact
             </a>

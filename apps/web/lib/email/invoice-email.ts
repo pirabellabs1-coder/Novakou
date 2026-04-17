@@ -21,7 +21,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f14; color: #e2e8f0; padding: 32px;">
         <div style="text-align: center; margin-bottom: 32px;">
-          <h1 style="color: #6C2BD9; font-size: 24px; margin: 0;">Novakou</h1>
+          <h1 style="color: #006e2f; font-size: 24px; margin: 0;">Novakou</h1>
         </div>
         <div style="background: #1a1a24; border: 1px solid #2d2d3d; border-radius: 12px; padding: 24px;">
           <h2 style="color: #fff; margin: 0 0 16px;">Votre facture ${invoice.id}</h2>
@@ -45,7 +45,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
           </table>
           <p style="color: #64748b; font-size: 12px; margin: 16px 0 0;">
             La facture PDF est jointe a cet email. Vous pouvez egalement la telecharger depuis votre espace :
-            <a href="${appUrl}/dashboard/factures" style="color: #6C2BD9;">Mes factures</a>
+            <a href="${appUrl}/dashboard/factures" style="color: #006e2f;">Mes factures</a>
           </p>
         </div>
         <div style="text-align: center; margin-top: 24px;">
