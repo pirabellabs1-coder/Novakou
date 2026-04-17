@@ -184,7 +184,7 @@ export async function middleware(req: NextRequest) {
 
   // Routes publiques — toujours accessibles
   if (isPublicRoute(pathname)) {
-    // Si connecté et sur la page d'accueil → rediriger par rôle
+    // Page d'accueil : Novakou → landing /formations (Novakou est la partie active).
     if (pathname === "/") {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
       if (token) {
@@ -192,6 +192,7 @@ export async function middleware(req: NextRequest) {
         const redirectUrl = getDashboardForRole(role);
         return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
       }
+      return withLocaleCookie(NextResponse.redirect(new URL("/formations", req.url)));
     }
     return withLocaleCookie(NextResponse.next());
   }
