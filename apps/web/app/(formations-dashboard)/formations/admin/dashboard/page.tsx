@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, PieChart, Pie, Cell, Legend } from "recharts";
 
 function WipeMenu() {
   const qc = useQueryClient();
@@ -11,7 +13,14 @@ function WipeMenu() {
   const [result, setResult] = useState<string | null>(null);
 
   async function runWipe(mode: string, label: string) {
-    if (!confirm(`Voulez-vous vraiment ${label.toLowerCase()} ? Cette action est irréversible.`)) return;
+    const ok = await confirmAction({
+      title: `Voulez-vous vraiment ${label.toLowerCase()} ?`,
+      message: "Cette action est irréversible.",
+      confirmLabel: label,
+      confirmVariant: "danger",
+      icon: "delete_forever",
+    });
+    if (!ok) return;
     setWorking(mode);
     setResult(null);
     try {
@@ -70,7 +79,7 @@ function WipeMenu() {
             </button>
           ))}
           {result && (
-            <div className="px-4 py-3 bg-zinc-900 text-white text-xs font-mono">
+            <div className="px-4 py-3 bg-zinc-900 text-white text-xs tabular-nums">
               {result}
             </div>
           )}
@@ -142,6 +151,18 @@ export default function AdminDashboardPage() {
     staleTime: 30_000,
   });
 
+  type ChartsData = {
+    revenueSeries: { date: string; formations: number; products: number; mentors: number; total: number }[];
+    newUsersSeries: { date: string; count: number }[];
+    breakdown: { name: string; value: number; color: string }[];
+    totals: { grossLast30: number; commissionLast30: number; commissionPercent: number; newUsersLast7: number; mentorBookingsLast30: number };
+  };
+  const { data: charts } = useQuery<{ data: ChartsData }>({
+    queryKey: ["admin-charts"],
+    queryFn: () => fetch("/api/formations/admin/charts").then((r) => r.json()),
+    staleTime: 60_000,
+  });
+
   const approveMutation = useMutation({
     mutationFn: ({ id, kind, action }: { id: string; kind: string; action: string }) =>
       fetch(`/api/formations/admin/produits/${id}`, {
@@ -160,7 +181,7 @@ export default function AdminDashboardPage() {
   const maxRev = Math.max(...chart.map((m) => m.revenue), 1);
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
         {/* Header */}
         <header className="mb-12 flex flex-wrap items-end justify-between gap-4">
@@ -182,13 +203,13 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
                 Revenus totaux
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 font-mono">
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
                 {isLoading ? "…" : formatFCFA(d?.kpis.totalRevenue ?? 0)}
               </h2>
               <p className="text-[10px] text-zinc-400 mt-1">FCFA</p>
             </div>
             <div className="mt-8 flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold text-[#006e2f] bg-[#22c55e]/10 px-2 py-0.5">
+              <span className="text-[10px] tabular-nums font-bold text-[#006e2f] bg-[#22c55e]/10 px-2 py-0.5">
                 {formatFCFA(d?.kpis.platformCommission ?? 0)} FCFA
               </span>
               <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Commission 5%</span>
@@ -200,12 +221,12 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
                 Utilisateurs
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 font-mono">
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
                 {isLoading ? "…" : (d?.kpis.totalUsers ?? 0).toLocaleString("fr-FR")}
               </h2>
             </div>
             <div className="mt-8 flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold text-[#006e2f] bg-[#22c55e]/10 px-2 py-0.5">
+              <span className="text-[10px] tabular-nums font-bold text-[#006e2f] bg-[#22c55e]/10 px-2 py-0.5">
                 +{d?.kpis.newUsersToday ?? 0}
               </span>
               <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Aujourd&apos;hui</span>
@@ -217,12 +238,12 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
                 Produits publiés
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 font-mono">
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
                 {isLoading ? "…" : (d?.kpis.totalProducts ?? 0).toLocaleString("fr-FR")}
               </h2>
             </div>
             <div className="mt-8 flex items-center gap-2">
-              <span className="text-[10px] font-mono font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5">
+              <span className="text-[10px] tabular-nums font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5">
                 {d?.kpis.pendingProducts ?? 0} en attente
               </span>
               <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Modération</span>
@@ -234,7 +255,7 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold opacity-80 mb-4">
                 Santé plateforme
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter font-mono">99.98%</h2>
+              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter tabular-nums">99.98%</h2>
             </div>
             <div className="mt-8 flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -242,6 +263,129 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* ── Analytics live (30 derniers jours) ─────────────────────────────── */}
+        {charts?.data && (
+          <div className="mb-12 space-y-6">
+            {/* KPI strip */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { label: "Revenus 30j (brut)", value: `${formatFCFA(charts.data.totals.grossLast30)} F`, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10", icon: "payments" },
+                { label: "Commission plateforme", value: `${formatFCFA(charts.data.totals.commissionLast30)} F`, color: "text-amber-600", bg: "bg-amber-50", icon: "account_balance" },
+                { label: "Nouveaux users (7j)", value: String(charts.data.totals.newUsersLast7), color: "text-blue-600", bg: "bg-blue-50", icon: "person_add" },
+                { label: "Sessions mentor (30j)", value: String(charts.data.totals.mentorBookingsLast30), color: "text-purple-600", bg: "bg-purple-50", icon: "event_available" },
+              ].map((kpi, i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${kpi.bg}`}>
+                    <span className={`material-symbols-outlined text-[22px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                      {kpi.icon}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
+                  <p className="text-xl font-extrabold text-[#191c1e] mt-1 tabular-nums">{kpi.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* 2-column charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Revenue stacked area */}
+              <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 md:p-6">
+                <div className="flex items-end justify-between mb-5">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">Revenus 30 jours</p>
+                    <h3 className="text-lg font-bold text-[#191c1e]">Formations · Produits · Mentors</h3>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={260}>
+                  <AreaChart data={charts.data.revenueSeries}>
+                    <defs>
+                      <linearGradient id="gForm" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#006e2f" stopOpacity={0.6} />
+                        <stop offset="100%" stopColor="#006e2f" stopOpacity={0.05} />
+                      </linearGradient>
+                      <linearGradient id="gProd" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#22c55e" stopOpacity={0.6} />
+                        <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
+                      </linearGradient>
+                      <linearGradient id="gMent" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#60a5fa" stopOpacity={0.6} />
+                        <stop offset="100%" stopColor="#60a5fa" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} interval={3} />
+                    <YAxis tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #eef0f3", fontSize: 12 }} formatter={(v: number) => `${formatFCFA(v)} F`} />
+                    <Legend wrapperStyle={{ fontSize: 11 }} />
+                    <Area type="monotone" dataKey="formations" name="Formations" stroke="#006e2f" strokeWidth={2} fill="url(#gForm)" stackId="1" />
+                    <Area type="monotone" dataKey="products" name="Produits" stroke="#22c55e" strokeWidth={2} fill="url(#gProd)" stackId="1" />
+                    <Area type="monotone" dataKey="mentors" name="Mentors" stroke="#60a5fa" strokeWidth={2} fill="url(#gMent)" stackId="1" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Breakdown pie */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 md:p-6">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">Répartition 30j</p>
+                <h3 className="text-lg font-bold text-[#191c1e] mb-4">Sources de revenus</h3>
+                {charts.data.breakdown.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie
+                        data={charts.data.breakdown}
+                        dataKey="value"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        innerRadius={50}
+                        paddingAngle={4}
+                      >
+                        {charts.data.breakdown.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #eef0f3", fontSize: 12 }} formatter={(v: number) => `${formatFCFA(v)} F`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-[220px] flex items-center justify-center text-xs text-[#5c647a]">Aucune donnée</div>
+                )}
+                <div className="space-y-1 mt-3">
+                  {charts.data.breakdown.map((b) => (
+                    <div key={b.name} className="flex items-center justify-between text-xs">
+                      <span className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded" style={{ backgroundColor: b.color }} />
+                        {b.name}
+                      </span>
+                      <span className="font-bold text-[#191c1e] tabular-nums">{formatFCFA(b.value)} F</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* New users 7 days */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-5 md:p-6">
+              <div className="flex items-end justify-between mb-5">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-1">Acquisition</p>
+                  <h3 className="text-lg font-bold text-[#191c1e]">Nouveaux utilisateurs (7 jours)</h3>
+                </div>
+                <p className="text-sm font-bold text-blue-600 tabular-nums">{charts.data.totals.newUsersLast7} inscrits</p>
+              </div>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={charts.data.newUsersSeries}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #eef0f3", fontSize: 12 }} />
+                  <Bar dataKey="count" name="Inscriptions" fill="#60a5fa" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -295,7 +439,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="flex justify-between mt-4">
                     {chart.map((m, i) => (
-                      <span key={i} className="text-[10px] font-mono text-zinc-400 uppercase flex-1 text-center">
+                      <span key={i} className="text-[10px] tabular-nums text-zinc-400 uppercase flex-1 text-center">
                         {m.month}
                       </span>
                     ))}
@@ -332,7 +476,7 @@ export default function AdminDashboardPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-extrabold text-zinc-900 font-mono">{formatFCFA(tx.amount)}</p>
+                        <p className="text-lg font-extrabold text-zinc-900 tabular-nums">{formatFCFA(tx.amount)}</p>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                           {tx.type === "formation" ? "Formation" : "Produit"}
                         </p>
@@ -357,7 +501,7 @@ export default function AdminDashboardPage() {
                   href="/formations/admin/produits?status=EN_ATTENTE"
                   className="block border-l border-zinc-700 pl-4 py-1 hover:border-[#22c55e] transition-colors"
                 >
-                  <p className="text-xs text-zinc-400 font-mono mb-1 uppercase">Modération</p>
+                  <p className="text-xs text-zinc-400 tabular-nums mb-1 uppercase">Modération</p>
                   <p className="text-sm font-bold">
                     {(d?.quickStats.pendingFormations ?? 0) + (d?.quickStats.pendingProducts ?? 0)} produits à valider
                   </p>
@@ -366,14 +510,14 @@ export default function AdminDashboardPage() {
                   href="/formations/admin/signalements"
                   className="block border-l border-zinc-700 pl-4 py-1 hover:border-[#22c55e] transition-colors"
                 >
-                  <p className="text-xs text-zinc-400 font-mono mb-1 uppercase">Litiges</p>
+                  <p className="text-xs text-zinc-400 tabular-nums mb-1 uppercase">Litiges</p>
                   <p className="text-sm font-bold">{d?.quickStats.pendingRefunds ?? 0} remboursements en attente</p>
                 </Link>
                 <Link
                   href="/formations/admin/signalements"
                   className="block border-l border-zinc-700 pl-4 py-1 hover:border-[#22c55e] transition-colors"
                 >
-                  <p className="text-xs text-zinc-400 font-mono mb-1 uppercase">Signalements</p>
+                  <p className="text-xs text-zinc-400 tabular-nums mb-1 uppercase">Signalements</p>
                   <p className="text-sm font-bold">{d?.quickStats.pendingReports ?? 0} contenus signalés</p>
                 </Link>
               </div>
@@ -387,14 +531,14 @@ export default function AdminDashboardPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Transactions</p>
-                  <p className="text-3xl font-extrabold font-mono tracking-tighter text-zinc-900">
+                  <p className="text-3xl font-extrabold tabular-nums tracking-tighter text-zinc-900">
                     {(d?.kpis.transactionsThisMonth ?? 0).toLocaleString("fr-FR")}
                   </p>
                 </div>
                 <div className="h-px bg-zinc-200" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Revenus</p>
-                  <p className="text-2xl font-bold font-mono text-[#006e2f]">
+                  <p className="text-2xl font-bold tabular-nums text-[#006e2f]">
                     {formatFCFA(d?.kpis.transactionsThisMonthRevenue ?? 0)}
                   </p>
                   <p className="text-[10px] text-zinc-400 mt-1">FCFA</p>
@@ -441,11 +585,11 @@ export default function AdminDashboardPage() {
                         {p.seller}
                       </span>
                       <span className="text-[10px] text-zinc-400">·</span>
-                      <span className="text-[10px] font-mono text-zinc-400">{timeAgo(p.submittedAt)}</span>
+                      <span className="text-[10px] tabular-nums text-zinc-400">{timeAgo(p.submittedAt)}</span>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 hidden sm:block">
-                    <p className="text-sm font-extrabold font-mono text-zinc-900">{formatFCFA(p.price)}</p>
+                    <p className="text-sm font-extrabold tabular-nums text-zinc-900">{formatFCFA(p.price)}</p>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-widest">{p.type}</p>
                   </div>
                   <div className="flex gap-0 flex-shrink-0">

@@ -3,6 +3,17 @@ import { useToastStore } from "@/store/toast";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import IntegrationModal from "@/components/automations/IntegrationModal";
+import { safeFetch } from "@/lib/safe-fetch";
+import { confirmAction } from "@/store/confirm";
+
+type IntegrationRow = {
+  id: string;
+  provider: "brevo" | "make" | "zapier" | "n8n" | "convertkit" | "systemeio";
+  connected: boolean;
+  webhookUrl?: string | null;
+  lastSyncAt?: string | null;
+};
 
 type Workflow = {
   id: string;
@@ -76,6 +87,34 @@ export default function AutomationsPage() {
   const [activeTab, setActiveTab] = useState<"workflows" | "sequences" | "integrations">("workflows");
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", triggerType: "PURCHASE" });
+  const [integrationModal, setIntegrationModal] = useState<IntegrationRow["provider"] | null>(null);
+
+  const { data: integrationsResp } = useQuery<{ data: IntegrationRow[] }>({
+    queryKey: ["vendeur-integrations"],
+    queryFn: async () => {
+      const r = await safeFetch<{ data: IntegrationRow[] }>(
+        "/api/formations/vendeur/integrations",
+      );
+      return r.data ?? { data: [] };
+    },
+    staleTime: 30_000,
+  });
+  const integrations = integrationsResp?.data ?? [];
+  const byProvider = (p: string) => integrations.find((i) => i.provider === p);
+
+  const disconnectMutation = useMutation({
+    mutationFn: async (provider: string) => {
+      const res = await fetch(
+        `/api/formations/vendeur/integrations?provider=${encodeURIComponent(provider)}`,
+        { method: "DELETE" },
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["vendeur-integrations"] });
+      useToastStore.getState().addToast("success", "Intégration déconnectée");
+    },
+  });
 
   const { data: response, isLoading } = useQuery<{ data: AutoData }>({
     queryKey: ["vendeur-automatisations"],
@@ -342,8 +381,15 @@ export default function AutomationsPage() {
                       </a>
                       {/* Delete */}
                       <button
-                        onClick={() => {
-                          if (confirm(`Supprimer le workflow "${wf.name}" ?`)) workflowDelete.mutate(wf.id);
+                        onClick={async () => {
+                          const ok = await confirmAction({
+                            title: `Supprimer le workflow "${wf.name}" ?`,
+                            message: "Cette action est irréversible.",
+                            confirmLabel: "Supprimer",
+                            confirmVariant: "danger",
+                            icon: "delete",
+                          });
+                          if (ok) workflowDelete.mutate(wf.id);
                         }}
                         className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
                         title="Supprimer"
@@ -439,8 +485,15 @@ export default function AutomationsPage() {
                       Éditer
                     </button>
                     <button
-                      onClick={() => {
-                        if (confirm(`Supprimer la séquence "${seq.name}" ?`)) sequenceDelete.mutate(seq.id);
+                      onClick={async () => {
+                        const ok = await confirmAction({
+                          title: `Supprimer la séquence "${seq.name}" ?`,
+                          message: "Cette action est irréversible.",
+                          confirmLabel: "Supprimer",
+                          confirmVariant: "danger",
+                          icon: "delete",
+                        });
+                        if (ok) sequenceDelete.mutate(seq.id);
                       }}
                       className="flex items-center gap-1 text-xs font-semibold text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors"
                       title="Supprimer"
@@ -459,27 +512,70 @@ export default function AutomationsPage() {
       {activeTab === "integrations" && (
         <div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {INTEGRATIONS.map((intg) => (
-              <div key={intg.name} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${intg.bg}`}>
-                    <span className={`material-symbols-outlined text-[22px] ${intg.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{intg.icon}</span>
+            {INTEGRATIONS.map((intg) => {
+              const providerKey = ({
+                Brevo: "brevo",
+                Make: "make",
+                Zapier: "zapier",
+                n8n: "n8n",
+                ConvertKit: "convertkit",
+                "Systeme.io": "systemeio",
+              } as Record<string, IntegrationRow["provider"]>)[intg.name];
+              const row = providerKey ? byProvider(providerKey) : undefined;
+              const connected = !!row?.connected;
+              return (
+                <div key={intg.name} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${intg.bg}`}>
+                      <span className={`material-symbols-outlined text-[22px] ${intg.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{intg.icon}</span>
+                    </div>
+                    {connected ? (
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#006e2f]" />Connecté
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">Non connecté</span>
+                    )}
                   </div>
-                  {intg.connected ? (
-                    <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#006e2f]" />Connecté
-                    </span>
-                  ) : (
-                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">Non connecté</span>
-                  )}
+                  <h3 className="font-bold text-[#191c1e] text-sm mb-1">{intg.name}</h3>
+                  <p className="text-[11px] text-[#5c647a] mb-4">{intg.desc}</p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => providerKey && setIntegrationModal(providerKey)}
+                      disabled={!providerKey}
+                      className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
+                        connected
+                          ? "bg-[#006e2f] text-white hover:bg-[#006e2f]/90"
+                          : "border border-gray-200 text-[#5c647a] hover:bg-gray-50 hover:border-[#006e2f]/30 hover:text-[#006e2f]"
+                      }`}
+                    >
+                      {connected ? "Reconfigurer" : "Connecter"}
+                    </button>
+                    {connected && providerKey && (
+                      <button
+                        onClick={async () => {
+                          const ok = await confirmAction({
+                            title: `Déconnecter ${intg.name} ?`,
+                            message: "L'intégration sera désactivée et les webhooks ne seront plus envoyés.",
+                            confirmLabel: "Déconnecter",
+                            confirmVariant: "danger",
+                            icon: "link_off",
+                          });
+                          if (ok) {
+                            disconnectMutation.mutate(providerKey);
+                          }
+                        }}
+                        disabled={disconnectMutation.isPending}
+                        className="px-3 py-2 rounded-xl text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50"
+                        title="Déconnecter"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">link_off</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <h3 className="font-bold text-[#191c1e] text-sm mb-1">{intg.name}</h3>
-                <p className="text-[11px] text-[#5c647a] mb-4">{intg.desc}</p>
-                <button className="w-full py-2 rounded-xl border border-gray-200 text-xs font-semibold text-[#5c647a] hover:bg-gray-50 hover:border-[#006e2f]/30 hover:text-[#006e2f] transition-all">
-                  {intg.connected ? "Configurer" : "Connecter"}
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Webhooks section */}
@@ -493,7 +589,7 @@ export default function AutomationsPage() {
                 <p className="text-[11px] text-[#5c647a]">Recevez les événements de votre boutique dans n'importe quelle application</p>
               </div>
             </div>
-            <div className="bg-white rounded-xl border border-gray-200 p-4 font-mono text-xs text-[#5c647a] mb-4">
+            <div className="bg-white rounded-xl border border-gray-200 p-4 tabular-nums text-xs text-[#5c647a] mb-4">
               <span className="text-[#006e2f]">POST</span> https://votre-app.com/webhook<br />
               <span className="text-[#5c647a]">{"{"} event: "sale.completed", amount: 25000, ... {"}"}</span>
             </div>
@@ -566,6 +662,19 @@ export default function AutomationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Integration connection modal */}
+      {integrationModal && (
+        <IntegrationModal
+          provider={integrationModal}
+          currentWebhook={byProvider(integrationModal)?.webhookUrl ?? null}
+          onSave={() => {
+            setIntegrationModal(null);
+            qc.invalidateQueries({ queryKey: ["vendeur-integrations"] });
+          }}
+          onClose={() => setIntegrationModal(null)}
+        />
       )}
     </div>
   );

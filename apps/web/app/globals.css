@@ -46,6 +46,51 @@
     display: inline-block;
     vertical-align: middle;
   }
+
+  /* ─────────────────────────────────────────────────────────────────────────
+     GLOBAL TEXT VISIBILITY FIX
+     Le <html> peut avoir la classe "dark" qui met text-slate-100 sur le body.
+     Ça rend les inputs/textarea/select/placeholders invisibles sur fond blanc.
+     Force une couleur texte foncée partout où l'élément a un fond clair.
+     ───────────────────────────────────────────────────────────────────────── */
+  input,
+  textarea,
+  select {
+    color: #191c1e;
+    caret-color: #006e2f;
+  }
+  /* Les champs avec explicite bg-white/bg-gray-* etc. héritent correctement */
+
+  /* Placeholders lisibles (gray-500 ~ 9ca3af) */
+  input::placeholder,
+  textarea::placeholder,
+  select::placeholder {
+    color: #9ca3af !important;
+    opacity: 1;
+  }
+
+  /* Spinner number inputs restent lisibles */
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"] {
+    color: #191c1e;
+    color-scheme: light;
+  }
+
+  /* <select> options lisibles sur fond blanc */
+  select option {
+    color: #191c1e;
+    background: #ffffff;
+  }
+
+  /* Checkbox/radio labels lisibles par défaut */
+  label {
+    color: inherit;
+  }
+
 }
 
 @layer components {

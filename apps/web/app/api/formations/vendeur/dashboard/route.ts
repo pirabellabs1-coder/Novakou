@@ -41,7 +41,13 @@ export async function GET() {
             thumbnail: true,
             customCategory: true,
             enrollments: {
-              select: { paidAmount: true, createdAt: true, refundedAt: true, completedAt: true },
+              select: {
+                paidAmount: true,
+                createdAt: true,
+                refundedAt: true,
+                completedAt: true,
+                user: { select: { country: true } },
+              },
             },
           },
         },
@@ -57,7 +63,11 @@ export async function GET() {
             productType: true,
             banner: true,
             purchases: {
-              select: { paidAmount: true, createdAt: true },
+              select: {
+                paidAmount: true,
+                createdAt: true,
+                user: { select: { country: true } },
+              },
             },
           },
         },
@@ -71,6 +81,8 @@ export async function GET() {
           monthlyChart: [],
           recentSales: [],
           topProducts: [],
+          sparkline7d: [],
+          topCountries: [],
         },
       });
     }
@@ -86,6 +98,7 @@ export async function GET() {
         createdAt: e.createdAt,
         refunded: e.refundedAt !== null,
         completed: e.completedAt !== null,
+        country: e.user?.country ?? null,
       }))
     );
     const allPurchases = profile.digitalProducts.flatMap((p) =>
@@ -98,6 +111,7 @@ export async function GET() {
         createdAt: pu.createdAt,
         refunded: false,
         completed: true,
+        country: pu.user?.country ?? null,
       }))
     );
     const allTxns = [...allEnrollments, ...allPurchases];
@@ -214,6 +228,35 @@ export async function GET() {
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5);
 
+    // ── 7-day sparkline ──
+    const sparkline7d: { date: string; amount: number }[] = [];
+    {
+      const map = new Map<string, number>();
+      for (let i = 6; i >= 0; i--) {
+        const day = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        map.set(day, 0);
+      }
+      for (const t of completedTxns) {
+        const key = new Date(t.createdAt).toISOString().slice(0, 10);
+        if (map.has(key)) map.set(key, (map.get(key) || 0) + t.amount);
+      }
+      for (const [date, amount] of map) sparkline7d.push({ date, amount: Math.round(amount) });
+    }
+
+    // ── Top countries (by revenue, all time) ──
+    const countryMap = new Map<string, { sales: number; revenue: number }>();
+    for (const t of completedTxns) {
+      const c = t.country || "??";
+      const entry = countryMap.get(c) || { sales: 0, revenue: 0 };
+      entry.sales += 1;
+      entry.revenue += t.amount;
+      countryMap.set(c, entry);
+    }
+    const topCountries = [...countryMap.entries()]
+      .map(([country, v]) => ({ country, sales: v.sales, revenue: Math.round(v.revenue) }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
     return NextResponse.json({
       data: {
         kpis: {
@@ -227,6 +270,8 @@ export async function GET() {
         monthlyChart,
         recentSales,
         topProducts,
+        sparkline7d,
+        topCountries,
       },
     });
   } catch (err) {

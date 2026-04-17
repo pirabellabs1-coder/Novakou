@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useClientStore } from "@/store/client";
 import { useToastStore } from "@/store/toast";
+import { confirmAction } from "@/store/confirm";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -89,7 +90,14 @@ export default function ClientProjects() {
   );
 
   async function handleDelete(id: string) {
-    if (!confirm("Supprimer ce projet ?")) return;
+    const ok1 = await confirmAction({
+      title: "Supprimer ce projet ?",
+      message: "Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+      confirmVariant: "danger",
+      icon: "delete",
+    });
+    if (!ok1) return;
     const ok = await deleteProject(id);
     if (ok) {
       addToast("success", "Projet supprimé");

@@ -9,6 +9,13 @@ interface VendorWallet {
   totalEarned: number;
   withdrawn: number;
   available: number;
+  // New 24h escrow fields
+  gross?: number;
+  netEarned?: number;
+  pendingHold?: number;
+  holdPeriodHours?: number;
+  withdrawnPending?: number;
+  withdrawnTreated?: number;
   currency: string;
 }
 
@@ -16,7 +23,12 @@ interface MentorWallet {
   mentorId: string;
   totalSessions: number;
   gross: number;
+  netEarned?: number;
   available: number;
+  pendingHold?: number;
+  holdPeriodHours?: number;
+  withdrawnPending?: number;
+  withdrawnTreated?: number;
   currency: string;
 }
 
@@ -210,9 +222,21 @@ export default function WalletPage() {
           </button>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mes revenus & retraits</h1>
         </div>
-        <p className="text-sm text-[#5c647a] mb-7">
+        <p className="text-sm text-[#5c647a] mb-5">
           Suivez vos gains et demandez vos retraits vers Mobile Money, virement bancaire ou PayPal.
         </p>
+
+        {/* ── 24h escrow info banner ──────────────────────────────────────── */}
+        {((data.vendor?.pendingHold ?? 0) > 0 || (data.mentor?.pendingHold ?? 0) > 0) && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-2 mb-5">
+            <span className="material-symbols-outlined text-blue-500 text-[18px] mt-0.5">info</span>
+            <p className="text-xs text-blue-900">
+              Les fonds des ventes récentes sont en attente pendant{" "}
+              {data.vendor?.holdPeriodHours ?? data.mentor?.holdPeriodHours ?? 24}h avant d&apos;être disponibles pour retrait.
+              Cela permet aux acheteurs de signaler un éventuel problème.
+            </p>
+          </div>
+        )}
 
         {/* ── Hero card with total available ──────────────────────────────── */}
         <div
@@ -257,9 +281,19 @@ export default function WalletPage() {
                 <p className="text-2xl font-extrabold text-[#191c1e]">
                   {fmt(data.vendor.available)}
                 </p>
-                <p className="text-[10px] text-[#5c647a] mb-3">FCFA disponibles</p>
+                <p className="text-[10px] text-[#5c647a] mb-2">FCFA disponibles (95% net)</p>
+                {(data.vendor.pendingHold ?? 0) > 0 && (
+                  <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-lg px-2 py-1.5 mb-2">
+                    <span className="text-[10px] text-orange-700 font-medium">
+                      En attente ({data.vendor.holdPeriodHours ?? 24}h)
+                    </span>
+                    <span className="text-[11px] font-extrabold text-orange-700">
+                      {fmt(data.vendor.pendingHold ?? 0)} F
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between text-[10px] text-[#5c647a] mb-3">
-                  <span>Total gagné : {fmt(data.vendor.totalEarned)}</span>
+                  <span>Total gagné : {fmt(data.vendor.netEarned ?? data.vendor.totalEarned)}</span>
                   <span>Retiré : {fmt(data.vendor.withdrawn)}</span>
                 </div>
                 <button
@@ -297,7 +331,17 @@ export default function WalletPage() {
             {data.mentor ? (
               <>
                 <p className="text-2xl font-extrabold text-[#191c1e]">{fmt(data.mentor.available)}</p>
-                <p className="text-[10px] text-[#5c647a] mb-3">FCFA disponibles (95% net)</p>
+                <p className="text-[10px] text-[#5c647a] mb-2">FCFA disponibles (95% net)</p>
+                {(data.mentor.pendingHold ?? 0) > 0 && (
+                  <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-lg px-2 py-1.5 mb-2">
+                    <span className="text-[10px] text-orange-700 font-medium">
+                      En attente ({data.mentor.holdPeriodHours ?? 24}h)
+                    </span>
+                    <span className="text-[11px] font-extrabold text-orange-700">
+                      {fmt(data.mentor.pendingHold ?? 0)} F
+                    </span>
+                  </div>
+                )}
                 <p className="text-[10px] text-[#5c647a] mb-3">
                   {data.mentor.totalSessions} séance{data.mentor.totalSessions > 1 ? "s" : ""} terminée{data.mentor.totalSessions > 1 ? "s" : ""}
                 </p>

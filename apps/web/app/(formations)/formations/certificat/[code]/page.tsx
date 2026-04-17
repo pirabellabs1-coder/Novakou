@@ -39,7 +39,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
   const isRevoked = !!cert.revokedAt;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f7f9fb] to-[#ecfdf5] py-12 px-4" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#f7f9fb] to-[#ecfdf5] py-12 px-4" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <div className="max-w-4xl mx-auto">
         {/* Certificate card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-[#006e2f]/10">
@@ -65,7 +65,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
             {/* Body */}
             <div className="text-center py-6 border-y border-gray-100">
               <p className="text-sm text-[#5c647a] mb-2">Ce certificat atteste que</p>
-              <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] mb-5 leading-tight" style={{ fontFamily: "'Playfair Display', 'Plus Jakarta Sans', serif" }}>
+              <h1 className="text-3xl md:text-5xl font-extrabold text-[#191c1e] mb-5 leading-tight" style={{ fontFamily: "'Playfair Display', 'Manrope', serif" }}>
                 {cert.user.name ?? "Utilisateur"}
               </h1>
               <p className="text-sm text-[#5c647a] mb-2">a complété avec succès la formation</p>
@@ -99,7 +99,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
             <div className="mt-10 pt-6 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-4">
               <div>
                 <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-1">Code de vérification</p>
-                <p className="text-xs font-mono font-bold text-[#191c1e] bg-gray-50 px-3 py-1.5 rounded">{cert.code}</p>
+                <p className="text-xs tabular-nums font-bold text-[#191c1e] bg-gray-50 px-3 py-1.5 rounded">{cert.code}</p>
               </div>
               <div className="text-center">
                 <p className="text-lg font-bold text-[#006e2f] mb-0.5" style={{ fontFamily: "'Caveat', cursive, sans-serif" }}>Lissanon Gildas</p>

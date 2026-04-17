@@ -126,7 +126,7 @@ export default function DevenirAffilierPage() {
         {affiliateCode && (
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 mb-6">
             <p className="text-[10px] text-[#5c647a] mb-1">Votre code affilié</p>
-            <p className="font-mono font-bold text-[#006e2f] text-lg">{affiliateCode}</p>
+            <p className="tabular-nums font-bold text-[#006e2f] text-lg">{affiliateCode}</p>
           </div>
         )}
         <Link href="/formations/affilie/dashboard"

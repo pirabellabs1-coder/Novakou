@@ -3,6 +3,7 @@ import { useToastStore } from "@/store/toast";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type Popup = {
   id: string;
@@ -316,7 +317,16 @@ export default function PopupsPage() {
                       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${popup.isActive ? "left-5" : "left-0.5"}`} />
                     </button>
                     <button
-                      onClick={() => { if (confirm("Supprimer ce popup ?")) deleteMutation.mutate(popup.id); }}
+                      onClick={async () => {
+                        const ok = await confirmAction({
+                          title: "Supprimer ce popup ?",
+                          message: "Cette action est irréversible.",
+                          confirmLabel: "Supprimer",
+                          confirmVariant: "danger",
+                          icon: "delete",
+                        });
+                        if (ok) deleteMutation.mutate(popup.id);
+                      }}
                       className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>

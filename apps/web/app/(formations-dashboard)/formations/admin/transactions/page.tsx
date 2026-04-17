@@ -68,7 +68,7 @@ export default function AdminTransactionsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
         <header className="mb-12">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
@@ -82,21 +82,21 @@ export default function AdminTransactionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-100 mb-10 border border-zinc-100">
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Revenus totaux</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 font-mono">
+            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
               {isLoading ? "…" : formatFCFA(summary?.totalRevenue ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA · Toutes transactions</p>
           </div>
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Commission (5%)</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter text-amber-600 font-mono">
+            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter text-amber-600 tabular-nums">
               {isLoading ? "…" : formatFCFA(summary?.totalCommission ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA · Prélevés</p>
           </div>
           <div className="bg-[#22c55e] p-8 text-[#004b1e]">
             <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-4">Versé aux vendeurs (95%)</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter font-mono">
+            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter tabular-nums">
               {isLoading ? "…" : formatFCFA(summary?.totalNetPaid ?? 0)}
             </p>
             <p className="text-[10px] opacity-70 mt-1 uppercase tracking-widest">FCFA · Créateurs</p>
@@ -125,7 +125,7 @@ export default function AdminTransactionsPage() {
                 }`}
               >
                 {tab.label}
-                <span className={`text-[9px] font-mono ${status === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
+                <span className={`text-[9px] tabular-nums ${status === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
                   {tab.count}
                 </span>
               </button>
@@ -159,7 +159,7 @@ export default function AdminTransactionsPage() {
                   <div key={tx.id} className="grid grid-cols-1 md:grid-cols-[1.5fr_2fr_1fr_1fr_1fr_0.8fr] gap-6 px-8 py-5 items-center hover:bg-[#f3f3f4] transition-colors">
                     <div>
                       <p className="text-sm font-bold text-zinc-900 truncate">{tx.buyerName}</p>
-                      <p className="text-[10px] text-zinc-400 font-mono uppercase">{date}</p>
+                      <p className="text-[10px] text-zinc-400 tabular-nums uppercase">{date}</p>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-zinc-900 line-clamp-1">{tx.productTitle}</p>
@@ -168,17 +168,17 @@ export default function AdminTransactionsPage() {
                       </p>
                     </div>
                     <div>
-                      <p className={`text-sm font-extrabold font-mono ${tx.status === "refunded" ? "line-through text-zinc-400" : "text-zinc-900"}`}>
+                      <p className={`text-sm font-extrabold tabular-nums ${tx.status === "refunded" ? "line-through text-zinc-400" : "text-zinc-900"}`}>
                         {formatFCFA(tx.amount)}
                       </p>
                       <p className="text-[9px] text-zinc-400 uppercase tracking-widest">FCFA</p>
                     </div>
                     <div>
-                      <p className="text-sm font-bold font-mono text-amber-600">{formatFCFA(tx.commission)}</p>
+                      <p className="text-sm font-bold tabular-nums text-amber-600">{formatFCFA(tx.commission)}</p>
                       <p className="text-[9px] text-zinc-400 uppercase tracking-widest">5%</p>
                     </div>
                     <div>
-                      <p className="text-sm font-bold font-mono text-[#006e2f]">{formatFCFA(tx.netAmount)}</p>
+                      <p className="text-sm font-bold tabular-nums text-[#006e2f]">{formatFCFA(tx.netAmount)}</p>
                       <p className="text-[9px] text-zinc-400 uppercase tracking-widest">95%</p>
                     </div>
                     <div>

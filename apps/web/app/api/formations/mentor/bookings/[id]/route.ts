@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
+import { buildMeetingUrl, generateRoomId } from "@/lib/mentor/jitsi";
 import {
   sendMentorBookingConfirmedEmail,
   sendMentorBookingCancelledEmail,
@@ -98,13 +100,23 @@ export async function PATCH(request: Request, { params }: Params) {
     let updated;
 
     switch (action) {
-      case "confirm":
+      case "confirm": {
         if (booking.status !== "PENDING")
           return NextResponse.json({ error: "Cette réservation n'est pas en attente" }, { status: 400 });
 
+        // Auto-generate meeting room if missing
+        const roomId = booking.meetingRoomId || generateRoomId(booking.id);
+        const autoMeetingUrl = buildMeetingUrl(booking.id);
+        // Keep existing manual link if any, else use auto Jitsi URL
+        const effectiveMeetingLink = booking.meetingLink ?? autoMeetingUrl;
+
         updated = await prisma.mentorBooking.update({
           where: { id: id },
-          data: { status: "CONFIRMED" },
+          data: {
+            status: "CONFIRMED",
+            meetingRoomId: roomId,
+            meetingLink: effectiveMeetingLink,
+          },
         });
 
         // Notify student — in-app + email
@@ -114,7 +126,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Séance confirmée !",
             message: `Votre séance de mentorat a été confirmée. Rendez-vous le ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")}.`,
-            link: "/formations/apprenant/dashboard",
+            link: `/formations/apprenant/sessions/${booking.id}`,
           },
         }).catch(() => null);
 
@@ -125,30 +137,56 @@ export async function PATCH(request: Request, { params }: Params) {
             mentorName,
             scheduledAt: booking.scheduledAt,
             durationMinutes: booking.durationMinutes,
-            meetingLink: booking.meetingLink ?? undefined,
+            meetingLink: effectiveMeetingLink,
           }).catch((e) => console.warn("[mentor email confirm]", e));
         }
 
         break;
+      }
 
-      case "cancel":
-        if (["COMPLETED", "CANCELLED"].includes(booking.status))
+      case "cancel": {
+        if (["COMPLETED", "CANCELLED", "RELEASED"].includes(booking.status))
           return NextResponse.json({ error: "Cette réservation ne peut plus être annulée" }, { status: 400 });
 
+        const reason: string | undefined = body.reason;
+        if (!reason || reason.trim().length < 30)
+          return NextResponse.json(
+            { error: "Motif d'annulation obligatoire (30 caractères minimum). L'admin examinera la demande." },
+            { status: 400 },
+          );
+
+        // Mentor cancellation → always requires admin approval (escrow disputed)
         updated = await prisma.mentorBooking.update({
           where: { id: id },
-          data: { status: "CANCELLED" },
+          data: {
+            status: "CANCELLATION_REQUESTED_MENTOR",
+            escrowStatus: "DISPUTED",
+            cancelledBy: "mentor",
+            cancelRequestedAt: new Date(),
+            cancellationReason: reason.trim(),
+          },
         });
 
-        // Notify student — in-app + email
+        // Notify student + admins
         await prisma.notification.create({
           data: {
             userId: booking.studentId,
             type: "ORDER",
-            title: "Séance annulée",
-            message: `Votre séance de mentorat du ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")} a été annulée.`,
-            link: "/formations/apprenant/dashboard",
+            title: "Demande d'annulation du mentor",
+            message: `Le mentor a demandé l'annulation de votre séance du ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")}. L'admin examinera la demande. En cas de validation, vous serez remboursé.`,
+            link: "/formations/apprenant/sessions",
           },
+        }).catch(() => null);
+
+        const admins = await prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } });
+        await prisma.notification.createMany({
+          data: admins.map((a) => ({
+            userId: a.id,
+            type: "ORDER" as const,
+            title: "Dispute mentor : annulation mentor",
+            message: `Le mentor a annulé la session du ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")}. À valider.`,
+            link: "/admin/mentor-disputes",
+          })),
         }).catch(() => null);
 
         if (studentEmail) {
@@ -161,26 +199,58 @@ export async function PATCH(request: Request, { params }: Params) {
         }
 
         break;
+      }
 
-      case "complete":
+      case "complete": {
         if (booking.status !== "CONFIRMED")
           return NextResponse.json({ error: "Seules les séances confirmées peuvent être marquées terminées" }, { status: 400 });
 
-        updated = await prisma.mentorBooking.update({
-          where: { id: id },
-          data: {
-            status: "COMPLETED",
-            mentorFeedback: body.mentorFeedback ?? null,
-          },
-        });
+        // Commission split (like formations/products): 5% platform, 95% vendor
+        const commissionAmount = Math.round(booking.paidAmount * PLATFORM_COMMISSION_RATE);
+        const vendorAmount = booking.paidAmount - commissionAmount;
 
-        // Increment mentor stats
-        await prisma.mentorProfile.update({
-          where: { id: profile.id },
-          data: {
-            totalSessions: { increment: 1 },
+        // Check if this is a new student (for totalStudents increment)
+        const priorWithSameStudent = await prisma.mentorBooking.count({
+          where: {
+            mentorId: profile.id,
+            studentId: booking.studentId,
+            status: "COMPLETED",
+            id: { not: id },
           },
         });
+        const isNewStudent = priorWithSameStudent === 0;
+
+        await prisma.$transaction([
+          prisma.mentorBooking.update({
+            where: { id: id },
+            data: {
+              status: "COMPLETED",
+              mentorFeedback: body.mentorFeedback ?? null,
+              reviewRequestSentAt: new Date(),
+              completedAt: new Date(),
+            },
+          }),
+          prisma.mentorProfile.update({
+            where: { id: profile.id },
+            data: {
+              totalSessions: { increment: 1 },
+              ...(isNewStudent ? { totalStudents: { increment: 1 } } : {}),
+            },
+          }),
+          prisma.platformRevenue.create({
+            data: {
+              orderId: booking.id,
+              orderType: "mentor",
+              grossAmount: booking.paidAmount,
+              commissionRate: PLATFORM_COMMISSION_RATE,
+              commissionAmount,
+              vendorAmount,
+              currency: "XOF",
+            },
+          }),
+        ]);
+
+        updated = await prisma.mentorBooking.findUnique({ where: { id } });
 
         // Notify student to leave a review — in-app + email
         await prisma.notification.create({
@@ -189,7 +259,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Séance terminée — Laissez un avis",
             message: "Votre séance de mentorat est terminée. N'oubliez pas de laisser un avis à votre mentor !",
-            link: "/formations/apprenant/dashboard",
+            link: `/formations/apprenant/sessions/${booking.id}`,
           },
         }).catch(() => null);
 
@@ -203,6 +273,7 @@ export async function PATCH(request: Request, { params }: Params) {
         }
 
         break;
+      }
 
       case "set_link": {
         const link = body.meetingLink?.trim();

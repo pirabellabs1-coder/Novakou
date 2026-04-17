@@ -3,6 +3,7 @@ import { useToastStore } from "@/store/toast";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type Campaign = {
   id: string;
@@ -233,7 +234,7 @@ export default function CampagnesPage() {
               {form.destinationUrl && (
                 <div className="bg-gray-50 rounded-xl p-3">
                   <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide mb-1">Aperçu du lien</p>
-                  <p className="text-[11px] font-mono text-[#191c1e] break-all">
+                  <p className="text-[11px] tabular-nums text-[#191c1e] break-all">
                     {buildUtmUrl({
                       ...form,
                       id: "", slug: "", totalClicks: 0, totalConversions: 0, totalRevenue: 0, isActive: true, createdAt: "",
@@ -314,7 +315,16 @@ export default function CampagnesPage() {
                     <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${c.isActive ? "left-5" : "left-0.5"}`} />
                   </button>
                   <button
-                    onClick={() => { if (confirm("Supprimer ?")) deleteMutation.mutate(c.id); }}
+                    onClick={async () => {
+                      const ok = await confirmAction({
+                        title: "Supprimer cette campagne ?",
+                        message: "Cette action est irréversible.",
+                        confirmLabel: "Supprimer",
+                        confirmVariant: "danger",
+                        icon: "delete",
+                      });
+                      if (ok) deleteMutation.mutate(c.id);
+                    }}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -324,7 +334,7 @@ export default function CampagnesPage() {
 
               {/* URL row */}
               <div className="flex items-center gap-2 mb-4">
-                <code className="flex-1 text-[11px] font-mono text-[#5c647a] bg-gray-50 px-3 py-1.5 rounded-lg truncate">
+                <code className="flex-1 text-[11px] tabular-nums text-[#5c647a] bg-gray-50 px-3 py-1.5 rounded-lg truncate">
                   {buildUtmUrl(c)}
                 </code>
                 <button

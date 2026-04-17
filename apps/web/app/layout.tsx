@@ -7,6 +7,7 @@ import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { TrackingProvider } from "@/components/tracking/TrackingProvider";
 import { FontLoader } from "@/components/FontLoader";
 import { CookieConsent } from "@/components/CookieConsent";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -61,6 +62,7 @@ export default async function RootLayout({
               <ImpersonationBanner />
               {children}
               <CookieConsent />
+              <ConfirmDialog />
             </TrackingProvider>
           </Providers>
         </NextIntlClientProvider>

@@ -473,7 +473,7 @@ export default function ParametresPage() {
                   ].map((inv, i) => (
                     <div key={i} className="flex items-center justify-between gap-3 py-3 border-b border-gray-50 last:border-0">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-[#5c647a] font-mono mb-0.5">{inv.ref}</p>
+                        <p className="text-xs text-[#5c647a] tabular-nums mb-0.5">{inv.ref}</p>
                         <p className="text-sm font-semibold text-[#191c1e] truncate">{inv.label}</p>
                         <p className="text-xs text-[#5c647a]">{inv.date}</p>
                       </div>

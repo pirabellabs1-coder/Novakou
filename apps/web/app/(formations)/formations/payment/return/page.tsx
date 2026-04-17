@@ -15,6 +15,27 @@ function ReturnInner() {
 
   useEffect(() => {
     async function run() {
+      // ── Mentor booking payment finalization (mock or real) ──────────────
+      const bookingId = params.get("bookingId");
+      if (bookingId) {
+        try {
+          const res = await fetch(`/api/formations/mentor-bookings/${bookingId}/confirm-payment`, { method: "POST" });
+          const json = await res.json();
+          if (json.data) {
+            setStatus("success");
+            setMessage("Séance payée — en attente de confirmation du mentor. Les fonds sont bloqués en escrow.");
+            setRedirectTo("/formations/apprenant/sessions");
+          } else {
+            setStatus("failed");
+            setMessage(json.error ?? "Échec de la confirmation du paiement");
+          }
+        } catch {
+          setStatus("failed");
+          setMessage("Erreur réseau lors de la confirmation");
+        }
+        return;
+      }
+
       // Free order or mock — finalize directly
       if (params.get("free") === "1") {
         setStatus("success");
@@ -118,7 +139,7 @@ function ReturnInner() {
   }, [status, redirectTo, router]);
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4 py-16" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-[60vh] flex items-center justify-center px-4 py-16" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <div className="max-w-md w-full text-center">
         {status === "loading" && (
           <>
@@ -136,7 +157,7 @@ function ReturnInner() {
             </div>
             <h1 className="text-3xl font-extrabold text-zinc-900 mb-2">Paiement réussi !</h1>
             <p className="text-zinc-600 mb-6">{message}</p>
-            <p className="text-xs text-zinc-400 mb-6 font-mono">Redirection automatique dans 3 sec…</p>
+            <p className="text-xs text-zinc-400 mb-6 tabular-nums">Redirection automatique dans 3 sec…</p>
             <Link
               href={redirectTo}
               className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-white font-bold hover:opacity-90"

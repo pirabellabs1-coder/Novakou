@@ -273,38 +273,52 @@ export default function FormationPageClient({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
-      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <div
-        className="relative h-72 md:h-96"
-        style={{
-          background: formation.thumbnail
-            ? `url(${formation.thumbnail}) center/cover`
-            : "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #22c55e 100%)",
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/70" />
-        <div className="absolute top-4 left-4">
-          <Link
-            href="/formations/explorer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold hover:bg-white/20 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            Catalogue
-          </Link>
-        </div>
-        {/* Hero title overlay on mobile only */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:hidden">
-          <h1 className="text-2xl font-extrabold text-white leading-tight line-clamp-3">
-            {formation.title}
-          </h1>
-        </div>
+      {/* Breadcrumb minimal — no hero cover */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6">
+        <Link
+          href="/formations/explorer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-[#5c647a] text-xs font-semibold hover:bg-gray-50 hover:text-[#191c1e] transition-colors"
+        >
+          <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          Catalogue
+        </Link>
+        {/* Mobile title */}
+        <h1 className="text-2xl font-extrabold text-[#191c1e] leading-tight mt-4 md:hidden">
+          {formation.title}
+        </h1>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 -mt-24 md:-mt-28 relative z-10 pb-12">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 mt-6 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* ── Main content ─────────────────────────────────────────── */}
           <div className="lg:col-span-2 space-y-5">
-            {/* Header card — only on desktop */}
+            {/* Product image card — aspect 16:9 */}
+            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+              <div className="aspect-video w-full bg-gradient-to-br from-[#006e2f]/10 to-[#22c55e]/10 flex items-center justify-center">
+                {formation.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={formation.thumbnail}
+                    alt={formation.title}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="text-center">
+                    <span
+                      className="material-symbols-outlined text-[#006e2f] text-[64px] opacity-40"
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      play_circle
+                    </span>
+                    <p className="text-xs text-[#5c647a] mt-2 font-semibold uppercase tracking-wide">
+                      Formation vidéo
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Header card */}
             <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${levelInfo.color}`}>
@@ -436,9 +450,16 @@ export default function FormationPageClient({ slug }: { slug: string }) {
             {formation.description && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                 <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">Description</h2>
-                <div className="text-sm text-[#5c647a] leading-relaxed whitespace-pre-wrap">
-                  {formation.description}
-                </div>
+                {formation.descriptionFormat === "tiptap" || /<\/?(p|h[1-6]|ul|ol|li|strong|em|br|a|blockquote)[\s>/]/i.test(formation.description) ? (
+                  <div
+                    className="prose prose-sm max-w-none text-[#5c647a] prose-headings:text-[#191c1e] prose-strong:text-[#191c1e] prose-a:text-[#006e2f]"
+                    dangerouslySetInnerHTML={{ __html: formation.description }}
+                  />
+                ) : (
+                  <div className="text-sm text-[#5c647a] leading-relaxed whitespace-pre-wrap">
+                    {formation.description}
+                  </div>
+                )}
               </div>
             )}
 

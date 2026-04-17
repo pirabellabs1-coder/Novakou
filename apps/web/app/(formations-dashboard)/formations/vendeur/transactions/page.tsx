@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 
 type Txn = {
   id: string;
@@ -95,6 +96,29 @@ export default function TransactionsPage() {
     .filter((t) => t.status === "completed")
     .reduce((s, t) => s + t.amount, 0);
 
+  // Build daily chart for last 30 days
+  const dailyChart = useMemo(() => {
+    const byDay = new Map<string, number>();
+    const today = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      byDay.set(key, 0);
+    }
+    for (const t of allTxns) {
+      if (t.status !== "completed") continue;
+      const key = new Date(t.createdAt).toISOString().slice(0, 10);
+      if (byDay.has(key)) byDay.set(key, (byDay.get(key) ?? 0) + t.amount);
+    }
+    return Array.from(byDay.entries()).map(([date, amount]) => ({
+      date: new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
+      amount,
+    }));
+  }, [allTxns]);
+
+  const hasDailyData = dailyChart.some((d) => d.amount > 0);
+
   const statusTabs: { label: string; value: StatusFilter; count: number }[] = [
     { label: "Toutes", value: "all", count: allTxns.length },
     { label: "Complétées", value: "completed", count: allTxns.filter((t) => t.status === "completed").length },
@@ -157,6 +181,51 @@ export default function TransactionsPage() {
             <p className="text-[10px] text-[#5c647a]">{kpi.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Revenue trend — last 30 days */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 mb-6">
+        <div className="flex items-end justify-between mb-5">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">Tendance 30 jours</p>
+            <h3 className="text-lg font-bold text-[#191c1e]">Évolution des revenus</h3>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-extrabold text-[#006e2f]">
+              {formatFCFA(dailyChart.reduce((s, x) => s + x.amount, 0))} FCFA
+            </p>
+            <p className="text-[10px] text-[#5c647a]">cumul 30 j</p>
+          </div>
+        </div>
+        {isLoading ? (
+          <div className="h-[200px] bg-gray-50 rounded-xl animate-pulse" />
+        ) : !hasDailyData ? (
+          <div className="h-[200px] flex items-center justify-center">
+            <div className="text-center">
+              <span className="material-symbols-outlined text-[32px] text-gray-300 block mb-2">show_chart</span>
+              <p className="text-sm text-[#5c647a]">Aucune vente sur les 30 derniers jours</p>
+            </div>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height={200}>
+            <AreaChart data={dailyChart}>
+              <defs>
+                <linearGradient id="txnRevGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22c55e" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="#22c55e" stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} interval={3} />
+              <YAxis tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+              <Tooltip
+                contentStyle={{ borderRadius: 12, border: "1px solid #eef0f3", fontSize: 12, padding: "8px 12px" }}
+                formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]}
+              />
+              <Area type="monotone" dataKey="amount" stroke="#006e2f" strokeWidth={2.5} fill="url(#txnRevGrad)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
 
       {/* Search + Filter */}
@@ -243,7 +312,7 @@ export default function TransactionsPage() {
                       {txn.buyerEmail && (
                         <p className="text-[10px] text-[#5c647a] truncate">{txn.buyerEmail}</p>
                       )}
-                      <p className="text-[10px] text-[#5c647a] font-mono">{txn.id.slice(0, 12)}…</p>
+                      <p className="text-[10px] text-[#5c647a] tabular-nums">{txn.id.slice(0, 12)}…</p>
                     </div>
                   </div>
 

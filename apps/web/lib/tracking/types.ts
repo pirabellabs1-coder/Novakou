@@ -33,6 +33,7 @@ export interface TrackingEvent {
   deviceType: "mobile" | "tablet" | "desktop";
   userAgent?: string;
   timestamp: string;
+  country?: string; // ISO-3166-1 alpha-2 (SN, CI, FR, ...)
   metadata?: Record<string, string | number>;
 }
 
@@ -50,6 +51,7 @@ export interface TrackingSession {
   utmSource?: string;
   utmMedium?: string;
   utmCampaign?: string;
+  country?: string; // ISO-3166-1 alpha-2 — derived from Vercel/Cloudflare geo headers
 }
 
 export interface TrackingStats {

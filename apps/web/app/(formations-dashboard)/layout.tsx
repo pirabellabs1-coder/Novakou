@@ -17,7 +17,7 @@ export default function FormationsDashboardLayout({
   return (
     <div
       className={`${plusJakartaSans.variable} formations-root min-h-screen bg-[#f7f9fb]`}
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      style={{ fontFamily: "'Manrope', sans-serif" }}
     >
       {children}
       <ToastContainer />

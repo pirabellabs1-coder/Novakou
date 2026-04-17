@@ -1,5 +1,6 @@
 "use client";
 import { useToastStore } from "@/store/toast";
+import { safeFetch } from "@/lib/safe-fetch";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -34,21 +35,30 @@ export default function SequencesPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", trigger: "PURCHASE" });
 
-  const { data: response, isLoading } = useQuery<{ data: AutoData }>({
+  const { data: response, isLoading } = useQuery<{ data: AutoData } | null>({
     queryKey: ["vendeur-automatisations"],
-    queryFn: () => fetch("/api/formations/vendeur/automatisations").then((r) => r.json()),
+    queryFn: async () => {
+      const { data, error } = await safeFetch<{ data: AutoData }>("/api/formations/vendeur/automatisations");
+      if (error) useToastStore.getState().addToast("error", error);
+      return data;
+    },
     staleTime: 30_000,
   });
 
   const sequences = response?.data?.sequences ?? [];
 
   const createMutation = useMutation({
-    mutationFn: (body: typeof form) =>
-      fetch("/api/formations/vendeur/marketing/sequences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      }).then((r) => r.json()),
+    mutationFn: async (body: typeof form) => {
+      const { data, error } = await safeFetch<{ data: EmailSequence; error?: string }>(
+        "/api/formations/vendeur/marketing/sequences",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      return { data, error };
+    },
     onSuccess: (res) => {
       if (res.error) { useToastStore.getState().addToast("error", res.error); return; }
       qc.invalidateQueries({ queryKey: ["vendeur-automatisations"] });

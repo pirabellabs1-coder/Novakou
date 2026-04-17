@@ -74,6 +74,9 @@ apps/web/lib/dev/services.json
 # MCP playwright cache
 .playwright-mcp/
 
+# Screenshots de tests Playwright (racine)
+/*.png
+
 # One-off debug scripts (not committed)
 packages/db/check-formations.mjs
 
@@ -82,3 +85,7 @@ Partie formation du site/
 
 # Claude Code — local launch config
 .claude/launch.json
+
+# Uploads locaux (dev) - garder le dossier mais ignorer le contenu
+apps/web/public/uploads/*
+!apps/web/public/uploads/.gitkeep

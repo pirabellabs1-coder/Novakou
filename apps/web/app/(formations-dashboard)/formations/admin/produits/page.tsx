@@ -70,7 +70,7 @@ export default function AdminProduitsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
         {/* Header */}
         <header className="mb-12">
@@ -109,7 +109,7 @@ export default function AdminProduitsPage() {
                 }`}
               >
                 {tab.label}
-                <span className={`text-[9px] font-mono ${status === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
+                <span className={`text-[9px] tabular-nums ${status === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
                   {tab.count}
                 </span>
               </button>
@@ -164,7 +164,7 @@ export default function AdminProduitsPage() {
                             {p.productType}
                           </span>
                           <span className="text-[10px] text-zinc-300">·</span>
-                          <span className="text-[10px] font-mono text-zinc-500">{formatFCFA(p.price)} FCFA</span>
+                          <span className="text-[10px] tabular-nums text-zinc-500">{formatFCFA(p.price)} FCFA</span>
                         </div>
                       </div>
                     </div>
@@ -172,13 +172,13 @@ export default function AdminProduitsPage() {
                       <p className="text-xs font-bold text-zinc-900 truncate">{p.seller}</p>
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold font-mono text-zinc-900">{p.sales}</p>
+                      <p className="text-sm font-extrabold tabular-nums text-zinc-900">{p.sales}</p>
                       {p.rating > 0 && (
-                        <p className="text-[10px] font-mono text-zinc-400 uppercase">★ {p.rating.toFixed(1)}</p>
+                        <p className="text-[10px] tabular-nums text-zinc-400 uppercase">★ {p.rating.toFixed(1)}</p>
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold font-mono text-[#006e2f]">{formatFCFA(p.revenue)}</p>
+                      <p className="text-sm font-extrabold tabular-nums text-[#006e2f]">{formatFCFA(p.revenue)}</p>
                       <p className="text-[10px] text-zinc-400 uppercase tracking-widest">FCFA</p>
                     </div>
                     <div>

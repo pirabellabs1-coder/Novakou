@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { FileUploader } from "@/components/formations/FileUploader";
+import { confirmAction } from "@/store/confirm";
 
 interface Product {
   id: string;
@@ -138,8 +139,15 @@ export default function EditerProduitPage() {
     });
   }
 
-  function handleDelete() {
-    if (!confirm(`Supprimer définitivement "${product?.title}" ? Cette action est irréversible.`)) return;
+  async function handleDelete() {
+    const ok = await confirmAction({
+      title: `Supprimer définitivement "${product?.title}" ?`,
+      message: "Cette action est irréversible. Tous les contenus, inscriptions et stats associés seront perdus.",
+      confirmLabel: "Supprimer définitivement",
+      confirmVariant: "danger",
+      icon: "delete_forever",
+    });
+    if (!ok) return;
     deleteMutation.mutate();
   }
 

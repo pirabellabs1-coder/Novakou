@@ -59,7 +59,38 @@ export async function PATCH(request: Request, { params }: Params) {
     if (typeof body.triggerType === "string")
       data.triggerType = body.triggerType as AutomationTriggerType;
     if (typeof body.status === "string") data.status = body.status as WorkflowStatus;
-    if (body.actions !== undefined) data.actions = body.actions;
+    if (body.actions !== undefined) {
+      // Light validation: actions must be an array of { id, type, config } with a known type
+      if (!Array.isArray(body.actions)) {
+        return NextResponse.json(
+          { error: "actions doit être un tableau" },
+          { status: 400 }
+        );
+      }
+      const ALLOWED_TYPES = new Set([
+        "SEND_EMAIL",
+        "ADD_TAG",
+        "ENROLL_SEQUENCE",
+        "WEBHOOK",
+        "WAIT",
+      ]);
+      for (const a of body.actions) {
+        if (
+          !a ||
+          typeof a !== "object" ||
+          typeof a.id !== "string" ||
+          typeof a.type !== "string" ||
+          !ALLOWED_TYPES.has(a.type) ||
+          typeof a.config !== "object"
+        ) {
+          return NextResponse.json(
+            { error: "Action invalide dans le tableau" },
+            { status: 400 }
+          );
+        }
+      }
+      data.actions = body.actions;
+    }
     if (body.conditions !== undefined) data.conditions = body.conditions;
 
     const updated = await prisma.automationWorkflow.update({

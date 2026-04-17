@@ -936,6 +936,9 @@ model InstructeurProfile {
   smartPopups         SmartPopup[]         @relation("InstructeurSmartPopups")
   campaignTrackers    CampaignTracker[]    @relation("InstructeurCampaignTrackers")
   automationWorkflows AutomationWorkflow[] @relation("InstructeurAutomationWorkflows")
+  integrations        VendorIntegration[]  @relation("InstructeurIntegrations")
+  webhooks            VendorWebhook[]      @relation("InstructeurWebhooks")
+  apiKeys             VendorApiKey[]       @relation("InstructeurApiKeys")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2326,6 +2329,11 @@ model MentorProfile {
   isAvailable     Boolean  @default(true)
   isVerified      Boolean  @default(false)
 
+  // Booking config
+  timezone        String   @default("Africa/Abidjan")
+  sessionBuffer   Int      @default(15)   // minutes between 2 sessions
+  bookingLeadTime Int      @default(60)   // min minutes before slot can be booked
+
   // Stats (denormalized for display)
   totalSessions Int   @default(0)
   totalStudents Int   @default(0)
@@ -2335,11 +2343,45 @@ model MentorProfile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  bookings MentorBooking[]
+  bookings           MentorBooking[]
+  availabilities     MentorAvailability[]
+  availabilitySlots  MentorAvailabilitySlot[]
 
   @@index([userId])
   @@index([domain])
   @@index([isAvailable])
+}
+
+model MentorAvailability {
+  id        String   @id @default(cuid())
+  mentorId  String
+  mentor    MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  dayOfWeek Int      // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startMin  Int      // minutes from midnight (0–1439)
+  endMin    Int      // minutes from midnight (must be > startMin)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([mentorId])
+  @@index([dayOfWeek])
+}
+
+// Date-based availability (specific date + time range), takes priority over weekly recurrence
+model MentorAvailabilitySlot {
+  id        String        @id @default(cuid())
+  mentorId  String
+  mentor    MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  date      DateTime      // Specific date (set to local midnight)
+  startMin  Int           // Minutes from midnight (0..1439)
+  endMin    Int           // Minutes from midnight (must be > startMin)
+  isActive  Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([mentorId])
+  @@index([date])
+  @@index([mentorId, date])
 }
 
 model MentorBooking {
@@ -2349,18 +2391,49 @@ model MentorBooking {
   studentId       String
   student         User          @relation("UserMentorBookings", fields: [studentId], references: [id], onDelete: Cascade)
 
-  status          MentorBookingStatus @default(PENDING)
+  status          MentorBookingStatus @default(PAYMENT_PENDING)
   scheduledAt     DateTime
   durationMinutes Int              @default(60)
   paidAmount      Float            @default(0)
   sessionNotes    String?          @db.Text
+  studentGoals    String?          @db.Text   // What student wrote when booking
   meetingLink     String?
+  meetingRoomId   String?                    // Jitsi room id auto-generated
   stripeSessionId String?
+
+  // ── ESCROW ───────────────────────────────────────────────────────
+  escrowStatus      MentorEscrowStatus @default(NONE)   // NONE | HELD | RELEASED | REFUNDED | DISPUTED
+  paymentRef        String?       // Moneroo transaction id / internalRef
+  paymentProvider   String?       // "moneroo" | "mock"
+  paidAt            DateTime?     // When the learner paid
+  escrowReleasedAt  DateTime?     // When funds were released to mentor
+
+  // ── ANNULATION / DISPUTE ─────────────────────────────────────────
+  cancellationReason   String?  @db.Text    // Required when status = CANCELLATION_REQUESTED_*
+  cancelledBy          String?              // "student" | "mentor"
+  cancelRequestedAt    DateTime?            // When cancellation was requested
+  adminDecisionAt      DateTime?            // When admin decided on the dispute
+  adminDecisionBy      String?              // Admin userId who decided
+  adminDecisionOutcome String?              // "refund_student" | "release_to_mentor" | "split_50_50"
+  adminDecisionNote    String?  @db.Text    // Admin explanation shown to both parties
+
+  // Notifications tracking
+  reminder24hSentAt   DateTime?
+  reminder1hSentAt    DateTime?
+  reviewRequestSentAt DateTime?
 
   // Post-session
   studentRating  Int?     // 1-5
   studentReview  String?  @db.Text
   mentorFeedback String?  @db.Text
+
+  // ── Contrôle de présence (base pour dispute no-show) ──
+  studentAttended    Boolean?   // L'apprenant confirme avoir participé
+  mentorAttended     Boolean?   // Le mentor confirme avoir participé
+  studentAttendedAt  DateTime?
+  mentorAttendedAt   DateTime?
+
+  completedAt DateTime?  // Set when status transitions to COMPLETED — used for 24h escrow hold
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2369,14 +2442,27 @@ model MentorBooking {
   @@index([studentId])
   @@index([status])
   @@index([scheduledAt])
+  @@index([escrowStatus])
 }
 
 enum MentorBookingStatus {
-  PENDING
-  CONFIRMED
-  CANCELLED
-  COMPLETED
-  NO_SHOW
+  PAYMENT_PENDING                // Paiement Moneroo en cours (pas encore confirmé)
+  PENDING                        // Payé, en attente de confirmation mentor
+  CONFIRMED                      // Mentor a confirmé, session à venir
+  CANCELLATION_REQUESTED_STUDENT // Apprenant a annulé avec motif, en attente admin
+  CANCELLATION_REQUESTED_MENTOR  // Mentor a annulé avec motif, en attente admin
+  CANCELLED                      // Annulation validée (remboursement ou libération selon admin)
+  COMPLETED                      // Séance terminée, en attente de libération escrow (24h)
+  RELEASED                       // Fonds libérés vers le mentor
+  NO_SHOW                        // Mentor ou apprenant ne s'est pas présenté
+}
+
+enum MentorEscrowStatus {
+  NONE       // Aucun paiement
+  HELD       // Fonds bloqués par la plateforme
+  RELEASED   // Fonds libérés vers le mentor
+  REFUNDED   // Fonds remboursés à l'apprenant
+  DISPUTED   // Annulation en attente de décision admin
 }
 
 // ── Platform Revenue (commission tracking) ───────────────────────────────────
@@ -2399,4 +2485,63 @@ model PlatformRevenue {
   @@index([orderType])
   @@index([createdAt])
   @@index([affiliateId])
+}
+
+// ── Vendor Integrations (Brevo, Make, Zapier, n8n, ConvertKit, Systeme.io) ──
+
+model VendorIntegration {
+  id            String             @id @default(cuid())
+  instructeurId String
+  instructeur   InstructeurProfile @relation("InstructeurIntegrations", fields: [instructeurId], references: [id], onDelete: Cascade)
+  provider      String             // "brevo" | "make" | "zapier" | "n8n" | "convertkit" | "systemeio"
+  connected     Boolean            @default(false)
+  apiKey        String?            @db.Text  // MVP: stocké en clair, chiffrer en V2 (AES)
+  webhookUrl    String?            @db.Text  // pour Make / Zapier / n8n
+  config        Json?                         // provider-specific settings
+  lastSyncAt    DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([instructeurId, provider])
+  @@index([instructeurId])
+}
+
+// ── Vendor Webhooks (événements sortants de la boutique) ──
+
+model VendorWebhook {
+  id            String             @id @default(cuid())
+  instructeurId String
+  instructeur   InstructeurProfile @relation("InstructeurWebhooks", fields: [instructeurId], references: [id], onDelete: Cascade)
+  url           String             @db.Text
+  events        String[]           @default([]) // e.g. ["order.created", "order.paid", "refund.issued"]
+  secret        String?                          // optional HMAC secret for signature
+  isActive      Boolean            @default(true)
+  lastFiredAt   DateTime?
+  failureCount  Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([instructeurId])
+  @@index([isActive])
+}
+
+// ── Vendor API Keys (pour API publique Novakou) ──
+
+model VendorApiKey {
+  id            String             @id @default(cuid())
+  instructeurId String
+  instructeur   InstructeurProfile @relation("InstructeurApiKeys", fields: [instructeurId], references: [id], onDelete: Cascade)
+  name          String              // ex: "Prod server", "Staging integration"
+  keyPrefix     String              // 8 premiers char visibles (ex: "nk_live_ab12")
+  keyHash       String              // SHA-256 hash de la clé complète
+  scopes        String[]            @default([]) // "read:products", "write:orders", "admin"
+  lastUsedAt    DateTime?
+  expiresAt     DateTime?
+  revokedAt     DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([instructeurId])
+  @@index([keyPrefix])
+  @@index([keyHash])
 }

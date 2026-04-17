@@ -23,25 +23,39 @@ export async function resolveVendorContext(
   // ── Step 1: Resolve userId (with auto-create if needed) ──────────────────
   let userId: string | null = null;
 
-  // Prefer email-based upsert (works even if session.user.id is stale)
+  // Prefer email-based lookup (works even if session.user.id is stale).
+  // We use findUnique + (conditional) create instead of upsert to avoid
+  // Prisma validating the full `create` shape on every call — the User model
+  // requires `passwordHash` which we don't have here (session-only context).
   if (email) {
     try {
-      const user = await prisma.user.upsert({
+      const existing = await prisma.user.findUnique({
         where: { email },
-        create: {
-          email,
-          name,
-          image,
-          role: "FREELANCE",
-          status: "ACTIF",
-          formationsRole: "instructeur",
-          emailVerified: new Date(),
-        },
-        update: {}, // no-op — just get existing
+        select: { id: true },
       });
-      userId = user.id;
+      if (existing) {
+        userId = existing.id;
+      } else {
+        // True first-time flow: create with a placeholder passwordHash.
+        // This branch almost never runs — users should already exist from
+        // registration. Defensive code for edge cases.
+        const created = await prisma.user.create({
+          data: {
+            email,
+            name,
+            image,
+            passwordHash: "", // placeholder — real password set via register flow
+            role: "FREELANCE",
+            status: "ACTIF",
+            formationsRole: "instructeur",
+            emailVerified: new Date(),
+          },
+          select: { id: true },
+        });
+        userId = created.id;
+      }
     } catch (err) {
-      console.error("[resolveVendorContext] user upsert by email failed:", err);
+      console.error("[resolveVendorContext] user lookup/create by email failed:", err);
     }
   }
 

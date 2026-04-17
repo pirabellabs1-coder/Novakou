@@ -19,7 +19,7 @@ export default function FormationsLayout({
   return (
     <div
       className={`${plusJakartaSans.variable} formations-root flex min-h-screen flex-col bg-[#f7f9fb]`}
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+      style={{ fontFamily: "'Manrope', sans-serif" }}
     >
       <FormationsNavbar />
       <main className="flex-1 pt-24 overflow-x-hidden">{children}</main>

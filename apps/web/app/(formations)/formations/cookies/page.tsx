@@ -59,7 +59,7 @@ const COOKIE_CATEGORIES = [
 
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* HERO */}
       <section className="pt-32 pb-12 px-6">
         <div className="max-w-3xl mx-auto text-center">
@@ -132,7 +132,7 @@ export default function CookiesPage() {
                   <tbody>
                     {cat.examples.map((c) => (
                       <tr key={c.name} className="border-t border-slate-200">
-                        <td className="py-2 pr-3 font-mono text-[#191c1e]">{c.name}</td>
+                        <td className="py-2 pr-3 tabular-nums text-[#191c1e]">{c.name}</td>
                         <td className="py-2 pr-3 text-[#5c647a]">{c.purpose}</td>
                         <td className="py-2 text-[#5c647a]">{c.duration}</td>
                       </tr>

@@ -62,7 +62,7 @@ export default function AdminCommentairesPage() {
   const maxCount = Math.max(...(summary?.ratingDist ?? []).map((d) => d.count), 1);
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1400px] mx-auto">
         <header className="mb-12">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
@@ -90,13 +90,13 @@ export default function AdminCommentairesPage() {
                   return (
                     <div key={row.star} className="flex items-center gap-4">
                       <div className="flex items-center gap-1 w-12">
-                        <span className="text-sm font-extrabold font-mono text-zinc-900">{row.star}</span>
+                        <span className="text-sm font-extrabold tabular-nums text-zinc-900">{row.star}</span>
                         <span className="material-symbols-outlined text-[14px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                       </div>
                       <div className="flex-1 h-[2px] bg-zinc-100">
                         <div className="h-full bg-[#22c55e] transition-all" style={{ width: `${pct}%` }} />
                       </div>
-                      <span className="text-[10px] font-mono text-zinc-400 w-10 text-right font-bold">{row.count}</span>
+                      <span className="text-[10px] tabular-nums text-zinc-400 w-10 text-right font-bold">{row.count}</span>
                     </div>
                   );
                 })}
@@ -107,13 +107,13 @@ export default function AdminCommentairesPage() {
           <div className="grid grid-rows-2 gap-6">
             <div className="bg-[#22c55e] p-6 text-[#004b1e]">
               <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Avec réponse</p>
-              <p className="text-3xl font-extrabold font-mono tracking-tighter">
+              <p className="text-3xl font-extrabold tabular-nums tracking-tighter">
                 {isLoading ? "…" : summary?.withResponse ?? 0}
               </p>
             </div>
             <div className="bg-zinc-900 p-6 text-white">
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Sans réponse</p>
-              <p className="text-3xl font-extrabold font-mono tracking-tighter">
+              <p className="text-3xl font-extrabold tabular-nums tracking-tighter">
                 {isLoading ? "…" : summary?.withoutResponse ?? 0}
               </p>
             </div>
@@ -154,7 +154,7 @@ export default function AdminCommentairesPage() {
                         <div className="flex items-center gap-3 mb-1 flex-wrap">
                           <p className="text-sm font-bold text-zinc-900">{r.user.name ?? r.user.email}</p>
                           <Stars rating={r.rating} />
-                          <span className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest">
+                          <span className="text-[9px] tabular-nums text-zinc-400 uppercase tracking-widest">
                             {timeAgo(r.createdAt)}
                           </span>
                         </div>

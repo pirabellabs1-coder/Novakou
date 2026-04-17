@@ -136,7 +136,7 @@ export default function InstructeurPublicPage() {
   const memberSince = new Date(profile.joinedAt).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-20">
         {/* Hero */}
         <header className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-16 md:mb-24">
@@ -229,19 +229,19 @@ export default function InstructeurPublicPage() {
             <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-100">
               <div>
                 <p className="text-xs text-[#5c647a] uppercase tracking-widest mb-1 font-semibold">Apprenants</p>
-                <p className="text-2xl md:text-3xl font-extrabold text-[#191c1e] font-mono">
+                <p className="text-2xl md:text-3xl font-extrabold text-[#191c1e] tabular-nums">
                   {stats.totalStudents.toLocaleString("fr-FR")}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-[#5c647a] uppercase tracking-widest mb-1 font-semibold">Produits</p>
-                <p className="text-2xl md:text-3xl font-extrabold text-[#191c1e] font-mono">
+                <p className="text-2xl md:text-3xl font-extrabold text-[#191c1e] tabular-nums">
                   {String(stats.totalProducts).padStart(2, "0")}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-[#5c647a] uppercase tracking-widest mb-1 font-semibold">Note</p>
-                <p className="text-2xl md:text-3xl font-extrabold text-[#191c1e] font-mono">
+                <p className="text-2xl md:text-3xl font-extrabold text-[#191c1e] tabular-nums">
                   {stats.avgRating > 0 ? `${stats.avgRating.toFixed(1)}/5` : "—"}
                 </p>
               </div>
@@ -275,7 +275,7 @@ export default function InstructeurPublicPage() {
               {formations.map((f) => (
                 <Link
                   key={f.id}
-                  href={`/formations/produit/${f.slug}`}
+                  href={`/formations/formation/${f.slug}`}
                   className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#006e2f]/20 transition-all"
                 >
                   <div className="aspect-video bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center relative overflow-hidden">

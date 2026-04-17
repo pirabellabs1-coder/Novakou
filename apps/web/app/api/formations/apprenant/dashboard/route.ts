@@ -13,7 +13,7 @@ export async function GET() {
     const userId = session?.user?.id ?? (IS_DEV ? "dev-apprenant-001" : null);
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
-    const [enrollments, productPurchases, certificates, cartItems] =
+    const [enrollments, productPurchases, certificates, cartItems, mentorBookings] =
       await Promise.allSettled([
         prisma.enrollment.findMany({
           where: { userId },
@@ -33,17 +33,28 @@ export async function GET() {
         prisma.digitalProductPurchase.findMany({ where: { userId } }),
         prisma.certificate.findMany({ where: { userId } }),
         prisma.cartItem.findMany({ where: { userId } }),
+        prisma.mentorBooking.findMany({
+          where: {
+            studentId: userId,
+            status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] },
+          },
+          select: { status: true, paidAmount: true },
+        }),
       ]);
 
-    const enrollmentList = enrollments.status   === "fulfilled" ? enrollments.value   : [];
-    const productList    = productPurchases.status === "fulfilled" ? productPurchases.value : [];
-    const certList       = certificates.status  === "fulfilled" ? certificates.value  : [];
-    const cartList       = cartItems.status     === "fulfilled" ? cartItems.value     : [];
+    const enrollmentList   = enrollments.status      === "fulfilled" ? enrollments.value      : [];
+    const productList      = productPurchases.status === "fulfilled" ? productPurchases.value : [];
+    const certList         = certificates.status     === "fulfilled" ? certificates.value     : [];
+    const cartList         = cartItems.status        === "fulfilled" ? cartItems.value        : [];
+    const mentorBookingList = mentorBookings.status  === "fulfilled" ? mentorBookings.value   : [];
 
     // Compute stats
     const totalSpent =
       enrollmentList.reduce((a, e) => a + e.paidAmount, 0) +
-      productList.reduce((a, p) => a + p.paidAmount, 0);
+      productList.reduce((a, p) => a + p.paidAmount, 0) +
+      mentorBookingList
+        .filter((b) => b.status === "COMPLETED" || b.status === "CONFIRMED")
+        .reduce((a, b) => a + b.paidAmount, 0);
 
     const inProgress = enrollmentList.filter((e) => e.progress > 0 && e.progress < 100).length;
     const completed  = enrollmentList.filter((e) => e.completedAt !== null).length;
@@ -97,7 +108,11 @@ export async function GET() {
         totalProducts: productList.length,
         totalCertificates: certList.length,
         cartCount: cartList.length,
-        mentorSessions: 0, // MentorSession not available in current schema
+        mentorSessions: mentorBookingList.length,
+        mentorSessionsUpcoming: mentorBookingList.filter(
+          (b) => b.status === "PENDING" || b.status === "CONFIRMED",
+        ).length,
+        mentorSessionsCompleted: mentorBookingList.filter((b) => b.status === "COMPLETED").length,
         totalSpentXof: Math.round(totalSpent),
         totalSpentEur: Math.round(totalSpent / 655.957),
       },

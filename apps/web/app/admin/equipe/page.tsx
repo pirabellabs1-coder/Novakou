@@ -5,6 +5,7 @@ import { useAdminStore } from "@/store/admin";
 import { useToastStore } from "@/store/toast";
 import { ADMIN_ROLE_LABELS, ALL_ADMIN_ROLES, hasPermission, type AdminRole } from "@/lib/admin-permissions";
 import { useAdminPermission } from "@/lib/use-admin-permission";
+import { confirmAction } from "@/store/confirm";
 import Link from "next/link";
 
 export default function AdminTeamPage() {
@@ -51,7 +52,14 @@ export default function AdminTeamPage() {
   };
 
   const handleRemove = async (memberId: string, name: string) => {
-    if (!confirm(`Retirer ${name} de l'équipe admin ?`)) return;
+    const ok = await confirmAction({
+      title: `Retirer ${name} de l'équipe admin ?`,
+      message: "Le membre perdra l'accès aux outils d'administration.",
+      confirmLabel: "Retirer",
+      confirmVariant: "danger",
+      icon: "person_remove",
+    });
+    if (!ok) return;
     setActionLoading(true);
     await removeMember(memberId);
     setActionLoading(false);

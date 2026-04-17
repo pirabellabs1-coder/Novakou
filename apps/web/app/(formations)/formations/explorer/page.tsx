@@ -68,7 +68,7 @@ function StarRating({ rating }: { rating: number }) {
 
 function ProductCard({ item, idx }: { item: Item; idx: number }) {
   const gradient = GRADIENTS[idx % GRADIENTS.length];
-  const href = `/formations/produit/${item.slug}`;
+  const href = item.kind === "formation" ? `/formations/formation/${item.slug}` : `/formations/produit/${item.slug}`;
   const discountPct = item.originalPrice && item.originalPrice > item.price
     ? Math.round((1 - item.price / item.originalPrice) * 100)
     : null;
@@ -416,7 +416,7 @@ export default function ExplorerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* Hero */}
       <section className="bg-white border-b border-gray-100 py-12 px-4 md:px-8">
         <div className="max-w-4xl mx-auto text-center">

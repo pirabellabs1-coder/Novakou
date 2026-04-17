@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import type { TrackingSession } from "@/lib/tracking/types";
+import { getCountryFromRequest } from "@/lib/tracking/geo";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,6 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date().toISOString();
+    const country = getCountryFromRequest(req);
 
     switch (action) {
       case "start": {
@@ -28,6 +30,7 @@ export async function POST(req: NextRequest) {
           utmSource,
           utmMedium,
           utmCampaign,
+          country,
         };
         trackingStore.upsertSession(session);
         break;
@@ -42,6 +45,7 @@ export async function POST(req: NextRequest) {
             // DO NOT increment pageViews on heartbeat — only update lastActiveAt and exitPath
             exitPath: path,
             userId: userId || existing.userId,
+            country: existing.country || country,
           });
         }
         break;

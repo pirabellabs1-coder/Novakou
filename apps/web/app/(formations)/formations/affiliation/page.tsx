@@ -309,7 +309,7 @@ export default function AffiliationPage() {
           <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6 text-left">
             <p className="text-xs text-[#5c647a] font-medium mb-2">Votre lien d&apos;affiliation (exemple)</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 text-sm font-mono text-[#191c1e] bg-[#f7f9fb] px-3 py-2 rounded-xl truncate">
+              <code className="flex-1 text-sm tabular-nums text-[#191c1e] bg-[#f7f9fb] px-3 py-2 rounded-xl truncate">
                 https://formations.freelancehigh.com/ref/MONCODE123
               </code>
               <button

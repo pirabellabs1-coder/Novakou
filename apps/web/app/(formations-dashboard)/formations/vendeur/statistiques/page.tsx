@@ -2,41 +2,124 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+import { countryToFlag, countryName } from "@/lib/tracking/geo";
 
-type Period = "3m" | "6m" | "12m";
+type Period = "7d" | "30d" | "90d" | "12m" | "all";
 
 type StatsData = {
-  monthlyChart: { month: string; amount: number; netAmount: number; sales: number }[];
-  topProducts: {
-    id: string;
-    title: string;
-    type: string;
+  overview: {
     revenue: number;
-    sales: number;
-    rating: number;
-    reviewsCount: number;
-    engagement: number;
-  }[];
+    netRevenue: number;
+    orders: number;
+    uniqueCustomers: number;
+    avgOrder: number;
+    deltaRevenue: number;
+    deltaOrders: number;
+  };
+  revenueOverTime: { date: string; amount: number; orders: number }[];
+  salesByCountry: { country: string; count: number; revenue: number }[];
+  viewsByCountry: { country: string; count: number }[];
+  topProducts: { id: string; title: string; type: string; sales: number; revenue: number }[];
   ratingDist: { star: number; count: number }[];
-  summary: { totalRevenue: number; netRevenue: number; totalSales: number; avgPerSale: number };
+  conversionFunnel: { views: number; productViews: number; purchases: number; conversionRate: number };
+  monthlyTrend: { month: string; revenue: number; orders: number }[];
+  revenueByType: { type: string; value: number }[];
 };
+
+const BRAND = "#006e2f";
+const ACCENT = "#22c55e";
+const CYAN = "#22d3ee";
+const AMBER = "#f59e0b";
+const PURPLE = "#a855f7";
+const DONUT_COLORS = [BRAND, ACCENT, CYAN, AMBER, PURPLE, "#ef4444", "#3b82f6"];
 
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-function SkeletonBar({ count }: { count: number }) {
+function Kpi({
+  label,
+  value,
+  sub,
+  delta,
+  icon,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  delta?: number;
+  icon: string;
+  tone: "brand" | "accent" | "cyan" | "purple";
+}) {
+  const toneMap = {
+    brand: { bg: `bg-[${BRAND}]/10`, fg: `text-[${BRAND}]` },
+    accent: { bg: "bg-green-50", fg: "text-green-600" },
+    cyan: { bg: "bg-cyan-50", fg: "text-cyan-600" },
+    purple: { bg: "bg-purple-50", fg: "text-purple-600" },
+  }[tone];
   return (
-    <div className="flex items-end gap-2 md:gap-3 animate-pulse" style={{ height: "160px" }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex-1 bg-gray-100 rounded-t-lg" style={{ height: `${40 + Math.random() * 60}%` }} />
-      ))}
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${toneMap.bg}`}>
+          <span
+            className={`material-symbols-outlined text-[22px] ${toneMap.fg}`}
+            style={{ fontVariationSettings: "'FILL' 1" }}
+          >
+            {icon}
+          </span>
+        </div>
+        {typeof delta === "number" && (
+          <span
+            className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+              delta >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+            }`}
+          >
+            {delta >= 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}%
+          </span>
+        )}
+      </div>
+      <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-1">{label}</p>
+      <p className="text-xl md:text-2xl font-extrabold text-[#191c1e] leading-snug">{value}</p>
+      {sub && <p className="text-[11px] text-[#5c647a] mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+function ChartCard({ title, subtitle, children, right }: { title: string; subtitle?: string; children: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6">
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <h2 className="font-bold text-[#191c1e] text-base">{title}</h2>
+          {subtitle && <p className="text-xs text-[#5c647a] mt-0.5">{subtitle}</p>}
+        </div>
+        {right}
+      </div>
+      {children}
     </div>
   );
 }
 
 export default function StatistiquesPage() {
-  const [period, setPeriod] = useState<Period>("6m");
+  const [period, setPeriod] = useState<Period>("30d");
 
   const { data, isLoading } = useQuery<{ data: StatsData | null }>({
     queryKey: ["vendeur-stats", period],
@@ -45,282 +128,341 @@ export default function StatistiquesPage() {
   });
 
   const d = data?.data;
-  const chart = d?.monthlyChart ?? [];
-  const maxAmount = chart.length > 0 ? Math.max(...chart.map((c) => c.amount), 1) : 1;
-  const summary = d?.summary;
+  const overview = d?.overview;
+  const revenueOverTime = d?.revenueOverTime ?? [];
+  const salesByCountry = d?.salesByCountry ?? [];
+  const viewsByCountry = d?.viewsByCountry ?? [];
   const topProducts = d?.topProducts ?? [];
-  const ratingDist = d?.ratingDist ?? [];
-  const maxRatingCount = ratingDist.length > 0 ? Math.max(...ratingDist.map((r) => r.count), 1) : 1;
+  const funnel = d?.conversionFunnel;
+  const monthlyTrend = d?.monthlyTrend ?? [];
+  const revenueByType = d?.revenueByType ?? [];
 
-  const PLATFORM_FEE = 0.20;
+  // Merge views + sales by country for the combined table
+  const countryMap = new Map<string, { country: string; views: number; sales: number; revenue: number }>();
+  for (const v of viewsByCountry) {
+    countryMap.set(v.country, { country: v.country, views: v.count, sales: 0, revenue: 0 });
+  }
+  for (const s of salesByCountry) {
+    const entry = countryMap.get(s.country) || { country: s.country, views: 0, sales: 0, revenue: 0 };
+    entry.sales = s.count;
+    entry.revenue = s.revenue;
+    countryMap.set(s.country, entry);
+  }
+  const countryRows = [...countryMap.values()]
+    .sort((a, b) => b.revenue - a.revenue || b.views - a.views)
+    .slice(0, 10);
+
+  const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
+    <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Statistiques</h1>
-          <p className="text-sm text-[#5c647a] mt-1">Analysez vos performances en détail</p>
+          <p className="text-sm text-[#5c647a] mt-1">Analyse détaillée de vos performances et audience</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] bg-white hover:bg-gray-50 transition-colors">
-          <span className="material-symbols-outlined text-[18px] text-[#5c647a]">download</span>
-          Exporter le rapport
-        </button>
+        {/* Period selector */}
+        <div className="flex bg-gray-100 rounded-xl p-1 self-start sm:self-auto">
+          {([
+            { key: "7d", label: "7j" },
+            { key: "30d", label: "30j" },
+            { key: "90d", label: "90j" },
+            { key: "12m", label: "1 an" },
+            { key: "all", label: "Tout" },
+          ] as { key: Period; label: string }[]).map((p) => (
+            <button
+              key={p.key}
+              onClick={() => setPeriod(p.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
+                period === p.key ? "bg-white text-[#191c1e] shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Summary KPIs */}
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          {
-            label: "Revenus bruts",
-            value: summary ? `${formatFCFA(summary.totalRevenue)} FCFA` : "—",
-            sub: summary ? `≈ ${Math.round(summary.totalRevenue / 655.957).toLocaleString("fr-FR")} €` : "",
-            icon: "payments",
-            color: "text-[#006e2f]",
-            bg: "bg-[#006e2f]/10",
-          },
-          {
-            label: "Revenus nets",
-            value: summary ? `${formatFCFA(summary.netRevenue)} FCFA` : "—",
-            sub: `Après ${Math.round(PLATFORM_FEE * 100)}% commission`,
-            icon: "account_balance_wallet",
-            color: "text-blue-600",
-            bg: "bg-blue-50",
-          },
-          {
-            label: "Panier moyen",
-            value: summary && summary.avgPerSale > 0 ? `${formatFCFA(summary.avgPerSale)} FCFA` : "—",
-            sub: summary && summary.totalSales > 0 ? `${summary.totalSales} ventes` : "Aucune vente",
-            icon: "receipt",
-            color: "text-purple-600",
-            bg: "bg-purple-50",
-          },
-        ].map((kpi, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${kpi.bg}`}>
-              <span className={`material-symbols-outlined text-[20px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                {kpi.icon}
-              </span>
-            </div>
-            <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide mb-1">{kpi.label}</p>
-            <p className="text-base font-extrabold text-[#191c1e] leading-snug">{isLoading ? "…" : kpi.value}</p>
-            <p className="text-[10px] text-[#5c647a] mt-0.5">{kpi.sub}</p>
-          </div>
-        ))}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Kpi
+          label="Revenus bruts"
+          value={overview ? `${formatFCFA(overview.revenue)} FCFA` : "—"}
+          sub={overview ? `Net : ${formatFCFA(overview.netRevenue)}` : ""}
+          delta={overview?.deltaRevenue}
+          icon="payments"
+          tone="brand"
+        />
+        <Kpi
+          label="Commandes"
+          value={overview ? overview.orders.toLocaleString("fr-FR") : "—"}
+          sub="Transactions validées"
+          delta={overview?.deltaOrders}
+          icon="shopping_bag"
+          tone="accent"
+        />
+        <Kpi
+          label="Clients uniques"
+          value={overview ? overview.uniqueCustomers.toLocaleString("fr-FR") : "—"}
+          sub="Acheteurs distincts"
+          icon="group"
+          tone="cyan"
+        />
+        <Kpi
+          label="Panier moyen"
+          value={overview ? `${formatFCFA(overview.avgOrder)} FCFA` : "—"}
+          sub="Par commande"
+          icon="receipt_long"
+          tone="purple"
+        />
       </div>
 
-      {/* Revenue chart */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-          <div>
-            <h2 className="font-bold text-[#191c1e] text-base">Revenus mensuels</h2>
-            <p className="text-xs text-[#5c647a] mt-0.5">En FCFA brut</p>
-          </div>
-          {/* Period selector */}
-          <div className="flex bg-gray-100 rounded-xl p-1">
-            {(["3m", "6m", "12m"] as Period[]).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                  period === p ? "bg-white text-[#191c1e] shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
-                }`}
-              >
-                {p === "3m" ? "3 mois" : p === "6m" ? "6 mois" : "12 mois"}
-              </button>
-            ))}
-          </div>
+      {/* Revenue over time + Revenue by type */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="Évolution du chiffre d'affaires"
+            subtitle={period === "all" ? "Depuis le début" : `Sur les ${period === "7d" ? "7 derniers jours" : period === "30d" ? "30 derniers jours" : period === "90d" ? "90 derniers jours" : "12 derniers mois"}`}
+          >
+            {isLoading ? (
+              <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+            ) : revenueOverTime.length === 0 && monthlyTrend.every((m) => m.revenue === 0) ? (
+              <EmptyState icon="show_chart" label="Aucune donnée pour cette période" />
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <AreaChart data={revenueOverTime.length > 0 ? revenueOverTime : monthlyTrend.map((m) => ({ date: m.month, amount: m.revenue, orders: m.orders }))}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={ACCENT} stopOpacity={0.8} />
+                      <stop offset="100%" stopColor={ACCENT} stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="date" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
+                  <YAxis fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`)} />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
+                    formatter={(v: number, name: string) => (name === "amount" ? [`${formatFCFA(v)} FCFA`, "Revenus"] : [v, "Commandes"])}
+                  />
+                  <Area type="monotone" dataKey="amount" stroke={BRAND} strokeWidth={2} fill="url(#revGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </ChartCard>
         </div>
 
-        {isLoading ? (
-          <SkeletonBar count={period === "3m" ? 3 : period === "6m" ? 6 : 12} />
-        ) : chart.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-[#5c647a] text-sm">
-            Aucune donnée pour cette période
-          </div>
-        ) : (
-          <>
-            <div className="flex items-end gap-2 md:gap-3" style={{ height: "160px" }}>
-              {chart.map((d, i) => {
-                const height = (d.amount / maxAmount) * 100;
-                const isLast = i === chart.length - 1;
+        <ChartCard title="Répartition revenus" subtitle="Par type de produit">
+          {isLoading ? (
+            <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+          ) : revenueByType.length === 0 ? (
+            <EmptyState icon="donut_large" label="Aucune vente" />
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <PieChart>
+                <Pie
+                  data={revenueByType}
+                  dataKey="value"
+                  nameKey="type"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={95}
+                  paddingAngle={2}
+                  stroke="none"
+                >
+                  {revenueByType.map((_, i) => (
+                    <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]} />
+                <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+
+      {/* Countries + Funnel */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="Performance par pays"
+            subtitle="Vues (visiteurs) + achats sur la période"
+          >
+            {isLoading ? (
+              <div className="h-[320px] bg-gray-50 animate-pulse rounded-xl" />
+            ) : countryRows.length === 0 ? (
+              <EmptyState icon="public" label="Pas encore de données géolocalisées" />
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={Math.max(180, countryRows.length * 28)}>
+                  <BarChart layout="vertical" data={countryRows} margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                    <XAxis type="number" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
+                    <YAxis
+                      type="category"
+                      dataKey="country"
+                      fontSize={11}
+                      width={60}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(c: string) => `${countryToFlag(c)} ${c}`}
+                    />
+                    <Tooltip
+                      contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
+                      formatter={(v: number, name: string) => {
+                        if (name === "views") return [v, "Vues"];
+                        if (name === "sales") return [v, "Ventes"];
+                        if (name === "revenue") return [`${formatFCFA(v)} FCFA`, "Revenus"];
+                        return [v, name];
+                      }}
+                      labelFormatter={(c: string) => `${countryToFlag(c)} ${countryName(c)}`}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                    <Bar dataKey="views" fill={CYAN} radius={[0, 6, 6, 0]} />
+                    <Bar dataKey="sales" fill={ACCENT} radius={[0, 6, 6, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+
+                {/* Detail table */}
+                <div className="mt-4 overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-[#5c647a] uppercase tracking-wider text-[10px]">
+                        <th className="text-left py-2 font-semibold">Pays</th>
+                        <th className="text-right py-2 font-semibold">Vues</th>
+                        <th className="text-right py-2 font-semibold">Ventes</th>
+                        <th className="text-right py-2 font-semibold">Revenus</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {countryRows.map((row) => (
+                        <tr key={row.country} className="border-t border-gray-100">
+                          <td className="py-2 font-semibold text-[#191c1e]">
+                            <span className="mr-1.5">{countryToFlag(row.country)}</span>
+                            {countryName(row.country)}
+                          </td>
+                          <td className="py-2 text-right text-[#191c1e]">{row.views.toLocaleString("fr-FR")}</td>
+                          <td className="py-2 text-right text-[#191c1e]">{row.sales.toLocaleString("fr-FR")}</td>
+                          <td className="py-2 text-right font-bold text-[#006e2f]">
+                            {row.revenue > 0 ? `${formatFCFA(row.revenue)} FCFA` : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </ChartCard>
+        </div>
+
+        <ChartCard title="Entonnoir de conversion" subtitle="Visite → Produit → Achat">
+          {isLoading || !funnel ? (
+            <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+          ) : (
+            <div className="space-y-4 py-2">
+              {[
+                { label: "Visites totales", value: funnel.views, color: CYAN, icon: "visibility" },
+                { label: "Vues produits", value: funnel.productViews, color: ACCENT, icon: "inventory_2" },
+                { label: "Achats", value: funnel.purchases, color: BRAND, icon: "shopping_cart_checkout" },
+              ].map((step, idx) => {
+                const width = (step.value / funnelMax) * 100;
                 return (
-                  <div key={d.month} className="flex-1 flex flex-col items-center gap-1.5 group" style={{ height: "160px", justifyContent: "flex-end" }}>
-                    <div className="w-full flex flex-col items-center justify-end" style={{ height: "130px" }}>
-                      {/* Tooltip */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 mb-1 bg-[#191c1e] text-white text-[9px] font-semibold px-1.5 py-0.5 rounded whitespace-nowrap">
-                        {formatFCFA(d.amount)} FCFA · {d.sales} vente{d.sales !== 1 ? "s" : ""}
+                  <div key={idx}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]" style={{ color: step.color }}>
+                          {step.icon}
+                        </span>
+                        <span className="text-xs font-semibold text-[#191c1e]">{step.label}</span>
                       </div>
+                      <span className="text-sm font-extrabold text-[#191c1e]">{step.value.toLocaleString("fr-FR")}</span>
+                    </div>
+                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
                       <div
-                        className="w-full rounded-t-lg transition-all duration-300"
-                        style={{
-                          height: `${Math.max(height, d.amount > 0 ? 4 : 0)}%`,
-                          background: isLast
-                            ? "linear-gradient(to top, #006e2f, #22c55e)"
-                            : "#dbeafe",
-                          minHeight: d.amount > 0 ? "4px" : "0",
-                        }}
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{ width: `${Math.max(width, 4)}%`, background: step.color }}
                       />
                     </div>
-                    <span className="text-[9px] font-semibold text-[#5c647a]">{d.month}</span>
-                    <span className={`text-[9px] font-bold ${isLast ? "text-[#006e2f]" : "text-[#5c647a]"}`}>
-                      {d.sales > 0 ? d.sales : "—"}
-                    </span>
                   </div>
                 );
               })}
+              <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                <span className="text-xs text-[#5c647a]">Taux de conversion</span>
+                <span className="text-base font-extrabold" style={{ color: BRAND }}>
+                  {funnel.conversionRate}%
+                </span>
+              </div>
             </div>
-            <p className="text-[10px] text-[#5c647a] text-center mt-2">Barres bleues = périodes passées · Barre verte = plus récent · Chiffres = nb de ventes</p>
-          </>
-        )}
+          )}
+        </ChartCard>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top products */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-bold text-[#191c1e] text-base mb-4">Top Produits</h2>
+      {/* Top products + Monthly trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+        <ChartCard title="Top 5 produits" subtitle="Par chiffre d'affaires">
           {isLoading ? (
-            <div className="space-y-4 animate-pulse">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="w-7 h-7 rounded-lg bg-gray-100 flex-shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3 bg-gray-100 rounded w-3/4" />
-                    <div className="h-2 bg-gray-100 rounded w-1/2" />
-                    <div className="h-1.5 bg-gray-100 rounded w-full" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="h-[260px] bg-gray-50 animate-pulse rounded-xl" />
           ) : topProducts.length === 0 ? (
-            <div className="py-8 text-center">
-              <span className="material-symbols-outlined text-[32px] text-gray-300 block mb-2">storefront</span>
-              <p className="text-sm text-[#5c647a]">Aucun produit avec des ventes</p>
-            </div>
+            <EmptyState icon="storefront" label="Aucun produit vendu" />
           ) : (
-            <div className="space-y-4">
-              {topProducts.map((product, idx) => (
-                <div key={product.id} className="flex items-start gap-3">
-                  <div
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold flex-shrink-0"
-                    style={{
-                      background: idx === 0 ? "#f59e0b" : idx === 1 ? "#9ca3af" : idx === 2 ? "#cd7c2f" : "#e5e7eb",
-                      color: idx < 3 ? "white" : "#6b7280",
-                    }}
-                  >
-                    {idx + 1}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#191c1e] line-clamp-1">{product.title}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-[10px] text-[#5c647a]">{product.type}</span>
-                      <span className="text-[10px] font-semibold text-[#5c647a]">·</span>
-                      <span className="text-[10px] font-semibold text-[#191c1e]">{product.sales} ventes</span>
-                      {product.rating > 0 && (
-                        <>
-                          <span className="text-[10px] text-[#5c647a]">·</span>
-                          <span className="text-[10px] text-amber-600 font-semibold">★ {product.rating.toFixed(1)}</span>
-                        </>
-                      )}
-                    </div>
-                    {product.engagement > 0 && (
-                      <div className="mt-1.5">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[9px] text-[#5c647a]">Complétion</span>
-                          <span className="text-[9px] font-bold text-[#191c1e]">{product.engagement}%</span>
-                        </div>
-                        <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full"
-                            style={{ width: `${product.engagement}%`, background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <p className="text-[10px] font-semibold text-[#006e2f] mt-1">
-                      {formatFCFA(product.revenue)} FCFA{" "}
-                      <span className="text-[#5c647a] font-normal">≈ {Math.round(product.revenue / 655.957)} €</span>
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                <XAxis type="number" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`)} />
+                <YAxis
+                  type="category"
+                  dataKey="title"
+                  fontSize={10}
+                  width={110}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(t: string) => (t.length > 16 ? t.slice(0, 16) + "…" : t)}
+                />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
+                  formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "CA"]}
+                />
+                <Bar dataKey="revenue" fill={BRAND} radius={[0, 8, 8, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           )}
-        </div>
+        </ChartCard>
 
-        {/* Rating distribution */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-bold text-[#191c1e] text-base mb-4">Distribution des avis</h2>
+        <ChartCard title="Tendance mensuelle" subtitle="12 derniers mois">
           {isLoading ? (
-            <div className="space-y-3 animate-pulse">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="h-3 bg-gray-100 rounded w-6 flex-shrink-0" />
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full" />
-                  <div className="h-3 bg-gray-100 rounded w-6" />
-                </div>
-              ))}
-            </div>
-          ) : ratingDist.every((r) => r.count === 0) ? (
-            <div className="py-8 text-center">
-              <span className="material-symbols-outlined text-[32px] text-gray-300 block mb-2">star_border</span>
-              <p className="text-sm text-[#5c647a]">Aucun avis reçu pour l&apos;instant</p>
-            </div>
+            <div className="h-[260px] bg-gray-50 animate-pulse rounded-xl" />
+          ) : monthlyTrend.every((m) => m.revenue === 0) ? (
+            <EmptyState icon="trending_up" label="Pas encore de tendance" />
           ) : (
-            <>
-              <div className="space-y-3 mb-6">
-                {ratingDist.map((r) => (
-                  <div key={r.star} className="flex items-center gap-3">
-                    <div className="flex items-center gap-0.5 w-10 flex-shrink-0">
-                      <span className="text-xs font-bold text-[#191c1e]">{r.star}</span>
-                      <span className="material-symbols-outlined text-[12px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                    </div>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{
-                          width: maxRatingCount > 0 ? `${(r.count / maxRatingCount) * 100}%` : "0%",
-                          background: r.star >= 4 ? "linear-gradient(to right, #006e2f, #22c55e)" : r.star === 3 ? "#f59e0b" : "#ef4444",
-                        }}
-                      />
-                    </div>
-                    <span className="text-xs text-[#5c647a] w-5 text-right">{r.count}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Summary */}
-              <div className="pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-2xl font-extrabold text-[#191c1e]">
-                      {topProducts.length > 0
-                        ? (topProducts.reduce((s, p) => s + p.rating * p.reviewsCount, 0) / Math.max(topProducts.reduce((s, p) => s + p.reviewsCount, 0), 1)).toFixed(2)
-                        : "—"}
-                    </p>
-                    <p className="text-[10px] text-[#5c647a]">Note moyenne</p>
-                  </div>
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((s) => {
-                      const avg = topProducts.length > 0
-                        ? topProducts.reduce((sum, p) => sum + p.rating * p.reviewsCount, 0) / Math.max(topProducts.reduce((sum, p) => sum + p.reviewsCount, 0), 1)
-                        : 0;
-                      return (
-                        <span key={s} className={`material-symbols-outlined text-[20px] ${s <= Math.round(avg) ? "text-amber-400" : "text-gray-200"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                          star
-                        </span>
-                      );
-                    })}
-                  </div>
-                </div>
-                <p className="text-[10px] text-[#5c647a] mt-1">
-                  {ratingDist.reduce((s, r) => s + r.count, 0)} avis au total
-                </p>
-              </div>
-            </>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={monthlyTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="month" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
+                <YAxis fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`)} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
+                  formatter={(v: number, name: string) => (name === "revenue" ? [`${formatFCFA(v)} FCFA`, "Revenus"] : [v, "Commandes"])}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
+                <Line type="monotone" dataKey="revenue" stroke={BRAND} strokeWidth={2.5} dot={{ r: 3, fill: BRAND }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="orders" stroke={CYAN} strokeWidth={2} dot={{ r: 3, fill: CYAN }} />
+              </LineChart>
+            </ResponsiveContainer>
           )}
-        </div>
+        </ChartCard>
       </div>
+    </div>
+  );
+}
+
+function EmptyState({ icon, label }: { icon: string; label: string }) {
+  return (
+    <div className="h-[260px] flex flex-col items-center justify-center text-center">
+      <span className="material-symbols-outlined text-[36px] text-gray-300 mb-2">{icon}</span>
+      <p className="text-sm text-[#5c647a]">{label}</p>
     </div>
   );
 }

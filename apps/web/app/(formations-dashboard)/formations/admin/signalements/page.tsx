@@ -62,7 +62,7 @@ export default function AdminSignalementsPage() {
   const summary = response?.summary;
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1400px] mx-auto">
         <header className="mb-12">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
@@ -78,20 +78,20 @@ export default function AdminSignalementsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-100 mb-10 border border-zinc-100">
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Signalements</p>
-            <p className="text-3xl font-extrabold tracking-tighter text-zinc-900 font-mono">
+            <p className="text-3xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
               {isLoading ? "…" : summary?.totalReports ?? 0}
             </p>
           </div>
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Remboursements</p>
-            <p className="text-3xl font-extrabold tracking-tighter text-zinc-900 font-mono">
+            <p className="text-3xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
               {isLoading ? "…" : summary?.totalRefunds ?? 0}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">En attente</p>
           </div>
           <div className="bg-zinc-900 p-8 text-white">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">Montant à rembourser</p>
-            <p className="text-3xl font-extrabold tracking-tighter font-mono">
+            <p className="text-3xl font-extrabold tracking-tighter tabular-nums">
               {isLoading ? "…" : formatFCFA(summary?.pendingRefundAmount ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA</p>
@@ -112,7 +112,7 @@ export default function AdminSignalementsPage() {
               }`}
             >
               {t.label}
-              <span className={`text-[9px] font-mono ${tab === t.value ? "text-[#22c55e]" : "text-zinc-400"}`}>{t.count}</span>
+              <span className={`text-[9px] tabular-nums ${tab === t.value ? "text-[#22c55e]" : "text-zinc-400"}`}>{t.count}</span>
             </button>
           ))}
         </div>
@@ -135,7 +135,7 @@ export default function AdminSignalementsPage() {
                       <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 bg-[#ffdad6] text-[#93000a]">
                         {REASON_LABELS[r.reason] ?? r.reason.toUpperCase()}
                       </span>
-                      <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                      <span className="text-[10px] tabular-nums text-zinc-400 uppercase tracking-widest">
                         {timeAgo(r.createdAt)}
                       </span>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">
@@ -159,7 +159,7 @@ export default function AdminSignalementsPage() {
                       </p>
                       <p className="text-sm font-bold text-zinc-900">&laquo; {r.discussion.title} &raquo;</p>
                       <p className="text-xs text-zinc-600 line-clamp-2 mt-1">{r.discussion.content}</p>
-                      <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-2">
+                      <p className="text-[10px] tabular-nums text-zinc-400 uppercase tracking-widest mt-2">
                         par {r.discussion.user.name ?? "—"}
                       </p>
                     </div>
@@ -168,7 +168,7 @@ export default function AdminSignalementsPage() {
                     <div className="border-l-4 border-zinc-200 pl-4 py-2 bg-[#f3f3f4]">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Réponse signalée</p>
                       <p className="text-xs text-zinc-600 line-clamp-3">{r.reply.content}</p>
-                      <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-2">
+                      <p className="text-[10px] tabular-nums text-zinc-400 uppercase tracking-widest mt-2">
                         par {r.reply.user.name ?? "—"}
                       </p>
                     </div>
@@ -198,7 +198,7 @@ export default function AdminSignalementsPage() {
                         <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-1 bg-amber-400 text-amber-900">
                           En attente
                         </span>
-                        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">{timeAgo(r.createdAt)}</span>
+                        <span className="text-[10px] tabular-nums text-zinc-400 uppercase tracking-widest">{timeAgo(r.createdAt)}</span>
                       </div>
                       <p className="text-base font-bold text-zinc-900">
                         {r.user.name ?? r.user.email} · {formatFCFA(r.amount)} FCFA

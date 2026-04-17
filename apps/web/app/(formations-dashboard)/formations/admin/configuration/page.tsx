@@ -89,7 +89,7 @@ export default function AdminConfigurationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1100px] mx-auto">
         <div className="flex items-start justify-between gap-6 mb-12 flex-wrap">
           <div>
@@ -156,7 +156,7 @@ export default function AdminConfigurationPage() {
                             type={item.type}
                             value={values[item.key] ?? ""}
                             onChange={(e) => updateField(item.key, e.target.value)}
-                            className="w-56 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-3 px-4 text-sm font-mono font-bold text-zinc-900 outline-none transition-shadow text-right"
+                            className="w-56 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-3 px-4 text-sm tabular-nums font-bold text-zinc-900 outline-none transition-shadow text-right"
                           />
                         )}
                       </div>

@@ -91,17 +91,33 @@ export default function CheckoutInner() {
         const items: CartItem[] = [];
 
         if (fids.length > 0) {
-          try {
-            const res = await fetch("/api/formations/explorer?ids=" + encodeURIComponent(fids.join(",")));
-            const json = await res.json();
-            const arr: CartItem[] = (json.data ?? []).map((f: { id: string; title: string; price: number; thumbnail?: string }) => ({
-              id: f.id, kind: "formation", title: f.title, price: f.price, thumbnail: f.thumbnail,
-            }));
-            items.push(...arr);
-          } catch {
-            // If API doesn't support bulk fetch by ids, build minimal items
-            fids.forEach((id) => items.push({ id, kind: "formation", title: "Formation", price: 0 }));
-          }
+          // Fetch each formation by id (in parallel) via the public funnel-item endpoint
+          await Promise.all(
+            fids.map(async (id) => {
+              try {
+                const res = await fetch(`/api/formations/public/funnel-item?kind=formation&id=${encodeURIComponent(id)}`);
+                if (!res.ok) {
+                  items.push({ id, kind: "formation", title: "Formation", price: 0 });
+                  return;
+                }
+                const json = await res.json();
+                const f = json.data;
+                if (f) {
+                  items.push({
+                    id: f.id,
+                    kind: "formation",
+                    title: f.title ?? "Formation",
+                    price: f.price ?? 0,
+                    thumbnail: f.thumbnail,
+                  });
+                } else {
+                  items.push({ id, kind: "formation", title: "Formation", price: 0 });
+                }
+              } catch {
+                items.push({ id, kind: "formation", title: "Formation", price: 0 });
+              }
+            })
+          );
         }
         if (pids.length > 0) {
           // Fetch real product details (title, price, banner) — was hardcoded to 0
@@ -225,7 +241,7 @@ export default function CheckoutInner() {
   const selectedCountry = COUNTRIES.find((c) => c.code === countryCode) ?? COUNTRIES[0];
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] py-8 px-4 md:px-8" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb] py-8 px-4 md:px-8" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* Breadcrumb */}
       <div className="max-w-5xl mx-auto mb-6">
         <div className="flex items-center gap-2 text-xs text-[#5c647a]">
@@ -356,7 +372,7 @@ export default function CheckoutInner() {
                           >
                             <span className="text-base">{c.flag}</span>
                             <span className="flex-1">{c.label}</span>
-                            <span className="text-[#5c647a] font-mono text-xs">{c.code}</span>
+                            <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
                           </button>
                         ))}
                       </div>
@@ -399,7 +415,7 @@ export default function CheckoutInner() {
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
                 placeholder="PROMO20"
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm font-mono font-bold text-[#191c1e] uppercase placeholder:font-normal placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm tabular-nums font-bold text-[#191c1e] uppercase placeholder:font-normal placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
               />
             </div>
           </div>

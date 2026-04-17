@@ -2,11 +2,26 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useToastStore } from "@/store/toast";
 
-const BRAND = "#3F41C2";
-const BORDER = "#E2E8F0";
+import type {
+  WorkflowAction,
+  ActionType,
+  EmailAction,
+  TagAction,
+  SequenceAction,
+  WebhookAction,
+  WaitAction,
+} from "@/components/automations/types";
+import { WEBHOOK_FIELDS } from "@/components/automations/types";
+import ActionCard from "@/components/automations/ActionCard";
+import ActionEmailModal from "@/components/automations/ActionEmailModal";
+import ActionTagModal from "@/components/automations/ActionTagModal";
+import ActionSequenceModal from "@/components/automations/ActionSequenceModal";
+import ActionWebhookModal from "@/components/automations/ActionWebhookModal";
+
+const BRAND = "#006e2f";
+const BRAND_SOFT = "#006e2f26";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface Product {
@@ -14,12 +29,6 @@ interface Product {
   title: string;
   slug: string;
   kind: "formation" | "product";
-}
-
-interface WorkflowAction {
-  id: string;
-  type: "SEND_EMAIL" | "ADD_TAG" | "WEBHOOK" | "WAIT" | "ENROLL_SEQUENCE";
-  config: Record<string, unknown>;
 }
 
 interface Workflow {
@@ -42,15 +51,58 @@ const TRIGGER_OPTIONS = [
   { value: "LESSON_COMPLETED", label: "Leçon terminée", icon: "check_circle" },
   { value: "USER_SIGNUP", label: "Nouvelle inscription", icon: "person_add" },
   { value: "INACTIVITY", label: "Inactivité", icon: "schedule" },
+  { value: "TAG_ADDED", label: "Tag ajouté", icon: "label" },
 ];
 
-// ─── Action options ───────────────────────────────────────────────────────────
-const ACTION_OPTIONS = [
-  { value: "SEND_EMAIL", label: "Envoyer un email", icon: "mail", color: "#3F41C2" },
-  { value: "ADD_TAG", label: "Ajouter un tag", icon: "label", color: "#8b5cf6" },
-  { value: "ENROLL_SEQUENCE", label: "Démarrer une séquence", icon: "alt_route", color: "#ec4899" },
-  { value: "WEBHOOK", label: "Déclencher un webhook", icon: "webhook", color: "#f59e0b" },
-  { value: "WAIT", label: "Attendre un délai", icon: "schedule", color: "#6b7280" },
+// ─── Action picker options ────────────────────────────────────────────────────
+const ACTION_OPTIONS: Array<{
+  value: ActionType;
+  label: string;
+  icon: string;
+  color: string;
+  bg: string;
+  description: string;
+}> = [
+  {
+    value: "SEND_EMAIL",
+    label: "Envoyer un email",
+    icon: "mail",
+    color: "text-[#006e2f]",
+    bg: "bg-[#006e2f]/10",
+    description: "Email transactionnel avec corps HTML personnalisé",
+  },
+  {
+    value: "ADD_TAG",
+    label: "Ajouter un tag",
+    icon: "label",
+    color: "text-violet-600",
+    bg: "bg-violet-100",
+    description: "Segmenter le client selon son comportement",
+  },
+  {
+    value: "ENROLL_SEQUENCE",
+    label: "Démarrer une séquence",
+    icon: "alt_route",
+    color: "text-pink-600",
+    bg: "bg-pink-100",
+    description: "Inscrire le client à une séquence email",
+  },
+  {
+    value: "WEBHOOK",
+    label: "Déclencher un webhook",
+    icon: "webhook",
+    color: "text-amber-600",
+    bg: "bg-amber-100",
+    description: "Envoyer les données vers n8n, Make, Zapier…",
+  },
+  {
+    value: "WAIT",
+    label: "Attendre un délai",
+    icon: "schedule",
+    color: "text-gray-600",
+    bg: "bg-gray-100",
+    description: "Pause avant la prochaine action",
+  },
 ];
 
 // ─── Product search component ─────────────────────────────────────────────────
@@ -69,7 +121,6 @@ function ProductSearch({
 
   useEffect(() => {
     if (!value) return setSelected(null);
-    // Fetch product by id if value is set but selected is null
     if (value && !selected) {
       fetch(`/api/formations/vendeur/formations?ids=${value}`)
         .then((r) => r.json())
@@ -135,7 +186,7 @@ function ProductSearch({
               onFocus={() => setOpen(true)}
               onBlur={() => setTimeout(() => setOpen(false), 200)}
               placeholder="Rechercher une formation ou un produit…"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#3F41C2] focus:ring-2 focus:ring-[#3F41C2]/10"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
             />
           </div>
           {open && query.trim() && (
@@ -143,7 +194,7 @@ function ProductSearch({
               {loading ? (
                 <div className="px-4 py-6 text-center text-sm text-gray-500">Recherche…</div>
               ) : results.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-gray-500">No results found</div>
+                <div className="px-4 py-6 text-center text-sm text-gray-500">Aucun résultat</div>
               ) : (
                 results.map((p) => (
                   <button
@@ -169,107 +220,71 @@ function ProductSearch({
   );
 }
 
-// ─── Action block (in the vertical chain) ─────────────────────────────────────
-function ActionBlock({
-  action,
-  index,
-  onUpdate,
-  onDelete,
-}: {
-  action: WorkflowAction;
-  index: number;
-  onUpdate: (a: WorkflowAction) => void;
-  onDelete: () => void;
-}) {
-  const meta = ACTION_OPTIONS.find((o) => o.value === action.type) ?? ACTION_OPTIONS[0];
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 w-full max-w-md">
-      <div className="flex items-start gap-3 mb-4">
-        <div
-          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `${meta.color}15`, color: meta.color }}
-        >
-          <span className="material-symbols-outlined text-[20px]">{meta.icon}</span>
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Action {index + 1}</p>
-          <p className="text-sm font-bold text-gray-900">{meta.label}</p>
-        </div>
-        <button
-          onClick={onDelete}
-          className="text-gray-400 hover:text-red-500 transition-colors"
-          title="Supprimer"
-        >
-          <span className="material-symbols-outlined text-[18px]">delete</span>
-        </button>
-      </div>
-
-      {/* Config field based on action type */}
-      {action.type === "SEND_EMAIL" && (
-        <input
-          type="text"
-          value={(action.config.subject as string) ?? ""}
-          onChange={(e) => onUpdate({ ...action, config: { ...action.config, subject: e.target.value } })}
-          placeholder="Objet de l'email…"
-          className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#3F41C2]"
-        />
-      )}
-      {action.type === "ADD_TAG" && (
-        <input
-          type="text"
-          value={(action.config.tagName as string) ?? ""}
-          onChange={(e) => onUpdate({ ...action, config: { ...action.config, tagName: e.target.value } })}
-          placeholder="Nom du tag (ex: vip-client)"
-          className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#3F41C2]"
-        />
-      )}
-      {action.type === "WEBHOOK" && (
-        <input
-          type="url"
-          value={(action.config.url as string) ?? ""}
-          onChange={(e) => onUpdate({ ...action, config: { ...action.config, url: e.target.value } })}
-          placeholder="https://example.com/webhook"
-          className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#3F41C2]"
-        />
-      )}
-      {action.type === "WAIT" && (
-        <div className="flex items-center gap-2">
-          <input
-            type="number"
-            value={(action.config.hours as number) ?? 1}
-            onChange={(e) =>
-              onUpdate({ ...action, config: { ...action.config, hours: Number(e.target.value) } })
-            }
-            min={1}
-            className="w-24 px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:border-[#3F41C2]"
-          />
-          <span className="text-sm text-gray-600">heure(s)</span>
-        </div>
-      )}
-      {action.type === "ENROLL_SEQUENCE" && (
-        <p className="text-xs text-gray-500 italic">Configurez la séquence à déclencher depuis la liste</p>
-      )}
-    </div>
-  );
+// ─── Blank action factory ─────────────────────────────────────────────────────
+function blankAction(type: ActionType): WorkflowAction {
+  const id = `a-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`;
+  switch (type) {
+    case "SEND_EMAIL":
+      return {
+        id,
+        type: "SEND_EMAIL",
+        config: {
+          to: "{{customer.email}}",
+          subject: "",
+          body: "",
+          fromName: "FreelanceHigh",
+          replyTo: "",
+          delayMinutes: 0,
+        },
+      };
+    case "ADD_TAG":
+      return {
+        id,
+        type: "ADD_TAG",
+        config: { tagName: "", audienceType: "all", productIds: [] },
+      };
+    case "ENROLL_SEQUENCE":
+      return { id, type: "ENROLL_SEQUENCE", config: { sequenceId: "" } };
+    case "WEBHOOK":
+      return {
+        id,
+        type: "WEBHOOK",
+        config: {
+          url: "",
+          method: "POST",
+          headers: [],
+          selectedFields: WEBHOOK_FIELDS.flatMap((g) =>
+            g.fields.filter((f) => f.defaultOn).map((f) => f.key)
+          ),
+        },
+      };
+    case "WAIT":
+      return { id, type: "WAIT", config: { hours: 1 } };
+  }
 }
 
 // ─── Main Editor ──────────────────────────────────────────────────────────────
 export default function WorkflowEditorClient({ id }: { id: string }) {
-  const router = useRouter();
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Picker + editing state
   const [showActionPicker, setShowActionPicker] = useState(false);
+  const [editingAction, setEditingAction] = useState<{
+    action: WorkflowAction;
+    index: number;
+    isNew: boolean;
+  } | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
+        const { safeJson } = await import("@/lib/safe-fetch");
         const res = await fetch(`/api/formations/vendeur/automatisations/${id}`);
-        if (res.ok) {
-          const json = await res.json();
-          const wf = json.data as Workflow;
-          // Ensure actions is an array of WorkflowAction
+        const { ok, data } = await safeJson<{ data: Workflow }>(res);
+        if (ok && data?.data) {
+          const wf = data.data;
           if (!Array.isArray(wf.actions)) wf.actions = [];
           setWorkflow(wf);
         }
@@ -284,27 +299,51 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
     setWorkflow((w) => (w ? { ...w, ...patch } : w));
   }
 
-  function addAction(type: WorkflowAction["type"]) {
-    if (!workflow) return;
-    const newAction: WorkflowAction = {
-      id: `a-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
-      type,
-      config: type === "WAIT" ? { hours: 1 } : {},
-    };
-    updateLocal({ actions: [...workflow.actions, newAction] });
+  function openAddAction(type: ActionType) {
+    const newAction = blankAction(type);
     setShowActionPicker(false);
+    if (type === "WAIT") {
+      // No modal for WAIT — just insert with default
+      if (!workflow) return;
+      updateLocal({ actions: [...workflow.actions, newAction] });
+      return;
+    }
+    setEditingAction({
+      action: newAction,
+      index: workflow?.actions.length ?? 0,
+      isNew: true,
+    });
   }
 
-  function updateAction(idx: number, newAction: WorkflowAction) {
-    if (!workflow) return;
-    const updated = [...workflow.actions];
-    updated[idx] = newAction;
-    updateLocal({ actions: updated });
+  function openEditAction(action: WorkflowAction, index: number) {
+    setEditingAction({ action, index, isNew: false });
+  }
+
+  function saveAction(updated: WorkflowAction) {
+    if (!workflow || !editingAction) return;
+    const next = [...workflow.actions];
+    if (editingAction.isNew) {
+      next.push(updated);
+    } else {
+      next[editingAction.index] = updated;
+    }
+    updateLocal({ actions: next });
+    setEditingAction(null);
   }
 
   function deleteAction(idx: number) {
     if (!workflow) return;
     updateLocal({ actions: workflow.actions.filter((_, i) => i !== idx) });
+  }
+
+  function updateWaitHours(idx: number, hours: number) {
+    if (!workflow) return;
+    const next = [...workflow.actions];
+    const current = next[idx];
+    if (current.type === "WAIT") {
+      next[idx] = { ...current, config: { hours: Math.max(1, hours) } };
+      updateLocal({ actions: next });
+    }
   }
 
   async function handleSave() {
@@ -322,7 +361,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
         }),
       });
       if (!res.ok) throw new Error("Sauvegarde échouée");
-      useToastStore.getState().addToast("success", "Workflow sauvegardé ✓");
+      useToastStore.getState().addToast("success", "Workflow sauvegardé");
     } catch (e) {
       useToastStore.getState().addToast("error", e instanceof Error ? e.message : "Erreur");
     } finally {
@@ -340,7 +379,9 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
     });
     if (res.ok) {
       updateLocal({ status: newStatus });
-      useToastStore.getState().addToast("success", newStatus === "ACTIVE" ? "Workflow activé" : "Workflow désactivé");
+      useToastStore
+        .getState()
+        .addToast("success", newStatus === "ACTIVE" ? "Workflow activé" : "Workflow désactivé");
     }
   }
 
@@ -357,7 +398,10 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
     return (
       <div className="p-12 text-center">
         <p className="text-sm text-gray-600">Workflow introuvable.</p>
-        <Link href="/formations/vendeur/automatisations" className="text-[#3F41C2] text-sm mt-3 inline-block">
+        <Link
+          href="/formations/vendeur/automatisations"
+          className="text-[#006e2f] text-sm mt-3 inline-block"
+        >
           ← Retour
         </Link>
       </div>
@@ -367,11 +411,14 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
   const trigger = TRIGGER_OPTIONS.find((t) => t.value === workflow.triggerType) ?? TRIGGER_OPTIONS[0];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc]" style={{ fontFamily: "Inter, 'Helvetica Neue', sans-serif" }}>
+    <div
+      className="min-h-screen bg-[#f8fafc]"
+      style={{ fontFamily: "Inter, 'Helvetica Neue', sans-serif" }}
+    >
       <div className="max-w-4xl mx-auto px-6 py-8 pb-32">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/formations/vendeur/automatisations" className="hover:text-[#3F41C2]">
+          <Link href="/formations/vendeur/automatisations" className="hover:text-[#006e2f]">
             Automatisations
           </Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
@@ -396,14 +443,17 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
             />
           </div>
 
-          {/* Toggle switch */}
           <button
             onClick={toggleActive}
             className={`relative inline-flex h-7 w-12 rounded-full transition-colors ${
               workflow.status === "ACTIVE" ? "" : "bg-gray-200"
             }`}
             style={workflow.status === "ACTIVE" ? { background: BRAND } : {}}
-            title={workflow.status === "ACTIVE" ? "Actif — cliquer pour désactiver" : "Désactivé — cliquer pour activer"}
+            title={
+              workflow.status === "ACTIVE"
+                ? "Actif — cliquer pour désactiver"
+                : "Désactivé — cliquer pour activer"
+            }
           >
             <span
               className={`inline-block h-5 w-5 bg-white rounded-full shadow transform transition-transform mt-1 ${
@@ -416,7 +466,10 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
         {/* ── Trigger block ──────────────────────────────────────────── */}
         <div className="flex flex-col items-center">
           <div className="w-full max-w-md">
-            <div className="bg-white rounded-2xl border-2 shadow-sm p-5" style={{ borderColor: BRAND }}>
+            <div
+              className="bg-white rounded-2xl border-2 shadow-sm p-5"
+              style={{ borderColor: BRAND }}
+            >
               <div className="flex items-center gap-3 mb-4">
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
@@ -425,7 +478,10 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
                   <span className="material-symbols-outlined text-[20px]">bolt</span>
                 </div>
                 <div className="flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: BRAND }}>
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-wider"
+                    style={{ color: BRAND }}
+                  >
                     Déclencheur
                   </p>
                   <p className="text-sm font-bold text-gray-900">{trigger.label}</p>
@@ -434,7 +490,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
               <select
                 value={workflow.triggerType}
                 onChange={(e) => updateLocal({ triggerType: e.target.value })}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:border-[#3F41C2]"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 focus:outline-none focus:border-[#006e2f]"
               >
                 {TRIGGER_OPTIONS.map((t) => (
                   <option key={t.value} value={t.value}>
@@ -457,22 +513,52 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
           {/* Actions chain */}
           {workflow.actions.map((action, idx) => (
             <div key={action.id} className="flex flex-col items-center w-full">
-              {/* Dotted vertical line */}
               <div
                 className="w-px h-10 my-1"
                 style={{
-                  backgroundImage: `linear-gradient(to bottom, ${BRAND}40 50%, transparent 0%)`,
+                  backgroundImage: `linear-gradient(to bottom, ${BRAND_SOFT} 50%, transparent 0%)`,
                   backgroundPosition: "right",
                   backgroundSize: "2px 8px",
                   backgroundRepeat: "repeat-y",
                 }}
               />
-              <ActionBlock
-                action={action}
-                index={idx}
-                onUpdate={(a) => updateAction(idx, a)}
-                onDelete={() => deleteAction(idx)}
-              />
+              {action.type === "WAIT" ? (
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 w-full max-w-md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 flex-shrink-0">
+                      <span className="material-symbols-outlined text-[20px]">schedule</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        Action {idx + 1} · Attendre
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <input
+                          type="number"
+                          value={action.config.hours}
+                          min={1}
+                          onChange={(e) => updateWaitHours(idx, Number(e.target.value))}
+                          className="w-20 px-2 py-1 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-[#006e2f]"
+                        />
+                        <span className="text-sm text-gray-600">heure(s)</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => deleteAction(idx)}
+                      className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <ActionCard
+                  action={action}
+                  index={idx}
+                  onEdit={() => openEditAction(action, idx)}
+                  onDelete={() => deleteAction(idx)}
+                />
+              )}
             </div>
           ))}
 
@@ -481,7 +567,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
             <div
               className="w-px h-10 my-1"
               style={{
-                backgroundImage: `linear-gradient(to bottom, ${BRAND}40 50%, transparent 0%)`,
+                backgroundImage: `linear-gradient(to bottom, ${BRAND_SOFT} 50%, transparent 0%)`,
                 backgroundPosition: "right",
                 backgroundSize: "2px 8px",
                 backgroundRepeat: "repeat-y",
@@ -504,7 +590,8 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-6 py-4 z-40">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
           <div className="text-xs text-gray-500">
-            {workflow.actions.length} action{workflow.actions.length !== 1 ? "s" : ""} configurée{workflow.actions.length !== 1 ? "s" : ""}
+            {workflow.actions.length} action{workflow.actions.length !== 1 ? "s" : ""} configurée
+            {workflow.actions.length !== 1 ? "s" : ""}
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -517,11 +604,16 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
               onClick={handleSave}
               disabled={saving}
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white hover:-translate-y-0.5 transition-all disabled:opacity-50"
-              style={{ background: BRAND, boxShadow: `0 8px 24px ${BRAND}35` }}
+              style={{
+                background: `linear-gradient(to right, ${BRAND}, #22c55e)`,
+                boxShadow: `0 8px 24px ${BRAND}35`,
+              }}
             >
               {saving ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">
+                    progress_activity
+                  </span>
                   Sauvegarde…
                 </>
               ) : (
@@ -558,21 +650,56 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
               {ACTION_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
-                  onClick={() => addAction(opt.value as WorkflowAction["type"])}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-[#3F41C2] hover:bg-[#3F41C2]/5 text-left transition-all"
+                  onClick={() => openAddAction(opt.value)}
+                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-[#006e2f] hover:bg-[#006e2f]/5 text-left transition-all"
                 >
                   <div
-                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: `${opt.color}15`, color: opt.color }}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${opt.bg} ${opt.color}`}
                   >
                     <span className="material-symbols-outlined text-[20px]">{opt.icon}</span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{opt.label}</p>
+                    <p className="text-[11px] text-gray-500">{opt.description}</p>
+                  </div>
+                  <span className="material-symbols-outlined text-[18px] text-gray-400">
+                    chevron_right
+                  </span>
                 </button>
               ))}
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── Configuration modals per action type ──────────────────── */}
+      {editingAction?.action.type === "SEND_EMAIL" && (
+        <ActionEmailModal
+          action={editingAction.action as EmailAction}
+          onSave={(a) => saveAction(a)}
+          onCancel={() => setEditingAction(null)}
+        />
+      )}
+      {editingAction?.action.type === "ADD_TAG" && (
+        <ActionTagModal
+          action={editingAction.action as TagAction}
+          onSave={(a) => saveAction(a)}
+          onCancel={() => setEditingAction(null)}
+        />
+      )}
+      {editingAction?.action.type === "ENROLL_SEQUENCE" && (
+        <ActionSequenceModal
+          action={editingAction.action as SequenceAction}
+          onSave={(a) => saveAction(a)}
+          onCancel={() => setEditingAction(null)}
+        />
+      )}
+      {editingAction?.action.type === "WEBHOOK" && (
+        <ActionWebhookModal
+          action={editingAction.action as WebhookAction}
+          onSave={(a) => saveAction(a)}
+          onCancel={() => setEditingAction(null)}
+        />
       )}
     </div>
   );

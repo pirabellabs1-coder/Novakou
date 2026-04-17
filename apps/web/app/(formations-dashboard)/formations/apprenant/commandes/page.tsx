@@ -173,7 +173,7 @@ export default function CommandesPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-[10px] text-[#5c647a] font-medium mb-1 font-mono">#{order.id.slice(0, 12).toUpperCase()}</p>
+                        <p className="text-[10px] text-[#5c647a] font-medium mb-1 tabular-nums">#{order.id.slice(0, 12).toUpperCase()}</p>
                         <h3 className="font-bold text-[#191c1e] text-sm leading-snug line-clamp-2 mb-1">{order.title}</h3>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-[#5c647a]">
                           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${typeColors[type] ?? "bg-gray-100 text-gray-700"}`}>

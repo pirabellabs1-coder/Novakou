@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import type { TrackingEvent } from "@/lib/tracking/types";
+import { getCountryFromRequest } from "@/lib/tracking/geo";
 
 // Rate limiting simple en memoire
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
@@ -49,14 +50,15 @@ export async function POST(req: NextRequest) {
       if (now - ts > DEDUP_TTL) recentEventIds.delete(id);
     }
 
-    // Validate, deduplicate, and limit batch
+    // Validate, deduplicate, stamp geoloc, and limit batch
+    const country = getCountryFromRequest(req);
     const batch: TrackingEvent[] = [];
     for (const event of events.slice(0, 50)) {
       if (!isValidEvent(event)) continue;
       if (recentEventIds.has(event.id)) continue; // Skip duplicate
 
       recentEventIds.set(event.id, now);
-      batch.push(event);
+      batch.push(country ? { ...event, country: event.country || country } : event);
     }
 
     if (batch.length > 0) {

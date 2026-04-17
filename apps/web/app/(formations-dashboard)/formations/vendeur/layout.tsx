@@ -30,8 +30,12 @@ const navItems: NavItem[] = [
   { icon: "groups", label: "Communauté", href: "/formations/vendeur/communaute", section: "Engagement" },
   { icon: "support_agent", label: "Coaching", href: "/formations/vendeur/coaching", section: "Engagement", badge: "Pro" },
   { icon: "folder_open", label: "Ressources", href: "/formations/vendeur/ressources", section: "Engagement" },
+  // Développeur
+  { icon: "key", label: "Clés API", href: "/formations/vendeur/api-keys", section: "Développeur" },
+  { icon: "menu_book", label: "Documentation API", href: "/developer/docs", section: "Développeur" },
   // Compte
   { icon: "account_circle", label: "Mon profil", href: "/formations/vendeur/profil", section: "Compte" },
+  { icon: "verified_user", label: "Vérification KYC", href: "/formations/kyc", section: "Compte" },
   { icon: "settings", label: "Paramètres", href: "/formations/vendeur/parametres", section: "Compte" },
 ];
 
@@ -81,7 +85,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const mainOffset = collapsed ? "md:ml-20" : "md:ml-64";
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-3">
         {/* Mobile hamburger */}
@@ -120,16 +124,6 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex-1" />
-
-        {/* Quick action — create product */}
-        <Link
-          href="/formations/vendeur/produits/creer"
-          className="hidden md:inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-bold transition-opacity hover:opacity-90 shadow-sm"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-        >
-          <span className="material-symbols-outlined text-[16px]">add</span>
-          Nouveau produit
-        </Link>
 
         {/* Right actions */}
         <div className="flex items-center gap-1">
@@ -258,24 +252,12 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Create product CTA */}
+        {/* Sign out only (Create product CTA retiré) */}
         <div className={`border-t border-gray-100 ${collapsed && !mobileOpen ? "p-2" : "px-3 py-4"}`}>
-          <Link
-            href="/formations/vendeur/produits/creer"
-            onClick={() => setMobileOpen(false)}
-            title={collapsed && !mobileOpen ? "Créer un produit" : undefined}
-            className={`flex items-center justify-center gap-2 w-full rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 shadow-md shadow-[#006e2f]/20 ${
-              collapsed && !mobileOpen ? "py-2.5 px-2" : "py-3 px-4"
-            }`}
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            {(!collapsed || mobileOpen) && "Créer un produit"}
-          </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/formations" })}
             title={collapsed && !mobileOpen ? "Se déconnecter" : undefined}
-            className={`mt-2 flex items-center justify-center gap-2 w-full rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200 ${
+            className={`flex items-center justify-center gap-2 w-full rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200 ${
               collapsed && !mobileOpen ? "py-2 px-2" : "py-2.5 px-4"
             }`}
           >

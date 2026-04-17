@@ -13,6 +13,10 @@
     {
       "path": "/api/cron/deadline-reminder",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/mentor-escrow",
+      "schedule": "*/15 * * * *"
     }
   ],
   "headers": [

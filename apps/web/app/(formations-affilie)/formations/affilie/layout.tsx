@@ -67,7 +67,7 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
   function toEur(n: number)      { return Math.round(n / 655.957); }
 
   return (
-    <div className="min-h-screen bg-[#0a1510]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#0a1510]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0d1f17] border-b border-[#1e3a2f] h-16 flex items-center px-4 md:px-6 gap-4">
         <button

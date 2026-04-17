@@ -78,7 +78,7 @@ const CATEGORIES = ["Tous", "Guide", "Conseils", "Marketing", "Paiements", "Pric
 
 export default function BlogPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
       {/* HERO */}
       <section className="pt-32 pb-12 px-6">
         <div className="max-w-5xl mx-auto text-center">

@@ -17,7 +17,7 @@ function layout(content: string, ctaLabel?: string, ctaUrl?: string): string {
 <!DOCTYPE html>
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f7f9fb;font-family:-apple-system,'Plus Jakarta Sans',BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
+<body style="margin:0;padding:0;background:#f7f9fb;font-family:-apple-system,'Manrope',BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.04);border:1px solid #eef0f3;">
     <div style="background:linear-gradient(135deg,#003d1a 0%,#006e2f 50%,#22c55e 100%);padding:32px 40px;text-align:center;">
       <div style="display:inline-block;width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);line-height:48px;margin-bottom:12px;">
@@ -186,6 +186,105 @@ export async function sendMentorSessionCompletedEmail(opts: {
     from: FROM,
     to: opts.studentEmail,
     subject: `Partagez votre avis sur votre séance avec ${opts.mentorName}`,
-    html: layout(content, "Laisser un avis", `${APP_URL}/formations/apprenant/dashboard`),
+    html: layout(content, "Laisser un avis", `${APP_URL}/formations/apprenant/sessions/${opts.bookingId}`),
+  });
+}
+
+// ─── Reminder J-1 (24h before) ────────────────────────────────────────────────
+// Sends to BOTH the student and the mentor with their respective CTAs.
+export async function sendMentorReminder24hEmail(opts: {
+  recipientEmail: string;
+  recipientName: string;
+  otherPartyName: string;
+  scheduledAt: Date;
+  durationMinutes: number;
+  meetingUrl: string;
+  isMentor: boolean;
+  bookingId: string;
+}) {
+  const role = opts.isMentor ? "apprenant" : "mentor";
+  const content = `
+    <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;">⏰ Votre séance est pour demain</h2>
+    <p style="margin:0 0 16px;color:#5c647a;">Bonjour <strong style="color:#191c1e;">${opts.recipientName}</strong>,</p>
+    <p style="margin:0 0 16px;">
+      Un petit rappel : vous avez une séance avec votre ${role} <strong>${opts.otherPartyName}</strong> demain.
+    </p>
+    <div style="background:#f7f9fb;border-radius:12px;padding:16px;margin:20px 0;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="padding:6px 0;color:#5c647a;font-size:12px;width:120px;">📅 Date</td><td style="padding:6px 0;color:#191c1e;font-weight:600;font-size:13px;">${fmtDate(opts.scheduledAt)}</td></tr>
+        <tr><td style="padding:6px 0;color:#5c647a;font-size:12px;">⏰ Heure</td><td style="padding:6px 0;color:#191c1e;font-weight:600;font-size:13px;">${fmtTime(opts.scheduledAt)}</td></tr>
+        <tr><td style="padding:6px 0;color:#5c647a;font-size:12px;">⏱️ Durée</td><td style="padding:6px 0;color:#191c1e;font-weight:600;font-size:13px;">${opts.durationMinutes} min</td></tr>
+      </table>
+    </div>
+    <div style="background:#eef5ff;border-radius:12px;padding:14px;margin:16px 0;">
+      <p style="margin:0 0 4px;color:#1e40af;font-size:12px;font-weight:700;">🎥 Lien de la salle Jitsi</p>
+      <a href="${opts.meetingUrl}" style="color:#2563eb;font-weight:600;font-size:13px;word-break:break-all;">${opts.meetingUrl}</a>
+    </div>
+    <p style="margin:16px 0;color:#5c647a;font-size:13px;">💡 Testez votre micro et votre caméra avant l'heure, et notez vos questions.</p>
+  `;
+  const ctaUrl = opts.isMentor
+    ? `${APP_URL}/formations/mentor/rendez-vous`
+    : `${APP_URL}/formations/apprenant/sessions/${opts.bookingId}`;
+  return resend.emails.send({
+    from: FROM,
+    to: opts.recipientEmail,
+    subject: `Rappel : séance demain avec ${opts.otherPartyName}`,
+    html: layout(content, "Voir les détails", ctaUrl),
+  });
+}
+
+// ─── Review request (reminder to student after session completed) ────────────
+export async function sendMentorReviewRequestEmail(opts: {
+  studentEmail: string;
+  studentName: string;
+  mentorName: string;
+  bookingId: string;
+}) {
+  const content = `
+    <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;">Petit rappel : votre avis compte 💬</h2>
+    <p style="margin:0 0 16px;color:#5c647a;">Bonjour <strong style="color:#191c1e;">${opts.studentName}</strong>,</p>
+    <p style="margin:0 0 16px;">
+      Vous avez récemment terminé une séance de mentorat avec <strong>${opts.mentorName}</strong>.
+      Pourriez-vous prendre 30 secondes pour laisser un avis ?
+    </p>
+    <p style="margin:16px 0;color:#5c647a;font-size:13px;">
+      Votre retour aide ${opts.mentorName} à progresser et les futurs apprenants à choisir leur mentor.
+    </p>
+  `;
+  return resend.emails.send({
+    from: FROM,
+    to: opts.studentEmail,
+    subject: `⭐ Avez-vous 30 secondes pour évaluer ${opts.mentorName} ?`,
+    html: layout(content, "Laisser un avis", `${APP_URL}/formations/apprenant/sessions/${opts.bookingId}`),
+  });
+}
+
+// ─── Reminder H-1 (1h before) ─────────────────────────────────────────────────
+export async function sendMentorReminder1hEmail(opts: {
+  recipientEmail: string;
+  recipientName: string;
+  otherPartyName: string;
+  scheduledAt: Date;
+  meetingUrl: string;
+  isMentor: boolean;
+}) {
+  const role = opts.isMentor ? "apprenant" : "mentor";
+  const content = `
+    <h2 style="margin:0 0 12px;font-size:20px;font-weight:800;">🔔 Votre séance commence dans 1 heure</h2>
+    <p style="margin:0 0 16px;color:#5c647a;">Bonjour <strong style="color:#191c1e;">${opts.recipientName}</strong>,</p>
+    <p style="margin:0 0 16px;">
+      Votre séance avec votre ${role} <strong>${opts.otherPartyName}</strong> démarre à <strong>${fmtTime(opts.scheduledAt)}</strong>.
+    </p>
+    <div style="background:#eef5ff;border-radius:12px;padding:14px;margin:16px 0;text-align:center;">
+      <p style="margin:0 0 8px;color:#1e40af;font-size:12px;font-weight:700;">🎥 Rejoignez la salle</p>
+      <a href="${opts.meetingUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:700;font-size:13px;">Rejoindre maintenant</a>
+    </div>
+    <p style="margin:16px 0;color:#5c647a;font-size:13px;">Astuce : connectez-vous 5 minutes avant pour vérifier votre caméra et votre micro.</p>
+  `;
+  return resend.emails.send({
+    from: FROM,
+    to: opts.recipientEmail,
+    subject: `🔔 Séance dans 1h avec ${opts.otherPartyName}`,
+    html: layout(content, "Rejoindre la séance", opts.meetingUrl),
   });
 }

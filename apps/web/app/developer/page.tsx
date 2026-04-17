@@ -154,7 +154,7 @@ export default function DeveloperPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <code className="bg-black/20 px-2 py-1 rounded text-primary font-mono text-xs">
+                        <code className="bg-black/20 px-2 py-1 rounded text-primary tabular-nums text-xs">
                           {k.key}
                         </code>
                         <button
@@ -206,7 +206,7 @@ export default function DeveloperPage() {
                   </span>
                   Authentification (cURL)
                 </h4>
-                <div className="bg-slate-900 text-slate-300 p-4 rounded-lg font-mono text-xs overflow-x-auto">
+                <div className="bg-slate-900 text-slate-300 p-4 rounded-lg tabular-nums text-xs overflow-x-auto">
                   curl https://api.freelancehigh.com/v1/services \
                   <br />
                   &nbsp;&nbsp;-H &quot;Authorization: Bearer YOUR_API_KEY&quot;

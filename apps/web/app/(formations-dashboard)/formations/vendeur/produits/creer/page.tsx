@@ -146,7 +146,7 @@ export default function CreerProduitPage() {
   const totalDuration = modules.reduce((s, m) => s + m.lessons.reduce((ss, l) => ss + (l.duration || 0), 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-12 md:py-16 max-w-[1400px] mx-auto">
         <header className="mb-12 md:mb-16">
           <Link
@@ -211,14 +211,14 @@ export default function CreerProduitPage() {
                 <div className="h-[2px] w-full bg-[#e8e8e8] mb-3">
                   <div className="h-full bg-[#22c55e] transition-all duration-500" style={{ width: `${progress}%` }} />
                 </div>
-                <p className="text-xs font-mono text-zinc-600">{Math.round(progress)}% — Étape {step}/{lastStep}</p>
+                <p className="text-xs tabular-nums text-zinc-600">{Math.round(progress)}% — Étape {step}/{lastStep}</p>
               </div>
 
               {/* Curriculum summary (only for formations) */}
               {isFormation && step >= 3 && modules.some((m) => m.title.trim()) && (
                 <div className="p-6 bg-zinc-900 text-white">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[#22c55e] mb-3">Curriculum</p>
-                  <div className="space-y-2 font-mono text-xs">
+                  <div className="space-y-2 tabular-nums text-xs">
                     <div className="flex justify-between"><span className="text-zinc-400">Modules</span><span className="font-bold">{modules.filter((m) => m.title.trim()).length}</span></div>
                     <div className="flex justify-between"><span className="text-zinc-400">Leçons</span><span className="font-bold">{totalLessons}</span></div>
                     <div className="flex justify-between"><span className="text-zinc-400">Durée</span><span className="font-bold">{totalDuration} min</span></div>
@@ -279,7 +279,7 @@ export default function CreerProduitPage() {
                         <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Description courte</label>
                         <input type="text" value={shortDesc} onChange={(e) => setShortDesc(e.target.value)} placeholder="Une phrase qui accroche" maxLength={150}
                           className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-3.5 px-5 text-sm text-zinc-900 placeholder:text-zinc-400 outline-none" />
-                        <p className="text-[10px] text-zinc-400 font-mono">{shortDesc.length}/150</p>
+                        <p className="text-[10px] text-zinc-400 tabular-nums">{shortDesc.length}/150</p>
                       </div>
                     </div>
 
@@ -320,7 +320,7 @@ export default function CreerProduitPage() {
                       : "Ce que contient votre produit, pour qui, et pourquoi il est unique. Ajoutez des images, des sections, des liens vers des exemples…"}
                     minHeight={360}
                   />
-                  <p className={`text-[10px] font-mono uppercase tracking-widest ${description.replace(/<[^>]*>/g, "").trim().length < 20 ? "text-[#ba1a1a]" : "text-zinc-400"}`}>
+                  <p className={`text-[10px] tabular-nums uppercase tracking-widest ${description.replace(/<[^>]*>/g, "").trim().length < 20 ? "text-[#ba1a1a]" : "text-zinc-400"}`}>
                     {description.replace(/<[^>]*>/g, "").trim().length} caractères {description.replace(/<[^>]*>/g, "").trim().length < 20 && "· minimum 20"}
                   </p>
                 </div>
@@ -357,14 +357,14 @@ export default function CreerProduitPage() {
                         {mod.lessons.map((lesson, lIdx) => (
                           <div key={lIdx} className="flex items-center gap-3 px-5 py-3 hover:bg-[#f9f9f9] transition-colors">
                             <span className="material-symbols-outlined text-[16px] text-[#22c55e]">play_circle</span>
-                            <span className="text-[9px] font-mono text-zinc-400 w-6">
+                            <span className="text-[9px] tabular-nums text-zinc-400 w-6">
                               {String(lIdx + 1).padStart(2, "0")}
                             </span>
                             <input type="text" value={lesson.title} onChange={(e) => updateLesson(mIdx, lIdx, { title: e.target.value })} placeholder="Titre de la leçon…"
                               className="flex-1 bg-transparent border-none text-sm text-zinc-700 placeholder:text-zinc-400 outline-none" />
                             <div className="flex items-center gap-1">
                               <input type="number" value={lesson.duration} onChange={(e) => updateLesson(mIdx, lIdx, { duration: Number(e.target.value) })} min="0"
-                                className="w-14 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-1.5 px-2 text-xs font-mono text-right outline-none" />
+                                className="w-14 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-1.5 px-2 text-xs tabular-nums text-right outline-none" />
                               <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">min</span>
                             </div>
                             {mod.lessons.length > 1 && (
@@ -437,15 +437,15 @@ export default function CreerProduitPage() {
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Prix de vente (FCFA)</label>
                       <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} min="0"
-                        className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-4 px-6 text-2xl font-extrabold font-mono text-zinc-900 outline-none" />
-                      <p className="text-xs text-zinc-500 font-mono">≈ {formatFCFA(euroEquiv)} €</p>
+                        className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-4 px-6 text-2xl font-extrabold tabular-nums text-zinc-900 outline-none" />
+                      <p className="text-xs text-zinc-500 tabular-nums">≈ {formatFCFA(euroEquiv)} €</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Prix barré (optionnel)</label>
                       <input type="number" value={originalPrice || ""} onChange={(e) => setOriginalPrice(Number(e.target.value))} placeholder="0" min="0"
-                        className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-4 px-6 text-lg font-bold font-mono text-zinc-900 placeholder:text-zinc-400 outline-none" />
+                        className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-4 px-6 text-lg font-bold tabular-nums text-zinc-900 placeholder:text-zinc-400 outline-none" />
                       {originalPrice > price && (
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] font-mono">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] tabular-nums">
                           Réduction : -{Math.round((1 - price / originalPrice) * 100)}%
                         </p>
                       )}
@@ -458,17 +458,17 @@ export default function CreerProduitPage() {
                       <div className="space-y-5">
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Prix total</p>
-                          <p className="text-3xl font-extrabold font-mono tracking-tighter">{formatFCFA(price)}</p>
+                          <p className="text-3xl font-extrabold tabular-nums tracking-tighter">{formatFCFA(price)}</p>
                           <p className="text-[10px] text-zinc-500">FCFA</p>
                         </div>
                         <div className="h-px bg-white/10" />
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Votre part (95%)</p>
-                          <p className="text-2xl font-bold font-mono text-[#22c55e]">{formatFCFA(price * 0.95)}</p>
+                          <p className="text-2xl font-bold tabular-nums text-[#22c55e]">{formatFCFA(price * 0.95)}</p>
                         </div>
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Commission Novakou (5%)</p>
-                          <p className="text-lg font-bold font-mono text-zinc-300">{formatFCFA(price * 0.05)}</p>
+                          <p className="text-lg font-bold tabular-nums text-zinc-300">{formatFCFA(price * 0.05)}</p>
                         </div>
                       </div>
                     </div>

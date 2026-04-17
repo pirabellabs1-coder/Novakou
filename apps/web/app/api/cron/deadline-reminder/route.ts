@@ -170,11 +170,179 @@ export async function GET(request: NextRequest) {
       remindersOverdue++;
     }
 
+    // ─── Mentor bookings — J-1 reminder (24h before session) ────────────────
+    // Runs daily at midnight; wide window (23h–25h before now) captures all sessions within next day.
+    // Protected against duplicate send by the `reminder24hSentAt` DB flag.
+    let mentorReminder24h = 0;
+    let mentorReminder1h = 0;
+    let mentorReviewRequests = 0;
+    try {
+      const { sendMentorReminder24hEmail, sendMentorReminder1hEmail, sendMentorReviewRequestEmail } =
+        await import("@/lib/email/mentor");
+      const { meetingUrlFrom } = await import("@/lib/mentor/jitsi");
+
+      // J-1 window: sessions scheduled between now+23h and now+25h
+      const win24Start = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+      const win24End = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+
+      const bookings24h = await prisma.mentorBooking.findMany({
+        where: {
+          status: "CONFIRMED",
+          scheduledAt: { gte: win24Start, lte: win24End },
+          reminder24hSentAt: null,
+        },
+        include: {
+          student: { select: { id: true, name: true, email: true } },
+          mentor: { include: { user: { select: { id: true, name: true, email: true } } } },
+        },
+      });
+
+      for (const b of bookings24h) {
+        const meetingUrl = meetingUrlFrom(b.meetingRoomId, b.id);
+        const mentorName = b.mentor.user.name ?? "Votre mentor";
+        const studentName = b.student.name ?? "L'apprenant";
+
+        // Send to both parties in parallel
+        const promises: Promise<unknown>[] = [];
+        if (b.student.email) {
+          promises.push(
+            sendMentorReminder24hEmail({
+              recipientEmail: b.student.email,
+              recipientName: b.student.name ?? "Apprenant",
+              otherPartyName: mentorName,
+              scheduledAt: b.scheduledAt,
+              durationMinutes: b.durationMinutes,
+              meetingUrl,
+              isMentor: false,
+              bookingId: b.id,
+            }).catch((err) => console.error("[CRON mentor 24h student]", err)),
+          );
+        }
+        if (b.mentor.user.email) {
+          promises.push(
+            sendMentorReminder24hEmail({
+              recipientEmail: b.mentor.user.email,
+              recipientName: mentorName,
+              otherPartyName: studentName,
+              scheduledAt: b.scheduledAt,
+              durationMinutes: b.durationMinutes,
+              meetingUrl,
+              isMentor: true,
+              bookingId: b.id,
+            }).catch((err) => console.error("[CRON mentor 24h mentor]", err)),
+          );
+        }
+        await Promise.allSettled(promises);
+
+        await prisma.mentorBooking.update({
+          where: { id: b.id },
+          data: { reminder24hSentAt: new Date() },
+        }).catch((err) => console.error("[CRON mentor 24h update]", err));
+
+        mentorReminder24h++;
+      }
+
+      // H-1 window: sessions scheduled between now+45 min and now+75 min
+      // (only caught if cron runs ~hourly; our deadline-reminder runs once/day at midnight — so
+      //  in practice this catches midnight-±15min sessions only. Still useful as a safety net.)
+      const win1Start = new Date(now.getTime() + 45 * 60 * 1000);
+      const win1End = new Date(now.getTime() + 75 * 60 * 1000);
+
+      const bookings1h = await prisma.mentorBooking.findMany({
+        where: {
+          status: "CONFIRMED",
+          scheduledAt: { gte: win1Start, lte: win1End },
+          reminder1hSentAt: null,
+        },
+        include: {
+          student: { select: { id: true, name: true, email: true } },
+          mentor: { include: { user: { select: { id: true, name: true, email: true } } } },
+        },
+      });
+
+      for (const b of bookings1h) {
+        const meetingUrl = meetingUrlFrom(b.meetingRoomId, b.id);
+        const mentorName = b.mentor.user.name ?? "Votre mentor";
+        const studentName = b.student.name ?? "L'apprenant";
+
+        const promises: Promise<unknown>[] = [];
+        if (b.student.email) {
+          promises.push(
+            sendMentorReminder1hEmail({
+              recipientEmail: b.student.email,
+              recipientName: b.student.name ?? "Apprenant",
+              otherPartyName: mentorName,
+              scheduledAt: b.scheduledAt,
+              meetingUrl,
+              isMentor: false,
+            }).catch((err) => console.error("[CRON mentor 1h student]", err)),
+          );
+        }
+        if (b.mentor.user.email) {
+          promises.push(
+            sendMentorReminder1hEmail({
+              recipientEmail: b.mentor.user.email,
+              recipientName: mentorName,
+              otherPartyName: studentName,
+              scheduledAt: b.scheduledAt,
+              meetingUrl,
+              isMentor: true,
+            }).catch((err) => console.error("[CRON mentor 1h mentor]", err)),
+          );
+        }
+        await Promise.allSettled(promises);
+
+        await prisma.mentorBooking.update({
+          where: { id: b.id },
+          data: { reminder1hSentAt: new Date() },
+        }).catch((err) => console.error("[CRON mentor 1h update]", err));
+
+        mentorReminder1h++;
+      }
+
+      // Review request: sessions completed in last 7 days without review, no request sent yet
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const completedWithoutReview = await prisma.mentorBooking.findMany({
+        where: {
+          status: "COMPLETED",
+          studentRating: null,
+          reviewRequestSentAt: null,
+          updatedAt: { gte: sevenDaysAgo, lte: new Date(now.getTime() - 2 * 60 * 60 * 1000) },
+        },
+        include: {
+          student: { select: { id: true, name: true, email: true } },
+          mentor: { include: { user: { select: { name: true } } } },
+        },
+        take: 50,
+      });
+
+      for (const b of completedWithoutReview) {
+        if (b.student.email) {
+          await sendMentorReviewRequestEmail({
+            studentEmail: b.student.email,
+            studentName: b.student.name ?? "Apprenant",
+            mentorName: b.mentor.user.name ?? "Votre mentor",
+            bookingId: b.id,
+          }).catch((err) => console.error("[CRON mentor review]", err));
+        }
+        await prisma.mentorBooking.update({
+          where: { id: b.id },
+          data: { reviewRequestSentAt: new Date() },
+        }).catch((err) => console.error("[CRON mentor review update]", err));
+        mentorReviewRequests++;
+      }
+    } catch (err) {
+      console.error("[CRON mentor-reminder block]", err);
+    }
+
     return NextResponse.json({
       success: true,
       checked: orders24h.length + ordersOverdue.length,
       reminders24h,
       remindersOverdue,
+      mentorReminder24h,
+      mentorReminder1h,
+      mentorReviewRequests,
     });
   } catch (error) {
     console.error("[CRON deadline-reminder]", error);

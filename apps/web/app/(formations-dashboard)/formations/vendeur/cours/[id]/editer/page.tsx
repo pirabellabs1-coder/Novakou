@@ -153,7 +153,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-8 md:py-12">
         <Link
           href="/formations/vendeur/produits"
@@ -239,19 +239,19 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Modules</p>
-                    <p className="text-2xl font-extrabold font-mono">{String(formation.sections.length).padStart(2, "0")}</p>
+                    <p className="text-2xl font-extrabold tabular-nums">{String(formation.sections.length).padStart(2, "0")}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Leçons</p>
-                    <p className="text-2xl font-extrabold font-mono">{String(totalLessons).padStart(2, "0")}</p>
+                    <p className="text-2xl font-extrabold tabular-nums">{String(totalLessons).padStart(2, "0")}</p>
                   </div>
                   <div>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Durée</p>
-                    <p className="text-2xl font-extrabold font-mono">{totalDuration}<span className="text-sm">m</span></p>
+                    <p className="text-2xl font-extrabold tabular-nums">{totalDuration}<span className="text-sm">m</span></p>
                   </div>
                   <div>
                     <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Ventes</p>
-                    <p className="text-2xl font-extrabold font-mono">{formation.studentsCount}</p>
+                    <p className="text-2xl font-extrabold tabular-nums">{formation.studentsCount}</p>
                   </div>
                 </div>
               </div>
@@ -332,9 +332,9 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                       type="number"
                       value={price}
                       onChange={(e) => onFieldChange(setPrice, Number(e.target.value))}
-                      className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none font-mono text-lg font-bold transition-colors"
+                      className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none tabular-nums text-lg font-bold transition-colors"
                     />
-                    <p className="text-[10px] text-zinc-400 font-mono">≈ {formatFCFA(price / 655.957)} €</p>
+                    <p className="text-[10px] text-zinc-400 tabular-nums">≈ {formatFCFA(price / 655.957)} €</p>
                   </div>
 
                   <div className="space-y-2">
@@ -344,7 +344,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                       value={thumbnail}
                       onChange={(e) => onFieldChange(setThumbnail, e.target.value)}
                       placeholder="https://..."
-                      className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none font-mono text-xs transition-colors"
+                      className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none tabular-nums text-xs transition-colors"
                     />
                   </div>
                 </div>
@@ -387,7 +387,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
               ].map((stat) => (
                 <div key={stat.label}>
                   <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">{stat.label}</p>
-                  <p className="text-2xl font-extrabold font-mono text-zinc-900">{stat.value}</p>
+                  <p className="text-2xl font-extrabold tabular-nums text-zinc-900">{stat.value}</p>
                 </div>
               ))}
             </section>

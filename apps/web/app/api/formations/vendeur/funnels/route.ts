@@ -103,7 +103,7 @@ export async function POST(request: Request) {
       accentColor: "#22c55e",
       textColor: "#191c1e",
       bgColor: "#f7f9fb",
-      font: "Plus Jakarta Sans",
+      font: "Manrope",
     };
 
     const defaultBlocks = [

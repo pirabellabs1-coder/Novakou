@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useToastStore } from "@/store/toast";
+import { safeJson } from "@/lib/safe-fetch";
+import { RichTextEditor } from "@/components/formations/RichTextEditor";
 
 // ─── Theme — bleu SaaS primaire ────────────────────────────────────────────────
 const BRAND = "#3F41C2";
-const BORDER = "#E2E8F0";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface Step {
@@ -54,32 +55,6 @@ const TABS: { key: TabKey; label: string; icon: string; color: string }[] = [
   { key: "USER_INACTIVITY", label: "Inactivité", icon: "schedule", color: "text-gray-500" },
 ];
 
-// ─── Rich Text toolbar ────────────────────────────────────────────────────────
-function ToolbarButton({
-  icon,
-  title,
-  onClick,
-  active,
-}: {
-  icon: string;
-  title: string;
-  onClick: () => void;
-  active?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-        active ? "bg-[#3F41C2]/10 text-[#3F41C2]" : "text-gray-600 hover:bg-gray-100"
-      }`}
-    >
-      <span className="material-symbols-outlined text-[18px]">{icon}</span>
-    </button>
-  );
-}
-
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function SequenceEditorClient({ id }: { id: string }) {
   const [sequence, setSequence] = useState<Sequence | null>(null);
@@ -93,20 +68,21 @@ export default function SequenceEditorClient({ id }: { id: string }) {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [channel, setChannel] = useState<"EMAIL" | "SMS">("EMAIL");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch(`/api/formations/vendeur/marketing/sequences/${id}`);
-        if (res.ok) {
-          const json = await res.json();
-          const seq = json.data as Sequence;
+        const { ok, data, error } = await safeJson<{ data: Sequence }>(res);
+        if (ok && data?.data) {
+          const seq = data.data;
           setSequence(seq);
           setActiveTab((seq.trigger as TabKey) ?? "ABANDONED_CART");
           const firstEmailStep = seq.steps?.find((s) => s.type === "EMAIL");
           setSubject(firstEmailStep?.subject ?? "");
           setMessage(firstEmailStep?.content ?? "");
+        } else if (error) {
+          useToastStore.getState().addToast("error", error);
         }
       } finally {
         setLoading(false);
@@ -115,55 +91,27 @@ export default function SequenceEditorClient({ id }: { id: string }) {
     load();
   }, [id]);
 
-  // Insert variable at cursor position
+  // Insert variable at end of the current HTML body (Tiptap content)
   function insertVariable(tag: string) {
-    const ta = textareaRef.current;
-    if (!ta) {
-      setMessage((m) => m + tag);
-      return;
-    }
-    const start = ta.selectionStart ?? message.length;
-    const end = ta.selectionEnd ?? message.length;
-    const newMsg = message.slice(0, start) + tag + message.slice(end);
-    setMessage(newMsg);
-    // Reposition cursor after inserted tag
-    requestAnimationFrame(() => {
-      ta.focus();
-      const pos = start + tag.length;
-      ta.setSelectionRange(pos, pos);
-    });
-  }
-
-  // Rich text actions — prepend markdown-like tokens
-  function wrapSelection(before: string, after = before) {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const selected = message.slice(start, end);
-    const newMsg = message.slice(0, start) + before + selected + after + message.slice(end);
-    setMessage(newMsg);
-    requestAnimationFrame(() => {
-      ta.focus();
-      ta.setSelectionRange(start + before.length, end + before.length);
-    });
+    setMessage((m) => (m ? `${m} ${tag}` : tag));
   }
 
   async function handleSave() {
     if (!sequence) return;
     setSaving(true);
     try {
-      // Save sequence meta (trigger, active)
+      // Save sequence meta + first email step (subject + body) in one PATCH
       const res = await fetch(`/api/formations/vendeur/marketing/sequences/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           trigger: activeTab,
-          // Note: for a full implementation, we'd also update the first EMAIL step
-          // with subject + content via a step-level API. For now we store in sequence.
+          subject,
+          content: message,
         }),
       });
-      if (!res.ok) throw new Error("Sauvegarde échouée");
+      const { ok, error } = await safeJson(res);
+      if (!ok) throw new Error(error ?? "Sauvegarde échouée");
       useToastStore.getState().addToast("success", "Séquence sauvegardée ✓");
     } catch (e) {
       useToastStore.getState().addToast("error", e instanceof Error ? e.message : "Erreur");
@@ -290,28 +238,12 @@ export default function SequenceEditorClient({ id }: { id: string }) {
               Message à envoyer
             </label>
 
-            {/* Toolbar */}
-            <div className="flex items-center gap-1 p-1.5 border border-gray-200 border-b-0 rounded-t-xl bg-gray-50">
-              <ToolbarButton icon="format_bold" title="Gras" onClick={() => wrapSelection("**")} />
-              <ToolbarButton icon="format_italic" title="Italique" onClick={() => wrapSelection("*")} />
-              <ToolbarButton icon="format_underlined" title="Souligné" onClick={() => wrapSelection("__")} />
-              <div className="w-px h-5 bg-gray-300 mx-1" />
-              <ToolbarButton icon="format_list_bulleted" title="Liste" onClick={() => wrapSelection("\n- ", "")} />
-              <ToolbarButton icon="format_list_numbered" title="Liste numérotée" onClick={() => wrapSelection("\n1. ", "")} />
-              <div className="w-px h-5 bg-gray-300 mx-1" />
-              <ToolbarButton icon="format_align_left" title="Aligner à gauche" onClick={() => {}} />
-              <ToolbarButton icon="format_align_center" title="Centrer" onClick={() => {}} />
-              <ToolbarButton icon="link" title="Lien" onClick={() => wrapSelection("[", "](url)")} />
-            </div>
-
-            <textarea
-              ref={textareaRef}
+            {/* Rich text editor (Tiptap — supports bold/italic/lists/links/colors) */}
+            <RichTextEditor
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Bonjour {{clientName}},&#10;&#10;Vous avez laissé {{productName}} dans votre panier. Cliquez ici pour finaliser votre commande : {{checkoutURL}}"
-              rows={12}
-              className="w-full px-4 py-4 border border-gray-200 border-t-0 rounded-b-xl bg-white text-sm text-gray-900 placeholder-gray-400 font-sans leading-relaxed focus:outline-none focus:border-[#3F41C2] focus:ring-2 focus:ring-[#3F41C2]/10 resize-y transition-all"
-              style={{ fontFamily: "'Inter', sans-serif" }}
+              onChange={setMessage}
+              placeholder="Bonjour {{clientName}}, Vous avez laissé {{productName}} dans votre panier. Cliquez ici pour finaliser votre commande : {{checkoutURL}}"
+              minHeight={300}
             />
 
             <div className="flex items-center gap-2 mt-2 text-[11px] text-gray-500">
@@ -333,8 +265,9 @@ export default function SequenceEditorClient({ id }: { id: string }) {
               </span>
               Variables disponibles
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Cliquez sur une variable pour l&apos;insérer à la position du curseur.
+            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[13px]">drag_pan</span>
+              Glissez-déposez une variable dans un champ ou cliquez pour l&apos;insérer à la position du curseur.
             </p>
           </div>
 
@@ -342,17 +275,23 @@ export default function SequenceEditorClient({ id }: { id: string }) {
             {VARIABLES.map((v) => (
               <button
                 key={v.tag}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", v.tag);
+                  e.dataTransfer.setData("application/x-fh-variable", v.tag);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
                 onClick={() => insertVariable(v.tag)}
-                className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all hover:-translate-y-0.5"
+                className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all hover:-translate-y-0.5 cursor-grab active:cursor-grabbing select-none"
                 style={{
                   background: `${BRAND}0f`,
                   color: BRAND,
                   borderColor: `${BRAND}30`,
                   minHeight: "40px",
                 }}
-                title={`Insérer ${v.tag}`}
+                title={`${v.tag} — Glissez-déposez ou cliquez pour insérer`}
               >
-                <span className="material-symbols-outlined text-[14px]">link</span>
+                <span className="material-symbols-outlined text-[14px] opacity-60">drag_indicator</span>
                 {v.label}
               </button>
             ))}

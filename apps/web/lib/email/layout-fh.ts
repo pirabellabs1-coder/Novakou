@@ -37,7 +37,7 @@ export function emailLayoutFH(content: string, preheader?: string): string {
 <meta name="supported-color-schemes" content="light">
 <title>Novakou</title>
 </head>
-<body style="margin:0;padding:0;background:${BRAND.bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Plus Jakarta Sans',sans-serif;color:${BRAND.text};-webkit-font-smoothing:antialiased;">
+<body style="margin:0;padding:0;background:${BRAND.bg};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Manrope',sans-serif;color:${BRAND.text};-webkit-font-smoothing:antialiased;">
 ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;color:transparent;opacity:0;max-height:0;max-width:0;">${preheader}</div>` : ""}
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${BRAND.bg};padding:32px 16px;">
   <tr>

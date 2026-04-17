@@ -251,121 +251,159 @@ export default function MentorsPage() {
   );
 }
 
-// ─── Beautiful Mentor Card ─────────────────────────────────────────────────────
+// ─── Beautiful Mentor Card (image-en-haut style produit) ──────────────────────
 function MentorCard({ mentor }: { mentor: Mentor }) {
+  const cover = mentor.cover ?? coverFor(mentor);
+  const initials = mentor.initials ?? initialsOf(mentor.name);
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group">
-
-      {/* Cover photo */}
-      <div className="relative h-28 overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={mentor.cover ?? coverFor(mentor)}
-          alt={mentor.name ?? "Mentor"}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-
-        {/* Availability badge */}
-        <div className={`absolute top-3 right-3 flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full ${mentor.available ? "bg-green-500 text-white" : "bg-gray-600 text-gray-200"}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${mentor.available ? "bg-white" : "bg-gray-400"}`} />
-          {mentor.available ? "Disponible" : "Complet"}
-        </div>
-
-        {/* Domain tag */}
-        {mentor.domain && (
-          <div className="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm text-white text-[10px] font-semibold px-2.5 py-1 rounded-full">
-            {mentor.domain}
+    <Link
+      href={`/formations/mentors/${mentor.id}`}
+      className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 hover:border-[#006e2f]/20 transition-all duration-300 overflow-hidden flex flex-col h-full"
+    >
+      {/* HERO IMAGE — aspect 4/3 (style produit) */}
+      <div className="relative aspect-[4/3] bg-gradient-to-br from-[#003d1a] via-[#006e2f] to-[#22c55e] overflow-hidden">
+        {mentor.coverImage || mentor.cover ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cover}
+            alt={mentor.name ?? "Mentor"}
+            className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span
+              className="material-symbols-outlined text-white text-[72px] opacity-60"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              support_agent
+            </span>
           </div>
         )}
-      </div>
 
-      {/* Avatar — overlapping cover */}
-      <div className="relative px-5">
-        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${mentor.gradient ?? gradientFor(mentor.id)} flex items-center justify-center border-4 border-white shadow-lg -mt-7 relative z-10 overflow-hidden`}>
-          {mentor.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={mentor.image} alt="" className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-white font-extrabold text-base tracking-tight">{mentor.initials ?? initialsOf(mentor.name)}</span>
+        {/* Top-left: availability badge (+ verified marker) */}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5">
+          <span
+            className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur shadow-sm ${
+              mentor.available ? "bg-green-500/95 text-white" : "bg-gray-600/95 text-gray-100"
+            }`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${mentor.available ? "bg-white" : "bg-gray-300"}`} />
+            {mentor.available ? "Disponible" : "Indisponible"}
+          </span>
+          {mentor.isVerified && (
+            <span
+              className="material-symbols-outlined text-blue-500 bg-white rounded-full p-0.5 shadow-sm"
+              style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
+              title="Profil vérifié"
+            >
+              verified
+            </span>
           )}
         </div>
+
+        {/* Top-right: rating badge */}
+        {mentor.rating > 0 && (
+          <div className="absolute top-3 right-3">
+            <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur text-[#191c1e] text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
+              <span
+                className="material-symbols-outlined text-amber-400 text-[12px]"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                star
+              </span>
+              {mentor.rating.toFixed(1)}
+              {mentor.reviews > 0 && <span className="text-[#5c647a]">({mentor.reviews})</span>}
+            </span>
+          </div>
+        )}
+
+        {/* Avatar superposé en bas-gauche */}
+        <div className="absolute bottom-3 left-3">
+          <div
+            className={`w-14 h-14 rounded-full ring-2 ring-white shadow-lg overflow-hidden bg-gradient-to-br ${
+              mentor.gradient ?? gradientFor(mentor.id)
+            } flex items-center justify-center`}
+          >
+            {mentor.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={mentor.image} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-white font-extrabold text-sm tracking-tight">{initials}</span>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Card body */}
-      <div className="px-5 pt-2 pb-5 flex flex-col flex-1">
+      {/* CARD BODY */}
+      <div className="p-4 flex flex-col gap-2 flex-1">
         {/* Name + specialty */}
-        <div className="mb-2">
-          <h3 className="font-extrabold text-[#191c1e] text-base leading-tight">{mentor.name ?? "Mentor"}</h3>
-          <p className="text-xs text-[#5c647a] font-medium mt-0.5 leading-snug">{mentor.specialty}</p>
+        <div>
+          <h3 className="text-sm font-bold text-[#191c1e] leading-tight line-clamp-1 group-hover:text-[#006e2f] transition-colors">
+            {mentor.name ?? "Mentor"}
+          </h3>
+          <p className="text-xs text-[#5c647a] line-clamp-1 mt-0.5">{mentor.specialty}</p>
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1.5 mb-3">
-          <div className="flex gap-0.5">
-            {[1,2,3,4,5].map((s) => (
-              <span key={s} className="material-symbols-outlined text-[12px]"
-                style={{ color: s <= Math.round(mentor.rating) ? "#f59e0b" : "#d1d5db", fontVariationSettings: "'FILL' 1" }}>
-                star
+        {/* Domain pill */}
+        {mentor.domain && (
+          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a] w-fit">
+            {mentor.domain}
+          </span>
+        )}
+
+        {/* Bio (2 lignes max) */}
+        <p className="line-clamp-2 text-xs text-[#5c647a] leading-relaxed">{mentor.bio}</p>
+
+        {/* Badges + langues */}
+        {(mentor.badges.length > 0 || mentor.languages.length > 0) && (
+          <div className="flex flex-wrap gap-1">
+            {mentor.badges.slice(0, 2).map((badge) => {
+              const cfg =
+                badgeConfig[badge] ?? { bg: "bg-gray-100", text: "text-gray-600", icon: "label" };
+              return (
+                <span
+                  key={badge}
+                  className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}
+                >
+                  <span
+                    className="material-symbols-outlined text-[10px]"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    {cfg.icon}
+                  </span>
+                  {badge}
+                </span>
+              );
+            })}
+            {mentor.languages.slice(0, 3).map((lang) => (
+              <span
+                key={lang}
+                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-[#5c647a]"
+              >
+                {lang}
               </span>
             ))}
           </div>
-          <span className="text-xs font-bold text-[#191c1e]">{mentor.rating.toFixed(1)}</span>
-          <span className="text-xs text-[#5c647a]">({mentor.reviews})</span>
-          <span className="text-[#5c647a] text-xs">·</span>
-          <span className="text-xs text-[#5c647a]">{mentor.students.toLocaleString("fr-FR")} élèves</span>
-        </div>
+        )}
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {mentor.badges.map((badge) => {
-            const cfg = badgeConfig[badge] ?? { bg: "bg-gray-100", text: "text-gray-600", icon: "label" };
-            return (
-              <span key={badge} className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}>
-                <span className="material-symbols-outlined text-[10px]" style={{ fontVariationSettings: "'FILL' 1" }}>{cfg.icon}</span>
-                {badge}
-              </span>
-            );
-          })}
-          {/* Languages */}
-          {mentor.languages.map((lang) => (
-            <span key={lang} className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">{lang}</span>
-          ))}
-        </div>
-
-        {/* Bio */}
-        <p className="text-xs text-[#5c647a] leading-relaxed line-clamp-2 flex-1 mb-4">{mentor.bio}</p>
-
-        {/* Session info + CTAs */}
-        <div className="border-t border-gray-100 pt-4 flex items-center justify-between gap-2">
+        {/* Footer prix — pushed to bottom */}
+        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
           <div>
-            <p className="font-extrabold text-[#006e2f] text-base">{mentor.sessionPrice.toLocaleString("fr-FR")} <span className="text-xs font-bold text-[#5c647a]">FCFA</span></p>
-            <p className="text-[10px] text-[#5c647a]">{mentor.sessionDurationLabel ?? `${mentor.sessionDuration} min`} · ≈{Math.round(mentor.sessionPrice / 655.957)} €</p>
+            <p className="text-base font-extrabold text-[#006e2f] leading-tight">
+              {mentor.sessionPrice.toLocaleString("fr-FR")}{" "}
+              <span className="text-[10px] font-bold text-[#5c647a]">FCFA</span>
+            </p>
+            <p className="text-[10px] text-[#5c647a]">
+              ≈ {Math.round(mentor.sessionPrice / 655.957)} €
+            </p>
           </div>
-          <div className="flex gap-1.5">
-            <Link
-              href={`/formations/mentors/${mentor.id}`}
-              className="flex items-center gap-1 px-3 py-2.5 rounded-xl text-xs font-bold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors flex-shrink-0"
-              title="Voir le profil complet"
-            >
-              <span className="material-symbols-outlined text-[14px]">person</span>
-            </Link>
-            <Link
-              href={mentor.available ? `/formations/inscription?role=mentor&mentorId=${mentor.id}` : "#"}
-              className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex-shrink-0 ${
-                mentor.available
-                  ? "bg-[#006e2f] text-white hover:bg-[#005a26] shadow-sm hover:shadow-md"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed pointer-events-none"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">
-                {mentor.available ? "calendar_add_on" : "event_busy"}
-              </span>
-              {mentor.available ? "Réserver" : "Complet"}
-            </Link>
+          <div className="flex items-center gap-1 text-xs text-[#5c647a] font-medium">
+            <span className="material-symbols-outlined text-[14px]">schedule</span>
+            {mentor.sessionDurationLabel ?? `${mentor.sessionDuration} min`}
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

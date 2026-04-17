@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useClientStore, type ClientProject } from "@/store/client";
 import { useToastStore } from "@/store/toast";
+import { confirmAction } from "@/store/confirm";
 import { candidaturesApi } from "@/lib/api-client";
 
 // ---------------------------------------------------------------------------
@@ -195,7 +196,14 @@ export default function ProjectDetailPage() {
   }
 
   async function handleDelete() {
-    if (!confirm("Supprimer ce projet ?")) return;
+    const confirmed = await confirmAction({
+      title: "Supprimer ce projet ?",
+      message: "Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+      confirmVariant: "danger",
+      icon: "delete",
+    });
+    if (!confirmed) return;
     const ok = await deleteProject(id);
     if (ok) {
       addToast("success", "Projet supprime");

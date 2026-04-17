@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { ResponsiveContainer, AreaChart, Area, Tooltip, XAxis } from "recharts";
+import { countryToFlag, countryName } from "@/lib/tracking/geo";
 
 type Dashboard = {
   kpis: {
@@ -29,6 +31,8 @@ type Dashboard = {
     completion: number;
     thumbnail: string | null;
   }[];
+  sparkline7d?: { date: string; amount: number }[];
+  topCountries?: { country: string; sales: number; revenue: number }[];
 };
 
 function formatFCFA(n: number) {
@@ -52,13 +56,23 @@ export default function VendeurDashboard() {
     staleTime: 30_000,
   });
 
+  // KYC status for onboarding banner
+  const { data: kycResp } = useQuery<{ data: { currentLevel: number; pending: { id: string } | null } }>({
+    queryKey: ["kyc-status"],
+    queryFn: () => fetch("/api/formations/kyc").then((r) => r.json()),
+    staleTime: 60_000,
+  });
+  const kycLevel = kycResp?.data?.currentLevel ?? 0;
+  const kycPending = !!kycResp?.data?.pending;
+  const needsKyc = kycLevel < 2;
+
   const d = response?.data;
   const chart = d?.monthlyChart ?? [];
   const maxAmount = Math.max(...chart.map((m) => m.amount), 1);
   const hasNoProducts = !isLoading && (d?.topProducts ?? []).length === 0 && (d?.kpis.totalProducts ?? 0) === 0;
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1400px] mx-auto">
         <header className="mb-10 md:mb-14">
           <span className="text-[#006e2f] font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block">
@@ -68,6 +82,37 @@ export default function VendeurDashboard() {
             Dashboard
           </h1>
         </header>
+
+        {/* Onboarding KYC CTA — visible tant que non vérifié */}
+        {needsKyc && (
+          <div className={`mb-10 rounded-2xl p-5 flex items-start gap-4 border ${kycPending ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"}`}>
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${kycPending ? "bg-amber-500" : "bg-red-500"}`}>
+              <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
+                {kycPending ? "hourglass_top" : "warning"}
+              </span>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-bold text-[#191c1e]">
+                {kycPending ? "Vérification d'identité en cours" : "Vérification d'identité requise avant tout retrait"}
+              </h3>
+              <p className="text-sm text-[#5c647a] mt-1">
+                {kycPending
+                  ? "Votre demande est examinée par notre équipe (24-48h ouvrées). Vous serez notifié dès validation."
+                  : "Vos ventes s'accumulent, mais vous ne pourrez retirer vos gains qu'après validation de votre identité."}
+              </p>
+              {!kycPending && (
+                <Link
+                  href="/formations/kyc"
+                  className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl text-white text-xs font-bold"
+                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                >
+                  <span className="material-symbols-outlined text-[16px]">verified_user</span>
+                  Soumettre ma pièce d&apos;identité
+                </Link>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Empty state — onboarding without demo seeding (real vendor flow) */}
         {hasNoProducts && (
@@ -142,7 +187,7 @@ export default function VendeurDashboard() {
                   {kpi.label}
                 </p>
                 <div className={`flex items-baseline gap-1 ${kpi.accent}`}>
-                  <span className="text-3xl md:text-4xl font-extrabold tracking-tighter font-mono">{kpi.value}</span>
+                  <span className="text-3xl md:text-4xl font-extrabold tracking-tighter tabular-nums">{kpi.value}</span>
                   {kpi.unit && <span className="text-sm font-bold">{kpi.unit}</span>}
                 </div>
               </div>
@@ -270,7 +315,7 @@ export default function VendeurDashboard() {
                             <div className="text-[9px] text-zinc-400 uppercase tracking-widest">{timeAgo(sale.createdAt)}</div>
                           </div>
                         </div>
-                        <div className="text-sm font-mono font-bold text-[#006e2f] whitespace-nowrap">
+                        <div className="text-sm tabular-nums font-bold text-[#006e2f] whitespace-nowrap">
                           {formatFCFA(sale.amount)}
                         </div>
                       </div>
@@ -281,6 +326,77 @@ export default function VendeurDashboard() {
             </div>
           </div>
         </div>
+
+        {/* Sparkline + Top countries */}
+        <section className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 bg-white border border-zinc-100 p-6 md:p-8">
+            <div className="flex items-end justify-between mb-4">
+              <div>
+                <span className="text-[#006e2f] font-bold text-[10px] uppercase tracking-widest mb-1 block">
+                  7 derniers jours
+                </span>
+                <h3 className="text-lg font-bold tracking-tight text-zinc-900">Revenus quotidiens</h3>
+              </div>
+              <span className="text-sm tabular-nums font-bold text-[#006e2f]">
+                {formatFCFA((d?.sparkline7d ?? []).reduce((s, x) => s + x.amount, 0))} FCFA
+              </span>
+            </div>
+            {isLoading ? (
+              <div className="h-[120px] bg-zinc-50 animate-pulse" />
+            ) : (d?.sparkline7d ?? []).length === 0 || (d?.sparkline7d ?? []).every((x) => x.amount === 0) ? (
+              <div className="h-[120px] flex items-center justify-center">
+                <p className="text-xs text-zinc-400 uppercase tracking-widest">Aucune vente cette semaine</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height={120}>
+                <AreaChart data={d?.sparkline7d ?? []}>
+                  <defs>
+                    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#22c55e" stopOpacity={0.7} />
+                      <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" hide />
+                  <Tooltip
+                    contentStyle={{ borderRadius: 8, border: "1px solid #e5e7eb", fontSize: 11 }}
+                    formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]}
+                  />
+                  <Area type="monotone" dataKey="amount" stroke="#006e2f" strokeWidth={2} fill="url(#sparkGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="bg-[#f3f3f4] p-6 md:p-8">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-zinc-900 mb-5">Top pays</h3>
+            {isLoading ? (
+              <div className="space-y-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-8 bg-zinc-200 animate-pulse" />
+                ))}
+              </div>
+            ) : (d?.topCountries ?? []).length === 0 ? (
+              <p className="text-xs text-zinc-500 italic">Pas encore de données par pays.</p>
+            ) : (
+              <div className="space-y-3">
+                {(d?.topCountries ?? []).map((tc) => (
+                  <div key={tc.country} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-lg leading-none">{countryToFlag(tc.country)}</span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-zinc-900 truncate">{countryName(tc.country)}</p>
+                        <p className="text-[9px] text-zinc-500 uppercase tracking-widest">{tc.sales} ventes</p>
+                      </div>
+                    </div>
+                    <span className="text-xs tabular-nums font-bold text-[#006e2f] whitespace-nowrap">
+                      {formatFCFA(tc.revenue)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* Top products */}
         <section className="mt-16">
@@ -307,7 +423,7 @@ export default function VendeurDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {(d?.topProducts ?? []).map((product, idx) => (
                 <div key={product.id} className="bg-[#f3f3f4] p-6 flex items-center gap-5 hover:translate-x-1 transition-transform duration-200">
-                  <span className="text-4xl font-extrabold font-mono text-zinc-300">{String(idx + 1).padStart(2, "0")}</span>
+                  <span className="text-4xl font-extrabold tabular-nums text-zinc-300">{String(idx + 1).padStart(2, "0")}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-zinc-900 truncate">{product.title}</p>
                     <div className="flex items-center gap-2 mt-1">
@@ -317,11 +433,11 @@ export default function VendeurDashboard() {
                       <div className="h-[2px] bg-zinc-200 w-full">
                         <div className="h-full bg-[#22c55e]" style={{ width: `${Math.min(100, product.completion)}%` }} />
                       </div>
-                      <p className="text-[9px] font-mono text-zinc-400 uppercase mt-1">{product.completion}% complétion</p>
+                      <p className="text-[9px] tabular-nums text-zinc-400 uppercase mt-1">{product.completion}% complétion</p>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-lg font-extrabold font-mono text-zinc-900">{formatFCFA(product.revenue)}</p>
+                    <p className="text-lg font-extrabold tabular-nums text-zinc-900">{formatFCFA(product.revenue)}</p>
                     <p className="text-[9px] text-zinc-400 uppercase tracking-widest">FCFA</p>
                   </div>
                 </div>

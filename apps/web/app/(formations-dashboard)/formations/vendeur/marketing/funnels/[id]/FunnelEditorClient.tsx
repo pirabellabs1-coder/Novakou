@@ -10,6 +10,7 @@ import { BackgroundPicker } from "@/components/funnels/BackgroundPicker";
 import { ConfirmModal } from "@/components/funnels/ConfirmModal";
 import { TemplatePreviewMockup } from "@/components/funnels/TemplatePreviewMockup";
 import { LANDING_TEMPLATES } from "@/lib/funnels/templates";
+import { confirmAction } from "@/store/confirm";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -1293,7 +1294,14 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   }
 
   async function handleDelete() {
-    if (!confirm("Supprimer ce funnel définitivement ?")) return;
+    const ok = await confirmAction({
+      title: "Supprimer ce funnel définitivement ?",
+      message: "Cette action est irréversible. Toutes les pages et données associées seront supprimées.",
+      confirmLabel: "Supprimer définitivement",
+      confirmVariant: "danger",
+      icon: "delete_forever",
+    });
+    if (!ok) return;
     await fetch(`/api/formations/vendeur/funnels/${id}`, { method: "DELETE" });
     router.push("/formations/vendeur/marketing/funnels");
   }
@@ -1391,7 +1399,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             </div>
             <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
               <p className="text-[9px] font-bold text-[#5c647a] uppercase">URL publique</p>
-              <p className="text-[10px] text-[#191c1e] font-mono bg-gray-50 px-2 py-1 rounded truncate">/f/{funnel.slug}</p>
+              <p className="text-[10px] text-[#191c1e] tabular-nums bg-gray-50 px-2 py-1 rounded truncate">/f/{funnel.slug}</p>
               <button onClick={handleDelete} className="w-full mt-2 text-[10px] text-red-500 hover:text-red-700 flex items-center justify-center gap-1 py-1.5">
                 <span className="material-symbols-outlined text-[12px]">delete</span>Supprimer
               </button>

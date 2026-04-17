@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type User = {
   id: string;
@@ -58,7 +59,7 @@ export default function AdminUtilisateursPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
         <header className="mb-12">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
@@ -94,7 +95,7 @@ export default function AdminUtilisateursPage() {
                 }`}
               >
                 {tab.label}
-                <span className={`text-[9px] font-mono ${filter === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
+                <span className={`text-[9px] tabular-nums ${filter === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
                   {tab.count}
                 </span>
               </button>
@@ -138,7 +139,7 @@ export default function AdminUtilisateursPage() {
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-zinc-900 truncate">{u.name ?? "—"}</p>
                         <p className="text-[10px] text-zinc-400 truncate">{u.email}</p>
-                        <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-widest mt-0.5">Depuis {createdDate}</p>
+                        <p className="text-[9px] tabular-nums text-zinc-400 uppercase tracking-widest mt-0.5">Depuis {createdDate}</p>
                       </div>
                     </div>
                     <div>
@@ -153,15 +154,15 @@ export default function AdminUtilisateursPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold font-mono text-zinc-900">{u.productsCount}</p>
+                      <p className="text-sm font-extrabold tabular-nums text-zinc-900">{u.productsCount}</p>
                       <p className="text-[10px] text-zinc-400 uppercase tracking-widest">produits</p>
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold font-mono text-[#006e2f]">{formatFCFA(u.totalEarned)}</p>
+                      <p className="text-sm font-extrabold tabular-nums text-[#006e2f]">{formatFCFA(u.totalEarned)}</p>
                       <p className="text-[10px] text-zinc-400 uppercase tracking-widest">FCFA</p>
                     </div>
                     <div>
-                      <p className="text-sm font-extrabold font-mono text-zinc-900">{formatFCFA(u.totalSpent)}</p>
+                      <p className="text-sm font-extrabold tabular-nums text-zinc-900">{formatFCFA(u.totalSpent)}</p>
                       <p className="text-[10px] text-zinc-400 uppercase tracking-widest">{u.enrollmentsCount + u.purchasesCount} achats</p>
                     </div>
                     <div className="flex gap-0">
@@ -187,8 +188,15 @@ export default function AdminUtilisateursPage() {
                             Suspendre
                           </button>
                           <button
-                            onClick={() => {
-                              if (confirm("Bannir définitivement ce compte ? Toutes ses données seront conservées mais il ne pourra plus se connecter.")) {
+                            onClick={async () => {
+                              const ok = await confirmAction({
+                                title: "Bannir définitivement ce compte ?",
+                                message: "Toutes ses données seront conservées mais il ne pourra plus se connecter.",
+                                confirmLabel: "Bannir",
+                                confirmVariant: "danger",
+                                icon: "block",
+                              });
+                              if (ok) {
                                 userActionMutation.mutate({ id: u.id, action: "ban" });
                               }
                             }}

@@ -3,6 +3,7 @@ import { useToastStore } from "@/store/toast";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type Pixel = {
   id: string;
@@ -136,7 +137,7 @@ export default function PixelsPage() {
 
                   {existing && !isEditing && (
                     <div className="flex items-center gap-2 mt-3">
-                      <code className="text-xs font-mono bg-gray-100 px-2.5 py-1 rounded-lg text-[#191c1e] flex-1 truncate">
+                      <code className="text-xs tabular-nums bg-gray-100 px-2.5 py-1 rounded-lg text-[#191c1e] flex-1 truncate">
                         {existing.pixelId}
                       </code>
                       <button
@@ -146,7 +147,16 @@ export default function PixelsPage() {
                         <span className="material-symbols-outlined text-[16px]">edit</span>
                       </button>
                       <button
-                        onClick={() => { if (confirm("Supprimer ce pixel ?")) deleteMutation.mutate(type); }}
+                        onClick={async () => {
+                          const ok = await confirmAction({
+                            title: "Supprimer ce pixel ?",
+                            message: "Le tracking sera désactivé pour ce canal.",
+                            confirmLabel: "Supprimer",
+                            confirmVariant: "danger",
+                            icon: "delete",
+                          });
+                          if (ok) deleteMutation.mutate(type);
+                        }}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[16px]">delete</span>
@@ -161,7 +171,7 @@ export default function PixelsPage() {
                         value={pixelInputs[type] ?? ""}
                         onChange={(e) => setPixelInputs((p) => ({ ...p, [type]: e.target.value }))}
                         placeholder={cfg.placeholder}
-                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm font-mono text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
+                        className="flex-1 px-3 py-2 rounded-xl border border-gray-200 text-sm tabular-nums text-[#191c1e] placeholder-[#5c647a]/50 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
                       />
                       <button
                         onClick={() => saveMutation.mutate({ type, pixelId: pixelInputs[type] ?? "" })}

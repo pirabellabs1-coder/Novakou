@@ -3,6 +3,7 @@ import { useToastStore } from "@/store/toast";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type DiscountCode = {
   id: string;
@@ -161,7 +162,7 @@ export default function CodesPromoPage() {
                     value={form.code}
                     onChange={(e) => setForm((f) => ({ ...f, code: e.target.value.toUpperCase() }))}
                     placeholder="PROMO20"
-                    className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10 font-mono"
+                    className="flex-1 px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10 tabular-nums"
                   />
                   <button
                     onClick={() => setForm((f) => ({ ...f, code: generateCode() }))}
@@ -282,7 +283,7 @@ export default function CodesPromoPage() {
                   <div className="flex items-center gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <code className="text-sm font-bold text-[#191c1e] font-mono bg-gray-100 px-2 py-0.5 rounded">{code.code}</code>
+                        <code className="text-sm font-bold text-[#191c1e] tabular-nums bg-gray-100 px-2 py-0.5 rounded">{code.code}</code>
                         {expired && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-500">Expiré</span>}
                       </div>
                       <p className="text-[10px] text-[#5c647a] mt-0.5">{timeAgo(code.createdAt)}</p>
@@ -330,7 +331,16 @@ export default function CodesPromoPage() {
                       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${effective ? "left-5" : "left-0.5"}`} />
                     </button>
                     <button
-                      onClick={() => { if (confirm("Supprimer ce code ?")) deleteMutation.mutate(code.id); }}
+                      onClick={async () => {
+                        const ok = await confirmAction({
+                          title: "Supprimer ce code promo ?",
+                          message: "Cette action est irréversible.",
+                          confirmLabel: "Supprimer",
+                          confirmVariant: "danger",
+                          icon: "delete",
+                        });
+                        if (ok) deleteMutation.mutate(code.id);
+                      }}
                       className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px]">delete</span>
