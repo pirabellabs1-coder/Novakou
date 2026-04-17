@@ -112,7 +112,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         data: {
           free: true,
-          checkout_url: `/formations/payment/return?free=1&items=${formationIds.length + productIds.length}`,
+          checkout_url: `/payment/return?free=1&items=${formationIds.length + productIds.length}`,
           internalRef: `free:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
         },
       });
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     // If Moneroo is not configured (e.g. dev mode without keys), simulate a successful payment
     if (!isMonerooConfigured()) {
       const internalRef = `dev:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
-      const mockUrl = new URL("/formations/payment/return", appUrl);
+      const mockUrl = new URL("/payment/return", appUrl);
       mockUrl.searchParams.set("mock", "1");
       mockUrl.searchParams.set("ref", internalRef);
       if (formationIds.length > 0) mockUrl.searchParams.set("fids", formationIds.join(","));

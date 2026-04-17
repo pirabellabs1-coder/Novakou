@@ -39,7 +39,7 @@ Le certificat PDF DOIT être bilingue FR/EN sur le même document. Il DOIT inclu
 - **THEN** le titre de la formation apparaît en français ET en anglais sur le même document, conformément aux valeurs `Formation.titleFr` et `Formation.titleEn`
 
 ### Requirement: Certificate download and LinkedIn sharing are available from learner dashboard
-L'apprenant DOIT pouvoir télécharger le PDF de son certificat depuis le dashboard à `/formations/mes-formations`. Un bouton "Partager sur LinkedIn" DOIT générer l'URL de partage LinkedIn avec les métadonnées pré-remplies. Le lien de téléchargement DOIT être une URL signée Supabase Storage valide pour 24 heures.
+L'apprenant DOIT pouvoir télécharger le PDF de son certificat depuis le dashboard à `/mes-formations`. Un bouton "Partager sur LinkedIn" DOIT générer l'URL de partage LinkedIn avec les métadonnées pré-remplies. Le lien de téléchargement DOIT être une URL signée Supabase Storage valide pour 24 heures.
 
 #### Scenario: Téléchargement du certificat PDF
 - **WHEN** un apprenant clique sur "Télécharger le certificat" depuis son dashboard

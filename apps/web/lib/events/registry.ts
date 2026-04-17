@@ -459,7 +459,7 @@ export const EVENT_REGISTRY: {
           title: "Formation achetee",
           message: `Vous avez achete la formation "${p.courseTitle}"`,
           type: "course",
-          link: "/formations",
+          link: "/",
         });
       }
       if (p.instructorId) {
@@ -488,7 +488,7 @@ export const EVENT_REGISTRY: {
       title: "Inscription confirmee",
       message: `Vous etes inscrit a la formation "${p.courseTitle}"`,
       type: "course",
-      link: "/formations",
+      link: "/",
     } : null),
     email: undefined,
   },
@@ -533,7 +533,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvelle lecon",
       message: `${p.lessonTitle || "Une nouvelle lecon"} a ete ajoutee a "${p.courseTitle}"`,
       type: "course",
-      link: "/formations",
+      link: "/",
     } : null),
     email: async (p: CourseEventPayload) => {
       if (p.studentEmail && p.studentName) {

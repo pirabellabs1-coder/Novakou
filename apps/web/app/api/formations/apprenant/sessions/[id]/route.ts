@@ -132,7 +132,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Session annulée par l'apprenant",
             message: `${session?.user?.name ?? "L'apprenant"} a annulé sa session du ${booking.scheduledAt.toLocaleDateString("fr-FR")} (avant confirmation). Remboursement automatique.`,
-            link: "/formations/mentor/rendez-vous",
+            link: "/mentor/rendez-vous",
           },
         }).catch(() => null);
 
@@ -167,7 +167,7 @@ export async function PATCH(request: Request, { params }: Params) {
           type: "ORDER",
           title: "Demande d'annulation de l'apprenant",
           message: `${session?.user?.name ?? "L'apprenant"} a demandé l'annulation de la session du ${booking.scheduledAt.toLocaleDateString("fr-FR")}. L'admin examinera la demande.`,
-          link: "/formations/mentor/rendez-vous",
+          link: "/mentor/rendez-vous",
         },
       }).catch(() => null);
 

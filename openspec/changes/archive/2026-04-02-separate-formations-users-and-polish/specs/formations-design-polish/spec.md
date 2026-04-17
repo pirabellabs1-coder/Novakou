@@ -15,7 +15,7 @@ The FormationCard component SHALL have refined visual styling with better shadow
 The formations homepage SHALL have improved section spacing, refined gradient colors matching the brand palette (indigo/violet), and polished component transitions.
 
 #### Scenario: Homepage hero section
-- **WHEN** a user visits `/formations`
+- **WHEN** a user visits `/`
 - **THEN** the hero SHALL use brand gradient colors (indigo → violet), have clear typography hierarchy, and display stats with a modern glassmorphism style
 
 #### Scenario: Category section styling

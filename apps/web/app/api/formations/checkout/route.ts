@@ -373,7 +373,7 @@ export async function POST(request: Request) {
           type: "ORDER",
           title: "Achat confirmé",
           message: `Votre achat est confirmé : ${summary}.`,
-          link: createdEnrollments.length > 0 ? "/formations/apprenant/mes-formations" : "/formations/apprenant/produits",
+          link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/produits",
         },
       }).catch(() => null);
     }
@@ -417,7 +417,7 @@ export async function POST(request: Request) {
               type: "ORDER",
               title: "Nouvelle vente !",
               message: `${fName} vient d'acheter votre formation « ${f.title} » pour ${Math.round(created.price * VENDOR_NET_RATE)} FCFA nets.`,
-              link: "/formations/vendeur/dashboard",
+              link: "/vendeur/dashboard",
             },
           }).catch(() => null);
         }
@@ -456,7 +456,7 @@ export async function POST(request: Request) {
               type: "ORDER",
               title: "Nouvelle vente !",
               message: `${fName} vient d'acheter votre produit « ${p.title} » pour ${Math.round(created.price * VENDOR_NET_RATE)} FCFA nets.`,
-              link: "/formations/vendeur/dashboard",
+              link: "/vendeur/dashboard",
             },
           }).catch(() => null);
         }

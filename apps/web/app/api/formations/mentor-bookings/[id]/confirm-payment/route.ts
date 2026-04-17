@@ -88,7 +88,7 @@ export async function POST(_request: Request, { params }: Params) {
         type: "ORDER",
         title: "Nouvelle demande de séance payée",
         message: `${booking.student.name ?? "Un apprenant"} a réservé et payé une séance le ${booking.scheduledAt.toLocaleDateString("fr-FR")} à ${booking.scheduledAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}. Les fonds sont bloqués en escrow.`,
-        link: "/formations/mentor/rendez-vous",
+        link: "/mentor/rendez-vous",
       },
     }).catch((err) => console.warn("[confirm-payment] notif mentor failed", err));
 

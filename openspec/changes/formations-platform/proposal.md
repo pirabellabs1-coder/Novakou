@@ -7,13 +7,13 @@ Cette fonctionnalité est planifiée pour la **V1 (mois 4–6)** et constitue un
 ## What Changes
 
 - **Nouveau lien "Formations" dans la navbar** (entre "Services" et "À Propos") sur la landing page publique et les navbars des espaces connectés (freelance, client, agence), avec icône et badge coloré distinctif, bilingue FR/EN
-- **Nouvelle section `/formations`** : landing page dédiée, marketplace de formations, pages détail, lecteur de cours intégré
+- **Nouvelle section `/`** : landing page dédiée, marketplace de formations, pages détail, lecteur de cours intégré
 - **Nouveau rôle "Instructeur"** : tout utilisateur peut postuler pour devenir instructeur via un formulaire de candidature, soumis à validation admin
 - **Création de cours en 5 étapes** : wizard complet pour les instructeurs (informations, médias, prix/certificat, curriculum drag & drop, publication)
-- **Lecteur de formation** (`/formations/apprendre/[id]`) : vidéo HTML5 custom, visionneuse PDF, contenu texte rich, audio, quiz interactifs, notes personnelles horodatées, reprise automatique de la progression
+- **Lecteur de formation** (`/apprendre/[id]`) : vidéo HTML5 custom, visionneuse PDF, contenu texte rich, audio, quiz interactifs, notes personnelles horodatées, reprise automatique de la progression
 - **Système de quiz** : 4 types de questions (choix unique, choix multiple, vrai/faux, texte libre), score de passage configurable, timer optionnel
 - **Génération automatique de certificats PDF** : déclenchée à 100% de complétion + quiz réussis, code unique `FH-2026-XXXXXX`, QR code, générée avec `@react-pdf/renderer`, envoyée par email via Resend
-- **Page de vérification publique de certificat** (`/formations/verification/[code]`) : accessible sans connexion
+- **Page de vérification publique de certificat** (`/verification/[code]`) : accessible sans connexion
 - **Dashboard apprenant** : progression, certifications, favoris, panier, paramètres
 - **Dashboard instructeur** : statistiques (recharts), gestion des formations, apprenants, revenus (70% instructeur / 30% plateforme), retraits
 - **Administration formations** intégrée à l'espace admin existant (`/admin/formations/*`) : modération des cours, gestion des instructeurs, apprenants, finances, certificats, catégories
@@ -30,8 +30,8 @@ Cette fonctionnalité est planifiée pour la **V1 (mois 4–6)** et constitue un
 
 ### New Capabilities
 
-- `formations-marketplace` : pages publiques de la section formations — landing `/formations`, marketplace `/formations/explorer`, détail `/formations/[slug]`, profil instructeur `/formations/instructeurs/[id]`, catégories, page de vérification de certificat
-- `formations-learner-space` : espace apprenant connecté — lecteur de cours `/formations/apprendre/[id]`, quiz, dashboard `/formations/mes-formations`, certificats, favoris, panier, paiement Stripe
+- `formations-marketplace` : pages publiques de la section formations — landing `/`, marketplace `/explorer`, détail `/[slug]`, profil instructeur `/instructeurs/[id]`, catégories, page de vérification de certificat
+- `formations-learner-space` : espace apprenant connecté — lecteur de cours `/apprendre/[id]`, quiz, dashboard `/mes-formations`, certificats, favoris, panier, paiement Stripe
 - `formations-instructor-space` : espace instructeur — page "Devenir instructeur", dashboard, wizard de création (5 étapes), gestion des formations (CRUD), gestion apprenants, revenus et retraits, avis, statistiques avancées
 - `formations-admin` : panneau admin dédié aux formations — modération des cours, gestion des instructeurs et apprenants, finances (commissions 30%), certificats, catégories
 - `formations-schema` : schéma Prisma complet pour la section formations (12 nouveaux modèles, 5 nouveaux enums), migrations DB, policies RLS Supabase, seed catégories

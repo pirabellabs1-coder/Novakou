@@ -38,7 +38,7 @@ Conséquence en cascade : comme aucun enrollment ne se crée correctement, le da
 
 ### D2 : Redirection client-side avec URL relative pour mock payments
 
-**Choix** : Quand le checkout retourne un résultat mock (`mock: true`), utiliser `router.push("/formations/succes?session_id=xxx")` au lieu de `window.location.href = data.url` (URL absolue).
+**Choix** : Quand le checkout retourne un résultat mock (`mock: true`), utiliser `router.push("/succes?session_id=xxx")` au lieu de `window.location.href = data.url` (URL absolue).
 
 **Pourquoi** : Les URL relatives fonctionnent quelque soit le port. Cela évite totalement le problème de baseUrl pour le flow mock.
 

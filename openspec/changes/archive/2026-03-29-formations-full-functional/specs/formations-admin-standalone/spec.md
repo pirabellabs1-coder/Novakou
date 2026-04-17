@@ -4,7 +4,7 @@
 Le système DOIT afficher l'espace admin formations dans le layout standalone formations (avec FormationsHeader + FormationsFooter) et non dans le layout admin FreelanceHigh. L'admin formations DOIT avoir sa propre sidebar avec les liens de navigation spécifiques aux formations.
 
 #### Scenario: Accès au dashboard admin formations
-- **WHEN** un utilisateur admin accède à `/formations/admin/dashboard`
+- **WHEN** un utilisateur admin accède à `/admin/dashboard`
 - **THEN** la page s'affiche avec le FormationsHeader en haut, une sidebar admin formations à gauche, et le FormationsFooter en bas — sans aucun élément du layout admin FreelanceHigh visible
 
 #### Scenario: Navigation sidebar admin formations
@@ -12,14 +12,14 @@ Le système DOIT afficher l'espace admin formations dans le layout standalone fo
 - **THEN** elle DOIT contenir les liens : Dashboard, Formations, Instructeurs, Apprenants, Finances, Certificats, Catégories, Codes Promo, avec des icônes Material Symbols et un indicateur d'état actif
 
 ### Requirement: L'admin formations DOIT être protégé par le middleware
-Le middleware Next.js DOIT vérifier que l'utilisateur a le rôle `admin` avant d'autoriser l'accès aux routes `/formations/admin/*`. Les utilisateurs non-admin DOIVENT être redirigés.
+Le middleware Next.js DOIT vérifier que l'utilisateur a le rôle `admin` avant d'autoriser l'accès aux routes `/admin/*`. Les utilisateurs non-admin DOIVENT être redirigés.
 
 #### Scenario: Utilisateur non-admin tente d'accéder à l'admin formations
-- **WHEN** un utilisateur avec le rôle `apprenant` ou `instructeur` tente d'accéder à `/formations/admin/dashboard`
-- **THEN** le système DOIT le rediriger vers `/formations/connexion`
+- **WHEN** un utilisateur avec le rôle `apprenant` ou `instructeur` tente d'accéder à `/admin/dashboard`
+- **THEN** le système DOIT le rediriger vers `/connexion`
 
 #### Scenario: Utilisateur admin accède à l'admin formations
-- **WHEN** un utilisateur avec le rôle `admin` accède à `/formations/admin/dashboard`
+- **WHEN** un utilisateur avec le rôle `admin` accède à `/admin/dashboard`
 - **THEN** le système DOIT afficher le dashboard admin formations normalement
 
 ### Requirement: Le dashboard admin formations DOIT afficher des métriques temps réel

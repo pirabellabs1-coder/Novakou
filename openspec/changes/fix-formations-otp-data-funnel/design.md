@@ -5,7 +5,7 @@ La plateforme FreelanceHigh a un module formations avec des formulaires qui forc
 **État actuel :**
 - Schéma Prisma avec colonnes `titleFr`/`titleEn`, `descriptionFr`/`descriptionEn` sur Formation, FormationSection, FormationLesson, FormationCategory
 - Inscription principale (`/inscription`) : 4 étapes (Compte → Profil → Compétences → Finalisation), OTP envoyé seulement après l'étape finale
-- Inscription formations (`/formations/inscription`) : OTP correct (envoyé juste après soumission du formulaire)
+- Inscription formations (`/inscription`) : OTP correct (envoyé juste après soumission du formulaire)
 - Marketing dashboard : fetch API réel mais peut afficher des données de dev-store en mode IS_DEV
 - Catégories : 12 catégories seedées dans `seed-formations.ts`, fetchées via API dans le formulaire de création
 - Pas de tunnel de vente existant
@@ -94,7 +94,7 @@ Types de blocs :
 - **Page builder complet type GrapesJS** → trop lourd pour le MVP, complexité d'intégration élevée
 - **Templates prédéfinis seulement** → trop limité, l'utilisateur veut personnaliser
 
-**Frontend :** Composant `SalesFunnelBuilder` dans `/formations/(instructeur)/instructeur/tunnel-de-vente/` utilisant `@dnd-kit` (déjà installé pour le curriculum).
+**Frontend :** Composant `SalesFunnelBuilder` dans `/(instructeur)/instructeur/tunnel-de-vente/` utilisant `@dnd-kit` (déjà installé pour le curriculum).
 
 ### 4. Données réelles — Suppression des données démo
 

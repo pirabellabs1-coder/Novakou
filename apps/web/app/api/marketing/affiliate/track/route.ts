@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("ref") || searchParams.get("code");
-    const destination = searchParams.get("dest") || "/formations";
+    const destination = searchParams.get("dest") || "/";
 
     if (!code) {
       // No affiliate code, just redirect to destination
@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("[GET /api/marketing/affiliate/track]", error);
     // On error, still redirect to avoid broken experience
-    const destination = new URL(req.url).searchParams.get("dest") || "/formations";
+    const destination = new URL(req.url).searchParams.get("dest") || "/";
     return NextResponse.redirect(new URL(destination, req.url));
   }
 }

@@ -58,7 +58,7 @@
 
 ## 8. Tunnel de vente — Frontend builder
 
-- [x] 8.1 Créer la page `/formations/(instructeur)/instructeur/tunnel-de-vente/page.tsx` : liste des formations avec bouton "Créer un tunnel"
+- [x] 8.1 Créer la page `/(instructeur)/instructeur/tunnel-de-vente/page.tsx` : liste des formations avec bouton "Créer un tunnel"
 - [x] 8.2 Créer le composant `SalesFunnelBuilder` avec @dnd-kit : éditeur de blocs drag-and-drop
 - [x] 8.3 Implémenter les blocs : Hero (titre, sous-titre, image, CTA)
 - [x] 8.4 Implémenter les blocs : Text (éditeur rich text TipTap)
@@ -75,7 +75,7 @@
 
 ## 9. Tunnel de vente — Page publique
 
-- [x] 9.1 Créer la page `/formations/vente/[slug]/page.tsx` : rendu public des blocs du tunnel
+- [x] 9.1 Créer la page `/vente/[slug]/page.tsx` : rendu public des blocs du tunnel
 - [x] 9.2 Implémenter le rendu de chaque type de bloc en lecture seule
 - [x] 9.3 Connecter le bouton d'achat : redirection vers le checkout ou l'inscription
 

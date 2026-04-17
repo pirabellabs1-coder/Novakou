@@ -13,9 +13,9 @@ La plateforme formations FreelanceHigh est fonctionnellement complète (~40 page
 ## Goals / Non-Goals
 
 **Goals:**
-- Créer un layout formations autonome qui remplace complètement la navbar FreelanceHigh quand l'utilisateur est dans `/formations/*`
+- Créer un layout formations autonome qui remplace complètement la navbar FreelanceHigh quand l'utilisateur est dans `/*`
 - Fournir un header public formations avec des menus spécifiques (Accueil, Explorer, Catégories, Devenir Instructeur)
-- Fournir des pages de connexion et inscription dédiées formations (`/formations/connexion`, `/formations/inscription`)
+- Fournir des pages de connexion et inscription dédiées formations (`/connexion`, `/inscription`)
 - Créer une sidebar/header apprenant avec les menus propres à l'apprenant
 - Créer une sidebar/header instructeur avec les menus propres à l'instructeur
 - Garder un lien "← Retour à FreelanceHigh" pour naviguer entre les deux plateformes
@@ -30,7 +30,7 @@ La plateforme formations FreelanceHigh est fonctionnellement complète (~40 page
 
 ## Decisions
 
-### 1. Route `/formations` comme racine autonome (pas de route group)
+### 1. Route `/` comme racine autonome (pas de route group)
 
 **Choix :** Utiliser `app/formations/` comme dossier de routes classique Next.js avec son propre `layout.tsx` racine, au lieu des route groups actuels `(public)/formations/`, `(apprenant)/formations/`, etc.
 
@@ -38,7 +38,7 @@ La plateforme formations FreelanceHigh est fonctionnellement complète (~40 page
 - *Route group `(formations)/`* : aurait nécessité un préfixe URL différent ou une réécriture middleware complexe
 - *Sous-domaine `formations.freelancehigh.com`* : plus complexe (CORS, cookies cross-domain, déploiement séparé) pour peu de bénéfice au MVP
 
-**Raison :** Un dossier `app/formations/` crée naturellement la hiérarchie `/formations/*` avec un layout isolé. Le layout racine formations remplace celui de FreelanceHigh. Les sous-routes utilisent des route groups internes pour les rôles.
+**Raison :** Un dossier `app/formations/` crée naturellement la hiérarchie `/*` avec un layout isolé. Le layout racine formations remplace celui de FreelanceHigh. Les sous-routes utilisent des route groups internes pour les rôles.
 
 ### 2. Structure de routes interne
 
@@ -84,7 +84,7 @@ app/formations/
 
 ### 3. Auth formations : même Supabase Auth, pages séparées
 
-**Choix :** Créer des pages `/formations/connexion` et `/formations/inscription` qui utilisent Supabase Auth en backend mais ont une UI dédiée formations (header formations, pas de navbar FreelanceHigh).
+**Choix :** Créer des pages `/connexion` et `/inscription` qui utilisent Supabase Auth en backend mais ont une UI dédiée formations (header formations, pas de navbar FreelanceHigh).
 
 **Alternatives considérées :**
 - *Réutiliser les pages `/connexion` et `/inscription` existantes* : l'utilisateur verrait la navbar FreelanceHigh, cassant l'immersion
@@ -121,8 +121,8 @@ app/formations/
 
 **[Routes dupliquées pendant la migration]** → Renommer les anciens route groups avant de créer les nouveaux pour éviter des conflits de routes. Migration en une seule étape.
 
-**[SEO — changement d'URLs]** → Les URLs `/formations/*` restent identiques. Seuls les layouts changent. Pas d'impact SEO.
+**[SEO — changement d'URLs]** → Les URLs `/*` restent identiques. Seuls les layouts changent. Pas d'impact SEO.
 
 **[Sessions partagées]** → Un utilisateur connecté sur FreelanceHigh est aussi connecté sur les formations (même cookie Supabase). C'est souhaitable — pas besoin de double login. Le layout détecte le contexte automatiquement.
 
-**[Complexité middleware]** → Le middleware Next.js doit gérer les routes `/formations/connexion` et `/formations/inscription` comme des routes publiques, et les routes `(apprenant)/*` et `(instructeur)/*` comme protégées. Risque faible — même pattern que le middleware existant.
+**[Complexité middleware]** → Le middleware Next.js doit gérer les routes `/connexion` et `/inscription` comme des routes publiques, et les routes `(apprenant)/*` et `(instructeur)/*` comme protégées. Risque faible — même pattern que le middleware existant.

@@ -22,7 +22,7 @@ The seed must create quiz records with questions for formations that have QUIZ-t
 The instructor profile page must check HTTP response status before parsing JSON.
 
 #### Scenario: Instructor profile API returns 404
-- **WHEN** A user navigates to `/formations/instructeurs/{id}` and the API returns 404
+- **WHEN** A user navigates to `/instructeurs/{id}` and the API returns 404
 - **THEN** The page displays "Instructeur introuvable" with a link to explore formations, without crashing or redirecting to dashboard
 
 #### Scenario: Instructor profile API returns valid data

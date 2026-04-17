@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Page d'accueil formations SHALL afficher des statistiques live
-La page `/formations` SHALL afficher des statistiques dynamiques récupérées depuis l'API : nombre total de formations actives, nombre total d'apprenants, nombre total de certificats délivrés, et note moyenne de la plateforme. Ces statistiques MUST être récupérées depuis `/api/formations/stats` et non hardcodées.
+La page `/` SHALL afficher des statistiques dynamiques récupérées depuis l'API : nombre total de formations actives, nombre total d'apprenants, nombre total de certificats délivrés, et note moyenne de la plateforme. Ces statistiques MUST être récupérées depuis `/api/formations/stats` et non hardcodées.
 
 #### Scenario: Affichage des stats live
-- **WHEN** un visiteur accède à `/formations`
+- **WHEN** un visiteur accède à `/`
 - **THEN** les compteurs affichent les vraies valeurs de la base de données avec animation au chargement
 
 #### Scenario: Données vides
@@ -23,7 +23,7 @@ Les sections "Formations populaires" et "Dernières formations" SHALL utiliser l
 - **THEN** les 8 dernières formations publiées (status=ACTIF) sont affichées
 
 ### Requirement: Explorer SHALL refléter les données en temps réel
-La page `/formations/explorer` SHALL afficher des résultats de recherche et filtres basés exclusivement sur les données Prisma, avec les compteurs de vues, étudiants et notes à jour.
+La page `/explorer` SHALL afficher des résultats de recherche et filtres basés exclusivement sur les données Prisma, avec les compteurs de vues, étudiants et notes à jour.
 
 #### Scenario: Résultats à jour
 - **WHEN** un visiteur recherche des formations
@@ -52,7 +52,7 @@ Les compteurs affichés dans les différents espaces MUST être cohérents : le 
 - **THEN** l'explorer affiche au maximum 50 formations (toutes avec status=ACTIF)
 
 ### Requirement: Catégories de la page d'accueil SHALL provenir de l'API
-Les catégories affichées sur la page d'accueil formations et la page `/formations/categories` SHALL provenir de `/api/formations/categories` avec le compteur de formations par catégorie.
+Les catégories affichées sur la page d'accueil formations et la page `/categories` SHALL provenir de `/api/formations/categories` avec le compteur de formations par catégorie.
 
 #### Scenario: Catégories avec compteurs
 - **WHEN** la page d'accueil charge les catégories
@@ -60,4 +60,4 @@ Les catégories affichées sur la page d'accueil formations et la page `/formati
 
 #### Scenario: Catégorie sans formations
 - **WHEN** une catégorie n'a aucune formation active
-- **THEN** elle est masquée de la page d'accueil mais reste visible dans `/formations/categories`
+- **THEN** elle est masquée de la page d'accueil mais reste visible dans `/categories`

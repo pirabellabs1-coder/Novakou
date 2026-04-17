@@ -5,7 +5,7 @@ Le module formations est inutilisable : les boutons "Acheter" et "Ajouter au pan
 ## What Changes
 
 - **Fix checkout redirect URL** : Le `baseUrl` dans `/api/formations/checkout` utilise `process.env.NEXTAUTH_URL ?? "http://localhost:3450"` alors que l'app tourne sur le port 3000. Le mock payment crée les enrollments mais redirige vers un URL qui ne répond pas → l'utilisateur ne voit jamais la page succès.
-- **Fix "Ajouter au panier" UX** : Le bouton fonctionne côté API mais le feedback utilisateur est silencieux (pas de toast, pas d'indicateur de succès), et le redirect `/formations/panier` échoue si l'apprenant n'est pas dans le bon layout group `(apprenant)`.
+- **Fix "Ajouter au panier" UX** : Le bouton fonctionne côté API mais le feedback utilisateur est silencieux (pas de toast, pas d'indicateur de succès), et le redirect `/panier` échoue si l'apprenant n'est pas dans le bon layout group `(apprenant)`.
 - **Fix "Acheter" flow** : Le `buyNow` ajoute au panier puis appelle checkout, mais en mock mode le `data.url` contient un URL vers le port 3450 qui ne fonctionne pas. Quand `checkoutUrl` est `null` (mock provider), le code devrait rediriger localement vers la page succès au lieu d'attendre un URL Stripe.
 - **Fix dashboard stats** : Si aucun enrollment n'existe (à cause du flow cassé), tous les stats sont 0. Fixer le flow d'achat résoudra ce problème en cascade. Vérifier aussi que le calcul `totalHours` divise correctement par 60 (minutes → heures).
 - **Fix progression** : La progression individuelle dépend d'enrollments existants + la page "apprendre" met à jour via PUT `/api/formations/[id]/progress`. Corriger le flow d'achat débloquera la progression.

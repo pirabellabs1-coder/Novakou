@@ -1,9 +1,9 @@
 ## 1. Middleware — Formations Space Isolation
 
-- [x] 1.1 Refactor `middleware.ts` to use a catch-all guard for `/formations/` protected routes instead of explicit prefix list. Define `FORMATIONS_PUBLIC_PATTERNS` (catalog, detail pages, checkout success) and `FORMATIONS_AUTH_ROUTES` (connexion, inscription). Any `/formations/*` route not matching public or auth patterns SHALL require authentication.
-- [x] 1.2 Ensure `/formations/instructeur/*` still requires `formationsRole=instructeur` or `role=admin`
-- [x] 1.3 Ensure `/formations/admin/*` still requires `role=admin`
-- [x] 1.4 Verify that the main app role-based routing (lines 258-276) is never reached by `/formations/*` routes
+- [x] 1.1 Refactor `middleware.ts` to use a catch-all guard for `/` protected routes instead of explicit prefix list. Define `FORMATIONS_PUBLIC_PATTERNS` (catalog, detail pages, checkout success) and `FORMATIONS_AUTH_ROUTES` (connexion, inscription). Any `/*` route not matching public or auth patterns SHALL require authentication.
+- [x] 1.2 Ensure `/instructeur/*` still requires `formationsRole=instructeur` or `role=admin`
+- [x] 1.3 Ensure `/admin/*` still requires `role=admin`
+- [x] 1.4 Verify that the main app role-based routing (lines 258-276) is never reached by `/*` routes
 
 ## 2. Data Persistence — Fix ensureUserInDb
 

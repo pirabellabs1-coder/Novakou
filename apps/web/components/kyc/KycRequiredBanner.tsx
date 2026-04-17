@@ -49,7 +49,7 @@ export function KycRequiredBanner() {
     role === "agence"
       ? "/agence/kyc"
       : role === "instructeur"
-        ? "/formations/instructeur/kyc"
+        ? "/instructeur/kyc"
         : "/dashboard/kyc";
 
   return (

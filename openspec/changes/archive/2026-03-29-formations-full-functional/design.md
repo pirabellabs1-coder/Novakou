@@ -38,7 +38,7 @@ La plateforme Formations standalone est structurellement complète avec ~45 API 
 - Réutiliser directement les pages de `app/admin/formations/` via un redirect → Impossible car elles héritent du layout admin FreelanceHigh
 - Créer un layout conditionnel qui change selon l'URL → Trop complexe, casse le modèle mental Next.js
 
-**Justification** : Les route groups Next.js (`(admin)`) n'affectent pas l'URL. Les pages admin formations seront accessibles à `/formations/admin/*` avec le layout standalone formations + sidebar admin dédiée. Les APIs existantes sous `/api/admin/formations/` restent inchangées.
+**Justification** : Les route groups Next.js (`(admin)`) n'affectent pas l'URL. Les pages admin formations seront accessibles à `/admin/*` avec le layout standalone formations + sidebar admin dédiée. Les APIs existantes sous `/api/admin/formations/` restent inchangées.
 
 ### D2 — Stats page d'accueil via nouvelle API
 
@@ -94,7 +94,7 @@ La plateforme Formations standalone est structurellement complète avec ~45 API 
 
 - **[QR code certificat]** → Nécessite le package `qrcode` (ou similaire). Mitigation : package léger (~30KB), bien maintenu, utilisé par millions de projets.
 
-- **[Admin formations accessible sans vérification admin]** → Le middleware doit protéger `/formations/admin/*`. Mitigation : ajouter la route dans le middleware existant avec vérification du rôle admin.
+- **[Admin formations accessible sans vérification admin]** → Le middleware doit protéger `/admin/*`. Mitigation : ajouter la route dans le middleware existant avec vérification du rôle admin.
 
 ## Open Questions
 

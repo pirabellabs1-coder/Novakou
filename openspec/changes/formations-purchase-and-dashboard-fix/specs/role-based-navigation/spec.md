@@ -9,11 +9,11 @@ The FormationsHeader SHALL display different menu items based on the authenticat
 
 #### Scenario: Apprenant sees learner navigation
 - **WHEN** user is logged in with role "apprenant" (no instructeur profile)
-- **THEN** the header displays "Mes formations" → `/formations/mes-formations`, "Panier", and hides "Devenir instructeur"
+- **THEN** the header displays "Mes formations" → `/mes-formations`, "Panier", and hides "Devenir instructeur"
 
 #### Scenario: Instructeur sees dashboard link
 - **WHEN** user is logged in and has an instructeur profile (role instructeur OR has instructeurProfileId)
-- **THEN** the header displays "Mon tableau de bord" → `/formations/instructeur` instead of "Mes formations", hides "Devenir instructeur", and shows "Panier"
+- **THEN** the header displays "Mon tableau de bord" → `/instructeur` instead of "Mes formations", hides "Devenir instructeur", and shows "Panier"
 
 #### Scenario: Admin sees admin button plus standard navigation
 - **WHEN** user is logged in with role "admin"

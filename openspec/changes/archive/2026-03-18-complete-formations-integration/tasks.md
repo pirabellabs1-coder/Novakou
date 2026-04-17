@@ -82,8 +82,8 @@
 - [x] 11.2 Créer `lib/formations/hooks-admin.ts` avec `useAdminDashboard()`, `useAdminFormations()`, `useAdminCohorts()`, `useAdminDiscussions()`, `useAdminAuditLog()`, `useAdminMarketing()`, `useAdminRefunds()`, `useAdminConfig()` — dashboards à 30s, listes à 60s
 - [x] 11.3 Migrer toutes les pages apprenant existantes de `useState+useEffect+fetch` vers les hooks TanStack Query créés en 11.1
 - [x] 11.4 Migrer toutes les pages admin existantes de `useState+useEffect+fetch` vers les hooks TanStack Query créés en 11.2
-- [x] 11.5 Connecter la page d'accueil `/formations/page.tsx` aux vraies données API (stats live, formations populaires, formations récentes, catégories avec compteurs) — supprimer toute donnée statique
-- [x] 11.6 Vérifier la page explorer `/formations/explorer/page.tsx` — confirmer que les filtres, la pagination, et les résultats utilisent exclusivement les données Prisma et que les compteurs (étudiants, notes, vues) sont à jour
+- [x] 11.5 Connecter la page d'accueil `/page.tsx` aux vraies données API (stats live, formations populaires, formations récentes, catégories avec compteurs) — supprimer toute donnée statique
+- [x] 11.6 Vérifier la page explorer `/explorer/page.tsx` — confirmer que les filtres, la pagination, et les résultats utilisent exclusivement les données Prisma et que les compteurs (étudiants, notes, vues) sont à jour
 
 ## 12. Vérification et Tests
 

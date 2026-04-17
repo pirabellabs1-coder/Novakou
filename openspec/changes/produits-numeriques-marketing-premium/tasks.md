@@ -25,13 +25,13 @@
 
 ## 3. Produits Numériques — Pages Frontend
 
-- [x] 3.1 Créer la page marketplace produits `/formations/produits/page.tsx` — grille responsive avec bannière, titre, prix, type badge, note, ventes, badge "Stock limité", badge "Aperçu dispo", filtres et tri
-- [x] 3.2 Créer la page détail produit `/formations/produits/[slug]/page.tsx` — bannière grande, description Tiptap rendue, prix (barré si promo), type produit, instructeur, avis, bouton aperçu, bouton acheter, compteur stock, countdown promo
+- [x] 3.1 Créer la page marketplace produits `/produits/page.tsx` — grille responsive avec bannière, titre, prix, type badge, note, ventes, badge "Stock limité", badge "Aperçu dispo", filtres et tri
+- [x] 3.2 Créer la page détail produit `/produits/[slug]/page.tsx` — bannière grande, description Tiptap rendue, prix (barré si promo), type produit, instructeur, avis, bouton aperçu, bouton acheter, compteur stock, countdown promo
 - [x] 3.3 Créer le composant `CountdownTimer` réutilisable (jours/heures/minutes/secondes, mise à jour chaque seconde, disparition à zéro)
 - [x] 3.4 Créer le composant `StockCounter` réutilisable (barre de progression, "Plus que X places/exemplaires !", couleur rouge si < 10%)
-- [x] 3.5 Créer la page wizard création produit `/formations/(instructeur)/instructeur/produits/creer/page.tsx` — wizard 4 étapes : Informations (titre FR/EN, catégorie, type produit, tags), Description (éditeur Tiptap), Fichier & Aperçu (upload, bannière, config aperçu/filigrane, stock max), Prix & Publication (prix, prix original, gratuit, soumettre)
-- [x] 3.6 Créer la page liste produits instructeur `/formations/(instructeur)/instructeur/produits/page.tsx` — tableau avec titre, type, prix, ventes, revenus, stock, statut, actions (modifier, archiver, dupliquer)
-- [x] 3.7 Créer la page bibliothèque téléchargements apprenant `/formations/(apprenant)/mes-produits/page.tsx` — liste des produits achetés avec bouton télécharger, clé de licence (si type LICENCE), nombre de téléchargements restants
+- [x] 3.5 Créer la page wizard création produit `/(instructeur)/instructeur/produits/creer/page.tsx` — wizard 4 étapes : Informations (titre FR/EN, catégorie, type produit, tags), Description (éditeur Tiptap), Fichier & Aperçu (upload, bannière, config aperçu/filigrane, stock max), Prix & Publication (prix, prix original, gratuit, soumettre)
+- [x] 3.6 Créer la page liste produits instructeur `/(instructeur)/instructeur/produits/page.tsx` — tableau avec titre, type, prix, ventes, revenus, stock, statut, actions (modifier, archiver, dupliquer)
+- [x] 3.7 Créer la page bibliothèque téléchargements apprenant `/(apprenant)/mes-produits/page.tsx` — liste des produits achetés avec bouton télécharger, clé de licence (si type LICENCE), nombre de téléchargements restants
 - [x] 3.8 Ajouter le lien "Produits numériques" dans la sidebar instructeur et le lien "Mes produits" dans la sidebar apprenant
 
 ## 4. Éditeur de Description Riche (Tiptap)
@@ -40,7 +40,7 @@
 - [x] 4.2 Intégrer `FormationRichEditor` dans le wizard de création de formation (étape 1) pour les champs descriptionFr et descriptionEn en remplacement des textarea
 - [x] 4.3 Intégrer `FormationRichEditor` dans le wizard de création de produit numérique (étape 2)
 - [x] 4.4 Créer le composant `TiptapRenderer` pour le rendu readonly sur les pages publiques — utilise `@tiptap/react` avec `editable: false`, sanitise le HTML (supprime scripts, iframes non autorisées)
-- [x] 4.5 Modifier la page détail formation `/formations/[slug]/page.tsx` pour utiliser `TiptapRenderer` au lieu du rendu texte brut — avec fallback : si `descriptionFormat !== 'tiptap'`, wrapper le texte brut en paragraphe Tiptap
+- [x] 4.5 Modifier la page détail formation `/[slug]/page.tsx` pour utiliser `TiptapRenderer` au lieu du rendu texte brut — avec fallback : si `descriptionFormat !== 'tiptap'`, wrapper le texte brut en paragraphe Tiptap
 - [x] 4.6 Ajouter le support drag-and-drop d'images dans l'éditeur Tiptap — upload vers `/api/upload/image` (Cloudinary), insertion en tant que nœud image avec URL optimisée
 
 ## 5. Promotions Flash & Stock Limité
@@ -84,12 +84,12 @@
 - [x] 8.6 Créer les helpers `firePixelEvent(type, data)` pour déclencher PageView, AddToCart, Purchase sur les 3 plateformes avec les bons formats (fbq, gtag, ttq)
 - [x] 8.7 Intégrer `PixelTracker` dans le layout formations `(public)` — charger les pixels de l'instructeur pour la formation courante
 - [x] 8.8 Déclencher `firePixelEvent('AddToCart')` dans la fonction d'ajout au panier et `firePixelEvent('Purchase')` sur la page de succès post-paiement
-- [x] 8.9 Créer la page configuration pixels `/formations/(instructeur)/instructeur/marketing/pixels/page.tsx` — formulaire avec champs par type de pixel, toggle actif/inactif, validation format
+- [x] 8.9 Créer la page configuration pixels `/(instructeur)/instructeur/marketing/pixels/page.tsx` — formulaire avec champs par type de pixel, toggle actif/inactif, validation format
 
 ## 9. Dashboard Marketing Instructeur
 
 - [x] 9.1 Créer `GET /api/instructeur/marketing/stats` — API retournant le funnel de conversion (pageViews, addToCarts, checkouts, purchases avec taux), paniers abandonnés (total, recovered, recoveryRate, recoveredRevenue), revenus par source, promotions flash actives/programmées
-- [x] 9.2 Créer la page dashboard marketing `/formations/(instructeur)/instructeur/marketing/page.tsx` — layout avec 4 sections : funnel visuel, stats paniers abandonnés, revenus par source (camembert), promotions flash (calendrier)
+- [x] 9.2 Créer la page dashboard marketing `/(instructeur)/instructeur/marketing/page.tsx` — layout avec 4 sections : funnel visuel, stats paniers abandonnés, revenus par source (camembert), promotions flash (calendrier)
 - [x] 9.3 Créer le composant `ConversionFunnel` — visualisation funnel en 4 étapes avec barres, nombres et taux de conversion entre chaque étape + comparaison mois précédent
 - [x] 9.4 Créer le composant `AbandonedCartStats` — cards avec nombre abandonné, récupéré, taux, revenus récupérés + graphique 6 mois
 - [x] 9.5 Créer le composant `RevenueBySource` — graphique camembert (ventes directes, via code promo, promotions flash, récupération paniers)
@@ -101,14 +101,14 @@
 - [x] 10.1 Créer `GET /api/admin/formations/produits` — liste des produits numériques pour l'admin (tous statuts) avec filtres
 - [x] 10.2 Créer `POST /api/admin/formations/produits/approve/[id]` — approbation d'un produit (statut → ACTIF, email instructeur)
 - [x] 10.3 Créer `POST /api/admin/formations/produits/reject/[id]` — rejet d'un produit avec motif (email instructeur)
-- [x] 10.4 Créer la page admin produits numériques `/formations/(admin)/admin/produits/page.tsx` — tableau avec titre, type, instructeur, prix, statut, actions (approuver, rejeter, archiver)
+- [x] 10.4 Créer la page admin produits numériques `/(admin)/admin/produits/page.tsx` — tableau avec titre, type, instructeur, prix, statut, actions (approuver, rejeter, archiver)
 - [x] 10.5 Ajouter les stats produits numériques dans le dashboard admin (total produits, ventes, revenus) et le lien "Produits" dans la sidebar admin
 - [x] 10.6 Ajouter les stats marketing dans le dashboard admin (paniers abandonnés plateforme, taux récupération global, paiements échoués)
 
 ## 11. Navigation, i18n & Intégration
 
 - [x] 11.1 Ajouter les clés i18n dans fr.json et en.json pour : produits numériques (marketplace, détail, création, gestion), promotions flash, dashboard marketing, paniers abandonnés, pixels publicitaires, emails de relance
-- [x] 11.2 Ajouter les routes `/formations/produits/*` et `/formations/instructeur/produits/*` et `/formations/instructeur/marketing/*` dans le middleware avec les vérifications d'authentification appropriées
+- [x] 11.2 Ajouter les routes `/produits/*` et `/instructeur/produits/*` et `/instructeur/marketing/*` dans le middleware avec les vérifications d'authentification appropriées
 - [x] 11.3 Ajouter le lien "Produits numériques" dans le FormationsHeader (navigation publique) entre "Catégories" et "Devenir instructeur"
 - [x] 11.4 Mettre à jour la page d'accueil formations pour inclure une section "Produits numériques populaires" sous les formations
 - [x] 11.5 Ajouter les templates email dans `lib/email/formations.ts` : `sendDigitalProductDeliveryEmail`, `sendLicenseKeyEmail`, `sendAbandonedCartEmail`, `sendFailedPaymentEmail`, `sendDisputeNotificationEmail`

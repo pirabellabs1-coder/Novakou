@@ -40,9 +40,9 @@ La maquette de reference (`profil_public_freelance_et_portfolio/screen.png`) mon
 
 ### 3. Profil apprenant dans le namespace formations
 
-**Choix :** Creer la page a `/formations/apprenants/[id]/page.tsx` (dans l'espace formations, pas dans `(public)/`).
+**Choix :** Creer la page a `/apprenants/[id]/page.tsx` (dans l'espace formations, pas dans `(public)/`).
 
-**Pourquoi :** Le profil apprenant est lie a l'ecosysteme formations (cours, certificats, cohorts). Le placer dans `/formations/` maintient la coherence avec les profils instructeurs.
+**Pourquoi :** Le profil apprenant est lie a l'ecosysteme formations (cours, certificats, cohorts). Le placer dans `/` maintient la coherence avec les profils instructeurs.
 
 ### 4. Portfolio via donnees JSON dans le profil (pas de table separee)
 

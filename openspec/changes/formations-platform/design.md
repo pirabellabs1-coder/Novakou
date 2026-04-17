@@ -85,7 +85,7 @@ La section formations doit coexister avec l'existant sans casser les flux actuel
 
 ### 7. Système bilingue FR/EN — namespaces next-intl distincts
 
-**Décision :** 4 nouveaux namespaces next-intl : `formations`, `apprenant`, `instructeur`, `formations-admin`. Chargés à la demande (lazy loading) uniquement sur les pages `/formations`. Les contenus des cours eux-mêmes (titres, descriptions) sont stockés bilingues en DB (`titleFr`, `titleEn`, `descriptionFr`, `descriptionEn`).
+**Décision :** 4 nouveaux namespaces next-intl : `formations`, `apprenant`, `instructeur`, `formations-admin`. Chargés à la demande (lazy loading) uniquement sur les pages `/`. Les contenus des cours eux-mêmes (titres, descriptions) sont stockés bilingues en DB (`titleFr`, `titleEn`, `descriptionFr`, `descriptionEn`).
 
 **Rationale :** Séparation claire entre les traductions d'interface (gérées par next-intl) et le contenu bilingue des cours (géré en DB). Le lazy loading des namespaces évite d'alourdir le bundle des pages non-formations.
 

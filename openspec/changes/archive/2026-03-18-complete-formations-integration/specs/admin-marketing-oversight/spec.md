@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Admin SHALL pouvoir superviser les activités marketing de tous les instructeurs
-Une nouvelle page `/formations/admin/marketing` SHALL afficher un tableau de bord des activités marketing de tous les instructeurs : promotions actives, codes promo en cours, campagnes, pixels configurés, et revenus attribués au marketing.
+Une nouvelle page `/admin/marketing` SHALL afficher un tableau de bord des activités marketing de tous les instructeurs : promotions actives, codes promo en cours, campagnes, pixels configurés, et revenus attribués au marketing.
 
 #### Scenario: Affichage de la vue d'ensemble marketing
-- **WHEN** l'admin accède à `/formations/admin/marketing`
+- **WHEN** l'admin accède à `/admin/marketing`
 - **THEN** la page affiche 4 KPI cards (promotions actives, codes promo actifs, revenus marketing total, taux de conversion moyen) et un tableau listant toutes les promotions actives avec l'instructeur associé
 
 #### Scenario: Filtrage par instructeur

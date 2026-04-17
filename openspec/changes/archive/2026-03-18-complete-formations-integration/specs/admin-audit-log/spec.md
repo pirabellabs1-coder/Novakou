@@ -12,10 +12,10 @@ Chaque action admin de modification (approbation, rejet, suspension, révocation
 - **THEN** un `AuditLog` est créé avec action="certificate_revoked", targetType="certificate", targetId=<certificateId>, metadata={reason: "..."}
 
 ### Requirement: Admin SHALL pouvoir consulter le journal d'audit
-Une nouvelle page `/formations/admin/audit-log` SHALL afficher l'historique chronologique de toutes les actions admin avec filtres par type d'action, par admin, et par période.
+Une nouvelle page `/admin/audit-log` SHALL afficher l'historique chronologique de toutes les actions admin avec filtres par type d'action, par admin, et par période.
 
 #### Scenario: Affichage du journal d'audit
-- **WHEN** l'admin accède à `/formations/admin/audit-log`
+- **WHEN** l'admin accède à `/admin/audit-log`
 - **THEN** une timeline affiche les 50 dernières actions avec : date/heure, nom de l'admin, action (badge coloré), cible (lien cliquable), et détails
 
 #### Scenario: Filtrage par type d'action

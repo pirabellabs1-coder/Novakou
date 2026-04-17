@@ -37,7 +37,7 @@
 ## 6. Profil instructeur — vérification flux
 
 - [x] 6.1 Vérifier que l'API `/api/formations/instructeurs/[id]/route.ts` existe et retourne le bon format (InstructeurPublic)
-- [x] 6.2 Vérifier que la page `/formations/instructeurs/[id]/page.tsx` affiche correctement les données
+- [x] 6.2 Vérifier que la page `/instructeurs/[id]/page.tsx` affiche correctement les données
 - [x] 6.3 Corriger: API manquait `bio` field (avait bioFr/bioEn mais pas bio) — ajouté `bio: bioFr || bioEn`
 
 ## 7. Descriptions produits numériques enrichies

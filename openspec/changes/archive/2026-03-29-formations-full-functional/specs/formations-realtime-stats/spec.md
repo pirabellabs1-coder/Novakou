@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: La page d'accueil formations DOIT afficher des compteurs dynamiques
-La section statistiques de la page d'accueil formations (`/formations`) DOIT afficher des compteurs provenant de l'API `/api/formations/stats` au lieu de valeurs hardcodées.
+La section statistiques de la page d'accueil formations (`/`) DOIT afficher des compteurs provenant de l'API `/api/formations/stats` au lieu de valeurs hardcodées.
 
 #### Scenario: Chargement des statistiques de la page d'accueil
 - **WHEN** la page d'accueil formations se charge
@@ -26,14 +26,14 @@ Le dashboard instructeur DOIT afficher les revenus totaux, les ventes du mois, l
 - **THEN** les métriques (revenus, ventes, apprenants, note) DOIVENT provenir de l'API `/api/instructeur/dashboard` avec des agrégations Prisma réelles
 
 ### Requirement: La page statistiques instructeur DOIT afficher des graphiques de revenus réels
-La page `/formations/instructeur/statistiques` DOIT afficher des graphiques de revenus mensuels, inscriptions par formation, et taux de complétion — calculés à partir des données réelles en base.
+La page `/instructeur/statistiques` DOIT afficher des graphiques de revenus mensuels, inscriptions par formation, et taux de complétion — calculés à partir des données réelles en base.
 
 #### Scenario: Graphique de revenus mensuels instructeur
 - **WHEN** l'instructeur consulte sa page statistiques
 - **THEN** le graphique de revenus DOIT montrer les vrais montants par mois calculés à partir des `Enrollment.paidAmount` groupés par mois
 
 ### Requirement: La page devenir-instructeur DOIT afficher des statistiques dynamiques
-La page `/formations/devenir-instructeur` DOIT remplacer les compteurs hardcodés (500+ instructeurs, 50K+ apprenants) par des données réelles de l'API.
+La page `/devenir-instructeur` DOIT remplacer les compteurs hardcodés (500+ instructeurs, 50K+ apprenants) par des données réelles de l'API.
 
 #### Scenario: Statistiques dynamiques sur devenir-instructeur
 - **WHEN** la page devenir-instructeur se charge

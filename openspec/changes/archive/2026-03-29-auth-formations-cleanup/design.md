@@ -43,7 +43,7 @@ La plateforme FreelanceHigh utilise NextAuth (credentials provider) avec un JWT 
 
 ### 3. Middleware — exclusion des routes formations auth
 
-**Choix** : Retirer `/formations/connexion` et `/formations/inscription` de la liste `AUTH_ROUTES` dans `middleware.ts`. Permettre l'accès même si l'utilisateur est déjà authentifié.
+**Choix** : Retirer `/connexion` et `/inscription` de la liste `AUTH_ROUTES` dans `middleware.ts`. Permettre l'accès même si l'utilisateur est déjà authentifié.
 
 **Raison** : Un freelance connecté doit pouvoir s'inscrire en tant qu'apprenant sans être redirigé vers `/dashboard`.
 
@@ -63,6 +63,6 @@ La plateforme FreelanceHigh utilise NextAuth (credentials provider) avec un JWT 
 
 ## Risks / Trade-offs
 
-- **Deux rôles en parallèle (role + formationsRole)** → Complexité modérée dans le middleware. Mitigation : le formationsRole est optionnel et n'affecte que les routes `/formations/*`.
+- **Deux rôles en parallèle (role + formationsRole)** → Complexité modérée dans le middleware. Mitigation : le formationsRole est optionnel et n'affecte que les routes `/*`.
 - **APIs retournant `[]`** → L'UI sera vide tant que les vrais backends ne sont pas implémentés. Mitigation : états vides bien designés avec CTA ("Commencez par...").
 - **Pas de migration Prisma** → En mode dev, le `formationsRole` est dans le JSON store. En production avec Supabase Auth, il sera dans les custom claims. Mitigation : l'abstraction via `lib/auth/config.ts` centralise la lecture du rôle.

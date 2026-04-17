@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Formations landing page is publicly accessible
-La landing page `/formations` DOIT être accessible à tous les visiteurs sans authentification. Elle DOIT afficher un hero bilingue FR/EN, des statistiques animées, les 12 catégories de formations, une grille de formations en vedette (populaires), une section "Comment ça marche", des témoignages d'apprenants et une section CTA pour devenir instructeur.
+La landing page `/` DOIT être accessible à tous les visiteurs sans authentification. Elle DOIT afficher un hero bilingue FR/EN, des statistiques animées, les 12 catégories de formations, une grille de formations en vedette (populaires), une section "Comment ça marche", des témoignages d'apprenants et une section CTA pour devenir instructeur.
 
 #### Scenario: Visiteur non connecté accède à la landing page formations
-- **WHEN** un visiteur navigue vers `/formations`
+- **WHEN** un visiteur navigue vers `/`
 - **THEN** la page se charge sans redirection vers l'authentification et affiche le contenu complet en français par défaut
 
 #### Scenario: Statistiques de la landing page reflètent les données réelles
@@ -13,14 +13,14 @@ La landing page `/formations` DOIT être accessible à tous les visiteurs sans a
 
 #### Scenario: Clic sur une catégorie depuis la landing page
 - **WHEN** un visiteur clique sur une catégorie (ex: "Développement Web")
-- **THEN** il est redirigé vers `/formations/explorer?category=developpement-web` avec le filtre catégorie pré-sélectionné
+- **THEN** il est redirigé vers `/explorer?category=developpement-web` avec le filtre catégorie pré-sélectionné
 
 #### Scenario: Clic sur "Devenir instructeur" depuis la landing page
 - **WHEN** un visiteur clique sur le CTA "Devenir instructeur" / "Become an Instructor"
-- **THEN** il est redirigé vers `/formations/devenir-instructeur`
+- **THEN** il est redirigé vers `/devenir-instructeur`
 
 ### Requirement: Formations marketplace offers advanced search and filtering
-La marketplace `/formations/explorer` DOIT permettre de rechercher et filtrer les formations par catégorie, niveau, prix, durée, note minimale et langue. La recherche textuelle DOIT utiliser Postgres Full-Text Search avec debounce de 300ms. La pagination DOIT être infinie ou par pages. Les résultats DOIVENT afficher le nombre total de formations trouvées.
+La marketplace `/explorer` DOIT permettre de rechercher et filtrer les formations par catégorie, niveau, prix, durée, note minimale et langue. La recherche textuelle DOIT utiliser Postgres Full-Text Search avec debounce de 300ms. La pagination DOIT être infinie ou par pages. Les résultats DOIVENT afficher le nombre total de formations trouvées.
 
 #### Scenario: Recherche textuelle avec résultats en temps réel
 - **WHEN** un utilisateur saisit "React" dans la barre de recherche
@@ -47,10 +47,10 @@ La marketplace `/formations/explorer` DOIT permettre de rechercher et filtrer le
 - **THEN** les formations sont affichées par ordre décroissant de note moyenne (champ `rating`)
 
 ### Requirement: Formation detail page displays complete course information
-La page détail d'une formation `/formations/[slug]` DOIT afficher l'en-tête de la formation (titre, description courte, note, étudiants inscrits, niveau, durée, langue), le layout en deux colonnes avec les onglets Aperçu / Programme / Instructeur / Avis, et une card d'achat sticky à droite avec le prix, les boutons d'action et les informations incluses dans la formation.
+La page détail d'une formation `/[slug]` DOIT afficher l'en-tête de la formation (titre, description courte, note, étudiants inscrits, niveau, durée, langue), le layout en deux colonnes avec les onglets Aperçu / Programme / Instructeur / Avis, et une card d'achat sticky à droite avec le prix, les boutons d'action et les informations incluses dans la formation.
 
 #### Scenario: Visiteur non connecté voit la page détail d'une formation active
-- **WHEN** un visiteur navigue vers `/formations/introduction-react-pour-debutants`
+- **WHEN** un visiteur navigue vers `/introduction-react-pour-debutants`
 - **THEN** la page affiche toutes les informations de la formation (titre, description, programme, instructeur, avis) sans nécessiter de connexion
 
 #### Scenario: Leçons gratuites sont accessibles sans achat
@@ -74,10 +74,10 @@ La page détail d'une formation `/formations/[slug]` DOIT afficher l'en-tête de
 - **THEN** le badge "Nouveau / New" est affiché sur la card
 
 ### Requirement: Instructor public profile page is accessible
-La page de profil public d'un instructeur `/formations/instructeurs/[id]` DOIT afficher les informations bilingues de l'instructeur (nom, photo, bio FR/EN, expertise, note moyenne, nombre de formations et d'étudiants), la liste de ses formations actives et ses avis reçus.
+La page de profil public d'un instructeur `/instructeurs/[id]` DOIT afficher les informations bilingues de l'instructeur (nom, photo, bio FR/EN, expertise, note moyenne, nombre de formations et d'étudiants), la liste de ses formations actives et ses avis reçus.
 
 #### Scenario: Accès au profil public d'un instructeur approuvé
-- **WHEN** un visiteur navigue vers `/formations/instructeurs/[id]` pour un instructeur avec statut APPROUVE
+- **WHEN** un visiteur navigue vers `/instructeurs/[id]` pour un instructeur avec statut APPROUVE
 - **THEN** la page affiche le profil complet de l'instructeur avec ses formations actives
 
 #### Scenario: Profil d'un instructeur suspendu est inaccessible publiquement
@@ -85,21 +85,21 @@ La page de profil public d'un instructeur `/formations/instructeurs/[id]` DOIT a
 - **THEN** il reçoit une réponse 404
 
 ### Requirement: Certificate verification page is publicly accessible
-La page `/formations/verification/[code]` DOIT être accessible sans authentification. Elle DOIT vérifier l'authenticité d'un certificat par son code unique et afficher les informations du certificat si authentique, ou une erreur si le code est invalide ou révoqué.
+La page `/verification/[code]` DOIT être accessible sans authentification. Elle DOIT vérifier l'authenticité d'un certificat par son code unique et afficher les informations du certificat si authentique, ou une erreur si le code est invalide ou révoqué.
 
 #### Scenario: Vérification d'un certificat authentique
-- **WHEN** un visiteur accède à `/formations/verification/FH-2026-A1B2C3`
+- **WHEN** un visiteur accède à `/verification/FH-2026-A1B2C3`
 - **THEN** la page affiche "Ce certificat est authentique" avec le nom de l'apprenant, la formation, la date d'obtention, le score et le nom de l'instructeur
 
 #### Scenario: Vérification d'un code de certificat invalide
-- **WHEN** un visiteur accède à `/formations/verification/INVALIDE-CODE`
+- **WHEN** un visiteur accède à `/verification/INVALIDE-CODE`
 - **THEN** la page affiche "Ce certificat n'existe pas ou a été révoqué" sans exposer d'informations internes
 
 ### Requirement: Formation SEO metadata is generated dynamically
 Chaque page publique de la section formations DOIT générer des métadonnées SEO dynamiques (title, description, Open Graph) basées sur les données réelles de la formation. Le sitemap dynamique Next.js DOIT inclure toutes les formations au statut ACTIF.
 
 #### Scenario: Métadonnées SEO d'une page formation
-- **WHEN** un moteur de recherche indexe `/formations/introduction-react-pour-debutants`
+- **WHEN** un moteur de recherche indexe `/introduction-react-pour-debutants`
 - **THEN** la page retourne un tag `<title>` et `<meta name="description">` spécifiques à cette formation, et non les métadonnées génériques du site
 
 #### Scenario: Formation archivée est exclue du sitemap

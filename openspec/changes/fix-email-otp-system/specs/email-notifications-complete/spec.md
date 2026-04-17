@@ -16,7 +16,7 @@ Un email de bienvenue DOIT être envoyé pour chaque nouvelle inscription, quel 
 - **THEN** un email de bienvenue DOIT être envoyé à son adresse email LinkedIn
 
 #### Scenario: Inscription sur la partie formations
-- **WHEN** un utilisateur s'inscrit comme apprenant ou instructeur sur `/formations/inscription`
+- **WHEN** un utilisateur s'inscrit comme apprenant ou instructeur sur `/inscription`
 - **THEN** un email de bienvenue formations DOIT être envoyé
 
 #### Scenario: Utilisateur existant se connecte (pas première fois)

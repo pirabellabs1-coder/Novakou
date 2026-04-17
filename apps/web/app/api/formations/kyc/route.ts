@@ -141,7 +141,7 @@ export async function POST(request: Request) {
         type: "ORDER" as const,
         title: "Nouvelle demande KYC",
         message: `Un utilisateur a soumis ses documents de vérification (${documentType}).`,
-        link: "/formations/admin/kyc",
+        link: "/admin/kyc",
       })),
     }).catch(() => null);
 

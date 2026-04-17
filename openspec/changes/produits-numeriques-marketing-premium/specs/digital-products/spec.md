@@ -4,7 +4,7 @@
 Le système DOIT permettre aux instructeurs approuvés de créer des produits numériques (ebooks, PDFs, templates, licences logicielles) avec un wizard de création dédié. Un produit numérique comprend : titre (FR/EN), description riche (Tiptap), prix, bannière/couverture, fichier principal, catégorie, tags, et paramètres d'aperçu.
 
 #### Scenario: Création d'un ebook avec aperçu
-- **WHEN** un instructeur approuvé accède à `/formations/instructeur/produits/creer` et remplit le formulaire (titre, description Tiptap, prix 29€, upload PDF 15MB, bannière, catégorie "Développement", aperçu activé avec 5 pages, filigrane activé)
+- **WHEN** un instructeur approuvé accède à `/instructeur/produits/creer` et remplit le formulaire (titre, description Tiptap, prix 29€, upload PDF 15MB, bannière, catégorie "Développement", aperçu activé avec 5 pages, filigrane activé)
 - **THEN** le système crée un `DigitalProduct` avec statut `EN_ATTENTE`, stocke le fichier dans Supabase Storage bucket `digital-products`, génère un aperçu filigrané des 5 premières pages, et notifie l'admin pour modération
 
 #### Scenario: Création d'une licence logicielle
@@ -60,7 +60,7 @@ Le système DOIT permettre aux visiteurs de prévisualiser un produit numérique
 - **THEN** le système retourne une erreur 404 "Aperçu non disponible pour ce produit"
 
 ### Requirement: Instructeur SHALL manage digital products
-Le système DOIT fournir une page de gestion des produits numériques à `/formations/instructeur/produits` avec liste, statistiques (ventes, revenus, vues), et actions (modifier, archiver, dupliquer).
+Le système DOIT fournir une page de gestion des produits numériques à `/instructeur/produits` avec liste, statistiques (ventes, revenus, vues), et actions (modifier, archiver, dupliquer).
 
 #### Scenario: Liste des produits avec statistiques
 - **WHEN** un instructeur accède à sa page produits
@@ -74,12 +74,12 @@ Le système DOIT permettre aux admins d'approuver, rejeter ou archiver les produ
 - **THEN** le statut passe à `ACTIF`, le produit apparaît dans la marketplace, et l'instructeur reçoit un email de confirmation
 
 ### Requirement: Public SHALL browse digital products marketplace
-Le système DOIT afficher les produits numériques dans une section dédiée de la marketplace accessible à `/formations/produits` avec filtres (catégorie, prix, type, note), tri, et pagination.
+Le système DOIT afficher les produits numériques dans une section dédiée de la marketplace accessible à `/produits` avec filtres (catégorie, prix, type, note), tri, et pagination.
 
 #### Scenario: Exploration de la marketplace produits
-- **WHEN** un visiteur accède à `/formations/produits`
+- **WHEN** un visiteur accède à `/produits`
 - **THEN** le système affiche une grille de produits numériques actifs avec bannière, titre, prix, type, note, nombre de ventes, badge "Stock limité" si applicable, et badge "Aperçu disponible" si aperçu activé
 
 #### Scenario: Page détail produit numérique
-- **WHEN** un visiteur accède à `/formations/produits/[slug]`
+- **WHEN** un visiteur accède à `/produits/[slug]`
 - **THEN** le système affiche : bannière, titre, description riche (Tiptap rendu), prix (barré si promo), type de produit, instructeur, avis, bouton "Aperçu gratuit" (si activé), bouton "Acheter", compteur stock restant (si limité), countdown promo (si active)

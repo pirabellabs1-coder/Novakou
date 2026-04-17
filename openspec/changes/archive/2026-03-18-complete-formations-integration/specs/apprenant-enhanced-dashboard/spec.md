@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Dashboard apprenant SHALL afficher des graphiques de progression enrichis
-La page `/formations/mes-formations` SHALL inclure des graphiques avancés : un AreaChart des heures d'apprentissage par semaine (8 dernières semaines), un indicateur visuel de streak (jours consécutifs), un radar de compétences par catégorie, et une barre d'objectifs hebdomadaires.
+La page `/mes-formations` SHALL inclure des graphiques avancés : un AreaChart des heures d'apprentissage par semaine (8 dernières semaines), un indicateur visuel de streak (jours consécutifs), un radar de compétences par catégorie, et une barre d'objectifs hebdomadaires.
 
 #### Scenario: Affichage du graphique d'heures par semaine
 - **WHEN** l'apprenant accède à ses formations

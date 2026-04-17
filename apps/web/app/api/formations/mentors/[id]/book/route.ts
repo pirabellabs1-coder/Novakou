@@ -201,7 +201,7 @@ export async function POST(request: Request, { params }: Params) {
 
     if (useMock || monerooFallback) {
       provider = "mock";
-      checkoutUrl = `/formations/payment/return?mock=1&bookingId=${booking.id}&ref=${encodeURIComponent(internalRef)}`;
+      checkoutUrl = `/payment/return?mock=1&bookingId=${booking.id}&ref=${encodeURIComponent(internalRef)}`;
       await prisma.mentorBooking.update({
         where: { id: booking.id },
         data: { paymentProvider: provider, paymentRef: internalRef },

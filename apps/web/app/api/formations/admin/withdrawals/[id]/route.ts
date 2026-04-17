@@ -73,7 +73,7 @@ export async function PATCH(request: Request, { params }: Params) {
           type: "PAYMENT",
           title: "Retrait approuvé ✅",
           message: `Votre demande de retrait de ${Math.round(w.amount)} FCFA a été approuvée et traitée.`,
-          link: isMentor ? "/formations/mentor/finances" : "/formations/wallet",
+          link: isMentor ? "/mentor/finances" : "/wallet",
         },
       }).catch(() => null);
 
@@ -105,7 +105,7 @@ export async function PATCH(request: Request, { params }: Params) {
         type: "PAYMENT",
         title: "Retrait refusé",
         message: `Votre demande de retrait a été refusée. Motif : ${refusedReason.trim()}`,
-        link: isMentor ? "/formations/mentor/finances" : "/formations/wallet",
+        link: isMentor ? "/mentor/finances" : "/wallet",
       },
     }).catch(() => null);
 

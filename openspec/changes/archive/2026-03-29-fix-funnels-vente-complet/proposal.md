@@ -1,6 +1,6 @@
 ## Why
 
-Les tunnels de vente (funnels) de l'espace instructeur sont actuellement inutilisables en production. Le wizard de création existe et la page publique `/formations/f/[slug]` rend les étapes, mais **aucun paiement réel n'est intégré**, les produits de l'instructeur ne sont pas chargés dynamiquement, le tracking "purchase" est déclenché sans vrai achat (fausse les stats), et le bug d'activation au POST empêche tout funnel d'être activé à la création. Les instructeurs ne peuvent pas utiliser cette fonctionnalité pour vendre.
+Les tunnels de vente (funnels) de l'espace instructeur sont actuellement inutilisables en production. Le wizard de création existe et la page publique `/f/[slug]` rend les étapes, mais **aucun paiement réel n'est intégré**, les produits de l'instructeur ne sont pas chargés dynamiquement, le tracking "purchase" est déclenché sans vrai achat (fausse les stats), et le bug d'activation au POST empêche tout funnel d'être activé à la création. Les instructeurs ne peuvent pas utiliser cette fonctionnalité pour vendre.
 
 **Version cible : MVP formations (phase actuelle)**
 

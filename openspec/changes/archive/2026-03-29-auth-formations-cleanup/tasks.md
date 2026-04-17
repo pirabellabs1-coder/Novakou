@@ -15,9 +15,9 @@
 
 ## 4. Authentification — Middleware & routes formations
 
-- [x] 4.1 Corriger le middleware pour ne pas rediriger les utilisateurs authentifiés qui visitent `/formations/connexion` ou `/formations/inscription`
-- [x] 4.2 Corriger la page `/formations/inscription` pour envoyer `role: "freelance"` + `formationsRole` à l'API
-- [x] 4.3 Corriger la page `/formations/connexion` pour rediriger selon `session.user.formationsRole` (apprenant → mes-formations, instructeur → instructeur/dashboard)
+- [x] 4.1 Corriger le middleware pour ne pas rediriger les utilisateurs authentifiés qui visitent `/connexion` ou `/inscription`
+- [x] 4.2 Corriger la page `/inscription` pour envoyer `role: "freelance"` + `formationsRole` à l'API
+- [x] 4.3 Corriger la page `/connexion` pour rediriger selon `session.user.formationsRole` (apprenant → mes-formations, instructeur → instructeur/dashboard)
 
 ## 5. Suppression données démo — Dashboard freelance
 

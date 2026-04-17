@@ -15,7 +15,7 @@ Chaque visite sur `/services/[slug]` MUST envoyer un event `service_viewed` avec
 Chaque visite sur une page de formation MUST envoyer un event `formation_viewed` avec `entityId`.
 
 #### Scenario: Formation view tracked
-- **WHEN** un visiteur arrive sur `/formations/[slug]`
+- **WHEN** un visiteur arrive sur `/[slug]`
 - **THEN** un event `formation_viewed` est envoye avec `entityId: formationId`
 
 ### Requirement: Profile pages SHALL track profile_viewed

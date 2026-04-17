@@ -98,14 +98,14 @@ export async function POST(request: Request, { params }: Params) {
             type: "ORDER" as const,
             title: "Session terminée ✓",
             message: `Votre séance du ${booking.scheduledAt.toLocaleDateString("fr-FR")} a été marquée comme terminée. Les fonds seront libérés au mentor dans 24h.`,
-            link: "/formations/apprenant/sessions",
+            link: "/apprenant/sessions",
           },
           {
             userId: booking.mentor.user.id,
             type: "ORDER" as const,
             title: "Session terminée ✓",
             message: `Votre séance du ${booking.scheduledAt.toLocaleDateString("fr-FR")} est confirmée terminée. Les fonds seront libérés dans 24h.`,
-            link: "/formations/mentor/finances",
+            link: "/mentor/finances",
           },
         ],
       }).catch(() => null);

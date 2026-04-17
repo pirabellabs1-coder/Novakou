@@ -11,11 +11,11 @@ function initials(name: string | null | undefined) {
 }
 
 const NAV_LINKS = [
-  { href: "/formations", label: "Explorer" },
-  { href: "/formations/explorer", label: "Marketplace" },
-  { href: "/formations/mentors", label: "Mentors" },
-  { href: "/formations/tarifs", label: "Tarifs" },
-  { href: "/formations/affiliation", label: "Affiliation" },
+  { href: "/", label: "Explorer" },
+  { href: "/explorer", label: "Marketplace" },
+  { href: "/mentors", label: "Mentors" },
+  { href: "/tarifs", label: "Tarifs" },
+  { href: "/affiliation", label: "Affiliation" },
 ];
 
 function UserMenu({
@@ -90,19 +90,19 @@ function UserMenu({
             </Link>
             {!isAdmin && !isVendor && (
               <>
-                <Link href="/formations/apprenant/mes-formations" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Mes formations</Link>
-                <Link href="/formations/apprenant/commandes" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">receipt_long</span>Mes commandes</Link>
+                <Link href="/apprenant/mes-formations" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Mes formations</Link>
+                <Link href="/apprenant/commandes" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">receipt_long</span>Mes commandes</Link>
               </>
             )}
             {isVendor && (
               <>
-                <Link href="/formations/vendeur/produits" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">inventory_2</span>Mes produits</Link>
-                <Link href="/formations/vendeur/transactions" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">payments</span>Mes ventes</Link>
+                <Link href="/vendeur/produits" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">inventory_2</span>Mes produits</Link>
+                <Link href="/vendeur/transactions" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">payments</span>Mes ventes</Link>
               </>
             )}
             <div className="my-1 border-t border-gray-100" />
-            <Link href={isVendor ? "/formations/vendeur/parametres" : "/formations/apprenant/parametres"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">settings</span>Paramètres</Link>
-            <button onClick={() => { setOpen(false); signOut({ callbackUrl: "/formations" }); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 text-left">
+            <Link href={isVendor ? "/vendeur/parametres" : "/apprenant/parametres"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">settings</span>Paramètres</Link>
+            <button onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 text-left">
               <span className="material-symbols-outlined text-[18px]">logout</span>Se déconnecter
             </button>
           </div>
@@ -121,7 +121,7 @@ export function FormationsNavbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(15,23,42,0.06)]">
       <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4 max-w-7xl mx-auto">
         {/* Logo */}
-        <Link href="/formations" className="flex items-center flex-shrink-0">
+        <Link href="/" className="flex items-center flex-shrink-0">
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="36" height="36" rx="10" fill="#006e2f"/>
             <path d="M10 26V10h10v3.5h-6V17h5.5v3.5H14V26H10z" fill="white"/>
@@ -150,11 +150,11 @@ export function FormationsNavbar() {
             />
           ) : (
             <>
-              <Link href="/formations/connexion" className="hidden sm:inline text-slate-600 text-sm font-semibold px-3 py-2 hover:text-green-500">
+              <Link href="/connexion" className="hidden sm:inline text-slate-600 text-sm font-semibold px-3 py-2 hover:text-green-500">
                 Connexion
               </Link>
               <Link
-                href="/formations/inscription"
+                href="/inscription"
                 className="text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap active:scale-90 transition-transform shadow-lg shadow-green-200"
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
@@ -194,7 +194,7 @@ export function FormationsNavbar() {
               <>
                 <div className="my-2 border-t border-gray-100" />
                 <Link
-                  href="/formations/connexion"
+                  href="/connexion"
                   onClick={() => setMobileMenu(false)}
                   className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-[#191c1e] hover:bg-gray-50"
                 >

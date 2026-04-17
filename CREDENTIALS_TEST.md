@@ -20,7 +20,7 @@ Redirige vers `/admin` (dashboard, utilisateurs, KYC, finances, litiges, etc.)
 https://freelancehigh.com/admin-login/formations/o-Az9wrtFXr4Qj0KByvGvohp5J8B4pdSXf0AQbVukkw
 ```
 
-Redirige vers `/formations/admin/dashboard` (formations, instructeurs, apprenants, etc.)
+Redirige vers `/admin/dashboard` (formations, instructeurs, apprenants, etc.)
 
 ---
 

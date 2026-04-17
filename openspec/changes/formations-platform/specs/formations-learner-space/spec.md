@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Shopping cart allows adding multiple formations before purchase
-Le panier `/formations/panier` DOIT permettre à un utilisateur connecté d'ajouter plusieurs formations, d'appliquer un code promo, de voir le total avant et après réduction, et de procéder au paiement via Stripe Checkout. Un utilisateur ne peut pas ajouter au panier une formation à laquelle il est déjà inscrit.
+Le panier `/panier` DOIT permettre à un utilisateur connecté d'ajouter plusieurs formations, d'appliquer un code promo, de voir le total avant et après réduction, et de procéder au paiement via Stripe Checkout. Un utilisateur ne peut pas ajouter au panier une formation à laquelle il est déjà inscrit.
 
 #### Scenario: Ajout d'une formation au panier
 - **WHEN** un utilisateur connecté clique sur "Ajouter au panier" sur une page de formation
@@ -24,29 +24,29 @@ Le panier `/formations/panier` DOIT permettre à un utilisateur connecté d'ajou
 - **THEN** la formation est retirée du panier et le total est recalculé
 
 ### Requirement: Stripe Checkout completes the formation purchase and grants immediate access
-Après un paiement Stripe Checkout réussi, le système DOIT créer un `Enrollment` en base de données, envoyer un email de confirmation à l'apprenant et à l'instructeur, vider le panier, et rediriger l'apprenant vers `/formations/mes-formations`. L'accès à la formation DOIT être immédiat après le paiement.
+Après un paiement Stripe Checkout réussi, le système DOIT créer un `Enrollment` en base de données, envoyer un email de confirmation à l'apprenant et à l'instructeur, vider le panier, et rediriger l'apprenant vers `/mes-formations`. L'accès à la formation DOIT être immédiat après le paiement.
 
 #### Scenario: Paiement réussi via Stripe Checkout
 - **WHEN** un utilisateur complète le paiement sur Stripe Checkout
-- **THEN** un webhook `checkout.session.completed` est reçu, un `Enrollment` est créé avec `progress = 0`, les emails de confirmation sont envoyés via Resend, le panier est vidé, et l'utilisateur est redirigé vers `/formations/mes-formations`
+- **THEN** un webhook `checkout.session.completed` est reçu, un `Enrollment` est créé avec `progress = 0`, les emails de confirmation sont envoyés via Resend, le panier est vidé, et l'utilisateur est redirigé vers `/mes-formations`
 
 #### Scenario: Accès immédiat à la formation après paiement
-- **WHEN** l'apprenant accède à `/formations/apprendre/[id]` juste après le paiement
+- **WHEN** l'apprenant accède à `/apprendre/[id]` juste après le paiement
 - **THEN** le lecteur de cours se charge normalement sans message "Vous n'êtes pas inscrit"
 
 #### Scenario: Paiement échoué ou annulé
 - **WHEN** un utilisateur annule le paiement sur Stripe Checkout ou que la transaction échoue
-- **THEN** il est redirigé vers `/formations/echec` avec un message d'explication, le panier est préservé, et aucun `Enrollment` n'est créé
+- **THEN** il est redirigé vers `/echec` avec un message d'explication, le panier est préservé, et aucun `Enrollment` n'est créé
 
 #### Scenario: Webhook Stripe traité en double (idempotence)
 - **WHEN** le webhook `checkout.session.completed` est reçu deux fois pour la même session Stripe (réseau instable)
 - **THEN** un seul `Enrollment` est créé (vérification de l'unicité sur `(userId, formationId)`)
 
 ### Requirement: Course player provides a complete learning experience
-Le lecteur de cours `/formations/apprendre/[id]` DOIT être accessible uniquement aux apprenants inscrits. Il DOIT afficher un lecteur adapté au type de leçon (vidéo HTML5 custom, visionneuse PDF, contenu texte riche, audio), un panneau de notes personnelles horodatées, et une sidebar curriculum avec l'état de progression de chaque leçon. La progression DOIT reprendre automatiquement à la dernière leçon vue.
+Le lecteur de cours `/apprendre/[id]` DOIT être accessible uniquement aux apprenants inscrits. Il DOIT afficher un lecteur adapté au type de leçon (vidéo HTML5 custom, visionneuse PDF, contenu texte riche, audio), un panneau de notes personnelles horodatées, et une sidebar curriculum avec l'état de progression de chaque leçon. La progression DOIT reprendre automatiquement à la dernière leçon vue.
 
 #### Scenario: Accès au lecteur sans inscription
-- **WHEN** un utilisateur non inscrit tente d'accéder directement à `/formations/apprendre/[formationId]`
+- **WHEN** un utilisateur non inscrit tente d'accéder directement à `/apprendre/[formationId]`
 - **THEN** il est redirigé vers la page détail de la formation avec un message l'invitant à s'inscrire
 
 #### Scenario: Reprise automatique à la dernière leçon vue
@@ -93,7 +93,7 @@ Chaque quiz associé à une leçon DOIT pouvoir contenir jusqu'à 4 types de que
 - **THEN** la réponse est enregistrée et comparée à la réponse attendue (`correctAnswer`) de manière insensible à la casse et aux espaces superflus
 
 ### Requirement: Learner dashboard provides a unified view of all enrolled formations
-Le dashboard apprenant `/formations/mes-formations` DOIT afficher les statistiques personnelles de l'apprenant (formations en cours, complétées, certifications, heures d'apprentissage, streak), la liste des formations avec leur progression, et un accès direct aux certificats obtenus.
+Le dashboard apprenant `/mes-formations` DOIT afficher les statistiques personnelles de l'apprenant (formations en cours, complétées, certifications, heures d'apprentissage, streak), la liste des formations avec leur progression, et un accès direct aux certificats obtenus.
 
 #### Scenario: Affichage de la progression d'une formation en cours
 - **WHEN** un apprenant visite son dashboard et a une formation avec 3 leçons complétées sur 10

@@ -39,7 +39,7 @@ Le système DOIT détecter les paiements échoués via le webhook Stripe `paymen
 
 #### Scenario: Paiement par carte échoué
 - **WHEN** Stripe envoie l'événement `payment_intent.payment_failed` pour un checkout formations
-- **THEN** le système envoie l'email "Votre paiement n'a pas abouti" avec le motif d'échec (carte déclinée, fonds insuffisants), un bouton "Réessayer le paiement" vers `/formations/panier`, et log l'événement dans `MarketingEvent`
+- **THEN** le système envoie l'email "Votre paiement n'a pas abouti" avec le motif d'échec (carte déclinée, fonds insuffisants), un bouton "Réessayer le paiement" vers `/panier`, et log l'événement dans `MarketingEvent`
 
 #### Scenario: Paiement échoué pour un produit numérique
 - **WHEN** le paiement échoue pour un produit numérique

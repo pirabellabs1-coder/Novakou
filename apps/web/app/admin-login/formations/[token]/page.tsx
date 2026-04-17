@@ -56,7 +56,7 @@ export default function AdminFormationsLoginPage() {
       setVerifying2FA(false);
       return;
     }
-    router.push("/formations/admin/dashboard");
+    router.push("/admin/dashboard");
     router.refresh();
   }
 

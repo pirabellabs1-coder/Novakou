@@ -184,7 +184,7 @@ export async function POST(request: Request, { params }: Params) {
           type: "MESSAGE",
           title: "Nouveau message",
           message: content?.length > 60 ? content.slice(0, 60) + "…" : content,
-          link: `/formations/messages/${id}`,
+          link: `/messages/${id}`,
         },
       }).catch(() => null);
     }

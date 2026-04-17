@@ -53,7 +53,7 @@ export default function AdminLoginClient() {
         }
       }
 
-      router.push("/formations/admin/dashboard");
+      router.push("/admin/dashboard");
       router.refresh();
     } catch {
       setError("Erreur réseau. Veuillez réessayer.");

@@ -13,26 +13,27 @@ const MAINTENANCE_CACHE_TTL_MS = 60_000; // 60 seconds
 const PUBLIC_ROUTES = [
   "/",
   "/explorer",
-  "/formations",
   "/services",
+  "/mentors",
+  "/instructeurs",
   "/freelances",
-  "/agences",
-  "/offres-projets",
-  "/projets",
+  "/formation",
+  "/produit",
   "/blog",
   "/tarifs",
-  "/comment-ca-marche",
-  "/confiance-securite",
   "/a-propos",
   "/contact",
   "/affiliation",
+  "/partenaires",
   "/faq",
   "/cgu",
   "/confidentialite",
-  "/mentions-legales",
   "/cookies",
   "/aide",
-  "/contrats",
+  "/certificat",
+  "/checkout",
+  "/payment",
+  "/boutique", // Pages publiques de boutique
   "/404",
   "/maintenance",
   "/status",
@@ -46,20 +47,17 @@ const AUTH_ROUTES = ["/connexion", "/inscription", "/mot-de-passe-oublie", "/rei
 
 
 
-// Routes protegees par role
+// Routes protegees par role (RoleGuard côté client gère le reste)
 const ROLE_ROUTES: Record<string, string[]> = {
   admin: ["/admin"],
-  freelance: ["/dashboard"],
-  client: ["/client"],
-  agence: ["/agence"],
 };
 
-// Map role → dashboard URL (source unique de verite pour les redirections)
+// Map role → dashboard URL — admin a son dashboard Novakou.
+// Les rôles instructeur/apprenant sont routés côté client via RoleGuard.
 const ROLE_DASHBOARD: Record<string, string> = {
-  admin: "/admin",
-  freelance: "/dashboard",
-  client: "/client",
-  agence: "/agence",
+  admin: "/admin/dashboard",
+  instructeur: "/vendeur/dashboard",
+  apprenant: "/apprenant/dashboard",
 };
 
 function getDashboardForRole(role: string | undefined): string {
@@ -110,6 +108,14 @@ export async function middleware(req: NextRequest) {
   // Route admin-login secrete — laisser passer (la verification du token se fait cote client+API)
   if (pathname.startsWith(ADMIN_LOGIN_PREFIX)) {
     return NextResponse.next();
+  }
+
+  // Redirect permanent des anciennes URLs `/formations/xxx` → `/xxx`
+  if (pathname === "/formations" || pathname.startsWith("/formations/")) {
+    const newPath = pathname === "/formations" ? "/" : pathname.slice("/formations".length);
+    const url = req.nextUrl.clone();
+    url.pathname = newPath;
+    return NextResponse.redirect(url, 308);
   }
 
   // ── Maintenance mode check (cached ~60s in-memory) ──
@@ -172,19 +178,9 @@ export async function middleware(req: NextRequest) {
     return res;
   }
 
-  // Pas de profil public client (/clients/[id] → rediriger par rôle)
-  if (pathname.startsWith("/clients/")) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-    const role = token?.role as string | undefined;
-    const redirectUrl = role ? getDashboardForRole(role) : "/";
-    return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
-  }
-
-
-
   // Routes publiques — toujours accessibles
   if (isPublicRoute(pathname)) {
-    // Page d'accueil : Novakou → landing /formations (Novakou est la partie active).
+    // Utilisateur connecté sur la home : envoyer sur son dashboard.
     if (pathname === "/") {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
       if (token) {
@@ -192,7 +188,6 @@ export async function middleware(req: NextRequest) {
         const redirectUrl = getDashboardForRole(role);
         return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
       }
-      return withLocaleCookie(NextResponse.redirect(new URL("/formations", req.url)));
     }
     return withLocaleCookie(NextResponse.next());
   }

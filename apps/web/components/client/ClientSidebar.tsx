@@ -49,7 +49,7 @@ const SECTIONS: NavSection[] = [
   {
     title: "Formation",
     items: [
-      { label: "Formations", href: "/formations", icon: "school" },
+      { label: "Formations", href: "/", icon: "school" },
     ],
   },
 ];

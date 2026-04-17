@@ -6,7 +6,7 @@ Version cible : **MVP** (intégrée au développement en cours de la plateforme 
 
 ## What Changes
 
-- **Admin Formations dans le layout standalone** : Migrer l'espace admin formations (`/formations/admin/*`) dans le layout standalone avec sa propre sidebar, breadcrumbs et navigation — séparé de l'admin FreelanceHigh
+- **Admin Formations dans le layout standalone** : Migrer l'espace admin formations (`/admin/*`) dans le layout standalone avec sa propre sidebar, breadcrumbs et navigation — séparé de l'admin FreelanceHigh
 - **APIs temps réel** : Connecter toutes les statistiques (page d'accueil, dashboard apprenant, dashboard instructeur, dashboard admin) à des API routes Prisma avec données réelles — supprimer toute donnée mock restante
 - **Page d'accueil formations dynamique** : Les compteurs (formations disponibles, apprenants inscrits, instructeurs actifs, avis moyens) doivent provenir d'APIs avec données réelles de la base
 - **Upload de photos** : Widget d'upload de photo de profil depuis la galerie (apprenant + instructeur) avec preview, crop basique et stockage Cloudinary/Supabase Storage

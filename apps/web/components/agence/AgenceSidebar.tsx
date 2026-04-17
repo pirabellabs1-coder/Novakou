@@ -93,7 +93,7 @@ const SECTIONS: NavSection[] = [
     items: [
       { label: "Vérification KYC", href: "/agence/kyc", icon: "verified_user" },
       { label: "Sécurité", href: "/agence/securite", icon: "shield" },
-      { label: "Formations", href: "/formations", icon: "school" },
+      { label: "Formations", href: "/", icon: "school" },
     ],
   },
 ];

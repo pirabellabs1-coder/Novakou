@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Admin SHALL pouvoir modérer les discussions de cours
-Une nouvelle page `/formations/admin/discussions` SHALL lister les discussions signalées et permettre leur modération (suppression, verrouillage, avertissement).
+Une nouvelle page `/admin/discussions` SHALL lister les discussions signalées et permettre leur modération (suppression, verrouillage, avertissement).
 
 #### Scenario: Liste des discussions signalées
-- **WHEN** l'admin accède à `/formations/admin/discussions`
+- **WHEN** l'admin accède à `/admin/discussions`
 - **THEN** la page affiche les discussions ayant au moins 1 signalement, triées par nombre de signalements décroissant, avec : titre, formation, auteur, nombre de signalements, date, statut (actif/verrouillé/supprimé)
 
 #### Scenario: Toutes les discussions

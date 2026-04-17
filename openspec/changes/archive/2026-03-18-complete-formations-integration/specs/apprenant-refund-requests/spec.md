@@ -16,7 +16,7 @@ L'apprenant SHALL pouvoir demander un remboursement pour une formation achetée 
 - **THEN** le bouton "Demander un remboursement" n'est pas affiché et un message explique que trop de contenu a été consommé
 
 ### Requirement: Apprenant SHALL pouvoir suivre le statut de ses demandes de remboursement
-Une section dans la page `/formations/mes-achats` SHALL lister les demandes de remboursement en cours avec leur statut : en attente, approuvé, refusé.
+Une section dans la page `/mes-achats` SHALL lister les demandes de remboursement en cours avec leur statut : en attente, approuvé, refusé.
 
 #### Scenario: Suivi des remboursements
 - **WHEN** l'apprenant accède à la page "Mes achats"

@@ -8,7 +8,7 @@ type Params = { params: Promise<{ id: string }> };
 /**
  * GET /api/formations/sessions/[id]
  * Returns a MentorBooking if the caller is either the student OR the mentor.
- * Used by the integrated Jitsi page (/formations/sessions/[id]/salle).
+ * Used by the integrated Jitsi page (/sessions/[id]/salle).
  */
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;

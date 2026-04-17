@@ -3,7 +3,7 @@
 Le module formations a ete deploye avec les bugs suivants :
 1. **Quiz 404** : Les quiz existent en seed mais le routing est correct (searchParams). Le probleme est que `ensureUserInDb` n'est pas appele dans les routes quiz, donc en DEV_MODE la requete echoue avec FK constraint.
 2. **Remboursement** : Les routes API existent (`/api/apprenant/refunds`, `/api/formations/[id]/refund`) mais manquent `ensureUserInDb` pour DEV_MODE. La page `mes-achats` a le UI mais l'utilisateur doit y acceder.
-3. **Profil instructeur** : La page `/formations/instructeurs/[id]` existe avec un UI complet. Le fetch ne verifie pas `r.ok` avant d'appeler `.json()`. Si l'API retourne 404 (instructeur non APPROUVE), le JSON parse echoue silencieusement.
+3. **Profil instructeur** : La page `/instructeurs/[id]` existe avec un UI complet. Le fetch ne verifie pas `r.ok` avant d'appeler `.json()`. Si l'API retourne 404 (instructeur non APPROUVE), le JSON parse echoue silencieusement.
 4. **Double inscription** : Le register endpoint permet de mettre a jour le `formationsRole` d'un utilisateur existant sans verification de conflit.
 5. **Donnees seed** : Les quiz, questions, et enrollments sont seedes mais les quiz questions manquent de variete et les donnees ne sont pas assez realistes.
 

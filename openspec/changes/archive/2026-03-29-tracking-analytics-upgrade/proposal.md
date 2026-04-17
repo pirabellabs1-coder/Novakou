@@ -26,7 +26,7 @@ Le systeme de tracking FreelanceHigh a une bonne architecture de base (types, bu
 
 ### Ajouter le tracking des entites
 - `service_viewed` sur `/services/[slug]` avec `entityId`
-- `formation_viewed` sur `/formations/[slug]` avec `entityId`
+- `formation_viewed` sur `/[slug]` avec `entityId`
 - `profile_viewed` sur `/freelances/[username]` avec `entityId`
 - `order_placed` lors de la creation d'une commande (CONVERSION)
 

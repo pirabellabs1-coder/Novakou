@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: All formations interface text is available in French and English
-Toutes les chaînes de texte d'interface de la section `/formations` (labels, boutons, titres de pages, messages d'erreur, notifications) DOIVENT être disponibles en français et en anglais via le système next-intl existant. Quatre nouveaux namespaces de traduction DOIVENT être créés : `formations`, `apprenant`, `instructeur`, `formations-admin`. Les fichiers de traduction DOIVENT se trouver dans `apps/web/messages/fr/` et `apps/web/messages/en/`.
+Toutes les chaînes de texte d'interface de la section `/` (labels, boutons, titres de pages, messages d'erreur, notifications) DOIVENT être disponibles en français et en anglais via le système next-intl existant. Quatre nouveaux namespaces de traduction DOIVENT être créés : `formations`, `apprenant`, `instructeur`, `formations-admin`. Les fichiers de traduction DOIVENT se trouver dans `apps/web/messages/fr/` et `apps/web/messages/en/`.
 
 #### Scenario: Affichage de la landing page en français par défaut
-- **WHEN** un visiteur accède à `/formations` sans avoir sélectionné de langue
+- **WHEN** un visiteur accède à `/` sans avoir sélectionné de langue
 - **THEN** toute l'interface est affichée en français (texte du hero, catégories, boutons, labels)
 
 #### Scenario: Bascule vers l'anglais depuis la navbar
@@ -38,11 +38,11 @@ Le contenu des cours (titres, descriptions, bio instructeur) DOIT être stocké 
 La préférence de langue pour la section formations DOIT être sauvegardée dans localStorage et dans le profil utilisateur en DB (si connecté). La langue DOIT être détectée automatiquement depuis les en-têtes HTTP `Accept-Language` du navigateur lors de la première visite.
 
 #### Scenario: Détection automatique de la langue navigateur
-- **WHEN** un nouvel utilisateur accède à `/formations` pour la première fois depuis un navigateur configuré en anglais (`Accept-Language: en-US`)
+- **WHEN** un nouvel utilisateur accède à `/` pour la première fois depuis un navigateur configuré en anglais (`Accept-Language: en-US`)
 - **THEN** l'interface est affichée en anglais automatiquement
 
 #### Scenario: Persistance de la langue entre les visites
-- **WHEN** un utilisateur non connecté bascule vers l'anglais et revient sur `/formations` le lendemain
+- **WHEN** un utilisateur non connecté bascule vers l'anglais et revient sur `/` le lendemain
 - **THEN** la langue anglaise est toujours active grâce à la valeur sauvegardée dans localStorage
 
 #### Scenario: Synchronisation de la préférence de langue avec le profil DB

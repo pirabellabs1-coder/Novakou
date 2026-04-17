@@ -97,7 +97,7 @@ export async function POST(request: Request, { params }: Params) {
           type: "ORDER",
           title: "Nouvel avis reçu",
           message: `${session?.user?.name ?? "Un apprenant"} vous a laissé ${safeRating}/5 étoiles.`,
-          link: "/formations/mentor/rendez-vous",
+          link: "/mentor/rendez-vous",
         },
       }).catch(() => null);
     }

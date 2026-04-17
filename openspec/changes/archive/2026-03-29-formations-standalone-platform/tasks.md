@@ -8,10 +8,10 @@
 
 ## 2. Pages d'authentification formations
 
-- [x] 2.1 Créer `/formations/connexion/page.tsx` — formulaire de connexion (email + mot de passe, OAuth Google/LinkedIn) dans le layout formations, avec redirection post-auth vers l'espace approprié (apprenant ou instructeur)
-- [x] 2.2 Créer `/formations/inscription/page.tsx` — formulaire d'inscription avec choix du rôle (Apprenant / Instructeur), vérification email OTP, redirection vers l'espace approprié
+- [x] 2.1 Créer `/connexion/page.tsx` — formulaire de connexion (email + mot de passe, OAuth Google/LinkedIn) dans le layout formations, avec redirection post-auth vers l'espace approprié (apprenant ou instructeur)
+- [x] 2.2 Créer `/inscription/page.tsx` — formulaire d'inscription avec choix du rôle (Apprenant / Instructeur), vérification email OTP, redirection vers l'espace approprié
 - [x] 2.3 Gérer le cas utilisateur FreelanceHigh existant : détecter la session Supabase active et proposer de choisir un rôle formations sans recréer de compte
-- [x] 2.4 Mettre à jour le middleware Next.js pour gérer les routes formations : `/formations/connexion` et `/formations/inscription` comme routes publiques, redirection des routes protégées vers `/formations/connexion`
+- [x] 2.4 Mettre à jour le middleware Next.js pour gérer les routes formations : `/connexion` et `/inscription` comme routes publiques, redirection des routes protégées vers `/connexion`
 
 ## 3. Layout et sidebar apprenant
 
@@ -74,7 +74,7 @@
 ## 10. Nettoyage et vérification
 
 - [x] 10.1 Supprimer les anciens dossiers/route groups formations vides (`(public)/formations/`, `(apprenant)/formations/`, `(instructeur)/formations/`, `(paiement)/formations/`) après migration
-- [x] 10.2 Vérifier que le lien "Formations" dans la navbar FreelanceHigh pointe bien vers `/formations`
+- [x] 10.2 Vérifier que le lien "Formations" dans la navbar FreelanceHigh pointe bien vers `/`
 - [x] 10.3 Mettre à jour les imports et chemins relatifs dans les pages migrées si nécessaire
 - [x] 10.4 Vérifier que toutes les API routes (`/api/formations/*`, `/api/instructeur/*`, `/api/apprenant/*`) fonctionnent toujours (pas de changement côté API)
 - [x] 10.5 Tester la navigation complète : FreelanceHigh → Formations → pages publiques → connexion → espace apprenant/instructeur → retour FreelanceHigh

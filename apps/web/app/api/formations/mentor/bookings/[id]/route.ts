@@ -126,7 +126,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Séance confirmée !",
             message: `Votre séance de mentorat a été confirmée. Rendez-vous le ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")}.`,
-            link: `/formations/apprenant/sessions/${booking.id}`,
+            link: `/apprenant/sessions/${booking.id}`,
           },
         }).catch(() => null);
 
@@ -174,7 +174,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Demande d'annulation du mentor",
             message: `Le mentor a demandé l'annulation de votre séance du ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")}. L'admin examinera la demande. En cas de validation, vous serez remboursé.`,
-            link: "/formations/apprenant/sessions",
+            link: "/apprenant/sessions",
           },
         }).catch(() => null);
 
@@ -259,7 +259,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Séance terminée — Laissez un avis",
             message: "Votre séance de mentorat est terminée. N'oubliez pas de laisser un avis à votre mentor !",
-            link: `/formations/apprenant/sessions/${booking.id}`,
+            link: `/apprenant/sessions/${booking.id}`,
           },
         }).catch(() => null);
 
@@ -291,7 +291,7 @@ export async function PATCH(request: Request, { params }: Params) {
             type: "ORDER",
             title: "Lien de visioconférence disponible",
             message: `Votre mentor a partagé le lien pour votre séance du ${new Date(booking.scheduledAt).toLocaleDateString("fr-FR")}.`,
-            link: "/formations/apprenant/dashboard",
+            link: "/apprenant/dashboard",
           },
         }).catch(() => null);
 

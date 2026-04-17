@@ -67,7 +67,7 @@ async function fetchBestSellers(): Promise<Item[]> {
       const isNew = now - f.createdAt.getTime() < SEVEN_DAYS;
       const isBestseller = f.studentsCount >= 20;
       return {
-        href: `/formations/formation/${f.slug}`,
+        href: `/formation/${f.slug}`,
         img: f.thumbnail,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
@@ -88,7 +88,7 @@ async function fetchBestSellers(): Promise<Item[]> {
       const isNew = now - p.createdAt.getTime() < SEVEN_DAYS;
       const isBestseller = p.salesCount >= 20;
       return {
-        href: `/formations/produit/${p.slug}`,
+        href: `/produit/${p.slug}`,
         img: p.banner,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
@@ -127,7 +127,7 @@ export async function BestSellers() {
           Soyez le premier à publier votre formation ou produit numérique.
         </p>
         <Link
-          href="/formations/inscription?role=vendeur"
+          href="/inscription?role=vendeur"
           className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >

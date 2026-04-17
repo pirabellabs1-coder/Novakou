@@ -258,7 +258,7 @@ export default function DeveloperDocsPage() {
             <a href="#faq" className="px-3 py-2 rounded-lg text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e]">FAQ</a>
           </nav>
           <Link
-            href="/formations/vendeur/api-keys"
+            href="/vendeur/api-keys"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold hover:opacity-90"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
@@ -298,7 +298,7 @@ export default function DeveloperDocsPage() {
             </p>
             <div className="flex flex-wrap gap-3 mt-8">
               <Link
-                href="/formations/vendeur/api-keys"
+                href="/vendeur/api-keys"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-[#006e2f] text-sm font-bold hover:bg-white/90 shadow-lg"
               >
                 <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
@@ -472,7 +472,7 @@ export default function DeveloperDocsPage() {
               Depuis votre dashboard Novakou → Clés API → « Nouvelle clé ». Choisissez les scopes et la date d&apos;expiration.
             </p>
             <Link
-              href="/formations/vendeur/api-keys"
+              href="/vendeur/api-keys"
               className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-[#006e2f] hover:underline"
             >
               Ouvrir le dashboard
@@ -715,7 +715,7 @@ X-RateLimit-Reset: 1713287400`}
         <h2 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] mb-2">Webhooks sortants</h2>
         <p className="text-[#5c647a] mb-6 max-w-2xl">
           Novakou peut envoyer des événements à votre serveur en temps réel dès qu&apos;une action se produit dans votre boutique (nouvelle vente, remboursement, nouveau client).
-          Configurez vos URL webhooks depuis <Link href="/formations/vendeur/automatisations" className="text-[#006e2f] font-bold hover:underline">Espace vendeur → Automatisations → Intégrations</Link>.
+          Configurez vos URL webhooks depuis <Link href="/vendeur/automatisations" className="text-[#006e2f] font-bold hover:underline">Espace vendeur → Automatisations → Intégrations</Link>.
         </p>
 
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden max-w-3xl mb-4">
@@ -1078,7 +1078,7 @@ if (expected !== req.headers["x-novakou-signature"]) {
           <h3 className="text-2xl font-extrabold text-[#191c1e]">Prêt à intégrer ?</h3>
           <p className="text-[#5c647a] mt-2">Générez votre clé API et commencez à builder.</p>
           <Link
-            href="/formations/vendeur/api-keys"
+            href="/vendeur/api-keys"
             className="inline-flex items-center gap-2 mt-6 px-6 py-3 rounded-xl text-white text-sm font-bold hover:opacity-90"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >

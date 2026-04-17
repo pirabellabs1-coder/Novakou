@@ -35,7 +35,7 @@ Tout composant qui accede a un champ potentiellement nullable avec `.length`, `.
 - **THEN** la page DOIT s'afficher avec un etat vide (0 commandes) sans crash
 
 #### Scenario: Page formation avec sections null
-- **WHEN** un utilisateur visite `/formations/[slug]` et la formation a `sections: null`
+- **WHEN** un utilisateur visite `/[slug]` et la formation a `sections: null`
 - **THEN** la page DOIT s'afficher normalement avec 0 lecons comptees
 
 ### Requirement: Les stores Zustand DOIVENT initialiser les champs tableau a des tableaux vides

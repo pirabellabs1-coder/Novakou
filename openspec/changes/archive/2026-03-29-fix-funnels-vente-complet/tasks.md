@@ -63,7 +63,7 @@
 - [x] Créer le fichier de route
 - [x] Accepter dans le body : `funnelId`, `acceptedItems` (array de `{ productId, title, price, discountPct }`), `visitorId`
 - [x] Vérifier que le funnel existe et est actif
-- [x] En DEV_MODE : retourner un `sessionId` fictif et une URL de redirect vers `/formations/f/[slug]?success=true&session_id=dev_xxx`, enregistrer l'événement "purchase"
+- [x] En DEV_MODE : retourner un `sessionId` fictif et une URL de redirect vers `/f/[slug]?success=true&session_id=dev_xxx`, enregistrer l'événement "purchase"
 - [x] En production : créer une session `stripe.checkout.sessions.create()` avec les line_items, `success_url`, `cancel_url`, et les metadata
 
 **Spec :** `funnel-checkout-stripe` — "L'endpoint POST /api/marketing/funnels/checkout SHALL être créé" + "Le mode DEV SHALL simuler le checkout"

@@ -98,14 +98,14 @@
 ## 11. Pages publiques formations — Frontend
 
 - [x] 11.1 Créer le route group `(public)/formations/` avec son `layout.tsx`
-- [x] 11.2 Créer la landing page `/formations/page.tsx` : hero bilingue, stats, catégories, formations vedettes, comment ça marche, témoignages, CTA instructeur
-- [x] 11.3 Créer la marketplace `/formations/explorer/page.tsx` avec sidebar filtres, grille responsive et tri
+- [x] 11.2 Créer la landing page `/page.tsx` : hero bilingue, stats, catégories, formations vedettes, comment ça marche, témoignages, CTA instructeur
+- [x] 11.3 Créer la marketplace `/explorer/page.tsx` avec sidebar filtres, grille responsive et tri
 - [x] 11.4 Implémenter la recherche avec debounce 300ms dans la marketplace
-- [x] 11.5 Créer la page détail formation `/formations/[slug]/page.tsx` avec layout 2 colonnes, onglets, card achat sticky
+- [x] 11.5 Créer la page détail formation `/[slug]/page.tsx` avec layout 2 colonnes, onglets, card achat sticky
 - [x] 11.6 Métadonnées SEO dynamiques Next.js pour les pages formation
-- [x] 11.7 Créer les pages catégories `/formations/categories/page.tsx` et `[slug]/page.tsx`
-- [x] 11.8 Créer la page profil instructeur `/formations/instructeurs/[id]/page.tsx`
-- [x] 11.9 Créer la page de vérification de certificat `/formations/verification/[code]/page.tsx`
+- [x] 11.7 Créer les pages catégories `/categories/page.tsx` et `[slug]/page.tsx`
+- [x] 11.8 Créer la page profil instructeur `/instructeurs/[id]/page.tsx`
+- [x] 11.9 Créer la page de vérification de certificat `/verification/[code]/page.tsx`
 - [x] 11.10 Créer la page "Devenir instructeur" avec formulaire de candidature complet
 
 ## 12. Espace apprenant — Frontend
@@ -157,8 +157,8 @@
 
 ## 16. Tests de validation bout-en-bout
 
-- [ ] 16.1 TEST 1 : Visiteur accède à `/formations` et voit la landing page en français
-- [ ] 16.2 TEST 2 : Switch FR → EN fonctionne sur toutes les pages `/formations`
+- [ ] 16.1 TEST 1 : Visiteur accède à `/` et voit la landing page en français
+- [ ] 16.2 TEST 2 : Switch FR → EN fonctionne sur toutes les pages `/`
 - [ ] 16.3 TEST 3 : Acheter une formation via Stripe (mode test) → accès immédiat au lecteur
 - [ ] 16.4 TEST 4 : Progression d'une leçon vidéo sauvegardée à 90% de visionnage
 - [ ] 16.5 TEST 5 : Quiz réussi (score >= passingScore) → leçon marquée complétée
@@ -167,7 +167,7 @@
 - [ ] 16.8 TEST 8 : Instructeur soumet une formation → visible dans la file admin
 - [ ] 16.9 TEST 9 : Admin approuve la formation → visible dans la marketplace publique
 - [ ] 16.10 TEST 10 : Revenus instructeur mis à jour après achat d'un apprenant (70% net)
-- [ ] 16.11 TEST 11 : Page de vérification publique `/formations/verification/[code]` affiche le certificat
+- [ ] 16.11 TEST 11 : Page de vérification publique `/verification/[code]` affiche le certificat
 - [ ] 16.12 TEST 12 : Demande de retrait instructeur créée et visible dans l'admin
 - [ ] 16.13 TEST 13 : Webhook Stripe idempotent (double déclenchement → 1 seul enrollment créé)
 - [ ] 16.14 TEST 14 : Feature flag `NEXT_PUBLIC_FORMATIONS_ENABLED=false` masque le lien navbar

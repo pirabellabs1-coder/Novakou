@@ -4,12 +4,12 @@
 The formations inscription page SHALL send `role: "client"` instead of `role: "freelance"` when registering a new user. This prevents formation-only users from appearing as freelancers in the marketplace.
 
 #### Scenario: New apprenant registration
-- **WHEN** a user registers as apprenant via `/formations/inscription`
+- **WHEN** a user registers as apprenant via `/inscription`
 - **THEN** the register API call SHALL include `role: "client"` and `formationsRole: "apprenant"`
 - **AND** the User record SHALL have `role = CLIENT` and `registrationSource = "formations"`
 
 #### Scenario: New instructeur registration
-- **WHEN** a user registers as instructeur via `/formations/inscription`
+- **WHEN** a user registers as instructeur via `/inscription`
 - **THEN** the register API call SHALL include `role: "client"` and `formationsRole: "instructeur"`
 - **AND** the User record SHALL have `role = CLIENT` and `registrationSource = "formations"`
 

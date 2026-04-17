@@ -4,7 +4,7 @@ FreelanceHigh has two distinct platforms sharing one User table:
 1. **Marketplace** — freelancers sell services, clients buy (roles: FREELANCE, CLIENT, AGENCE)
 2. **Formations** — learners take courses, instructors teach (formationsRole: apprenant, instructeur)
 
-The problem: when someone registers through `/formations/inscription`, the code hardcodes `role: "freelance"` in the register API call. This creates a User record that looks identical to a real marketplace freelancer, polluting admin dashboards and user statistics.
+The problem: when someone registers through `/inscription`, the code hardcodes `role: "freelance"` in the register API call. This creates a User record that looks identical to a real marketplace freelancer, polluting admin dashboards and user statistics.
 
 **Current registration flow:**
 ```

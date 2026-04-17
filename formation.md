@@ -348,7 +348,7 @@ Switch langue FR/EN :
 
 ═══════════════════════════════════════════
 ## PARTIE 2 — LANDING PAGE FORMATIONS
-   (/formations)
+   (/)
 ═══════════════════════════════════════════
 
 Page d'accueil dédiée aux formations.
@@ -454,7 +454,7 @@ Identique au footer principal du site.
 
 ═══════════════════════════════════════════
 ## PARTIE 3 — MARKETPLACE FORMATIONS
-   (/formations/explorer)
+   (/explorer)
 ═══════════════════════════════════════════
 
 ### BARRE DE RECHERCHE
@@ -525,7 +525,7 @@ Infinite scroll ou pagination
 
 ═══════════════════════════════════════════
 ## PARTIE 4 — PAGE DÉTAIL FORMATION
-   (/formations/[slug])
+   (/[slug])
 ═══════════════════════════════════════════
 
 ### EN-TÊTE (fond coloré)
@@ -607,7 +607,7 @@ Partager :
 
 ═══════════════════════════════════════════
 ## PARTIE 5 — LECTEUR DE FORMATION
-   (/formations/apprendre/[id])
+   (/apprendre/[id])
 ═══════════════════════════════════════════
 
 Accessible uniquement après achat.
@@ -692,7 +692,7 @@ Indicateurs :
 🔒 Icône verrouillée (jamais pour formation achetée)
 
 ### QUIZ INTERACTIF
-(/formations/apprendre/[id]/quiz/[quizId])
+(/apprendre/[id]/quiz/[quizId])
 
 Interface quiz :
 - Titre du quiz
@@ -716,7 +716,7 @@ Interface quiz :
 
 ═══════════════════════════════════════════
 ## PARTIE 6 — DASHBOARD APPRENANT
-   (/formations/mes-formations)
+   (/mes-formations)
 ═══════════════════════════════════════════
 
 ### STATISTIQUES PERSONNELLES
@@ -801,7 +801,7 @@ Actions automatiques :
 └─────────────────────────────────────────┘
 
 ### PAGE VÉRIFICATION PUBLIQUE
-(/formations/verification/[code])
+(/verification/[code])
 
 Accessible par tous sans connexion :
 - Logo FreelanceHigh
@@ -818,7 +818,7 @@ Accessible par tous sans connexion :
 ═══════════════════════════════════════════
 
 ### DEVENIR INSTRUCTEUR
-(/formations/devenir-instructeur)
+(/devenir-instructeur)
 
 Landing page instructeur :
 FR/EN bilingue
@@ -847,7 +847,7 @@ Après soumission :
 - Admin refuse → email avec raison
 
 ### DASHBOARD INSTRUCTEUR
-(/formations/instructeur/dashboard)
+(/instructeur/dashboard)
 
 Données 100% réelles depuis DB :
 
@@ -874,7 +874,7 @@ Activité récente :
 - Messages reçus
 
 ### CRÉER UNE FORMATION — 5 ÉTAPES
-(/formations/instructeur/creer)
+(/instructeur/creer)
 
 Layout sidebar gauche (étapes) + 
 contenu droite.
@@ -1138,7 +1138,7 @@ Export : CSV par graphique + rapport PDF
 ## PARTIE 9 — PANIER ET PAIEMENT
 ═══════════════════════════════════════════
 
-### PANIER (/formations/panier)
+### PANIER (/panier)
 
 Ajouter au panier depuis :
 - Page détail formation

@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         free: true,
-        redirectUrl: `/formations/produits/${product.slug}?purchased=true`,
+        redirectUrl: `/produits/${product.slug}?purchased=true`,
       });
     }
 
@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
       } catch { /* ignore */ }
 
       return NextResponse.json({
-        url: `/formations/produits/${product.slug}?purchased=true&session_id=${payment.sessionId}`,
+        url: `/produits/${product.slug}?purchased=true&session_id=${payment.sessionId}`,
         mock: true,
       });
     }

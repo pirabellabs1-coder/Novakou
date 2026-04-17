@@ -27,7 +27,7 @@ L'événement "purchase" dans `SalesFunnelEvent` SHALL être enregistré uniquem
 - **THEN** aucun événement "purchase" n'est enregistré et les stats restent inchangées
 
 ### Requirement: Le système SHALL afficher une page de succès après paiement
-Après un paiement Stripe réussi, le visiteur SHALL être redirigé vers `/formations/f/[slug]?success=true&session_id=XXX`. Cette page SHALL afficher une confirmation avec les items achetés récupérés depuis la session Stripe.
+Après un paiement Stripe réussi, le visiteur SHALL être redirigé vers `/f/[slug]?success=true&session_id=XXX`. Cette page SHALL afficher une confirmation avec les items achetés récupérés depuis la session Stripe.
 
 #### Scenario: Retour après paiement réussi
 - **WHEN** le visiteur revient sur le funnel avec `?success=true&session_id=cs_xxx`
@@ -53,4 +53,4 @@ En mode `DEV_MODE`, l'endpoint `/api/marketing/funnels/checkout` SHALL simuler u
 
 #### Scenario: Checkout en mode dev
 - **WHEN** `DEV_MODE=true` et le frontend envoie un POST checkout
-- **THEN** le système retourne `{ sessionId: "dev_session_xxx", url: "/formations/f/[slug]?success=true&session_id=dev_session_xxx" }` et enregistre directement l'événement "purchase"
+- **THEN** le système retourne `{ sessionId: "dev_session_xxx", url: "/f/[slug]?success=true&session_id=dev_session_xxx" }` et enregistre directement l'événement "purchase"

@@ -191,7 +191,7 @@ export default function ActionSequenceModal({
               )}
 
               <a
-                href="/formations/vendeur/marketing/sequences"
+                href="/vendeur/marketing/sequences"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 inline-flex items-center gap-1 text-xs text-gray-500 hover:text-[#006e2f]"

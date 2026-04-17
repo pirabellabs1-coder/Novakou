@@ -8,8 +8,8 @@
 - [x] 1.6 Migrer la page finances admin vers `app/formations/(admin)/admin/finances/page.tsx` — câblée à `GET /api/admin/formations/finances`, avec approbation de retraits
 - [x] 1.7 Migrer la page certificats admin vers `app/formations/(admin)/admin/certificats/page.tsx` — câblée à `GET /api/admin/formations/certificats`, avec révocation/réactivation
 - [x] 1.8 Migrer la page catégories admin vers `app/formations/(admin)/admin/categories/page.tsx` — CRUD complet sur les catégories de formations
-- [x] 1.9 Créer la page `app/formations/(admin)/admin/page.tsx` qui redirige vers `/formations/admin/dashboard`
-- [x] 1.10 Ajouter les routes `/formations/admin/*` dans le middleware avec vérification du rôle admin — rediriger les non-admin vers `/formations/connexion`
+- [x] 1.9 Créer la page `app/formations/(admin)/admin/page.tsx` qui redirige vers `/admin/dashboard`
+- [x] 1.10 Ajouter les routes `/admin/*` dans le middleware avec vérification du rôle admin — rediriger les non-admin vers `/connexion`
 - [x] 1.11 Ajouter les clés i18n pour la sidebar admin formations dans `formations_nav` (fr.json et en.json)
 
 ## 2. Codes Promo — Admin + Paiement

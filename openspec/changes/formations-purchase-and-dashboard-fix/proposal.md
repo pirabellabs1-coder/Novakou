@@ -5,7 +5,7 @@ Le module Formations a une architecture complète (achat, panier, checkout Strip
 ## What Changes
 
 ### Navigation & Rôles
-- **Corriger le menu FormationsHeader** : masquer "Devenir instructeur" pour les utilisateurs connectés avec un profil instructeur ; afficher "Mon tableau de bord" → `/formations/instructeur` au lieu de "Mes formations" → `/formations/mes-formations` pour les instructeurs
+- **Corriger le menu FormationsHeader** : masquer "Devenir instructeur" pour les utilisateurs connectés avec un profil instructeur ; afficher "Mon tableau de bord" → `/instructeur` au lieu de "Mes formations" → `/mes-formations` pour les instructeurs
 - **Adapter le menu mobile** avec la même logique de rôle
 
 ### Achat & Enrollment
@@ -16,7 +16,7 @@ Le module Formations a une architecture complète (achat, panier, checkout Strip
 
 ### Dashboard Apprenant
 - **Corriger l'API `/api/apprenant/enrollments`** : s'assurer que les stats (streak, heures, progression, compétences, objectif hebdomadaire) sont calculées correctement depuis les vraies données Prisma
-- **Corriger le lien "Voir le profil" de l'instructeur** sur la page détail : vérifier que `/formations/instructeurs/[id]` fonctionne et ne redirige pas vers le dashboard
+- **Corriger le lien "Voir le profil" de l'instructeur** sur la page détail : vérifier que `/instructeurs/[id]` fonctionne et ne redirige pas vers le dashboard
 
 ### Produits Numériques
 - **Améliorer l'éditeur de description des produits** : supporter les images inline, mise en forme riche (Tiptap editor) dans la page de création/édition de produit

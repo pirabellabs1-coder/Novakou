@@ -26,7 +26,7 @@
 ## 4. Profil Apprenant — Creation
 
 - [x] 4.1 Creer l'endpoint API `GET /api/formations/apprenants/[id]/route.ts` qui retourne les donnees depuis Prisma (enrollments, certificates, stats)
-- [x] 4.2 Creer la page `/formations/apprenants/[id]/page.tsx` avec header (banner, avatar, nom, bio, badges progression) meme structure que les autres profils
+- [x] 4.2 Creer la page `/apprenants/[id]/page.tsx` avec header (banner, avatar, nom, bio, badges progression) meme structure que les autres profils
 - [x] 4.3 Ajouter la grille de statistiques 4 colonnes (Formations completees, Certificats, Heures, Note moyenne)
 - [x] 4.4 Ajouter la section "Formations completees" avec grille de cartes depuis les enrollments
 - [x] 4.5 Ajouter la section "Certificats" avec grille de cartes et lien de verification

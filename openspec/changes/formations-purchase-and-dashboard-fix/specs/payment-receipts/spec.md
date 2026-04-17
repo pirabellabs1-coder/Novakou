@@ -26,5 +26,5 @@ The system SHALL provide a `GET /api/apprenant/receipts/[enrollmentId]` endpoint
 The "Mes achats" page SHALL display a download button next to each purchase entry.
 
 #### Scenario: Achats page shows receipt button
-- **WHEN** the user visits `/formations/mes-achats`
+- **WHEN** the user visits `/mes-achats`
 - **THEN** each purchase entry has a "Télécharger le reçu" button that triggers the receipt download

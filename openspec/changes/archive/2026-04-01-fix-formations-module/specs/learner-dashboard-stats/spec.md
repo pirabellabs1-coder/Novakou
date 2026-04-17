@@ -1,23 +1,23 @@
 ## ADDED Requirements
 
 ### Requirement: Dashboard stats reflect real enrollment data
-The learner dashboard (`/formations/mes-formations`) SHALL display accurate stats based on the user's actual enrollments from the database.
+The learner dashboard (`/mes-formations`) SHALL display accurate stats based on the user's actual enrollments from the database.
 
 #### Scenario: User with enrollments sees correct stats
-- **WHEN** an authenticated user with 3 enrollments (2 in progress at 40% and 60%, 1 completed at 100% with certificate) visits `/formations/mes-formations`
+- **WHEN** an authenticated user with 3 enrollments (2 in progress at 40% and 60%, 1 completed at 100% with certificate) visits `/mes-formations`
 - **THEN** the "En cours" stat displays 2
 - **THEN** the "Complétées" stat displays 1
 - **THEN** the "Certifications" stat displays 1
 - **THEN** the "Heures d'apprentissage" stat displays the total duration of all 3 formations converted from minutes to hours (rounded)
 
 #### Scenario: User with no enrollments sees empty state
-- **WHEN** an authenticated user with 0 enrollments visits `/formations/mes-formations`
+- **WHEN** an authenticated user with 0 enrollments visits `/mes-formations`
 - **THEN** all stat cards display 0
 - **THEN** an empty state message is shown with a CTA to explore formations
 - **THEN** charts display placeholder messages instead of empty charts
 
 #### Scenario: Newly purchased formation appears in dashboard
-- **WHEN** a user purchases a formation (via mock or Stripe payment) and then navigates to `/formations/mes-formations`
+- **WHEN** a user purchases a formation (via mock or Stripe payment) and then navigates to `/mes-formations`
 - **THEN** the enrollment appears in the "En cours" tab with 0% progress
 - **THEN** the "En cours" stat increments by 1
 - **THEN** the "Heures d'apprentissage" stat includes the new formation's duration

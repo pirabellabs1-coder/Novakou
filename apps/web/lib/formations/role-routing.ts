@@ -8,10 +8,10 @@
 export type FormationsRole = "apprenant" | "instructeur" | "mentor" | "affilie" | null | undefined;
 
 const DASHBOARDS: Record<string, string> = {
-  apprenant: "/formations/apprenant/dashboard",
-  instructeur: "/formations/vendeur/dashboard",
-  mentor: "/formations/mentor/dashboard",
-  affilie: "/formations/affilie/dashboard",
+  apprenant: "/apprenant/dashboard",
+  instructeur: "/vendeur/dashboard",
+  mentor: "/mentor/dashboard",
+  affilie: "/affilie/dashboard",
 };
 
 export function getDashboardForFormationsRole(
@@ -20,13 +20,13 @@ export function getDashboardForFormationsRole(
 ): string {
   // Admin overrides everything
   if (userRole === "ADMIN" || userRole === "admin") {
-    return "/formations/admin/dashboard";
+    return "/admin/dashboard";
   }
   if (role && DASHBOARDS[role]) {
     return DASHBOARDS[role];
   }
   // No role yet → apprenant by default (least privileged)
-  return "/formations/apprenant/dashboard";
+  return "/apprenant/dashboard";
 }
 
 export function getRoleLabel(role: FormationsRole): string {

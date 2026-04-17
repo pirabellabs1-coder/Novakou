@@ -4,7 +4,7 @@ FreelanceHigh has a dual-session architecture: the main app (roles: freelance/cl
 
 **Current problems:**
 
-1. **Middleware routing gap**: The formations route protection on line 197 explicitly lists individual route prefixes (`/formations/mes-formations`, `/formations/certificats`, etc.). Any new formations page NOT in this list falls through to the generic route check which enforces the main app `role` — causing a client-role user browsing formations to be redirected to `/client`.
+1. **Middleware routing gap**: The formations route protection on line 197 explicitly lists individual route prefixes (`/mes-formations`, `/certificats`, etc.). Any new formations page NOT in this list falls through to the generic route check which enforces the main app `role` — causing a client-role user browsing formations to be redirected to `/client`.
 
 2. **`ensureUserInDb` destroys data**: In DEV_MODE, auth uses a dev-store with IDs like `dev-admin-1`. When `ensureUserInDb()` finds an existing DB user by email (from seed), it renames their email to `{id}@migrated.dev` and creates a NEW user with the dev-store ID. This orphans all enrollments, certificates, and progress linked to the original seeded user.
 
@@ -31,9 +31,9 @@ FreelanceHigh has a dual-session architecture: the main app (roles: freelance/cl
 
 ### Decision 1: Single prefix guard for all formations protected routes
 
-**Choice**: Replace the explicit list of formation prefixes in middleware with a single `/formations/` prefix check that classifies routes as public, apprenant-protected, instructeur-protected, or admin-protected.
+**Choice**: Replace the explicit list of formation prefixes in middleware with a single `/` prefix check that classifies routes as public, apprenant-protected, instructeur-protected, or admin-protected.
 
-**Approach**: Define a constant `FORMATIONS_PROTECTED_PREFIXES` that includes all apprenant-scoped route prefixes. Use a catch-all: any `/formations/*` route not in the public/auth/instructeur/admin lists defaults to requiring authentication (apprenant-level). This prevents future routes from accidentally falling through.
+**Approach**: Define a constant `FORMATIONS_PROTECTED_PREFIXES` that includes all apprenant-scoped route prefixes. Use a catch-all: any `/*` route not in the public/auth/instructeur/admin lists defaults to requiring authentication (apprenant-level). This prevents future routes from accidentally falling through.
 
 **Alternative rejected**: Adding each new route manually to the middleware list — fragile, already caused the current bug.
 
@@ -74,7 +74,7 @@ Keep premium elements (guilloche borders, seal, QR code, 5-year validity, start/
 **Risk**: Updating user ID in ensureUserInDb may cause Prisma FK constraint violations if referenced tables use ON DELETE RESTRICT.
 → **Mitigation**: Prisma `User.id` is the parent — updating it requires raw SQL `UPDATE "User" SET id = $1 WHERE id = $2` since Prisma won't allow PK updates. We'll use `prisma.$executeRawUnsafe` with a transaction that also updates all FK references, OR we'll use Prisma's `@relation(onUpdate: Cascade)` which is already configured.
 
-**Risk**: Catch-all formations route guard may block legitimate public formation pages (e.g., `/formations/[slug]`).
+**Risk**: Catch-all formations route guard may block legitimate public formation pages (e.g., `/[slug]`).
 → **Mitigation**: Explicitly list public formation route patterns (the catalog, detail pages, checkout success) and ensure they're checked BEFORE the catch-all guard.
 
 **Risk**: OAuth rejection for role conflicts may confuse users who just want to log in.

@@ -9,7 +9,7 @@ The certificate PDF and detail page SHALL use the FreelanceHigh brand palette: p
 - **AND** the PDF SHALL NOT use the previous ivory/gold "Sovereign Gilt" palette
 
 #### Scenario: Certificate detail page is displayed
-- **WHEN** a user views `/formations/certificats/[id]`
+- **WHEN** a user views `/certificats/[id]`
 - **THEN** the page SHALL display the certificate with FreelanceHigh brand colors matching the PDF
 
 ### Requirement: Certificate displays dates and validity

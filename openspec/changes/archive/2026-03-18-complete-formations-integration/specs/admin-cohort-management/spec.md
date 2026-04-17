@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Admin SHALL pouvoir gérer toutes les cohortes de la plateforme
-Une nouvelle page `/formations/admin/cohorts` SHALL lister toutes les cohortes avec : nom, formation associée, instructeur, nombre d'inscrits/max, date de début, statut (PLANNING/ACTIVE/CLOSED), taux de complétion.
+Une nouvelle page `/admin/cohorts` SHALL lister toutes les cohortes avec : nom, formation associée, instructeur, nombre d'inscrits/max, date de début, statut (PLANNING/ACTIVE/CLOSED), taux de complétion.
 
 #### Scenario: Affichage de la liste des cohortes
-- **WHEN** l'admin accède à `/formations/admin/cohorts`
+- **WHEN** l'admin accède à `/admin/cohorts`
 - **THEN** un tableau affiche toutes les cohortes triées par date de début (plus récente en premier)
 
 #### Scenario: Filtrage par statut

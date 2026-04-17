@@ -68,7 +68,7 @@ The admin formations dashboard SHALL display platform-wide aggregations from rea
 The public formation detail page SHALL show stats computed from real data.
 
 #### Scenario: View formation detail with real stats
-- **WHEN** user accesses `/formations/[slug]`
+- **WHEN** user accesses `/[slug]`
 - **THEN** formation detail includes:
   - studentsCount from Formation model (pre-computed)
   - rating from Formation model (pre-computed)

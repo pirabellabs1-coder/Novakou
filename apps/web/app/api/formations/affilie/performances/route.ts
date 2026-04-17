@@ -50,7 +50,7 @@ export async function GET() {
     // Per landing page breakdown (proxy for per-formation performance)
     const pageMap: Record<string, { page: string; clicks: number; conversions: number; earnings: number }> = {};
     for (const click of profile.clicks) {
-      const page = click.landingPage ?? "/formations";
+      const page = click.landingPage ?? "/";
       if (!pageMap[page]) pageMap[page] = { page, clicks: 0, conversions: 0, earnings: 0 };
       pageMap[page].clicks++;
       if (click.converted) pageMap[page].conversions++;

@@ -1,22 +1,22 @@
 ## ADDED Requirements
 
 ### Requirement: Instructor application process requires admin approval
-Tout utilisateur FreelanceHigh authentifié DOIT pouvoir soumettre une candidature pour devenir instructeur via le formulaire à `/formations/devenir-instructeur`. La candidature DOIT créer un `InstructeurProfile` avec statut `EN_ATTENTE`. Un email de confirmation DOIT être envoyé au candidat et une notification créée pour l'admin. L'accès à l'espace instructeur DOIT être conditionné au statut `APPROUVE`.
+Tout utilisateur FreelanceHigh authentifié DOIT pouvoir soumettre une candidature pour devenir instructeur via le formulaire à `/devenir-instructeur`. La candidature DOIT créer un `InstructeurProfile` avec statut `EN_ATTENTE`. Un email de confirmation DOIT être envoyé au candidat et une notification créée pour l'admin. L'accès à l'espace instructeur DOIT être conditionné au statut `APPROUVE`.
 
 #### Scenario: Soumission d'une candidature instructeur
 - **WHEN** un utilisateur authentifié soumet le formulaire de candidature avec tous les champs requis (nom, email, domaines d'expertise, bio FR, bio EN)
 - **THEN** un `InstructeurProfile` est créé avec statut `EN_ATTENTE`, un email de confirmation est envoyé via Resend, et l'utilisateur voit un message "Votre candidature a été soumise"
 
 #### Scenario: Double soumission de candidature
-- **WHEN** un utilisateur ayant déjà un `InstructeurProfile` tente d'accéder à `/formations/devenir-instructeur`
+- **WHEN** un utilisateur ayant déjà un `InstructeurProfile` tente d'accéder à `/devenir-instructeur`
 - **THEN** il est redirigé vers son dashboard instructeur (si approuvé) ou vers une page confirmant que sa candidature est en cours de traitement
 
 #### Scenario: Accès à l'espace instructeur sans approbation
-- **WHEN** un utilisateur avec `InstructeurProfile.status = EN_ATTENTE` tente d'accéder à `/formations/instructeur/dashboard`
+- **WHEN** un utilisateur avec `InstructeurProfile.status = EN_ATTENTE` tente d'accéder à `/instructeur/dashboard`
 - **THEN** il est redirigé vers une page l'informant que sa candidature est en cours d'examen
 
 ### Requirement: Instructor dashboard displays real-time business metrics
-Le dashboard instructeur `/formations/instructeur/dashboard` DOIT afficher des métriques calculées depuis la base de données (chiffre d'affaires du mois, total apprenants, formations actives, note moyenne) et des graphiques recharts interactifs (revenus par mois, nouveaux apprenants, performance des formations). Les données DOIVENT être filtrables par période (7j, 30j, 3m, 6m, 1 an).
+Le dashboard instructeur `/instructeur/dashboard` DOIT afficher des métriques calculées depuis la base de données (chiffre d'affaires du mois, total apprenants, formations actives, note moyenne) et des graphiques recharts interactifs (revenus par mois, nouveaux apprenants, performance des formations). Les données DOIVENT être filtrables par période (7j, 30j, 3m, 6m, 1 an).
 
 #### Scenario: Affichage du CA du mois en cours
 - **WHEN** un instructeur visite son dashboard en mars 2026
@@ -31,7 +31,7 @@ Le dashboard instructeur `/formations/instructeur/dashboard` DOIT afficher des m
 - **THEN** cette inscription apparaît dans la section "Activité récente" du dashboard dans les 60 secondes suivant l'inscription
 
 ### Requirement: Course creation wizard validates and persists 5-step content
-Le wizard de création de formation `/formations/instructeur/creer` DOIT guider l'instructeur en 5 étapes : (1) Informations de base bilingues, (2) Médias et détails, (3) Prix et certificat, (4) Curriculum avec drag & drop, (5) Publication. La progression DOIT être sauvegardée automatiquement entre les étapes. La formation est créée avec le statut `BROUILLON` jusqu'à soumission explicite.
+Le wizard de création de formation `/instructeur/creer` DOIT guider l'instructeur en 5 étapes : (1) Informations de base bilingues, (2) Médias et détails, (3) Prix et certificat, (4) Curriculum avec drag & drop, (5) Publication. La progression DOIT être sauvegardée automatiquement entre les étapes. La formation est créée avec le statut `BROUILLON` jusqu'à soumission explicite.
 
 #### Scenario: Sauvegarde automatique de l'étape 1
 - **WHEN** un instructeur complète l'étape 1 et passe à l'étape 2
@@ -62,7 +62,7 @@ Le wizard de création de formation `/formations/instructeur/creer` DOIT guider 
 - **THEN** le statut de la formation passe à `EN_ATTENTE`, un email de confirmation est envoyé à l'instructeur, et la formation apparaît dans la file admin de modération
 
 ### Requirement: Instructor can manage existing formations with full CRUD
-La page de gestion des formations `/formations/instructeur/mes-formations` DOIT permettre à l'instructeur de voir toutes ses formations avec leurs statistiques, et d'effectuer les actions : modifier, prévisualiser, dupliquer, archiver, supprimer. La suppression DOIT être irréversible et protégée par une confirmation explicite.
+La page de gestion des formations `/instructeur/mes-formations` DOIT permettre à l'instructeur de voir toutes ses formations avec leurs statistiques, et d'effectuer les actions : modifier, prévisualiser, dupliquer, archiver, supprimer. La suppression DOIT être irréversible et protégée par une confirmation explicite.
 
 #### Scenario: Modification d'une formation active
 - **WHEN** un instructeur clique sur "Modifier" pour une formation au statut `ACTIF`
@@ -81,7 +81,7 @@ La page de gestion des formations `/formations/instructeur/mes-formations` DOIT 
 - **THEN** un message d'avertissement indique "X apprenants sont inscrits. Cette action est irréversible." et une confirmation explicite est requise (saisie manuelle du titre de la formation)
 
 ### Requirement: Instructor finances show transparent revenue breakdown
-La page des revenus `/formations/instructeur/revenus` DOIT afficher le CA total, le CA du mois, le montant en attente (30 jours de délai de remboursement), la commission FreelanceHigh (30%), le net instructeur (70%), l'historique des transactions et les demandes de retrait. Le montant minimum de retrait DOIT être de 20€.
+La page des revenus `/instructeur/revenus` DOIT afficher le CA total, le CA du mois, le montant en attente (30 jours de délai de remboursement), la commission FreelanceHigh (30%), le net instructeur (70%), l'historique des transactions et les demandes de retrait. Le montant minimum de retrait DOIT être de 20€.
 
 #### Scenario: Calcul du revenu net instructeur
 - **WHEN** un apprenant paie 50€ pour une formation
@@ -104,7 +104,7 @@ La page des revenus `/formations/instructeur/revenus` DOIT afficher le CA total,
 - **THEN** un fichier CSV est téléchargé contenant l'historique complet des transactions avec les colonnes : date, formation, apprenant, montant_brut, commission, montant_net, statut
 
 ### Requirement: Instructor can respond to reviews publicly
-La page des avis `/formations/instructeur/avis` DOIT permettre à l'instructeur de voir tous les avis reçus sur ses formations, filtrés par formation et par note, et de répondre publiquement à chaque avis. Une seule réponse par avis est autorisée. La réponse est visible sur la page détail de la formation.
+La page des avis `/instructeur/avis` DOIT permettre à l'instructeur de voir tous les avis reçus sur ses formations, filtrés par formation et par note, et de répondre publiquement à chaque avis. Une seule réponse par avis est autorisée. La réponse est visible sur la page détail de la formation.
 
 #### Scenario: Réponse à un avis
 - **WHEN** un instructeur saisit et soumet une réponse à un avis

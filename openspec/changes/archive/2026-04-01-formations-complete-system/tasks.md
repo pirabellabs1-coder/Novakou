@@ -50,12 +50,12 @@
 
 ## 9. Frontend Wiring & Cache Invalidation
 
-- [x] 9.1 Update cart page (`/formations/(apprenant)/panier`) to use TanStack Query hooks that call real Prisma-backed cart API. Ensure add/remove/promo apply mutations invalidate `['cart']` query key.
+- [x] 9.1 Update cart page (`/(apprenant)/panier`) to use TanStack Query hooks that call real Prisma-backed cart API. Ensure add/remove/promo apply mutations invalidate `['cart']` query key.
 - [x] 9.2 Update formation detail page to show real `isEnrolled` and `isFavorite` state from API. Wire "Ajouter au panier" button to cart mutation. Wire "Ajouter aux favoris" button to favorites toggle mutation.
-- [x] 9.3 Update enrolled formations page (`/formations/(apprenant)/mes-formations`) to fetch from real Prisma-backed API. Show progress bars, certificate download links, "Continuer" buttons.
+- [x] 9.3 Update enrolled formations page (`/(apprenant)/mes-formations`) to fetch from real Prisma-backed API. Show progress bars, certificate download links, "Continuer" buttons.
 - [x] 9.4 Update instructor dashboard to fetch real stats from Prisma-backed API. Replace any hardcoded values with API data.
 - [x] 9.5 Update admin formations dashboard to fetch real stats from Prisma-backed API.
-- [x] 9.6 Ensure checkout success page (`/formations/(paiement)/succes`) calls verify endpoint, shows purchased formations, provides "Commencer" links.
+- [x] 9.6 Ensure checkout success page (`/(paiement)/succes`) calls verify endpoint, shows purchased formations, provides "Commencer" links.
 
 ## 10. Seed Data & Testing
 

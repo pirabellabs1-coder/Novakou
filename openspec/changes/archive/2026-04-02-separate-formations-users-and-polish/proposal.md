@@ -1,13 +1,13 @@
 ## Why
 
-The formations module and the main marketplace are leaking into each other. Users who register through `/formations/inscription` get `role: "freelance"` hardcoded, making them appear as freelancers in the marketplace admin panel — polluting user statistics and confusing the admin. Conversely, the main admin has no way to distinguish a real marketplace freelancer from a formation-only learner. Additionally, the formations homepage and card designs need a professional polish to match the quality expected of a premium learning platform. Target: MVP.
+The formations module and the main marketplace are leaking into each other. Users who register through `/inscription` get `role: "freelance"` hardcoded, making them appear as freelancers in the marketplace admin panel — polluting user statistics and confusing the admin. Conversely, the main admin has no way to distinguish a real marketplace freelancer from a formation-only learner. Additionally, the formations homepage and card designs need a professional polish to match the quality expected of a premium learning platform. Target: MVP.
 
 ## What Changes
 
 ### User Separation — Formations vs Marketplace
-- **BREAKING**: Formation-only registrations (`/formations/inscription`) SHALL no longer set `role: "freelance"`. Instead, they'll set a new `role: "APPRENANT"` or use a `registrationSource` field to distinguish them
+- **BREAKING**: Formation-only registrations (`/inscription`) SHALL no longer set `role: "freelance"`. Instead, they'll set a new `role: "APPRENANT"` or use a `registrationSource` field to distinguish them
 - The main admin user list (`/admin/utilisateurs`) SHALL exclude formation-only users (users with `formationsRole` set but no real marketplace activity)
-- The formations admin (`/formations/admin/apprenants`) already shows enrollments — add a proper "Users" tab showing all formations users
+- The formations admin (`/admin/apprenants`) already shows enrollments — add a proper "Users" tab showing all formations users
 - Admin dashboard stats SHALL count marketplace users and formations users separately
 - Registration from formations SHALL NOT create `FreelancerProfile`/`ClientProfile` records
 

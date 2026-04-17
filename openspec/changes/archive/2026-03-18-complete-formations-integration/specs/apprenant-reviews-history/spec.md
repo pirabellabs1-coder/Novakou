@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Apprenant SHALL avoir une page d'historique de ses avis
-Une nouvelle page `/formations/mes-avis` SHALL lister tous les avis que l'apprenant a laissés sur les formations, avec : formation, note, commentaire, date, statut (publié/en attente/rejeté), et réponse de l'instructeur si applicable.
+Une nouvelle page `/mes-avis` SHALL lister tous les avis que l'apprenant a laissés sur les formations, avec : formation, note, commentaire, date, statut (publié/en attente/rejeté), et réponse de l'instructeur si applicable.
 
 #### Scenario: Liste des avis
-- **WHEN** l'apprenant accède à `/formations/mes-avis`
+- **WHEN** l'apprenant accède à `/mes-avis`
 - **THEN** un tableau/liste affiche tous ses avis triés par date (plus récent en premier)
 
 #### Scenario: Aucun avis

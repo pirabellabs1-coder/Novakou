@@ -3,7 +3,7 @@
 L'authentification et l'inscription de la plateforme présentent plusieurs bugs critiques qui empêchent le fonctionnement normal :
 1. **L'inscription formations est cassée** — le formulaire envoie `formationsRole` mais l'API attend `role` avec des valeurs incompatibles ("apprenant"/"instructeur" vs "freelance"/"client"/"agence").
 2. **La connexion formations ne distingue pas les rôles** — `formationsRole` n'est jamais injecté dans le JWT/session, donc tous les utilisateurs sont redirigés vers l'espace apprenant.
-3. **Conflit middleware** — un utilisateur déjà connecté sur FreelanceHigh qui visite `/formations/connexion` est redirigé vers `/dashboard` au lieu de rester dans formations.
+3. **Conflit middleware** — un utilisateur déjà connecté sur FreelanceHigh qui visite `/connexion` est redirigé vers `/dashboard` au lieu de rester dans formations.
 4. **La page de connexion principale affiche "Afrique"** alors que la plateforme est internationale.
 5. **L'inscription principale n'a pas de confirmation de mot de passe**.
 6. **Des données démo/hardcodées** persistent dans plusieurs espaces (paiements, factures, litiges, etc.), ce qui donne une impression de fausse plateforme.
@@ -18,9 +18,9 @@ L'authentification et l'inscription de la plateforme présentent plusieurs bugs 
 - Ajouter un champ de confirmation de mot de passe sur la page d'inscription principale (`/inscription`)
 - **Corriger l'API `/api/auth/register`** pour accepter les rôles formations (`apprenant`, `instructeur`) via un champ `formationsRole` optionnel
 - **Ajouter `formationsRole` au JWT et à la session NextAuth** dans `lib/auth/config.ts`
-- Corriger la page `/formations/connexion` pour rediriger correctement selon le `formationsRole`
-- Corriger la page `/formations/inscription` pour envoyer les bons champs à l'API
-- **Corriger le middleware** pour ne pas rediriger les utilisateurs authentifiés qui visitent `/formations/connexion` ou `/formations/inscription` — permettre l'accès même connecté
+- Corriger la page `/connexion` pour rediriger correctement selon le `formationsRole`
+- Corriger la page `/inscription` pour envoyer les bons champs à l'API
+- **Corriger le middleware** pour ne pas rediriger les utilisateurs authentifiés qui visitent `/connexion` ou `/inscription` — permettre l'accès même connecté
 
 ### Suppression des données demo/hardcodées
 - Remplacer `DEMO_METHODS` et `DEMO_HISTORY` dans `/dashboard/paiements/page.tsx` par des appels API

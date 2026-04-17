@@ -25,7 +25,7 @@ Version cible : **V1** (profils publics complets, matching freelance ↔ client 
 - Remplacer lucide-react par Material Symbols pour la coherence
 
 ### Profil Apprenant — Creation
-- Creer la page `/formations/apprenants/[id]` avec : avatar, bio, formations completees, certificats obtenus, portfolio d'apprentissage, badges de progression
+- Creer la page `/apprenants/[id]` avec : avatar, bio, formations completees, certificats obtenus, portfolio d'apprentissage, badges de progression
 
 ## Capabilities
 

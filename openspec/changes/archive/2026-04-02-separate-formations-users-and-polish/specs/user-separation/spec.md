@@ -4,7 +4,7 @@
 The User model SHALL have a `registrationSource` field that records whether the user registered through the marketplace or the formations platform.
 
 #### Scenario: User registers via formations inscription
-- **WHEN** a user registers through `/formations/inscription`
+- **WHEN** a user registers through `/inscription`
 - **THEN** the User record SHALL have `registrationSource = "formations"` and `role = CLIENT`
 - **AND** no `FreelancerProfile` SHALL be created
 
@@ -33,7 +33,7 @@ The main admin user list (`/admin/utilisateurs`) SHALL only show users who regis
 The formations admin panel SHALL have visibility of users who registered through formations.
 
 #### Scenario: Formations admin views learners
-- **WHEN** an admin navigates to `/formations/admin/apprenants`
+- **WHEN** an admin navigates to `/admin/apprenants`
 - **THEN** the page SHALL show users with `formationsRole` set, regardless of marketplace role
 - **AND** it SHALL show enrollment counts, certificate counts, and formation progress
 
@@ -41,6 +41,6 @@ The formations admin panel SHALL have visibility of users who registered through
 When a user registers through the formations platform, the system SHALL NOT create FreelancerProfile, ClientProfile, or AgencyProfile records.
 
 #### Scenario: Formation user has no marketplace profile
-- **WHEN** a user registers via `/formations/inscription` with `role: "client"`
+- **WHEN** a user registers via `/inscription` with `role: "client"`
 - **THEN** no `FreelancerProfile` record SHALL be created
 - **AND** no `ClientProfile` record SHALL be created

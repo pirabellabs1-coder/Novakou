@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Learner public profile page SHALL exist
-Le systeme DOIT fournir une page de profil public pour les apprenants a l'URL `/formations/apprenants/[id]`. Cette page DOIT utiliser le meme design system que les autres profils publics (banner, avatar, sidebar, onglets).
+Le systeme DOIT fournir une page de profil public pour les apprenants a l'URL `/apprenants/[id]`. Cette page DOIT utiliser le meme design system que les autres profils publics (banner, avatar, sidebar, onglets).
 
 #### Scenario: Acces au profil apprenant
-- **WHEN** un visiteur accede a `/formations/apprenants/123`
+- **WHEN** un visiteur accede a `/apprenants/123`
 - **THEN** la page affiche le profil public de l'apprenant avec son avatar, son nom, sa bio, et ses informations d'apprentissage
 
 #### Scenario: Apprenant inexistant
@@ -31,7 +31,7 @@ Le profil apprenant DOIT afficher une section "Certificats" avec les certificats
 
 #### Scenario: Clic sur verifier un certificat
 - **WHEN** un visiteur clique sur "Verifier" sur un certificat
-- **THEN** il est redirige vers la page de verification du certificat (`/formations/verification/[code]`)
+- **THEN** il est redirige vers la page de verification du certificat (`/verification/[code]`)
 
 ### Requirement: Learner profile SHALL display learning statistics
 Le profil apprenant DOIT afficher une grille de statistiques : formations completees, certificats obtenus, heures d'apprentissage, note moyenne.

@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Instructeur SHALL configure ad pixels
-Le système DOIT permettre aux instructeurs de configurer leurs pixels publicitaires depuis la page paramètres marketing `/formations/instructeur/marketing/pixels`. Les pixels supportés sont : Facebook Pixel, Google Ads Tag, TikTok Pixel.
+Le système DOIT permettre aux instructeurs de configurer leurs pixels publicitaires depuis la page paramètres marketing `/instructeur/marketing/pixels`. Les pixels supportés sont : Facebook Pixel, Google Ads Tag, TikTok Pixel.
 
 #### Scenario: Configuration d'un Facebook Pixel
 - **WHEN** un instructeur saisit son Facebook Pixel ID (ex: `123456789012345`) dans les paramètres

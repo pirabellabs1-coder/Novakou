@@ -15,14 +15,14 @@ The checkout API route (`/api/formations/checkout`) SHALL use `process.env.NEXT_
 When a user clicks "Ajouter au panier" on a formation detail page, the system SHALL show a visible success indicator (toast notification) before redirecting to the cart page.
 
 #### Scenario: Successful add to cart
-- **WHEN** an authenticated user clicks "Ajouter au panier" on `/formations/[slug]`
+- **WHEN** an authenticated user clicks "Ajouter au panier" on `/[slug]`
 - **THEN** the system calls POST `/api/formations/cart` with the formation ID
 - **THEN** a success toast appears briefly ("Formation ajoutée au panier" / "Course added to cart")
-- **THEN** the user is redirected to `/formations/panier`
+- **THEN** the user is redirected to `/panier`
 
 #### Scenario: Add to cart while not authenticated
 - **WHEN** a non-authenticated user clicks "Ajouter au panier"
-- **THEN** the user is redirected to `/formations/connexion`
+- **THEN** the user is redirected to `/connexion`
 
 #### Scenario: Add to cart when already enrolled
 - **WHEN** a user clicks "Ajouter au panier" for a formation they are already enrolled in
@@ -39,7 +39,7 @@ When a user clicks "Acheter" and the system is in mock payment mode, the system 
 - **THEN** the checkout creates an enrollment record in the database
 - **THEN** the checkout clears the user's cart
 - **THEN** the API response includes `mock: true` and a `url` field
-- **THEN** the client redirects to `/formations/succes?session_id=xxx` using `router.push` (relative URL)
+- **THEN** the client redirects to `/succes?session_id=xxx` using `router.push` (relative URL)
 
 #### Scenario: Buy Now in Stripe mode
 - **WHEN** an authenticated user clicks "Acheter" with STRIPE_SECRET_KEY configured
@@ -53,7 +53,7 @@ When a user clicks "Passer la commande" on the cart page and the system is in mo
 - **THEN** the system calls POST `/api/formations/checkout`
 - **THEN** the checkout creates enrollment records for all cart items
 - **THEN** the API returns `{ url, mock: true }`
-- **THEN** the client redirects to `/formations/succes?session_id=xxx` using `router.push`
+- **THEN** the client redirects to `/succes?session_id=xxx` using `router.push`
 
 #### Scenario: Cart checkout in Stripe mode
 - **WHEN** an authenticated user with items in cart clicks "Passer la commande" with Stripe configured
@@ -63,7 +63,7 @@ When a user clicks "Passer la commande" on the cart page and the system is in mo
 After redirection to the success page, the system SHALL verify the payment and display enrollment confirmation.
 
 #### Scenario: Success page with mock session
-- **WHEN** the user lands on `/formations/succes?session_id=mock_xxx`
+- **WHEN** the user lands on `/succes?session_id=mock_xxx`
 - **THEN** the page calls GET `/api/formations/checkout/verify?session_id=mock_xxx`
 - **THEN** the API returns `{ paid: true }`
 - **THEN** the page displays the success confirmation with links to "Mes formations"

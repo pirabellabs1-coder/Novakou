@@ -134,14 +134,14 @@ export async function PATCH(request: Request, { params }: Params) {
           type: "ORDER",
           title: "Décision admin sur votre demande",
           message: studentMsg + (note ? ` Motif: ${note}` : ""),
-          link: "/formations/apprenant/sessions",
+          link: "/apprenant/sessions",
         },
         {
           userId: booking.mentor.user.id,
           type: "ORDER",
           title: "Décision admin sur votre session",
           message: mentorMsg + (note ? ` Motif: ${note}` : ""),
-          link: "/formations/mentor/rendez-vous",
+          link: "/mentor/rendez-vous",
         },
       ],
     }).catch(() => null);

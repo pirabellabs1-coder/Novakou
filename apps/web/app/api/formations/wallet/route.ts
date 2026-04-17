@@ -377,7 +377,7 @@ export async function POST(request: Request) {
           type: "PAYMENT",
           title: "Demande de retrait enregistrée",
           message: `Votre retrait de ${Math.round(amount)} FCFA via ${method} est en cours de traitement (24-48h ouvrées).`,
-          link: "/formations/vendeur/transactions",
+          link: "/vendeur/transactions",
         },
       }).catch(() => null);
 
@@ -445,7 +445,7 @@ export async function POST(request: Request) {
           type: "PAYMENT",
           title: "Retrait mentor enregistré",
           message: `Votre retrait de ${Math.round(amount)} FCFA via ${method} est en cours de traitement.`,
-          link: "/formations/mentor/dashboard",
+          link: "/mentor/dashboard",
         },
       }).catch(() => null);
 

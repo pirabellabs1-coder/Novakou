@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Apprenant SHALL avoir une page centralisée de discussions
-Une nouvelle page `/formations/mes-discussions` SHALL lister toutes les discussions de cours auxquelles l'apprenant participe ou a créées, avec : titre, formation, nombre de réponses, dernière activité, statut (ouvert/résolu/verrouillé).
+Une nouvelle page `/mes-discussions` SHALL lister toutes les discussions de cours auxquelles l'apprenant participe ou a créées, avec : titre, formation, nombre de réponses, dernière activité, statut (ouvert/résolu/verrouillé).
 
 #### Scenario: Liste des discussions
-- **WHEN** l'apprenant accède à `/formations/mes-discussions`
+- **WHEN** l'apprenant accède à `/mes-discussions`
 - **THEN** un tableau/liste affiche toutes les discussions où l'apprenant est auteur ou a répondu, triées par dernière activité
 
 #### Scenario: Filtrage par statut

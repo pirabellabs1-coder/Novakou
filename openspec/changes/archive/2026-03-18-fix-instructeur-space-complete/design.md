@@ -1,6 +1,6 @@
 ## Context
 
-L'espace instructeur du module formations (`/formations/(instructeur)/`) comprend ~30 pages, 10+ composants partagés, et 15+ routes API. Un audit exhaustif a révélé 6 bugs critiques, 12 bugs fonctionnels et 30+ problèmes de qualité. L'état actuel mélange des patterns incohérents : certaines pages utilisent React Query, d'autres des `fetch()` manuels sans gestion d'erreur ; des données mock (`Math.random()`, `MOCK_FORMATIONS`) sont en production ; des endpoints POST/DELETE manquent pour les produits numériques.
+L'espace instructeur du module formations (`/(instructeur)/`) comprend ~30 pages, 10+ composants partagés, et 15+ routes API. Un audit exhaustif a révélé 6 bugs critiques, 12 bugs fonctionnels et 30+ problèmes de qualité. L'état actuel mélange des patterns incohérents : certaines pages utilisent React Query, d'autres des `fetch()` manuels sans gestion d'erreur ; des données mock (`Math.random()`, `MOCK_FORMATIONS`) sont en production ; des endpoints POST/DELETE manquent pour les produits numériques.
 
 L'espace est construit sur :
 - `lib/formations/hooks.ts` — hooks React Query (partiellement utilisés)

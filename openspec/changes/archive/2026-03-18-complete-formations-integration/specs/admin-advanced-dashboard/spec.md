@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Dashboard admin SHALL afficher des supergraphes avancés
-Le dashboard admin (`/formations/admin/dashboard`) SHALL remplacer les graphiques basiques par des visualisations avancées incluant : un funnel de conversion (visiteur → inscription → premier achat → certificat), un graphe waterfall des revenus (revenus bruts → commissions → remboursements → net), un radar de performance par catégorie, et une heatmap d'activité hebdomadaire (52 semaines × 7 jours).
+Le dashboard admin (`/admin/dashboard`) SHALL remplacer les graphiques basiques par des visualisations avancées incluant : un funnel de conversion (visiteur → inscription → premier achat → certificat), un graphe waterfall des revenus (revenus bruts → commissions → remboursements → net), un radar de performance par catégorie, et une heatmap d'activité hebdomadaire (52 semaines × 7 jours).
 
 #### Scenario: Affichage du funnel de conversion
 - **WHEN** l'admin accède au dashboard formations

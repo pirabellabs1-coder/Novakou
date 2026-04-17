@@ -127,12 +127,12 @@ function generateMockAnalytics(period: string): AnalyticsResponse {
 
   // Top pages
   const topPages: TopPage[] = [
-    { path: "/formations/react-nextjs-guide-complet", views: Math.round(1240 * multiplier), conversions: Math.round(67 * multiplier) },
-    { path: "/formations/python-data-science", views: Math.round(980 * multiplier), conversions: Math.round(52 * multiplier) },
+    { path: "/react-nextjs-guide-complet", views: Math.round(1240 * multiplier), conversions: Math.round(67 * multiplier) },
+    { path: "/python-data-science", views: Math.round(980 * multiplier), conversions: Math.round(52 * multiplier) },
     { path: "/produits/pack-templates-figma", views: Math.round(720 * multiplier), conversions: Math.round(45 * multiplier) },
-    { path: "/formations/tailwind-css-masterclass", views: Math.round(650 * multiplier), conversions: Math.round(38 * multiplier) },
+    { path: "/tailwind-css-masterclass", views: Math.round(650 * multiplier), conversions: Math.round(38 * multiplier) },
     { path: "/produits/ebook-marketing-digital", views: Math.round(480 * multiplier), conversions: Math.round(28 * multiplier) },
-    { path: "/formations/nodejs-backend-avance", views: Math.round(390 * multiplier), conversions: Math.round(22 * multiplier) },
+    { path: "/nodejs-backend-avance", views: Math.round(390 * multiplier), conversions: Math.round(22 * multiplier) },
   ];
 
   // Geographic data

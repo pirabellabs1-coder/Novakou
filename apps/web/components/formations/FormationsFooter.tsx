@@ -50,11 +50,11 @@ export function FormationsFooter() {
         <div className="space-y-6">
           <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Marketplace</h4>
           <ul className="space-y-3 text-sm text-slate-500">
-            <li><Link href="/formations/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link></li>
-            <li><Link href="/formations/freelances" className="hover:text-[#006e2f] transition-colors">Freelances</Link></li>
-            <li><Link href="/formations/services" className="hover:text-[#006e2f] transition-colors">Services</Link></li>
-            <li><Link href="/formations/tarifs" className="hover:text-[#006e2f] transition-colors">Tarifs</Link></li>
-            <li><Link href="/formations/affiliation" className="hover:text-[#006e2f] transition-colors">Affiliation</Link></li>
+            <li><Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link></li>
+            <li><Link href="/freelances" className="hover:text-[#006e2f] transition-colors">Freelances</Link></li>
+            <li><Link href="/services" className="hover:text-[#006e2f] transition-colors">Services</Link></li>
+            <li><Link href="/tarifs" className="hover:text-[#006e2f] transition-colors">Tarifs</Link></li>
+            <li><Link href="/affiliation" className="hover:text-[#006e2f] transition-colors">Affiliation</Link></li>
           </ul>
         </div>
 
@@ -62,11 +62,11 @@ export function FormationsFooter() {
         <div className="space-y-6">
           <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Entreprise</h4>
           <ul className="space-y-3 text-sm text-slate-500">
-            <li><Link href="/formations/a-propos" className="hover:text-[#006e2f] transition-colors">À propos</Link></li>
-            <li><Link href="/formations/blog" className="hover:text-[#006e2f] transition-colors">Blog</Link></li>
-            <li><Link href="/formations/partenaires" className="hover:text-[#006e2f] transition-colors">Partenaires</Link></li>
-            <li><Link href="/formations/contact" className="hover:text-[#006e2f] transition-colors">Contact</Link></li>
-            <li><Link href="/formations/aide" className="hover:text-[#006e2f] transition-colors">Centre d&apos;aide</Link></li>
+            <li><Link href="/a-propos" className="hover:text-[#006e2f] transition-colors">À propos</Link></li>
+            <li><Link href="/blog" className="hover:text-[#006e2f] transition-colors">Blog</Link></li>
+            <li><Link href="/partenaires" className="hover:text-[#006e2f] transition-colors">Partenaires</Link></li>
+            <li><Link href="/contact" className="hover:text-[#006e2f] transition-colors">Contact</Link></li>
+            <li><Link href="/aide" className="hover:text-[#006e2f] transition-colors">Centre d&apos;aide</Link></li>
           </ul>
         </div>
 
@@ -107,9 +107,9 @@ export function FormationsFooter() {
       <div className="mt-12 pt-8 border-t border-slate-100 px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
         <p>© 2026 Novakou · La Curation Digital</p>
         <div className="flex gap-6">
-          <Link href="/formations/cgu" className="hover:text-slate-600 transition-colors">CGU</Link>
-          <Link href="/formations/confidentialite" className="hover:text-slate-600 transition-colors">Confidentialité</Link>
-          <Link href="/formations/cookies" className="hover:text-slate-600 transition-colors">Cookies</Link>
+          <Link href="/cgu" className="hover:text-slate-600 transition-colors">CGU</Link>
+          <Link href="/confidentialite" className="hover:text-slate-600 transition-colors">Confidentialité</Link>
+          <Link href="/cookies" className="hover:text-slate-600 transition-colors">Cookies</Link>
         </div>
       </div>
     </footer>

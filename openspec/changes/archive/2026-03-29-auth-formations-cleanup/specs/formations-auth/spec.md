@@ -27,33 +27,33 @@ Le JWT NextAuth SHALL inclure le champ `formationsRole` quand il est défini sur
 - **THEN** le JWT ne contient pas de `formationsRole` et `session.user.formationsRole` retourne `undefined`
 
 ### Requirement: La connexion formations redirige selon le rôle
-La page `/formations/connexion` SHALL rediriger l'utilisateur vers l'espace correspondant à son `formationsRole` après connexion réussie.
+La page `/connexion` SHALL rediriger l'utilisateur vers l'espace correspondant à son `formationsRole` après connexion réussie.
 
 #### Scenario: Connexion apprenant redirige vers mes-formations
-- **WHEN** un apprenant se connecte via `/formations/connexion`
-- **THEN** il est redirigé vers `/formations/mes-formations`
+- **WHEN** un apprenant se connecte via `/connexion`
+- **THEN** il est redirigé vers `/mes-formations`
 
 #### Scenario: Connexion instructeur redirige vers instructeur/dashboard
-- **WHEN** un instructeur se connecte via `/formations/connexion`
-- **THEN** il est redirigé vers `/formations/instructeur/dashboard`
+- **WHEN** un instructeur se connecte via `/connexion`
+- **THEN** il est redirigé vers `/instructeur/dashboard`
 
 #### Scenario: Connexion sans formationsRole redirige vers mes-formations par défaut
-- **WHEN** un utilisateur sans `formationsRole` se connecte via `/formations/connexion`
-- **THEN** il est redirigé vers `/formations/mes-formations` (espace apprenant par défaut)
+- **WHEN** un utilisateur sans `formationsRole` se connecte via `/connexion`
+- **THEN** il est redirigé vers `/mes-formations` (espace apprenant par défaut)
 
 ### Requirement: Le middleware ne bloque pas les routes formations auth
-Le middleware SHALL permettre l'accès aux pages `/formations/connexion` et `/formations/inscription` même si l'utilisateur est déjà authentifié sur la session FreelanceHigh principale.
+Le middleware SHALL permettre l'accès aux pages `/connexion` et `/inscription` même si l'utilisateur est déjà authentifié sur la session FreelanceHigh principale.
 
 #### Scenario: Utilisateur connecté accède à la connexion formations
-- **WHEN** un utilisateur déjà connecté en tant que freelance visite `/formations/connexion`
+- **WHEN** un utilisateur déjà connecté en tant que freelance visite `/connexion`
 - **THEN** la page s'affiche normalement sans redirection vers `/dashboard`
 
 #### Scenario: Utilisateur connecté accède à l'inscription formations
-- **WHEN** un utilisateur déjà connecté visite `/formations/inscription`
+- **WHEN** un utilisateur déjà connecté visite `/inscription`
 - **THEN** la page s'affiche normalement sans redirection
 
 ### Requirement: L'inscription formations envoie les bons champs à l'API
-La page `/formations/inscription` SHALL envoyer `formationsRole` ET un `role` compatible avec le schéma Zod de l'API. Le formulaire MUST permettre de choisir entre apprenant et instructeur.
+La page `/inscription` SHALL envoyer `formationsRole` ET un `role` compatible avec le schéma Zod de l'API. Le formulaire MUST permettre de choisir entre apprenant et instructeur.
 
 #### Scenario: Formulaire inscription formations apprenant
 - **WHEN** un utilisateur remplit le formulaire d'inscription formations en choisissant "apprenant"

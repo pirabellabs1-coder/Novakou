@@ -23,7 +23,7 @@ export function RoleGuard({
   useEffect(() => {
     if (status === "loading") return;
     if (status === "unauthenticated") {
-      router.replace(`/formations/connexion?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
+      router.replace(`/connexion?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     const user = session?.user as { role?: string; formationsRole?: string } | undefined;

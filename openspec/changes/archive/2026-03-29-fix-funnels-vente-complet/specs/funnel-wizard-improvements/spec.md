@@ -45,7 +45,7 @@ Un bouton "Dupliquer" SHALL être disponible sur chaque funnel dans la liste. La
 - **THEN** le serveur copie le funnel et ses étapes, génère un nouveau slug, retourne le funnel dupliqué avec status 201
 
 ### Requirement: Le renderer public SHALL supporter la locale FR/EN
-La page publique `/formations/f/[slug]` SHALL afficher le contenu dans la langue de l'utilisateur. Si `locale === "en"` et que les champs EN sont remplis, elle SHALL utiliser `headlineEn`, `descriptionEn`, `ctaTextEn`. Sinon, fallback vers les champs FR.
+La page publique `/f/[slug]` SHALL afficher le contenu dans la langue de l'utilisateur. Si `locale === "en"` et que les champs EN sont remplis, elle SHALL utiliser `headlineEn`, `descriptionEn`, `ctaTextEn`. Sinon, fallback vers les champs FR.
 
 #### Scenario: Visiteur anglophone
 - **WHEN** un visiteur avec `locale = "en"` accède à un funnel dont les champs EN sont remplis
@@ -56,10 +56,10 @@ La page publique `/formations/f/[slug]` SHALL afficher le contenu dans la langue
 - **THEN** le système affiche `headlineFr` en fallback
 
 ### Requirement: La page publique SHALL avoir des métadonnées SEO dynamiques
-La page `/formations/f/[slug]` SHALL générer des balises `<title>`, `<meta description>`, et des Open Graph tags basés sur le contenu de la première étape du funnel.
+La page `/f/[slug]` SHALL générer des balises `<title>`, `<meta description>`, et des Open Graph tags basés sur le contenu de la première étape du funnel.
 
 #### Scenario: Métadonnées générées
-- **WHEN** un moteur de recherche ou un réseau social crawle `/formations/f/mon-funnel`
+- **WHEN** un moteur de recherche ou un réseau social crawle `/f/mon-funnel`
 - **THEN** le titre est le `headlineFr` de la première étape, la description est son `descriptionFr` tronquée à 160 caractères, et l'OG image est le thumbnail de la formation liée (si disponible)
 
 ### Requirement: Tous les textes français SHALL avoir les accents corrects

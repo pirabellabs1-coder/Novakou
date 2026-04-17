@@ -1,10 +1,10 @@
 ## ADDED Requirements
 
 ### Requirement: Admin SHALL pouvoir configurer les paramètres du système de formations
-Une nouvelle page `/formations/admin/configuration` SHALL permettre de modifier les paramètres système : taux de commission par défaut, durée de la fenêtre de remboursement, taille maximale d'upload, nombre de formations gratuites autorisées par instructeur, et activation/désactivation des fonctionnalités.
+Une nouvelle page `/admin/configuration` SHALL permettre de modifier les paramètres système : taux de commission par défaut, durée de la fenêtre de remboursement, taille maximale d'upload, nombre de formations gratuites autorisées par instructeur, et activation/désactivation des fonctionnalités.
 
 #### Scenario: Affichage de la configuration
-- **WHEN** l'admin accède à `/formations/admin/configuration`
+- **WHEN** l'admin accède à `/admin/configuration`
 - **THEN** un formulaire affiche les paramètres actuels organisés en sections : "Finances" (commission, remboursement), "Limites" (upload, formations gratuites), "Fonctionnalités" (cohortes, produits, marketing)
 
 #### Scenario: Modification de la commission

@@ -7,10 +7,10 @@ La plateforme formations est actuellement intégrée dans FreelanceHigh avec les
 ## What Changes
 
 - **Nouveau layout formations autonome** : header/navbar dédié avec menus spécifiques formations (Accueil, Explorer, Catégories, Devenir Instructeur) — aucun menu FreelanceHigh visible
-- **Authentification formations séparée** : pages de connexion (`/formations/connexion`) et inscription (`/formations/inscription`) propres à la plateforme formations, avec choix du rôle (Apprenant / Instructeur)
+- **Authentification formations séparée** : pages de connexion (`/connexion`) et inscription (`/inscription`) propres à la plateforme formations, avec choix du rôle (Apprenant / Instructeur)
 - **Navigation apprenant dédiée** : sidebar ou header avec menus spécifiques (Mes Formations, Certificats, Favoris, Panier, Paramètres)
 - **Navigation instructeur dédiée** : sidebar ou header avec menus spécifiques (Dashboard, Mes Formations, Créer, Apprenants, Revenus, Avis, Statistiques, Paramètres)
-- **Suppression des layouts FreelanceHigh** sur toutes les routes `/formations/*` — les route groups `(apprenant)`, `(instructeur)`, `(paiement)`, `(public)/formations` utilisent désormais le layout formations
+- **Suppression des layouts FreelanceHigh** sur toutes les routes `/*` — les route groups `(apprenant)`, `(instructeur)`, `(paiement)`, `(public)/formations` utilisent désormais le layout formations
 - **Lien retour vers FreelanceHigh** : un bouton/lien discret "← Retour à FreelanceHigh" dans le header formations pour permettre de revenir
 - **Admin formations** : reste dans l'espace admin FreelanceHigh existant (`/admin/formations/*`) car l'admin gère les deux plateformes
 
@@ -28,10 +28,10 @@ _(aucune modification de specs existantes — il s'agit d'une refonte UI/navigat
 
 ### Code affecté
 - **Layouts** : nouveau `app/formations/layout.tsx` racine + sous-layouts par rôle (public, apprenant, instructeur)
-- **Route groups** : réorganisation de `(apprenant)/formations/*`, `(instructeur)/formations/*`, `(public)/formations/*` sous un préfixe unifié `/formations/*`
+- **Route groups** : réorganisation de `(apprenant)/formations/*`, `(instructeur)/formations/*`, `(public)/formations/*` sous un préfixe unifié `/*`
 - **Composants** : nouveau `FormationsHeader.tsx`, `FormationsNavbar.tsx`, `ApprenantSidebar.tsx`, `InstructeurSidebar.tsx`
-- **Middleware** : ajustement du middleware Next.js pour gérer l'auth formations séparément (routes `/formations/connexion`, `/formations/inscription`)
-- **Navbar FreelanceHigh** : le lien "Formations" reste, pointe vers `/formations`
+- **Middleware** : ajustement du middleware Next.js pour gérer l'auth formations séparément (routes `/connexion`, `/inscription`)
+- **Navbar FreelanceHigh** : le lien "Formations" reste, pointe vers `/`
 
 ### Pas d'impact sur
 - Schéma Prisma (aucun changement DB)

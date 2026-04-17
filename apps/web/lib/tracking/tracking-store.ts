@@ -197,7 +197,7 @@ export const trackingStore = {
       admin: "/admin",
       freelance: "/dashboard",
       client: "/client",
-      formations: "/formations",
+      formations: "/",
       public: "/",
     };
 

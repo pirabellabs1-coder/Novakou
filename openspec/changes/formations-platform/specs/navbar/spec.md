@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Navbar displays a "Formations" link between "Services" and "À Propos"
-La navbar principale de la landing page publique (`/`) ET les navbars des espaces connectés (freelance, client, agence) DOIVENT afficher un lien "Formations" (FR) / "Trainings" (EN) positionné entre les liens "Services" et "À Propos". Le lien DOIT avoir un badge coloré distinctif (couleur primaire FreelanceHigh `#6C2BD9`) et une icône de mortier de diplôme pour le différencier visuellement des autres liens de navigation. Un clic sur ce lien DOIT rediriger vers `/formations`.
+La navbar principale de la landing page publique (`/`) ET les navbars des espaces connectés (freelance, client, agence) DOIVENT afficher un lien "Formations" (FR) / "Trainings" (EN) positionné entre les liens "Services" et "À Propos". Le lien DOIT avoir un badge coloré distinctif (couleur primaire FreelanceHigh `#6C2BD9`) et une icône de mortier de diplôme pour le différencier visuellement des autres liens de navigation. Un clic sur ce lien DOIT rediriger vers `/`.
 
 #### Scenario: Lien "Formations" visible dans la navbar publique
 - **WHEN** un visiteur non connecté accède à la landing page `/`
@@ -13,7 +13,7 @@ La navbar principale de la landing page publique (`/`) ET les navbars des espace
 
 #### Scenario: Navigation vers la section formations depuis la navbar
 - **WHEN** un utilisateur clique sur le lien "Formations" dans la navbar
-- **THEN** il est redirigé vers `/formations` (landing page de la section formations)
+- **THEN** il est redirigé vers `/` (landing page de la section formations)
 
 #### Scenario: Affichage du lien en anglais quand la langue EN est active
 - **WHEN** un utilisateur a sélectionné l'anglais (EN) comme langue active

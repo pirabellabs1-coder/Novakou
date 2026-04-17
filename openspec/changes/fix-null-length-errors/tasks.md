@@ -40,4 +40,4 @@
 ## 7. Verification
 
 - [ ] 7.1 Build complet (`pnpm build`) sans erreur
-- [ ] 7.2 Test navigation sur `/services/[slug]`, `/client/commandes`, `/dashboard/commandes`, `/formations/[slug]`
+- [ ] 7.2 Test navigation sur `/services/[slug]`, `/client/commandes`, `/dashboard/commandes`, `/[slug]`

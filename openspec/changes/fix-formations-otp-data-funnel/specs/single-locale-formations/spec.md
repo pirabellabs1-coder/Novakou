@@ -89,7 +89,7 @@ Toutes les statistiques des formations (dashboard instructeur, marketing admin, 
 - **THEN** tous les compteurs (revenus, apprenants, formations) DOIVENT afficher 0
 
 #### Scenario: Landing page formations affiche les vraies stats
-- **WHEN** un visiteur accède à la page `/formations`
+- **WHEN** un visiteur accède à la page `/`
 - **THEN** les compteurs (apprenants, formations, instructeurs, satisfaction) DOIVENT refléter les données réelles de la base
 
 #### Scenario: Marketing admin sans données

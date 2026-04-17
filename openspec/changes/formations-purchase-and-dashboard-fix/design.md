@@ -7,7 +7,7 @@ Le module Formations dispose d'une architecture complète : cart API, Stripe che
 3. **Favoris** : Fonctionne en localStorage mais pas de modèle Prisma, l'API `/api/apprenant/favoris` échoue silencieusement
 4. **Reçus** : Aucun reçu PDF n'est généré après achat
 5. **Stats dashboard** : L'API `/api/apprenant/enrollments` calcule des stats réelles mais certains calculs sont fragiles (streak basé sur LessonProgress qui peut être vide, weeklyHours divisé par 7 fixe)
-6. **Profil instructeur** : Le lien pointe correctement vers `/formations/instructeurs/[id]` mais la page peut ne pas trouver les données si l'API ne retourne pas le bon format
+6. **Profil instructeur** : Le lien pointe correctement vers `/instructeurs/[id]` mais la page peut ne pas trouver les données si l'API ne retourne pas le bon format
 
 Stack existante : Next.js 14 App Router, Prisma 5, Stripe, next-auth, localStorage pour favoris.
 
@@ -32,8 +32,8 @@ Stack existante : Next.js 14 App Router, Prisma 5, Stripe, next-auth, localStora
 
 ### D1: Navigation rôle-dépendante dans FormationsHeader
 **Choix** : Lire `session.user.role` et `session.user.instructeurProfileId` pour conditionner les liens du menu.
-- Instructeur connecté → masquer "Devenir instructeur", afficher "Tableau de bord" → `/formations/instructeur`
-- Apprenant connecté → garder "Mes formations" → `/formations/mes-formations`
+- Instructeur connecté → masquer "Devenir instructeur", afficher "Tableau de bord" → `/instructeur`
+- Apprenant connecté → garder "Mes formations" → `/mes-formations`
 - Non connecté → garder "Devenir instructeur"
 **Raison** : Minimal, pas de nouvelle API, utilise les données de session existantes.
 
@@ -59,7 +59,7 @@ Stack existante : Next.js 14 App Router, Prisma 5, Stripe, next-auth, localStora
 **Raison** : L'API existe et fonctionne, juste des corrections de calcul.
 
 ### D6: Profil instructeur — vérifier le flux complet
-**Choix** : Vérifier que l'API `/api/formations/instructeurs/[id]` retourne le bon format et que la page `/formations/instructeurs/[id]/page.tsx` le consomme correctement. Corriger si nécessaire.
+**Choix** : Vérifier que l'API `/api/formations/instructeurs/[id]` retourne le bon format et que la page `/instructeurs/[id]/page.tsx` le consomme correctement. Corriger si nécessaire.
 **Raison** : Le lien existe déjà, juste s'assurer qu'il fonctionne.
 
 ## Risks / Trade-offs

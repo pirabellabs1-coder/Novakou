@@ -78,7 +78,7 @@ export async function PATCH(request: Request, { params }: Params) {
           message: isPro
             ? "Votre certification professionnelle a été approuvée. Le badge Elite est maintenant affiché sur votre profil public."
             : "Votre identité a été vérifiée. Vous pouvez désormais demander un retrait de vos gains.",
-          link: isPro ? "/formations/mentor/profil" : "/formations/mentor/finances",
+          link: isPro ? "/mentor/profil" : "/mentor/finances",
         },
       }).catch(() => null);
 
@@ -113,7 +113,7 @@ export async function PATCH(request: Request, { params }: Params) {
         type: "ORDER",
         title: "KYC refusé",
         message: `Votre vérification d'identité a été refusée. Motif : ${refuseReason.trim()}. Vous pouvez soumettre une nouvelle demande.`,
-        link: "/formations/kyc",
+        link: "/kyc",
       },
     }).catch(() => null);
 

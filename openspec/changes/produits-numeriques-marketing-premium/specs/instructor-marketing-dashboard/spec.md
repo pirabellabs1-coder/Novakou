@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Instructeur SHALL access marketing dashboard
-Le système DOIT fournir un tableau de bord marketing accessible à `/formations/instructeur/marketing` affichant les métriques de conversion de l'instructeur. Le dashboard comprend : funnel de conversion (vues → ajouts panier → checkouts → achats), taux de conversion, revenus, paniers abandonnés récupérés, et paiements échoués.
+Le système DOIT fournir un tableau de bord marketing accessible à `/instructeur/marketing` affichant les métriques de conversion de l'instructeur. Le dashboard comprend : funnel de conversion (vues → ajouts panier → checkouts → achats), taux de conversion, revenus, paniers abandonnés récupérés, et paiements échoués.
 
 #### Scenario: Affichage du funnel de conversion
 - **WHEN** un instructeur accède à son dashboard marketing

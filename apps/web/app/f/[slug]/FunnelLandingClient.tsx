@@ -364,7 +364,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
   const accent = accentColor || theme.primaryColor;
   const txtColor = textColor || theme.textColor;
   const bg = bgColor || "#ffffff";
-  const checkoutLink = info.kind === "formation" ? `/formations/checkout?fids=${info.id}` : `/formations/checkout?pids=${info.id}`;
+  const checkoutLink = info.kind === "formation" ? `/checkout?fids=${info.id}` : `/checkout?pids=${info.id}`;
 
   // ─── Compact layout ─────────────────────────────────────────────
   if (layout === "compact") {
@@ -795,9 +795,9 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   function handleCta() {
     if (!funnel) return;
     const landing = funnel.steps[0];
-    if (landing?.formationId) router.push(`/formations/checkout?fids=${landing.formationId}`);
-    else if (landing?.productId) router.push(`/formations/checkout?pids=${landing.productId}`);
-    else router.push("/formations/explorer");
+    if (landing?.formationId) router.push(`/checkout?fids=${landing.formationId}`);
+    else if (landing?.productId) router.push(`/checkout?pids=${landing.productId}`);
+    else router.push("/explorer");
   }
 
   if (loading) {
@@ -842,7 +842,7 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
 
       <footer className="py-6 px-4 text-center bg-white border-t border-gray-100">
         <p className="text-xs text-gray-400">
-          Propulsé par <a href="/formations" className="font-bold text-[#006e2f] hover:underline">Novakou</a>
+          Propulsé par <a href="/" className="font-bold text-[#006e2f] hover:underline">Novakou</a>
         </p>
       </footer>
     </div>
