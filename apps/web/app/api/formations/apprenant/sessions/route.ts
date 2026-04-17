@@ -6,7 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { meetingUrlFrom } from "@/lib/mentor/jitsi";
 
 /**
- * GET /api/formations/apprenant/sessions
+ * GET /api/apprenant/sessions
  * Returns all mentor sessions for the authenticated learner (upcoming + past).
  *
  * Response shape:

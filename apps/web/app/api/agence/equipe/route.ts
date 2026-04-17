@@ -228,10 +228,10 @@ export async function POST(req: NextRequest) {
 
     // Send invitation email (best-effort)
     try {
-      const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+      const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
+      const from = process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
 
       const roleLabels: Record<string, string> = {
         PROPRIETAIRE: "Proprietaire",
@@ -243,16 +243,16 @@ export async function POST(req: NextRequest) {
       await resend.emails.send({
         from,
         to: email,
-        subject: `${session.user.name} vous invite a rejoindre son agence sur FreelanceHigh`,
+        subject: `${session.user.name} vous invite a rejoindre son agence sur Novakou`,
         html: `
           <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
             <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;border-radius:12px 12px 0 0;">
-              <h1 style="color:#fff;font-size:24px;font-weight:800;margin:0;">FreelanceHigh</h1>
+              <h1 style="color:#fff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
             </div>
             <div style="padding:40px;background:#fff;">
               <h2 style="color:#111827;font-size:20px;margin:0 0 16px;">Vous etes invite !</h2>
               <p style="color:#4b5563;line-height:1.6;">
-                <strong>${session.user.name}</strong> vous invite a rejoindre son agence sur FreelanceHigh
+                <strong>${session.user.name}</strong> vous invite a rejoindre son agence sur Novakou
                 en tant que <strong>${roleLabels[role] || role}</strong>.
               </p>
               <div style="text-align:center;margin:32px 0;">

@@ -6,7 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 
 /**
- * GET /api/formations/vendeur/catalog
+ * GET /api/vendeur/catalog
  * Returns a flat list of the vendor's purchasable items (formations + digital products)
  * for use in the funnel product picker.
  */

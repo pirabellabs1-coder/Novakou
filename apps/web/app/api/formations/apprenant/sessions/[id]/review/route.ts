@@ -7,7 +7,7 @@ import { IS_DEV } from "@/lib/env";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * POST /api/formations/apprenant/sessions/[id]/review
+ * POST /api/apprenant/sessions/[id]/review
  *
  * Body:
  *   {

@@ -20,7 +20,7 @@ async function ensureOwnership(session: Awaited<ReturnType<typeof getServerSessi
   return { ctx, workflow: wf };
 }
 
-/** GET /api/formations/vendeur/automatisations/[id] */
+/** GET /api/vendeur/automatisations/[id] */
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
   try {
@@ -38,7 +38,7 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
-/** PATCH /api/formations/vendeur/automatisations/[id]
+/** PATCH /api/vendeur/automatisations/[id]
  *  Body: { name?, description?, triggerType?, status?, actions?, conditions? }
  */
 export async function PATCH(request: Request, { params }: Params) {
@@ -92,6 +92,10 @@ export async function PATCH(request: Request, { params }: Params) {
       data.actions = body.actions;
     }
     if (body.conditions !== undefined) data.conditions = body.conditions;
+    if (body.triggerConfig !== undefined) {
+      if (body.triggerConfig === null) data.triggerConfig = null;
+      else if (typeof body.triggerConfig === "object") data.triggerConfig = body.triggerConfig;
+    }
 
     const updated = await prisma.automationWorkflow.update({
       where: { id },
@@ -108,7 +112,7 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 }
 
-/** DELETE /api/formations/vendeur/automatisations/[id] */
+/** DELETE /api/vendeur/automatisations/[id] */
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;
   try {

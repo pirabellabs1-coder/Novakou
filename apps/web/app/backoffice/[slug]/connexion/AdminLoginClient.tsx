@@ -114,7 +114,7 @@ export default function AdminLoginClient() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@freelancehigh.com"
+                placeholder="admin@novakou.com"
                 autoComplete="email"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-white/10 text-sm text-white placeholder-white/40 bg-white/5 focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400/50 transition-all"

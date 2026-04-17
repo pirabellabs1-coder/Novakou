@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Email Templates : Commandes (dark mode)
+ * Novakou — Email Templates : Commandes (dark mode)
  */
 
 import { sendEmail, getAppUrl } from "@/lib/email";

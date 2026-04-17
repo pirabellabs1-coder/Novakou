@@ -64,7 +64,7 @@ async function ensureOwnership(session: Awaited<ReturnType<typeof getServerSessi
   return { ctx, sequence: seq };
 }
 
-/** GET /api/formations/vendeur/marketing/sequences/[id] */
+/** GET /api/vendeur/marketing/sequences/[id] */
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
   try {
@@ -105,7 +105,7 @@ export async function GET(_req: Request, { params }: Params) {
   }
 }
 
-/** PATCH /api/formations/vendeur/marketing/sequences/[id]
+/** PATCH /api/vendeur/marketing/sequences/[id]
  *  Body: { name?, description?, trigger?, isActive? }
  */
 export async function PATCH(request: Request, { params }: Params) {
@@ -170,7 +170,7 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 }
 
-/** DELETE /api/formations/vendeur/marketing/sequences/[id] */
+/** DELETE /api/vendeur/marketing/sequences/[id] */
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;
   try {

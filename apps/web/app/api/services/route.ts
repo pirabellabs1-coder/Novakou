@@ -259,7 +259,7 @@ export async function POST(request: NextRequest) {
         metaTitle: body.metaTitle || body.title,
         metaDescription:
           body.metaDescription ||
-          `${body.title} - Service professionnel sur FreelanceHigh`,
+          `${body.title} - Service professionnel sur Novakou`,
         faq: Array.isArray(body.faq) ? body.faq : [],
         extras: Array.isArray(body.extras) ? body.extras : [],
         vendorName: profile
@@ -514,7 +514,7 @@ export async function POST(request: NextRequest) {
       seoScore: 0,
       boostTier: null,
       metaTitle: body.title,
-      metaDescription: `${body.title} - Service professionnel sur FreelanceHigh`,
+      metaDescription: `${body.title} - Service professionnel sur Novakou`,
       vendorName: session.user.name || "Freelance",
       vendorAvatar: "",
       vendorUsername: session.user.id,

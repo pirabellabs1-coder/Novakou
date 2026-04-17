@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Email Templates : Agence (dark mode)
+ * Novakou — Email Templates : Agence (dark mode)
  */
 
 import { sendEmail, getAppUrl } from "@/lib/email";
@@ -15,7 +15,7 @@ export async function sendMemberInvitedEmail(
 ) {
   const html = emailLayoutDark(`
     ${headingDark("Invitation a rejoindre une agence")}
-    ${textDark(`Bonjour ${memberName}, <strong style="color:#F1F5F9;">${data.inviterName}</strong> vous invite a rejoindre l'agence <strong style="color:#F1F5F9;">${data.agencyName}</strong> sur FreelanceHigh.`)}
+    ${textDark(`Bonjour ${memberName}, <strong style="color:#F1F5F9;">${data.inviterName}</strong> vous invite a rejoindre l'agence <strong style="color:#F1F5F9;">${data.agencyName}</strong> sur Novakou.`)}
     ${infoDark(`En rejoignant cette agence, vous pourrez collaborer sur des projets collectifs et recevoir des commandes sous la marque de l'agence.`)}
     ${buttonDark("Accepter l'invitation", `${getAppUrl()}/agence/equipe`)}
     ${mutedDark("Si vous n'attendiez pas cette invitation, vous pouvez l'ignorer.")}

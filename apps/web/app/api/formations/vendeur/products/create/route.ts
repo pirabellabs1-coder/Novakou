@@ -26,7 +26,7 @@ async function getOrCreateCategory(name: string) {
 }
 
 /**
- * POST /api/formations/vendeur/products/create
+ * POST /api/vendeur/products/create
  * Body: { kind: "formation" | "product", productType?, title, description, price, originalPrice?, category, thumbnail? }
  *  - kind="formation" (cours vidéo ou pack) → creates Formation
  *  - kind="product" (ebook, template, audio, software, bundle) → creates DigitalProduct

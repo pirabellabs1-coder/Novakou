@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Email Templates : Formations (dark mode)
+ * Novakou — Email Templates : Formations (dark mode)
  */
 
 import { sendEmail, getAppUrl } from "@/lib/email";
@@ -17,7 +17,7 @@ export async function sendCoursePurchasedEmail(
     ${headingDark("Formation achetee !")}
     ${textDark(`Bonjour ${name}, vous avez achete la formation <strong style="color:#F1F5F9;">"${data.courseTitle}"</strong>.`)}
     ${data.instructorName ? textDark(`Instructeur : <strong style="color:#F1F5F9;">${data.instructorName}</strong>`) : ""}
-    ${buttonDark("Commencer la formation", `${getAppUrl()}/formations`, "green")}
+    ${buttonDark("Commencer la formation", `${getAppUrl()}/`, "green")}
   `);
   return sendEmail({ to: email, subject: `Formation achetee — ${data.courseTitle}`, html });
 }
@@ -60,7 +60,7 @@ export async function sendNewLessonEmail(
     ${headingDark("Nouvelle lecon disponible")}
     ${textDark(`Bonjour ${name}, une nouvelle lecon a ete ajoutee a la formation <strong style="color:#F1F5F9;">"${data.courseTitle}"</strong>.`)}
     ${data.lessonTitle ? tableDark(tableRowDark("Lecon", data.lessonTitle)) : ""}
-    ${buttonDark("Voir la lecon", `${getAppUrl()}/formations`, "blue")}
+    ${buttonDark("Voir la lecon", `${getAppUrl()}/`, "blue")}
   `);
   return sendEmail({ to: email, subject: `Nouvelle lecon — ${data.courseTitle}`, html });
 }
@@ -78,7 +78,7 @@ export async function sendCourseReviewedEmail(
       tableRowDark("Note", `<span style="color:#FBBF24;">${stars}</span> (${data.rating}/5)`) +
       (data.comment ? tableRowDark("Commentaire", data.comment) : "")
     )}
-    ${buttonDark("Voir les avis", `${getAppUrl()}/dashboard/formations`)}
+    ${buttonDark("Voir les avis", `${getAppUrl()}/vendeur/produits`)}
   `);
   return sendEmail({ to: email, subject: `Nouvel avis — ${data.courseTitle}`, html });
 }

@@ -88,7 +88,7 @@ export async function GET() {
 
     return NextResponse.json({
       methods: [
-        { id: "wallet", type: "wallet", label: `Solde FreelanceHigh (${balanceLabel} EUR)`, balance: walletBalance, available: walletBalance > 0, isDefault: false, createdAt: new Date().toISOString() },
+        { id: "wallet", type: "wallet", label: `Solde Novakou (${balanceLabel} EUR)`, balance: walletBalance, available: walletBalance > 0, isDefault: false, createdAt: new Date().toISOString() },
         { id: "card", type: "card", label: "Carte bancaire (Visa / Mastercard)", provider: "stripe", available: true, isDefault: true, createdAt: new Date().toISOString() },
         { id: "mobile_money", type: "momo", label: "Mobile Money", provider: "cinetpay", available: false, isDefault: false, createdAt: new Date().toISOString() },
         { id: "paypal", type: "paypal", label: "PayPal", available: false, isDefault: false, createdAt: new Date().toISOString() },

@@ -21,7 +21,7 @@ export function MessageNotificationEmail({
   return (
     <div style={{ fontFamily: "Arial, sans-serif", maxWidth: "600px", margin: "0 auto", padding: "40px 20px" }}>
       <div style={{ textAlign: "center", marginBottom: "32px" }}>
-        <h1 style={{ color: "#6C2BD9", fontSize: "24px", margin: 0 }}>FreelanceHigh</h1>
+        <h1 style={{ color: "#6C2BD9", fontSize: "24px", margin: 0 }}>Novakou</h1>
       </div>
 
       <div style={{ backgroundColor: "#f8f9fa", borderRadius: "12px", padding: "32px" }}>
@@ -52,14 +52,14 @@ export function MessageNotificationEmail({
         </div>
 
         <p style={{ fontSize: "12px", color: "#999", marginBottom: 0 }}>
-          Vous recevez cet email car vous avez des messages non lus sur FreelanceHigh.
+          Vous recevez cet email car vous avez des messages non lus sur Novakou.
           Vous pouvez desactiver ces notifications dans vos parametres.
         </p>
       </div>
 
       <div style={{ textAlign: "center", marginTop: "24px" }}>
         <p style={{ fontSize: "11px", color: "#bbb" }}>
-          &copy; 2026 FreelanceHigh. Tous droits reserves.
+          &copy; 2026 Novakou. Tous droits reserves.
         </p>
       </div>
     </div>

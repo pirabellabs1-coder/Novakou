@@ -1,0 +1,267 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useToastStore } from "@/store/toast";
+
+interface DnsRecord {
+  type: string;
+  name: string;
+  value: string;
+  note?: string;
+}
+
+interface DomainState {
+  connected: boolean;
+  domain: string | null;
+  verified: boolean;
+  records: DnsRecord[];
+  shopSlug?: string | null;
+  addedAt?: string | null;
+}
+
+function Copy({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(value);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        } catch {
+          /* ignore */
+        }
+      }}
+      className="text-[#5c647a] hover:text-[#006e2f] transition-colors"
+      aria-label="Copier"
+      title="Copier"
+    >
+      <span className="material-symbols-outlined text-[14px]">
+        {copied ? "check" : "content_copy"}
+      </span>
+    </button>
+  );
+}
+
+export default function VendorDomainTab() {
+  const [state, setState] = useState<DomainState | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [input, setInput] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const toast = useToastStore.getState().addToast;
+
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/formations/vendeur/domain");
+      const json = await res.json();
+      setState(json.data ?? { connected: false, domain: null, verified: false, records: [] });
+    } catch {
+      toast("error", "Impossible de charger l'état du domaine");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  async function handleConnect() {
+    if (!input.trim()) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/formations/vendeur/domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ domain: input.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast("error", json.error ?? "Erreur lors de la connexion");
+        return;
+      }
+      toast("success", "Domaine ajouté. Configurez les DNS, puis lancez la vérification.");
+      setState(json.data);
+      setInput("");
+    } catch (e) {
+      toast("error", e instanceof Error ? e.message : "Erreur réseau");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleVerify() {
+    setVerifying(true);
+    try {
+      const res = await fetch("/api/formations/vendeur/domain/verify", { method: "POST" });
+      const json = await res.json();
+      if (json.error) {
+        toast("warning", json.hint ?? json.error);
+      }
+      if (json.data) {
+        setState((s) => (s ? { ...s, verified: json.data.verified, records: json.data.records } : s));
+        if (json.data.verified) toast("success", "Domaine vérifié ✓ SSL provisionné");
+      }
+    } catch (e) {
+      toast("error", e instanceof Error ? e.message : "Erreur réseau");
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  async function handleDisconnect() {
+    if (!confirm("Supprimer ce nom de domaine ?")) return;
+    setDisconnecting(true);
+    try {
+      const res = await fetch("/api/formations/vendeur/domain", { method: "DELETE" });
+      if (!res.ok) {
+        const j = await res.json();
+        toast("error", j.error ?? "Erreur");
+        return;
+      }
+      toast("success", "Domaine supprimé");
+      setState({ connected: false, domain: null, verified: false, records: [] });
+    } catch (e) {
+      toast("error", e instanceof Error ? e.message : "Erreur réseau");
+    } finally {
+      setDisconnecting(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-8 animate-pulse">
+        <div className="h-5 w-48 bg-zinc-200 rounded mb-3" />
+        <div className="h-4 w-80 bg-zinc-200 rounded mb-6" />
+        <div className="h-12 bg-zinc-200 rounded-xl" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+      <div className="mb-6">
+        <h2 className="text-lg font-extrabold text-[#191c1e]">Connecter un nom de domaine</h2>
+        <p className="text-sm text-[#5c647a] mt-1">
+          Définissez un nom de domaine personnalisé pour votre boutique. SSL automatique inclus.
+        </p>
+      </div>
+
+      {/* Input or current domain */}
+      {!state?.connected ? (
+        <div className="flex flex-col md:flex-row gap-3">
+          <div className="flex-1 relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-[#5c647a] pointer-events-none">
+              https://
+            </span>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="example.com"
+              className="w-full pl-[68px] pr-4 py-3 text-sm rounded-xl border border-gray-200 bg-white text-[#191c1e] placeholder-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={handleConnect}
+            disabled={saving || !input.trim()}
+            className="px-6 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 whitespace-nowrap"
+            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+          >
+            {saving ? "Connexion…" : "Connecter"}
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center justify-between gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50">
+            <div className="flex items-center gap-3 min-w-0">
+              <span
+                className={`material-symbols-outlined flex-shrink-0 ${state.verified ? "text-[#006e2f]" : "text-amber-500"}`}
+              >
+                {state.verified ? "verified" : "pending"}
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-[#191c1e] truncate">{state.domain}</p>
+                <p className="text-xs text-[#5c647a]">
+                  {state.verified
+                    ? "Vérifié · SSL actif"
+                    : "En attente de vérification DNS"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              className="px-4 py-2 rounded-xl text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 disabled:opacity-50 whitespace-nowrap"
+            >
+              Supprimer
+            </button>
+          </div>
+
+          {/* DNS instructions */}
+          <div className="mt-6">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 mb-4">
+              <span className="material-symbols-outlined text-blue-500 flex-shrink-0">info</span>
+              <p className="text-sm text-blue-900 leading-relaxed">
+                Configurez les enregistrements DNS suivants chez votre fournisseur de domaine. La
+                propagation DNS peut prendre jusqu&apos;à 1 heure.
+              </p>
+            </div>
+
+            <div className="border border-gray-100 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-[80px_120px_1fr] bg-gray-50 border-b border-gray-100 text-[11px] font-bold uppercase tracking-wider text-[#5c647a]">
+                <div className="px-4 py-3">Type</div>
+                <div className="px-4 py-3">Nom</div>
+                <div className="px-4 py-3">Valeur</div>
+              </div>
+              {(state.records ?? []).map((r, i) => (
+                <div
+                  key={`${r.type}-${r.name}-${i}`}
+                  className="grid grid-cols-[80px_120px_1fr] border-b border-gray-100 last:border-b-0 items-center"
+                >
+                  <div className="px-4 py-3">
+                    <span className="inline-block text-[11px] font-bold px-2 py-1 rounded bg-[#006e2f]/10 text-[#006e2f] font-mono">
+                      {r.type}
+                    </span>
+                  </div>
+                  <div className="px-4 py-3 flex items-center gap-2">
+                    <code className="text-sm font-mono text-[#191c1e] truncate">{r.name}</code>
+                    <Copy value={r.name} />
+                  </div>
+                  <div className="px-4 py-3 flex items-center gap-2">
+                    <code className="text-sm font-mono text-[#191c1e] break-all">{r.value}</code>
+                    <Copy value={r.value} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-5">
+              <p className="text-xs text-[#5c647a]">
+                Novakou re-vérifie automatiquement toutes les heures.
+              </p>
+              <button
+                type="button"
+                onClick={handleVerify}
+                disabled={verifying}
+                className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
+                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+              >
+                <span className={`material-symbols-outlined text-[16px] ${verifying ? "animate-spin" : ""}`}>
+                  {verifying ? "progress_activity" : "refresh"}
+                </span>
+                {verifying ? "Vérification…" : "Lancer une vérification"}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

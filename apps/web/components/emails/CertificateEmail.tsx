@@ -24,8 +24,8 @@ const t = {
       "Partagez votre reussite sur LinkedIn pour valoriser votre profil professionnel !",
     linkedInCta: "Partager sur LinkedIn",
     footer:
-      "Ce certificat est verifie et valide par FreelanceHigh. Il peut etre partage avec vos employeurs et clients potentiels.",
-    team: "L'equipe FreelanceHigh",
+      "Ce certificat est verifie et valide par Novakou. Il peut etre partage avec vos employeurs et clients potentiels.",
+    team: "L'equipe Novakou",
   },
   en: {
     subject: (title: string) => `Congratulations! Your certificate for "${title}"`,
@@ -41,8 +41,8 @@ const t = {
       "Share your achievement on LinkedIn to enhance your professional profile!",
     linkedInCta: "Share on LinkedIn",
     footer:
-      "This certificate is verified and validated by FreelanceHigh. It can be shared with your employers and potential clients.",
-    team: "The FreelanceHigh Team",
+      "This certificate is verified and validated by Novakou. It can be shared with your employers and potential clients.",
+    team: "The Novakou Team",
   },
 };
 
@@ -101,7 +101,7 @@ export function CertificateEmail({
               margin: 0,
             }}
           >
-            FreelanceHigh
+            Novakou
           </h1>
           <p
             style={{
@@ -374,21 +374,21 @@ export function CertificateEmail({
           </p>
           <p style={{ color: "#9ca3af", fontSize: "11px", margin: 0 }}>
             <a
-              href="https://freelancehigh.com/formations"
+              href="https://novakou.com"
               style={{ color: "#6C2BD9", textDecoration: "none" }}
             >
               Formations
             </a>{" "}
             ·{" "}
             <a
-              href="https://freelancehigh.com/formations/certificats"
+              href="https://novakou.com/apprenant/certificats"
               style={{ color: "#6C2BD9", textDecoration: "none" }}
             >
               {locale === "fr" ? "Mes certificats" : "My certificates"}
             </a>{" "}
             ·{" "}
             <a
-              href="https://freelancehigh.com/contact"
+              href="https://novakou.com/contact"
               style={{ color: "#6C2BD9", textDecoration: "none" }}
             >
               Contact
@@ -397,7 +397,7 @@ export function CertificateEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 FreelanceHigh — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
+            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
           </p>
         </div>
       </div>

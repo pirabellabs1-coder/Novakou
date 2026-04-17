@@ -2,7 +2,7 @@
  * Generate secure admin credentials + unique login slug.
  * Usage: pnpm --filter=db tsx scripts/secure-admin.ts
  *
- * - Creates/updates admin@freelancehigh.com with a strong random password
+ * - Creates/updates admin@novakou.com with a strong random password
  * - Generates a unique random slug for the admin login URL
  * - Prints everything needed to update .env.local and Vercel
  */
@@ -50,7 +50,7 @@ function generateSlug(): string {
 }
 
 async function main() {
-  const email = "admin@freelancehigh.com";
+  const email = "admin@novakou.com";
   const password = generatePassword();
   const slug = generateSlug();
 
@@ -72,7 +72,7 @@ async function main() {
     },
     create: {
       email,
-      name: "Admin FreelanceHigh",
+      name: "Admin Novakou",
       passwordHash,
       role: "ADMIN",
       status: "ACTIF",
@@ -85,7 +85,7 @@ async function main() {
   console.log("  │  URL DE CONNEXION (secret — ne jamais partager publiquement)");
   console.log("  ├─────────────────────────────────────────────────────────────");
   console.log(`  │  Local : http://localhost:3000/backoffice/${slug}/connexion`);
-  console.log(`  │  Prod  : https://freelancehigh.com/backoffice/${slug}/connexion`);
+  console.log(`  │  Prod  : https://novakou.com/backoffice/${slug}/connexion`);
   console.log("  └─────────────────────────────────────────────────────────────\n");
   console.log("  ┌─────────────────────────────────────────────────────────────");
   console.log("  │  IDENTIFIANTS");

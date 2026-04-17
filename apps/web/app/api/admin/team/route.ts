@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Send invitation email
-      const inviterName = session.user.name || "Admin FreelanceHigh";
+      const inviterName = session.user.name || "Admin Novakou";
       let emailSent = false;
       try {
         const emailResult = await sendAdminTeamInviteEmail(email, inviterName, adminRole);
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send invitation email with magic link
-    const inviterName = session.user.name || "Admin FreelanceHigh";
+    const inviterName = session.user.name || "Admin Novakou";
     let emailSent = false;
     try {
       const emailResult = await sendAdminTeamInviteEmail(email, inviterName, adminRole);

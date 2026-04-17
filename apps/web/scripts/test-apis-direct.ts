@@ -14,8 +14,8 @@ function ok(l: string, c: boolean, d = "") { console.log(`${c ? "✅" : "❌"} $
 async function main() {
   console.log("\n🔌 TESTS API LOGIC\n" + "═".repeat(60));
 
-  // ── API /formations/vendeur/dashboard ───────────────────────────────────
-  console.log("\n━━━ API /formations/vendeur/dashboard (vendor) ━━━");
+  // ── API /vendeur/dashboard ───────────────────────────────────
+  console.log("\n━━━ API /vendeur/dashboard (vendor) ━━━");
   const vendor = await prisma.user.findUnique({
     where: { email: VENDOR_EMAIL },
     include: { instructeurProfile: true },
@@ -45,8 +45,8 @@ async function main() {
   ok("Dashboard: revenue total correct", totalRevenue === 29900, `${totalRevenue} FCFA`);
   ok("Dashboard: net revenue (95%)", netRevenue === 28405, `${netRevenue} FCFA`);
 
-  // ── API /formations/vendeur/transactions ────────────────────────────────
-  console.log("\n━━━ API /formations/vendeur/transactions ━━━");
+  // ── API /vendeur/transactions ────────────────────────────────
+  console.log("\n━━━ API /vendeur/transactions ━━━");
   const txns = await prisma.enrollment.findMany({
     where: { formation: { instructeurId: profile!.id } },
     include: { formation: { select: { title: true } }, user: { select: { email: true, name: true } } },
@@ -58,7 +58,7 @@ async function main() {
     console.log(`   → ${firstTxn.user.email} → "${firstTxn.formation.title}" : ${firstTxn.paidAmount} FCFA`);
   }
 
-  // ── API /formations/apprenant/mes-formations (or dashboard) ─────────────
+  // ── API /apprenant/mes-formations (or dashboard) ─────────────
   console.log("\n━━━ API /formations/apprenant (buyer) ━━━");
   const buyer = await prisma.user.findUnique({ where: { email: BUYER_EMAIL } });
   if (!buyer) { console.log("❌ Buyer missing"); process.exit(1); }
@@ -71,8 +71,8 @@ async function main() {
     console.log(`   → "${e.formation.title}" (progress=${e.progress}%)`);
   }
 
-  // ── API /formations/apprenant/sessions ──────────────────────────────────
-  console.log("\n━━━ API /formations/apprenant/sessions ━━━");
+  // ── API /apprenant/sessions ──────────────────────────────────
+  console.log("\n━━━ API /apprenant/sessions ━━━");
   const mySessions = await prisma.mentorBooking.findMany({
     where: { studentId: buyer.id },
     include: { mentor: { include: { user: { select: { name: true, image: true } } } } },
@@ -83,8 +83,8 @@ async function main() {
     console.log(`   → avec ${s.mentor.user.name} le ${s.scheduledAt.toLocaleString("fr-FR")} (${s.status}) — ${s.meetingLink}`);
   }
 
-  // ── API /formations/mentor/dashboard ────────────────────────────────────
-  console.log("\n━━━ API /formations/mentor/dashboard ━━━");
+  // ── API /mentor/dashboard ────────────────────────────────────
+  console.log("\n━━━ API /mentor/dashboard ━━━");
   const mentorUser = await prisma.user.findUnique({
     where: { email: MENTOR_EMAIL },
     include: { mentorProfile: true },
@@ -106,8 +106,8 @@ async function main() {
   }
   ok("Stats mentor cohérentes", true, `complétées=${earnedTotal} FCFA · à venir=${upcomingTotal} FCFA`);
 
-  // ── API /formations/mentor/apprenants ───────────────────────────────────
-  console.log("\n━━━ API /formations/mentor/apprenants ━━━");
+  // ── API /mentor/apprenants ───────────────────────────────────
+  console.log("\n━━━ API /mentor/apprenants ━━━");
   const uniqueStudents = new Map<string, typeof mentorBookings[0]["student"]>();
   for (const b of mentorBookings) uniqueStudents.set(b.studentId, b.student);
   ok("Mentor voit ≥1 apprenant", uniqueStudents.size >= 1, `${uniqueStudents.size} apprenant(s) unique(s)`);

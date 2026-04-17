@@ -1,4 +1,4 @@
-// FreelanceHigh — Invoice email helper
+// Novakou — Invoice email helper
 // Generates invoice PDF and sends it via Resend
 
 import { sendEmail, getAppUrl } from "./index";
@@ -21,7 +21,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f14; color: #e2e8f0; padding: 32px;">
         <div style="text-align: center; margin-bottom: 32px;">
-          <h1 style="color: #6C2BD9; font-size: 24px; margin: 0;">FreelanceHigh</h1>
+          <h1 style="color: #6C2BD9; font-size: 24px; margin: 0;">Novakou</h1>
         </div>
         <div style="background: #1a1a24; border: 1px solid #2d2d3d; border-radius: 12px; padding: 24px;">
           <h2 style="color: #fff; margin: 0 0 16px;">Votre facture ${invoice.id}</h2>
@@ -49,7 +49,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
           </p>
         </div>
         <div style="text-align: center; margin-top: 24px;">
-          <p style="color: #475569; font-size: 11px;">FreelanceHigh &copy; 2026 — La plateforme freelance qui eleve votre carriere</p>
+          <p style="color: #475569; font-size: 11px;">Novakou &copy; 2026 — La plateforme freelance qui eleve votre carriere</p>
         </div>
       </div>
     `;

@@ -121,7 +121,7 @@ function buildRegistry(): TemplateDef[] {
           demoName,
           demoClient,
           "Bonjour, pouvez-vous me confirmer le délai pour la prochaine révision ? Merci !",
-          "https://freelancehigh.com/dashboard/messages/demo"
+          "https://novakou.com/dashboard/messages/demo"
         ),
     },
     {
@@ -181,7 +181,7 @@ function buildRegistry(): TemplateDef[] {
           packageTitle: "Séance de mentorat — 60 min",
           sessionDate: tomorrow.toLocaleDateString("fr-FR"),
           sessionTime: "14:00",
-          dashboardUrl: "https://freelancehigh.com/formations/mentor/rendez-vous",
+          dashboardUrl: "https://novakou.com/mentor/rendez-vous",
         }),
     },
     {
@@ -198,7 +198,7 @@ function buildRegistry(): TemplateDef[] {
           sessionDate: tomorrow.toLocaleDateString("fr-FR"),
           sessionTime: "14:00",
           meetingUrl: "https://meet.google.com/demo-link",
-          dashboardUrl: "https://freelancehigh.com/formations/apprenant/sessions",
+          dashboardUrl: "https://novakou.com/apprenant/sessions",
         }),
     },
     {
@@ -230,7 +230,7 @@ function buildRegistry(): TemplateDef[] {
           studentName: demoName,
           formationTitle: "Maîtriser le copywriting en 30 jours",
           instructorName: demoFreelancer,
-          formationUrl: "https://freelancehigh.com/formations/apprenant/mes-cours",
+          formationUrl: "https://novakou.com/apprenant/mes-cours",
         }),
     },
     {
@@ -243,7 +243,7 @@ function buildRegistry(): TemplateDef[] {
           to,
           studentName: demoName,
           formationTitle: "Maîtriser le copywriting en 30 jours",
-          certificateUrl: "https://freelancehigh.com/certificats/demo",
+          certificateUrl: "https://novakou.com/certificats/demo",
         }),
     },
     {
@@ -270,7 +270,7 @@ function buildRegistry(): TemplateDef[] {
           customerName: demoName,
           productName: "Formation — Copywriting avancé",
           productPrice: 97,
-          checkoutUrl: "https://freelancehigh.com/checkout/demo",
+          checkoutUrl: "https://novakou.com/checkout/demo",
         }),
     },
     {
@@ -283,7 +283,7 @@ function buildRegistry(): TemplateDef[] {
           to,
           customerName: demoName,
           productName: "Pack de templates Notion",
-          downloadUrl: "https://freelancehigh.com/downloads/demo",
+          downloadUrl: "https://novakou.com/downloads/demo",
           expiresAt: tomorrow.toLocaleDateString("fr-FR"),
         }),
     },
@@ -304,7 +304,7 @@ function buildRegistry(): TemplateDef[] {
             amount: 149.0,
             currency: "EUR",
             date: now.toLocaleDateString("fr-FR"),
-            pdfUrl: "https://freelancehigh.com/factures/demo.pdf",
+            pdfUrl: "https://novakou.com/factures/demo.pdf",
           },
         }),
     },

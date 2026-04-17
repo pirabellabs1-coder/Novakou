@@ -6,7 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { validateSchedule } from "@/lib/mentor/availability";
 
 /**
- * GET /api/formations/mentor/availability
+ * GET /api/mentor/availability
  * Returns the authenticated mentor's weekly availability blocks.
  */
 export async function GET() {
@@ -55,7 +55,7 @@ export async function GET() {
 }
 
 /**
- * PUT /api/formations/mentor/availability
+ * PUT /api/mentor/availability
  * Body: { availabilities: [{ dayOfWeek, startMin, endMin }], config?: { timezone?, sessionBuffer?, bookingLeadTime? } }
  *
  * Replaces the entire schedule in a single transaction.

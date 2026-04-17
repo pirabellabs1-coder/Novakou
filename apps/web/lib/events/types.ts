@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Event System Types
+ * Novakou — Event System Types
  * Typage fort pour emitEvent() — chaque evenement a un payload specifique.
  */
 

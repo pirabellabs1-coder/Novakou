@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════════════════
-// Design Tokens Centralises — FreelanceHigh
+// Design Tokens Centralises — Novakou
 // Source unique de verite pour couleurs, styles et utilitaires UI
 // ══════════════════════════════════════════════════════════════════════════
 

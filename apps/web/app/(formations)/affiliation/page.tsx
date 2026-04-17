@@ -86,7 +86,7 @@ export default function AffiliationPage() {
   const estimatedEur = Math.round((estimatedFcfa / 655.957) * 10) / 10;
 
   function copyLink() {
-    navigator.clipboard.writeText("https://formations.freelancehigh.com/ref/MONCODE123");
+    navigator.clipboard.writeText("https://novakou.com/ref/MONCODE123");
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   }
@@ -310,7 +310,7 @@ export default function AffiliationPage() {
             <p className="text-xs text-[#5c647a] font-medium mb-2">Votre lien d&apos;affiliation (exemple)</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 text-sm tabular-nums text-[#191c1e] bg-[#f7f9fb] px-3 py-2 rounded-xl truncate">
-                https://formations.freelancehigh.com/ref/MONCODE123
+                https://novakou.com/ref/MONCODE123
               </code>
               <button
                 onClick={copyLink}

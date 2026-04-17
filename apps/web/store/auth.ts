@@ -1,5 +1,5 @@
 // ============================================================
-// FreelanceHigh — Auth & Impersonation Store
+// Novakou — Auth & Impersonation Store
 // Gere l'etat d'impersonation admin
 // ============================================================
 

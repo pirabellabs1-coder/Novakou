@@ -37,7 +37,7 @@ function generateRawKey(): { raw: string; prefix: string } {
 }
 
 /**
- * GET /api/formations/vendeur/api-keys
+ * GET /api/vendeur/api-keys
  * Lists all API keys for the vendor (raw keys NEVER returned).
  */
 export async function GET() {
@@ -74,7 +74,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/formations/vendeur/api-keys
+ * POST /api/vendeur/api-keys
  * Body: { name: string, scopes?: string[], expiresInDays?: number }
  * Creates a new key and returns the raw value ONCE.
  */

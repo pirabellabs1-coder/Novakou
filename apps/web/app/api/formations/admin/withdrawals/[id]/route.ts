@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * PATCH /api/formations/admin/withdrawals/[id]
+ * PATCH /api/admin/withdrawals/[id]
  *
  * Body:
  *   { action: "approve", reference?: string }           → sets status TRAITE + processedAt

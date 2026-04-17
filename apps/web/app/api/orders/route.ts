@@ -288,7 +288,7 @@ export async function POST(request: NextRequest) {
         amount,
         freelanceId: service.userId,
         freelanceName: service.vendorName || "Freelance",
-        freelanceEmail: service.vendorUsername ? `${service.vendorUsername}@freelancehigh.com` : "",
+        freelanceEmail: service.vendorUsername ? `${service.vendorUsername}@novakou.com` : "",
         clientId: session.user.id,
         clientName,
         clientEmail: session.user.email || "",

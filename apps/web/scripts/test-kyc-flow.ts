@@ -26,7 +26,7 @@ async function main() {
   console.log(`✓ 2) KYC request créée : ${kyc.id} (status=${kyc.status})`);
 
   // 3. Admin approuve
-  const admin = await p.user.findUnique({ where: { email: "admin@freelancehigh.com" } });
+  const admin = await p.user.findUnique({ where: { email: "admin@novakou.com" } });
   if (!admin) throw new Error("Admin introuvable");
   const now = new Date();
   await p.$transaction([

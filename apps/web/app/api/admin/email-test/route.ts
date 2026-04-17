@@ -22,17 +22,17 @@ export async function POST(req: NextRequest) {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
 
-    // Domain noreply@freelancehigh.com is verified
-    const from = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
-    const domainVerified = from.includes("freelancehigh.com");
+    // Domain noreply@novakou.com is verified
+    const from = process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
+    const domainVerified = from.includes("novakou.com");
 
     const result = await resend.emails.send({
       from,
       to,
-      subject: "Test Email — FreelanceHigh",
+      subject: "Test Email — Novakou",
       html: `
         <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:40px;">
-          <h1 style="color:#6C2BD9;">FreelanceHigh — Test Email</h1>
+          <h1 style="color:#6C2BD9;">Novakou — Test Email</h1>
           <p>Cet email confirme que l'infrastructure d'envoi fonctionne correctement.</p>
           <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
           <p style="color:#6b7280;font-size:12px;">

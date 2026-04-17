@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 
 /**
- * GET /api/formations/admin/charts
+ * GET /api/admin/charts
  * Admin-only. Returns time series + aggregations for the global admin dashboard.
  */
 export async function GET() {

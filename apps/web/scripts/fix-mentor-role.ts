@@ -8,7 +8,7 @@ async function main() {
   });
   console.log("BEFORE:", JSON.stringify(u, null, 2));
 
-  // Ensure formationsRole = "mentor" so that login redirects to /formations/mentor/dashboard
+  // Ensure formationsRole = "mentor" so that login redirects to /mentor/dashboard
   await p.user.update({
     where: { email: "mentor.test@freelancehigh.local" },
     data: { formationsRole: "mentor" },

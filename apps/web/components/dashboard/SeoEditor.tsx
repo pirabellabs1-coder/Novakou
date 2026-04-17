@@ -266,10 +266,10 @@ export function SeoEditor({ serviceId, serviceTitle, onClose }: SeoEditorProps) 
               <h3 className="text-sm font-semibold mb-2">Apercu Google</h3>
               <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 bg-white dark:bg-slate-900">
                 <p className="text-blue-600 dark:text-blue-400 text-base font-medium truncate">
-                  {metaTitle || serviceTitle} | FreelanceHigh
+                  {metaTitle || serviceTitle} | Novakou
                 </p>
                 <p className="text-green-700 dark:text-green-500 text-xs mt-0.5">
-                  freelancehigh.com/services/{seo?.slug || "..."}
+                  novakou.com/services/{seo?.slug || "..."}
                 </p>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 line-clamp-2">
                   {metaDescription || "Aucune meta description definie..."}

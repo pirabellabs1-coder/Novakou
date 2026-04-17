@@ -47,7 +47,7 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;color:tr
         <!-- HEADER -->
         <tr>
           <td style="background:linear-gradient(135deg,${BRAND.primary} 0%,${BRAND.accent} 100%);padding:28px 32px;text-align:center;">
-            <a href="${appUrl}/formations" style="text-decoration:none;">
+            <a href="${appUrl}" style="text-decoration:none;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
                 <tr>
                   <td style="background:rgba(255,255,255,0.2);border-radius:10px;padding:6px 10px;border:1px solid rgba(255,255,255,0.25);">
@@ -74,12 +74,12 @@ ${preheader ? `<div style="display:none;overflow:hidden;line-height:1px;color:tr
           <td style="background:#fafbfd;padding:24px 32px;border-top:1px solid ${BRAND.border};text-align:center;">
             <p style="color:${BRAND.textMuted};font-size:12px;margin:0 0 12px;">
               Une question ? Écrivez-nous à
-              <a href="mailto:support@freelancehigh.com" style="color:${BRAND.primary};font-weight:600;text-decoration:none;">support@freelancehigh.com</a>
+              <a href="mailto:support@novakou.com" style="color:${BRAND.primary};font-weight:600;text-decoration:none;">support@novakou.com</a>
             </p>
             <p style="color:${BRAND.textLight};font-size:11px;margin:0 0 12px;">
-              <a href="${appUrl}/formations/cgu" style="color:${BRAND.textMuted};text-decoration:none;margin:0 8px;">CGU</a>·
-              <a href="${appUrl}/formations/confidentialite" style="color:${BRAND.textMuted};text-decoration:none;margin:0 8px;">Confidentialité</a>·
-              <a href="${appUrl}/formations/cookies" style="color:${BRAND.textMuted};text-decoration:none;margin:0 8px;">Cookies</a>
+              <a href="${appUrl}/cgu" style="color:${BRAND.textMuted};text-decoration:none;margin:0 8px;">CGU</a>·
+              <a href="${appUrl}/confidentialite" style="color:${BRAND.textMuted};text-decoration:none;margin:0 8px;">Confidentialité</a>·
+              <a href="${appUrl}/cookies" style="color:${BRAND.textMuted};text-decoration:none;margin:0 8px;">Cookies</a>
             </p>
             <p style="color:${BRAND.textLight};font-size:11px;margin:0;">
               © 2026 Novakou · La plateforme qui élève les talents

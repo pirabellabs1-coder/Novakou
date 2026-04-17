@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 
 /**
- * POST /api/formations/admin/seed-products
+ * POST /api/admin/seed-products
  * Seeds 3 video formations + 2 digital products (ebook/template) owned by the
  * current instructeur (or the dev instructor). Each formation gets 3 modules
  * with 2–3 lessons each.

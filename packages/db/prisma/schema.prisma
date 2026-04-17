@@ -922,6 +922,12 @@ model InstructeurProfile {
   totalEarned Float             @default(0)
   status      InstructeurStatus @default(EN_ATTENTE)
 
+  // Boutique publique (custom domain)
+  shopSlug             String?   @unique
+  customDomain         String?   @unique
+  customDomainVerified Boolean   @default(false)
+  customDomainAddedAt  DateTime?
+
   user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   formations      Formation[]
   withdrawals     InstructorWithdrawal[] @relation("InstructeurWithdrawals")
@@ -945,6 +951,7 @@ model InstructeurProfile {
 
   @@index([status])
   @@index([userId])
+  @@index([customDomain])
 }
 
 model Formation {
@@ -2340,6 +2347,12 @@ model MentorProfile {
   rating        Float @default(0)
   reviewsCount  Int   @default(0)
 
+  // Boutique publique (custom domain)
+  shopSlug             String?   @unique
+  customDomain         String?   @unique
+  customDomainVerified Boolean   @default(false)
+  customDomainAddedAt  DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2350,6 +2363,7 @@ model MentorProfile {
   @@index([userId])
   @@index([domain])
   @@index([isAvailable])
+  @@index([customDomain])
 }
 
 model MentorAvailability {

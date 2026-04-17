@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Affiliate Tracker (Client-safe)
+ * Novakou — Affiliate Tracker (Client-safe)
  *
  * Fonctions utilisables cote client (navigateur) :
  * - Gestion des cookies affilies
@@ -121,7 +121,7 @@ export function generateAffiliateCode(userId: string): string {
  */
 export function parseAffiliateLink(url: string): string | null {
   try {
-    const parsed = new URL(url, "https://freelancehigh.com");
+    const parsed = new URL(url, "https://novakou.com");
 
     const ref = parsed.searchParams.get("ref") || parsed.searchParams.get("affiliate");
     if (ref && ref.length >= 6 && ref.length <= 12) return ref;

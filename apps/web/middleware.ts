@@ -19,7 +19,6 @@ const PUBLIC_ROUTES = [
   "/freelances",
   "/formation",
   "/produit",
-  "/blog",
   "/tarifs",
   "/a-propos",
   "/contact",
@@ -97,8 +96,27 @@ function getRequiredRole(pathname: string): string | null {
   return null;
 }
 
+// Hosts that are the Novakou app itself — NOT custom vendor domains
+const APP_HOSTS = new Set<string>([
+  "novakou.com",
+  "www.novakou.com",
+  "novakou.vercel.app",
+  "localhost",
+  "127.0.0.1",
+]);
+
+function isAppHost(host: string | null) {
+  if (!host) return true;
+  const h = host.split(":")[0].toLowerCase();
+  if (APP_HOSTS.has(h)) return true;
+  // Vercel preview deploys: *-<team>.vercel.app
+  if (h.endsWith(".vercel.app")) return true;
+  return false;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const host = req.headers.get("host");
 
   // Laisser passer les assets statiques et les routes API
   if (isStaticAsset(pathname) || isApiRoute(pathname)) {
@@ -108,6 +126,18 @@ export async function middleware(req: NextRequest) {
   // Route admin-login secrete — laisser passer (la verification du token se fait cote client+API)
   if (pathname.startsWith(ADMIN_LOGIN_PREFIX)) {
     return NextResponse.next();
+  }
+
+  // ── Custom domain: rewrite to /boutique/by-domain/<host><path> ──
+  // The target page looks up the vendor by host and renders the public shop.
+  if (!isAppHost(host)) {
+    const h = (host ?? "").split(":")[0].toLowerCase().replace(/^www\./, "");
+    // Avoid double-rewrite loops
+    if (!pathname.startsWith("/boutique/by-domain/")) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/boutique/by-domain/${h}${pathname === "/" ? "" : pathname}`;
+      return NextResponse.rewrite(url);
+    }
   }
 
   // Redirect permanent des anciennes URLs `/formations/xxx` → `/xxx`

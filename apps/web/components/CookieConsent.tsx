@@ -65,7 +65,7 @@ export function CookieConsent() {
                 Nous respectons votre vie privee
               </h3>
               <p className="text-slate-400 text-sm mt-1 leading-relaxed">
-                FreelanceHigh utilise des cookies pour ameliorer votre experience, analyser le trafic et personnaliser le contenu.
+                Novakou utilise des cookies pour ameliorer votre experience, analyser le trafic et personnaliser le contenu.
               </p>
             </div>
           </div>

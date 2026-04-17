@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Affiliate Tracker
+ * Novakou — Affiliate Tracker
  *
  * Fonctions utilitaires pour le suivi des affilies :
  * - Generation de codes affilies uniques
@@ -124,7 +124,7 @@ export function generateAffiliateCode(userId: string): string {
  */
 export function parseAffiliateLink(url: string): string | null {
   try {
-    const parsed = new URL(url, "https://freelancehigh.com");
+    const parsed = new URL(url, "https://novakou.com");
 
     // Check query parameters
     const ref = parsed.searchParams.get("ref") || parsed.searchParams.get("affiliate");

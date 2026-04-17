@@ -121,12 +121,12 @@ export function FormationsNavbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(15,23,42,0.06)]">
       <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4 max-w-7xl mx-auto">
         {/* Logo */}
-        <Link href="/" className="flex items-center flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2 flex-shrink-0">
           <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="36" height="36" rx="10" fill="#006e2f"/>
-            <path d="M10 26V10h10v3.5h-6V17h5.5v3.5H14V26H10z" fill="white"/>
-            <path d="M20 26V17.5h2.5V15c0-2.76 2.24-5 5-5h.5v3.5h-.5c-.83 0-1.5.67-1.5 1.5v2.5H29V26h-3.5v-5.5H23.5V26H20z" fill="#22c55e"/>
+            <path d="M11 26V10h3l7 10.5V10h3v16h-3L14 15.5V26h-3z" fill="white"/>
           </svg>
+          <span className="text-lg font-extrabold tracking-tight text-slate-900">Novakou</span>
         </Link>
 
         {/* Desktop nav */}

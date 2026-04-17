@@ -5,9 +5,9 @@
  *   pnpm --filter=db tsx scripts/create-admin.ts
  *
  * Env vars (optional):
- *   ADMIN_EMAIL      Email to use (default: admin@freelancehigh.com)
+ *   ADMIN_EMAIL      Email to use (default: admin@novakou.com)
  *   ADMIN_PASSWORD   Password to set (default: auto-generated)
- *   ADMIN_NAME       Display name (default: "Admin FreelanceHigh")
+ *   ADMIN_NAME       Display name (default: "Admin Novakou")
  */
 
 import { PrismaClient } from "@prisma/client";
@@ -42,9 +42,9 @@ function generateStrongPassword(): string {
 }
 
 async function main() {
-  const email = (process.env.ADMIN_EMAIL || "admin@freelancehigh.com").toLowerCase();
+  const email = (process.env.ADMIN_EMAIL || "admin@novakou.com").toLowerCase();
   const password = process.env.ADMIN_PASSWORD || generateStrongPassword();
-  const name = process.env.ADMIN_NAME || "Admin FreelanceHigh";
+  const name = process.env.ADMIN_NAME || "Admin Novakou";
 
   console.log("\n══════════════════════════════════════════════════════════════");
   console.log("  CRÉATION DU COMPTE ADMINISTRATEUR FREELANCEHIGH");
@@ -84,7 +84,7 @@ async function main() {
   console.log("\nAccès admin :");
   console.log("  • /formations/connexion (se connecter)");
   console.log("  • /admin (dashboard admin général)");
-  console.log("  • /formations/admin/dashboard (admin formations)\n");
+  console.log("  • /admin/dashboard (admin formations)\n");
 
   await prisma.$disconnect();
 }

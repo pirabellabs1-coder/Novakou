@@ -83,7 +83,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   const orderId = paymentIntent.metadata?.order_id;
   const platform = paymentIntent.metadata?.platform;
 
-  // Only handle FreelanceHigh marketplace payment intents
+  // Only handle Novakou marketplace payment intents
   if (platform !== "freelancehigh" || !orderId) {
     console.log(
       `[Stripe Webhook] payment_intent.succeeded — not a marketplace payment, skipping (pi=${paymentIntent.id})`
@@ -683,7 +683,7 @@ async function handleDigitalProductCheckout(session: Stripe.Checkout.Session) {
   });
 
   if (buyer?.email) {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
     const downloadUrl = `${baseUrl}/formations/produits/${product.slug}?purchased=true`;
 
     if (licenseKey) {

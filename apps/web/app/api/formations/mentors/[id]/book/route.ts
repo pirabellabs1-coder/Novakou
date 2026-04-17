@@ -175,7 +175,7 @@ export async function POST(request: Request, { params }: Params) {
             first_name: first || "Apprenant",
             last_name: last || "—",
           },
-          return_url: `${appUrl}/formations/payment/return?ref=${encodeURIComponent(internalRef)}&bookingId=${booking.id}`,
+          return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&bookingId=${booking.id}`,
           metadata: {
             bookingId: booking.id,
             mentorId: mentor.id,

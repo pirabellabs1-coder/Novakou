@@ -14,10 +14,10 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const to = url.searchParams.get("to") || "support@freelancehigh.com";
+  const to = url.searchParams.get("to") || "support@novakou.com";
 
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "Novakou <support@freelancehigh.com>";
+  const from = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 
   const diagnostic: Record<string, unknown> = {
     apiKeyPresent: !!apiKey,

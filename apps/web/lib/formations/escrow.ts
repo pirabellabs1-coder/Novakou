@@ -1,4 +1,4 @@
-// FreelanceHigh — Helpers escrow (période de "hold" de 24h après la vente/séance).
+// Novakou — Helpers escrow (période de "hold" de 24h après la vente/séance).
 // Les fonds issus d'une vente récente (< HOLD_PERIOD_HOURS) ne sont pas encore
 // retirables. Cela laisse le temps à l'acheteur de signaler un éventuel problème.
 

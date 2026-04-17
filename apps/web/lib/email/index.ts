@@ -1,4 +1,4 @@
-// FreelanceHigh — Service d'envoi d'emails via Resend
+// Novakou — Service d'envoi d'emails via Resend
 // Tous les emails transactionnels de la plateforme
 
 // Lazy init — env vars may not be available at module load time on Vercel
@@ -14,12 +14,12 @@ function getResend() {
 }
 
 function getFromAddress(): string {
-  // Domain noreply@freelancehigh.com is verified — DNS configured in Vercel
-  return process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
+  // Domain noreply@novakou.com is verified — DNS configured in Vercel
+  return process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
 }
 
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+  return process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 }
 
 // Helper: send email via Resend (exported for admin-emails.ts)
@@ -63,7 +63,7 @@ export function emailLayout(content: string): string {
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">FreelanceHigh</h1>
+      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
       <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">LA PLATEFORME FREELANCE</p>
     </div>
     <!-- Content -->
@@ -72,13 +72,13 @@ export function emailLayout(content: string): string {
     </div>
     <!-- Footer -->
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'equipe FreelanceHigh</p>
+      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
         <a href="${getAppUrl()}/cgu" style="color:#6C2BD9;text-decoration:none;">CGU</a> ·
         <a href="${getAppUrl()}/confidentialite" style="color:#6C2BD9;text-decoration:none;">Confidentialite</a> ·
         <a href="${getAppUrl()}/contact" style="color:#6C2BD9;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 FreelanceHigh — Fondee par Lissanon Gildas</p>
+      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Fondee par Lissanon Gildas</p>
     </div>
   </div>
 </body>
@@ -95,7 +95,7 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
   const profileUrl = dashboardUrl || `${getAppUrl()}/dashboard/profil`;
   const kycUrl = `${getAppUrl()}/dashboard/kyc`;
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Bienvenue sur FreelanceHigh, ${name} !</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Bienvenue sur Novakou, ${name} !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
       Votre compte a ete cree avec succes. Vous faites maintenant partie de la plus grande communaute
       de freelances en Afrique francophone et a l'international.
@@ -114,12 +114,12 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
     </div>
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 0;">
       Si vous avez des questions, n'hesitez pas a nous contacter a
-      <a href="mailto:support@freelancehigh.com" style="color:#6C2BD9;">support@freelancehigh.com</a>
+      <a href="mailto:support@novakou.com" style="color:#6C2BD9;">support@novakou.com</a>
     </p>
     <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— Lissanon Gildas, Fondateur</p>
   `);
 
-  return sendEmail({ to: email, subject: "Bienvenue sur FreelanceHigh !", html });
+  return sendEmail({ to: email, subject: "Bienvenue sur Novakou !", html });
 }
 
 // ── 2. Verification email (OTP) ──
@@ -142,7 +142,7 @@ export async function sendVerificationEmail(email: string, name: string, code: s
     </p>
   `);
 
-  return sendEmail({ to: email, subject: `${code} — Code de verification FreelanceHigh`, html });
+  return sendEmail({ to: email, subject: `${code} — Code de verification Novakou`, html });
 }
 
 // ── 3. Mot de passe oublie ──
@@ -163,7 +163,7 @@ export async function sendPasswordResetEmail(email: string, name: string, resetT
     </p>
   `);
 
-  return sendEmail({ to: email, subject: "Reinitialiser votre mot de passe — FreelanceHigh", html });
+  return sendEmail({ to: email, subject: "Reinitialiser votre mot de passe — Novakou", html });
 }
 
 // ── 4. Confirmation de commande ──
@@ -212,7 +212,7 @@ export async function sendNewMessageEmail(
     ${button("Repondre", conversationUrl)}
   `);
 
-  return sendEmail({ to: email, subject: `Message de ${senderName} — FreelanceHigh`, html });
+  return sendEmail({ to: email, subject: `Message de ${senderName} — Novakou`, html });
 }
 
 // ── 6. Paiement recu (freelance) ──
@@ -225,7 +225,7 @@ export async function sendPaymentReceivedEmail(
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Paiement recu !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Bonjour ${name}, un paiement a ete credite sur votre portefeuille FreelanceHigh.
+      Bonjour ${name}, un paiement a ete credite sur votre portefeuille Novakou.
     </p>
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
       <p style="color:#16a34a;font-size:32px;font-weight:800;margin:0;">+${payment.amount.toFixed(2)} EUR</p>
@@ -300,7 +300,7 @@ export async function sendKycRejectedEmail(email: string, name: string, level: n
     ${button("Soumettre a nouveau", `${getAppUrl()}/dashboard/kyc`)}
   `);
 
-  return sendEmail({ to: email, subject: "Verification KYC refusee — FreelanceHigh", html });
+  return sendEmail({ to: email, subject: "Verification KYC refusee — Novakou", html });
 }
 
 // ── 10. Service approuve ──

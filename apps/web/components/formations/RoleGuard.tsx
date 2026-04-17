@@ -7,7 +7,7 @@ import { getDashboardForFormationsRole, type FormationsRole } from "@/lib/format
 
 /**
  * RoleGuard — ensures user has the expected formationsRole.
- * If not logged in → redirect to /formations/connexion
+ * If not logged in → redirect to /connexion
  * If wrong role    → redirect to their correct dashboard
  */
 export function RoleGuard({

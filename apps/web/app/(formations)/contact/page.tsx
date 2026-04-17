@@ -63,7 +63,7 @@ export default function ContactPage() {
               <span className="material-symbols-outlined text-white text-[20px]">mail</span>
             </div>
             <p className="text-xs font-semibold text-[#5c647a] mb-0.5">Email</p>
-            <p className="text-sm font-bold text-[#191c1e]">support@freelancehigh.com</p>
+            <p className="text-sm font-bold text-[#191c1e]">support@novakou.com</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 p-5">

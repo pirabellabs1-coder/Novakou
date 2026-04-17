@@ -118,7 +118,7 @@ async function resolveMentor(): Promise<
   return { ok: true, mentorId: profile.id };
 }
 
-// ── GET /api/formations/mentor/availability-slots?from=ISO&to=ISO ──────────────
+// ── GET /api/mentor/availability-slots?from=ISO&to=ISO ──────────────
 
 export async function GET(request: Request) {
   try {
@@ -165,7 +165,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ── PUT /api/formations/mentor/availability-slots ──────────────────────────────
+// ── PUT /api/mentor/availability-slots ──────────────────────────────
 // Body: { slots: [{ date: ISO, startMin, endMin }] }
 // Atomically replaces all slots for the dates contained in the payload.
 // Other dates stay untouched.
@@ -237,7 +237,7 @@ export async function PUT(request: Request) {
   }
 }
 
-// ── DELETE /api/formations/mentor/availability-slots?date=ISO ──────────────────
+// ── DELETE /api/mentor/availability-slots?date=ISO ──────────────────
 // Removes every slot of a single date. To delete a single slot, the UI re-PUTs the day.
 
 export async function DELETE(request: Request) {

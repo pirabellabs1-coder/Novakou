@@ -27,7 +27,7 @@ export async function POST() {
           transactionStore.add({
             userId: order.freelanceId,
             type: "commission",
-            description: `Commission FreelanceHigh - ${order.id}`,
+            description: `Commission Novakou - ${order.id}`,
             amount: -order.commission,
             status: "complete",
             date: now,

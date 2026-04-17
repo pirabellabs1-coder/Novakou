@@ -21,7 +21,7 @@ function slugify(s: string): string {
 }
 
 /**
- * GET /api/formations/vendeur/funnels
+ * GET /api/vendeur/funnels
  * Returns all funnels for the authenticated instructeur.
  */
 export async function GET() {
@@ -53,7 +53,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/formations/vendeur/funnels
+ * POST /api/vendeur/funnels
  * Create a new funnel (with default LANDING step).
  *
  * Body: { name: string, productId?: string, formationId?: string }

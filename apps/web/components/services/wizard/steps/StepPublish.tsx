@@ -376,7 +376,7 @@ export function StepPublish({ role }: { role: string }) {
             {/* Commission info */}
             <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-4">
               <p className="text-sm text-slate-300">
-                Commission FreelanceHigh : <strong>{getCommissionLabel(planName)}</strong> (Plan {planName.charAt(0) + planName.slice(1).toLowerCase()})
+                Commission Novakou : <strong>{getCommissionLabel(planName)}</strong> (Plan {planName.charAt(0) + planName.slice(1).toLowerCase()})
               </p>
               {netAmount > 0 && (
                 <p className="text-sm mt-1">

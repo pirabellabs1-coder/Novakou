@@ -123,7 +123,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
           <p className="text-xs font-bold text-[#006e2f] uppercase tracking-wider mb-1">✓ Certificat vérifié</p>
           <p className="text-sm text-[#5c647a]">
             Ce certificat a été délivré par Novakou et est authentique.<br/>
-            Pour toute question, contactez <a href="mailto:support@freelancehigh.com" className="text-[#006e2f] font-semibold">support@freelancehigh.com</a>.
+            Pour toute question, contactez <a href="mailto:support@novakou.com" className="text-[#006e2f] font-semibold">support@novakou.com</a>.
           </p>
         </div>
 

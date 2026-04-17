@@ -8,7 +8,7 @@ import { sendEmail } from "@/lib/email";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 /**
- * POST /api/formations/vendeur/automatisations/test-email
+ * POST /api/vendeur/automatisations/test-email
  * Body: { subject, body, fromName?, replyTo? }
  * Sends the automation email template as a preview to the logged-in vendor.
  */
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const fromName =
       typeof body.fromName === "string" && body.fromName.trim()
         ? body.fromName.trim()
-        : "FreelanceHigh";
+        : "Novakou";
 
     if (!rawSubject.trim() || !rawBody.trim()) {
       return NextResponse.json({ error: "Sujet et corps requis" }, { status: 400 });
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
     `;
 
     await sendEmail({
-      from: `${fromName} <no-reply@freelancehigh.com>`,
+      from: `${fromName} <no-reply@novakou.com>`,
       to,
       subject: `[TEST] ${subject}`,
       html: `${testBanner}${html}`,

@@ -98,7 +98,7 @@ export default function CGUPage() {
           <div>
             <h2 className="text-lg font-bold mb-2">12. Contact</h2>
             <p className="text-[#5c647a]">
-              Pour toute question relative aux présentes CGU, contactez-nous à <strong>support@freelancehigh.com</strong>.
+              Pour toute question relative aux présentes CGU, contactez-nous à <strong>support@novakou.com</strong>.
             </p>
           </div>
         </div>

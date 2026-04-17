@@ -427,7 +427,7 @@ export async function POST(request: Request) {
         const created = createdPurchases.find((q) => q.title === p.title);
         if (!created) continue;
 
-        const downloadUrl = p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/formations/apprenant/produits`;
+        const downloadUrl = p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
         await sendDigitalProductDeliveryEmail({
           email: user.email,
           name: fName,

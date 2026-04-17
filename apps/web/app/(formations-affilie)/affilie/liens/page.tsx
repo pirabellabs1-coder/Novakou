@@ -85,7 +85,7 @@ export default function LiensPage() {
 
   function buildLink(slug: string) {
     if (!affiliateCode) return "";
-    return `${typeof window !== "undefined" ? window.location.origin : "https://freelancehigh.com"}/formations/formation/${slug}?ref=${affiliateCode}`;
+    return `${typeof window !== "undefined" ? window.location.origin : "https://novakou.com"}/formation/${slug}?ref=${affiliateCode}`;
   }
 
   function handleCopy(link: string, id: string) {

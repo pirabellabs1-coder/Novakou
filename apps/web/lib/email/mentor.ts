@@ -1,10 +1,10 @@
-// FreelanceHigh — Mentor booking emails (branded green)
+// Novakou — Mentor booking emails (branded green)
 
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+const FROM = process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 // ─── Shared green-branded layout ──────────────────────────────────────────────
 function layout(content: string, ctaLabel?: string, ctaUrl?: string): string {
@@ -23,7 +23,7 @@ function layout(content: string, ctaLabel?: string, ctaUrl?: string): string {
       <div style="display:inline-block;width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);line-height:48px;margin-bottom:12px;">
         <span style="color:#ffffff;font-weight:800;font-size:16px;letter-spacing:-0.5px;">FH</span>
       </div>
-      <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0;">FreelanceHigh</h1>
+      <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0;">Novakou</h1>
       <p style="color:rgba(255,255,255,0.75);font-size:11px;margin:4px 0 0;letter-spacing:1.5px;font-weight:600;">🎓 MENTORAT</p>
     </div>
     <div style="padding:36px 40px;color:#191c1e;line-height:1.6;font-size:14px;">
@@ -31,7 +31,7 @@ function layout(content: string, ctaLabel?: string, ctaUrl?: string): string {
       ${cta}
     </div>
     <div style="padding:20px 40px;background:#f7f9fb;border-top:1px solid #eef0f3;text-align:center;">
-      <p style="color:#5c647a;font-size:11px;margin:0 0 4px;">L'équipe FreelanceHigh</p>
+      <p style="color:#5c647a;font-size:11px;margin:0 0 4px;">L'équipe Novakou</p>
       <p style="color:#9ca3af;font-size:10px;margin:0;">La plateforme qui élève votre carrière freelance.</p>
     </div>
   </div>
@@ -72,7 +72,7 @@ export async function sendMentorBookingRequestEmail(opts: {
     from: FROM,
     to: opts.mentorEmail,
     subject: `Nouvelle réservation — ${opts.studentName}`,
-    html: layout(content, "Voir la demande", `${APP_URL}/formations/mentor/rendez-vous`),
+    html: layout(content, "Voir la demande", `${APP_URL}/mentor/rendez-vous`),
   });
 }
 
@@ -109,7 +109,7 @@ export async function sendMentorBookingConfirmedEmail(opts: {
     from: FROM,
     to: opts.studentEmail,
     subject: `Votre séance avec ${opts.mentorName} est confirmée`,
-    html: layout(content, "Voir ma réservation", `${APP_URL}/formations/apprenant/dashboard`),
+    html: layout(content, "Voir ma réservation", `${APP_URL}/apprenant/dashboard`),
   });
 }
 
@@ -135,7 +135,7 @@ export async function sendMentorBookingCancelledEmail(opts: {
     from: FROM,
     to: opts.studentEmail,
     subject: `Séance du ${fmtDate(opts.scheduledAt)} annulée`,
-    html: layout(content, "Voir d'autres mentors", `${APP_URL}/formations/mentors`),
+    html: layout(content, "Voir d'autres mentors", `${APP_URL}/mentors`),
   });
 }
 
@@ -186,7 +186,7 @@ export async function sendMentorSessionCompletedEmail(opts: {
     from: FROM,
     to: opts.studentEmail,
     subject: `Partagez votre avis sur votre séance avec ${opts.mentorName}`,
-    html: layout(content, "Laisser un avis", `${APP_URL}/formations/apprenant/sessions/${opts.bookingId}`),
+    html: layout(content, "Laisser un avis", `${APP_URL}/apprenant/sessions/${opts.bookingId}`),
   });
 }
 
@@ -223,8 +223,8 @@ export async function sendMentorReminder24hEmail(opts: {
     <p style="margin:16px 0;color:#5c647a;font-size:13px;">💡 Testez votre micro et votre caméra avant l'heure, et notez vos questions.</p>
   `;
   const ctaUrl = opts.isMentor
-    ? `${APP_URL}/formations/mentor/rendez-vous`
-    : `${APP_URL}/formations/apprenant/sessions/${opts.bookingId}`;
+    ? `${APP_URL}/mentor/rendez-vous`
+    : `${APP_URL}/apprenant/sessions/${opts.bookingId}`;
   return resend.emails.send({
     from: FROM,
     to: opts.recipientEmail,
@@ -255,7 +255,7 @@ export async function sendMentorReviewRequestEmail(opts: {
     from: FROM,
     to: opts.studentEmail,
     subject: `⭐ Avez-vous 30 secondes pour évaluer ${opts.mentorName} ?`,
-    html: layout(content, "Laisser un avis", `${APP_URL}/formations/apprenant/sessions/${opts.bookingId}`),
+    html: layout(content, "Laisser un avis", `${APP_URL}/apprenant/sessions/${opts.bookingId}`),
   });
 }
 

@@ -195,7 +195,7 @@ export default function AdminMarketplaceLoginPage() {
               <span className="material-symbols-outlined text-2xl text-red-500">store</span>
             </div>
             <h1 className="text-xl font-bold text-white">Admin Marketplace</h1>
-            <p className="text-slate-500 text-xs mt-1">FreelanceHigh — Acces restreint</p>
+            <p className="text-slate-500 text-xs mt-1">Novakou — Acces restreint</p>
           </div>
 
           {error && (
@@ -211,7 +211,7 @@ export default function AdminMarketplaceLoginPage() {
               <input
                 name="email" type="email" autoComplete="email" required value={form.email} onChange={handleChange}
                 className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all placeholder:text-slate-600"
-                placeholder="admin@freelancehigh.com"
+                placeholder="admin@novakou.com"
               />
             </div>
             <div>

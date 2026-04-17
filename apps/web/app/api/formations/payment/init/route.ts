@@ -163,7 +163,7 @@ export async function POST(request: Request) {
         last_name: last || "—",
         phone: phoneRaw,
       },
-      return_url: `${appUrl}/formations/payment/return?ref=${encodeURIComponent(internalRef)}`,
+      return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}`,
       metadata: {
         userId,
         formationIds: formationIds.join(","),

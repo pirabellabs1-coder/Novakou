@@ -24,7 +24,6 @@ const NAV_ITEMS = [
   { label: "Comptabilité", href: "/admin/comptabilite", icon: "account_balance" },
   { label: "Plans", href: "/admin/plans", icon: "workspace_premium" },
   { label: "Formations", href: "/admin/dashboard", icon: "school" },
-  { label: "Blog", href: "/admin/blog", icon: "article" },
   { label: "Catégories", href: "/admin/categories", icon: "category" },
   { label: "Messages", href: "/admin/messages", icon: "chat" },
   { label: "Notifications", href: "/admin/notifications", icon: "notifications" },
@@ -73,7 +72,7 @@ export function AdminSidebar({ collapsed, onToggle }: AdminSidebarProps) {
           </div>
           {!collapsed && (
             <div>
-              <h1 className="text-sm font-black text-white leading-none">FreelanceHigh</h1>
+              <h1 className="text-sm font-black text-white leading-none">Novakou</h1>
               <p className="text-[10px] text-primary font-bold uppercase tracking-wider">Administration</p>
             </div>
           )}

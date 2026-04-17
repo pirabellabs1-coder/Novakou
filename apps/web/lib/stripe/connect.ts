@@ -1,5 +1,5 @@
 /**
- * Stripe Connect — Marketplace integration for FreelanceHigh
+ * Stripe Connect — Marketplace integration for Novakou
  *
  * Handles:
  * - Express connected accounts (freelance onboarding)
@@ -131,7 +131,7 @@ export async function createAccountLink(
  * @param amount - Amount in the smallest currency unit (e.g. cents for EUR)
  * @param currency - ISO currency code (e.g. "eur", "usd", "xof")
  * @param freelanceStripeAccountId - Connected account ID for the freelance
- * @param orderId - FreelanceHigh order ID for tracking
+ * @param orderId - Novakou order ID for tracking
  * @param vendorPlan - The vendor's subscription plan (for commission calculation)
  * @param metadata - Additional metadata for the payment
  * @returns Payment intent details, or null if Stripe is not configured

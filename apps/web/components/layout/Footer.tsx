@@ -23,7 +23,7 @@ export function Footer() {
         <div className="space-y-8">
           <Link href="/" className="flex items-center gap-2 text-primary">
             <span className="material-symbols-outlined text-4xl font-bold">public</span>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">FreelanceHigh</h2>
+            <h2 className="text-2xl font-extrabold text-white tracking-tight">Novakou</h2>
           </Link>
           <p className="text-slate-500 text-base leading-relaxed">
             {t("description")}

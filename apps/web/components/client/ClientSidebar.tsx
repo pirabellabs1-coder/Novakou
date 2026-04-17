@@ -110,7 +110,7 @@ export function ClientSidebar({ collapsed = false, onToggle, onClose }: ClientSi
         </div>
         {!collapsed && (
           <div>
-            <h1 className="text-sm font-bold text-white leading-none">FreelanceHigh</h1>
+            <h1 className="text-sm font-bold text-white leading-none">Novakou</h1>
             <p className="text-[11px] text-primary/60 mt-0.5">Espace Client</p>
           </div>
         )}

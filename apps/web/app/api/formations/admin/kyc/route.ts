@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 
 /**
- * GET /api/formations/admin/kyc?scope=pending|history|all
+ * GET /api/admin/kyc?scope=pending|history|all
  * Admin-only. Returns KYC requests.
  */
 export async function GET(request: Request) {

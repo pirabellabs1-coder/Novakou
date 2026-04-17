@@ -33,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { data: session } = useSession();
 
   const displayName = session?.user?.name ?? "Super Admin";
-  const displayEmail = session?.user?.email ?? "admin@freelancehigh.com";
+  const displayEmail = session?.user?.email ?? "admin@novakou.com";
   const initials = getInitials(session?.user?.name);
   const avatarUrl = session?.user?.image;
 

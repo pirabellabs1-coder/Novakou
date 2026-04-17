@@ -7,7 +7,7 @@ import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * PATCH /api/formations/admin/mentor-disputes/[id]
+ * PATCH /api/admin/mentor-disputes/[id]
  * Admin decision on a mentor booking dispute.
  *
  * Body: {

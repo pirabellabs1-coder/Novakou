@@ -1,5 +1,5 @@
 // ============================================================
-// FreelanceHigh — Mock Data Source (simulates database records)
+// Novakou — Mock Data Source (simulates database records)
 //
 // This file acts as a temporary data source until the real
 // database (Prisma + Supabase) is connected. The API layer

@@ -8,7 +8,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = (process.env.ADMIN_EMAIL || "admin@freelancehigh.com").toLowerCase();
+  const email = (process.env.ADMIN_EMAIL || "admin@novakou.com").toLowerCase();
   // Simple readable password: 4 blocks of 4 chars, easy to type, still strong
   const password = process.env.ADMIN_PASSWORD || "Admin-2026-Fh!K7pQ";
 
@@ -36,7 +36,7 @@ async function main() {
     },
     create: {
       email,
-      name: "Admin FreelanceHigh",
+      name: "Admin Novakou",
       passwordHash,
       role: "ADMIN",
       status: "ACTIF",

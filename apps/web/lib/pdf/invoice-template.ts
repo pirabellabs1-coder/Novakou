@@ -1,6 +1,6 @@
 /**
  * Invoice PDF generation using jsPDF.
- * Generates branded FreelanceHigh invoices.
+ * Generates branded Novakou invoices.
  */
 import { jsPDF } from "jspdf";
 
@@ -36,7 +36,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(22);
   doc.setFont("helvetica", "bold");
-  doc.text("FreelanceHigh", margin, 18);
+  doc.text("Novakou", margin, 18);
 
   doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
@@ -107,15 +107,15 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   doc.setTextColor(...GRAY_TEXT);
 
   const emitterLines = [
-    "FreelanceHigh SAS",
+    "Novakou SAS",
     "123 Avenue de la Tech",
     "75001 Paris, France",
-    "contact@freelancehigh.com",
+    "contact@novakou.com",
     "SIRET : 123 456 789 00000",
   ];
 
   const recipientLines = [
-    invoice.customerName || "Client FreelanceHigh",
+    invoice.customerName || "Client Novakou",
     invoice.customerEmail || "",
   ].filter(Boolean);
 
@@ -227,13 +227,13 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
   doc.setFontSize(7);
   doc.setTextColor(...GRAY_TEXT);
   doc.text(
-    "FreelanceHigh SAS — La plateforme freelance qui eleve votre carriere au plus haut niveau",
+    "Novakou SAS — La plateforme freelance qui eleve votre carriere au plus haut niveau",
     pageWidth / 2,
     footerY,
     { align: "center" }
   );
   doc.text(
-    "www.freelancehigh.com | contact@freelancehigh.com | SIRET 123 456 789 00000",
+    "www.novakou.com | contact@novakou.com | SIRET 123 456 789 00000",
     pageWidth / 2,
     footerY + 4,
     { align: "center" }

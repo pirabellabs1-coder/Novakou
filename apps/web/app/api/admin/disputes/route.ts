@@ -7,7 +7,7 @@ import { orderStore, transactionStore } from "@/lib/dev/data-store";
 import { createNotification } from "@/lib/notifications/service";
 import { createAuditLog } from "@/lib/admin/audit";
 
-const DEV_ADMIN_SESSION = { user: { id: "dev-admin", role: "admin", name: "Admin Dev", email: "admin@freelancehigh.com" } };
+const DEV_ADMIN_SESSION = { user: { id: "dev-admin", role: "admin", name: "Admin Dev", email: "admin@novakou.com" } };
 
 // GET /api/admin/disputes — All disputes
 export async function GET() {

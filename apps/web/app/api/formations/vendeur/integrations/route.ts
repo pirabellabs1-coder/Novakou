@@ -8,7 +8,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 const ALLOWED_PROVIDERS = ["brevo", "make", "zapier", "n8n", "convertkit", "systemeio"];
 
 /**
- * GET /api/formations/vendeur/integrations
+ * GET /api/vendeur/integrations
  * Returns the list of all integrations for the vendor (connected or not).
  */
 export async function GET() {
@@ -45,7 +45,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/formations/vendeur/integrations
+ * POST /api/vendeur/integrations
  * Body: { provider, apiKey?, webhookUrl?, config? }
  * Upserts the integration for the given provider and marks it as connected.
  */
@@ -134,7 +134,7 @@ export async function POST(request: Request) {
 }
 
 /**
- * DELETE /api/formations/vendeur/integrations?provider=xxx
+ * DELETE /api/vendeur/integrations?provider=xxx
  * Soft-disconnects an integration (keeps the record + credentials for re-enable).
  */
 export async function DELETE(request: Request) {

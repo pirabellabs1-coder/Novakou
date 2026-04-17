@@ -17,9 +17,9 @@ if (fs.existsSync(envPath)) {
 }
 
 async function main() {
-  const recipient = process.argv[2] ?? "support@freelancehigh.com";
+  const recipient = process.argv[2] ?? "support@novakou.com";
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "FreelanceHigh <support@freelancehigh.com>";
+  const from = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 
   console.log("\n══ TEST EMAIL RESEND ══\n");
   console.log(`  API Key   : ${apiKey ? `${apiKey.slice(0, 10)}…${apiKey.slice(-4)}` : "❌ MISSING"}`);
@@ -37,11 +37,11 @@ async function main() {
     const result = await resend.emails.send({
       from,
       to: recipient,
-      subject: "🧪 Test FreelanceHigh — connexion Resend OK",
+      subject: "🧪 Test Novakou — connexion Resend OK",
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:24px auto;padding:24px;background:#f9fafb;border-radius:12px;">
           <h2 style="color:#006e2f;">✅ Email reçu !</h2>
-          <p>Si vous lisez ceci, c'est que la configuration Resend de FreelanceHigh fonctionne correctement.</p>
+          <p>Si vous lisez ceci, c'est que la configuration Resend de Novakou fonctionne correctement.</p>
           <p style="font-size:12px;color:#6b7280;">Test envoyé le ${new Date().toISOString()}</p>
         </div>
       `,

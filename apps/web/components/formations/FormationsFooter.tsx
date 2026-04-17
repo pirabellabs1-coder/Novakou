@@ -63,7 +63,6 @@ export function FormationsFooter() {
           <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Entreprise</h4>
           <ul className="space-y-3 text-sm text-slate-500">
             <li><Link href="/a-propos" className="hover:text-[#006e2f] transition-colors">À propos</Link></li>
-            <li><Link href="/blog" className="hover:text-[#006e2f] transition-colors">Blog</Link></li>
             <li><Link href="/partenaires" className="hover:text-[#006e2f] transition-colors">Partenaires</Link></li>
             <li><Link href="/contact" className="hover:text-[#006e2f] transition-colors">Contact</Link></li>
             <li><Link href="/aide" className="hover:text-[#006e2f] transition-colors">Centre d&apos;aide</Link></li>

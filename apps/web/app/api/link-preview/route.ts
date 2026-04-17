@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
-          "User-Agent": "FreelanceHigh-LinkPreview/1.0",
+          "User-Agent": "Novakou-LinkPreview/1.0",
           Accept: "text/html",
         },
       });

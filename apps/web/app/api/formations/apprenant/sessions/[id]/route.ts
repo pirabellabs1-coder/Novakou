@@ -8,7 +8,7 @@ import { meetingUrlFrom, isJoinableNow } from "@/lib/mentor/jitsi";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * GET /api/formations/apprenant/sessions/[id]
+ * GET /api/apprenant/sessions/[id]
  * Returns a single mentor session for the authenticated learner.
  * Verifies ownership (studentId must match).
  */
@@ -74,7 +74,7 @@ export async function GET(_req: Request, { params }: Params) {
 }
 
 /**
- * PATCH /api/formations/apprenant/sessions/[id]
+ * PATCH /api/apprenant/sessions/[id]
  * Actions: cancel
  *
  * Body: { action: "cancel" }

@@ -61,7 +61,7 @@ export default function MaintenancePage() {
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
           <span className="material-symbols-outlined text-[#6C2BD9] text-3xl">rocket_launch</span>
-          <span className="font-bold text-2xl text-white">FreelanceHigh</span>
+          <span className="font-bold text-2xl text-white">Novakou</span>
         </div>
 
         {/* Maintenance icon */}
@@ -97,12 +97,12 @@ export default function MaintenancePage() {
             Nous effectuons des mises a jour pour ameliorer votre experience.
           </p>
           <p className="text-xs text-slate-600 mt-1">
-            Contact : <span className="text-slate-500">support@freelancehigh.com</span>
+            Contact : <span className="text-slate-500">support@novakou.com</span>
           </p>
         </div>
 
         <p className="text-[10px] text-slate-700 mt-8">
-          © 2026 FreelanceHigh — Fondee par Lissanon Gildas
+          © 2026 Novakou — Fondee par Lissanon Gildas
         </p>
       </div>
     </div>

@@ -114,7 +114,7 @@ export default function DeveloperPage() {
         <div className="mb-10">
           <h1 className="text-3xl font-extrabold mb-1">Gestion des Cles API et Webhooks</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Configurez vos acces techniques pour integrer les services FreelanceHigh a vos
+            Configurez vos acces techniques pour integrer les services Novakou a vos
             applications.
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function DeveloperPage() {
                   Authentification (cURL)
                 </h4>
                 <div className="bg-slate-900 text-slate-300 p-4 rounded-lg tabular-nums text-xs overflow-x-auto">
-                  curl https://api.freelancehigh.com/v1/services \
+                  curl https://api.novakou.com/v1/services \
                   <br />
                   &nbsp;&nbsp;-H &quot;Authorization: Bearer YOUR_API_KEY&quot;
                 </div>

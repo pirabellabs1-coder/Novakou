@@ -2,8 +2,8 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.EMAIL_FROM || "FreelanceHigh <noreply@freelancehigh.com>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+const FROM = process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 function layout(content: string, subtitle: string, ctaLabel?: string, ctaUrl?: string, headerColor = "#006e2f"): string {
   const cta = ctaLabel && ctaUrl
@@ -21,7 +21,7 @@ function layout(content: string, subtitle: string, ctaLabel?: string, ctaUrl?: s
       <div style="display:inline-block;width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,0.15);line-height:48px;margin-bottom:12px;">
         <span style="color:#ffffff;font-weight:800;font-size:16px;">FH</span>
       </div>
-      <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0;">FreelanceHigh</h1>
+      <h1 style="color:#ffffff;font-size:22px;font-weight:800;margin:0;">Novakou</h1>
       <p style="color:rgba(255,255,255,0.75);font-size:11px;margin:4px 0 0;letter-spacing:1.5px;font-weight:600;">🪪 ${subtitle}</p>
     </div>
     <div style="padding:36px 40px;color:#191c1e;line-height:1.6;font-size:14px;">
@@ -29,7 +29,7 @@ function layout(content: string, subtitle: string, ctaLabel?: string, ctaUrl?: s
       ${cta}
     </div>
     <div style="padding:20px 40px;background:#f7f9fb;border-top:1px solid #eef0f3;text-align:center;">
-      <p style="color:#5c647a;font-size:11px;margin:0 0 4px;">L'équipe FreelanceHigh</p>
+      <p style="color:#5c647a;font-size:11px;margin:0 0 4px;">L'équipe Novakou</p>
       <p style="color:#9ca3af;font-size:10px;margin:0;">La plateforme qui élève votre carrière freelance.</p>
     </div>
   </div>
@@ -46,13 +46,13 @@ export async function sendKycSubmittedEmail(opts: { userEmail: string; userName:
       <p style="margin:0;font-size:13px;"><strong>Délai moyen :</strong> 24 à 48h ouvrées.</p>
       <p style="margin:8px 0 0;font-size:13px;">Vous recevrez un email dès que notre équipe aura examiné votre dossier.</p>
     </div>
-    <p style="font-size:13px;color:#5c647a;">Si vous avez soumis un document par erreur ou souhaitez le remplacer, contactez-nous à support@freelancehigh.com.</p>
+    <p style="font-size:13px;color:#5c647a;">Si vous avez soumis un document par erreur ou souhaitez le remplacer, contactez-nous à support@novakou.com.</p>
   `;
   return resend.emails.send({
     from: FROM,
     to: opts.userEmail,
     subject: "Votre demande de vérification KYC a été reçue",
-    html: layout(content, "VÉRIFICATION D'IDENTITÉ", "Voir ma demande", `${APP_URL}/formations/kyc`, "#006e2f"),
+    html: layout(content, "VÉRIFICATION D'IDENTITÉ", "Voir ma demande", `${APP_URL}/kyc`, "#006e2f"),
   });
 }
 
@@ -75,7 +75,7 @@ export async function sendKycApprovedEmail(opts: { userEmail: string; userName: 
     from: FROM,
     to: opts.userEmail,
     subject: isPro ? "✓ Votre certification pro a été validée" : "✓ Votre identité a été vérifiée",
-    html: layout(content, isPro ? "CERTIFICATION PRO" : "IDENTITÉ VÉRIFIÉE", "Accéder à mon espace", `${APP_URL}/formations/kyc`, "#006e2f"),
+    html: layout(content, isPro ? "CERTIFICATION PRO" : "IDENTITÉ VÉRIFIÉE", "Accéder à mon espace", `${APP_URL}/kyc`, "#006e2f"),
   });
 }
 
@@ -89,12 +89,12 @@ export async function sendKycRefusedEmail(opts: { userEmail: string; userName: s
       <p style="margin:8px 0 0;font-size:13px;color:#991b1b;">${opts.refuseReason}</p>
     </div>
     <p style="font-size:13px;">Vous pouvez soumettre une nouvelle demande avec un document corrigé ou plus lisible.</p>
-    <p style="font-size:13px;color:#5c647a;">Si vous pensez qu'il s'agit d'une erreur, contactez support@freelancehigh.com.</p>
+    <p style="font-size:13px;color:#5c647a;">Si vous pensez qu'il s'agit d'une erreur, contactez support@novakou.com.</p>
   `;
   return resend.emails.send({
     from: FROM,
     to: opts.userEmail,
     subject: "Votre demande de vérification KYC n'a pas été validée",
-    html: layout(content, "KYC — À RECOMMENCER", "Soumettre à nouveau", `${APP_URL}/formations/kyc`, "#dc2626"),
+    html: layout(content, "KYC — À RECOMMENCER", "Soumettre à nouveau", `${APP_URL}/kyc`, "#dc2626"),
   });
 }

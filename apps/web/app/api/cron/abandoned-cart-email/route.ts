@@ -10,7 +10,7 @@ import {
   sendAbandonedCartEmail3,
 } from "@/lib/email/formations";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
       const name = cart.user.name || "Apprenant";
       if (!email) continue;
 
-      const cartUrl = `${APP_URL}/formations/panier`;
+      const cartUrl = `${APP_URL}/checkout`;
       const unsubscribeToken = Buffer.from(cart.userId).toString("base64");
       const unsubscribeUrl = `${APP_URL}/api/formations/unsubscribe/${unsubscribeToken}`;
 

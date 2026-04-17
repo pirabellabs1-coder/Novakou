@@ -37,8 +37,8 @@ const CONFIG_SECTIONS = [
     title: "Communication",
     eyebrow: "Contacts",
     items: [
-      { key: "support_email", label: "Email support", hint: "Contact pour les apprenants", type: "text" as const, default: "support@freelancehigh.com" },
-      { key: "admin_notifications_email", label: "Email notifications admin", hint: "Reçoit les alertes critiques", type: "text" as const, default: "admin@freelancehigh.com" },
+      { key: "support_email", label: "Email support", hint: "Contact pour les apprenants", type: "text" as const, default: "support@novakou.com" },
+      { key: "admin_notifications_email", label: "Email notifications admin", hint: "Reçoit les alertes critiques", type: "text" as const, default: "admin@novakou.com" },
     ],
   },
 ];

@@ -279,7 +279,7 @@ export default function MentorDashboardPage() {
         fetch("/api/formations/kyc").catch(() => null),
       ]);
       if (dashRes.status === 401) {
-        router.push("/connexion?callbackUrl=/formations/mentor/dashboard");
+        router.push("/connexion?callbackUrl=/mentor/dashboard");
         return;
       }
       if (!dashRes.ok) throw new Error("Erreur serveur");

@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 
 /**
- * GET /api/formations/admin/mentor-disputes?scope=open|history|all
+ * GET /api/admin/mentor-disputes?scope=open|history|all
  *   - open (default)  : disputes en attente de décision
  *   - history         : disputes déjà tranchées par l'admin (audit)
  *   - all             : les deux combinées (open d'abord)

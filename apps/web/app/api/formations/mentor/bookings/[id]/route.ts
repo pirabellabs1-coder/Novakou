@@ -15,7 +15,7 @@ import {
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * GET /api/formations/mentor/bookings/[id]
+ * GET /api/mentor/bookings/[id]
  * Returns a single booking (mentor access only).
  */
 export async function GET(_req: Request, { params }: Params) {
@@ -58,7 +58,7 @@ export async function GET(_req: Request, { params }: Params) {
 }
 
 /**
- * PATCH /api/formations/mentor/bookings/[id]
+ * PATCH /api/mentor/bookings/[id]
  * Actions: confirm | cancel | complete | set_link | add_feedback
  *
  * Body:

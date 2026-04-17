@@ -177,7 +177,7 @@ export default function CampagnesPage() {
                   type="url"
                   value={form.destinationUrl}
                   onChange={(e) => setForm((f) => ({ ...f, destinationUrl: e.target.value }))}
-                  placeholder="https://freelancehigh.com/formations/react-complet"
+                  placeholder="https://novakou.com/formations/react-complet"
                   className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-[#5c647a]/60 focus:outline-none focus:border-[#006e2f]/40 focus:ring-2 focus:ring-[#006e2f]/10"
                 />
               </div>

@@ -1,5 +1,5 @@
 // ============================================================
-// FreelanceHigh — Communication Settings Store
+// Novakou — Communication Settings Store
 // Preferences audio/video persistees en localStorage
 // ============================================================
 

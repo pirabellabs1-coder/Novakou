@@ -251,7 +251,7 @@ function generateMockStats(period: string): AffiliateStats {
     pendingEarnings,
     conversionRate,
     affiliateCode: "DEMO25",
-    affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com"}/formations?ref=DEMO25`,
+    affiliateLink: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/?ref=DEMO25`,
     status: "ACTIVE",
     commissionPercent: 25,
     cookieDays: 30,

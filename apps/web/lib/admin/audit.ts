@@ -1,4 +1,4 @@
-// FreelanceHigh — Admin Audit Log Helper
+// Novakou — Admin Audit Log Helper
 // Creates audit log entries for admin actions
 
 import { prisma } from "@/lib/prisma";

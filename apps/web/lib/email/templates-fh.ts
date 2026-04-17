@@ -42,7 +42,7 @@ export async function sendOtpEmailFH(to: string, name: string, code: string) {
 // ═══════════════════════════════════════════════════════════════════════════
 export async function sendWelcomeEmailFH(to: string, name: string, role: "vendeur" | "apprenant" = "apprenant") {
   const isVendor = role === "vendeur";
-  const dashboardUrl = `${getAppUrl()}/formations/${isVendor ? "vendeur" : "apprenant"}/dashboard`;
+  const dashboardUrl = `${getAppUrl()}${isVendor ? "/vendeur" : "/apprenant"}/dashboard`;
 
   const content = isVendor
     ? `
@@ -60,7 +60,7 @@ export async function sendWelcomeEmailFH(to: string, name: string, role: "vendeu
       ${greeting(name)}
       ${paragraph("Votre compte est activé ! Vous avez maintenant accès à des centaines de formations, e-books et produits digitaux créés par les meilleurs créateurs d'Afrique francophone.")}
       ${infoBox("✨ Premières étapes", "<strong>1.</strong> Explorez le catalogue<br/><strong>2.</strong> Ajoutez vos achats à votre bibliothèque<br/><strong>3.</strong> Apprenez à votre rythme, depuis n'importe où", "green")}
-      ${button("Explorer le catalogue", `${getAppUrl()}/formations/explorer`)}
+      ${button("Explorer le catalogue", `${getAppUrl()}/explorer`)}
       ${divider()}
       ${paragraph("<strong>Votre espace apprenant vous offre :</strong><br/>• Accès à vie à tous vos achats<br/>• Téléchargement offline des PDFs<br/>• Certificats de complétion<br/>• Communauté privée des apprenants")}
       ${footerNote("Des questions ? Notre équipe support est là pour vous.")}
@@ -77,7 +77,7 @@ export async function sendWelcomeEmailFH(to: string, name: string, role: "vendeu
 // 3. PASSWORD RESET
 // ═══════════════════════════════════════════════════════════════════════════
 export async function sendPasswordResetFH(to: string, name: string, resetToken: string) {
-  const resetUrl = `${getAppUrl()}/formations/reinitialiser-mot-de-passe?token=${resetToken}`;
+  const resetUrl = `${getAppUrl()}/reinitialiser-mot-de-passe?token=${resetToken}`;
   const html = emailLayoutFH(`
     ${heading("Réinitialisation du mot de passe")}
     ${greeting(name)}
@@ -111,7 +111,7 @@ export async function sendPurchaseConfirmationFH(to: string, name: string, data:
     amount: it.price,
     sub: it.kind === "formation" ? "Formation · Accès à vie" : "Produit digital · Téléchargement illimité",
   }));
-  const accessUrl = `${getAppUrl()}/formations/apprenant/${firstItem.kind === "formation" ? "mes-formations" : "produits"}`;
+  const accessUrl = `${getAppUrl()}/apprenant/${firstItem.kind === "formation" ? "mes-formations" : "produits"}`;
 
   const html = emailLayoutFH(`
     ${heading("Merci pour votre achat ! 🎉")}
@@ -122,7 +122,7 @@ export async function sendPurchaseConfirmationFH(to: string, name: string, data:
     ${infoBox("🎯 Comment accéder", "Connectez-vous à votre espace et retrouvez votre achat dans la section \"Mes formations\" ou \"Mes produits\". L'accès est illimité dans le temps.", "green")}
     ${divider()}
     ${paragraph("<strong>Une facture PDF</strong> sera disponible dans votre espace sous 24h. Pour toute question concernant votre achat, contactez directement le créateur depuis votre espace ou notre support.")}
-    ${footerNote("Besoin d'aide ? Écrivez à support@freelancehigh.com")}
+    ${footerNote("Besoin d'aide ? Écrivez à support@novakou.com")}
   `, `Achat confirmé : ${firstItem.title}`);
 
   return sendEmail({
@@ -145,7 +145,7 @@ export async function sendSaleNotificationFH(to: string, name: string, data: {
   totalSales: number;
   monthEarnings: number;
 }) {
-  const dashboardUrl = `${getAppUrl()}/formations/vendeur/transactions`;
+  const dashboardUrl = `${getAppUrl()}/vendeur/transactions`;
   const isMilestone = data.totalSales === 1 || data.totalSales === 10 || data.totalSales === 50 || data.totalSales === 100 || data.totalSales % 100 === 0;
   const milestoneText = data.totalSales === 1
     ? "🎊 C'est votre <strong>toute première vente</strong> sur Novakou ! Un moment à célébrer."
@@ -223,7 +223,7 @@ export async function sendWeeklyReportFH(to: string, name: string, data: {
   topProduct?: { title: string; sales: number };
   vs: { salesPct: number; earningsPct: number };
 }) {
-  const dashboardUrl = `${getAppUrl()}/formations/vendeur/statistiques`;
+  const dashboardUrl = `${getAppUrl()}/vendeur/statistiques`;
   const conversionRate = data.visits > 0 ? ((data.conversions / data.visits) * 100).toFixed(1) : "0.0";
   const trendSales = data.vs.salesPct > 0 ? "up" : data.vs.salesPct < 0 ? "down" : "neutral";
   const trendEarnings = data.vs.earningsPct > 0 ? "up" : data.vs.earningsPct < 0 ? "down" : "neutral";
@@ -318,7 +318,7 @@ export async function sendWithdrawalConfirmationFH(to: string, name: string, dat
   reference: string;
   remainingBalance: number;
 }) {
-  const dashboardUrl = `${getAppUrl()}/formations/vendeur/transactions`;
+  const dashboardUrl = `${getAppUrl()}/vendeur/transactions`;
   const html = emailLayoutFH(`
     ${heading("Retrait en cours de traitement 💳")}
     ${greeting(name)}
@@ -349,7 +349,7 @@ export async function sendWithdrawalConfirmationFH(to: string, name: string, dat
 
     ${button("Voir l'historique", dashboardUrl)}
     ${divider()}
-    ${footerNote("En cas de retard ou de problème, contactez support@freelancehigh.com avec la référence ci-dessus.")}
+    ${footerNote("En cas de retard ou de problème, contactez support@novakou.com avec la référence ci-dessus.")}
   `, `Retrait ${fmt(data.amount)} FCFA vers ${data.method}`);
 
   return sendEmail({

@@ -8,7 +8,7 @@ import { resolveVendorContext } from "@/lib/formations/active-user";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * DELETE /api/formations/vendeur/api-keys/[id]
+ * DELETE /api/vendeur/api-keys/[id]
  * Revokes an API key (soft delete — sets revokedAt).
  */
 export async function DELETE(_req: Request, { params }: Params) {

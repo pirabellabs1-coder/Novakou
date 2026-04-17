@@ -1,5 +1,5 @@
 // ============================================================
-// FreelanceHigh — WebRTC Types
+// Novakou — WebRTC Types
 // Types partagés pour le signaling et les appels
 // ============================================================
 

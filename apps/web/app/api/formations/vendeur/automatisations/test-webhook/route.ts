@@ -45,12 +45,12 @@ function buildDemoPayload(selected: string[]): Record<string, unknown> {
     cur[parts[parts.length - 1]] = flat[key];
   }
   out._test = true;
-  out._source = "FreelanceHigh automation test";
+  out._source = "Novakou automation test";
   return out;
 }
 
 /**
- * POST /api/formations/vendeur/automatisations/test-webhook
+ * POST /api/vendeur/automatisations/test-webhook
  * Body: { url, method, headers, selectedFields }
  */
 export async function POST(request: Request) {
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     const rawHeaders = Array.isArray(body.headers) ? body.headers : [];
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      "User-Agent": "FreelanceHigh-Automation/1.0",
+      "User-Agent": "Novakou-Automation/1.0",
     };
     for (const h of rawHeaders) {
       if (

@@ -13,7 +13,7 @@ export async function POST() {
 
     const secret = generateSecret();
     const otpauthUrl = generateURI({
-      issuer: "FreelanceHigh",
+      issuer: "Novakou",
       label: session.user.email,
       secret,
     });

@@ -1,5 +1,5 @@
 /**
- * FreelanceHigh — Event Registry
+ * Novakou — Event Registry
  * Map centrale : chaque evenement → { notification, email }
  *
  * notification() retourne un NotificationOutput | NotificationOutput[] | null
@@ -468,7 +468,7 @@ export const EVENT_REGISTRY: {
           title: "Nouvelle inscription",
           message: `${p.studentName || "Un etudiant"} s'est inscrit a "${p.courseTitle}"`,
           type: "course",
-          link: "/dashboard/formations",
+          link: "/vendeur/produits",
         });
       }
       return notifs.length > 0 ? notifs : null;
@@ -550,7 +550,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvel avis formation",
       message: `${p.studentName || "Un etudiant"} a note "${p.courseTitle}" ${p.rating || 0}/5`,
       type: "review",
-      link: "/dashboard/formations",
+      link: "/vendeur/produits",
     } : null),
     email: async (p: CourseEventPayload) => {
       if (p.instructorEmail && p.instructorName) {
@@ -667,7 +667,7 @@ export const EVENT_REGISTRY: {
     }),
     email: async (p: PaymentEventPayload) => {
       await sendPaymentSuccessEmail(p.userEmail, p.userName, {
-        amount: p.amount, serviceTitle: p.serviceTitle || "Service FreelanceHigh",
+        amount: p.amount, serviceTitle: p.serviceTitle || "Service Novakou",
       });
     },
   },
@@ -682,7 +682,7 @@ export const EVENT_REGISTRY: {
     }),
     email: async (p: PaymentEventPayload) => {
       await sendPaymentFailedEmail(p.userEmail, p.userName, {
-        amount: p.amount, serviceTitle: p.serviceTitle || "Service FreelanceHigh",
+        amount: p.amount, serviceTitle: p.serviceTitle || "Service Novakou",
         reason: p.reason,
       });
     },
@@ -795,7 +795,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvelle formation",
       message: `"${p.courseTitle || "Formation"}" par ${p.userName || "un instructeur"}`,
       type: "system",
-      link: "/admin/formations/liste",
+      link: "/admin",
     } : null),
     email: undefined,
   },
@@ -829,7 +829,7 @@ export const EVENT_REGISTRY: {
   "system.welcome": {
     notification: (p: SystemEventPayload) => ({
       userId: p.userId,
-      title: "Bienvenue sur FreelanceHigh !",
+      title: "Bienvenue sur Novakou !",
       message: "Votre compte a ete cree avec succes. Completez votre profil pour commencer.",
       type: "system",
       link: "/dashboard/profil",

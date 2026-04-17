@@ -18,7 +18,7 @@ async function ensureOwnership(userId: string, funnelId: string) {
 }
 
 /**
- * GET /api/formations/vendeur/funnels/[id]
+ * GET /api/vendeur/funnels/[id]
  */
 export async function GET(_req: Request, { params }: Params) {
   const { id } = await params;
@@ -46,7 +46,7 @@ export async function GET(_req: Request, { params }: Params) {
 }
 
 /**
- * PATCH /api/formations/vendeur/funnels/[id]
+ * PATCH /api/vendeur/funnels/[id]
  * Update funnel meta (name, description, isActive, theme) and/or its steps.
  *
  * Body: { name?, description?, isActive?, theme?, steps?: [{ id, blocks?, headlineFr?, ... }] }
@@ -116,7 +116,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 /**
- * DELETE /api/formations/vendeur/funnels/[id]
+ * DELETE /api/vendeur/funnels/[id]
  */
 export async function DELETE(_req: Request, { params }: Params) {
   const { id } = await params;

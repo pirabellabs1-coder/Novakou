@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import VendorDomainTab from "@/components/formations/VendorDomainTab";
 
-type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching";
+type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
 const tabs: { value: Tab; label: string; icon: string }[] = [
   { value: "compte", label: "Compte", icon: "manage_accounts" },
+  { value: "domaine", label: "Nom de domaine", icon: "alternate_email" },
   { value: "paiements", label: "Paiements", icon: "account_balance_wallet" },
   { value: "notifications", label: "Notifications", icon: "notifications" },
   { value: "securite", label: "Sécurité", icon: "security" },
@@ -301,6 +303,9 @@ export default function ParamaetresPage() {
           </div>
         </div>
       )}
+
+      {/* ─── NOM DE DOMAINE ─── */}
+      {activeTab === "domaine" && <VendorDomainTab />}
 
       {/* ─── PAIEMENTS ─── */}
       {activeTab === "paiements" && (

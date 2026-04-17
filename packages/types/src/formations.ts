@@ -1,4 +1,4 @@
-// FreelanceHigh — Types TypeScript formations platform
+// Novakou — Types TypeScript formations platform
 // Aligned with Prisma schema (single-language fields with `locale`)
 
 // ── Enums ──

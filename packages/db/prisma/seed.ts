@@ -1,4 +1,4 @@
-// FreelanceHigh — Database Seed
+// Novakou — Database Seed
 // Cleaned version (Formations module removed)
 
 import { PrismaClient } from "@prisma/client";

@@ -7,7 +7,7 @@ import { sendKycApprovedEmail, sendKycRefusedEmail } from "@/lib/email/kyc";
 type Params = { params: Promise<{ id: string }> };
 
 /**
- * PATCH /api/formations/admin/kyc/[id]
+ * PATCH /api/admin/kyc/[id]
  * Body: { action: "approve" | "refuse", refuseReason?: string }
  * - approve → sets user.kyc to requestedLevel, status APPROUVE
  * - refuse → status REFUSE with reason

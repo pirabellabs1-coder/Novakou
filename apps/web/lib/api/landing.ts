@@ -1,5 +1,5 @@
 // ============================================================
-// FreelanceHigh — Landing Page Data Fetching Layer
+// Novakou — Landing Page Data Fetching Layer
 //
 // Server-side functions that compute rankings dynamically.
 // Currently reads from mock data (platform-stats.ts).

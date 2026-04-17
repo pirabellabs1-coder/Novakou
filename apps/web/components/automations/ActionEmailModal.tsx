@@ -22,7 +22,7 @@ function defaultConfig(): EmailActionConfig {
     to: "{{customer.email}}",
     subject: "",
     body: "",
-    fromName: "FreelanceHigh",
+    fromName: "Novakou",
     replyTo: "",
     delayMinutes: 0,
   };
@@ -198,7 +198,7 @@ export default function ActionEmailModal({
                 type="text"
                 value={config.fromName ?? ""}
                 onChange={(e) => patch("fromName", e.target.value)}
-                placeholder="FreelanceHigh"
+                placeholder="Novakou"
                 className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-[#006e2f]"
               />
             </div>

@@ -81,7 +81,7 @@ export async function GET(_request: NextRequest) {
           id: `ABO-${p.id.slice(0, 8).toUpperCase()}`,
           orderId: null,
           type: "abonnement" as const,
-          label: p.description || "Abonnement FreelanceHigh",
+          label: p.description || "Abonnement Novakou",
           amount: p.amount,
           commission: 0,
           currency: p.currency || "EUR",

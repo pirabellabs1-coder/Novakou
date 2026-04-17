@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 
 /**
- * GET /api/formations/mentor/bookings
+ * GET /api/mentor/bookings
  * Returns all bookings for the authenticated mentor.
  * Query params:
  *   status: PENDING | CONFIRMED | COMPLETED | CANCELLED | NO_SHOW  (optional, multiple via comma)

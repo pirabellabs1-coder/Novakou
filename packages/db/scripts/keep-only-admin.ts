@@ -1,5 +1,5 @@
 /**
- * Nuclear clean: delete ALL users except admin@freelancehigh.com.
+ * Nuclear clean: delete ALL users except admin@novakou.com.
  * One by one to avoid statement timeout on cascade.
  */
 import { PrismaClient } from "@prisma/client";
@@ -14,7 +14,7 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const KEEP_EMAIL = "admin@freelancehigh.com";
+  const KEEP_EMAIL = "admin@novakou.com";
 
   console.log("\n══ KEEP ONLY MAIN ADMIN ══\n");
 

@@ -257,7 +257,7 @@ async function main() {
   console.log("═══════════════════════════════════════════════════════");
   console.log("\n📚 FORMATION CREÉE");
   console.log(`   slug             : ${formation.slug}`);
-  console.log(`   Page publique    : http://localhost:3001/formations/formation/${formation.slug}`);
+  console.log(`   Page publique    : http://localhost:3001/formation/${formation.slug}`);
   console.log(`   Prix             : ${formation.price.toLocaleString("fr-FR")} FCFA`);
   console.log("\n🛒 ACHAT SIMULÉ");
   console.log(`   Acheteur         : ${buyer.email}`);
@@ -269,19 +269,19 @@ async function main() {
   console.log(`   Lien meeting     : ${booking.meetingLink}`);
   console.log("\n🔗 À VISITER DANS LE NAVIGATEUR");
   console.log("   ► Espace VENDEUR (pirabellabs1@gmail.com) :");
-  console.log("     http://localhost:3001/formations/vendeur/dashboard");
-  console.log("     http://localhost:3001/formations/vendeur/produits");
-  console.log("     http://localhost:3001/formations/vendeur/transactions");
-  console.log("     http://localhost:3001/formations/vendeur/statistiques");
+  console.log("     http://localhost:3001/vendeur/dashboard");
+  console.log("     http://localhost:3001/vendeur/produits");
+  console.log("     http://localhost:3001/vendeur/transactions");
+  console.log("     http://localhost:3001/vendeur/statistiques");
   console.log("\n   ► Espace ACHETEUR/APPRENANT (apprenant.test@freelancehigh.local) :");
-  console.log("     http://localhost:3001/formations/apprenant/dashboard");
-  console.log("     http://localhost:3001/formations/apprenant/mes-formations");
-  console.log("     http://localhost:3001/formations/apprenant/sessions");
+  console.log("     http://localhost:3001/apprenant/dashboard");
+  console.log("     http://localhost:3001/apprenant/mes-formations");
+  console.log("     http://localhost:3001/apprenant/sessions");
   console.log("\n   ► Espace MENTOR (mentor.test@freelancehigh.local) :");
-  console.log("     http://localhost:3001/formations/mentor/dashboard");
-  console.log("     http://localhost:3001/formations/mentor/calendrier");
-  console.log("     http://localhost:3001/formations/mentor/apprenants");
-  console.log("     http://localhost:3001/formations/mentor/finances");
+  console.log("     http://localhost:3001/mentor/dashboard");
+  console.log("     http://localhost:3001/mentor/calendrier");
+  console.log("     http://localhost:3001/mentor/apprenants");
+  console.log("     http://localhost:3001/mentor/finances");
 
   await prisma.$disconnect();
 }

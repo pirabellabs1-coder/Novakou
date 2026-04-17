@@ -6,7 +6,7 @@ import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { randomBytes } from "crypto";
 
 /**
- * POST /api/formations/apprenant/lessons/[id]/complete
+ * POST /api/apprenant/lessons/[id]/complete
  *
  * Marks a lesson as completed for the current user.
  * Automatically updates the enrollment progress.

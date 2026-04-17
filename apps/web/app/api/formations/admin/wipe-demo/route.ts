@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 
 /**
- * POST /api/formations/admin/wipe-demo
+ * POST /api/admin/wipe-demo
  * Body: { mode?: "all" | "products" | "purchases" | "reviews" | "marketing" | "demo-only" }
  *
  * Cleans demo/seed data. Uses cascade deletes via Prisma onDelete: Cascade.

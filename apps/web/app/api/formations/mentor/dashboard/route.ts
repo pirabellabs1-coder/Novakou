@@ -6,7 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 /**
- * GET /api/formations/mentor/dashboard
+ * GET /api/mentor/dashboard
  * Returns mentor profile + bookings stats + upcoming sessions.
  */
 export async function GET() {
@@ -176,7 +176,7 @@ export async function GET() {
 }
 
 /**
- * PATCH /api/formations/mentor/dashboard
+ * PATCH /api/mentor/dashboard
  * Update mentor profile (specialty, bio, price, availability, etc.)
  */
 export async function PATCH(request: Request) {

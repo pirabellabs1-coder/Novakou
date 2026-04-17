@@ -21,7 +21,7 @@ export default function ConfidentialitePage() {
           <div>
             <h2 className="text-lg font-bold mb-2">1. Responsable du traitement</h2>
             <p className="text-[#5c647a]">
-              Novakou est responsable du traitement de vos données personnelles collectées via la Plateforme. Pour toute question, contactez-nous à <strong>privacy@freelancehigh.com</strong>.
+              Novakou est responsable du traitement de vos données personnelles collectées via la Plateforme. Pour toute question, contactez-nous à <strong>privacy@novakou.com</strong>.
             </p>
           </div>
 
@@ -75,7 +75,7 @@ export default function ConfidentialitePage() {
               <li>Droit de limitation du traitement</li>
             </ul>
             <p className="text-[#5c647a] mt-2">
-              Pour exercer ces droits, contactez-nous à <strong>privacy@freelancehigh.com</strong>. Nous répondons sous 30 jours maximum.
+              Pour exercer ces droits, contactez-nous à <strong>privacy@novakou.com</strong>. Nous répondons sous 30 jours maximum.
             </p>
           </div>
 

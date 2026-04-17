@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useToastStore } from "@/store/toast";
 
@@ -24,11 +24,13 @@ const BRAND = "#006e2f";
 const BRAND_SOFT = "#006e2f26";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
-interface Product {
+interface CatalogItem {
   id: string;
   title: string;
   slug: string;
   kind: "formation" | "product";
+  image?: string | null;
+  price?: number;
 }
 
 interface Workflow {
@@ -39,6 +41,7 @@ interface Workflow {
   status: "DRAFT" | "ACTIVE" | "PAUSED" | "ARCHIVED";
   actions: WorkflowAction[];
   productId?: string | null;
+  triggerConfig?: { productIds?: string[] } | null;
 }
 
 // ─── Trigger options ──────────────────────────────────────────────────────────
@@ -105,116 +108,160 @@ const ACTION_OPTIONS: Array<{
   },
 ];
 
-// ─── Product search component ─────────────────────────────────────────────────
-function ProductSearch({
-  value,
+// ─── Product multi-select dropdown ────────────────────────────────────────────
+function ProductMultiSelect({
+  values,
   onChange,
 }: {
-  value: string | null | undefined;
-  onChange: (productId: string | null) => void;
+  values: string[];
+  onChange: (productIds: string[]) => void;
 }) {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<Product | null>(null);
+  const [items, setItems] = useState<CatalogItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!value) return setSelected(null);
-    if (value && !selected) {
-      fetch(`/api/formations/vendeur/formations?ids=${value}`)
-        .then((r) => r.json())
-        .then((j) => {
-          const found = j.data?.find((p: Product) => p.id === value);
-          if (found) setSelected(found);
-        })
-        .catch(() => null);
-    }
-  }, [value, selected]);
-
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
-    }
-    setLoading(true);
-    const t = setTimeout(async () => {
+    let cancelled = false;
+    (async () => {
       try {
-        const res = await fetch(`/api/formations/vendeur/formations?search=${encodeURIComponent(query)}`);
+        const res = await fetch("/api/formations/vendeur/catalog");
         const json = await res.json();
-        setResults(json.data ?? []);
+        if (!cancelled) setItems(Array.isArray(json.data) ? json.data : []);
+      } catch {
+        if (!cancelled) setItems([]);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    }, 250);
-    return () => clearTimeout(t);
-  }, [query]);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const selectedItems = items.filter((i) => values.includes(i.id));
+  const filtered = query.trim()
+    ? items.filter((i) => i.title.toLowerCase().includes(query.trim().toLowerCase()))
+    : items;
+
+  function toggle(id: string) {
+    if (values.includes(id)) onChange(values.filter((v) => v !== id));
+    else onChange([...values, id]);
+  }
 
   return (
-    <div className="relative">
-      {selected ? (
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl border border-gray-200">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="material-symbols-outlined text-[18px]" style={{ color: BRAND }}>
-              inventory_2
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-left hover:border-[#006e2f] transition-colors"
+      >
+        <span className="material-symbols-outlined text-[18px] text-gray-400">inventory_2</span>
+        <span className="flex-1 text-sm text-gray-900 truncate">
+          {selectedItems.length === 0
+            ? "Tous mes produits (choisir pour filtrer)"
+            : selectedItems.length === 1
+              ? selectedItems[0].title
+              : `${selectedItems.length} produits sélectionnés`}
+        </span>
+        <span className={`material-symbols-outlined text-[18px] text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}>
+          expand_more
+        </span>
+      </button>
+
+      {selectedItems.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {selectedItems.map((p) => (
+            <span
+              key={p.id}
+              className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 text-[11px] font-medium rounded-full bg-[#006e2f]/10 text-[#006e2f]"
+            >
+              <span className="truncate max-w-[140px]">{p.title}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle(p.id);
+                }}
+                className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-[#006e2f]/20"
+                aria-label={`Retirer ${p.title}`}
+              >
+                <span className="material-symbols-outlined text-[12px]">close</span>
+              </button>
             </span>
-            <span className="text-sm font-medium text-gray-900 truncate">{selected.title}</span>
-          </div>
+          ))}
           <button
-            onClick={() => {
-              setSelected(null);
-              onChange(null);
-            }}
-            className="text-gray-400 hover:text-red-500"
+            type="button"
+            onClick={() => onChange([])}
+            className="text-[11px] text-gray-400 hover:text-red-500 px-2"
           >
-            <span className="material-symbols-outlined text-[16px]">close</span>
+            Tout effacer
           </button>
         </div>
-      ) : (
-        <>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-gray-400">
-              search
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setOpen(true);
-              }}
-              onFocus={() => setOpen(true)}
-              onBlur={() => setTimeout(() => setOpen(false), 200)}
-              placeholder="Rechercher une formation ou un produit…"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
-            />
+      )}
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl border border-gray-200 shadow-lg z-20 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[16px] text-gray-400">
+                search
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Filtrer…"
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#006e2f]"
+                autoFocus
+              />
+            </div>
           </div>
-          {open && query.trim() && (
-            <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl border border-gray-200 shadow-lg z-20 max-h-64 overflow-y-auto">
-              {loading ? (
-                <div className="px-4 py-6 text-center text-sm text-gray-500">Recherche…</div>
-              ) : results.length === 0 ? (
-                <div className="px-4 py-6 text-center text-sm text-gray-500">Aucun résultat</div>
-              ) : (
-                results.map((p) => (
+          <div className="max-h-64 overflow-y-auto">
+            {loading ? (
+              <div className="px-4 py-6 text-center text-sm text-gray-500">Chargement…</div>
+            ) : filtered.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-gray-500">
+                {items.length === 0 ? "Aucun produit — créez-en d'abord." : "Aucun résultat"}
+              </div>
+            ) : (
+              filtered.map((p) => {
+                const checked = values.includes(p.id);
+                return (
                   <button
                     key={p.id}
-                    onClick={() => {
-                      setSelected(p);
-                      onChange(p.id);
-                      setQuery("");
-                      setOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50 text-left"
+                    type="button"
+                    onClick={() => toggle(p.id)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-gray-50 ${checked ? "bg-[#006e2f]/5" : ""}`}
                   >
-                    <span className="material-symbols-outlined text-[16px] text-gray-400">inventory_2</span>
-                    <span className="text-sm text-gray-900 truncate">{p.title}</span>
+                    <span
+                      className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${checked ? "bg-[#006e2f] border-[#006e2f]" : "border-gray-300"}`}
+                    >
+                      {checked && (
+                        <span className="material-symbols-outlined text-white text-[12px]">check</span>
+                      )}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${p.kind === "formation" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}
+                    >
+                      {p.kind === "formation" ? "Formation" : "Produit"}
+                    </span>
+                    <span className="text-sm text-gray-900 truncate flex-1">{p.title}</span>
                   </button>
-                ))
-              )}
-            </div>
-          )}
-        </>
+                );
+              })
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -232,7 +279,7 @@ function blankAction(type: ActionType): WorkflowAction {
           to: "{{customer.email}}",
           subject: "",
           body: "",
-          fromName: "FreelanceHigh",
+          fromName: "Novakou",
           replyTo: "",
           delayMinutes: 0,
         },
@@ -357,6 +404,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
           name: workflow.name,
           description: workflow.description,
           triggerType: workflow.triggerType,
+          triggerConfig: workflow.triggerConfig ?? null,
           actions: workflow.actions,
         }),
       });
@@ -500,12 +548,19 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
               </select>
               <div className="mt-3">
                 <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">
-                  Produit relatif (optionnel)
+                  Produits concernés (optionnel)
                 </label>
-                <ProductSearch
-                  value={workflow.productId ?? null}
-                  onChange={(pid) => updateLocal({ productId: pid })}
+                <ProductMultiSelect
+                  values={workflow.triggerConfig?.productIds ?? []}
+                  onChange={(ids) =>
+                    updateLocal({
+                      triggerConfig: { ...(workflow.triggerConfig ?? {}), productIds: ids },
+                    })
+                  }
                 />
+                <p className="text-[11px] text-gray-400 mt-1.5">
+                  Laissez vide pour déclencher le workflow sur toutes les ventes.
+                </p>
               </div>
             </div>
           </div>

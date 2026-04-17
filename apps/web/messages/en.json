@@ -16,13 +16,13 @@
   },
   "metadata": {
     "home": {
-      "title": "FreelanceHigh — The freelance platform that elevates your career",
+      "title": "Novakou — The freelance platform that elevates your career",
       "description": "Find the best freelancers for your projects. Design, development, marketing and more. Secure payment, satisfaction guaranteed.",
-      "og_title": "FreelanceHigh — The freelance platform that elevates your career",
+      "og_title": "Novakou — The freelance platform that elevates your career",
       "og_description": "Find the best freelancers for your projects. Secure payment, satisfaction guaranteed.",
       "twitter_description": "The freelance platform that elevates your career to the highest level."
     },
-    "default_title": "FreelanceHigh — The freelance platform that elevates your career",
+    "default_title": "Novakou — The freelance platform that elevates your career",
     "default_description": "Connect with the best freelancers from French-speaking Africa, the diaspora and around the world. Premium marketplace for your digital projects."
   },
   "navbar": {
@@ -42,7 +42,7 @@
     "newsletter_desc": "Get the best freelance opportunities and tips straight to your inbox.",
     "newsletter_placeholder": "your@email.com",
     "newsletter_success": "Thanks for subscribing!",
-    "copyright": "© 2026 FreelanceHigh. All rights reserved. Founded by Lissanon Gildas.",
+    "copyright": "© 2026 Novakou. All rights reserved. Founded by Lissanon Gildas.",
     "links": {
       "explore_services": "Browse services",
       "ongoing_projects": "Ongoing projects",
@@ -200,19 +200,19 @@
           "role": "CEO, StartupFlow"
         },
         "1": {
-          "quote": "As a freelancer, FreelanceHigh helped me double my income in 6 months. The platform is intuitive and the clients are serious.",
+          "quote": "As a freelancer, Novakou helped me double my income in 6 months. The platform is intuitive and the clients are serious.",
           "name": "Léa Bernard",
           "role": "UX/UI Freelance Designer"
         },
         "2": {
-          "quote": "We use FreelanceHigh for all our digital projects. The quality of freelancers and order tracking is truly top-notch.",
+          "quote": "We use Novakou for all our digital projects. The quality of freelancers and order tracking is truly top-notch.",
           "name": "Marc Durand",
           "role": "Digital Director, AgenceX"
         }
       }
     },
     "trust": {
-      "title": "Why choose FreelanceHigh?",
+      "title": "Why choose Novakou?",
       "subtitle": "A platform designed to simplify freelancing and protect every transaction.",
       "items": {
         "lock": {
@@ -236,7 +236,7 @@
     "cta_section": {
       "title_1": "Ready to launch your",
       "title_highlight": "next project",
-      "subtitle": "Join thousands of clients and freelancers collaborating daily on FreelanceHigh. Free sign-up, immediate results.",
+      "subtitle": "Join thousands of clients and freelancers collaborating daily on Novakou. Free sign-up, immediate results.",
       "btn_find": "Find a freelancer",
       "btn_offer": "Offer my services",
       "bottom_text": "Free sign-up · No commitment"
@@ -245,19 +245,19 @@
   "legal": {
     "french_only_notice": "This document is available in French only.",
     "last_updated": "Last updated: {date}",
-    "copyright": "© 2026 FreelanceHigh. All rights reserved. Founded by Lissanon Gildas.",
+    "copyright": "© 2026 Novakou. All rights reserved. Founded by Lissanon Gildas.",
     "cgu_title": "Terms and Conditions",
-    "cgu_meta_title": "Terms and Conditions — FreelanceHigh",
-    "cgu_meta_description": "Terms and Conditions of the FreelanceHigh platform. Rules governing the use of the freelance marketplace.",
+    "cgu_meta_title": "Terms and Conditions — Novakou",
+    "cgu_meta_description": "Terms and Conditions of the Novakou platform. Rules governing the use of the freelance marketplace.",
     "privacy_title": "Privacy Policy",
-    "privacy_meta_title": "Privacy Policy — FreelanceHigh",
-    "privacy_meta_description": "FreelanceHigh privacy and personal data protection policy. GDPR compliant.",
+    "privacy_meta_title": "Privacy Policy — Novakou",
+    "privacy_meta_description": "Novakou privacy and personal data protection policy. GDPR compliant.",
     "cookies_title": "Cookie Policy",
-    "cookies_meta_title": "Cookie Policy — FreelanceHigh",
-    "cookies_meta_description": "FreelanceHigh cookie policy. Information about cookies used and how to manage them.",
+    "cookies_meta_title": "Cookie Policy — Novakou",
+    "cookies_meta_description": "Novakou cookie policy. Information about cookies used and how to manage them.",
     "legal_notices_title": "Legal Notices",
-    "legal_notices_meta_title": "Legal Notices — FreelanceHigh",
-    "legal_notices_meta_description": "Legal notices for the FreelanceHigh platform. Information about the publisher, hosting, intellectual property and liability.",
+    "legal_notices_meta_title": "Legal Notices — Novakou",
+    "legal_notices_meta_description": "Legal notices for the Novakou platform. Information about the publisher, hosting, intellectual property and liability.",
     "contracts_title": "Contract Generator",
     "contracts_subtitle": "Create professional contracts in minutes. Free and secure.",
     "contracts_breadcrumb_home": "Home",
@@ -293,7 +293,7 @@
     "contracts_end_date": "End date",
     "contracts_total_amount": "Total amount (EUR)",
     "contracts_payment_terms": "Payment terms",
-    "contracts_generated_on": "Generated on {date} via FreelanceHigh",
+    "contracts_generated_on": "Generated on {date} via Novakou",
     "contracts_article_parties": "Article 1 — The Parties",
     "contracts_the_prestataire": "The Service Provider",
     "contracts_the_client": "The Client",
@@ -308,7 +308,7 @@
     "contracts_clause_applicable": "— The terms of this clause are applicable in accordance with current legislation.",
     "contracts_signatures": "Signatures",
     "contracts_name_and_signature": "Name and signature",
-    "contracts_disclaimer": "Document automatically generated via FreelanceHigh. This document has no legal value until signed by both parties.",
+    "contracts_disclaimer": "Document automatically generated via Novakou. This document has no legal value until signed by both parties.",
     "contracts_error_fill_required": "Please fill in at least the names of both parties and the mission title.",
     "contracts_success_generated": "Contract generated successfully! Check the preview on the right.",
     "contracts_download_in_progress": "PDF download in progress... (simulated feature)",
@@ -383,7 +383,7 @@
   },
   "how_it_works_page": {
     "title": "How does it work?",
-    "subtitle": "FreelanceHigh connects freelancers, clients and agencies securely.",
+    "subtitle": "Novakou connects freelancers, clients and agencies securely.",
     "section_freelances": "For Freelancers",
     "section_clients": "For Clients",
     "section_agencies": "For Agencies",
@@ -416,7 +416,7 @@
   },
   "trust_page": {
     "title": "Trust & Security",
-    "subtitle": "Your security is our priority. Discover how FreelanceHigh protects every transaction.",
+    "subtitle": "Your security is our priority. Discover how Novakou protects every transaction.",
     "feature_escrow_title": "Secure payments",
     "feature_escrow_desc": "All transactions are protected by the escrow system. Funds are held until delivery is validated.",
     "feature_kyc_title": "KYC Verification",
@@ -484,7 +484,7 @@
     "testimonials_title_highlight": "earn",
     "testimonials_subtitle": "Discover testimonials from our most active affiliates.",
     "testimonial1_quote": "Thanks to the program, I earn an extra €500/month. It's an incredible additional income.",
-    "testimonial2_quote": "I recommended FreelanceHigh to my developer colleagues and the commissions come in every month.",
+    "testimonial2_quote": "I recommended Novakou to my developer colleagues and the commissions come in every month.",
     "testimonial3_quote": "The affiliate program is transparent and reliable. Payments are always on time.",
     "affiliate": "Affiliate",
     "faq_title_prefix": "Frequently",
@@ -526,7 +526,7 @@
     "articles_count": "{count} articles",
     "clear_filter": "Clear filter",
     "popular_articles": "Popular articles",
-    "article_create_account": "How to create a FreelanceHigh account",
+    "article_create_account": "How to create a Novakou account",
     "article_publish_service": "Publish your first service in 5 minutes",
     "article_escrow": "Understanding the escrow system",
     "article_withdraw": "How to withdraw your earnings (SEPA, Mobile Money)",
@@ -537,15 +537,15 @@
     "faq_title": "Frequently asked questions",
     "no_results": "No questions match your search.",
     "reset_filters": "Reset filters",
-    "faq_signup_q": "How do I sign up on FreelanceHigh?",
+    "faq_signup_q": "How do I sign up on Novakou?",
     "faq_signup_a": "Signing up is free and takes just a few minutes. Go to the sign-up page, choose your role (Freelancer, Client or Agency), fill in your information and verify your email address via the OTP code we send you. You can also sign up with Google, LinkedIn, Facebook or Apple.",
     "faq_payment_methods_q": "What payment methods are accepted?",
-    "faq_payment_methods_a": "FreelanceHigh accepts credit cards (Visa, Mastercard) via Stripe, Mobile Money payments (Orange Money, Wave, MTN MoMo) via CinetPay, PayPal, SEPA transfers, and stablecoins USDC/USDT. The default currency is Euro (EUR) with automatic conversion to FCFA, USD, GBP and MAD.",
+    "faq_payment_methods_a": "Novakou accepts credit cards (Visa, Mastercard) via Stripe, Mobile Money payments (Orange Money, Wave, MTN MoMo) via CinetPay, PayPal, SEPA transfers, and stablecoins USDC/USDT. The default currency is Euro (EUR) with automatic conversion to FCFA, USD, GBP and MAD.",
     "faq_delivery_q": "How does order delivery work?",
     "faq_delivery_a": "Once the order is accepted, the freelancer works on the project and delivers files directly in the order space. The client receives a notification and has time to validate the delivery or request a revision. Funds are only released after validation.",
     "faq_open_dispute_q": "How do I open a dispute?",
-    "faq_open_dispute_a": "If you are not satisfied with a delivery and cannot reach an agreement with the provider, you can open a dispute from the order detail page. A FreelanceHigh mediator will review the evidence provided by both parties and render a fair verdict.",
-    "faq_commissions_q": "What are FreelanceHigh's commissions?",
+    "faq_open_dispute_a": "If you are not satisfied with a delivery and cannot reach an agreement with the provider, you can open a dispute from the order detail page. A Novakou mediator will review the evidence provided by both parties and render a fair verdict.",
+    "faq_commissions_q": "What are Novakou's commissions?",
     "faq_commissions_a": "Commissions vary by subscription plan: Discovery (12%), Ascension at 15 EUR/month (5%), Summit at 29.99 EUR/month (1 EUR/sale), Empire at 65 EUR/month (0%). Each plan offers additional benefits such as advertising boosts, AI certifications and API keys.",
     "faq_withdraw_q": "How do I withdraw my earnings?",
     "faq_withdraw_a": "Go to the Earnings & Finances section of your dashboard. You can withdraw your funds via SEPA transfer (Europe), Mobile Money via Orange Money, Wave or MTN MoMo (Africa), PayPal, Wise, or crypto (USDC/USDT). Processing time varies from 1 to 5 business days depending on the method chosen.",
@@ -555,8 +555,8 @@
     "faq_2fa_a": "Go to Settings > Security in your dashboard. Enable 2FA and choose between Google Authenticator (TOTP app) or SMS code. Scan the QR code with your authentication app or enter your phone number. Confirm with the verification code.",
     "faq_agency_q": "How does the agency system work?",
     "faq_agency_a": "Agencies have a dedicated space to manage a team of freelancers. As an agency, you can invite members, publish services under your brand, manage multi-member projects with Kanban view, and centralize billing. The Empire plan (65 EUR/month) allows up to 25 members and offers 100 GB of shared storage with 0% commission.",
-    "faq_contact_support_q": "How do I contact FreelanceHigh support?",
-    "faq_contact_support_a": "You can contact us in several ways: via live chat available on this page (Monday to Friday, 9am-6pm CET), by email at support@freelancehigh.com, or by creating a support ticket from the form below. Our team commits to responding within 24 hours.",
+    "faq_contact_support_q": "How do I contact Novakou support?",
+    "faq_contact_support_a": "You can contact us in several ways: via live chat available on this page (Monday to Friday, 9am-6pm CET), by email at support@novakou.com, or by creating a support ticket from the form below. Our team commits to responding within 24 hours.",
     "faq_kyc_q": "What is KYC and why is it necessary?",
     "faq_kyc_a": "KYC (Know Your Customer) is a mandatory identity verification process for certain actions. Level 1 (email) gives basic access. Level 2 (phone) allows ordering and applying. Level 3 (identity document) unlocks withdrawals and service publishing. Level 4 (professional verification) gives access to the Elite badge and higher limits.",
     "faq_boost_q": "How do I boost the visibility of my services?",
@@ -590,13 +590,13 @@
     "ticket_success": "Your ticket has been created successfully. We will respond within 24h.",
     "chat_welcome": "Hello! How can I help you?",
     "chat_auto_reply": "Thank you for your message. A member of our team will respond as soon as possible. In the meantime, check our FAQ above for a quick answer.",
-    "chat_header_title": "FreelanceHigh Support",
+    "chat_header_title": "Novakou Support",
     "chat_header_status": "Online",
     "chat_input_placeholder": "Write your message...",
     "chat_button_title": "Live chat"
   },
   "blog": {
-    "title": "FreelanceHigh Blog",
+    "title": "Novakou Blog",
     "subtitle": "Tips, guides and success stories for freelancing in French-speaking Africa and beyond.",
     "all": "All",
     "no_articles": "No articles published yet.",

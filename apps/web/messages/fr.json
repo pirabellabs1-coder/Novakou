@@ -16,13 +16,13 @@
   },
   "metadata": {
     "home": {
-      "title": "FreelanceHigh — La plateforme freelance qui élève votre carrière",
+      "title": "Novakou — La plateforme freelance qui élève votre carrière",
       "description": "Trouvez les meilleurs freelances pour vos projets. Design, développement, marketing et plus. Paiement sécurisé, satisfaction garantie.",
-      "og_title": "FreelanceHigh — La plateforme freelance qui élève votre carrière",
+      "og_title": "Novakou — La plateforme freelance qui élève votre carrière",
       "og_description": "Trouvez les meilleurs freelances pour vos projets. Paiement sécurisé, satisfaction garantie.",
       "twitter_description": "La plateforme freelance qui élève votre carrière au plus haut niveau."
     },
-    "default_title": "FreelanceHigh — La plateforme freelance qui élève votre carrière",
+    "default_title": "Novakou — La plateforme freelance qui élève votre carrière",
     "default_description": "Connectez-vous avec les meilleurs freelances d'Afrique francophone, de la diaspora et du monde entier. Marketplace premium pour vos projets digitaux."
   },
   "navbar": {
@@ -43,7 +43,7 @@
     "newsletter_desc": "Recevez les meilleures opportunités et conseils freelance directement dans votre boîte mail.",
     "newsletter_placeholder": "votre@email.com",
     "newsletter_success": "Merci pour votre inscription !",
-    "copyright": "© 2026 FreelanceHigh. Tous droits réservés. Fondée par Lissanon Gildas.",
+    "copyright": "© 2026 Novakou. Tous droits réservés. Fondée par Lissanon Gildas.",
     "links": {
       "explore_services": "Explorer les services",
       "ongoing_projects": "Projets en cours",
@@ -206,19 +206,19 @@
           "role": "CEO, StartupFlow"
         },
         "1": {
-          "quote": "En tant que freelance, FreelanceHigh m'a permis de doubler mes revenus en 6 mois. La plateforme est intuitive et les clients sont sérieux.",
+          "quote": "En tant que freelance, Novakou m'a permis de doubler mes revenus en 6 mois. La plateforme est intuitive et les clients sont sérieux.",
           "name": "Léa Bernard",
           "role": "Designer UX/UI Freelance"
         },
         "2": {
-          "quote": "On utilise FreelanceHigh pour tous nos projets digitaux. La qualité des freelances et le suivi des commandes sont vraiment au top.",
+          "quote": "On utilise Novakou pour tous nos projets digitaux. La qualité des freelances et le suivi des commandes sont vraiment au top.",
           "name": "Marc Durand",
           "role": "Directeur Digital, AgenceX"
         }
       }
     },
     "trust": {
-      "title": "Pourquoi choisir FreelanceHigh ?",
+      "title": "Pourquoi choisir Novakou ?",
       "subtitle": "Une plateforme pensée pour simplifier le freelancing et protéger chaque transaction.",
       "items": {
         "lock": {
@@ -242,7 +242,7 @@
     "cta_section": {
       "title_1": "Prêt à lancer votre",
       "title_highlight": "prochain projet",
-      "subtitle": "Rejoignez des milliers de clients et freelances qui collaborent chaque jour sur FreelanceHigh. Inscription gratuite, résultats immédiats.",
+      "subtitle": "Rejoignez des milliers de clients et freelances qui collaborent chaque jour sur Novakou. Inscription gratuite, résultats immédiats.",
       "btn_find": "Trouver un freelance",
       "btn_offer": "Proposer mes services",
       "bottom_text": "Inscription gratuite · Aucun engagement"
@@ -251,19 +251,19 @@
   "legal": {
     "french_only_notice": "",
     "last_updated": "Dernière mise à jour : {date}",
-    "copyright": "© 2026 FreelanceHigh. Tous droits réservés. Fondée par Lissanon Gildas.",
+    "copyright": "© 2026 Novakou. Tous droits réservés. Fondée par Lissanon Gildas.",
     "cgu_title": "Conditions Générales d'Utilisation",
-    "cgu_meta_title": "Conditions Générales d'Utilisation — FreelanceHigh",
-    "cgu_meta_description": "Conditions Générales d'Utilisation de la plateforme FreelanceHigh. Règles régissant l'utilisation de la marketplace freelance.",
+    "cgu_meta_title": "Conditions Générales d'Utilisation — Novakou",
+    "cgu_meta_description": "Conditions Générales d'Utilisation de la plateforme Novakou. Règles régissant l'utilisation de la marketplace freelance.",
     "privacy_title": "Politique de Confidentialité",
-    "privacy_meta_title": "Politique de Confidentialité — FreelanceHigh",
-    "privacy_meta_description": "Politique de confidentialité et de protection des données personnelles de FreelanceHigh. Conforme au RGPD.",
+    "privacy_meta_title": "Politique de Confidentialité — Novakou",
+    "privacy_meta_description": "Politique de confidentialité et de protection des données personnelles de Novakou. Conforme au RGPD.",
     "cookies_title": "Politique de Cookies",
-    "cookies_meta_title": "Politique de Cookies — FreelanceHigh",
-    "cookies_meta_description": "Politique de cookies de FreelanceHigh. Informations sur les cookies utilisés et comment les gérer.",
+    "cookies_meta_title": "Politique de Cookies — Novakou",
+    "cookies_meta_description": "Politique de cookies de Novakou. Informations sur les cookies utilisés et comment les gérer.",
     "legal_notices_title": "Mentions Légales",
-    "legal_notices_meta_title": "Mentions Légales — FreelanceHigh",
-    "legal_notices_meta_description": "Mentions légales de la plateforme FreelanceHigh. Informations sur l'éditeur, l'hébergement, la propriété intellectuelle et la responsabilité.",
+    "legal_notices_meta_title": "Mentions Légales — Novakou",
+    "legal_notices_meta_description": "Mentions légales de la plateforme Novakou. Informations sur l'éditeur, l'hébergement, la propriété intellectuelle et la responsabilité.",
     "contracts_title": "Générateur de Contrats",
     "contracts_subtitle": "Créez des contrats professionnels en quelques minutes. Gratuit et sécurisé.",
     "contracts_breadcrumb_home": "Accueil",
@@ -299,7 +299,7 @@
     "contracts_end_date": "Date de fin",
     "contracts_total_amount": "Montant total (EUR)",
     "contracts_payment_terms": "Modalités de paiement",
-    "contracts_generated_on": "Généré le {date} via FreelanceHigh",
+    "contracts_generated_on": "Généré le {date} via Novakou",
     "contracts_article_parties": "Article 1 — Les Parties",
     "contracts_the_prestataire": "Le Prestataire",
     "contracts_the_client": "Le Client",
@@ -314,7 +314,7 @@
     "contracts_clause_applicable": "— Les termes de cette clause sont applicables conformément à la législation en vigueur.",
     "contracts_signatures": "Signatures",
     "contracts_name_and_signature": "Nom et signature",
-    "contracts_disclaimer": "Document généré automatiquement via FreelanceHigh. Ce document n'a pas de valeur juridique tant qu'il n'a pas été signé par les deux parties.",
+    "contracts_disclaimer": "Document généré automatiquement via Novakou. Ce document n'a pas de valeur juridique tant qu'il n'a pas été signé par les deux parties.",
     "contracts_error_fill_required": "Veuillez remplir au minimum les noms des parties et le titre de la mission.",
     "contracts_success_generated": "Contrat généré avec succès ! Consultez l'aperçu à droite.",
     "contracts_download_in_progress": "Téléchargement du PDF en cours... (fonctionnalité simulée)",
@@ -389,7 +389,7 @@
   },
   "how_it_works_page": {
     "title": "Comment ça marche ?",
-    "subtitle": "FreelanceHigh connecte freelances, clients et agences en toute sécurité.",
+    "subtitle": "Novakou connecte freelances, clients et agences en toute sécurité.",
     "section_freelances": "Pour les Freelances",
     "section_clients": "Pour les Clients",
     "section_agencies": "Pour les Agences",
@@ -422,7 +422,7 @@
   },
   "trust_page": {
     "title": "Confiance & Sécurité",
-    "subtitle": "Votre sécurité est notre priorité. Découvrez comment FreelanceHigh protège chaque transaction.",
+    "subtitle": "Votre sécurité est notre priorité. Découvrez comment Novakou protège chaque transaction.",
     "feature_escrow_title": "Paiements sécurisés",
     "feature_escrow_desc": "Toutes les transactions sont protégées par le système d'escrow. Les fonds sont bloqués jusqu'à la validation de la livraison.",
     "feature_kyc_title": "Vérification KYC",
@@ -490,7 +490,7 @@
     "testimonials_title_highlight": "gagnent",
     "testimonials_subtitle": "Découvrez les témoignages de nos affiliés les plus actifs.",
     "testimonial1_quote": "Grâce au programme, je gagne €500/mois en plus. C'est un complément de revenu incroyable.",
-    "testimonial2_quote": "J'ai recommandé FreelanceHigh à mes collègues développeurs et les commissions tombent chaque mois.",
+    "testimonial2_quote": "J'ai recommandé Novakou à mes collègues développeurs et les commissions tombent chaque mois.",
     "testimonial3_quote": "Le programme d'affiliation est transparent et fiable. Les paiements sont toujours à l'heure.",
     "affiliate": "Affilié",
     "faq_title_prefix": "Questions",
@@ -532,7 +532,7 @@
     "articles_count": "{count} articles",
     "clear_filter": "Effacer le filtre",
     "popular_articles": "Articles populaires",
-    "article_create_account": "Comment créer un compte FreelanceHigh",
+    "article_create_account": "Comment créer un compte Novakou",
     "article_publish_service": "Publier votre premier service en 5 minutes",
     "article_escrow": "Comprendre le système d'escrow (séquestre)",
     "article_withdraw": "Comment retirer vos gains (SEPA, Mobile Money)",
@@ -543,15 +543,15 @@
     "faq_title": "Questions fréquentes",
     "no_results": "Aucune question ne correspond à votre recherche.",
     "reset_filters": "Réinitialiser les filtres",
-    "faq_signup_q": "Comment m'inscrire sur FreelanceHigh ?",
+    "faq_signup_q": "Comment m'inscrire sur Novakou ?",
     "faq_signup_a": "L'inscription est gratuite et ne prend que quelques minutes. Rendez-vous sur la page d'inscription, choisissez votre rôle (Freelance, Client ou Agence), remplissez vos informations et vérifiez votre adresse email via le code OTP que nous vous envoyons. Vous pouvez aussi vous inscrire avec Google, LinkedIn, Facebook ou Apple.",
     "faq_payment_methods_q": "Quels moyens de paiement sont acceptés ?",
-    "faq_payment_methods_a": "FreelanceHigh accepte les cartes bancaires (Visa, Mastercard) via Stripe, les paiements Mobile Money (Orange Money, Wave, MTN MoMo) via CinetPay, PayPal, les virements SEPA, et les stablecoins USDC/USDT. La devise par défaut est l'Euro (EUR) avec conversion automatique en FCFA, USD, GBP et MAD.",
+    "faq_payment_methods_a": "Novakou accepte les cartes bancaires (Visa, Mastercard) via Stripe, les paiements Mobile Money (Orange Money, Wave, MTN MoMo) via CinetPay, PayPal, les virements SEPA, et les stablecoins USDC/USDT. La devise par défaut est l'Euro (EUR) avec conversion automatique en FCFA, USD, GBP et MAD.",
     "faq_delivery_q": "Comment fonctionne la livraison d'une commande ?",
     "faq_delivery_a": "Une fois la commande acceptée, le freelance travaille sur le projet et livre les fichiers directement dans l'espace de commande. Le client reçoit une notification et dispose d'un délai pour valider la livraison ou demander une révision. Les fonds ne sont libérés qu'après validation.",
     "faq_open_dispute_q": "Comment ouvrir un litige ?",
-    "faq_open_dispute_a": "Si vous n'êtes pas satisfait d'une livraison et que vous ne parvenez pas à trouver un accord avec le prestataire, vous pouvez ouvrir un litige depuis la page de détail de votre commande. Un médiateur FreelanceHigh examinera les preuves fournies par les deux parties et rendra un verdict équitable.",
-    "faq_commissions_q": "Quelles sont les commissions de FreelanceHigh ?",
+    "faq_open_dispute_a": "Si vous n'êtes pas satisfait d'une livraison et que vous ne parvenez pas à trouver un accord avec le prestataire, vous pouvez ouvrir un litige depuis la page de détail de votre commande. Un médiateur Novakou examinera les preuves fournies par les deux parties et rendra un verdict équitable.",
+    "faq_commissions_q": "Quelles sont les commissions de Novakou ?",
     "faq_commissions_a": "Les commissions varient selon votre plan d'abonnement : Découverte (12%), Ascension à 15 EUR/mois (5%), Sommet à 29,99 EUR/mois (1 EUR/vente), Empire à 65 EUR/mois (0%). Chaque plan offre des avantages supplémentaires comme des boosts publicitaires, des certifications IA et des clés API.",
     "faq_withdraw_q": "Comment retirer mes gains ?",
     "faq_withdraw_a": "Rendez-vous dans la section Gains & Finances de votre dashboard. Vous pouvez retirer vos fonds par virement SEPA (Europe), Mobile Money via Orange Money, Wave ou MTN MoMo (Afrique), PayPal, Wise, ou en crypto (USDC/USDT). Le délai de traitement varie de 1 à 5 jours ouvrables selon la méthode choisie.",
@@ -561,8 +561,8 @@
     "faq_2fa_a": "Allez dans Paramètres > Sécurité de votre dashboard. Activez la 2FA et choisissez entre Google Authenticator (application TOTP) ou l'envoi d'un code par SMS. Scannez le QR code avec votre application d'authentification ou entrez votre numéro de téléphone. Confirmez avec le code de vérification.",
     "faq_agency_q": "Comment fonctionne le système d'agences ?",
     "faq_agency_a": "Les agences disposent d'un espace dédié pour gérer une équipe de freelances. En tant qu'agence, vous pouvez inviter des membres, publier des services sous votre marque, gérer des projets multi-membres avec vue Kanban, et centraliser la facturation. Le plan Empire (65 EUR/mois) permet jusqu'à 25 membres, offre 100 Go de stockage partagé et 0% de commission.",
-    "faq_contact_support_q": "Comment contacter le support FreelanceHigh ?",
-    "faq_contact_support_a": "Vous pouvez nous contacter de plusieurs manières : via le chat en direct disponible sur cette page (lundi au vendredi, 9h-18h CET), par email à support@freelancehigh.com, ou en créant un ticket de support depuis le formulaire ci-dessous. Notre équipe s'engage à répondre sous 24 heures.",
+    "faq_contact_support_q": "Comment contacter le support Novakou ?",
+    "faq_contact_support_a": "Vous pouvez nous contacter de plusieurs manières : via le chat en direct disponible sur cette page (lundi au vendredi, 9h-18h CET), par email à support@novakou.com, ou en créant un ticket de support depuis le formulaire ci-dessous. Notre équipe s'engage à répondre sous 24 heures.",
     "faq_kyc_q": "Qu'est-ce que le KYC et pourquoi est-il nécessaire ?",
     "faq_kyc_a": "Le KYC (Know Your Customer) est un processus de vérification d'identité obligatoire pour certaines actions. Niveau 1 (email) donne l'accès de base. Niveau 2 (téléphone) permet de commander et postuler. Niveau 3 (pièce d'identité) débloque les retraits et la publication de services. Niveau 4 (vérification pro) donne accès au badge Elite et aux limites élevées.",
     "faq_boost_q": "Comment booster la visibilité de mes services ?",
@@ -596,13 +596,13 @@
     "ticket_success": "Votre ticket a été créé avec succès. Nous vous répondrons sous 24h.",
     "chat_welcome": "Bonjour ! Comment puis-je vous aider ?",
     "chat_auto_reply": "Merci pour votre message. Un membre de notre équipe vous répondra dans les plus brefs délais. En attendant, consultez notre FAQ ci-dessus pour une réponse rapide.",
-    "chat_header_title": "Support FreelanceHigh",
+    "chat_header_title": "Support Novakou",
     "chat_header_status": "En ligne",
     "chat_input_placeholder": "Écrivez votre message...",
     "chat_button_title": "Chat en direct"
   },
   "blog": {
-    "title": "Blog FreelanceHigh",
+    "title": "Blog Novakou",
     "subtitle": "Conseils, guides et success stories pour réussir en freelance en Afrique francophone et à l'international.",
     "all": "Tous",
     "no_articles": "Aucun article publié pour le moment.",

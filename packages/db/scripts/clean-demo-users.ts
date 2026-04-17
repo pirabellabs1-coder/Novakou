@@ -9,7 +9,7 @@
  *   - emails commençant par "dev-" (seeds)
  *
  * Conserve:
- *   - admin@freelancehigh.com (compte admin principal)
+ *   - admin@novakou.com (compte admin principal)
  *   - Tous les VRAIS utilisateurs qui ont un vrai email
  */
 

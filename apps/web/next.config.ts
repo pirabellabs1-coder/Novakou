@@ -65,12 +65,15 @@ const nextConfig: NextConfig = {
       // www -> non-www
       {
         source: "/:path*",
-        has: [{ type: "host", value: "www.freelancehigh.com" }],
-        destination: "https://freelancehigh.com/:path*",
+        has: [{ type: "host", value: "www.novakou.com" }],
+        destination: "https://novakou.com/:path*",
         permanent: true,
       },
       // Common 404 redirects — pages users try to access directly
       { source: "/projets", destination: "/offres-projets", permanent: true },
+      // Blog supprimé — rediriger vers l'accueil
+      { source: "/blog", destination: "/", permanent: true },
+      { source: "/blog/:slug*", destination: "/", permanent: true },
       { source: "/devenir-freelance", destination: "/inscription", permanent: true },
       { source: "/accueil", destination: "/", permanent: true },
       { source: "/home", destination: "/", permanent: true },

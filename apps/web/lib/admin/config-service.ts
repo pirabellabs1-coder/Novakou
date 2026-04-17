@@ -1,4 +1,4 @@
-// FreelanceHigh — Admin Platform Config Service
+// Novakou — Admin Platform Config Service
 // Reads/writes platform configuration from PlatformConfig table via Prisma
 
 import { prisma } from "@/lib/prisma";
@@ -106,8 +106,8 @@ const DEFAULT_CONFIG: PlatformConfig = {
     minKycLevel: 3,
   },
   languages: ["fr", "en"],
-  supportEmail: "support@freelancehigh.com",
-  platformName: "FreelanceHigh",
+  supportEmail: "support@novakou.com",
+  platformName: "Novakou",
   rankThresholds: {
     rising_talent: 5,
     professional: 25,

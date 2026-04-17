@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
       success: true,
       profile: { id: profile.id, affiliateCode: profile.affiliateCode, status: profile.status },
       commissionPct: program.commissionPct,
-      affiliateLink: `${process.env.NEXTAUTH_URL ?? ""}/formations?ref=${profile.affiliateCode}`,
+      affiliateLink: `${process.env.NEXTAUTH_URL ?? ""}/?ref=${profile.affiliateCode}`,
     }, { status: 201 });
   } catch (err) {
     console.error("[affiliate POST]", err);

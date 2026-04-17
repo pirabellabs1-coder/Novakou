@@ -42,8 +42,8 @@ function generateAffiliateCode(userName: string): string {
 }
 
 function buildAffiliateLink(code: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://freelancehigh.com";
-  return `${baseUrl}/formations?ref=${code}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+  return `${baseUrl}/?ref=${code}`;
 }
 
 // ── In-memory dev store ──────────────────────────────────────────────────────
