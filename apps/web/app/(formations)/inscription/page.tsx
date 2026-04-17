@@ -109,6 +109,17 @@ function InscriptionInner() {
         redirect: false,
       });
 
+      // If email not verified yet → force OTP flow
+      if (signInResult?.error === "EMAIL_NOT_VERIFIED") {
+        const params = new URLSearchParams({
+          email: email.trim().toLowerCase(),
+          callbackUrl: redirectAfterAuth,
+          p: password,
+        });
+        router.push(`/verifier-email?${params.toString()}`);
+        return;
+      }
+
       if (signInResult?.error) {
         router.push(`/connexion?callbackUrl=${encodeURIComponent(redirectAfterAuth)}&registered=1`);
         return;

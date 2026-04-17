@@ -125,20 +125,36 @@ export async function removeDomain(name: string): Promise<{ ok: boolean; error?:
   return { ok: false, error: res.error ?? `vercel-remove-failed:${res.status}` };
 }
 
-/** User-facing DNS instructions, independent of Vercel verification blob. */
-export function dnsInstructions(domain: string) {
-  const isApex = !domain.includes(".") || domain.split(".").length === 2;
-  return {
-    domain,
-    records: [
-      isApex
-        ? { type: "A", name: "@", value: "76.76.21.21", note: "Apex record (domaine racine)" }
-        : {
-            type: "CNAME",
-            name: domain.split(".")[0],
-            value: "cname.vercel-dns.com",
-            note: "Sous-domaine",
-          },
-    ],
-  };
+/**
+ * User-facing DNS instructions. `apexName` is the registrable apex (e.g. `example.com`
+ * for `shop.example.com`). When omitted we infer from the domain itself.
+ */
+export function dnsInstructions(domain: string, apexName?: string) {
+  // Common ccTLDs that have a 2-part apex (example.co.uk, example.com.fr, etc.)
+  const TWO_PART_TLDS = new Set([
+    "co.uk", "ac.uk", "org.uk", "gov.uk",
+    "co.nz", "com.au", "co.jp", "co.kr", "com.br", "com.mx",
+    "co.za", "com.cn", "com.tw", "com.sg",
+  ]);
+  const parts = domain.split(".");
+  let inferredApex = parts.slice(-2).join(".");
+  if (parts.length >= 3 && TWO_PART_TLDS.has(parts.slice(-2).join("."))) {
+    inferredApex = parts.slice(-3).join(".");
+  }
+  const apex = apexName ?? inferredApex;
+  const isApex = domain === apex;
+  const subPart = isApex ? "@" : domain.slice(0, -(apex.length + 1));
+
+  const records = [];
+  if (isApex) {
+    records.push({ type: "A", name: "@", value: "76.76.21.21", note: "Domaine racine — IP Vercel" });
+  } else {
+    records.push({
+      type: "CNAME",
+      name: subPart,
+      value: "cname.vercel-dns.com",
+      note: "Sous-domaine — pointe vers Vercel",
+    });
+  }
+  return { domain, apex, records };
 }

@@ -14,8 +14,8 @@ function getResend() {
 }
 
 function getFromAddress(): string {
-  // Domain noreply@novakou.com is verified — DNS configured in Vercel
-  return process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
+  // Domain contact@novakou.com is verified — DNS configured in Vercel
+  return process.env.EMAIL_FROM || "Novakou <contact@novakou.com>";
 }
 
 export function getAppUrl(): string {

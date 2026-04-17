@@ -3,8 +3,8 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-// Domain noreply@novakou.com is verified — DNS configured in Vercel
-const FROM = process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
+// Domain contact@novakou.com is verified — DNS configured in Vercel
+const FROM = process.env.EMAIL_FROM || "Novakou <contact@novakou.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 // ── Layout HTML commun formations ──

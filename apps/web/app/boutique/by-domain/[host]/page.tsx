@@ -9,8 +9,11 @@ interface Props {
 async function resolve(hostParam: string) {
   const normalized = decodeURIComponent(hostParam).toLowerCase().replace(/^www\./, "");
   try {
+    // Match on customDomain only — if Vercel routed traffic here, the DNS
+    // is already pointing to us, so we serve the shop regardless of the
+    // `customDomainVerified` flag (which only reflects SSL provisioning).
     const vendor = await prisma.instructeurProfile.findFirst({
-      where: { customDomain: normalized, customDomainVerified: true },
+      where: { customDomain: normalized },
       select: {
         id: true,
         shopSlug: true,

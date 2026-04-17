@@ -165,6 +165,7 @@ export const authOptions: NextAuthOptions = {
               status: true,
               twoFactorEnabled: true,
               formationsRole: true,
+              emailVerified: true,
             },
           });
 
@@ -181,6 +182,11 @@ export const authOptions: NextAuthOptions = {
           if (!valid) {
             recordFailedAttempt(email);
             return null;
+          }
+
+          // Bloquer la connexion si email non vérifié — l'utilisateur doit valider via OTP
+          if (!user.emailVerified) {
+            throw new Error("EMAIL_NOT_VERIFIED");
           }
 
           // Verifier si 2FA est active — valider le token HMAC signe par le serveur
@@ -225,6 +231,7 @@ export const authOptions: NextAuthOptions = {
           if (err instanceof Error && err.message.includes("tentatives")) throw err;
           if (err instanceof Error && err.message.includes("desactive")) throw err;
           if (err instanceof Error && err.message === "REQUIRES_2FA") throw err;
+          if (err instanceof Error && err.message === "EMAIL_NOT_VERIFIED") throw err;
           console.error("[AUTH] Database error:", err);
           return null;
         }

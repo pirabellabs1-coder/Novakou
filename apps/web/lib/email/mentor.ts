@@ -3,7 +3,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM = process.env.EMAIL_FROM || "Novakou <noreply@novakou.com>";
+const FROM = process.env.EMAIL_FROM || "Novakou <contact@novakou.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 // ─── Shared green-branded layout ──────────────────────────────────────────────

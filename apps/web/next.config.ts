@@ -74,6 +74,12 @@ const nextConfig: NextConfig = {
       // Blog supprimé — rediriger vers l'accueil
       { source: "/blog", destination: "/", permanent: true },
       { source: "/blog/:slug*", destination: "/", permanent: true },
+      // Pages legacy non implémentées — rediriger vers la page la plus proche
+      { source: "/faq", destination: "/aide", permanent: true },
+      { source: "/categories", destination: "/explorer", permanent: true },
+      { source: "/comment-ca-marche", destination: "/a-propos", permanent: true },
+      { source: "/mentions-legales", destination: "/cgu", permanent: true },
+      { source: "/status", destination: "/", permanent: true },
       { source: "/devenir-freelance", destination: "/inscription", permanent: true },
       { source: "/accueil", destination: "/", permanent: true },
       { source: "/home", destination: "/", permanent: true },

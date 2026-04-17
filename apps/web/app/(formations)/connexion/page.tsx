@@ -37,6 +37,22 @@ function ConnexionInner() {
           router.push(`/2fa?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(cb)}`);
           return;
         }
+        if (result.error === "EMAIL_NOT_VERIFIED") {
+          // Email pas encore vérifié — renvoyer un code et rediriger vers OTP
+          await fetch("/api/auth/verify-email", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email.trim().toLowerCase() }),
+          }).catch(() => {});
+          const cb = callbackUrlParam ?? "/apprenant/dashboard";
+          const params = new URLSearchParams({
+            email: email.trim().toLowerCase(),
+            callbackUrl: cb,
+            p: password,
+          });
+          router.push(`/verifier-email?${params.toString()}`);
+          return;
+        }
         setError(
           result.error === "CredentialsSignin"
             ? "Email ou mot de passe incorrect."
