@@ -32,9 +32,11 @@ function ConnexionInner() {
       });
 
       if (result?.error) {
+        // Legacy path kept for backward compat if authorize() still throws it.
+        // The new flow uses JWT tfaPending + middleware redirect (no email query needed).
         if (result.error === "REQUIRES_2FA") {
-          const cb = callbackUrlParam ?? "/apprenant/dashboard";
-          router.push(`/2fa?email=${encodeURIComponent(email)}&callbackUrl=${encodeURIComponent(cb)}`);
+          const cb = callbackUrlParam ?? "/";
+          router.push(`/2fa?callbackUrl=${encodeURIComponent(cb)}`);
           return;
         }
         if (result.error === "EMAIL_NOT_VERIFIED") {
@@ -64,7 +66,23 @@ function ConnexionInner() {
 
       // After login — fetch fresh session to get formationsRole, then redirect to correct dashboard
       const freshSession = await getSession();
-      const user = freshSession?.user as { role?: string; formationsRole?: string } | undefined;
+      const user = freshSession?.user as {
+        role?: string;
+        formationsRole?: string;
+        tfaPending?: boolean;
+      } | undefined;
+
+      // 2FA en attente ? On route sur /2fa directement (le middleware le ferait
+      // aussi, mais on évite l'aller-retour).
+      if (user?.tfaPending) {
+        const cb = callbackUrlParam ?? getDashboardForFormationsRole(
+          user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
+          user?.role
+        );
+        router.push(`/2fa?callbackUrl=${encodeURIComponent(cb)}`);
+        return;
+      }
+
       let target = callbackUrlParam ?? getDashboardForFormationsRole(
         user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
         user?.role

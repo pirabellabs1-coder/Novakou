@@ -3,54 +3,30 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 function TwoFaInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const email = searchParams.get("email") ?? "";
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/vendeur/dashboard";
+  const { data: session, status, update } = useSession();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (code.length !== 6) {
-      setError("Le code doit contenir 6 chiffres.");
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await signIn("credentials", {
-        email,
-        otp: code,
-        redirect: false,
-      });
-      if (result?.error) {
-        setError(result.error === "Invalid2FA" ? "Code incorrect. Vérifiez votre application." : result.error);
-        setLoading(false);
-        return;
-      }
-      router.push(callbackUrl);
-      router.refresh();
-    } catch {
-      setError("Erreur réseau. Veuillez réessayer.");
-      setLoading(false);
-    }
+  // Si pas de session : rediriger vers /connexion (ne devrait pas arriver normalement
+  // car le middleware bloque /2fa aux non-connectés).
+  if (status === "loading") {
+    return <div className="min-h-[calc(100vh-96px)] bg-[#f7f9fb]" />;
   }
-
-  if (!email) {
+  if (status === "unauthenticated") {
     return (
       <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
           <span className="material-symbols-outlined text-red-500 text-5xl">error</span>
-          <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Accès invalide</h2>
-          <p className="text-sm text-[#5c647a] mt-2 mb-5">
-            Ce lien a expiré ou est invalide. Veuillez vous reconnecter.
-          </p>
+          <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Session expirée</h2>
+          <p className="text-sm text-[#5c647a] mt-2 mb-5">Veuillez vous reconnecter.</p>
           <Link
             href="/connexion"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
@@ -63,6 +39,45 @@ function TwoFaInner() {
       </div>
     );
   }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (code.length !== 6) {
+      setError("Le code doit contenir 6 chiffres.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/verify-2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data.error || "Code incorrect. Vérifiez votre application.");
+        setLoading(false);
+        return;
+      }
+      // Le JWT callback va effacer tfaPending quand on update() avec tfaVerified.
+      await update({ tfaVerified: true });
+      // Petit refresh de session + navigation vers la destination initiale.
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      setError("Erreur réseau. Veuillez réessayer.");
+      setLoading(false);
+    }
+  }
+
+  async function handleCancel() {
+    // L'utilisateur veut repartir → on vide sa session (elle est tfaPending).
+    await signOut({ callbackUrl: "/connexion" });
+  }
+
+  const email = session?.user?.email ?? "";
+  const name = (session?.user?.name ?? "").split(" ")[0] || "vous";
 
   return (
     <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
@@ -89,8 +104,12 @@ function TwoFaInner() {
             </div>
             <h2 className="text-xl font-extrabold text-[#191c1e]">Authentification à deux facteurs</h2>
             <p className="text-sm text-[#5c647a] mt-1.5">
-              Entrez le code à 6 chiffres de votre application authenticator
+              Salut <span className="font-semibold">{name}</span>, entrez le code à 6 chiffres de votre
+              application authenticator pour accéder à votre espace.
             </p>
+            {email && (
+              <p className="text-[11px] text-[#5c647a] mt-2 font-mono">{email}</p>
+            )}
           </div>
 
           {error && (
@@ -118,7 +137,7 @@ function TwoFaInner() {
                 className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 text-center text-2xl font-extrabold tracking-[0.5em] text-[#191c1e] placeholder-gray-300 focus:outline-none focus:border-[#006e2f] transition-all bg-white"
               />
               <p className="text-[11px] text-[#5c647a] text-center mt-2">
-                Ouvrez votre application Google Authenticator ou Authy pour obtenir le code.
+                Ouvrez Google Authenticator, Authy ou 1Password pour obtenir le code.
               </p>
             </div>
 
@@ -136,19 +155,20 @@ function TwoFaInner() {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                  Se connecter
+                  Accéder à mon espace
                 </>
               )}
             </button>
 
             <div className="mt-5 text-center">
-              <Link
-                href="/connexion"
-                className="text-xs text-[#5c647a] hover:text-[#006e2f] font-semibold inline-flex items-center gap-1"
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="text-xs text-[#5c647a] hover:text-red-600 font-semibold inline-flex items-center gap-1"
               >
-                <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-                Retour à la connexion
-              </Link>
+                <span className="material-symbols-outlined text-[14px]">logout</span>
+                Annuler et me déconnecter
+              </button>
             </div>
           </form>
         </div>

@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import VendorDomainTab from "@/components/formations/VendorDomainTab";
 import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
+import TwoFactorSetup from "@/components/account/TwoFactorSetup";
+import CountrySelect from "@/components/account/CountrySelect";
+import ActiveSessions from "@/components/account/ActiveSessions";
 
 type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
@@ -84,7 +87,6 @@ const SPECIALITES_OPTIONS = [
 
 export default function ParamaetresPage() {
   const [activeTab, setActiveTab] = useState<Tab>("compte");
-  const [twoFA, setTwoFA] = useState(false);
 
   // Real user/account state (loaded from API)
   const [prenom, setPrenom] = useState("");
@@ -243,14 +245,7 @@ export default function ParamaetresPage() {
 
             <div>
               <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Pays de résidence</label>
-              <select className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] bg-white focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all">
-                <option>Sénégal</option>
-                <option>Côte d'Ivoire</option>
-                <option>Cameroun</option>
-                <option>Mali</option>
-                <option>Bénin</option>
-                <option>France</option>
-              </select>
+              <CountrySelect value={pays} onChange={setPays} />
             </div>
 
             <div className="flex flex-wrap gap-3 items-center">
@@ -673,59 +668,13 @@ export default function ParamaetresPage() {
             </button>
           </div>
 
-          {/* 2FA */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${twoFA ? "bg-[#006e2f]/10" : "bg-gray-100"}`}>
-                  <span className={`material-symbols-outlined text-[24px] ${twoFA ? "text-[#006e2f]" : "text-[#5c647a]"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                    phone_iphone
-                  </span>
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[#191c1e]">Double authentification (2FA)</h2>
-                  <p className="text-sm text-[#5c647a] mt-0.5">Sécurisez votre compte avec un code SMS ou une application d'authentification.</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className={`w-2 h-2 rounded-full ${twoFA ? "bg-[#22c55e]" : "bg-gray-300"}`} />
-                    <span className={`text-xs font-semibold ${twoFA ? "text-[#006e2f]" : "text-[#5c647a]"}`}>
-                      {twoFA ? "Activée" : "Désactivée"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <Toggle on={twoFA} onChange={setTwoFA} />
-            </div>
-          </div>
+          {/* 2FA — full setup flow (QR code + verification) */}
+          <TwoFactorSetup />
 
-          {/* Active sessions */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-[#191c1e] mb-4">Sessions actives</h2>
-            <div className="space-y-3">
-              {[
-                { device: "Chrome · Windows 11", location: "Dakar, Sénégal", time: "Actif maintenant", current: true },
-                { device: "Safari · iPhone 15", location: "Dakar, Sénégal", time: "Il y a 2 heures", current: false },
-                { device: "Firefox · macOS", location: "Abidjan, Côte d'Ivoire", time: "Il y a 3 jours", current: false },
-              ].map((session, i) => (
-                <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${session.current ? "border-[#006e2f]/20 bg-[#006e2f]/4" : "border-gray-100"}`}>
-                  <span className="material-symbols-outlined text-[20px] text-[#5c647a]">
-                    {session.device.includes("iPhone") ? "smartphone" : "computer"}
-                  </span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#191c1e]">{session.device}</p>
-                      {session.current && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">Actuelle</span>}
-                    </div>
-                    <p className="text-xs text-[#5c647a]">{session.location} · {session.time}</p>
-                  </div>
-                  {!session.current && (
-                    <button className="text-xs font-semibold text-red-500 hover:text-red-700 transition-colors">
-                      Révoquer
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+
+          {/* Active sessions — real login history from LoginAttempt + IP geolocation */}
+          <ActiveSessions />
+
         </div>
       )}
     </div>

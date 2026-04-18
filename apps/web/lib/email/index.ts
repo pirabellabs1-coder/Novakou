@@ -363,3 +363,120 @@ export async function sendDeliveryNotificationEmail(
 
   return sendEmail({ to: email, subject: `Livraison effectuee — ${order.serviceTitle}`, html });
 }
+
+// ── Nouvelle connexion — alerte de sécurité ──
+
+export async function sendLoginAlertEmail(params: {
+  email: string;
+  name: string;
+  ip: string;
+  browser: string;
+  os: string;
+  device: string;
+  timestamp?: Date;
+  method?: "credentials" | "google" | "linkedin";
+}) {
+  const ts = params.timestamp ?? new Date();
+  const dateStr = ts.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const timeStr = ts.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  });
+  const methodLabel =
+    params.method === "google"
+      ? "Google"
+      : params.method === "linkedin"
+        ? "LinkedIn"
+        : "Email + mot de passe";
+
+  const securityUrl = `${getAppUrl()}/apprenant/parametres?tab=securite`;
+  const passwordResetUrl = `${getAppUrl()}/mot-de-passe-oublie`;
+
+  const html = emailLayout(`
+    <div style="text-align:center;margin-bottom:8px;">
+      <div style="display:inline-block;width:56px;height:56px;background:linear-gradient(135deg,#006e2f,#22c55e);border-radius:50%;text-align:center;line-height:56px;margin-bottom:16px;">
+        <span style="color:#ffffff;font-size:28px;">🔐</span>
+      </div>
+    </div>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 8px;text-align:center;">Nouvelle connexion à votre compte</h2>
+    <p style="color:#6b7280;font-size:14px;margin:0 0 24px;text-align:center;">
+      Bonjour ${name(params.name)}, une nouvelle session vient d'être ouverte.
+    </p>
+
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin:0 0 20px;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;width:120px;">Date & heure</td>
+          <td style="padding:8px 0;color:#111827;font-weight:600;">${dateStr} à ${timeStr}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Méthode</td>
+          <td style="padding:8px 0;color:#111827;font-weight:600;border-top:1px solid #e5e7eb;">${methodLabel}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Appareil</td>
+          <td style="padding:8px 0;color:#111827;font-weight:600;border-top:1px solid #e5e7eb;">${escapeHtml(params.browser)} sur ${escapeHtml(params.os)}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Type</td>
+          <td style="padding:8px 0;color:#111827;font-weight:600;border-top:1px solid #e5e7eb;">${escapeHtml(params.device)}</td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;color:#6b7280;border-top:1px solid #e5e7eb;">Adresse IP</td>
+          <td style="padding:8px 0;color:#111827;font-weight:600;border-top:1px solid #e5e7eb;font-family:monospace;">${escapeHtml(params.ip)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:12px;padding:16px;margin:0 0 24px;">
+      <p style="color:#065f46;font-size:13px;margin:0;line-height:1.6;">
+        <strong>C'était vous ?</strong> Aucune action n'est nécessaire. Bonne navigation sur Novakou.
+      </p>
+    </div>
+
+    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px;margin:0 0 24px;">
+      <p style="color:#991b1b;font-size:13px;margin:0 0 12px;line-height:1.6;">
+        <strong>Ce n'était pas vous ?</strong> Votre compte est peut-être compromis. Agissez immédiatement :
+      </p>
+      <ol style="color:#7f1d1d;font-size:13px;margin:0;padding-left:20px;line-height:1.8;">
+        <li>Changez votre mot de passe</li>
+        <li>Activez l'authentification à deux facteurs (2FA)</li>
+        <li>Vérifiez les sessions actives et les paramètres du compte</li>
+      </ol>
+    </div>
+
+    <div style="text-align:center;">
+      ${button("Sécuriser mon compte", securityUrl)}
+    </div>
+
+    <p style="color:#9ca3af;font-size:12px;text-align:center;margin:16px 0 0;">
+      Changer votre mot de passe :
+      <a href="${passwordResetUrl}" style="color:#006e2f;text-decoration:none;">${passwordResetUrl}</a>
+    </p>
+  `);
+
+  return sendEmail({
+    to: params.email,
+    subject: `🔐 Nouvelle connexion — ${params.browser} sur ${params.os}`,
+    html,
+  });
+}
+
+// Tiny helpers
+function name(n?: string | null): string {
+  return escapeHtml((n ?? "").split(" ")[0] || "");
+}
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}

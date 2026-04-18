@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
+import TwoFactorSetup from "@/components/account/TwoFactorSetup";
+import CountrySelect from "@/components/account/CountrySelect";
+import ActiveSessions from "@/components/account/ActiveSessions";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "paiements";
 
@@ -36,8 +39,7 @@ export default function ParametresPage() {
 
   const email = session?.user?.email ?? "";
 
-  // Securite
-  const [twoFa, setTwoFa] = useState(false);
+  // (2FA state managed inside TwoFactorSetup component)
 
   // Notifications
   const [notifs, setNotifs] = useState<NotifPref[]>([
@@ -224,15 +226,13 @@ export default function ParametresPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Pays</label>
-                      <select className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all">
-                        <option>Côte d&apos;Ivoire</option>
-                        <option>Sénégal</option>
-                        <option>Cameroun</option>
-                        <option>Mali</option>
-                        <option>Burkina Faso</option>
-                        <option>France</option>
-                        <option>Autre</option>
-                      </select>
+                      <CountrySelect
+                        value={""}
+                        onChange={() => { /* persisted via profile API */ }}
+                        className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
+                        includeBlank
+                        placeholder="Sélectionnez votre pays"
+                      />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Langue préférée</label>
@@ -300,36 +300,9 @@ export default function ParametresPage() {
                 </div>
               </div>
 
-              {/* 2FA */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-base font-bold text-[#191c1e] mb-1">Double authentification (2FA)</h2>
-                    <p className="text-sm text-[#5c647a] leading-relaxed">
-                      Protégez votre compte avec une vérification supplémentaire via Google Authenticator ou SMS.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setTwoFa(!twoFa)}
-                    className={`relative flex-shrink-0 w-12 h-6 rounded-full transition-all duration-300 ${
-                      twoFa ? "bg-[#006e2f]" : "bg-gray-200"
-                    }`}
-                    aria-label="Activer 2FA"
-                  >
-                    <span
-                      className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-300 ${
-                        twoFa ? "left-7" : "left-1"
-                      }`}
-                    />
-                  </button>
-                </div>
-                {twoFa && (
-                  <div className="mt-4 p-3 bg-[#006e2f]/5 rounded-xl border border-[#006e2f]/15 text-xs text-[#006e2f] font-medium flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                    La double authentification est activée sur votre compte.
-                  </div>
-                )}
-              </div>
+              {/* 2FA — full setup flow */}
+              <TwoFactorSetup />
+
 
               {/* Sessions */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

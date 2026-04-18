@@ -27,6 +27,10 @@ declare module "next-auth" {
     plan?: string;
     formationsRole?: string;
     adminRole?: string;
+    twoFactorEnabled?: boolean;
+    // Signal from authorize() / signIn callback that a 2FA verification step
+    // is still required before the user can access protected routes.
+    requires2FA?: boolean;
   }
   interface Session {
     user: {
@@ -39,6 +43,7 @@ declare module "next-auth" {
       formationsRole?: string;
       adminRole?: string;
       image?: string | null;
+      tfaPending?: boolean;
     };
   }
 }
@@ -52,6 +57,9 @@ declare module "next-auth/jwt" {
     formationsRole?: string;
     adminRole?: string;
     twoFactorEnabled?: boolean;
+    // True when the user signed in but still needs to enter their 2FA code.
+    // Middleware blocks dashboards while this is true.
+    tfaPending?: boolean;
   }
 }
 
@@ -109,28 +117,12 @@ export const authOptions: NextAuthOptions = {
               recordFailedAttempt(email);
               return null;
             }
-            // Verifier si 2FA est active — valider le token HMAC signe par le serveur
+            // 2FA : on laisse l'utilisateur se connecter, mais on marque
+            // la session comme "tfaPending" jusqu'à la validation du code TOTP
+            // via /2fa (middleware bloque les dashboards en attendant).
             const userRecord = user as unknown as Record<string, unknown>;
-            if (userRecord.twoFactorEnabled) {
-              if (!twoFactorToken) {
-                throw new Error("REQUIRES_2FA");
-              }
-              const secret = getAuthSecret();
-              const now = Date.now().toString().slice(0, -4);
-              const prev = (Date.now() - 10000).toString().slice(0, -4);
-              const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
-              const validToken2 = crypto.createHmac("sha256", secret).update(`${email}:${prev}`).digest("hex");
+            const twoFactorEnabled = !!userRecord.twoFactorEnabled;
 
-              const tokenBuf = Buffer.from(twoFactorToken);
-              const valid1Buf = Buffer.from(validToken1);
-              const valid2Buf = Buffer.from(validToken2);
-              const isValid =
-                (tokenBuf.length === valid1Buf.length && crypto.timingSafeEqual(tokenBuf, valid1Buf)) ||
-                (tokenBuf.length === valid2Buf.length && crypto.timingSafeEqual(tokenBuf, valid2Buf));
-              if (!isValid) {
-                throw new Error("INVALID_2FA_TOKEN");
-              }
-            }
             resetAttempts(email);
             devStore.updateLastLogin(user.id);
             return {
@@ -141,6 +133,8 @@ export const authOptions: NextAuthOptions = {
               kyc: user.kyc,
               plan: user.plan,
               formationsRole: userRecord.formationsRole as string | undefined,
+              twoFactorEnabled,
+              requires2FA: twoFactorEnabled,
             };
           } catch (err) {
             if (err instanceof Error && (err.message.includes("tentatives") || err.message.includes("desactive") || err.message === "REQUIRES_2FA" || err.message === "INVALID_2FA_TOKEN")) throw err;
@@ -189,35 +183,12 @@ export const authOptions: NextAuthOptions = {
             throw new Error("EMAIL_NOT_VERIFIED");
           }
 
-          // Verifier si 2FA est active — valider le token HMAC signe par le serveur
-          if (user.twoFactorEnabled) {
-            if (!twoFactorToken) {
-              throw new Error("REQUIRES_2FA");
-            }
-            const secret = getAuthSecret();
-            const now = Date.now().toString().slice(0, -4);
-            const prev = (Date.now() - 10000).toString().slice(0, -4);
-            const validToken1 = crypto.createHmac("sha256", secret).update(`${email}:${now}`).digest("hex");
-            const validToken2 = crypto.createHmac("sha256", secret).update(`${email}:${prev}`).digest("hex");
-
-            const tokenBuf = Buffer.from(twoFactorToken);
-            const valid1Buf = Buffer.from(validToken1);
-            const valid2Buf = Buffer.from(validToken2);
-            const isValid =
-              (tokenBuf.length === valid1Buf.length && crypto.timingSafeEqual(tokenBuf, valid1Buf)) ||
-              (tokenBuf.length === valid2Buf.length && crypto.timingSafeEqual(tokenBuf, valid2Buf));
-            if (!isValid) {
-              throw new Error("INVALID_2FA_TOKEN");
-            }
-          }
-
           resetAttempts(email);
 
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date(), loginCount: { increment: 1 } },
-          }).catch(() => {});
-
+          // 2FA : on ne bloque pas l'authentification ici ; le JWT portera un
+          // flag tfaPending et le middleware redirigera vers /2fa.
+          // L'email d'alerte de connexion est envoyé soit immédiatement (pas de 2FA),
+          // soit après la validation du code TOTP.
           return {
             id: user.id,
             email: user.email,
@@ -226,6 +197,8 @@ export const authOptions: NextAuthOptions = {
             kyc: user.kyc,
             plan: mapPlanName(((user.plan as string) || "gratuit").toLowerCase()),
             formationsRole: user.formationsRole?.toLowerCase() as string | undefined,
+            twoFactorEnabled: !!user.twoFactorEnabled,
+            requires2FA: !!user.twoFactorEnabled,
           };
         } catch (err) {
           if (err instanceof Error && err.message.includes("tentatives")) throw err;
@@ -332,6 +305,9 @@ export const authOptions: NextAuthOptions = {
               user.plan = existing.plan;
               const existingRecord = existing as unknown as Record<string, unknown>;
               const currentFormationsRole = existingRecord.formationsRole as string | undefined;
+              const tfa = !!existingRecord.twoFactorEnabled;
+              user.twoFactorEnabled = tfa;
+              user.requires2FA = tfa;
 
               // Reject if user has a DIFFERENT formationsRole (can't be both instructeur and apprenant)
               if (pendingFormationsRole && currentFormationsRole && currentFormationsRole !== pendingFormationsRole) {
@@ -469,6 +445,8 @@ export const authOptions: NextAuthOptions = {
             user.kyc = dbUser.kyc;
             user.plan = dbUser.plan.toLowerCase();
             user.formationsRole = dbUser.formationsRole?.toLowerCase() as string | undefined;
+            user.twoFactorEnabled = !!dbUser.twoFactorEnabled;
+            user.requires2FA = !!dbUser.twoFactorEnabled;
           } catch (err) {
             console.error("[AUTH OAuth] Erreur DB lors du signIn OAuth:", err instanceof Error ? err.message : err);
             console.error("[AUTH OAuth] Stack:", err instanceof Error ? err.stack : "N/A");
@@ -478,7 +456,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, trigger }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (user) {
         token.id = user.id as string;
         token.role = ((user.role as string) ?? "client").toLowerCase();
@@ -491,6 +469,37 @@ export const authOptions: NextAuthOptions = {
         if (token.role === "admin") {
           token.adminRole = (user.adminRole as string) || "super_admin";
         }
+
+        // 2FA flag. Set once on initial sign-in; cleared by explicit `update()`
+        // after /2fa verification succeeds.
+        token.twoFactorEnabled = !!user.twoFactorEnabled;
+        token.tfaPending = !!user.requires2FA;
+
+        // Fire login-alert email if no 2FA pending (otherwise it fires
+        // later from /api/auth/verify-2fa after the code is entered).
+        if (trigger === "signIn" && !token.tfaPending && user.id && user.email) {
+          try {
+            const [{ getClientInfoFromContext }, { notifyLoginSuccess }] = await Promise.all([
+              import("./client-info"),
+              import("./notify-login"),
+            ]);
+            const info = await getClientInfoFromContext();
+            const method = (account?.provider as "google" | "linkedin" | "credentials" | undefined) ?? "credentials";
+            notifyLoginSuccess({
+              userId: user.id as string,
+              email: user.email as string,
+              name: (user.name as string) ?? null,
+              info,
+              method,
+            }).catch(() => null);
+          } catch { /* best-effort */ }
+        }
+      }
+
+      // The /2fa page calls `update({ tfaVerified: true })` after a valid
+      // TOTP code. Clear the pending flag on the next JWT pass.
+      if (trigger === "update" && (session as { tfaVerified?: boolean } | undefined)?.tfaVerified === true) {
+        token.tfaPending = false;
       }
 
       // Refresh KYC level from DB when session is updated or periodically
@@ -545,6 +554,8 @@ export const authOptions: NextAuthOptions = {
       if (token.adminRole) {
         session.user.adminRole = token.adminRole;
       }
+      // Expose the pending-2FA flag so middleware + client can gate access.
+      session.user.tfaPending = !!token.tfaPending;
       return session;
     },
   },

@@ -226,9 +226,15 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isAuthenticated = !!token;
   const userRole = token?.role as string | undefined;
+  const tfaPending = !!(token as { tfaPending?: boolean } | null)?.tfaPending;
 
   // Routes auth — rediriger vers le bon espace si deja connecte
+  // Exception : /2fa reste accessible tant que la 2FA n'est pas validée.
   if (isAuthRoute(pathname)) {
+    // Laisser passer /2fa si l'utilisateur attend justement la validation TOTP
+    if (pathname === "/2fa" && isAuthenticated && tfaPending) {
+      return withLocaleCookie(NextResponse.next());
+    }
     if (isAuthenticated && userRole) {
       const redirectUrl = getDashboardForRole(userRole);
       return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
@@ -240,6 +246,15 @@ export async function middleware(req: NextRequest) {
   if (!isAuthenticated) {
     const callbackUrl = encodeURIComponent(pathname);
     return withLocaleCookie(NextResponse.redirect(new URL(`/connexion?callbackUrl=${callbackUrl}`, req.url)));
+  }
+
+  // 2FA en attente : on force la page /2fa tant que le code TOTP n'a pas
+  // été validé. Marche pour tous les providers (credentials + OAuth).
+  if (tfaPending && pathname !== "/2fa") {
+    const url = new URL("/2fa", req.url);
+    // Préserver la destination initiale pour la redirection après validation
+    if (pathname && pathname !== "/") url.searchParams.set("callbackUrl", pathname);
+    return withLocaleCookie(NextResponse.redirect(url));
   }
 
   // Verification du role
