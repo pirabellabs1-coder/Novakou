@@ -213,7 +213,6 @@ export default function MarketingPage() {
             stat2Label="conversions"
             active={(d?.funnels.active ?? 0) > 0}
             loading={isLoading}
-            badge="Bientôt"
           />
         </div>
       </div>

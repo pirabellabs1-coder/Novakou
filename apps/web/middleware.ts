@@ -83,7 +83,14 @@ function isStaticAsset(pathname: string): boolean {
   return (
     pathname.startsWith("/_next/") ||
     pathname.startsWith("/favicon") ||
-    pathname.includes(".")
+    pathname.includes(".") ||
+    // Next.js metadata file-based routes (icon.tsx, apple-icon.tsx,
+    // opengraph-image.tsx, manifest.ts) generate these paths dynamically.
+    pathname === "/icon" ||
+    pathname === "/apple-icon" ||
+    pathname === "/opengraph-image" ||
+    pathname === "/twitter-image" ||
+    pathname === "/manifest.webmanifest"
   );
 }
 

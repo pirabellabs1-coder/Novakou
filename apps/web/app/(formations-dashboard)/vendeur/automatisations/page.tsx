@@ -1,6 +1,7 @@
 "use client";
 import { useToastStore } from "@/store/toast";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import IntegrationModal from "@/components/automations/IntegrationModal";
@@ -593,10 +594,14 @@ export default function AutomationsPage() {
               <span className="text-[#006e2f]">POST</span> https://votre-app.com/webhook<br />
               <span className="text-[#5c647a]">{"{"} event: "sale.completed", amount: 25000, ... {"}"}</span>
             </div>
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
+            <Link
+              href="/vendeur/api-keys"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+            >
               <span className="material-symbols-outlined text-[18px]">add</span>
               Configurer un webhook
-            </button>
+            </Link>
           </div>
         </div>
       )}
