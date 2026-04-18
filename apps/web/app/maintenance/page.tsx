@@ -102,7 +102,7 @@ export default function MaintenancePage() {
         </div>
 
         <p className="text-[10px] text-slate-700 mt-8">
-          © 2026 Novakou — Fondee par Lissanon Gildas
+          © 2026 Novakou — Editee par Pirabel Labs
         </p>
       </div>
     </div>

@@ -21,7 +21,7 @@ const STATS = [
 ];
 
 const TEAM = [
-  { name: "Lissanon Gildas", role: "Fondateur & CEO", initial: "LG", bio: "Entrepreneur passionné par l'écosystème africain et la création de valeur via le digital." },
+  { name: "Pirabel Labs", role: "Fondateur & CEO", initial: "LG", bio: "Entrepreneur passionné par l'écosystème africain et la création de valeur via le digital." },
   { name: "Équipe produit", role: "Engineering & Design", initial: "EP", bio: "Une équipe distribuée qui construit avec soin chaque feature pensée pour vous." },
   { name: "Communauté", role: "Support & Modération", initial: "CO", bio: "Modérateurs et support clients basés en Afrique francophone, à votre écoute 7j/7." },
 ];

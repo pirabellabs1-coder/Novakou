@@ -33,7 +33,7 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
         <a href="${APP_URL}/apprenant/mes-formations" style="color:#006e2f;text-decoration:none;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
         <a href="${APP_URL}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Fondée par" : "Founded by"} Lissanon Gildas</p>
+      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Fondée par" : "Founded by"} Pirabel Labs</p>
     </div>
   </div>
 </body>

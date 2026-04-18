@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description: t("default_description"),
     applicationName: "Novakou",
-    authors: [{ name: "Lissanon Gildas", url: baseUrl }],
+    authors: [{ name: "Pirabel Labs", url: baseUrl }],
     creator: "Novakou",
     publisher: "Novakou",
     keywords: [
@@ -146,7 +146,7 @@ export default async function RootLayout({
             logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/icon`,
             description:
               "La plateforme des créateurs digitaux en Afrique francophone. Vendez vos formations, e-books, templates et séances de coaching.",
-            founder: { "@type": "Person", name: "Lissanon Gildas" },
+            founder: { "@type": "Person", name: "Pirabel Labs" },
             foundingDate: "2026",
             areaServed: [
               { "@type": "Country", name: "Sénégal" },

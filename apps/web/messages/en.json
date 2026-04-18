@@ -42,7 +42,7 @@
     "newsletter_desc": "Get the best freelance opportunities and tips straight to your inbox.",
     "newsletter_placeholder": "your@email.com",
     "newsletter_success": "Thanks for subscribing!",
-    "copyright": "© 2026 Novakou. All rights reserved. Founded by Lissanon Gildas.",
+    "copyright": "© 2026 Novakou. All rights reserved. Published by Pirabel Labs.",
     "links": {
       "explore_services": "Browse services",
       "ongoing_projects": "Ongoing projects",
@@ -245,7 +245,7 @@
   "legal": {
     "french_only_notice": "This document is available in French only.",
     "last_updated": "Last updated: {date}",
-    "copyright": "© 2026 Novakou. All rights reserved. Founded by Lissanon Gildas.",
+    "copyright": "© 2026 Novakou. All rights reserved. Published by Pirabel Labs.",
     "cgu_title": "Terms and Conditions",
     "cgu_meta_title": "Terms and Conditions — Novakou",
     "cgu_meta_description": "Terms and Conditions of the Novakou platform. Rules governing the use of the freelance marketplace.",

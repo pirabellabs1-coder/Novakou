@@ -397,7 +397,7 @@ export function CertificateEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Lissanon Gildas
+            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Pirabel Labs
           </p>
         </div>
       </div>

@@ -78,7 +78,7 @@ export function emailLayout(content: string): string {
         <a href="${getAppUrl()}/confidentialite" style="color:#006e2f;text-decoration:none;">Confidentialite</a> ·
         <a href="${getAppUrl()}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Fondee par Lissanon Gildas</p>
+      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Editee par Pirabel Labs</p>
     </div>
   </div>
 </body>
@@ -116,7 +116,7 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
       Si vous avez des questions, n'hesitez pas a nous contacter a
       <a href="mailto:support@novakou.com" style="color:#006e2f;">support@novakou.com</a>
     </p>
-    <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— Lissanon Gildas, Fondateur</p>
+    <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— L'équipe Pirabel Labs</p>
   `);
 
   return sendEmail({ to: email, subject: "Bienvenue sur Novakou !", html });

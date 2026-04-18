@@ -90,7 +90,7 @@ function ApprenantFooter() {
         </div>
         <div className="border-t border-gray-100 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-[10px] text-[#5c647a]">© 2026 Novakou — Tous droits réservés</p>
-          <p className="text-[10px] text-[#5c647a]">Fondé par Lissanon Gildas · Afrique francophone &amp; diaspora</p>
+          <p className="text-[10px] text-[#5c647a]">Fondé par Pirabel Labs · Afrique francophone &amp; diaspora</p>
         </div>
       </div>
     </footer>

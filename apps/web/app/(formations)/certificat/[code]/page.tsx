@@ -102,7 +102,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
                 <p className="text-xs tabular-nums font-bold text-[#191c1e] bg-gray-50 px-3 py-1.5 rounded">{cert.code}</p>
               </div>
               <div className="text-center">
-                <p className="text-lg font-bold text-[#006e2f] mb-0.5" style={{ fontFamily: "'Caveat', cursive, sans-serif" }}>Lissanon Gildas</p>
+                <p className="text-lg font-bold text-[#006e2f] mb-0.5" style={{ fontFamily: "'Caveat', cursive, sans-serif" }}>Pirabel Labs</p>
                 <div className="h-px w-32 bg-[#191c1e] mx-auto mb-1"></div>
                 <p className="text-[10px] font-semibold text-[#5c647a]">Fondateur & CEO · Novakou</p>
               </div>

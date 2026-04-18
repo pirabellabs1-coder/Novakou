@@ -31,7 +31,7 @@ export function emailLayoutDark(content: string): string {
         <a href="${getAppUrl()}/confidentialite" style="color:#22c55e;text-decoration:none;">Confidentialite</a> ·
         <a href="${getAppUrl()}/contact" style="color:#22c55e;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Fondee par Lissanon Gildas</p>
+      <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Editee par Pirabel Labs</p>
     </div>
   </div>
 </body>

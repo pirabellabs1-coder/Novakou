@@ -1779,7 +1779,7 @@ function getDefaultConversations(): StoredConversation[] {
     {
       id: "conv-seed-1",
       participants: ["dev-1773299214975", "dev-1773366800521"],
-      contactName: "Gildas LISSANON",
+      contactName: "Pirabel Labs",
       contactAvatar: "GL",
       contactRole: "client",
       lastMessage: "Bonjour, je suis interesse par votre service de developpement web.",
@@ -1801,7 +1801,7 @@ function getDefaultConversations(): StoredConversation[] {
     {
       id: "conv-seed-2",
       participants: ["dev-admin-1", "dev-1773299214975"],
-      contactName: "Gildas LISSANON",
+      contactName: "Pirabel Labs",
       contactAvatar: "GL",
       contactRole: "support",
       lastMessage: "Votre profil a ete verifie avec succes. Bienvenue sur Novakou !",
@@ -1841,7 +1841,7 @@ function getDefaultConversations(): StoredConversation[] {
     {
       id: "conv-seed-3",
       participants: ["dev-admin-1", "dev-1773366800521"],
-      contactName: "Gildas LISSANON",
+      contactName: "Pirabel Labs",
       contactAvatar: "GL",
       contactRole: "client",
       lastMessage: "Merci pour votre aide concernant ma commande.",

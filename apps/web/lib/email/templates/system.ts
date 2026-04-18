@@ -26,7 +26,7 @@ export async function sendWelcomeDarkEmail(email: string, name: string, dashboar
       ${buttonDark("Verifier mon identite", kycUrl, "green")}
     </div>
     ${mutedDark(`Si vous avez des questions, n'hesitez pas a nous contacter a <a href="mailto:support@novakou.com" style="color:#22c55e;">support@novakou.com</a>`)}
-    <p style="color:#CBD5E1;margin:24px 0 0;font-style:italic;">— Lissanon Gildas, Fondateur</p>
+    <p style="color:#CBD5E1;margin:24px 0 0;font-style:italic;">— L'équipe Pirabel Labs</p>
   `);
   return sendEmail({ to: email, subject: "Bienvenue sur Novakou !", html });
 }
