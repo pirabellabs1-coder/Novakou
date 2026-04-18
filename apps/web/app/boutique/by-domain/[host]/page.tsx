@@ -17,6 +17,7 @@ async function resolve(hostParam: string) {
         slug: true,
         description: true,
         logoUrl: true,
+        coverUrl: true,
         themeColor: true,
         instructeur: {
           select: {
@@ -35,7 +36,7 @@ async function resolve(hostParam: string) {
         where: { shopId: shop.id, status: "ACTIF" },
         select: {
           id: true, slug: true, title: true, thumbnail: true,
-          price: true, isFree: true, rating: true, studentsCount: true,
+          price: true, isFree: true, rating: true, studentsCount: true, reviewsCount: true,
         },
         orderBy: { createdAt: "desc" },
         take: 24,
@@ -44,7 +45,7 @@ async function resolve(hostParam: string) {
         where: { shopId: shop.id, status: "ACTIF" },
         select: {
           id: true, slug: true, title: true, banner: true,
-          price: true, isFree: true, rating: true, salesCount: true,
+          price: true, isFree: true, rating: true, salesCount: true, reviewsCount: true,
         },
         orderBy: { createdAt: "desc" },
         take: 24,
@@ -70,6 +71,7 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
         name: shop.name || shop.instructeur.user?.name || "Créateur",
         email: shop.instructeur.user?.email ?? null,
         image: shop.logoUrl ?? shop.instructeur.user?.image ?? null,
+        coverUrl: shop.coverUrl ?? null,
         bio: shop.description ?? shop.instructeur.bioFr,
         kind: "vendor",
         domain: normalized,
@@ -78,12 +80,14 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
       formations={formations.map((f) => ({
         kind: "formation" as const,
         id: f.id, slug: f.slug, title: f.title, image: f.thumbnail,
-        price: f.price, isFree: f.isFree, rating: f.rating, count: f.studentsCount,
+        price: f.price, isFree: f.isFree, rating: f.rating,
+        count: f.studentsCount, reviewsCount: f.reviewsCount,
       }))}
       products={products.map((p) => ({
         kind: "product" as const,
         id: p.id, slug: p.slug, title: p.title, image: p.banner,
-        price: p.price, isFree: p.isFree, rating: p.rating, count: p.salesCount,
+        price: p.price, isFree: p.isFree, rating: p.rating,
+        count: p.salesCount, reviewsCount: p.reviewsCount,
       }))}
     />
   );

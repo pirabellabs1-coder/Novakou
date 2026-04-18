@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ShopDomainPanel from "@/components/formations/ShopDomainPanel";
+import { ImageUploader } from "@/components/formations/ImageUploader";
 import { useToastStore } from "@/store/toast";
 
 interface Shop {
@@ -12,6 +13,7 @@ interface Shop {
   slug: string;
   description: string | null;
   logoUrl: string | null;
+  coverUrl: string | null;
   themeColor: string | null;
   isPrimary: boolean;
   customDomain: string | null;
@@ -74,6 +76,26 @@ export default function VendorShopDetailPage() {
     }
   }
 
+  // Auto-save image (logo OU cover) — pas besoin de cliquer Enregistrer
+  async function patchMedia(field: "logoUrl" | "coverUrl", url: string | null) {
+    try {
+      const res = await fetch(`/api/formations/vendeur/shops/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: url }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast("error", json.error ?? "Échec de la mise à jour");
+        return;
+      }
+      setShop(json.data);
+      toast("success", field === "logoUrl" ? "Logo mis à jour" : "Couverture mise à jour");
+    } catch {
+      toast("error", "Échec réseau");
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f7f9fb] p-8">
@@ -120,6 +142,53 @@ export default function VendorShopDetailPage() {
             Voir la boutique
             <span className="material-symbols-outlined text-[16px]">open_in_new</span>
           </a>
+        </div>
+
+        {/* Branding : Logo + Photo de couverture */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+          <div>
+            <h2 className="text-base font-extrabold text-[#191c1e]">Identité visuelle</h2>
+            <p className="text-xs text-[#5c647a] mt-1">
+              Logo et photo de couverture spécifiques à <span className="font-semibold">cette boutique</span>.
+              Apparaissent en haut de votre page publique.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Logo (carré) */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a]">
+                Logo
+              </label>
+              <p className="text-[11px] text-[#5c647a] mb-2">
+                Carré · idéal 400×400 · PNG transparent recommandé
+              </p>
+              <ImageUploader
+                value={shop?.logoUrl ?? ""}
+                onChange={(url) => patchMedia("logoUrl", url || null)}
+                folder="portfolio"
+                aspectClass="aspect-square"
+                helper="JPG, PNG ou SVG · max 5 MB"
+              />
+            </div>
+
+            {/* Cover (panoramique) */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a]">
+                Photo de couverture
+              </label>
+              <p className="text-[11px] text-[#5c647a] mb-2">
+                Bannière hero · idéal 1920×600 · sera affichée en haut de votre page publique
+              </p>
+              <ImageUploader
+                value={shop?.coverUrl ?? ""}
+                onChange={(url) => patchMedia("coverUrl", url || null)}
+                folder="portfolio"
+                aspectClass="aspect-[16/5]"
+                helper="JPG ou PNG · max 5 MB · panoramique"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Identity */}

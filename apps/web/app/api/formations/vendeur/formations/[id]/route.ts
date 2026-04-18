@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       select: {
         id: true, slug: true, title: true, shortDesc: true, description: true,
         thumbnail: true, previewVideo: true, price: true, originalPrice: true,
-        customCategory: true, status: true, rating: true, studentsCount: true,
+        isFree: true, customCategory: true, status: true, rating: true, studentsCount: true,
         reviewsCount: true, hiddenFromMarketplace: true, createdAt: true, updatedAt: true,
         sections: {
           orderBy: { order: "asc" },
@@ -59,6 +59,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
 
     const body = await request.json();
+    // Si isFree=true → forcer price=0 (cohérence)
+    const incomingIsFree = typeof body.isFree === "boolean" ? body.isFree : undefined;
+    let priceVal: number | undefined =
+      body.price !== undefined ? parseFloat(body.price) : undefined;
+    if (incomingIsFree === true) priceVal = 0;
+
     const updated = await prisma.formation.update({
       where: { id },
       data: {
@@ -66,8 +72,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         shortDesc: body.shortDesc !== undefined ? body.shortDesc?.trim() || null : undefined,
         description: body.description !== undefined ? body.description?.trim() || null : undefined,
         thumbnail: body.thumbnail !== undefined ? body.thumbnail || null : undefined,
-        price: body.price !== undefined ? parseFloat(body.price) : undefined,
+        price: priceVal,
         originalPrice: body.originalPrice !== undefined ? (body.originalPrice ? parseFloat(body.originalPrice) : null) : undefined,
+        isFree: incomingIsFree,
         status: body.status ?? undefined,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
       },

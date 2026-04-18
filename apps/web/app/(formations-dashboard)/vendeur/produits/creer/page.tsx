@@ -73,6 +73,7 @@ export default function CreerProduitPage() {
   const [thumbnail, setThumbnail] = useState("");
   const [price, setPrice] = useState(45000);
   const [originalPrice, setOriginalPrice] = useState(0);
+  const [isFree, setIsFree] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Formation-specific
@@ -115,7 +116,9 @@ export default function CreerProduitPage() {
           productType: selected?.productType,
           title, shortDesc, description, category,
           thumbnail: thumbnail || null,
-          price, originalPrice: originalPrice || null,
+          price: isFree ? 0 : price,
+          originalPrice: originalPrice || null,
+          isFree,
           publish,
           modules: isFormation ? modules.filter((m) => m.title.trim()) : undefined,
           fileUrl: !isFormation ? fileUrl : undefined,
@@ -133,7 +136,7 @@ export default function CreerProduitPage() {
     if (step === 2) return description.trim().length >= 20;
     if (isFormation && step === 3) return modules.some((m) => m.title.trim() && m.lessons.some((l) => l.title.trim()));
     if (!isFormation && step === 3) return true; // File upload optional
-    if (step === lastStep - 1) return price > 0; // Pricing step
+    if (step === lastStep - 1) return isFree || price > 0; // Pricing step (gratuit OU prix > 0)
     return true;
   })();
 
@@ -473,17 +476,42 @@ export default function CreerProduitPage() {
                   <h2 className="text-2xl font-extrabold tracking-tighter text-zinc-900">Tarification.</h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {/* Toggle Gratuit / Payant */}
+                <div className={`flex items-center justify-between gap-4 p-5 border-l-4 ${isFree ? "bg-emerald-50 border-emerald-500" : "bg-[#f3f3f4] border-zinc-300"}`}>
+                  <div>
+                    <p className="text-sm font-bold text-zinc-900">
+                      {isFree ? "Ce produit est gratuit" : "Ce produit est payant"}
+                    </p>
+                    <p className="text-xs text-zinc-600 mt-0.5">
+                      {isFree
+                        ? "Les apprenants y accèdent sans payer. Idéal pour acquérir une audience."
+                        : "Les apprenants paient pour accéder. Vous touchez 95% du prix."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsFree((v) => !v);
+                      if (!isFree) setPrice(0);
+                    }}
+                    className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${isFree ? "bg-emerald-500" : "bg-zinc-300"}`}
+                    aria-pressed={isFree}
+                  >
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${isFree ? "left-6" : "left-0.5"}`} />
+                  </button>
+                </div>
+
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-10 ${isFree ? "opacity-40 pointer-events-none" : ""}`}>
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Prix de vente (FCFA)</label>
-                      <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} min="0"
+                      <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} min="0" disabled={isFree}
                         className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-4 px-6 text-2xl font-extrabold tabular-nums text-zinc-900 outline-none" />
                       <p className="text-xs text-zinc-500 tabular-nums">≈ {formatFCFA(euroEquiv)} €</p>
                     </div>
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Prix barré (optionnel)</label>
-                      <input type="number" value={originalPrice || ""} onChange={(e) => setOriginalPrice(Number(e.target.value))} placeholder="0" min="0"
+                      <input type="number" value={originalPrice || ""} onChange={(e) => setOriginalPrice(Number(e.target.value))} placeholder="0" min="0" disabled={isFree}
                         className="w-full bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-4 px-6 text-lg font-bold tabular-nums text-zinc-900 placeholder:text-zinc-400 outline-none" />
                       {originalPrice > price && (
                         <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] tabular-nums">
@@ -555,7 +583,7 @@ export default function CreerProduitPage() {
                           : [
                               { label: "Fichier", value: fileUrl ? "URL configurée" : "Non configuré" },
                             ]),
-                        { label: "Prix", value: `${formatFCFA(price)} FCFA · ≈ ${formatFCFA(euroEquiv)} €` },
+                        { label: "Prix", value: isFree ? "Gratuit" : `${formatFCFA(price)} FCFA · ≈ ${formatFCFA(euroEquiv)} €` },
                       ].map((row) => (
                         <div key={row.label} className="space-y-1 pb-4 border-b border-[#e8e8e8] last:border-0">
                           <dt className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{row.label}</dt>

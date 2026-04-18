@@ -13,13 +13,15 @@ interface Item {
   price: number;
   isFree: boolean;
   rating: number;
-  count: number;
+  count: number;          // nombre d'apprenants (formation) ou ventes (produit)
+  reviewsCount?: number;  // nombre d'avis laissés
 }
 
 interface Owner {
   name: string;
   email: string | null;
   image: string | null;
+  coverUrl?: string | null;
   bio: string | null;
   kind: "vendor" | "mentor";
   domain: string | null;
@@ -74,24 +76,39 @@ export default function BoutiqueView({
     >
       {/* ─── Hero (cover-like) ────────────────────────────────────────────── */}
       <header className="relative overflow-hidden">
-        {/* Decorative background gradient */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: themeGradient,
-            opacity: 0.08,
-          }}
-        />
-        <div
-          aria-hidden
-          className="absolute -top-32 -right-20 w-[400px] h-[400px] rounded-full blur-3xl opacity-20"
-          style={{ background: themeColor }}
-        />
-        <div
-          aria-hidden
-          className="absolute -bottom-32 -left-10 w-[300px] h-[300px] rounded-full blur-3xl opacity-15"
-          style={{ background: themeColor }}
-        />
+        {owner.coverUrl ? (
+          <>
+            {/* Photo de couverture du vendeur */}
+            <Image
+              src={owner.coverUrl}
+              alt={`Couverture de ${owner.name}`}
+              fill
+              priority
+              unoptimized
+              className="object-cover"
+            />
+            {/* Voile sombre pour lisibilité du texte par dessus */}
+            <div className="absolute inset-0 bg-gradient-to-t from-white via-white/85 to-white/40" />
+          </>
+        ) : (
+          <>
+            {/* Fallback : gradient décoratif basé sur themeColor */}
+            <div
+              className="absolute inset-0"
+              style={{ background: themeGradient, opacity: 0.08 }}
+            />
+            <div
+              aria-hidden
+              className="absolute -top-32 -right-20 w-[400px] h-[400px] rounded-full blur-3xl opacity-20"
+              style={{ background: themeColor }}
+            />
+            <div
+              aria-hidden
+              className="absolute -bottom-32 -left-10 w-[300px] h-[300px] rounded-full blur-3xl opacity-15"
+              style={{ background: themeColor }}
+            />
+          </>
+        )}
 
         <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-14">
           <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-8">
@@ -292,22 +309,49 @@ export default function BoutiqueView({
                       <h3 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-700 transition-colors min-h-[2.5em]">
                         {item.title}
                       </h3>
-                      <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500">
-                        {item.rating > 0 && (
-                          <span className="inline-flex items-center gap-0.5">
-                            <span
-                              className="material-symbols-outlined text-[12px] text-amber-400"
-                              style={{ fontVariationSettings: "'FILL' 1" }}
-                            >
-                              star
-                            </span>
-                            {item.rating.toFixed(1)}
-                          </span>
-                        )}
-                        {item.count > 0 && (
-                          <span>· {item.count} {item.kind === "formation" ? "apprenants" : "ventes"}</span>
-                        )}
-                      </div>
+                      {/* Stats : on n'affiche les chiffres que si significatifs.
+                          Sinon → badge "Nouveau" (jamais "1 vente" / "0 avis" qui décrédibilisent). */}
+                      {(() => {
+                        const hasMeaningfulRating = item.rating > 0 && (item.reviewsCount ?? 0) >= 3;
+                        const hasMeaningfulCount = item.count >= 10;
+                        if (!hasMeaningfulRating && !hasMeaningfulCount) {
+                          return (
+                            <div className="mt-2">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700">
+                                <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                  auto_awesome
+                                </span>
+                                Nouveau
+                              </span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-[10px] text-slate-600 font-medium">
+                            {hasMeaningfulRating && (
+                              <span className="inline-flex items-center gap-0.5">
+                                <span
+                                  className="material-symbols-outlined text-[12px] text-amber-400"
+                                  style={{ fontVariationSettings: "'FILL' 1" }}
+                                >
+                                  star
+                                </span>
+                                <span className="font-bold text-slate-700">{item.rating.toFixed(1)}</span>
+                                <span className="text-slate-400">({item.reviewsCount} avis)</span>
+                              </span>
+                            )}
+                            {hasMeaningfulRating && hasMeaningfulCount && <span className="text-slate-300">·</span>}
+                            {hasMeaningfulCount && (
+                              <span className="inline-flex items-center gap-0.5 text-slate-500">
+                                <span className="material-symbols-outlined text-[12px]">
+                                  {item.kind === "formation" ? "group" : "shopping_bag"}
+                                </span>
+                                <span>{item.count.toLocaleString("fr-FR")} {item.kind === "formation" ? "apprenants" : "ventes"}</span>
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                         <span className="text-base font-extrabold" style={{ color: themeColor }}>
                           {item.isFree || item.price === 0 ? "Gratuit" : fmtFCFA(item.price)}

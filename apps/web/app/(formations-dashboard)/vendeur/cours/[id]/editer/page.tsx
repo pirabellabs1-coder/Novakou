@@ -63,6 +63,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   const [title, setTitle] = useState("");
   const [shortDesc, setShortDesc] = useState("");
   const [price, setPrice] = useState(0);
+  const [isFree, setIsFree] = useState(false);
   const [thumbnail, setThumbnail] = useState("");
   const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -81,6 +82,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
       setTitle(formation.title);
       setShortDesc(formation.shortDesc ?? "");
       setPrice(formation.price);
+      setIsFree(!!formation.isFree);
       setThumbnail(formation.thumbnail ?? "");
       setHiddenFromMarketplace(!!formation.hiddenFromMarketplace);
       setDirty(false);
@@ -192,8 +194,32 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   }
 
   function saveDraft() {
-    saveMutation.mutate({ title, shortDesc, price, thumbnail, hiddenFromMarketplace });
+    saveMutation.mutate({
+      title,
+      shortDesc,
+      price: isFree ? 0 : price,
+      isFree,
+      thumbnail,
+      hiddenFromMarketplace,
+    });
   }
+
+  // Mutations rapides : changer le statut sans toucher au reste du formulaire
+  const statusMutation = useMutation({
+    mutationFn: (newStatus: "BROUILLON" | "ACTIF" | "ARCHIVE") =>
+      fetch(`/api/formations/vendeur/formations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      }).then((r) => r.json()),
+    onSuccess: (res, status) => {
+      qc.invalidateQueries({ queryKey: ["formation", id] });
+      if (res?.error) toast("error", res.error);
+      else if (status === "BROUILLON") toast("success", "Repassée en brouillon");
+      else if (status === "ARCHIVE") toast("success", "Formation archivée");
+    },
+    onError: () => toast("error", "Changement de statut impossible"),
+  });
 
   const status = STATUS_MAP[formation?.status ?? "BROUILLON"] ?? STATUS_MAP.BROUILLON;
   const selectedLesson = formation?.sections
@@ -412,15 +438,48 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Prix (FCFA)</label>
-                    <input
-                      type="number"
-                      value={price}
-                      onChange={(e) => onFieldChange(setPrice, Number(e.target.value))}
-                      className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none tabular-nums text-lg font-bold transition-colors"
-                    />
-                    <p className="text-[10px] text-zinc-400 tabular-nums">≈ {formatFCFA(price / 655.957)} €</p>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Tarification</label>
+
+                    {/* Toggle Gratuit / Payant */}
+                    <div className="flex items-center justify-between gap-3 py-2 border-b border-[#bccbb9]">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-semibold text-zinc-700">
+                          {isFree ? "Formation gratuite" : "Formation payante"}
+                        </span>
+                        <span className="text-[10px] text-zinc-400">
+                          {isFree
+                            ? "Accessible sans paiement à tous les apprenants"
+                            : "Les apprenants paient pour accéder au contenu"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onFieldChange(setIsFree, !isFree);
+                          if (!isFree) onFieldChange(setPrice, 0);
+                        }}
+                        className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${isFree ? "bg-[#006e2f]" : "bg-zinc-300"}`}
+                        aria-pressed={isFree}
+                      >
+                        <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${isFree ? "left-5" : "left-0.5"}`} />
+                      </button>
+                    </div>
+
+                    {/* Prix (uniquement si payant) */}
+                    {!isFree && (
+                      <div className="pt-1">
+                        <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Prix (FCFA)</label>
+                        <input
+                          type="number"
+                          value={price}
+                          min={0}
+                          onChange={(e) => onFieldChange(setPrice, Number(e.target.value))}
+                          className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none tabular-nums text-lg font-bold transition-colors"
+                        />
+                        <p className="text-[10px] text-zinc-400 tabular-nums">≈ {formatFCFA(price / 655.957)} €</p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -548,25 +607,62 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                   ? "Modifications non enregistrées"
                   : "À jour"}
               </p>
-              <div className="flex gap-0 w-full md:w-auto">
+              <div className="flex flex-wrap gap-2 w-full md:w-auto">
                 <button
                   onClick={saveDraft}
                   disabled={!dirty || saveMutation.isPending}
-                  className="flex-1 md:flex-none bg-[#e8e8e8] text-zinc-900 px-8 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-[#dadada] transition-colors disabled:opacity-40"
+                  className="flex-1 md:flex-none bg-[#e8e8e8] text-zinc-900 px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-[#dadada] transition-colors disabled:opacity-40"
                 >
                   {saveMutation.isPending ? "…" : "Enregistrer"}
                 </button>
-                <button
-                  onClick={() => publishMutation.mutate()}
-                  disabled={publishMutation.isPending || formation.status === "ACTIF"}
-                  className="flex-1 md:flex-none bg-[#22c55e] text-[#004b1e] px-12 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-[#4ae176] transition-all disabled:opacity-40"
-                >
-                  {publishMutation.isPending
-                    ? "…"
-                    : formation.status === "ACTIF"
-                    ? "Déjà publié"
-                    : "Publier"}
-                </button>
+
+                {/* Si publié → bouton "Repasser en brouillon" (dépublier) */}
+                {formation.status === "ACTIF" && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Repasser cette formation en brouillon ? Elle ne sera plus visible publiquement.")) {
+                        statusMutation.mutate("BROUILLON");
+                      }
+                    }}
+                    disabled={statusMutation.isPending}
+                    className="flex-1 md:flex-none bg-amber-100 text-amber-900 px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 transition-colors disabled:opacity-40"
+                  >
+                    {statusMutation.isPending ? "…" : "Brouillon"}
+                  </button>
+                )}
+
+                {/* Archiver (toujours sauf si déjà archivé) */}
+                {formation.status !== "ARCHIVE" && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Archiver cette formation ? Elle ne sera plus accessible aux nouveaux apprenants. Les inscrits gardent l'accès.")) {
+                        statusMutation.mutate("ARCHIVE");
+                      }
+                    }}
+                    disabled={statusMutation.isPending}
+                    className="flex-1 md:flex-none bg-zinc-200 text-zinc-700 px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-300 transition-colors disabled:opacity-40"
+                  >
+                    Archiver
+                  </button>
+                )}
+
+                {/* Publier (visible quand pas ACTIF) */}
+                {formation.status !== "ACTIF" && (
+                  <button
+                    onClick={() => publishMutation.mutate()}
+                    disabled={publishMutation.isPending}
+                    className="flex-1 md:flex-none bg-[#22c55e] text-[#004b1e] px-10 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-[#4ae176] transition-all disabled:opacity-40"
+                  >
+                    {publishMutation.isPending ? "…" : "Publier"}
+                  </button>
+                )}
+
+                {formation.status === "ACTIF" && (
+                  <span className="flex items-center gap-1.5 px-4 py-4 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-widest">
+                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                    Publié
+                  </span>
+                )}
               </div>
             </div>
           </div>

@@ -65,15 +65,19 @@ export default function VendorBundlesPage() {
 
   async function loadCatalog() {
     try {
-      const res = await fetch("/api/formations/vendeur/products");
+      // /catalog renvoie un tableau plat { kind: "formation"|"product", id, title, price, status, ... }
+      // On garde uniquement les produits ACTIFS (publiés et en ligne) pour les bundles.
+      const res = await fetch("/api/formations/vendeur/catalog");
       const j = await res.json();
-      const items: CatalogItem[] = [];
-      for (const f of j?.data?.formations ?? []) {
-        items.push({ id: f.id, title: f.title, price: f.price, kind: "formation" });
-      }
-      for (const p of j?.data?.products ?? []) {
-        items.push({ id: p.id, title: p.title, price: p.price, kind: "digital" });
-      }
+      const raw = Array.isArray(j?.data) ? (j.data as Array<{ kind: string; id: string; title: string; price: number; status?: string }>) : [];
+      const items: CatalogItem[] = raw
+        .filter((it) => it.status === "ACTIF") // publiés uniquement
+        .map((it) => ({
+          id: it.id,
+          title: it.title,
+          price: it.price,
+          kind: it.kind === "formation" ? "formation" : "digital",
+        }));
       setCatalog(items);
     } catch { /* ignore */ }
   }
@@ -180,7 +184,40 @@ export default function VendorBundlesPage() {
                 Articles inclus ({selected.length})
               </label>
               {catalog.length === 0 ? (
-                <p className="text-xs text-slate-500">Aucun produit publié — créez-en un d&apos;abord.</p>
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                  <p className="text-xs font-bold text-amber-900">
+                    Aucun produit publié pour cette boutique
+                  </p>
+                  <p className="text-xs text-amber-800">
+                    Pour créer un bundle, vous devez d&apos;abord avoir au moins{" "}
+                    <span className="font-bold">2 produits ou formations publiés</span> (statut Actif). Les
+                    brouillons ne sont pas inclus.
+                  </p>
+                  <a
+                    href="/vendeur/produits/creer"
+                    className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-lg bg-amber-900 text-white text-xs font-bold hover:bg-amber-800"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Créer un produit
+                  </a>
+                </div>
+              ) : catalog.length < 2 ? (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                  <p className="text-xs font-bold text-amber-900">
+                    {catalog.length} produit publié — il en faut au moins 2 pour un bundle
+                  </p>
+                  <p className="text-xs text-amber-800">
+                    Vous avez actuellement <span className="font-bold">{catalog.length} produit publié</span>.
+                    Publiez au moins un autre produit (formation ou produit digital) pour pouvoir créer un bundle.
+                  </p>
+                  <a
+                    href="/vendeur/produits/creer"
+                    className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-lg bg-amber-900 text-white text-xs font-bold hover:bg-amber-800"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    Créer un autre produit
+                  </a>
+                </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto border border-slate-100 rounded-xl p-3 bg-slate-50">
                   {catalog.map((c) => {

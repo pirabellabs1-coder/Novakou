@@ -981,6 +981,7 @@ model VendorShop {
   slug                  String    @unique
   description           String?   @db.Text
   logoUrl               String?
+  coverUrl              String?   // photo de couverture (hero/bannière) par boutique
   themeColor            String?   // hex e.g. "#006e2f"
   isPrimary             Boolean   @default(false)
 

@@ -40,6 +40,7 @@ export async function PATCH(req: Request, { params }: Params) {
     name?: string;
     description?: string | null;
     logoUrl?: string | null;
+    coverUrl?: string | null;
     themeColor?: string | null;
     isPrimary?: boolean;
   };
@@ -57,6 +58,7 @@ export async function PATCH(req: Request, { params }: Params) {
   }
   if ("description" in body) data.description = body.description?.toString().slice(0, 600) ?? null;
   if ("logoUrl" in body) data.logoUrl = body.logoUrl ?? null;
+  if ("coverUrl" in body) data.coverUrl = body.coverUrl ?? null;
   if ("themeColor" in body) {
     const c = body.themeColor;
     if (c === null || (typeof c === "string" && /^#?[0-9a-f]{6}$/i.test(c))) {

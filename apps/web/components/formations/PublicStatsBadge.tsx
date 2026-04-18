@@ -13,50 +13,28 @@ type Stats = {
   totalCountries: number;
 };
 
+/**
+ * Politique d'affichage : on ne montre JAMAIS de chiffres bruts (1 vente,
+ * 1 créateur, 0 apprenant…) car ça décrédibilise la plateforme. À la place,
+ * on affiche des messages de positionnement / croissance neutres et positifs.
+ */
+
 export function CreatorsJoinBadge() {
-  const { data } = useQuery<{ data: Stats }>({
-    queryKey: ["public-stats"],
-    queryFn: () => fetch("/api/formations/public/stats").then((r) => r.json()),
-    staleTime: 120_000,
-  });
-
-  const n = data?.data?.totalInstructors ?? 0;
-
-  if (n === 0) {
-    return (
-      <p className="text-sm font-medium text-[#5c647a]">
-        <span className="font-bold text-[#191c1e]">Soyez parmi les premiers</span> créateurs à lancer
-      </p>
-    );
-  }
-
   return (
     <p className="text-sm font-medium text-[#5c647a]">
-      Rejoint par{" "}
-      <span className="font-bold text-[#191c1e]">
-        {n.toLocaleString("fr-FR")} créateur{n > 1 ? "s" : ""}
-      </span>
+      <span className="font-bold text-[#191c1e]">Rejoignez les créateurs</span> qui choisissent Novakou
     </p>
   );
 }
 
 export function HeroBadge() {
-  const { data } = useQuery<{ data: Stats }>({
-    queryKey: ["public-stats"],
-    queryFn: () => fetch("/api/formations/public/stats").then((r) => r.json()),
-    staleTime: 120_000,
-  });
-
-  const products = data?.data?.totalProductsCount ?? 0;
-  const sales = data?.data?.totalSales ?? 0;
-
   return (
     <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#f2f4f6] rounded-full border border-[#bccbb9]/20">
       <span className="material-symbols-outlined text-[#006e2f] scale-75" style={{ fontVariationSettings: "'FILL' 1" }}>
-        stars
+        rocket_launch
       </span>
       <span className="text-xs font-bold tracking-wider text-[#3d4a3d] uppercase">
-        {products === 0 ? "Nouvelle plateforme · En croissance" : sales > 0 ? `${sales.toLocaleString("fr-FR")} ventes réalisées` : `${products} produit${products > 1 ? "s" : ""} disponible${products > 1 ? "s" : ""}`}
+        Plateforme tout-en-un · En pleine croissance
       </span>
     </div>
   );
