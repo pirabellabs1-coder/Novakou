@@ -35,7 +35,7 @@ const TIMELINE = [
 
 export default function AProposPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
 
       {/* HERO */}
       <section className="relative pt-32 pb-20 px-6 overflow-hidden">

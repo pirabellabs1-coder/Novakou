@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
 import VendorDomainTab from "@/components/formations/VendorDomainTab";
+import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
 
 type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
@@ -293,14 +294,7 @@ export default function ParamaetresPage() {
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-red-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-red-600 mb-1">Zone dangereuse</h2>
-            <p className="text-sm text-[#5c647a] mb-4">Ces actions sont irréversibles. Soyez prudent.</p>
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition-colors">
-              <span className="material-symbols-outlined text-[18px]">delete_forever</span>
-              Supprimer mon compte
-            </button>
-          </div>
+          <AccountDeletionPanel />
         </div>
       )}
 

@@ -146,7 +146,7 @@ export default function CreerProduitPage() {
   const totalDuration = modules.reduce((s, m) => s + m.lessons.reduce((ss, l) => ss + (l.duration || 0), 0), 0);
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <main className="px-6 md:px-12 py-12 md:py-16 max-w-[1400px] mx-auto">
         <header className="mb-12 md:mb-16">
           <Link

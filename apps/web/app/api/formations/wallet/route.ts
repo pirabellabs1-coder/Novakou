@@ -65,35 +65,42 @@ export async function GET() {
         devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
       });
 
-      // Fetch paid sales for this vendor's ACTIVE SHOP only (enrollments + digital products).
-      const [enrollments, productSales] = await Promise.all([
-        prisma.enrollment.findMany({
-          where: {
-            formation: {
-              instructeurId: inst.id,
-              ...(activeShopId ? { shopId: activeShopId } : {}),
-            },
-            refundedAt: null,
-          },
-          select: { paidAmount: true, createdAt: true },
-        }),
-        prisma.digitalProductPurchase.findMany({
-          where: {
-            product: {
-              instructeurId: inst.id,
-              ...(activeShopId ? { shopId: activeShopId } : {}),
-            },
-          },
-          select: { paidAmount: true, createdAt: true },
-        }),
-      ]);
+      // Multi-shop wallet :
+      // On lit PlatformRevenue (qui contient déjà vendorAmount = brut - 5% - commission affilié)
+      // → la part vendeur est exacte même quand un affilié est intervenu.
+      const revenueRows = await prisma.platformRevenue.findMany({
+        where: {
+          instructeurId: inst.id,
+          orderType: { in: ["formation", "product"] },
+          ...(activeShopId ? { shopId: activeShopId } : {}),
+        },
+        select: {
+          vendorAmount: true,
+          grossAmount: true,
+          affiliateAmount: true,
+          createdAt: true,
+        },
+      });
 
-      const allSales = [
-        ...enrollments.map((e) => ({ paidAmount: e.paidAmount, timestamp: e.createdAt })),
-        ...productSales.map((p) => ({ paidAmount: p.paidAmount, timestamp: p.createdAt })),
-      ];
-      const { grossReleased, grossPending, netReleased, netPending } =
-        computeHoldStatus(allSales);
+      // computeHoldStatus s'applique sur le NET vendeur (vendorAmount), pas sur le brut
+      // car le brut inclut la commission affilié qui ne revient pas au vendeur.
+      const allSales = revenueRows.map((r) => ({
+        paidAmount: r.vendorAmount, // déjà net pour le vendeur
+        timestamp: r.createdAt,
+      }));
+      // computeHoldStatus retourne netReleased/netPending = paidAmount × 0.95 (interne)
+      // Or paidAmount EST DÉJÀ le net vendeur. On override le calcul.
+      const HOLD_MS = 24 * 3_600_000;
+      let grossReleased = 0;
+      let grossPending = 0;
+      const now = Date.now();
+      for (const s of allSales) {
+        const age = now - new Date(s.timestamp).getTime();
+        if (age >= HOLD_MS) grossReleased += s.paidAmount;
+        else grossPending += s.paidAmount;
+      }
+      const netReleased = grossReleased;
+      const netPending = grossPending;
 
       // Subtract withdrawals — also filtered to the active shop
       const allVendorW = await prisma.instructorWithdrawal.findMany({
@@ -342,31 +349,21 @@ export async function POST(request: Request) {
         devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
       });
 
-      const [enrollments, productSales] = await Promise.all([
-        prisma.enrollment.findMany({
-          where: {
-            formation: {
-              instructeurId: inst.id,
-              ...(activeShopId ? { shopId: activeShopId } : {}),
-            },
-            refundedAt: null,
-          },
-          select: { paidAmount: true, createdAt: true },
-        }),
-        prisma.digitalProductPurchase.findMany({
-          where: {
-            product: {
-              instructeurId: inst.id,
-              ...(activeShopId ? { shopId: activeShopId } : {}),
-            },
-          },
-          select: { paidAmount: true, createdAt: true },
-        }),
-      ]);
-      const { netReleased } = computeHoldStatus([
-        ...enrollments.map((e) => ({ paidAmount: e.paidAmount, timestamp: e.createdAt })),
-        ...productSales.map((p) => ({ paidAmount: p.paidAmount, timestamp: p.createdAt })),
-      ]);
+      // Lecture sur PlatformRevenue (vendorAmount = exact, déjà - 5% - affilié)
+      const revenueRows = await prisma.platformRevenue.findMany({
+        where: {
+          instructeurId: inst.id,
+          orderType: { in: ["formation", "product"] },
+          ...(activeShopId ? { shopId: activeShopId } : {}),
+        },
+        select: { vendorAmount: true, createdAt: true },
+      });
+      const HOLD_MS = 24 * 3_600_000;
+      const now = Date.now();
+      let netReleased = 0;
+      for (const r of revenueRows) {
+        if (now - new Date(r.createdAt).getTime() >= HOLD_MS) netReleased += r.vendorAmount;
+      }
 
       // Subtract previous withdrawals scoped to active shop
       const wAgg = await prisma.instructorWithdrawal.aggregate({

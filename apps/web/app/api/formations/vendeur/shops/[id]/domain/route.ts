@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
-import { addDomain, getDomain, removeDomain, dnsInstructions } from "@/lib/vercel-domains";
+import { addDomain, getDomain, getDomainConfig, removeDomain, dnsInstructions } from "@/lib/vercel-domains";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -59,12 +59,19 @@ export async function GET(_req: Request, { params }: Params) {
     });
   }
 
-  const v = await getDomain(r.shop.customDomain);
-  const verified = v.ok ? !!v.domain?.verified : r.shop.customDomainVerified;
-  if (verified !== r.shop.customDomainVerified) {
+  const [v, cfg] = await Promise.all([
+    getDomain(r.shop.customDomain),
+    getDomainConfig(r.shop.customDomain),
+  ]);
+  const verifiedOnVercel = v.ok ? !!v.domain?.verified : r.shop.customDomainVerified;
+  const misconfigured = cfg.ok ? cfg.data!.misconfigured : false;
+  // We consider the domain truly "live" only when Vercel has verified ownership
+  // AND the live DNS does not conflict with another host.
+  const live = verifiedOnVercel && !misconfigured;
+  if (live !== r.shop.customDomainVerified) {
     await prisma.vendorShop.update({
       where: { id: r.shop.id },
-      data: { customDomainVerified: verified },
+      data: { customDomainVerified: live },
     });
   }
 
@@ -72,7 +79,11 @@ export async function GET(_req: Request, { params }: Params) {
     data: {
       connected: true,
       domain: r.shop.customDomain,
-      verified,
+      verified: live,
+      ownership: verifiedOnVercel,
+      misconfigured,
+      conflicts: cfg.data?.conflicts ?? [],
+      currentDns: { aValues: cfg.data?.aValues ?? [], cnames: cfg.data?.cnames ?? [] },
       addedAt: r.shop.customDomainAddedAt,
       records: buildRecords(r.shop.customDomain, v.verification),
     },

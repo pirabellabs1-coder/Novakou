@@ -139,7 +139,7 @@ function ReturnInner() {
   }, [status, redirectTo, router]);
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4 py-16" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-[60vh] flex items-center justify-center px-4 py-16" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="max-w-md w-full text-center">
         {status === "loading" && (
           <>

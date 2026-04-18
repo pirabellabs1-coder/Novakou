@@ -197,6 +197,7 @@ model User {
   // Relations
   accounts            Account[]
   sessions            Session[]
+  deletionRequest     AccountDeletionRequest? @relation("UserDeletionRequest")
   auditLogsAsActor    AuditLog[]           @relation("AuditActor")
   auditLogsAsTarget   AuditLog[]           @relation("AuditTarget")
   messages            Message[]
@@ -1811,6 +1812,36 @@ enum WorkflowStatus {
   ARCHIVED
 }
 
+/// Demande de suppression de compte par l'utilisateur.
+/// Flow: PENDING_COOLDOWN (72h annulable par user) → AWAITING_REVIEW → APPROVED (compte supprimé) ou REJECTED.
+enum AccountDeletionStatus {
+  PENDING_COOLDOWN
+  AWAITING_REVIEW
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model AccountDeletionRequest {
+  id            String                @id @default(cuid())
+  userId        String                @unique
+  user          User                  @relation("UserDeletionRequest", fields: [userId], references: [id], onDelete: Cascade)
+  reason        String                @db.Text
+  status        AccountDeletionStatus @default(PENDING_COOLDOWN)
+  requestedAt   DateTime              @default(now())
+  cooldownUntil DateTime              // requestedAt + 72h
+  reviewedAt    DateTime?
+  reviewedBy    String?               // admin user id
+  adminNote     String?               @db.Text
+  completedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([cooldownUntil])
+}
+
 // ── Affiliate System ──────────────────────────────────────────
 
 model AffiliateProgram {
@@ -2543,11 +2574,17 @@ model PlatformRevenue {
   paymentRef      String?  // Moneroo / Stripe / etc. reference
   currency        String   @default("XOF")
 
+  // Multi-shop : qui touche la part vendeur + dans quelle boutique la vente a eu lieu
+  instructeurId   String?
+  shopId          String?
+
   createdAt DateTime @default(now())
 
   @@index([orderType])
   @@index([createdAt])
   @@index([affiliateId])
+  @@index([instructeurId])
+  @@index([shopId])
 }
 
 // ── Vendor Integrations (Brevo, Make, Zapier, n8n, ConvertKit, Systeme.io) ──

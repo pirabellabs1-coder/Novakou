@@ -40,7 +40,7 @@ export default function BoutiqueView({
   const hasContent = all.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Header */}
       <header className="bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-5 md:px-8 py-8 md:py-12">

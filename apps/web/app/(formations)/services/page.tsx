@@ -78,7 +78,7 @@ const HOW_IT_WORKS = [
 
 export default function ServicesPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* HERO */}
       <section className="pt-32 pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">

@@ -65,10 +65,25 @@ function ConnexionInner() {
       // After login — fetch fresh session to get formationsRole, then redirect to correct dashboard
       const freshSession = await getSession();
       const user = freshSession?.user as { role?: string; formationsRole?: string } | undefined;
-      const target = callbackUrlParam ?? getDashboardForFormationsRole(
+      let target = callbackUrlParam ?? getDashboardForFormationsRole(
         user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
         user?.role
       );
+
+      // Vendeur multi-shop : si 2+ boutiques sans cookie actif, forcer le chooser
+      if (target.startsWith("/vendeur") && !callbackUrlParam) {
+        try {
+          const res = await fetch("/api/formations/vendeur/shops/active");
+          const json = await res.json();
+          const shops = json?.data?.shops ?? [];
+          if (shops.length >= 2 && json?.data?.needsChooser !== false) {
+            target = "/vendeur/choisir-boutique";
+          }
+        } catch {
+          /* fall back to dashboard */
+        }
+      }
+
       router.push(target);
       router.refresh();
     } catch {

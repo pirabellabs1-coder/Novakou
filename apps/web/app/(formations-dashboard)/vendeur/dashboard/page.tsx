@@ -72,7 +72,7 @@ export default function VendeurDashboard() {
   const hasNoProducts = !isLoading && (d?.topProducts ?? []).length === 0 && (d?.kpis.totalProducts ?? 0) === 0;
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1400px] mx-auto">
         <header className="mb-10 md:mb-14">
           <span className="text-[#006e2f] font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block">

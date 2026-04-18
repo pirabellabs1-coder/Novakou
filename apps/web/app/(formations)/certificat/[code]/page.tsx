@@ -39,7 +39,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
   const isRevoked = !!cert.revokedAt;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f7f9fb] to-[#ecfdf5] py-12 px-4" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-gradient-to-br from-[#f7f9fb] to-[#ecfdf5] py-12 px-4" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="max-w-4xl mx-auto">
         {/* Certificate card */}
         <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-[#006e2f]/10">

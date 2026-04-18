@@ -1,12 +1,12 @@
 import "../(formations)/formations.css";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { ToastContainer } from "@/components/ui/toast";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   display: "swap",
-  variable: "--font-plus-jakarta",
+  variable: "--font-inter",
 });
 
 export default function FormationsDashboardLayout({
@@ -16,8 +16,8 @@ export default function FormationsDashboardLayout({
 }) {
   return (
     <div
-      className={`${plusJakartaSans.variable} formations-root min-h-screen bg-[#f7f9fb]`}
-      style={{ fontFamily: "'Manrope', sans-serif" }}
+      className={`${inter.variable} formations-root min-h-screen bg-[#f7f9fb]`}
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
     >
       {children}
       <ToastContainer />

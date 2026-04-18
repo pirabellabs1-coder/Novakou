@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
 
 type SettingsTab = "profil" | "securite" | "notifications" | "paiements";
 
@@ -492,18 +493,7 @@ export default function ParametresPage() {
               </div>
 
               {/* Danger zone */}
-              <div className="bg-red-50 rounded-2xl border border-red-100 p-6">
-                <h2 className="text-sm font-bold text-red-700 mb-1 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
-                  Zone dangereuse
-                </h2>
-                <p className="text-xs text-red-600 mb-4 leading-relaxed">
-                  La suppression de votre compte est irréversible. Toutes vos données et formations achetées seront perdues.
-                </p>
-                <button className="px-5 py-2.5 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">
-                  Supprimer mon compte
-                </button>
-              </div>
+              <AccountDeletionPanel />
             </div>
           )}
         </div>
@@ -511,3 +501,4 @@ export default function ParametresPage() {
     </div>
   );
 }
+

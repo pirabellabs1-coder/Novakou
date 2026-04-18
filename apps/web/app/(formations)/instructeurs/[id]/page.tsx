@@ -136,7 +136,7 @@ export default function InstructeurPublicPage() {
   const memberSince = new Date(profile.joinedAt).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <main className="max-w-6xl mx-auto px-4 md:px-8 py-12 md:py-20">
         {/* Hero */}
         <header className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 mb-16 md:mb-24">

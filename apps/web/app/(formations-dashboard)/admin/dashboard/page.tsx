@@ -93,6 +93,9 @@ type DashboardData = {
   kpis: {
     totalRevenue: number;
     platformCommission: number;
+    affiliatePayouts: number;
+    ledgerGross: number;
+    ledgerCount: number;
     totalUsers: number;
     newUsersToday: number;
     totalProducts: number;
@@ -181,7 +184,7 @@ export default function AdminDashboardPage() {
   const maxRev = Math.max(...chart.map((m) => m.revenue), 1);
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
         {/* Header */}
         <header className="mb-12 flex flex-wrap items-end justify-between gap-4">
@@ -208,11 +211,23 @@ export default function AdminDashboardPage() {
               </h2>
               <p className="text-[10px] text-zinc-400 mt-1">FCFA</p>
             </div>
-            <div className="mt-8 flex items-center gap-2">
-              <span className="text-[10px] tabular-nums font-bold text-[#006e2f] bg-[#22c55e]/10 px-2 py-0.5">
-                {formatFCFA(d?.kpis.platformCommission ?? 0)} FCFA
-              </span>
-              <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Commission 5%</span>
+            <div className="mt-8 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] tabular-nums font-bold text-[#006e2f] bg-[#22c55e]/10 px-2 py-0.5">
+                  {formatFCFA(d?.kpis.platformCommission ?? 0)} FCFA
+                </span>
+                <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                  Commission 5% Novakou
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] tabular-nums font-bold text-purple-700 bg-purple-100 px-2 py-0.5">
+                  {formatFCFA(d?.kpis.affiliatePayouts ?? 0)} FCFA
+                </span>
+                <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                  Versés aux affiliés
+                </span>
+              </div>
             </div>
           </div>
 

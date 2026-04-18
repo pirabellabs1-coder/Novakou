@@ -103,7 +103,20 @@ function VerifierEmailInner() {
           router.push(`/connexion?callbackUrl=${encodeURIComponent(callbackUrl)}&verified=1`);
           return;
         }
-        router.push(callbackUrl);
+        // Vendeur multi-shop : forcer le chooser si 2+ boutiques
+        let target = callbackUrl;
+        if (target.startsWith("/vendeur")) {
+          try {
+            const r = await fetch("/api/formations/vendeur/shops/active");
+            const j = await r.json();
+            if ((j?.data?.shops?.length ?? 0) >= 2 && j?.data?.needsChooser !== false) {
+              target = "/vendeur/choisir-boutique";
+            }
+          } catch {
+            /* fall back */
+          }
+        }
+        router.push(target);
         router.refresh();
       } else {
         // No password → just redirect to login with success flag

@@ -30,7 +30,7 @@ const PROGRAM_BENEFITS = [
 
 export default function PartenairesPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
 
       {/* HERO */}
       <section className="pt-32 pb-16 px-6">

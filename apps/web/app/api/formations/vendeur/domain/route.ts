@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
-import { addDomain, getDomain, removeDomain, dnsInstructions } from "@/lib/vercel-domains";
+import { addDomain, getDomain, getDomainConfig, removeDomain, dnsInstructions } from "@/lib/vercel-domains";
 
 const DOMAIN_RE = /^(?!-)[a-z0-9-]{1,63}(?<!-)(\.[a-z0-9-]{1,63})+$/i;
 const BLOCKED = ["novakou.com", "novakou.vercel.app", "vercel.app", "localhost"];
@@ -75,19 +75,28 @@ export async function GET() {
       data: { connected: false, domain: null, verified: false, records: [], shopId: r.shop.id },
     });
   }
-  const v = await getDomain(r.shop.customDomain);
-  const verified = v.ok ? !!v.domain?.verified : r.shop.customDomainVerified;
-  if (verified !== r.shop.customDomainVerified) {
+  const [v, cfg] = await Promise.all([
+    getDomain(r.shop.customDomain),
+    getDomainConfig(r.shop.customDomain),
+  ]);
+  const ownership = v.ok ? !!v.domain?.verified : r.shop.customDomainVerified;
+  const misconfigured = cfg.ok ? cfg.data!.misconfigured : false;
+  const live = ownership && !misconfigured;
+  if (live !== r.shop.customDomainVerified) {
     await prisma.vendorShop.update({
       where: { id: r.shop.id },
-      data: { customDomainVerified: verified },
+      data: { customDomainVerified: live },
     });
   }
   return NextResponse.json({
     data: {
       connected: true,
       domain: r.shop.customDomain,
-      verified,
+      verified: live,
+      ownership,
+      misconfigured,
+      conflicts: cfg.data?.conflicts ?? [],
+      currentDns: { aValues: cfg.data?.aValues ?? [], cnames: cfg.data?.cnames ?? [] },
       addedAt: r.shop.customDomainAddedAt,
       records: buildRecords(r.shop.customDomain, v.verification),
       shopId: r.shop.id,

@@ -101,7 +101,7 @@ export default function AdminKycPage() {
   const items = data?.data ?? [];
 
   return (
-    <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <header className="mb-6">
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Vérification KYC</h1>
         <p className="text-sm text-[#5c647a] mt-1">

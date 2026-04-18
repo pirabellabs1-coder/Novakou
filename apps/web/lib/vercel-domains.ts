@@ -113,6 +113,47 @@ export async function verifyDomain(name: string): Promise<DomainSetupResult> {
   return { ok: false, error: res.error ?? `vercel-verify-failed:${res.status}` };
 }
 
+export interface VercelDomainConfig {
+  misconfigured: boolean;
+  aValues: string[];
+  cnames: string[];
+  conflicts: Array<{ name: string; type: string; value: string }>;
+  recommendedIPv4: string[];
+  recommendedCNAME: string[];
+}
+
+/**
+ * Inspect actual DNS-side configuration. Vercel returns `misconfigured: true`
+ * even when the project-domain itself is `verified` (e.g. wrong A record,
+ * leftover host conflicts). Surface this to the vendor.
+ */
+export async function getDomainConfig(name: string): Promise<{ ok: boolean; data?: VercelDomainConfig; error?: string }> {
+  const res = await call<{
+    misconfigured?: boolean;
+    aValues?: string[];
+    cnames?: string[];
+    conflicts?: Array<{ name: string; type: string; value: string }>;
+    recommendedIPv4?: Array<{ rank: number; value: string[] }>;
+    recommendedCNAME?: Array<{ rank: number; value: string }>;
+  }>(`/v6/domains/${encodeURIComponent(name)}/config`, { method: "GET" });
+  if (!res.ok || !res.data) return { ok: false, error: res.error ?? `vercel-config-failed:${res.status}` };
+  return {
+    ok: true,
+    data: {
+      misconfigured: !!res.data.misconfigured,
+      aValues: res.data.aValues ?? [],
+      cnames: res.data.cnames ?? [],
+      conflicts: res.data.conflicts ?? [],
+      recommendedIPv4: (res.data.recommendedIPv4 ?? [])
+        .sort((a, b) => a.rank - b.rank)
+        .flatMap((x) => x.value),
+      recommendedCNAME: (res.data.recommendedCNAME ?? [])
+        .sort((a, b) => a.rank - b.rank)
+        .map((x) => x.value.replace(/\.$/, "")),
+    },
+  };
+}
+
 /** Remove a domain from the Vercel project. */
 export async function removeDomain(name: string): Promise<{ ok: boolean; error?: string }> {
   const res = await call<{ uid?: string }>(
@@ -147,7 +188,7 @@ export function dnsInstructions(domain: string, apexName?: string) {
 
   const records = [];
   if (isApex) {
-    records.push({ type: "A", name: "@", value: "76.76.21.21", note: "Domaine racine — IP Vercel" });
+    records.push({ type: "A", name: "@", value: "216.198.79.1", note: "Domaine racine — IP Vercel" });
   } else {
     records.push({
       type: "CNAME",

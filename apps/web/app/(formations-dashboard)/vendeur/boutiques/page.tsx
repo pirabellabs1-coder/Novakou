@@ -93,7 +93,7 @@ export default function VendorShopsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-8">

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
-import { ShopProvider } from "@/components/formations/ShopProvider";
+import { ShopProvider, useActiveShop } from "@/components/formations/ShopProvider";
 import ShopSwitcher from "@/components/formations/ShopSwitcher";
 
 type NavItem = {
@@ -68,6 +68,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   // Collapsed sidebar on desktop (persisted in localStorage)
   const [collapsed, setCollapsed] = useState(false);
   const { data: session } = useSession();
+  const { activeShop } = useActiveShop();
 
   useEffect(() => {
     try {
@@ -89,8 +90,24 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const sidebarWidth = collapsed ? "w-20" : "w-64";
   const mainOffset = collapsed ? "md:ml-20" : "md:ml-64";
 
+  // Couleur thème dynamique de la boutique active. Si la boutique a un themeColor → utilisée
+  // partout dans le chrome (sidebar item actif, accents, boutons). Sinon vert Novakou.
+  const shopColor = activeShop?.themeColor || "#006e2f";
+
+  // Page chooser : pas de chrome (plein écran)
+  if (pathname === "/vendeur/choisir-boutique") {
+    return (
+      <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div
+      className="min-h-screen bg-[#f7f9fb]"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif", "--shop-color": shopColor } as React.CSSProperties}
+    >
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-3">
         {/* Mobile hamburger */}
@@ -122,13 +139,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           <span className="hidden sm:block font-bold text-[#191c1e] text-sm">Novakou</span>
         </Link>
 
-        {/* Vendor badge */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-full">
-          <span className="material-symbols-outlined text-amber-500 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>storefront</span>
-          <span className="text-amber-700 text-[11px] font-semibold">Espace Vendeur</span>
-        </div>
-
-        {/* Active shop switcher */}
+        {/* Active shop switcher (remplace l'ancien badge "Espace Vendeur") */}
         <ShopSwitcher />
 
         <div className="flex-1" />
@@ -137,7 +148,6 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-1">
           <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]" aria-label="Notifications">
             <span className="material-symbols-outlined text-[22px]">notifications</span>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-400 rounded-full ring-2 ring-white" />
           </button>
           <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]" aria-label="Aide">
             <span className="material-symbols-outlined text-[22px]">help_outline</span>
@@ -178,27 +188,49 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           </button>
         )}
 
-        {/* Instructor info */}
+        {/* Boutique active (chrome contextuel) */}
         <div className={`border-b border-gray-100 transition-all ${collapsed && !mobileOpen ? "py-4 px-2" : "px-5 py-5"}`}>
           <div className={`flex items-center ${collapsed && !mobileOpen ? "justify-center" : "gap-3"}`}>
-            {avatarUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0 ring-2 ring-[#006e2f]/20" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ring-2 ring-amber-400/20">
-                {initials}
-              </div>
-            )}
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-base flex-shrink-0 shadow-sm"
+              style={{ background: activeShop?.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
+            >
+              {activeShop?.name?.[0]?.toUpperCase() ?? "?"}
+            </div>
             {(!collapsed || mobileOpen) && (
-              <div className="min-w-0">
-                <p className="font-semibold text-[#191c1e] text-sm truncate">{displayName}</p>
-                <p className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-amber-500 text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-                  Instructeur
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <p className="font-extrabold text-[#191c1e] text-sm truncate">
+                    {activeShop?.name ?? "—"}
+                  </p>
+                  {activeShop?.isPrimary && (
+                    <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-px rounded bg-[#006e2f]/10 text-[#006e2f] flex-shrink-0">
+                      Prin.
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#5c647a] truncate mt-0.5">
+                  {activeShop?.customDomain && activeShop.customDomainVerified
+                    ? activeShop.customDomain
+                    : `boutique/${activeShop?.slug ?? ""}`}
                 </p>
               </div>
             )}
           </div>
+          {/* Owner sub-line (compact) */}
+          {(!collapsed || mobileOpen) && (
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">
+                  {initials}
+                </div>
+              )}
+              <span className="text-[11px] text-[#5c647a] truncate">{displayName}</span>
+            </div>
+          )}
         </div>
 
         {/* Navigation — sectioned */}
@@ -225,15 +257,26 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                             collapsed && !mobileOpen ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
                           } ${
                             isActive
-                              ? "bg-gradient-to-r from-[#006e2f]/10 to-transparent text-[#006e2f] font-semibold"
+                              ? "font-semibold"
                               : "text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e]"
                           }`}
+                          style={
+                            isActive
+                              ? {
+                                  background: `linear-gradient(to right, var(--shop-color, #006e2f)1a, transparent)`,
+                                  color: "var(--shop-color, #006e2f)",
+                                }
+                              : undefined
+                          }
                         >
                           <span
                             className={`material-symbols-outlined text-[20px] flex-shrink-0 ${
-                              isActive ? "text-[#006e2f]" : "text-[#5c647a] group-hover:text-[#191c1e]"
+                              isActive ? "" : "text-[#5c647a] group-hover:text-[#191c1e]"
                             }`}
-                            style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                            style={{
+                              fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
+                              color: isActive ? "var(--shop-color, #006e2f)" : undefined,
+                            }}
                           >
                             {item.icon}
                           </span>
@@ -263,7 +306,12 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Sign out only (Create product CTA retiré) */}
         <div className={`border-t border-gray-100 ${collapsed && !mobileOpen ? "p-2" : "px-3 py-4"}`}>
           <button
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={() => {
+              // Vider le cookie boutique active pour qu'au prochain login l'utilisateur
+              // soit re-routé sur le chooser (s'il a 2+ boutiques)
+              document.cookie = "nk_active_shop=; path=/; max-age=0";
+              signOut({ callbackUrl: "/" });
+            }}
             title={collapsed && !mobileOpen ? "Se déconnecter" : undefined}
             className={`flex items-center justify-center gap-2 w-full rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200 ${
               collapsed && !mobileOpen ? "py-2 px-2" : "py-2.5 px-4"

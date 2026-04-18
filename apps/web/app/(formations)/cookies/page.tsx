@@ -59,7 +59,7 @@ const COOKIE_CATEGORIES = [
 
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-white" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-white" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* HERO */}
       <section className="pt-32 pb-12 px-6">
         <div className="max-w-3xl mx-auto text-center">

@@ -15,6 +15,7 @@ const navItems = [
   { icon: "flag", label: "Signalements", href: "/admin/signalements" },
   { icon: "gavel", label: "Disputes mentor", href: "/admin/mentor-disputes" },
   { icon: "badge", label: "Vérification KYC", href: "/admin/kyc" },
+  { icon: "person_remove", label: "Suppressions de compte", href: "/admin/suppressions" },
   { icon: "settings", label: "Configuration", href: "/admin/configuration" },
 ];
 
@@ -56,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Top Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-4">
         {/* Hamburger (mobile) */}

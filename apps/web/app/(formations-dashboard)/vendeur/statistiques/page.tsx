@@ -155,7 +155,7 @@ export default function StatistiquesPage() {
   const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
 
   return (
-    <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

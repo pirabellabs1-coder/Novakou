@@ -272,8 +272,8 @@ export default function WalletPage() {
                 </span>
               </div>
               <div>
-                <p className="text-xs font-bold text-[#191c1e]">Espace Vendeur</p>
-                <p className="text-[10px] text-[#5c647a]">Formations + produits</p>
+                <p className="text-xs font-bold text-[#191c1e]">Boutique active</p>
+                <p className="text-[10px] text-[#5c647a]">Revenus formations + produits</p>
               </div>
             </div>
             {data.vendor ? (

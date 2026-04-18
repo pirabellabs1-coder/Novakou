@@ -35,7 +35,7 @@ export function FormationsFooter() {
   }
 
   return (
-    <footer className="bg-slate-50 w-full py-16 border-t border-slate-100" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <footer className="bg-slate-50 w-full py-16 border-t border-slate-100" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 px-8 max-w-7xl mx-auto">
 
         {/* Col 1 — Brand */}

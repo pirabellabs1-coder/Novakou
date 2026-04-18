@@ -68,7 +68,7 @@ export default function AdminTransactionsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
         <header className="mb-12">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">

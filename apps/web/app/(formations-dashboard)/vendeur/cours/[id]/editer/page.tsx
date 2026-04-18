@@ -156,7 +156,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="max-w-[1400px] mx-auto px-6 md:px-10 py-8 md:py-12">
         <Link
           href="/vendeur/produits"

@@ -416,7 +416,7 @@ export default function ExplorerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Hero */}
       <section className="bg-white border-b border-gray-100 py-12 px-4 md:px-8">
         <div className="max-w-4xl mx-auto text-center">

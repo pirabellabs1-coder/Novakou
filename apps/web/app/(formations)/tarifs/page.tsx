@@ -102,7 +102,7 @@ export default function TarifsPage() {
   const vendorShare = simulatedSale - commission;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section
         className="relative py-20 px-4 overflow-hidden"

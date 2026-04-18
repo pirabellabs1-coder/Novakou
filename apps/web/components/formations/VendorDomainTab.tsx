@@ -10,10 +10,19 @@ interface DnsRecord {
   note?: string;
 }
 
+interface DnsConflict {
+  name: string;
+  type: string;
+  value: string;
+}
 interface DomainState {
   connected: boolean;
   domain: string | null;
   verified: boolean;
+  ownership?: boolean;
+  misconfigured?: boolean;
+  conflicts?: DnsConflict[];
+  currentDns?: { aValues: string[]; cnames: string[] };
   records: DnsRecord[];
   shopSlug?: string | null;
   addedAt?: string | null;
@@ -103,8 +112,22 @@ export default function VendorDomainTab() {
         toast("warning", json.hint ?? json.error);
       }
       if (json.data) {
-        setState((s) => (s ? { ...s, verified: json.data.verified, records: json.data.records } : s));
+        setState((s) =>
+          s
+            ? {
+                ...s,
+                verified: json.data.verified,
+                ownership: json.data.ownership,
+                misconfigured: json.data.misconfigured,
+                conflicts: json.data.conflicts ?? [],
+                currentDns: json.data.currentDns ?? s.currentDns,
+                records: json.data.records,
+              }
+            : s,
+        );
         if (json.data.verified) toast("success", "Domaine vérifié ✓ SSL provisionné");
+        else if (json.data.misconfigured)
+          toast("warning", "DNS incorrect — corrigez les enregistrements ci-dessous");
       }
     } catch (e) {
       toast("error", e instanceof Error ? e.message : "Erreur réseau");
@@ -181,16 +204,24 @@ export default function VendorDomainTab() {
           <div className="flex items-center justify-between gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50">
             <div className="flex items-center gap-3 min-w-0">
               <span
-                className={`material-symbols-outlined flex-shrink-0 ${state.verified ? "text-[#006e2f]" : "text-amber-500"}`}
+                className={`material-symbols-outlined flex-shrink-0 ${
+                  state.verified
+                    ? "text-[#006e2f]"
+                    : state.misconfigured
+                      ? "text-red-500"
+                      : "text-amber-500"
+                }`}
               >
-                {state.verified ? "verified" : "pending"}
+                {state.verified ? "verified" : state.misconfigured ? "error" : "pending"}
               </span>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-[#191c1e] truncate">{state.domain}</p>
                 <p className="text-xs text-[#5c647a]">
                   {state.verified
                     ? "Vérifié · SSL actif"
-                    : "En attente de vérification DNS"}
+                    : state.misconfigured
+                      ? "DNS incorrect — voir détails ci-dessous"
+                      : "En attente de vérification DNS"}
                 </p>
               </div>
             </div>
@@ -206,11 +237,43 @@ export default function VendorDomainTab() {
 
           {/* DNS instructions */}
           <div className="mt-6">
+            {state.misconfigured && (
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-red-50 border border-red-200 mb-4">
+                <span className="material-symbols-outlined text-red-500 flex-shrink-0">error</span>
+                <div className="text-sm text-red-900 leading-relaxed space-y-2">
+                  <p className="font-bold">DNS incorrect — le domaine ne pointe pas (ou pas seulement) vers Novakou.</p>
+                  {(state.conflicts?.length ?? 0) > 0 && (
+                    <div>
+                      <p className="font-semibold mb-1">Enregistrements à supprimer chez votre registrar :</p>
+                      <ul className="list-disc pl-5 space-y-0.5 font-mono text-xs">
+                        {state.conflicts!.map((c, i) => (
+                          <li key={i}>
+                            {c.type} {c.name} → {c.value}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {(state.currentDns?.aValues?.length ?? 0) + (state.currentDns?.cnames?.length ?? 0) > 0 && (
+                    <p className="text-xs">
+                      DNS actuel détecté :{" "}
+                      <span className="font-mono">
+                        {[...(state.currentDns?.aValues ?? []), ...(state.currentDns?.cnames ?? [])].join(", ")}
+                      </span>
+                    </p>
+                  )}
+                  <p className="text-xs">
+                    Configurez ensuite les enregistrements ci-dessous, puis relancez la vérification.
+                  </p>
+                </div>
+              </div>
+            )}
             <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 mb-4">
               <span className="material-symbols-outlined text-blue-500 flex-shrink-0">info</span>
               <p className="text-sm text-blue-900 leading-relaxed">
                 Configurez les enregistrements DNS suivants chez votre fournisseur de domaine. La
-                propagation DNS peut prendre jusqu&apos;à 1 heure.
+                propagation DNS peut prendre jusqu&apos;à 1 heure. Pour un domaine racine, supprimez
+                d&apos;abord tout enregistrement A/AAAA existant pour éviter les conflits.
               </p>
             </div>
 

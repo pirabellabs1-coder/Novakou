@@ -1,8 +1,10 @@
 /* Novakou Formations — Custom CSS */
 
 .formations-root {
-  font-family: var(--font-plus-jakarta), 'Manrope', sans-serif;
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #f7f9fb;
+  /* Réduire l'échelle globale d'environ 12% (16 → 14px) */
+  font-size: 14px;
 }
 
 .squircle {

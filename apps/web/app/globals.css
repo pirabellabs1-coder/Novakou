@@ -32,7 +32,9 @@
 
   body {
     @apply font-display antialiased;
-    font-family: 'Manrope', sans-serif;
+    font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Échelle compacte : 14px de base au lieu de 16px (-12%) */
+    font-size: 14px;
     overflow-x: hidden;
   }
 

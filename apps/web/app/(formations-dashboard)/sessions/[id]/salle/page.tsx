@@ -161,7 +161,7 @@ export default function SalleJitsiPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-black flex flex-col" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Top bar */}
       <header className="bg-[#0f172a] text-white px-4 py-2.5 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">

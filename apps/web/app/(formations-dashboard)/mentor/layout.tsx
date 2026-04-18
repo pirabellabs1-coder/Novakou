@@ -39,7 +39,7 @@ function MentorLayoutInner({ children }: { children: React.ReactNode }) {
   const image = session?.user?.image ?? null;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Top bar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-4">
         <button className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-[#191c1e]" onClick={() => setSidebarOpen(!sidebarOpen)}>

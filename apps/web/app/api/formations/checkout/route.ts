@@ -82,6 +82,7 @@ export async function POST(request: Request) {
               title: true,
               price: true,
               instructeurId: true,
+              shopId: true,
               instructeur: {
                 select: {
                   user: { select: { id: true, email: true, name: true } },
@@ -99,6 +100,7 @@ export async function POST(request: Request) {
               title: true,
               price: true,
               instructeurId: true,
+              shopId: true,
               productType: true,
               fileUrl: true,
               instructeur: {
@@ -213,10 +215,15 @@ export async function POST(request: Request) {
         },
       });
 
-      // Affiliate commission (if any) comes out of the platform's 5% share, NOT the vendor's
+      // Répartition vente affiliée :
+      //   Plateforme (Novakou) prend toujours 5% du prix final
+      //   Affilié prend X% du prix final (configuré par programme du vendeur)
+      //   Vendeur reçoit le reste = prix - 5% - X%
+      // → l'affilié est payé par le vendeur (sur sa marge), pas par la plateforme
+      const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
       const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
-      const commissionAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const vendorNet = Math.round(finalPrice * VENDOR_NET_RATE);
+      const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
+      const commissionAmount = platformAmount;
 
       await prisma.instructeurProfile.update({
         where: { id: f.instructeurId },
@@ -240,6 +247,8 @@ export async function POST(request: Request) {
           affiliateAmount: affAmount,
           paymentRef: sessionRef,
           currency: "XOF",
+          instructeurId: f.instructeurId,
+          shopId: f.shopId ?? null,
         },
       }).catch((e) => console.warn("[platformRevenue]", e));
 
@@ -281,9 +290,12 @@ export async function POST(request: Request) {
         },
       });
 
+      // Répartition vente affiliée (idem formation) :
+      //   5% Novakou, X% affilié, reste vendeur
+      const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
       const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
-      const commissionAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const vendorNet = Math.round(finalPrice * VENDOR_NET_RATE);
+      const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
+      const commissionAmount = platformAmount;
 
       await prisma.instructeurProfile.update({
         where: { id: p.instructeurId },
@@ -306,6 +318,8 @@ export async function POST(request: Request) {
           affiliateAmount: affAmount,
           paymentRef: sessionRef,
           currency: "XOF",
+          instructeurId: p.instructeurId,
+          shopId: p.shopId ?? null,
         },
       }).catch((e) => console.warn("[platformRevenue]", e));
 

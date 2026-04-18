@@ -95,7 +95,7 @@ export default function ChoisirBoutiquePage() {
   return (
     <div
       className="min-h-screen bg-[#f7f9fb] flex flex-col items-center justify-center p-6"
-      style={{ fontFamily: "'Manrope', sans-serif" }}
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
     >
       <div className="w-full max-w-3xl">
         {/* Branding */}

@@ -130,7 +130,7 @@ export function FormationsNavbar() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex gap-8 items-center text-sm font-medium tracking-tight" style={{ fontFamily: "'Manrope', sans-serif" }}>
+        <div className="hidden md:flex gap-8 items-center text-sm font-medium tracking-tight" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
           {NAV_LINKS.map((l) => (
             <Link key={l.href} href={l.href} className="text-slate-600 hover:text-green-500 transition-colors duration-300">{l.label}</Link>
           ))}

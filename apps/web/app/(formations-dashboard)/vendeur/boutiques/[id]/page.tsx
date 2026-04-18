@@ -103,7 +103,7 @@ export default function VendorShopDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Top bar */}
         <div className="flex items-center justify-between gap-3">
