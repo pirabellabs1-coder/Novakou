@@ -90,20 +90,35 @@ La plateforme a été **wipée** juste avant la clôture :
 
 ## ⚠️ Ce qui reste à faire (TODO V2)
 
-### 🔴 Fonctionnalités importantes demandées mais non livrées
-1. **Équipe / Collaborateurs** (demande explicite, non livré car trop gros pour autonome) :
-   - Vendeur doit pouvoir inviter des collaborateurs sur sa boutique par email
-   - L'invité garde son propre compte, il reçoit un email avec code d'accès
-   - L'invité accède à la boutique comme membre (rôle MANAGER ou EDITOR)
-   - Seul le **OWNER** peut effectuer des retraits — MANAGER/EDITOR ne peuvent pas
-   - Même logique pour l'admin (équipe admin, seul l'admin principal fait les retraits)
-   - **Tables à créer** : `ShopMember` (shopId, userId, role enum) + `ShopInvitation` (inviteCode unique, email, expiresAt)
-   - **Endpoints à créer** : `POST /api/vendeur/team/invite`, `POST /api/invitation/[code]/accept`, `GET /api/vendeur/team/members`, `DELETE /api/vendeur/team/members/[id]`
-   - **UI à créer** : page `/vendeur/parametres/equipe`, page `/invitation/[code]` (accepter)
-   - **Email à créer** : `ShopInvitationEmail.tsx` avec le lien d'acceptation
-   - **Modification API withdrawal** : ajouter check `if (shopMember.role !== "OWNER") return 403`
-   
-2. **API retrait admin (commission plateforme)** : l'admin doit pouvoir retirer la commission 5% sur un compte Novakou. Endpoint POST `/api/admin/withdrawal/create` à créer + UI dans `/admin/finances`.
+### ✅ Équipe / Collaborateurs — LIVRÉ (commit `c2e0643`)
+- Schema : `ShopMember` + `ShopInvitation` + enum `ShopMemberRole` (OWNER/MANAGER/EDITOR)
+- API complète : GET/POST team, PATCH/DELETE member, GET/POST invitation
+- UI : `/vendeur/parametres/equipe` (avec modale invite) + `/invitation/[code]` (accept)
+- Email invitation via Resend (template dark mode Novakou)
+- Sidebar vendeur : nouvel item "Équipe"
+- Invitations expirent en 14 jours, code unique 32 chars URL-safe
+- Seul OWNER peut inviter MANAGER ; MANAGER peut inviter EDITOR
+
+### ✅ Restriction retrait OWNER — LIVRÉ
+- `/api/formations/wallet` POST vérifie `getShopRole === "OWNER"` avant tout retrait
+- Erreur 403 `NOT_OWNER` avec message "Contactez le propriétaire pour qu'il effectue le retrait"
+- Helper `canWithdraw()` réutilisable dans toute l'app
+
+### ✅ Retrait admin (commission plateforme 5%) — LIVRÉ
+- Schema : model `PlatformPayout` (adminUserId, amount, method, status)
+- API `/api/admin/withdrawal` (GET + POST) avec calcul auto du solde disponible
+- UI `/admin/retraits` : 4 KPIs (Total/Retirés/Attente/Disponible) + formulaire + historique
+- Sidebar admin : nouvel item "Retraits plateforme"
+- Méthodes acceptées : virement, mobile_money, paypal, wise
+- Minimum : 1 000 FCFA
+
+### 🟡 Reste à améliorer
+- **Transfert d'ownership** (changer le OWNER d'une boutique) — actuellement non supporté
+- **Admin team members** : plusieurs comptes avec role=ADMIN. Actuellement chaque user ADMIN a les mêmes pouvoirs (pas de rôles internes admin)
+- **Validation Moneroo** : en attente côté Moneroo (confirmer que la passerelle de paiement est validée pour le compte `e06a1b8b-...`). Une fois validé :
+   - Configurer webhook URL sur dashboard Moneroo : `https://novakou.com/api/webhooks/moneroo`
+   - Tester un paiement de bout en bout
+   - Tester le fulfillment (enrollment créé + email de bienvenue envoyé)
 
 3. **Validation passerelle Moneroo** : en attente côté Moneroo (confirmer que la passerelle de paiement est validée pour le compte `e06a1b8b-...`). Une fois validé :
    - Configurer webhook URL sur dashboard Moneroo : `https://novakou.com/api/webhooks/moneroo`
