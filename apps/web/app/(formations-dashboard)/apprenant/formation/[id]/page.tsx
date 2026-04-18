@@ -1,7 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState, use } from "react";
+import LessonVideoPlayer from "@/components/formations/LessonVideoPlayer";
+
+interface ApiLesson {
+  id: string;
+  title: string;
+  videoUrl: string | null;
+  duration: number | null;
+  isFree: boolean;
+}
+interface ApiSection {
+  id: string;
+  title: string;
+  lessons: ApiLesson[];
+}
+interface ApiFormation {
+  id: string;
+  title: string;
+  description: string | null;
+  sections: ApiSection[];
+}
 
 const course = {
   title: "Maîtrisez les algorithmes pour doubler vos ventes",
@@ -63,10 +83,39 @@ type TabType = "description" | "notes" | "ressources";
 const currentLesson = curriculum[1].lessons[2];
 
 export default function FormationPlayerPage({
-  params: _params,
+  params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id: formationId } = use(params);
+  const [formation, setFormation] = useState<ApiFormation | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+
+  // Charge les infos réelles de la formation (vidéos, leçons)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/formations/apprenant/formation/${formationId}`);
+        if (!res.ok) return;
+        const j = await res.json();
+        if (cancelled) return;
+        const f = (j.data ?? j) as ApiFormation | undefined;
+        if (f?.sections) {
+          setFormation(f);
+          const first = f.sections.flatMap((s) => s.lessons).find((l) => l.videoUrl) ?? f.sections[0]?.lessons[0];
+          if (first) setSelectedLessonId(first.id);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [formationId]);
+
+  // Leçon active choisie par l'utilisateur (data réelle si dispo, sinon mock)
+  const activeLesson = formation?.sections
+    .flatMap((s) => s.lessons)
+    .find((l) => l.id === selectedLessonId);
+
   const [activeTab, setActiveTab] = useState<TabType>("description");
   const [expandedChapters, setExpandedChapters] = useState<number[]>([1, 2]);
   const [note, setNote] = useState("");
@@ -127,31 +176,36 @@ export default function FormationPlayerPage({
         {/* Left: Video + description */}
         <div className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden">
 
-          {/* Video player area */}
+          {/* Video player area — lecteur Novakou (masque le branding YouTube/Vimeo) */}
           <div
-            className="relative w-full bg-black flex items-center justify-center"
-            style={{ aspectRatio: "16/9", maxHeight: "60vh" }}
+            className="relative w-full bg-black"
+            style={{ maxHeight: "60vh" }}
           >
-            {/* Dark gradient backdrop */}
-            <div
-              className="absolute inset-0"
-              style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #1a2e1a 100%)" }}
-            />
-
-            {/* Large decorative icon */}
-            <span className="absolute inset-0 flex items-center justify-center material-symbols-outlined text-white/5 text-[200px] select-none">
-              play_circle
-            </span>
-
-            {/* Play button overlay */}
-            <button className="relative z-10 w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/40 hover:bg-white/30 transition-all hover:scale-105 group">
-              <span
-                className="material-symbols-outlined text-white text-[32px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
+            {activeLesson ? (
+              <LessonVideoPlayer
+                videoUrl={activeLesson.videoUrl ?? ""}
+                title={activeLesson.title}
+                locked
+                className="w-full"
+              />
+            ) : (
+              <div
+                className="relative w-full flex items-center justify-center"
+                style={{ aspectRatio: "16/9" }}
               >
-                play_arrow
-              </span>
-            </button>
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #1a2e1a 100%)" }}
+                />
+                <span className="absolute inset-0 flex items-center justify-center material-symbols-outlined text-white/5 text-[200px] select-none">
+                  play_circle
+                </span>
+                <div className="relative z-10 text-center text-white/80">
+                  <span className="material-symbols-outlined text-5xl mb-2">smart_display</span>
+                  <p className="text-sm font-semibold">Sélectionnez une leçon</p>
+                </div>
+              </div>
+            )}
 
             {/* Top controls */}
             <div className="absolute top-4 left-4 flex items-center gap-2">

@@ -3,6 +3,8 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import LessonVideoPlayer, { isValidVideoUrl, getVideoProviderLabel } from "@/components/formations/LessonVideoPlayer";
+import { useToastStore } from "@/store/toast";
 
 type Lesson = {
   id: string;
@@ -289,25 +291,16 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
               />
             </header>
 
-            {/* Video upload / preview for selected lesson */}
-            <section className="bg-[#f3f3f4] p-8 md:p-12 border-2 border-dashed border-[#bccbb9] flex flex-col items-center justify-center text-center space-y-6 min-h-[400px] group hover:border-[#22c55e] transition-colors duration-500">
-              <div className="w-20 h-20 bg-white flex items-center justify-center shadow-sm">
-                <span className="material-symbols-outlined text-4xl text-[#22c55e]">
-                  {selectedLesson?.videoUrl ? "play_circle" : "upload_file"}
-                </span>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold tracking-tight text-zinc-900">
-                  {selectedLesson ? `Leçon : ${selectedLesson.title}` : "Upload vidéo de leçon"}
-                </h3>
-                <p className="text-zinc-500 text-sm max-w-sm mx-auto">
-                  4K ou 1080p recommandé. Upload illimité inclus dans votre plan.
-                </p>
-              </div>
-              <button className="bg-zinc-900 text-white px-10 py-4 text-[11px] uppercase tracking-[0.2em] font-extrabold hover:bg-[#006e2f] transition-all duration-300">
-                {selectedLesson?.videoUrl ? "Remplacer vidéo" : "Sélectionner vidéo"}
-              </button>
-            </section>
+            {/* Video for selected lesson */}
+            <LessonVideoEditorSection
+              selectedLesson={selectedLesson}
+              onSaved={() => {
+                // Re-fetch formation pour refléter la nouvelle URL
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("novakou:lesson-updated"));
+                }
+              }}
+            />
 
             {/* Bento grid: Lesson Details + Cover Preview */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -452,3 +445,147 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
     </div>
   );
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// LessonVideoEditorSection — Zone vidéo de la leçon (URL + preview + save)
+// ─────────────────────────────────────────────────────────────────────
+
+function LessonVideoEditorSection({
+  selectedLesson,
+  onSaved,
+}: {
+  selectedLesson: Lesson | undefined;
+  onSaved?: () => void;
+}) {
+  const qc = useQueryClient();
+  const toast = useToastStore.getState().addToast;
+  const [url, setUrl] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  // Sync local state with selected lesson
+  useEffect(() => {
+    setUrl(selectedLesson?.videoUrl ?? "");
+  }, [selectedLesson?.id, selectedLesson?.videoUrl]);
+
+  if (!selectedLesson) {
+    return (
+      <section className="bg-[#f3f3f4] p-8 md:p-12 border-2 border-dashed border-[#bccbb9] flex flex-col items-center justify-center text-center space-y-4 min-h-[300px]">
+        <span className="material-symbols-outlined text-5xl text-[#22c55e]">list_alt</span>
+        <div>
+          <h3 className="text-lg font-bold tracking-tight text-zinc-900">
+            Sélectionnez une leçon
+          </h3>
+          <p className="text-zinc-500 text-sm max-w-sm mx-auto mt-1">
+            Choisissez une leçon dans la sidebar à gauche pour ajouter ou modifier sa vidéo.
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  const urlTrimmed = url.trim();
+  const valid = urlTrimmed === "" || isValidVideoUrl(urlTrimmed);
+  const changed = urlTrimmed !== (selectedLesson.videoUrl ?? "");
+  const provider = urlTrimmed ? getVideoProviderLabel(urlTrimmed) : null;
+
+  async function save() {
+    if (!valid) {
+      toast("warning", "URL vidéo invalide — YouTube, Vimeo ou lien MP4 direct");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/formations/vendeur/lessons/${selectedLesson.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoUrl: urlTrimmed || null }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        toast("error", j.error ?? "Erreur lors de la sauvegarde");
+        return;
+      }
+      toast("success", urlTrimmed ? "Vidéo mise à jour ✓" : "Vidéo supprimée");
+      qc.invalidateQueries({ queryKey: ["formation"] });
+      onSaved?.();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <section className="bg-white border border-zinc-200 rounded-2xl p-5 md:p-6 space-y-5">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <span className="text-[#006e2f] font-bold text-[10px] tracking-[0.15em] uppercase block">
+            Vidéo de la leçon
+          </span>
+          <h3 className="text-lg font-bold tracking-tight text-zinc-900 mt-1 truncate max-w-[28ch]">
+            {selectedLesson.title}
+          </h3>
+        </div>
+        {provider && valid && (
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
+            <span className="material-symbols-outlined text-[12px]">check_circle</span>
+            {provider}
+          </span>
+        )}
+      </div>
+
+      {/* Live preview */}
+      {urlTrimmed && valid ? (
+        <LessonVideoPlayer
+          videoUrl={urlTrimmed}
+          title={selectedLesson.title}
+          className="w-full"
+        />
+      ) : (
+        <div className="w-full aspect-video rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          <div className="text-center text-slate-500">
+            <span className="material-symbols-outlined text-5xl mb-2">smart_display</span>
+            <p className="text-sm font-semibold">Aucune vidéo pour l'instant</p>
+            <p className="text-xs">Collez une URL YouTube, Vimeo ou un lien MP4 ci-dessous</p>
+          </div>
+        </div>
+      )}
+
+      {/* URL input */}
+      <div>
+        <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+          URL de la vidéo
+        </label>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://www.youtube.com/watch?v=... ou https://vimeo.com/... ou lien MP4 direct"
+            className={`flex-1 px-4 py-3 rounded-xl border text-sm bg-white focus:outline-none ${
+              !valid ? "border-rose-300 focus:border-rose-500" : "border-zinc-200 focus:border-emerald-500"
+            }`}
+          />
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || !valid || !changed}
+            className="px-5 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 shadow-md shadow-emerald-500/20"
+            style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+          >
+            {saving ? "Sauvegarde…" : changed ? "Enregistrer" : "Enregistré"}
+          </button>
+        </div>
+        {!valid && urlTrimmed && (
+          <p className="text-xs text-rose-600 font-medium mt-1.5">
+            Format non reconnu. Utilisez une URL YouTube, Vimeo, ou un lien direct .mp4/.webm/.mov.
+          </p>
+        )}
+        <p className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+          <strong>Logo YouTube / Vimeo masqué</strong> sur la plateforme — vos apprenants voient
+          uniquement le lecteur Novakou. Supporté : YouTube (watch / youtu.be / shorts / embed),
+          Vimeo, fichiers MP4/WebM/MOV hébergés (Supabase, Cloudinary, etc.).
+        </p>
+      </div>
+    </section>
+  );
+}
+
