@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import LessonVideoPlayer, { isValidVideoUrl, getVideoProviderLabel } from "@/components/formations/LessonVideoPlayer";
 import { useToastStore } from "@/store/toast";
+import { ImageUploader } from "@/components/formations/ImageUploader";
 
 type Lesson = {
   id: string;
@@ -103,15 +104,87 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
     },
   });
 
+  const toast = useToastStore.getState().addToast;
+
   const publishMutation = useMutation({
     mutationFn: () =>
       fetch(`/api/formations/vendeur/formations/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "EN_ATTENTE" }),
+        body: JSON.stringify({ status: "ACTIF" }),
       }).then((r) => r.json()),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["formation", id] }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["formation", id] });
+      if (res?.error) toast("error", res.error);
+      else toast("success", "Formation publiée 🎉");
+    },
+    onError: () => toast("error", "Publication impossible"),
   });
+
+  const createSectionMutation = useMutation({
+    mutationFn: (title?: string) =>
+      fetch("/api/formations/vendeur/sections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formationId: id, title: title?.trim() || undefined }),
+      }).then((r) => r.json()),
+    onSuccess: (res) => {
+      if (res?.error) {
+        toast("error", res.error);
+        return;
+      }
+      qc.invalidateQueries({ queryKey: ["formation", id] });
+      toast("success", "Module ajouté");
+    },
+    onError: () => toast("error", "Création du module impossible"),
+  });
+
+  const createLessonMutation = useMutation({
+    mutationFn: (sectionId: string) =>
+      fetch("/api/formations/vendeur/lessons", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sectionId }),
+      }).then((r) => r.json()),
+    onSuccess: (res) => {
+      if (res?.error) {
+        toast("error", res.error);
+        return;
+      }
+      qc.invalidateQueries({ queryKey: ["formation", id] });
+      // Sélectionne la nouvelle leçon automatiquement
+      if (res?.data?.id) setSelectedLessonId(res.data.id);
+      toast("success", "Leçon ajoutée");
+    },
+    onError: () => toast("error", "Création de la leçon impossible"),
+  });
+
+  function addModule() {
+    const title = window.prompt("Titre du nouveau module :", `Module ${(formation?.sections.length ?? 0) + 1}`);
+    if (title === null) return; // Annulé
+    createSectionMutation.mutate(title);
+  }
+
+  function addLesson(sectionId: string) {
+    createLessonMutation.mutate(sectionId);
+  }
+
+  // Mise à jour du thumbnail via l'ImageUploader (auto-save)
+  const thumbnailMutation = useMutation({
+    mutationFn: (url: string | null) =>
+      fetch(`/api/formations/vendeur/formations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ thumbnail: url }),
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["formation", id] });
+      toast("success", "Couverture mise à jour");
+    },
+    onError: () => toast("error", "Échec de la mise à jour de la couverture"),
+  });
+
+  const [coverEditorOpen, setCoverEditorOpen] = useState(false);
 
   function onFieldChange<T>(setter: (v: T) => void, v: T) {
     setter(v);
@@ -179,16 +252,29 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                   </span>
                   <h2 className="text-xl font-bold tracking-tight text-zinc-900">Curriculum</h2>
                 </div>
-                <button className="text-[#22c55e] hover:bg-[#e8e8e8] p-1 transition-colors">
+                <button
+                  onClick={addModule}
+                  disabled={createSectionMutation.isPending}
+                  title="Ajouter un module"
+                  className="text-[#22c55e] hover:bg-[#e8e8e8] p-1 transition-colors disabled:opacity-50"
+                >
                   <span className="material-symbols-outlined">add_box</span>
                 </button>
               </div>
 
               {formation.sections.length === 0 ? (
-                <div className="p-6 bg-[#f3f3f4] border-l-4 border-[#bccbb9]">
+                <div className="p-6 bg-[#f3f3f4] border-l-4 border-[#bccbb9] space-y-3">
                   <p className="text-xs text-zinc-600 leading-relaxed">
-                    Aucun module pour l&apos;instant. Cliquez sur <span className="font-bold">+</span> pour créer votre premier module.
+                    Aucun module pour l&apos;instant. Créez votre premier module pour commencer à structurer la formation.
                   </p>
+                  <button
+                    onClick={addModule}
+                    disabled={createSectionMutation.isPending}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white bg-[#006e2f] hover:bg-[#22c55e] transition-colors disabled:opacity-50"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    {createSectionMutation.isPending ? "Création…" : "Créer un module"}
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -228,7 +314,11 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                             </button>
                           );
                         })}
-                        <button className="flex items-center gap-2 text-[10px] font-bold text-[#006e2f] uppercase tracking-widest hover:underline mt-2 py-1">
+                        <button
+                          onClick={() => addLesson(section.id)}
+                          disabled={createLessonMutation.isPending}
+                          className="flex items-center gap-2 text-[10px] font-bold text-[#006e2f] uppercase tracking-widest hover:underline mt-2 py-1 disabled:opacity-50"
+                        >
                           <span className="material-symbols-outlined text-xs">add</span>
                           Ajouter leçon
                         </button>
@@ -365,27 +455,69 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
 
               {/* Cover preview */}
               <div className="relative bg-zinc-900 aspect-video md:aspect-auto md:min-h-full group overflow-hidden">
-                {thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={thumbnail} alt="Cover" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" />
+                {coverEditorOpen ? (
+                  <div className="absolute inset-0 bg-white p-6 md:p-8 overflow-auto">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f]">
+                        Modifier la couverture
+                      </p>
+                      <button
+                        onClick={() => setCoverEditorOpen(false)}
+                        className="p-1 text-zinc-400 hover:text-zinc-700"
+                        title="Fermer"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
+                    </div>
+                    <ImageUploader
+                      value={thumbnail}
+                      onChange={(url) => {
+                        setThumbnail(url);
+                        thumbnailMutation.mutate(url || null);
+                      }}
+                      folder="portfolio"
+                      aspectClass="aspect-video"
+                      helper="Recommandé : 1280×720px · JPG ou PNG · Max 5 MB"
+                    />
+                  </div>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="material-symbols-outlined text-6xl text-white/20">image</span>
-                  </div>
+                  <>
+                    {thumbnail ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={thumbnail} alt="Cover" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-symbols-outlined text-6xl text-white/20">image</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between">
+                      <span className="text-white font-bold text-[10px] tracking-[0.15em] uppercase bg-black/40 self-start px-2 py-1">
+                        Aperçu Couverture
+                      </span>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={() => setCoverEditorOpen(true)}
+                          className="bg-white text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#22c55e] transition-colors"
+                        >
+                          {thumbnail ? "Remplacer" : "Ajouter"}
+                        </button>
+                        {thumbnail && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm("Supprimer la couverture ?")) {
+                                setThumbnail("");
+                                thumbnailMutation.mutate(null);
+                              }
+                            }}
+                            className="border border-white/30 text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors"
+                          >
+                            Retirer
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </>
                 )}
-                <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between">
-                  <span className="text-white font-bold text-[10px] tracking-[0.15em] uppercase bg-black/40 self-start px-2 py-1">
-                    Aperçu Couverture
-                  </span>
-                  <div className="flex gap-3">
-                    <button className="bg-white text-black px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-[#22c55e] transition-colors">
-                      Remplacer
-                    </button>
-                    <button className="border border-white/30 text-white px-4 py-2 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-colors">
-                      Éditer
-                    </button>
-                  </div>
-                </div>
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#22c55e]" />
               </div>
             </section>
@@ -433,8 +565,6 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                     ? "…"
                     : formation.status === "ACTIF"
                     ? "Déjà publié"
-                    : formation.status === "EN_ATTENTE"
-                    ? "En validation"
                     : "Publier"}
                 </button>
               </div>

@@ -37,8 +37,22 @@ const categories = [
   "Intelligence Artificielle",
 ];
 
-type Lesson = { title: string; duration: number };
+type Lesson = { title: string; duration: number; videoUrl: string };
 type Module = { title: string; lessons: Lesson[] };
+
+/** Valide rapidement une URL vidéo (YouTube, Vimeo, .mp4/.webm/.mov, Supabase, Cloudinary). */
+function isValidLessonUrl(url: string): boolean {
+  if (!url) return false;
+  const u = url.trim();
+  if (!/^https?:\/\//i.test(u)) return false;
+  return (
+    /youtube\.com\/(watch|embed|shorts)|youtu\.be\//i.test(u) ||
+    /vimeo\.com\/|player\.vimeo\.com\//i.test(u) ||
+    /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(u) ||
+    u.includes("supabase.co") ||
+    u.includes("cloudinary.com")
+  );
+}
 
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
@@ -63,7 +77,7 @@ export default function CreerProduitPage() {
 
   // Formation-specific
   const [modules, setModules] = useState<Module[]>([
-    { title: "", lessons: [{ title: "", duration: 10 }] },
+    { title: "", lessons: [{ title: "", duration: 10, videoUrl: "" }] },
   ]);
 
   // Product-specific
@@ -126,11 +140,11 @@ export default function CreerProduitPage() {
   const progress = ((step - 1) / (lastStep - 1)) * 100;
 
   // Curriculum helpers
-  const addModule = () => setModules((m) => [...m, { title: "", lessons: [{ title: "", duration: 10 }] }]);
+  const addModule = () => setModules((m) => [...m, { title: "", lessons: [{ title: "", duration: 10, videoUrl: "" }] }]);
   const removeModule = (mIdx: number) => setModules((m) => m.filter((_, i) => i !== mIdx));
   const updateModule = (mIdx: number, title: string) => setModules((m) => m.map((mod, i) => (i === mIdx ? { ...mod, title } : mod)));
   const addLesson = (mIdx: number) =>
-    setModules((m) => m.map((mod, i) => (i === mIdx ? { ...mod, lessons: [...mod.lessons, { title: "", duration: 10 }] } : mod)));
+    setModules((m) => m.map((mod, i) => (i === mIdx ? { ...mod, lessons: [...mod.lessons, { title: "", duration: 10, videoUrl: "" }] } : mod)));
   const removeLesson = (mIdx: number, lIdx: number) =>
     setModules((m) => m.map((mod, i) => (i === mIdx ? { ...mod, lessons: mod.lessons.filter((_, j) => j !== lIdx) } : mod)));
   const updateLesson = (mIdx: number, lIdx: number, patch: Partial<Lesson>) =>
@@ -334,7 +348,7 @@ export default function CreerProduitPage() {
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f]">03 / Curriculum</p>
                   <h2 className="text-2xl font-extrabold tracking-tighter text-zinc-900">Modules &amp; Leçons.</h2>
                   <p className="text-sm text-zinc-500">
-                    Structurez votre formation en modules. Chaque module contient plusieurs leçons vidéo. Vous pourrez uploader les vidéos après la création depuis l&apos;éditeur de cours.
+                    Structurez votre formation en modules. Pour chaque leçon, ajoutez le titre, la durée et le lien vidéo (YouTube, Vimeo ou MP4). Le lien est optionnel — vous pourrez l&apos;ajouter plus tard depuis l&apos;éditeur de cours.
                   </p>
                 </div>
 
@@ -354,26 +368,53 @@ export default function CreerProduitPage() {
                         )}
                       </div>
                       <div className="divide-y divide-zinc-50">
-                        {mod.lessons.map((lesson, lIdx) => (
-                          <div key={lIdx} className="flex items-center gap-3 px-5 py-3 hover:bg-[#f9f9f9] transition-colors">
-                            <span className="material-symbols-outlined text-[16px] text-[#22c55e]">play_circle</span>
-                            <span className="text-[9px] tabular-nums text-zinc-400 w-6">
-                              {String(lIdx + 1).padStart(2, "0")}
-                            </span>
-                            <input type="text" value={lesson.title} onChange={(e) => updateLesson(mIdx, lIdx, { title: e.target.value })} placeholder="Titre de la leçon…"
-                              className="flex-1 bg-transparent border-none text-sm text-zinc-700 placeholder:text-zinc-400 outline-none" />
-                            <div className="flex items-center gap-1">
-                              <input type="number" value={lesson.duration} onChange={(e) => updateLesson(mIdx, lIdx, { duration: Number(e.target.value) })} min="0"
-                                className="w-14 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-1.5 px-2 text-xs tabular-nums text-right outline-none" />
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">min</span>
+                        {mod.lessons.map((lesson, lIdx) => {
+                          const urlValid = !lesson.videoUrl.trim() || isValidLessonUrl(lesson.videoUrl);
+                          return (
+                            <div key={lIdx} className="px-5 py-3 hover:bg-[#f9f9f9] transition-colors space-y-2">
+                              {/* Ligne titre + durée */}
+                              <div className="flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[16px] text-[#22c55e]">play_circle</span>
+                                <span className="text-[9px] tabular-nums text-zinc-400 w-6">
+                                  {String(lIdx + 1).padStart(2, "0")}
+                                </span>
+                                <input type="text" value={lesson.title} onChange={(e) => updateLesson(mIdx, lIdx, { title: e.target.value })} placeholder="Titre de la leçon…"
+                                  className="flex-1 bg-transparent border-none text-sm text-zinc-700 placeholder:text-zinc-400 outline-none" />
+                                <div className="flex items-center gap-1">
+                                  <input type="number" value={lesson.duration} onChange={(e) => updateLesson(mIdx, lIdx, { duration: Number(e.target.value) })} min="0"
+                                    className="w-14 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-1.5 px-2 text-xs tabular-nums text-right outline-none" />
+                                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">min</span>
+                                </div>
+                                {mod.lessons.length > 1 && (
+                                  <button onClick={() => removeLesson(mIdx, lIdx)} className="p-1 text-zinc-300 hover:text-[#ba1a1a] transition-colors">
+                                    <span className="material-symbols-outlined text-[16px]">close</span>
+                                  </button>
+                                )}
+                              </div>
+                              {/* Ligne URL vidéo (YouTube / Vimeo / lien direct) */}
+                              <div className="flex items-center gap-3 pl-9">
+                                <span className="material-symbols-outlined text-[14px] text-zinc-300">link</span>
+                                <input
+                                  type="url"
+                                  value={lesson.videoUrl}
+                                  onChange={(e) => updateLesson(mIdx, lIdx, { videoUrl: e.target.value })}
+                                  placeholder="URL vidéo : YouTube, Vimeo ou lien .mp4 (optionnel — modifiable plus tard)"
+                                  className={`flex-1 bg-[#fafafa] border-none focus:ring-1 py-1.5 px-3 text-xs text-zinc-700 placeholder:text-zinc-400 outline-none transition-shadow ${
+                                    urlValid ? "focus:ring-[#22c55e]" : "ring-1 ring-rose-300 focus:ring-rose-400"
+                                  }`}
+                                />
+                                {lesson.videoUrl.trim() && urlValid && (
+                                  <span className="material-symbols-outlined text-[14px] text-[#22c55e]">check_circle</span>
+                                )}
+                              </div>
+                              {!urlValid && (
+                                <p className="pl-9 text-[10px] text-rose-600 font-medium">
+                                  Format non reconnu — utilisez YouTube, Vimeo ou un lien direct .mp4/.webm/.mov
+                                </p>
+                              )}
                             </div>
-                            {mod.lessons.length > 1 && (
-                              <button onClick={() => removeLesson(mIdx, lIdx)} className="p-1 text-zinc-300 hover:text-[#ba1a1a] transition-colors">
-                                <span className="material-symbols-outlined text-[16px]">close</span>
-                              </button>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                         <button onClick={() => addLesson(mIdx)} className="w-full flex items-center gap-2 px-5 py-3 text-[10px] font-bold uppercase tracking-widest text-[#006e2f] hover:bg-[#22c55e]/5 transition-colors">
                           <span className="material-symbols-outlined text-[14px]">add</span>
                           Ajouter une leçon
@@ -535,7 +576,7 @@ export default function CreerProduitPage() {
                 <div className="p-6 bg-[#f3f3f4] border-l-4 border-[#22c55e]">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-2">Avant publication</p>
                   <p className="text-sm text-zinc-700 leading-relaxed">
-                    Votre produit sera soumis en validation (&laquo; En attente &raquo;) puis visible dans la marketplace.
+                    Votre produit sera <span className="font-bold">publié immédiatement</span> sur la marketplace. Vous pourrez le modifier ou le retirer à tout moment depuis votre tableau de bord.
                   </p>
                 </div>
               </div>

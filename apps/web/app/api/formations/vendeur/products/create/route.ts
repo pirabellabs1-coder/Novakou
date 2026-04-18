@@ -93,7 +93,10 @@ export async function POST(request: Request) {
       const cat = await getOrCreateCategory(category || "Divers");
 
       // Compute total duration from modules
-      const validModules: Array<{ title: string; lessons: Array<{ title: string; duration?: number }> }> = Array.isArray(modules) ? modules : [];
+      const validModules: Array<{
+        title: string;
+        lessons: Array<{ title: string; duration?: number; videoUrl?: string }>;
+      }> = Array.isArray(modules) ? modules : [];
       const totalDuration = validModules.reduce(
         (sum, m) => sum + (Array.isArray(m.lessons) ? m.lessons.reduce((s, l) => s + (Number(l.duration) || 0), 0) : 0),
         0
@@ -124,13 +127,18 @@ export async function POST(request: Request) {
                 lessons: {
                   create: (Array.isArray(m.lessons) ? m.lessons : [])
                     .filter((l) => l.title?.trim())
-                    .map((l, lIdx) => ({
-                      title: l.title.trim(),
-                      type: "VIDEO" as const,
-                      duration: Number(l.duration) || null,
-                      order: lIdx,
-                      isFree: mIdx === 0 && lIdx === 0,
-                    })),
+                    .map((l, lIdx) => {
+                      const url = typeof l.videoUrl === "string" ? l.videoUrl.trim() : "";
+                      const safeUrl = url && /^https?:\/\//.test(url) ? url : null;
+                      return {
+                        title: l.title.trim(),
+                        type: "VIDEO" as const,
+                        duration: Number(l.duration) || null,
+                        videoUrl: safeUrl,
+                        order: lIdx,
+                        isFree: mIdx === 0 && lIdx === 0,
+                      };
+                    }),
                 },
               })),
           } : undefined,
