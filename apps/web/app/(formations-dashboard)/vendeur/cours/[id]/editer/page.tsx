@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import LessonVideoPlayer, { isValidVideoUrl, getVideoProviderLabel } from "@/components/formations/LessonVideoPlayer";
 import { useToastStore } from "@/store/toast";
 import { ImageUploader } from "@/components/formations/ImageUploader";
+import { confirmAction } from "@/store/confirm";
+import { promptAction } from "@/store/prompt";
 
 type Lesson = {
   id: string;
@@ -161,8 +163,16 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
     onError: () => toast("error", "Création de la leçon impossible"),
   });
 
-  function addModule() {
-    const title = window.prompt("Titre du nouveau module :", `Module ${(formation?.sections.length ?? 0) + 1}`);
+  async function addModule() {
+    const title = await promptAction({
+      title: "Nouveau module",
+      message: "Donnez un titre clair à votre module (chapitre / partie de la formation).",
+      placeholder: "Ex : Introduction, Fondamentaux, Pratique…",
+      defaultValue: `Module ${(formation?.sections.length ?? 0) + 1}`,
+      confirmLabel: "Créer le module",
+      icon: "library_add",
+      validate: (v) => (v.length < 1 ? "Le titre ne peut pas être vide" : v.length > 200 ? "Maximum 200 caractères" : null),
+    });
     if (title === null) return; // Annulé
     createSectionMutation.mutate(title);
   }
@@ -562,8 +572,15 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                         </button>
                         {thumbnail && (
                           <button
-                            onClick={() => {
-                              if (window.confirm("Supprimer la couverture ?")) {
+                            onClick={async () => {
+                              const ok = await confirmAction({
+                                title: "Supprimer la couverture ?",
+                                message: "L'image de couverture sera retirée de la formation. Vous pourrez en remettre une à tout moment.",
+                                confirmLabel: "Supprimer",
+                                confirmVariant: "danger",
+                                icon: "image_not_supported",
+                              });
+                              if (ok) {
                                 setThumbnail("");
                                 thumbnailMutation.mutate(null);
                               }
@@ -619,10 +636,16 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                 {/* Si publié → bouton "Repasser en brouillon" (dépublier) */}
                 {formation.status === "ACTIF" && (
                   <button
-                    onClick={() => {
-                      if (window.confirm("Repasser cette formation en brouillon ? Elle ne sera plus visible publiquement.")) {
-                        statusMutation.mutate("BROUILLON");
-                      }
+                    onClick={async () => {
+                      const ok = await confirmAction({
+                        title: "Repasser en brouillon ?",
+                        message: "Votre formation ne sera plus visible publiquement. Vous pourrez la republier à tout moment.",
+                        confirmLabel: "Repasser en brouillon",
+                        cancelLabel: "Annuler",
+                        confirmVariant: "warning",
+                        icon: "edit_note",
+                      });
+                      if (ok) statusMutation.mutate("BROUILLON");
                     }}
                     disabled={statusMutation.isPending}
                     className="flex-1 md:flex-none bg-amber-100 text-amber-900 px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-amber-200 transition-colors disabled:opacity-40"
@@ -634,10 +657,16 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                 {/* Archiver (toujours sauf si déjà archivé) */}
                 {formation.status !== "ARCHIVE" && (
                   <button
-                    onClick={() => {
-                      if (window.confirm("Archiver cette formation ? Elle ne sera plus accessible aux nouveaux apprenants. Les inscrits gardent l'accès.")) {
-                        statusMutation.mutate("ARCHIVE");
-                      }
+                    onClick={async () => {
+                      const ok = await confirmAction({
+                        title: "Archiver cette formation ?",
+                        message: "Elle ne sera plus accessible aux nouveaux apprenants. Les inscrits actuels gardent l'accès.",
+                        confirmLabel: "Archiver",
+                        cancelLabel: "Annuler",
+                        confirmVariant: "warning",
+                        icon: "archive",
+                      });
+                      if (ok) statusMutation.mutate("ARCHIVE");
                     }}
                     disabled={statusMutation.isPending}
                     className="flex-1 md:flex-none bg-zinc-200 text-zinc-700 px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-zinc-300 transition-colors disabled:opacity-40"

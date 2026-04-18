@@ -7,6 +7,7 @@ import { TrackingProvider } from "@/components/tracking/TrackingProvider";
 import { FontLoader } from "@/components/FontLoader";
 import { CookieConsent } from "@/components/CookieConsent";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import PromptDialog from "@/components/ui/PromptDialog";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import "./globals.css";
 
@@ -127,6 +128,7 @@ export default async function RootLayout({
               {children}
               <CookieConsent />
               <ConfirmDialog />
+              <PromptDialog />
             </TrackingProvider>
           </Providers>
         </NextIntlClientProvider>
