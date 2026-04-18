@@ -21,6 +21,11 @@ export async function GET() {
     if (!_ctx) return NextResponse.json({ data: { workflows: [], sequences: [] } });
     const pid = _ctx.instructeurId;
 
+    // Scope by active shop (vendors can own multiple shops)
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+
     const [workflows, sequences] = await Promise.all([
       prisma.automationWorkflow.findMany({
         where: { instructeurId: pid, ...(activeShopId ? { shopId: activeShopId } : {}) },
@@ -52,6 +57,17 @@ export async function POST(request: Request) {
     if (!_ctx) return NextResponse.json({ error: "Impossible de résoudre votre session. Déconnectez-vous et reconnectez-vous." }, { status: 401 });
     const pid = _ctx.instructeurId;
 
+    // Scope by active shop (vendors can own multiple shops)
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+    if (!activeShopId) {
+      return NextResponse.json(
+        { error: "Aucune boutique active. Sélectionnez une boutique avant de créer un workflow." },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
     const { name, description, triggerType, actions, conditions } = body;
 
@@ -60,7 +76,9 @@ export async function POST(request: Request) {
     }
 
     const workflow = await prisma.automationWorkflow.create({
-      data: { instructeurId: pid, shopId: activeShopId,
+      data: {
+        instructeurId: pid,
+        shopId: activeShopId,
         name: name.trim(),
         description: description?.trim() || null,
         triggerType: triggerType as AutomationTriggerType,
@@ -73,6 +91,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: workflow });
   } catch (err) {
     console.error("[automatisations POST]", err);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { status: 500 }
+    );
   }
 }

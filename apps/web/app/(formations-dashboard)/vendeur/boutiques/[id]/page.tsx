@@ -165,20 +165,76 @@ export default function VendorShopDetailPage() {
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a] mb-1.5">
-              Couleur principale (hex)
+              Couleur principale
             </label>
+            <p className="text-xs text-[#5c647a] mb-3">
+              Choisissez une couleur prédéfinie ou personnalisez la vôtre. Utilisée pour les boutons, liens et accents sur votre boutique publique.
+            </p>
+
+            {/* Palette prédéfinie */}
+            <div className="grid grid-cols-6 sm:grid-cols-8 gap-2 mb-3">
+              {[
+                { hex: "#006e2f", name: "Novakou" },
+                { hex: "#22c55e", name: "Émeraude" },
+                { hex: "#0ea5e9", name: "Ciel" },
+                { hex: "#2563eb", name: "Bleu royal" },
+                { hex: "#7c3aed", name: "Violet" },
+                { hex: "#db2777", name: "Rose" },
+                { hex: "#dc2626", name: "Rouge" },
+                { hex: "#ea580c", name: "Orange" },
+                { hex: "#ca8a04", name: "Ocre" },
+                { hex: "#0f766e", name: "Sarcelle" },
+                { hex: "#1e293b", name: "Ardoise" },
+                { hex: "#000000", name: "Noir" },
+              ].map((c) => {
+                const isActive = (themeColor || "#006e2f").toLowerCase() === c.hex.toLowerCase();
+                return (
+                  <button
+                    key={c.hex}
+                    type="button"
+                    onClick={() => setThemeColor(c.hex)}
+                    title={c.name}
+                    aria-label={`Choisir la couleur ${c.name}`}
+                    className={`relative w-10 h-10 rounded-xl border-2 transition-all hover:scale-110 ${
+                      isActive ? "border-[#191c1e] scale-110 shadow-md" : "border-transparent"
+                    }`}
+                    style={{ background: c.hex }}
+                  >
+                    {isActive && (
+                      <span className="absolute inset-0 flex items-center justify-center material-symbols-outlined text-white text-[18px] drop-shadow">
+                        check
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Color picker natif + input hex */}
             <div className="flex items-center gap-3">
+              <label
+                className="relative w-12 h-12 rounded-xl border border-gray-200 cursor-pointer overflow-hidden flex-shrink-0"
+                style={{ background: themeColor || "#006e2f" }}
+                title="Ouvrir le sélecteur de couleur"
+              >
+                <input
+                  type="color"
+                  value={themeColor || "#006e2f"}
+                  onChange={(e) => setThemeColor(e.target.value)}
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  aria-label="Sélecteur de couleur personnalisée"
+                />
+                <span className="absolute bottom-0.5 right-0.5 bg-white/80 rounded-full p-0.5 material-symbols-outlined text-[10px] text-[#191c1e]">
+                  colorize
+                </span>
+              </label>
               <input
                 type="text"
                 value={themeColor}
                 onChange={(e) => setThemeColor(e.target.value)}
                 placeholder="#006e2f"
                 maxLength={7}
-                className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] font-mono focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
-              />
-              <div
-                className="w-12 h-12 rounded-xl border border-gray-200"
-                style={{ background: themeColor || "#006e2f" }}
+                className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] font-mono focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 flex-1"
               />
             </div>
           </div>
