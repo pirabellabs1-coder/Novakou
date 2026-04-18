@@ -132,6 +132,58 @@ export async function GET() {
     const totalStudents = profile.formations.reduce((s, f) => s + f.studentsCount, 0);
     const totalProducts = profile.formations.length + profile.digitalProducts.length;
 
+    // ── Period deltas (last 30d vs previous 30d) ──
+    const now30Ago = new Date(Date.now() - 30 * 86400000);
+    const now60Ago = new Date(Date.now() - 60 * 86400000);
+    const last30 = completedTxns.filter((t) => new Date(t.createdAt) >= now30Ago);
+    const prev30 = completedTxns.filter((t) => {
+      const d = new Date(t.createdAt);
+      return d >= now60Ago && d < now30Ago;
+    });
+    const rev30 = last30.reduce((s, t) => s + t.amount, 0);
+    const revPrev30 = prev30.reduce((s, t) => s + t.amount, 0);
+    const sales30 = last30.length;
+    const salesPrev30 = prev30.length;
+    const students30 = new Set(last30.map((t) => `${t.productId}-${t.amount}-${t.createdAt}`)).size;
+    const studentsPrev30 = new Set(prev30.map((t) => `${t.productId}-${t.amount}-${t.createdAt}`)).size;
+    const pctChange = (cur: number, prev: number) =>
+      prev === 0 ? (cur > 0 ? 100 : 0) : Math.round(((cur - prev) / prev) * 100);
+    const deltas = {
+      revenue: pctChange(rev30, revPrev30),
+      sales: pctChange(sales30, salesPrev30),
+      students: pctChange(students30, studentsPrev30),
+    };
+
+    // ── Revenue split (formations vs digital, last 90d) ──
+    const split90 = (() => {
+      const cutoff = new Date(Date.now() - 90 * 86400000);
+      let formations = 0;
+      let digital = 0;
+      for (const t of completedTxns) {
+        if (new Date(t.createdAt) < cutoff) continue;
+        if (t.type === "formation") formations += t.amount;
+        else digital += t.amount;
+      }
+      return [
+        { name: "Formations", value: Math.round(formations) },
+        { name: "Produits digitaux", value: Math.round(digital) },
+      ];
+    })();
+
+    // ── Mini-sparklines (last 14d revenue per KPI card) ──
+    const spark14 = (() => {
+      const map = new Map<string, number>();
+      for (let i = 13; i >= 0; i--) {
+        const day = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        map.set(day, 0);
+      }
+      for (const t of completedTxns) {
+        const key = new Date(t.createdAt).toISOString().slice(0, 10);
+        if (map.has(key)) map.set(key, (map.get(key) || 0) + t.amount);
+      }
+      return [...map.entries()].map(([date, amount]) => ({ date, amount: Math.round(amount) }));
+    })();
+
     const ratingItems = [
       ...profile.formations.filter((f) => f.reviewsCount > 0).map((f) => ({ r: f.rating, c: f.reviewsCount })),
       ...profile.digitalProducts.filter((p) => p.reviewsCount > 0).map((p) => ({ r: p.rating, c: p.reviewsCount })),
@@ -281,6 +333,9 @@ export async function GET() {
         topProducts,
         sparkline7d,
         topCountries,
+        deltas,
+        split90,
+        spark14,
       },
     });
   } catch (err) {

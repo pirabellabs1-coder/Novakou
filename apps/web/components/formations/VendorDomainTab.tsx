@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useToastStore } from "@/store/toast";
+import { useActiveShop } from "@/components/formations/ShopProvider";
 
 interface DnsRecord {
   type: string;
@@ -61,11 +62,20 @@ export default function VendorDomainTab() {
   const [verifying, setVerifying] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const toast = useToastStore.getState().addToast;
+  const { activeShop, loading: shopLoading } = useActiveShop();
+
+  // Use the modern shop-based endpoints when an active shop is known
+  // (preferred). Fallback to legacy endpoint that auto-creates the primary
+  // shop when ShopProvider hasn't resolved yet.
+  const baseUrl = activeShop?.id
+    ? `/api/formations/vendeur/shops/${activeShop.id}/domain`
+    : `/api/formations/vendeur/domain`;
 
   async function load() {
+    if (shopLoading) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/formations/vendeur/domain");
+      const res = await fetch(baseUrl);
       const json = await res.json();
       setState(json.data ?? { connected: false, domain: null, verified: false, records: [] });
     } catch {
@@ -77,13 +87,14 @@ export default function VendorDomainTab() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeShop?.id, shopLoading]);
 
   async function handleConnect() {
     if (!input.trim()) return;
     setSaving(true);
     try {
-      const res = await fetch("/api/formations/vendeur/domain", {
+      const res = await fetch(baseUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: input.trim() }),
@@ -106,7 +117,7 @@ export default function VendorDomainTab() {
   async function handleVerify() {
     setVerifying(true);
     try {
-      const res = await fetch("/api/formations/vendeur/domain/verify", { method: "POST" });
+      const res = await fetch(`${baseUrl}/verify`, { method: "POST" });
       const json = await res.json();
       if (json.error) {
         toast("warning", json.hint ?? json.error);
@@ -140,7 +151,7 @@ export default function VendorDomainTab() {
     if (!confirm("Supprimer ce nom de domaine ?")) return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/formations/vendeur/domain", { method: "DELETE" });
+      const res = await fetch(baseUrl, { method: "DELETE" });
       if (!res.ok) {
         const j = await res.json();
         toast("error", j.error ?? "Erreur");

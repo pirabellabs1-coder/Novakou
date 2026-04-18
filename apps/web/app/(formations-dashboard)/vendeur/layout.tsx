@@ -109,10 +109,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif", "--shop-color": shopColor } as React.CSSProperties}
     >
       {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-3">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 h-16 flex items-center px-4 md:px-6 gap-3">
         {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-[#191c1e]"
+          className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-700"
           onClick={() => setMobileOpen(true)}
           aria-label="Ouvrir le menu"
         >
@@ -122,7 +122,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         {/* Desktop collapse toggle */}
         <button
           onClick={toggleCollapsed}
-          className="hidden md:flex p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] transition-colors"
+          className="hidden md:flex p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
           aria-label={collapsed ? "Étendre le menu" : "Réduire le menu"}
           title={collapsed ? "Étendre le menu" : "Réduire le menu"}
         >
@@ -132,34 +132,88 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         </button>
 
         {/* Logo */}
-        <Link href="/vendeur/dashboard" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 rounded-[8px] flex items-center justify-center shadow-sm" style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}>
-            <span className="text-white font-bold text-xs tracking-tight">NK</span>
+        <Link href="/vendeur/dashboard" className="flex items-center gap-2 flex-shrink-0 group">
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform"
+            style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+          >
+            <span className="text-white font-extrabold text-xs tracking-tight">NK</span>
           </div>
-          <span className="hidden sm:block font-bold text-[#191c1e] text-sm">Novakou</span>
+          <span className="hidden sm:block font-extrabold text-slate-900 text-sm tracking-tight">Novakou</span>
         </Link>
 
-        {/* Active shop switcher (remplace l'ancien badge "Espace Vendeur") */}
+        {/* Active shop switcher (only shown when 2+ shops) */}
         <ShopSwitcher />
 
-        <div className="flex-1" />
+        {/* Search bar (desktop) */}
+        <div className="hidden lg:flex flex-1 max-w-md mx-auto">
+          <div className="w-full relative">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400 pointer-events-none">
+              search
+            </span>
+            <input
+              type="search"
+              placeholder="Rechercher un produit, une commande..."
+              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-100/80 border border-transparent rounded-xl placeholder-slate-400 text-slate-700 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
+              ⌘K
+            </span>
+          </div>
+        </div>
+
+        <div className="flex-1 lg:hidden" />
 
         {/* Right actions */}
         <div className="flex items-center gap-1">
-          <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]" aria-label="Notifications">
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
-          </button>
-          <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]" aria-label="Aide">
-            <span className="material-symbols-outlined text-[22px]">help_outline</span>
-          </button>
-          {avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0 ml-1 ring-2 ring-white shadow-sm" />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ml-1 ring-2 ring-white shadow-sm">
-              {initials}
-            </div>
+          {activeShop && (
+            <Link
+              href={`/boutique/${activeShop.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+              title="Voir ma boutique en ligne"
+            >
+              <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+              <span className="hidden xl:inline">Voir ma boutique</span>
+            </Link>
           )}
+          <button
+            className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+            aria-label="Notifications"
+          >
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+          </button>
+          <button
+            className="hidden md:flex p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
+            aria-label="Aide"
+          >
+            <span className="material-symbols-outlined text-[20px]">help_outline</span>
+          </button>
+          <div className="w-px h-6 bg-slate-200 mx-1 hidden md:block" />
+          <Link
+            href="/vendeur/profil"
+            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition-colors"
+          >
+            {avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
+              />
+            ) : (
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0 ring-2 ring-white shadow-sm"
+                style={{ background: "linear-gradient(135deg, #f59e0b, #f97316)" }}
+              >
+                {initials}
+              </div>
+            )}
+            <span className="hidden md:block text-xs font-bold text-slate-700 max-w-[100px] truncate">
+              {displayName.split(" ")[0]}
+            </span>
+          </Link>
         </div>
       </header>
 
@@ -188,52 +242,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           </button>
         )}
 
-        {/* Boutique active (chrome contextuel) */}
-        <div className={`border-b border-gray-100 transition-all ${collapsed && !mobileOpen ? "py-4 px-2" : "px-5 py-5"}`}>
-          <div className={`flex items-center ${collapsed && !mobileOpen ? "justify-center" : "gap-3"}`}>
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold text-base flex-shrink-0 shadow-sm"
-              style={{ background: activeShop?.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              {activeShop?.name?.[0]?.toUpperCase() ?? "?"}
-            </div>
-            {(!collapsed || mobileOpen) && (
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <p className="font-extrabold text-[#191c1e] text-sm truncate">
-                    {activeShop?.name ?? "—"}
-                  </p>
-                  {activeShop?.isPrimary && (
-                    <span className="text-[9px] font-bold uppercase tracking-wider px-1 py-px rounded bg-[#006e2f]/10 text-[#006e2f] flex-shrink-0">
-                      Prin.
-                    </span>
-                  )}
-                </div>
-                <p className="text-[11px] text-[#5c647a] truncate mt-0.5">
-                  {activeShop?.customDomain && activeShop.customDomainVerified
-                    ? activeShop.customDomain
-                    : `boutique/${activeShop?.slug ?? ""}`}
-                </p>
-              </div>
-            )}
-          </div>
-          {/* Owner sub-line (compact) */}
-          {(!collapsed || mobileOpen) && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt={displayName} className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
-              ) : (
-                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white text-[9px] font-bold flex-shrink-0">
-                  {initials}
-                </div>
-              )}
-              <span className="text-[11px] text-[#5c647a] truncate">{displayName}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation — sectioned */}
+        {/* Navigation — sectioned (sidebar starts directly with nav, shop info is in the topbar) */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {sections.map((section) => {
             const items = navItems.filter((n) => n.section === section);

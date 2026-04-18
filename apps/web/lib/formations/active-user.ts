@@ -15,7 +15,7 @@ export async function resolveVendorContext(
   session: Session | null,
   opts?: { devFallback?: string }
 ): Promise<{ userId: string; instructeurId: string } | null> {
-  const email = session?.user?.email?.toLowerCase();
+  const email = session?.user?.email?.toLowerCase().trim();
   const sessionUserId = session?.user?.id;
   const name = session?.user?.name ?? null;
   const image = session?.user?.image ?? null;

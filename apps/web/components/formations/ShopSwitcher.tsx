@@ -19,18 +19,23 @@ export default function ShopSwitcher() {
 
   if (loading || !activeShop) return null;
 
-  // Single shop: show non-clickable badge so user knows what they're in
+  // Single shop: show a clean static chip (not clickable) so the user always
+  // sees which shop they're in. Click goes to /vendeur/boutiques.
   if (shopCount <= 1) {
     return (
-      <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#006e2f]/8 text-[#006e2f] text-xs font-bold">
+      <Link
+        href="/vendeur/boutiques"
+        className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
+        title="Gérer mes boutiques"
+      >
         <span
-          className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[10px] font-extrabold"
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-extrabold"
           style={{ background: activeShop.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
         >
           {activeShop.name[0]?.toUpperCase()}
         </span>
-        <span className="max-w-[140px] truncate">{activeShop.name}</span>
-      </div>
+        <span className="text-xs font-bold text-slate-800 max-w-[140px] truncate">{activeShop.name}</span>
+      </Link>
     );
   }
 
@@ -39,16 +44,16 @@ export default function ShopSwitcher() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#006e2f]/8 text-[#006e2f] text-xs font-bold hover:bg-[#006e2f]/15 transition-colors"
+        className="hidden md:inline-flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-colors"
       >
         <span
-          className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[10px] font-extrabold"
+          className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[11px] font-extrabold"
           style={{ background: activeShop.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
         >
           {activeShop.name[0]?.toUpperCase()}
         </span>
-        <span className="max-w-[120px] md:max-w-[160px] truncate">{activeShop.name}</span>
-        <span className={`material-symbols-outlined text-[16px] transition-transform ${open ? "rotate-180" : ""}`}>
+        <span className="text-xs font-bold text-slate-800 max-w-[120px] md:max-w-[160px] truncate">{activeShop.name}</span>
+        <span className={`material-symbols-outlined text-[16px] text-slate-500 transition-transform ${open ? "rotate-180" : ""}`}>
           expand_more
         </span>
       </button>

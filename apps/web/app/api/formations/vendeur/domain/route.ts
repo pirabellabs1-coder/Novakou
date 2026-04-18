@@ -45,9 +45,24 @@ async function ensurePrimaryShop(instructeurId: string) {
 async function ctx() {
   const session = await getServerSession(authOptions);
   if (!session?.user && !IS_DEV) return { error: "Non authentifié", status: 401 as const };
-  const c = await resolveVendorContext(session, {
+  let c = await resolveVendorContext(session, {
     devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
   });
+  // Last-resort fallback : if resolveVendorContext returned null but the session
+  // has a user.id, try to upsert the instructeur profile directly. Avoids the
+  // "Profil vendeur introuvable" 404 when the email lookup transiently fails.
+  if (!c && session?.user?.id) {
+    try {
+      const inst = await prisma.instructeurProfile.upsert({
+        where: { userId: session.user.id },
+        create: { userId: session.user.id, status: "APPROUVE" },
+        update: {},
+      });
+      c = { userId: session.user.id, instructeurId: inst.id };
+    } catch (err) {
+      console.error("[domain/ctx] direct upsert fallback failed:", err);
+    }
+  }
   if (!c) return { error: "Profil vendeur introuvable", status: 404 as const };
   const shop = await ensurePrimaryShop(c.instructeurId);
   return { ctx: c, shop };
