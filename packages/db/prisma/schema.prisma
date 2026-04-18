@@ -253,6 +253,10 @@ model User {
   mentorProfile  MentorProfile?  @relation("UserMentorProfile")
   mentorBookings MentorBooking[] @relation("UserMentorBookings")
 
+  // Team / Collaborators
+  shopMemberships ShopMember[]       @relation("UserShopMemberships")
+  shopInvitesSent ShopInvitation[]   @relation("UserShopInvitesSent")
+
   // Tracking
   registrationSource String?
 
@@ -994,6 +998,8 @@ model VendorShop {
   formations  Formation[]        @relation("ShopFormations")
   products    DigitalProduct[]   @relation("ShopProducts")
   bundles     ProductBundle[]
+  members     ShopMember[]       @relation("ShopMemberships")
+  invitations ShopInvitation[]   @relation("ShopInvitations")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1001,6 +1007,55 @@ model VendorShop {
   @@index([instructeurId])
   @@index([slug])
   @@index([customDomain])
+}
+
+/// Rôle d'un membre dans une boutique :
+///  - OWNER   : propriétaire original (crée la boutique). Seul rôle qui peut faire des retraits.
+///  - MANAGER : peut inviter d'autres membres, gérer produits, voir stats. Ne peut pas retirer.
+///  - EDITOR  : peut gérer produits uniquement (création/édition/publication). Ne peut pas inviter ni retirer.
+enum ShopMemberRole {
+  OWNER
+  MANAGER
+  EDITOR
+}
+
+/// Liaison user ↔ boutique. Un user peut être membre de plusieurs boutiques
+/// (chez des vendeurs différents) tout en gardant son propre compte.
+model ShopMember {
+  id         String         @id @default(cuid())
+  shopId     String
+  shop       VendorShop     @relation("ShopMemberships", fields: [shopId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User           @relation("UserShopMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  role       ShopMemberRole @default(EDITOR)
+  invitedBy  String?        // userId de la personne qui a invité (null si OWNER)
+  createdAt  DateTime       @default(now())
+
+  @@unique([shopId, userId])
+  @@index([userId])
+  @@index([shopId, role])
+}
+
+/// Invitations en attente. Quand un vendeur invite un email :
+///  - si l'email existe déjà chez Novakou, la personne peut accepter en étant connectée
+///  - sinon elle crée d'abord un compte (mot de passe + email), puis accepte.
+/// Le code d'invitation est unique, à inclure dans l'URL envoyée par email.
+model ShopInvitation {
+  id         String         @id @default(cuid())
+  shopId     String
+  shop       VendorShop     @relation("ShopInvitations", fields: [shopId], references: [id], onDelete: Cascade)
+  email      String
+  role       ShopMemberRole @default(EDITOR)
+  inviteCode String         @unique @default(cuid())
+  invitedBy  String?        // userId de l'inviteur
+  inviter    User?          @relation("UserShopInvitesSent", fields: [invitedBy], references: [id], onDelete: SetNull)
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime       @default(now())
+
+  @@index([email])
+  @@index([inviteCode])
+  @@index([shopId])
 }
 
 model Formation {
@@ -1345,6 +1400,24 @@ model InstructorWithdrawal {
   instructeur InstructeurProfile @relation("InstructeurWithdrawals", fields: [instructeurId], references: [id], onDelete: Cascade)
 
   @@index([instructeurId])
+  @@index([status])
+}
+
+/// Retraits de la commission plateforme Novakou (5% de chaque vente).
+/// Réservé aux users avec role=ADMIN — les comptes admin membres ne peuvent PAS
+/// retirer (implémenté via check isMainAdmin côté API).
+model PlatformPayout {
+  id             String    @id @default(cuid())
+  adminUserId    String    // userId de l'admin qui a fait la demande
+  amount         Float
+  method         String    // "virement" | "mobile_money" | "paypal" | "wise"
+  accountDetails Json      // IBAN, email, numéro...
+  status         String    @default("EN_ATTENTE") // EN_ATTENTE | TRAITE | REFUSE
+  processedAt    DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+
+  @@index([adminUserId])
   @@index([status])
 }
 

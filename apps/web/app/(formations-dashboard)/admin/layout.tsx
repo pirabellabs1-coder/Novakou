@@ -11,6 +11,7 @@ const navItems = [
   { icon: "inventory_2", label: "Produits", href: "/admin/produits" },
   { icon: "people", label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: "receipt_long", label: "Transactions", href: "/admin/transactions" },
+  { icon: "account_balance", label: "Retraits plateforme", href: "/admin/retraits" },
   { icon: "comment", label: "Commentaires", href: "/admin/commentaires" },
   { icon: "flag", label: "Signalements", href: "/admin/signalements" },
   { icon: "gavel", label: "Disputes mentor", href: "/admin/mentor-disputes" },

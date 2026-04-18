@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
   { icon: "menu_book", label: "Documentation API", href: "/developer/docs", section: "Développeur" },
   // Compte
   { icon: "account_circle", label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
+  { icon: "groups", label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
   { icon: "verified_user", label: "Vérification KYC", href: "/kyc", section: "Compte" },
   { icon: "settings", label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
 ];

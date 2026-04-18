@@ -383,6 +383,23 @@ export async function POST(request: Request) {
         devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
       });
 
+      // ── RESTRICTION OWNER : seul le propriétaire de la boutique peut retirer ──
+      // Les collaborateurs (MANAGER, EDITOR) n'ont PAS accès aux retraits.
+      if (activeShopId) {
+        const { getShopRole } = await import("@/lib/formations/team");
+        const role = await getShopRole(activeShopId, userId);
+        if (role !== "OWNER") {
+          return NextResponse.json(
+            {
+              error: "Seul le propriétaire de la boutique peut effectuer des retraits.",
+              detail: `Votre rôle actuel est ${role ?? "non membre"}. Contactez le propriétaire de la boutique pour qu'il effectue le retrait.`,
+              code: "NOT_OWNER",
+            },
+            { status: 403 },
+          );
+        }
+      }
+
       // Lecture sur PlatformRevenue (vendorAmount = exact, déjà - 5% - affilié)
       const revenueRows = await prisma.platformRevenue.findMany({
         where: {

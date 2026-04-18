@@ -28,26 +28,44 @@ async function ctx() {
   return { ctx: c };
 }
 
-/** GET — list vendor's shops. */
+/** GET — list vendor's shops (own + shops where user is a member). */
 export async function GET() {
   const r = await ctx();
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
 
-  const shops = await prisma.vendorShop.findMany({
+  // 1) Shops du propriétaire (instructeurId match)
+  const ownShops = await prisma.vendorShop.findMany({
     where: { instructeurId: r.ctx.instructeurId },
     orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
     select: {
-      id: true,
-      name: true,
-      slug: true,
-      isPrimary: true,
-      logoUrl: true,
-      themeColor: true,
-      customDomain: true,
-      customDomainVerified: true,
+      id: true, name: true, slug: true, isPrimary: true,
+      logoUrl: true, themeColor: true,
+      customDomain: true, customDomainVerified: true,
       createdAt: true,
     },
   });
+
+  // 2) Shops où je suis membre (MANAGER ou EDITOR, pas OWNER car c'est déjà dans ownShops)
+  const memberships = await prisma.shopMember.findMany({
+    where: {
+      userId: r.ctx.userId,
+      role: { in: ["MANAGER", "EDITOR"] },
+      shopId: { notIn: ownShops.map((s) => s.id) }, // évite doublons
+    },
+    include: {
+      shop: {
+        select: {
+          id: true, name: true, slug: true, isPrimary: true,
+          logoUrl: true, themeColor: true,
+          customDomain: true, customDomainVerified: true,
+          createdAt: true,
+        },
+      },
+    },
+  });
+
+  const memberShops = memberships.map((m) => ({ ...m.shop, memberRole: m.role as "MANAGER" | "EDITOR" }));
+  const shops = [...ownShops.map((s) => ({ ...s, memberRole: "OWNER" as const })), ...memberShops];
 
   return NextResponse.json({ data: { shops, max: MAX_SHOPS } });
 }

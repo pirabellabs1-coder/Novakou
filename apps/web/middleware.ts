@@ -40,6 +40,7 @@ const PUBLIC_ROUTES = [
   "/debug-media",
   "/backoffice", // Admin secret login (slug validé côté page server)
   "/f", // Public funnel landing pages
+  "/invitation", // Pages d'acceptation d'invitations équipe boutique
 ];
 
 // Routes auth — accessibles uniquement si NON connecte
