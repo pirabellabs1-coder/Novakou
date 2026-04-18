@@ -22,7 +22,14 @@ export async function GET() {
     const [user, profile] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, name: true, email: true, image: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+          phone: true,
+          country: true,
+        },
       }),
       prisma.instructeurProfile.findUnique({
         where: { userId },
@@ -66,11 +73,18 @@ export async function PATCH(request: Request) {
     const userId = ctx.userId;
 
     const body = await request.json();
-    const { name, bioFr, expertise, linkedin, website, youtube, yearsExp } = body;
+    const { name, phone, country, bioFr, expertise, linkedin, website, youtube, yearsExp } = body;
+
+    // Build User update object only with defined keys — avoids overwriting
+    // existing values with undefined.
+    const userUpdate: Record<string, unknown> = {};
+    if (typeof name === "string" && name.trim()) userUpdate.name = name.trim();
+    if (typeof phone === "string") userUpdate.phone = phone.trim() || null;
+    if (typeof country === "string") userUpdate.country = country.trim() || null;
 
     await Promise.all([
-      name
-        ? prisma.user.update({ where: { id: userId }, data: { name } })
+      Object.keys(userUpdate).length > 0
+        ? prisma.user.update({ where: { id: userId }, data: userUpdate })
         : Promise.resolve(),
       prisma.instructeurProfile.upsert({
         where: { userId },
@@ -84,12 +98,12 @@ export async function PATCH(request: Request) {
           yearsExp: yearsExp ?? 0,
         },
         update: {
-          bioFr: bioFr ?? undefined,
-          expertise: expertise ?? undefined,
-          linkedin: linkedin ?? undefined,
-          website: website ?? undefined,
-          youtube: youtube ?? undefined,
-          yearsExp: yearsExp ?? undefined,
+          ...(bioFr !== undefined ? { bioFr: bioFr ?? null } : {}),
+          ...(expertise !== undefined ? { expertise: expertise ?? [] } : {}),
+          ...(linkedin !== undefined ? { linkedin: linkedin ?? null } : {}),
+          ...(website !== undefined ? { website: website ?? null } : {}),
+          ...(youtube !== undefined ? { youtube: youtube ?? null } : {}),
+          ...(yearsExp !== undefined ? { yearsExp: yearsExp ?? 0 } : {}),
         },
       }),
     ]);

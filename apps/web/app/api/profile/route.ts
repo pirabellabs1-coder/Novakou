@@ -10,6 +10,7 @@ import { z } from "zod";
 
 const updateProfileSchema = z.looseObject({
   name: z.string().min(2).max(100).optional(),
+  phone: z.string().max(30).optional(),
   bio: z.string().max(2000).optional(),
   title: z.string().max(200).optional(),
   hourlyRate: z.number().min(0).max(10000).optional(),
@@ -191,21 +192,25 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ profile });
     } else {
       // Extract user-level fields vs freelancerProfile fields
-      const { firstName, lastName, phone, photo, coverPhoto, title, bio, city, country, hourlyRate, skills, languages, education, links, availability, vacationMode, ...rest } = updates;
+      const { name, firstName, lastName, phone, photo, coverPhoto, title, bio, city, country, hourlyRate, skills, languages, education, links, availability, vacationMode, ...rest } = updates as Record<string, unknown>;
 
       // Update user-level fields if provided
-      const userName = firstName || lastName
+      const userName = (name as string | undefined) || (firstName || lastName
         ? [firstName, lastName].filter(Boolean).join(" ")
-        : undefined;
-      const hasUserUpdates = userName || photo || country !== undefined || city !== undefined;
+        : undefined);
+      const hasUserUpdates =
+        userName !== undefined ||
+        photo !== undefined ||
+        country !== undefined ||
+        phone !== undefined;
       if (hasUserUpdates) {
         await prisma.user.update({
           where: { id: session.user.id },
           data: {
             ...(userName ? { name: userName } : {}),
-            ...(photo ? { image: photo } : {}),
-            ...(country !== undefined ? { country } : {}),
-            ...(city !== undefined ? { city } : {}),
+            ...(photo ? { image: photo as string } : {}),
+            ...(country !== undefined ? { country: country as string | null } : {}),
+            ...(phone !== undefined ? { phone: (phone as string) || null } : {}),
           },
         });
       }

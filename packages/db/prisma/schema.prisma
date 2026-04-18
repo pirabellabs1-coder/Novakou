@@ -175,6 +175,7 @@ model User {
   status        UserStatus @default(ACTIF)
   country       String?
   countryFlag   String?
+  phone         String?
   avatar        String?
   kyc           Int        @default(1)
   suspendReason String?

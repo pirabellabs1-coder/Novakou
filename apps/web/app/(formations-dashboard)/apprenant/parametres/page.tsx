@@ -25,17 +25,32 @@ export default function ParametresPage() {
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
   const [bio, setBio] = useState("");
+  const [phone, setPhone] = useState("");
+  const [country, setCountry] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Load user data when session becomes available
+  // Load user data from the API (authoritative) — session only has name/email.
   useEffect(() => {
-    if (!session?.user) return;
-    const fullName = session.user.name ?? "";
-    const parts = fullName.trim().split(/\s+/);
-    if (parts.length > 0 && !prenom) setPrenom(parts[0]);
-    if (parts.length > 1 && !nom) setNom(parts.slice(1).join(" "));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+    if (!session?.user?.id) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/profile");
+        if (!res.ok) return;
+        const j = await res.json();
+        const u = j?.data ?? j?.user ?? j;
+        if (cancelled || !u) return;
+        const parts = (u.name ?? "").trim().split(/\s+/);
+        setPrenom(parts[0] ?? "");
+        setNom(parts.slice(1).join(" ") ?? "");
+        if (u.phone) setPhone(u.phone);
+        if (u.country) setCountry(u.country);
+        if (u.bio) setBio(u.bio);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [session?.user?.id]);
 
   const email = session?.user?.email ?? "";
 
@@ -49,9 +64,27 @@ export default function ParametresPage() {
     { id: "newsletter", label: "Newsletter Novakou", desc: "Conseils, success stories et mises à jour plateforme", email: true, push: false },
   ]);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const fullName = `${prenom} ${nom}`.trim();
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: fullName,
+          phone: phone.trim(),
+          country: country.trim(),
+          bio: bio.trim(),
+        }),
+      });
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2500);
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleNotif = (id: string, field: "email" | "push") => {
@@ -182,28 +215,36 @@ export default function ParametresPage() {
                     </div>
                   </div>
 
-                  {/* Email (disabled) */}
-                  <div>
-                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
-                      Adresse email
-                      <span className="ml-1.5 text-[10px] text-[#5c647a] font-normal">(non modifiable)</span>
-                    </label>
-                    <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[17px] text-gray-400">
-                        mail
-                      </span>
-                      <input
-                        type="email"
-                        value={email}
-                        disabled
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 text-sm text-[#5c647a] bg-gray-50 cursor-not-allowed"
-                      />
-                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                        <span className="text-[10px] font-bold bg-[#006e2f]/10 text-[#006e2f] px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-                          Vérifiée
+                  {/* Email (disabled) + Phone */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
+                        Adresse email
+                        <span className="ml-1.5 text-[10px] text-[#5c647a] font-normal">(non modifiable)</span>
+                      </label>
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[17px] text-gray-400">
+                          mail
                         </span>
-                      </span>
+                        <input
+                          type="email"
+                          value={email}
+                          disabled
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-100 text-sm text-[#5c647a] bg-gray-50 cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
+                        Téléphone
+                      </label>
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+221 77 123 45 67"
+                        className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
+                      />
                     </div>
                   </div>
 
@@ -227,8 +268,8 @@ export default function ParametresPage() {
                     <div>
                       <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Pays</label>
                       <CountrySelect
-                        value={""}
-                        onChange={() => { /* persisted via profile API */ }}
+                        value={country}
+                        onChange={setCountry}
                         className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
                         includeBlank
                         placeholder="Sélectionnez votre pays"
@@ -247,13 +288,14 @@ export default function ParametresPage() {
                   <div className="flex items-center gap-3 pt-2">
                     <button
                       onClick={handleSave}
-                      className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
+                      disabled={saving}
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-60"
                       style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                     >
-                      <span className="material-symbols-outlined text-[17px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        save
+                      <span className={`material-symbols-outlined text-[17px] ${saving ? "animate-spin" : ""}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                        {saving ? "progress_activity" : "save"}
                       </span>
-                      Sauvegarder
+                      {saving ? "Sauvegarde…" : "Sauvegarder"}
                     </button>
                     {saved && (
                       <span className="flex items-center gap-1.5 text-sm text-[#006e2f] font-semibold animate-pulse">

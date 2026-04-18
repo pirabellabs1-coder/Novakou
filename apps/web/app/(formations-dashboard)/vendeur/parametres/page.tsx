@@ -91,6 +91,8 @@ export default function ParamaetresPage() {
           setPrenom(parts[0] ?? "");
           setNom(parts.slice(1).join(" ") ?? "");
           setEmailAcc(u.email ?? "");
+          if (u.phone) setTelephone(u.phone);
+          if (u.country) setPays(u.country);
         }
       } catch {
         /* ignore */
@@ -103,13 +105,19 @@ export default function ParamaetresPage() {
     setSavingCompte(true);
     try {
       const fullName = `${prenom} ${nom}`.trim();
-      await fetch("/api/formations/vendeur/profile", {
+      const res = await fetch("/api/formations/vendeur/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: fullName }),
+        body: JSON.stringify({
+          name: fullName,
+          phone: telephone.trim(),
+          country: pays.trim(),
+        }),
       });
-      setCompteSaved(true);
-      setTimeout(() => setCompteSaved(false), 2500);
+      if (res.ok) {
+        setCompteSaved(true);
+        setTimeout(() => setCompteSaved(false), 2500);
+      }
     } finally {
       setSavingCompte(false);
     }
