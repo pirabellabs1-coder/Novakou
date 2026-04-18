@@ -107,13 +107,13 @@ export default function AdminCommentairesPage() {
           <div className="grid grid-rows-2 gap-6">
             <div className="bg-[#22c55e] p-6 text-[#004b1e]">
               <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Avec réponse</p>
-              <p className="text-3xl font-extrabold tabular-nums tracking-tighter">
+              <p className="text-lg md:text-xl font-extrabold tabular-nums tracking-tight break-all">
                 {isLoading ? "…" : summary?.withResponse ?? 0}
               </p>
             </div>
             <div className="bg-zinc-900 p-6 text-white">
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Sans réponse</p>
-              <p className="text-3xl font-extrabold tabular-nums tracking-tighter">
+              <p className="text-lg md:text-xl font-extrabold tabular-nums tracking-tight break-all">
                 {isLoading ? "…" : summary?.withoutResponse ?? 0}
               </p>
             </div>

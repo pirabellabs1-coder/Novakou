@@ -141,7 +141,7 @@ function KpiCard({
       </div>
       <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
       <div className="flex items-baseline gap-1 mt-1">
-        <span className="text-2xl md:text-3xl font-extrabold text-slate-900 tabular-nums tracking-tight">{value}</span>
+        <span className="text-lg md:text-xl font-extrabold text-slate-900 tabular-nums tracking-tight break-all">{value}</span>
         {unit && <span className="text-xs font-bold text-slate-400">{unit}</span>}
       </div>
       {spark && spark.length > 0 && <MiniSpark data={spark} color={accent} />}

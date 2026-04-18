@@ -82,21 +82,21 @@ export default function AdminTransactionsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-100 mb-10 border border-zinc-100">
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Revenus totaux</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
+            <p className="text-xl md:text-2xl font-extrabold tracking-tight text-zinc-900 tabular-nums break-all">
               {isLoading ? "…" : formatFCFA(summary?.totalRevenue ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA · Toutes transactions</p>
           </div>
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Commission (5%)</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter text-amber-600 tabular-nums">
+            <p className="text-xl md:text-2xl font-extrabold tracking-tight text-amber-600 tabular-nums break-all">
               {isLoading ? "…" : formatFCFA(summary?.totalCommission ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA · Prélevés</p>
           </div>
           <div className="bg-[#22c55e] p-8 text-[#004b1e]">
             <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-4">Versé aux vendeurs (95%)</p>
-            <p className="text-3xl md:text-4xl font-extrabold tracking-tighter tabular-nums">
+            <p className="text-xl md:text-2xl font-extrabold tracking-tight tabular-nums break-all">
               {isLoading ? "…" : formatFCFA(summary?.totalNetPaid ?? 0)}
             </p>
             <p className="text-[10px] opacity-70 mt-1 uppercase tracking-widest">FCFA · Créateurs</p>

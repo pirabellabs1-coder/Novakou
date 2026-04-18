@@ -527,7 +527,7 @@ export default function CreerProduitPage() {
                       <div className="space-y-5">
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Prix total</p>
-                          <p className="text-3xl font-extrabold tabular-nums tracking-tighter">{formatFCFA(price)}</p>
+                          <p className="text-lg md:text-xl font-extrabold tabular-nums tracking-tight break-all">{formatFCFA(price)}</p>
                           <p className="text-[10px] text-zinc-500">FCFA</p>
                         </div>
                         <div className="h-px bg-white/10" />

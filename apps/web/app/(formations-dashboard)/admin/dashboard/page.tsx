@@ -206,7 +206,7 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
                 Revenus totaux
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight break-all text-zinc-900 tabular-nums">
                 {isLoading ? "…" : formatFCFA(d?.kpis.totalRevenue ?? 0)}
               </h2>
               <p className="text-[10px] text-zinc-400 mt-1">FCFA</p>
@@ -236,7 +236,7 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
                 Utilisateurs
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight break-all text-zinc-900 tabular-nums">
                 {isLoading ? "…" : (d?.kpis.totalUsers ?? 0).toLocaleString("fr-FR")}
               </h2>
             </div>
@@ -253,7 +253,7 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
                 Produits publiés
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight break-all text-zinc-900 tabular-nums">
                 {isLoading ? "…" : (d?.kpis.totalProducts ?? 0).toLocaleString("fr-FR")}
               </h2>
             </div>
@@ -270,7 +270,7 @@ export default function AdminDashboardPage() {
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold opacity-80 mb-4">
                 Santé plateforme
               </p>
-              <h2 className="text-3xl md:text-4xl font-extrabold tracking-tighter tabular-nums">99.98%</h2>
+              <h2 className="text-xl md:text-2xl font-extrabold tracking-tight break-all tabular-nums">99.98%</h2>
             </div>
             <div className="mt-8 flex items-center gap-2">
               <span className="material-symbols-outlined text-sm">check_circle</span>
@@ -546,7 +546,7 @@ export default function AdminDashboardPage() {
               <div className="space-y-6">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Transactions</p>
-                  <p className="text-3xl font-extrabold tabular-nums tracking-tighter text-zinc-900">
+                  <p className="text-lg font-extrabold tabular-nums tracking-tight break-all text-zinc-900">
                     {(d?.kpis.transactionsThisMonth ?? 0).toLocaleString("fr-FR")}
                   </p>
                 </div>

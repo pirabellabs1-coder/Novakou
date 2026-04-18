@@ -78,20 +78,20 @@ export default function AdminSignalementsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-zinc-100 mb-10 border border-zinc-100">
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Signalements</p>
-            <p className="text-3xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
+            <p className="text-lg md:text-xl font-extrabold tracking-tight text-zinc-900 tabular-nums break-all">
               {isLoading ? "…" : summary?.totalReports ?? 0}
             </p>
           </div>
           <div className="bg-white p-8">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Remboursements</p>
-            <p className="text-3xl font-extrabold tracking-tighter text-zinc-900 tabular-nums">
+            <p className="text-lg md:text-xl font-extrabold tracking-tight text-zinc-900 tabular-nums break-all">
               {isLoading ? "…" : summary?.totalRefunds ?? 0}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">En attente</p>
           </div>
           <div className="bg-zinc-900 p-8 text-white">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-4">Montant à rembourser</p>
-            <p className="text-3xl font-extrabold tracking-tighter tabular-nums">
+            <p className="text-lg md:text-xl font-extrabold tracking-tight tabular-nums break-all">
               {isLoading ? "…" : formatFCFA(summary?.pendingRefundAmount ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA</p>
