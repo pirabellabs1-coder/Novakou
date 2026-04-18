@@ -30,6 +30,7 @@ const PUBLIC_ROUTES = [
   "/cookies",
   "/aide",
   "/certificat",
+  "/panier",
   "/checkout",
   "/payment",
   "/boutique", // Pages publiques de boutique
