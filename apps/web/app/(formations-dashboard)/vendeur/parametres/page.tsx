@@ -7,6 +7,7 @@ import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
 import TwoFactorSetup from "@/components/account/TwoFactorSetup";
 import CountrySelect from "@/components/account/CountrySelect";
 import ActiveSessions from "@/components/account/ActiveSessions";
+import PaymentSettingsPanel from "@/components/vendeur/PaymentSettingsPanel";
 
 type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
@@ -19,26 +20,7 @@ const tabs: { value: Tab; label: string; icon: string }[] = [
   { value: "coaching", label: "Coaching", icon: "support_agent" },
 ];
 
-const payoutMethods = [
-  {
-    id: 1,
-    name: "Orange Money",
-    detail: "+221 77 654 32 10",
-    icon: "smartphone",
-    iconBg: "bg-orange-100",
-    iconColor: "text-orange-500",
-    primary: true,
-  },
-  {
-    id: 2,
-    name: "Wave",
-    detail: "+221 76 123 45 67",
-    icon: "waves",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    primary: false,
-  },
-];
+// (payoutMethods is now loaded dynamically by <PaymentSettingsPanel />)
 
 const notifGroups = [
   {
@@ -297,80 +279,7 @@ export default function ParamaetresPage() {
       {activeTab === "domaine" && <VendorDomainTab />}
 
       {/* ─── PAIEMENTS ─── */}
-      {activeTab === "paiements" && (
-        <div className="space-y-6">
-          {/* Existing methods */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-[#191c1e] mb-4">Méthodes de retrait</h2>
-            <div className="space-y-3 mb-5">
-              {payoutMethods.map((method) => (
-                <div key={method.id} className={`flex items-center gap-4 p-4 rounded-xl border ${method.primary ? "border-[#006e2f]/30 bg-[#006e2f]/4" : "border-gray-200 bg-white"}`}>
-                  <div className={`w-10 h-10 rounded-xl ${method.iconBg} flex items-center justify-center flex-shrink-0`}>
-                    <span className={`material-symbols-outlined text-[20px] ${method.iconColor}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                      {method.icon}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#191c1e]">{method.name}</p>
-                      {method.primary && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">Principale</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[#5c647a]">{method.detail}</p>
-                  </div>
-                  <button className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">delete_outline</span>
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Add new method */}
-            <h3 className="text-sm font-bold text-[#191c1e] mb-3">Ajouter une méthode</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { name: "Orange Money", icon: "smartphone", iconBg: "bg-orange-100", iconColor: "text-orange-500" },
-                { name: "Wave", icon: "waves", iconBg: "bg-blue-100", iconColor: "text-blue-600" },
-                { name: "Virement SEPA", icon: "account_balance", iconBg: "bg-gray-100", iconColor: "text-gray-600" },
-                { name: "PayPal", icon: "credit_card", iconBg: "bg-sky-100", iconColor: "text-sky-600" },
-              ].map((m) => (
-                <button key={m.name} className="flex flex-col items-center gap-2 p-3 rounded-xl border-2 border-dashed border-gray-200 hover:border-[#006e2f]/40 hover:bg-[#006e2f]/3 transition-all">
-                  <div className={`w-9 h-9 rounded-xl ${m.iconBg} flex items-center justify-center`}>
-                    <span className={`material-symbols-outlined text-[18px] ${m.iconColor}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                      {m.icon}
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-semibold text-[#191c1e] text-center leading-tight">{m.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Payout schedule */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-base font-bold text-[#191c1e] mb-4">Calendrier de versement</h2>
-            <div className="space-y-3">
-              {[
-                { label: "Hebdomadaire", desc: "Virement chaque lundi", recommended: false },
-                { label: "Bi-mensuel", desc: "1er et 15 de chaque mois", recommended: true },
-                { label: "Mensuel", desc: "Le 1er de chaque mois", recommended: false },
-              ].map((opt, i) => (
-                <label key={i} className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${i === 1 ? "border-[#006e2f]/30 bg-[#006e2f]/4" : "border-gray-200 hover:border-gray-300"}`}>
-                  <input type="radio" name="payout_schedule" defaultChecked={i === 1} className="accent-[#006e2f]" />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#191c1e]">{opt.label}</p>
-                      {opt.recommended && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">Recommandé</span>}
-                    </div>
-                    <p className="text-xs text-[#5c647a]">{opt.desc}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {activeTab === "paiements" && <PaymentSettingsPanel />}
 
       {/* ─── NOTIFICATIONS ─── */}
       {activeTab === "notifications" && (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { getDashboardForFormationsRole, getRoleLabel } from "@/lib/formations/role-routing";
+import CartBadge from "./CartBadge";
 
 function initials(name: string | null | undefined) {
   if (!name) return "?";
@@ -138,6 +139,7 @@ export function FormationsNavbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          <CartBadge />
           {status === "loading" ? (
             <div className="w-9 h-9 rounded-full bg-gray-100 animate-pulse" />
           ) : isLoggedIn ? (

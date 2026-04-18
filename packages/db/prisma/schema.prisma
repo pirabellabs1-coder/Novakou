@@ -929,6 +929,19 @@ model InstructeurProfile {
   customDomainVerified Boolean   @default(false)
   customDomainAddedAt  DateTime?
 
+  // Méthodes de paiement ACCEPTÉES par le vendeur à l'achat de ses produits.
+  // Valeurs possibles : "orange_money" | "wave" | "mtn_momo" | "moov_money"
+  // | "card" | "moneroo" | "stripe" | "paypal" | "bank_transfer" | "free"
+  // Par défaut on active toutes les méthodes Mobile Money africaines + cartes
+  // via Moneroo. Si vide, le vendeur accepte ce que la plateforme supporte.
+  acceptedPaymentMethods String[] @default(["orange_money","wave","mtn_momo","moov_money","card"])
+
+  // Méthodes de retrait configurées par le vendeur (liste de comptes pour
+  // recevoir son argent). Exemple :
+  //  [{"id":"...","method":"orange_money","label":"Personnel","phone":"+221771234567","primary":true},
+  //   {"id":"...","method":"bank_transfer","label":"Ecobank","iban":"SN12...","primary":false}]
+  payoutMethods Json?
+
   user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   formations      Formation[]
   withdrawals     InstructorWithdrawal[] @relation("InstructeurWithdrawals")
@@ -1526,18 +1539,23 @@ model FlashPromotion {
 
 model AbandonedCart {
   id            String              @id @default(cuid())
-  userId        String
+  // userId nullable : guest carts n'ont pas encore de compte
+  userId        String?
+  // email capturé (soit via session connectée, soit saisi à la sortie du checkout)
+  email         String?
+  // Ce que le user comptait acheter (formation IDs ou product IDs)
   cartItemIds   String[]            @default([])
   detectedAt    DateTime            @default(now())
-  emailSequence Int                 @default(0) // 0=pas envoyé, 1=1h, 2=24h, 3=7j
+  emailSequence Int                 @default(0) // 0=aucun envoyé, 1=1h, 2=24h, 3=7j
   lastEmailAt   DateTime?
   status        AbandonedCartStatus @default(DETECTE)
 
-  user User @relation("UserAbandonedCarts", fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation("UserAbandonedCarts", fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
   @@index([userId])
+  @@index([email])
   @@index([status])
   @@index([detectedAt])
 }

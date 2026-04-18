@@ -225,6 +225,10 @@ export default function FormationPageClient({ slug }: { slug: string }) {
       });
       if (res.ok) {
         setAddedToCart(true);
+        // Notify the navbar cart badge to refresh
+        try {
+          window.dispatchEvent(new CustomEvent("nk:cart-change"));
+        } catch { /* ignore */ }
         setTimeout(() => setAddedToCart(false), 2500);
       }
     } finally {
