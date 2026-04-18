@@ -6,6 +6,23 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
+/**
+ * Reads the RGPD consent from localStorage (written by <CookieBanner />).
+ * Default: no consent yet → analytics stays OFF. When explicitly saved, we
+ * respect the `analytics` flag.
+ */
+function hasAnalyticsConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = localStorage.getItem("nk_consent");
+    if (!raw) return false;
+    const c = JSON.parse(raw) as { analytics?: boolean };
+    return !!c.analytics;
+  } catch {
+    return false;
+  }
+}
+
 function getDeviceType(): "mobile" | "tablet" | "desktop" {
   if (typeof window === "undefined") return "desktop";
   const w = window.innerWidth;
@@ -49,6 +66,12 @@ class Tracker {
 
   start() {
     if (this.started || typeof window === "undefined") return;
+    // RGPD : no activity unless the user has consented to analytics.
+    if (!hasAnalyticsConsent()) {
+      // Re-arm automatically if they later accept.
+      window.addEventListener("nk:consent-change", () => this.start(), { once: true });
+      return;
+    }
     this.started = true;
 
     // Session ID persisted in sessionStorage
@@ -101,6 +124,7 @@ class Tracker {
     extra?: { entityType?: TrackingEvent["entityType"]; entityId?: string; metadata?: Record<string, string | number> }
   ) {
     if (typeof window === "undefined") return;
+    if (!hasAnalyticsConsent()) return;
 
     const event: TrackingEvent = {
       id: generateId(),

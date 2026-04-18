@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
+import DiscoverySessionPanel from "@/components/mentor/DiscoverySessionPanel";
 
 // Strip HTML tags to count characters (and decode common entities)
 function stripHtml(html: string): string {
@@ -621,6 +622,11 @@ export default function MentorProfilPage() {
             </p>
           </div>
         </form>
+
+        {/* Discovery session + pre-session questionnaire */}
+        <div className="max-w-3xl mx-auto px-5 md:px-0 mt-8">
+          <DiscoverySessionPanel />
+        </div>
       </div>
     </div>
   );

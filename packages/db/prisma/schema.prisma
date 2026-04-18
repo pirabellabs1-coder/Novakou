@@ -947,6 +947,7 @@ model InstructeurProfile {
   integrations        VendorIntegration[]  @relation("InstructeurIntegrations")
   webhooks            VendorWebhook[]      @relation("InstructeurWebhooks")
   apiKeys             VendorApiKey[]       @relation("InstructeurApiKeys")
+  bundles             ProductBundle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -977,6 +978,7 @@ model VendorShop {
   instructeur InstructeurProfile @relation("InstructeurShops", fields: [instructeurId], references: [id], onDelete: Cascade)
   formations  Formation[]        @relation("ShopFormations")
   products    DigitalProduct[]   @relation("ShopProducts")
+  bundles     ProductBundle[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1068,6 +1070,8 @@ model Formation {
   discussions     CourseDiscussion[]
   cohorts         FormationCohort[]
   salesPage       SalesPage?
+  bundleItems     ProductBundleItem[]
+  quiz            FormationQuiz?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1439,6 +1443,7 @@ model DigitalProduct {
   reviews         DigitalProductReview[]
   flashPromotions FlashPromotion[]         @relation("ProductFlashPromos")
   marketingEvents MarketingEvent[]         @relation("ProductMarketingEvents")
+  bundleItems     ProductBundleItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1963,6 +1968,19 @@ model DiscountCode {
   minOrderAmount  Float? // minimum order value
   expiresAt       DateTime?
   isActive        Boolean       @default(true)
+
+  // Advanced conditions
+  // firstOrderOnly : only redeemable if the user has no prior successful purchase.
+  // bogoQuantityBuy + bogoQuantityFree : buy N, get M free (requires cart ≥ N+M).
+  // tieredRules : JSON array [{ qty: 2, pct: 10 }, { qty: 3, pct: 20 }] — picks the
+  //               highest matching tier based on cart item count.
+  // triggerContext : "welcome" | "abandoned_cart" | "birthday" | "generic" (for analytics).
+  firstOrderOnly   Boolean  @default(false)
+  bogoQuantityBuy  Int?
+  bogoQuantityFree Int?
+  tieredRules      Json?
+  triggerContext   String?
+
   // Tracking
   totalDiscounted Float         @default(0) // total amount discounted
   revenue         Float         @default(0) // total revenue from discounted sales
@@ -1977,6 +1995,7 @@ model DiscountCode {
   @@index([instructeurId])
   @@index([isActive])
   @@index([expiresAt])
+  @@index([triggerContext])
 }
 
 model DiscountUsage {
@@ -2432,6 +2451,14 @@ model MentorProfile {
   rating        Float @default(0)
   reviewsCount  Int   @default(0)
 
+  // Discovery session (gratuite, 15 min, first-contact)
+  discoveryEnabled         Boolean @default(false)
+  discoveryDurationMinutes Int     @default(15)
+
+  // Pre-session questionnaire (JSON array of questions shown when booking)
+  // Format: [{ id, label, type: "text" | "choice", required, options? }]
+  preSessionQuestions Json?
+
   // Note: les mentors n'ont PAS de boutique custom (réservé aux vendeurs).
 
   createdAt DateTime @default(now())
@@ -2440,6 +2467,8 @@ model MentorProfile {
   bookings           MentorBooking[]
   availabilities     MentorAvailability[]
   availabilitySlots  MentorAvailabilitySlot[]
+  sessionPacks       MentorSessionPack[]
+  studentNotes       MentorStudentNote[]
 
   @@index([userId])
   @@index([domain])
@@ -2529,6 +2558,15 @@ model MentorBooking {
 
   completedAt DateTime?  // Set when status transitions to COMPLETED — used for 24h escrow hold
 
+  // ── Pack consumption (when booking was paid via a MentorSessionPackPurchase) ──
+  packPurchaseId String?
+  packPurchase   MentorSessionPackPurchase? @relation(fields: [packPurchaseId], references: [id])
+  reminders      MentorBookingReminder[]
+
+  // ── Pre-session questionnaire answers + discovery flag ──
+  preSessionAnswers Json?
+  isDiscovery       Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -2537,6 +2575,7 @@ model MentorBooking {
   @@index([status])
   @@index([scheduledAt])
   @@index([escrowStatus])
+  @@index([packPurchaseId])
 }
 
 enum MentorBookingStatus {
@@ -2647,4 +2686,355 @@ model VendorApiKey {
   @@index([instructeurId])
   @@index([keyPrefix])
   @@index([keyHash])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRACKING & ANALYTICS (persisted to DB, replaces the dev JSON store)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TrackingEventLog {
+  id          String   @id @default(cuid())
+  eventId     String   @unique // client-generated, used for dedup
+  type        String   // matches TrackingEventType
+  userId      String?
+  sessionId   String
+  path        String
+  entityType  String?
+  entityId    String?
+  referrer    String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  deviceType  String   // mobile | tablet | desktop
+  country     String?  // ISO-3166 alpha-2
+  userAgent   String?
+  metadata    Json?
+  isBot       Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([sessionId])
+  @@index([userId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@index([path, createdAt])
+  @@index([createdAt])
+}
+
+model TrackingSessionLog {
+  id            String    @id // the sessionId from client
+  userId        String?
+  startedAt     DateTime  @default(now())
+  lastActiveAt  DateTime  @default(now())
+  endedAt       DateTime?
+  pageViews     Int       @default(0)
+  entryPath     String
+  exitPath      String?
+  deviceType    String    // mobile | tablet | desktop
+  referrer      String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  country       String?
+  userAgent     String?
+  isBot         Boolean   @default(false)
+
+  @@index([userId, startedAt])
+  @@index([startedAt])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTOR — Packs de sessions (3/5/10 à prix dégressif)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MentorSessionPack {
+  id            String   @id @default(cuid())
+  mentorId      String   // MentorProfile.id
+  title         String   // ex. "Pack Transformation 5 séances"
+  sessionsCount Int      // nombre de séances incluses
+  priceXof      Int      // prix total en FCFA
+  sessionDurationMinutes Int @default(60)
+  description   String?
+  isActive      Boolean  @default(true)
+  validityDays  Int      @default(180) // 6 mois par défaut
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  mentor        MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  purchases     MentorSessionPackPurchase[]
+
+  @@index([mentorId, isActive])
+}
+
+model MentorSessionPackPurchase {
+  id               String   @id @default(cuid())
+  packId           String
+  userId           String   // apprenant
+  paidAmount       Int      // FCFA
+  sessionsTotal    Int      // copie du pack au moment de l'achat
+  sessionsConsumed Int      @default(0)
+  expiresAt        DateTime
+  refundedAt       DateTime?
+  createdAt        DateTime @default(now())
+
+  pack             MentorSessionPack @relation(fields: [packId], references: [id])
+  bookings         MentorBooking[]
+
+  @@index([userId, expiresAt])
+  @@index([packId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTOR — Notes privées sur l'apprenant (CRM léger)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MentorStudentNote {
+  id         String   @id @default(cuid())
+  mentorId   String   // MentorProfile.id
+  studentId  String   // User.id
+  content    String   // markdown / texte libre
+  tags       String[] // ex. ["objectif", "blocage", "next-step"]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  mentor     MentorProfile @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId, studentId, updatedAt])
+  @@index([studentId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTOR — Rappels de séance (auto-dispatchés par /api/cron/mentor-reminders)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MentorBookingReminder {
+  id         String   @id @default(cuid())
+  bookingId  String
+  kind       String   // "H-24" | "H-15m"
+  sentAt     DateTime @default(now())
+
+  booking    MentorBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@unique([bookingId, kind])
+  @@index([bookingId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VENDEUR — Bundles produits (pack de N formations/produits à prix réduit)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ProductBundle {
+  id            String   @id @default(cuid())
+  instructeurId String
+  shopId        String?
+  slug          String   @unique
+  title         String
+  description   String?
+  thumbnail     String?
+  priceXof      Int      // prix total du bundle
+  originalPriceXof Int?  // somme des prix individuels (affichage "économie")
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  instructeur   InstructeurProfile @relation(fields: [instructeurId], references: [id], onDelete: Cascade)
+  shop          VendorShop?        @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  items         ProductBundleItem[]
+  purchases     ProductBundlePurchase[]
+
+  @@index([instructeurId, isActive])
+  @@index([shopId])
+}
+
+model ProductBundleItem {
+  id          String   @id @default(cuid())
+  bundleId    String
+  itemKind    String   // "formation" | "digital"
+  formationId String?
+  productId   String?
+  order       Int      @default(0)
+
+  bundle      ProductBundle    @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  formation   Formation?       @relation(fields: [formationId], references: [id])
+  product     DigitalProduct?  @relation(fields: [productId], references: [id])
+
+  @@index([bundleId])
+}
+
+model ProductBundlePurchase {
+  id         String   @id @default(cuid())
+  bundleId   String
+  userId     String
+  paidAmount Int
+  createdAt  DateTime @default(now())
+
+  bundle     ProductBundle @relation(fields: [bundleId], references: [id])
+
+  @@index([bundleId, createdAt])
+  @@index([userId])
+}
+
+// (AbandonedCart model already defined above at line ~1526)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FORMATION — Quiz & attempts (basic multi-choice, auto-graded)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model FormationQuiz {
+  id          String   @id @default(cuid())
+  formationId String   @unique
+  title       String
+  description String?
+  passPct     Int      @default(70) // minimum % for certification
+  // Questions as JSON : [{ id, question, choices: [{label, correct}], explanation? }]
+  questions   Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  formation   Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  attempts    QuizAttempt[]
+
+  @@index([formationId])
+}
+
+model QuizAttempt {
+  id         String   @id @default(cuid())
+  quizId     String
+  userId     String
+  scorePct   Int      // 0-100
+  passed     Boolean  @default(false)
+  // Answers : [{ questionId, choiceIndex }]
+  answers    Json
+  createdAt  DateTime @default(now())
+
+  quiz       FormationQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId, userId, createdAt])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPRENANT — Streaks & badges (gamification)
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTOR — Abonnements mensuels (X€/mois = Y sessions récurrentes)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MentorSubscriptionPlan {
+  id                    String   @id @default(cuid())
+  mentorId              String
+  title                 String   // "Coaching mensuel — 4 séances"
+  sessionsPerMonth      Int      // ex. 4
+  priceXofPerMonth      Int      // ex. 150000
+  sessionDurationMinutes Int     @default(60)
+  description           String?
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  subscriptions         MentorSubscription[]
+
+  @@index([mentorId, isActive])
+}
+
+model MentorSubscription {
+  id               String   @id @default(cuid())
+  planId           String
+  userId           String
+  status           String   @default("ACTIVE") // "ACTIVE" | "PAUSED" | "CANCELLED"
+  currentPeriodStart DateTime @default(now())
+  currentPeriodEnd   DateTime
+  sessionsUsedThisPeriod Int    @default(0)
+  cancelledAt      DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  plan             MentorSubscriptionPlan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@index([planId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILISATEUR — Méthodes de paiement sauvegardées (1-click checkout)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SavedPaymentMethod {
+  id           String   @id @default(cuid())
+  userId       String
+  provider     String   // "moneroo" | "stripe"
+  token        String   // Stored provider token (NEVER raw card/phone)
+  brand        String?  // "visa" | "mastercard" | "orange" | "wave" | "mtn"
+  last4        String?  // displayable tail (e.g. "4242" or "**78")
+  expMonth     Int?
+  expYear      Int?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId, isDefault])
+}
+
+model LearnerStreak {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  currentStreak  Int      @default(0)
+  longestStreak  Int      @default(0)
+  lastActivityAt DateTime?
+  totalMinutes   Int      @default(0) // total study time in minutes (lifetime)
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model LearnerBadge {
+  id          String   @id @default(cuid())
+  userId      String
+  code        String   // "FIRST_LESSON" | "WEEK_STREAK" | "10_LESSONS" | ...
+  title       String
+  description String
+  icon        String   // material-symbol name
+  unlockedAt  DateTime @default(now())
+
+  @@unique([userId, code])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTOR — Bibliothèque de ressources (PDF, vidéos, liens) partageable après séance
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MentorResource {
+  id          String   @id @default(cuid())
+  mentorId    String   // MentorProfile.id
+  title       String
+  description String?
+  kind        String   // "pdf" | "video" | "link" | "audio" | "other"
+  url         String   // Cloudinary / Supabase / external
+  fileSize    Int?     // bytes (null for links)
+  tags        String[] @default([])
+  isPublic    Boolean  @default(false) // visible sur le profil public
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([mentorId, createdAt])
+  @@index([mentorId, isPublic])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENTOR — Partages de ressources liées à un booking spécifique
+// ─────────────────────────────────────────────────────────────────────────────
+
+model MentorResourceShare {
+  id         String   @id @default(cuid())
+  resourceId String
+  bookingId  String?
+  studentId  String
+  sharedAt   DateTime @default(now())
+  viewedAt   DateTime?
+
+  @@index([studentId, sharedAt])
+  @@index([bookingId])
+  @@index([resourceId])
 }

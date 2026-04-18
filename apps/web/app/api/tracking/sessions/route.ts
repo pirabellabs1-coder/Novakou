@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { trackingStore } from "@/lib/tracking/tracking-store";
 import type { TrackingSession } from "@/lib/tracking/types";
 import { getCountryFromRequest } from "@/lib/tracking/geo";
+
+const BOT_UA_RE = /bot|crawl|spider|headless|facebookexternalhit|whatsapp|telegram|slack|linkedinbot|preview/i;
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +18,8 @@ export async function POST(req: NextRequest) {
 
     const now = new Date().toISOString();
     const country = getCountryFromRequest(req);
+    const userAgent = req.headers.get("user-agent") ?? undefined;
+    const isBot = !userAgent || BOT_UA_RE.test(userAgent);
 
     switch (action) {
       case "start": {
@@ -33,6 +38,26 @@ export async function POST(req: NextRequest) {
           country,
         };
         trackingStore.upsertSession(session);
+        // Persist to DB (best-effort)
+        prisma.trackingSessionLog
+          .upsert({
+            where: { id: sessionId },
+            create: {
+              id: sessionId,
+              userId: userId ?? null,
+              entryPath: path || "/",
+              deviceType: deviceType || "desktop",
+              referrer: referrer ?? null,
+              utmSource: utmSource ?? null,
+              utmMedium: utmMedium ?? null,
+              utmCampaign: utmCampaign ?? null,
+              country: country ?? null,
+              userAgent: userAgent ?? null,
+              isBot,
+            },
+            update: { lastActiveAt: new Date(now) },
+          })
+          .catch(() => null);
         break;
       }
       case "heartbeat": {
@@ -48,10 +73,26 @@ export async function POST(req: NextRequest) {
             country: existing.country || country,
           });
         }
+        prisma.trackingSessionLog
+          .update({
+            where: { id: sessionId },
+            data: {
+              lastActiveAt: new Date(now),
+              exitPath: path ?? undefined,
+              userId: userId ?? undefined,
+            },
+          })
+          .catch(() => null);
         break;
       }
       case "end": {
         trackingStore.endSession(sessionId);
+        prisma.trackingSessionLog
+          .update({
+            where: { id: sessionId },
+            data: { endedAt: new Date(now), exitPath: path ?? undefined },
+          })
+          .catch(() => null);
         break;
       }
       default:

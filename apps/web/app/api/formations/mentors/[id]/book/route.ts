@@ -129,18 +129,38 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
-    // ── STEP 1: Create booking in PAYMENT_PENDING state (no escrow yet) ────
+    // ── STEP 0: Check if student has an active pack for this mentor ────
+    // If yes, consume 1 session and bypass payment. We fetch candidates then
+    // filter in JS because Prisma does not support field-vs-field comparison
+    // in `where` (we'd need a raw query otherwise).
+    const candidates = await prisma.mentorSessionPackPurchase
+      .findMany({
+        where: {
+          userId: studentId,
+          refundedAt: null,
+          expiresAt: { gt: new Date() },
+          pack: { mentorId: mentor.id, isActive: true },
+        },
+        include: { pack: true },
+        orderBy: { expiresAt: "asc" }, // consume the oldest one first
+      })
+      .catch(() => []);
+    const activePack = candidates.find((p) => p.sessionsConsumed < p.sessionsTotal) ?? null;
+
+    // ── STEP 1: Create booking (PAYMENT_PENDING or CONFIRMED via pack) ────
     const booking = await prisma.mentorBooking.create({
       data: {
         mentorId: mentor.id,
         studentId,
-        status: "PAYMENT_PENDING",
+        status: activePack ? "CONFIRMED" : "PAYMENT_PENDING",
         scheduledAt: slotDate,
         durationMinutes: duration,
-        paidAmount: mentor.sessionPrice,
+        paidAmount: activePack ? 0 : mentor.sessionPrice,
         studentGoals: studentGoals.trim(),
         meetingRoomId: "",
-        escrowStatus: "NONE",
+        escrowStatus: activePack ? "RELEASED" : "NONE",
+        packPurchaseId: activePack?.id ?? null,
+        paidAt: activePack ? new Date() : null,
       },
     });
 
@@ -150,6 +170,24 @@ export async function POST(request: Request, { params }: Params) {
       where: { id: booking.id },
       data: { meetingRoomId: roomId },
     });
+
+    // Consume one session from the pack
+    if (activePack) {
+      await prisma.mentorSessionPackPurchase.update({
+        where: { id: activePack.id },
+        data: { sessionsConsumed: { increment: 1 } },
+      });
+      return NextResponse.json({
+        data: {
+          bookingId: booking.id,
+          scheduledAt: booking.scheduledAt,
+          usedPack: true,
+          remainingSessions: activePack.sessionsTotal - activePack.sessionsConsumed - 1,
+          checkoutUrl: null,
+          provider: "pack",
+        },
+      });
+    }
 
     // ── STEP 2: Init payment (Moneroo or mock) ────────────────────────────
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { ToastContainer } from "@/components/ui/toast";
+import CookieBanner from "@/components/legal/CookieBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function FormationsLayout({
       <main className="flex-1 pt-24 overflow-x-hidden">{children}</main>
       <FormationsFooter />
       <ToastContainer />
+      <CookieBanner />
     </div>
   );
 }

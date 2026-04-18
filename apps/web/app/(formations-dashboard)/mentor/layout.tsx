@@ -11,6 +11,8 @@ const NAV = [
   { icon: "event", label: "Mon calendrier", href: "/mentor/calendrier" },
   { icon: "event_available", label: "Mes rendez-vous", href: "/mentor/rendez-vous" },
   { icon: "groups", label: "Mes apprenants", href: "/mentor/apprenants" },
+  { icon: "inventory_2", label: "Packs de sessions", href: "/mentor/packs" },
+  { icon: "folder_open", label: "Ressources", href: "/mentor/ressources" },
   { icon: "payments", label: "Finances", href: "/mentor/finances" },
   { icon: "verified_user", label: "Vérification KYC", href: "/kyc" },
   { icon: "account_circle", label: "Profil public", href: "/mentor/profil" },
