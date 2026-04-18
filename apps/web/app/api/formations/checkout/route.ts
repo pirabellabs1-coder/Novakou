@@ -11,6 +11,8 @@ import {
 import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
 import crypto from "crypto";
 import { cookies } from "next/headers";
+import { initPayment, isMonerooConfigured } from "@/lib/moneroo";
+import { fulfillCheckout } from "@/lib/formations/fulfillment";
 
 /**
  * POST /api/formations/checkout
@@ -181,17 +183,72 @@ export async function POST(request: Request) {
       console.warn("[checkout affiliate cookie]", err);
     }
 
-    // ─── Payment processing (placeholder for real integration) ───
-    // TODO: integrate CinetPay / Stripe properly
-    // For now, if paymentMethod is "card" + Stripe configured → would create payment intent
-    // If "orange_money/wave/mtn" + CinetPay configured → would init payment
-    // For the moment we treat paymentMethod="free" or any → as paid (suitable for dev/MVP)
+    // ─── Payment processing ──────────────────────────────────────
+    // Si Moneroo est configuré ET commande payante, on redirige vers Moneroo.
+    // Le fulfillment (création enrollments + crédit wallet + emails) se fera
+    // dans /api/webhooks/moneroo après confirmation réelle du paiement.
+    //
+    // Commandes gratuites (totalAmount = 0) : fulfillment immédiat.
+    // Moneroo non configuré (ex. dev) : fulfillment immédiat (mode mock).
+    const isFree = totalAmount <= 0 || paymentMethod === "free";
+    const useMoneroo = !isFree && isMonerooConfigured();
+
+    if (useMoneroo) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+      const fName = user.name ?? user.email.split("@")[0];
+      const [first, ...rest] = fName.split(" ");
+      const last = rest.join(" ") || first;
+
+      try {
+        const moneroo = await initPayment({
+          amount: totalAmount,
+          currency: "XOF",
+          description: `Commande Novakou #${sessionRef}`,
+          customer: {
+            email: user.email,
+            first_name: first || "Client",
+            last_name: last || "—",
+          },
+          return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(sessionRef)}`,
+          metadata: {
+            type: "formations_checkout",
+            sessionRef,
+            userId,
+            // Stocké en JSON string car les providers limitent souvent
+            // les metadata à des primitives.
+            formationIds: JSON.stringify(formationIds),
+            productIds: JSON.stringify(productIds),
+            discountCode: discountCodeStr ?? "",
+            affiliateProfileId: affiliateProfile?.id ?? "",
+            affiliateCommissionRate: String(affiliateCommissionRate),
+            paymentMethod,
+          },
+        });
+
+        // On NE crée PAS encore les enrollments — le webhook le fera.
+        return NextResponse.json({
+          data: {
+            needsPayment: true,
+            checkoutUrl: moneroo.checkout_url,
+            monerooPaymentId: moneroo.id,
+            sessionRef,
+            subTotal,
+            discountAmount,
+            totalAmount,
+          },
+        });
+      } catch (err) {
+        console.error("[checkout] Moneroo init failed, fallback to mock:", err);
+        // Fall through vers le fulfillment immédiat (dev/mock)
+      }
+    }
+    // ─────────────────────────────────────────────────────────────
+    // Fulfillment immédiat (commande gratuite OU Moneroo indisponible/mock)
     const paymentStatus: "paid" | "pending" | "failed" = "paid";
 
     if (paymentStatus !== "paid") {
       return NextResponse.json({ error: "Paiement échoué" }, { status: 402 });
     }
-    // ─────────────────────────────────────────────────────────────
 
     const createdEnrollments: { id: string; title: string; price: number }[] = [];
     const createdPurchases: { id: string; title: string; price: number }[] = [];

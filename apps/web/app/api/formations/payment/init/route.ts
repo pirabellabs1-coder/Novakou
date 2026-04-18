@@ -165,6 +165,9 @@ export async function POST(request: Request) {
       },
       return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}`,
       metadata: {
+        // Type discriminator lu par /api/webhooks/moneroo pour router le fulfillment
+        type: "formations_checkout",
+        sessionRef: internalRef,
         userId,
         formationIds: formationIds.join(","),
         productIds: productIds.join(","),

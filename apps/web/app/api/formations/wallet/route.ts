@@ -308,15 +308,49 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const amount = Number(body.amount);
-    const method: string = body.method;
-    const accountDetails = body.accountDetails ?? {};
+    let method: string = body.method;
+    let accountDetails = body.accountDetails ?? {};
     const source: "vendor" | "mentor" = body.source === "mentor" ? "mentor" : "vendor";
 
     if (!amount || amount < 1000) {
       return NextResponse.json({ error: "Montant minimum : 1 000 FCFA" }, { status: 400 });
     }
+
+    // Si la méthode ou les détails ne sont pas fournis, on utilise le compte
+    // marqué « principal » dans les paramètres de paiement du vendeur
+    // (/vendeur/parametres → Paiements → Comptes de retrait).
+    if (source === "vendor" && (!method || !accountDetails || Object.keys(accountDetails).length === 0)) {
+      try {
+        const inst = await prisma.instructeurProfile.findUnique({
+          where: { userId },
+          select: { payoutMethods: true },
+        });
+        const methods = (inst?.payoutMethods as Array<{
+          method: string;
+          primary?: boolean;
+          phone?: string;
+          iban?: string;
+          email?: string;
+        }> | null) ?? [];
+        const primary = methods.find((m) => m.primary) ?? methods[0];
+        if (primary) {
+          if (!method) method = primary.method;
+          if (!accountDetails || Object.keys(accountDetails).length === 0) {
+            accountDetails = {
+              phone: primary.phone,
+              iban: primary.iban,
+              email: primary.email,
+            };
+          }
+        }
+      } catch { /* fall through */ }
+    }
+
     if (!method) {
-      return NextResponse.json({ error: "Méthode de retrait requise" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Méthode de retrait requise. Configurez un compte principal dans Paramètres → Paiements." },
+        { status: 400 },
+      );
     }
 
     // ── KYC CHECK : obligatoire pour tout retrait (vendeur ou mentor) ──
