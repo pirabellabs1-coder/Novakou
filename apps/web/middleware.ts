@@ -255,7 +255,10 @@ export async function middleware(req: NextRequest) {
   // Toutes les autres routes necessitent une authentification
   if (!isAuthenticated) {
     const callbackUrl = encodeURIComponent(pathname);
-    return withLocaleCookie(NextResponse.redirect(new URL(`/connexion?callbackUrl=${callbackUrl}`, req.url)));
+    // Route les acheteurs (espace apprenant) vers leur page de connexion dédiée
+    // avec OTP par email, pas vers la page vendeur /connexion (email + password).
+    const loginPath = pathname.startsWith("/apprenant") ? "/acheteur/connexion" : "/connexion";
+    return withLocaleCookie(NextResponse.redirect(new URL(`${loginPath}?callbackUrl=${callbackUrl}`, req.url)));
   }
 
   // 2FA en attente : on force la page /2fa tant que le code TOTP n'a pas
