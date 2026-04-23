@@ -13,6 +13,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { ensurePrimaryShop } from "@/lib/formations/ensure-primary-shop";
 import type { getServerSession } from "next-auth";
 
 export const ACTIVE_SHOP_COOKIE = "nk_active_shop";
@@ -43,6 +44,12 @@ export async function resolveActiveShop(
 ): Promise<ActiveShopContext | null> {
   const ctx = await resolveVendorContext(session, opts);
   if (!ctx) return null;
+
+  // ✨ Garantit qu'au moins une boutique primaire existe (auto-create si absent)
+  await ensurePrimaryShop({
+    instructeurId: ctx.instructeurId,
+    userId: ctx.userId,
+  });
 
   const allShops = await prisma.vendorShop.findMany({
     where: { instructeurId: ctx.instructeurId },

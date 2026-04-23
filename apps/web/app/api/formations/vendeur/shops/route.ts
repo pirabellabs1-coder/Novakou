@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { ensurePrimaryShop } from "@/lib/formations/ensure-primary-shop";
 
 const MAX_SHOPS = 5;
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
@@ -33,7 +34,15 @@ export async function GET() {
   const r = await ctx();
   if ("error" in r) return NextResponse.json({ error: r.error }, { status: r.status });
 
-  // 1) Shops du propriétaire (instructeurId match)
+  // ✨ Auto-crée une boutique primaire si le vendeur n'en a AUCUNE
+  // (cas du vendeur qui devient instructeur APRÈS inscription, sans passer
+  // par le flow register avec formationsRole=instructeur)
+  await ensurePrimaryShop({
+    instructeurId: r.ctx.instructeurId,
+    userId: r.ctx.userId,
+  });
+
+  // 1) Shops du propriétaire (instructeurId match) — après ensurePrimaryShop
   const ownShops = await prisma.vendorShop.findMany({
     where: { instructeurId: r.ctx.instructeurId },
     orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
