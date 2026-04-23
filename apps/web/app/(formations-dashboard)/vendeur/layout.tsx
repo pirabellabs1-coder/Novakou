@@ -23,7 +23,7 @@ const navItems: NavItem[] = [
   // Catalogue
   { icon: "storefront", label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
   { icon: "category", label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
-  { icon: "store", label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
+  { icon: "store", label: "Ma boutique", href: "/vendeur/boutiques", section: "Catalogue" },
   { icon: "receipt_long", label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
   { icon: "account_balance_wallet", label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
   // Croissance

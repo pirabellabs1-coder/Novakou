@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useToastStore } from "@/store/toast";
 
 interface Shop {
@@ -17,6 +18,7 @@ interface Shop {
 }
 
 export default function VendorShopsPage() {
+  const router = useRouter();
   const [shops, setShops] = useState<Shop[]>([]);
   const [max, setMax] = useState(5);
   const [loading, setLoading] = useState(true);
@@ -29,8 +31,17 @@ export default function VendorShopsPage() {
       const res = await fetch("/api/formations/vendeur/shops");
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Erreur");
-      setShops(json.data?.shops ?? []);
+      const list = (json.data?.shops ?? []) as Shop[];
+      setShops(list);
       setMax(json.data?.max ?? 5);
+
+      // Si UNE SEULE boutique → redirect direct vers son édition (personnalisation)
+      // Cohérent avec : le vendeur mono-shop veut accéder à SA boutique sans passer
+      // par une liste d'un seul item.
+      if (list.length === 1) {
+        router.replace(`/vendeur/boutiques/${list[0].id}`);
+        return;
+      }
     } catch (e) {
       toast("error", e instanceof Error ? e.message : "Chargement impossible");
     } finally {
@@ -40,6 +51,7 @@ export default function VendorShopsPage() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleCreate(e: React.FormEvent) {
