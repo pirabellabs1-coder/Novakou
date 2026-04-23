@@ -81,25 +81,11 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
     if (added || adding) return;
     setAdding(true);
     try {
-      const body = item.kind === "formation"
-        ? { formationIds: [item.id] }
-        : { productIds: [item.id] };
-      const res = await fetch("/api/formations/payment/init", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const json = await res.json();
-      if (json.data?.checkout_url) {
-        // Redirect to Moneroo checkout (or mock return page in dev)
-        window.location.href = json.data.checkout_url;
-      } else if (json.requireAuth) {
-        const returnTo = encodeURIComponent(window.location.pathname);
-        window.location.href = `/inscription?role=apprenant&returnTo=${returnTo}`;
-      } else {
-        useToastStore.getState().addToast("error", json.error ?? "Erreur lors de l'initialisation du paiement");
-        setAdding(false);
-      }
+      // Redirige vers notre page /checkout personnalisée (contact + méthode + résumé sur UNE page)
+      // au lieu d'appeler directement Moneroo (qui afficherait son propre formulaire 2 étapes).
+      const qs = item.kind === "formation" ? `fids=${item.id}` : `pids=${item.id}`;
+      window.location.href = `/checkout?${qs}`;
+      return;
     } catch (err) {
       console.error(err);
       setAdding(false);

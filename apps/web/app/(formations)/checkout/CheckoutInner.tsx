@@ -186,7 +186,7 @@ export default function CheckoutInner() {
   async function handlePay() {
     if (!termsAccepted) { setError("Veuillez accepter les conditions générales."); return; }
     if (!email) { setError("Adresse email requise."); return; }
-    if (isMobileMoney && !phone) { setError("Numéro de téléphone requis pour Mobile Money."); return; }
+    // Téléphone non obligatoire ici — Moneroo le demandera si Mobile Money
     if (cartItems.length === 0) { setError("Votre panier est vide."); return; }
 
     setLoading(true);
@@ -312,7 +312,8 @@ export default function CheckoutInner() {
             </div>
           </div>
 
-          {/* Payment method */}
+          {/* Payment method — MASQUÉ : Moneroo gère la sélection de méthode sur sa page */}
+          {false && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
@@ -402,11 +403,39 @@ export default function CheckoutInner() {
               </div>
             )}
           </div>
+          )}
+
+          {/* Info : paiement géré par Moneroo */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-[#006e2f] text-[24px] mt-0.5">lock</span>
+              <div>
+                <h2 className="font-bold text-[#191c1e] mb-1">Paiement sécurisé</h2>
+                <p className="text-sm text-[#5c647a] leading-relaxed">
+                  Après avoir cliqué sur <strong>Payer</strong>, vous serez redirigé vers notre partenaire de paiement sécurisé <strong>Moneroo</strong> où vous pourrez choisir votre moyen de paiement : <span className="text-[#006e2f] font-semibold">Orange Money, MTN MoMo, Moov Money, Wave, carte Visa / Mastercard, crypto</span>, etc.
+                </p>
+                <div className="flex items-center gap-3 mt-3">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
+                    <span className="material-symbols-outlined text-[14px] text-[#006e2f]">verified</span>
+                    SSL
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
+                    <span className="material-symbols-outlined text-[14px] text-[#006e2f]">shield</span>
+                    Anti-fraude
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
+                    <span className="material-symbols-outlined text-[14px] text-[#006e2f]">autorenew</span>
+                    Remboursable 30j
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Discount code */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">3</span>
+              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
               Code promo (optionnel)
             </h2>
             <div className="flex gap-3">
