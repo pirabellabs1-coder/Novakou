@@ -50,6 +50,24 @@ function devDelete(bucket: string, filePath: string): boolean {
   }
 }
 
+/** Auto-créé le bucket s'il n'existe pas (idempotent). */
+async function ensureBucketExists(bucket: StorageBucket): Promise<void> {
+  if (!supabase) return;
+  try {
+    const { data: existing } = await supabase.storage.getBucket(bucket);
+    if (existing) return; // existe déjà
+  } catch {
+    // getBucket throw si n'existe pas — on tombe dans le create
+  }
+  const { error } = await supabase.storage.createBucket(bucket, {
+    public: false,
+    fileSizeLimit: 52428800, // 50MB
+  });
+  if (error && !error.message?.includes("already exists")) {
+    console.warn("[Supabase Storage] Create bucket error:", error.message);
+  }
+}
+
 // Upload a file to a private Supabase Storage bucket (falls back to local in dev)
 export async function uploadFile(
   bucket: StorageBucket,
@@ -60,6 +78,9 @@ export async function uploadFile(
   // Try Supabase first
   if (supabase) {
     try {
+      // Auto-create bucket si absent (premier upload de la vie de la plateforme)
+      await ensureBucketExists(bucket);
+
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(path, file, { contentType, upsert: true });
@@ -68,6 +89,17 @@ export async function uploadFile(
         return { url: data.path, path: data.path };
       }
       console.error("[Supabase Storage] Upload error:", error);
+
+      // Si erreur "Bucket not found", retry après create explicite
+      if (error?.message?.toLowerCase().includes("bucket not found")) {
+        await ensureBucketExists(bucket);
+        const retry = await supabase.storage
+          .from(bucket)
+          .upload(path, file, { contentType, upsert: true });
+        if (!retry.error && retry.data) {
+          return { url: retry.data.path, path: retry.data.path };
+        }
+      }
     } catch (err) {
       console.error("[Supabase Storage] Upload exception:", err);
     }

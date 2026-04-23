@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { uploadImage } from "@/lib/cloudinary";
+import { uploadFile, getSignedUrl, type StorageBucket } from "@/lib/supabase-storage";
+import crypto from "crypto";
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -61,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Upload to Cloudinary
+    // 1. Essai Cloudinary (premier choix — CDN, transforms)
     const result = await uploadImage(buffer, {
       folder: "novakou/services",
       publicId: `svc_${session.user.id}_${Date.now()}`,
@@ -75,19 +77,38 @@ export async function POST(request: NextRequest) {
         height: result.height,
         format: result.format,
         id: result.publicId,
+        provider: "cloudinary",
       });
     }
 
-    // Fallback for local dev without Cloudinary configured
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${file.type};base64,${base64}`;
+    // 2. Fallback Supabase Storage (fonctionne sur Vercel prod)
+    try {
+      const ext = file.type.split("/")[1] || "bin";
+      const suffix = crypto.randomBytes(6).toString("hex");
+      const safeUser = session.user.id.replace(/[^a-zA-Z0-9]/g, "").slice(0, 16);
+      const filename = `${Date.now()}-${safeUser}-${suffix}.${ext}`;
+      const bucket: StorageBucket = "agency-resources";
+      const storagePath = `services/${safeUser}/${filename}`;
+      const supabase = await uploadFile(bucket, storagePath, buffer, file.type);
+      if (supabase) {
+        const signed = await getSignedUrl(bucket, supabase.path, 60 * 60 * 24 * 7);
+        if (signed) {
+          return NextResponse.json({
+            url: signed,
+            publicId: supabase.path,
+            id: supabase.path,
+            provider: "supabase",
+          });
+        }
+      }
+    } catch (err) {
+      console.error("[Upload service-image] Supabase fallback failed:", err);
+    }
 
-    return NextResponse.json({
-      url: dataUrl,
-      width: 1260,
-      height: 708,
-      id: `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    });
+    return NextResponse.json(
+      { error: "Stockage indisponible. Réessayez dans quelques instants." },
+      { status: 503 }
+    );
   } catch (error) {
     console.error("[Upload service-image] Error:", error);
     return NextResponse.json({ error: "Erreur lors de l'upload" }, { status: 500 });

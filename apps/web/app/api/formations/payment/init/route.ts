@@ -148,19 +148,19 @@ export async function POST(request: Request) {
     const internalRef = `mnr:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
     const fName = userName ?? userEmail?.split("@")[0] ?? "Apprenant";
     const [first, ...rest] = fName.split(" ");
-    const last = rest.join(" ") || first;
+    const last = rest.join(" ") || "User";
 
     // Phone number from body — required for Mobile Money methods
     const phoneRaw: string | undefined = body.phone?.toString().replace(/\s/g, "") || undefined;
 
     const moneroo = await initPayment({
-      amount: totalAmount,
+      amount: Math.round(totalAmount),
       currency: "XOF", // FCFA West Africa CFA franc
       description: `Achat Novakou — ${formations.length + products.length} produit(s)`,
       customer: {
-        email: userEmail!,
+        email: userEmail || "client@novakou.com",
         first_name: first || "Apprenant",
-        last_name: last || "—",
+        last_name: last,
         phone: phoneRaw,
       },
       return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}`,
@@ -190,6 +190,6 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[payment/init]", err);
     const message = err instanceof Error ? err.message : "Erreur inconnue";
-    return NextResponse.json({ error: "Échec d'initialisation du paiement", message }, { status: 500 });
+    return NextResponse.json({ error: `Moneroo: ${message}` }, { status: 500 });
   }
 }

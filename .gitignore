@@ -89,3 +89,6 @@ Partie formation du site/
 # Uploads locaux (dev) - garder le dossier mais ignorer le contenu
 apps/web/public/uploads/*
 !apps/web/public/uploads/.gitkeep
+ajouter_cle_vercel.js
+ajouter_*.js
+_*.mjs

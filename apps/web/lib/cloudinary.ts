@@ -1,12 +1,34 @@
 import { v2 as cloudinary } from "cloudinary";
 
-// Configure Cloudinary from env
-if (process.env.CLOUDINARY_URL) {
-  // CLOUDINARY_URL format: cloudinary://API_KEY:API_SECRET@CLOUD_NAME
-  // cloudinary.config() auto-parses CLOUDINARY_URL from env
-} else {
-  console.warn("[Cloudinary] CLOUDINARY_URL not configured");
+// Configure Cloudinary explicitly at module load.
+// Le SDK Cloudinary lit CLOUDINARY_URL automatiquement mais on force la config
+// pour éviter les problèmes de timing sur Vercel serverless où les env vars
+// peuvent être disponibles APRÈS l'import du module.
+function ensureCloudinaryConfig() {
+  const cfg = process.env.CLOUDINARY_URL;
+  if (cfg) {
+    // Parse cloudinary://API_KEY:API_SECRET@CLOUD_NAME
+    const match = cfg.match(/^cloudinary:\/\/([^:]+):([^@]+)@(.+)$/);
+    if (match) {
+      cloudinary.config({
+        cloud_name: match[3],
+        api_key: match[1],
+        api_secret: match[2],
+        secure: true,
+      });
+    }
+  } else if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
+    });
+  } else {
+    console.warn("[Cloudinary] No CLOUDINARY_URL or CLOUDINARY_* env vars configured");
+  }
 }
+ensureCloudinaryConfig();
 
 export interface UploadResult {
   url: string;
@@ -25,7 +47,16 @@ export async function uploadImage(
     publicId?: string;
   } = {}
 ): Promise<UploadResult | null> {
-  if (!process.env.CLOUDINARY_URL) return null;
+  // Vérifie au runtime (plus fiable que juste CLOUDINARY_URL)
+  const hasConfig =
+    !!process.env.CLOUDINARY_URL ||
+    (!!process.env.CLOUDINARY_CLOUD_NAME &&
+      !!process.env.CLOUDINARY_API_KEY &&
+      !!process.env.CLOUDINARY_API_SECRET);
+  if (!hasConfig) {
+    console.warn("[Cloudinary] Upload skipped — not configured");
+    return null;
+  }
 
   try {
     const result = await cloudinary.uploader.upload(
@@ -33,7 +64,7 @@ export async function uploadImage(
         ? file
         : `data:image/png;base64,${file.toString("base64")}`,
       {
-        folder: options.folder || "freelancehigh",
+        folder: options.folder || "novakou",
         public_id: options.publicId,
         transformation: options.transformation,
         overwrite: true,
@@ -48,7 +79,7 @@ export async function uploadImage(
       format: result.format,
     };
   } catch (error) {
-    console.error("[Cloudinary] Upload error:", error);
+    console.error("[Cloudinary] Upload error:", error instanceof Error ? error.message : error);
     return null;
   }
 }
