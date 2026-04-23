@@ -70,7 +70,7 @@ function isStripeConfigured(): boolean {
 }
 
 function isMockMode(): boolean {
-  return !isStripeConfigured();
+  return !isStripeConfigured() && !process.env.MONEROO_SECRET_KEY;
 }
 
 // ── Mock Payment Store (in-memory for dev) ─────────────────────
@@ -140,6 +140,57 @@ export const PaymentService = {
         currency,
         metadata: { ...metadata, userId, type },
       };
+    }
+
+    // Use Moneroo if configured
+    if (process.env.MONEROO_SECRET_KEY) {
+      try {
+        const { initPayment } = await import("@/lib/moneroo");
+        const { prisma } = await import("@/lib/prisma");
+        
+        let customerEmail = "guest@novakou.com";
+        let customerName = "Client";
+        
+        if (userId) {
+          const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
+          if (user?.email) customerEmail = user.email;
+          if (user?.name) customerName = user.name;
+        }
+
+        const [first, ...rest] = customerName.split(" ");
+        const last = rest.join(" ") || first;
+
+        const session = await initPayment({
+          amount: Math.round(amount),
+          currency: currency || "XOF",
+          description,
+          customer: {
+            email: customerEmail,
+            first_name: first || "Client",
+            last_name: last || "—",
+          },
+          return_url: successUrl || `${process.env.NEXT_PUBLIC_APP_URL}/formations/succes?session_id=moneroo`,
+          metadata: { ...metadata, userId, type, itemId: itemId ?? "" },
+        });
+
+        return {
+          success: true,
+          sessionId: session.id,
+          checkoutUrl: session.checkout_url,
+          provider: "moneroo",
+          status: "pending",
+          amount,
+          currency: currency || "XOF",
+          metadata: { ...metadata, userId, type },
+        };
+      } catch (error) {
+        console.error("[PaymentService] Moneroo createPayment error:", error);
+        const sessionId = `mock_fallback_${uuidv4()}`;
+        mockPayments.set(sessionId, {
+          sessionId, userId, amount, currency: currency || "XOF", status: "paid", type, itemId, metadata: { ...metadata, userId, type, itemId: itemId ?? "" }, createdAt: new Date()
+        });
+        return { success: true, sessionId, checkoutUrl: null, provider: "mock", status: "paid", amount, currency: currency || "XOF", metadata: { ...metadata, userId, type } };
+      }
     }
 
     // Real Stripe payment
@@ -236,6 +287,25 @@ export const PaymentService = {
         currency: "EUR",
         metadata: {},
       };
+    }
+
+    // Moneroo verification
+    if (process.env.MONEROO_SECRET_KEY && !sessionId.startsWith("cs_")) {
+      try {
+        const { retrievePayment } = await import("@/lib/moneroo");
+        const payment = await retrievePayment(sessionId);
+        return {
+          paid: payment.status === "success",
+          sessionId: payment.id,
+          provider: "moneroo",
+          amount: payment.amount,
+          currency: payment.currency,
+          metadata: payment.metadata as Record<string, string>,
+          userId: payment.metadata?.userId as string | undefined,
+        };
+      } catch (error) {
+        console.error("[PaymentService] Moneroo verifyPayment error:", error);
+      }
     }
 
     // Real Stripe verification

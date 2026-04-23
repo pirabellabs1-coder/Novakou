@@ -1,8 +1,484 @@
 
-> @freelancehigh/web@0.0.1 build /mnt/c/FreelanceHigh/apps/web
+> @freelancehigh/web@0.0.1 build C:\Novakou\apps\web
 > next build
 
    ▲ Next.js 15.5.12
    - Environments: .env.local
 
    Creating an optimized production build ...
+ ✓ Compiled successfully in 60s
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+[Stripe] STRIPE_SECRET_KEY not configured
+[Cloudinary] CLOUDINARY_URL not configured
+[Cloudinary] CLOUDINARY_URL not configured
+[Cloudinary] CLOUDINARY_URL not configured
+ ⚠ Using edge runtime on a page currently disables static generation for that page
+   Generating static pages (0/350) ...
+[Stripe] STRIPE_SECRET_KEY not configured
+[Cloudinary] CLOUDINARY_URL not configured
+   Generating static pages (87/350) 
+   Generating static pages (174/350) 
+   Generating static pages (262/350) 
+ ✓ Generating static pages (350/350)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                     Size  First Load JS  Revalidate  Expire
+┌ ƒ /                                                         1.4 kB         113 kB
+├ ƒ /_not-found                                                833 B         103 kB
+├ ƒ /2fa                                                      2.3 kB         117 kB
+├ ƒ /a-propos                                                  194 B         106 kB
+├ ƒ /admin-login/formations/[token]                          2.39 kB         114 kB
+├ ƒ /admin-login/marketplace/[token]                         2.38 kB         114 kB
+├ ƒ /admin/commentaires                                      2.08 kB         113 kB
+├ ƒ /admin/configuration                                     3.95 kB         115 kB
+├ ƒ /admin/dashboard                                         7.96 kB         234 kB
+├ ƒ /admin/kyc                                               5.67 kB         116 kB
+├ ƒ /admin/mentor-disputes                                    5.7 kB         116 kB
+├ ƒ /admin/produits                                           4.3 kB         115 kB
+├ ƒ /admin/signalements                                      2.23 kB         113 kB
+├ ƒ /admin/suppressions                                      2.62 kB         105 kB
+├ ƒ /admin/transactions                                      2.29 kB         113 kB
+├ ƒ /admin/utilisateurs                                      4.75 kB         116 kB
+├ ƒ /affiliation                                             3.83 kB         118 kB
+├ ƒ /affilie/commissions                                      2.2 kB         113 kB
+├ ƒ /affilie/dashboard                                       3.37 kB         127 kB
+├ ƒ /affilie/liens                                           3.99 kB         115 kB
+├ ƒ /affilie/performances                                    2.73 kB         113 kB
+├ ƒ /affilie/retraits                                        4.81 kB         116 kB
+├ ƒ /aide                                                    16.7 kB         123 kB
+├ ● /aide/[categorie]                                          194 B         106 kB
+├   ├ /aide/demarrer
+├   ├ /aide/vendre
+├   ├ /aide/mentorat
+├   └ [+6 more paths]
+├ ● /aide/[categorie]/[slug]                                   166 B         106 kB
+├   ├ /aide/demarrer/creer-un-compte
+├   ├ /aide/demarrer/verification-kyc
+├   ├ /aide/vendre/creer-formation
+├   └ [+19 more paths]
+├ ƒ /api/admin/analytics                                       833 B         103 kB
+├ ƒ /api/admin/audit-log                                       833 B         103 kB
+├ ƒ /api/admin/badges                                          833 B         103 kB
+├ ƒ /api/admin/boosts                                          833 B         103 kB
+├ ƒ /api/admin/categories                                      833 B         103 kB
+├ ƒ /api/admin/comptabilite                                    833 B         103 kB
+├ ƒ /api/admin/config                                          833 B         103 kB
+├ ƒ /api/admin/dashboard                                       833 B         103 kB
+├ ƒ /api/admin/disputes                                        833 B         103 kB
+├ ƒ /api/admin/email-test                                      833 B         103 kB
+├ ƒ /api/admin/emails/test                                     833 B         103 kB
+├ ƒ /api/admin/equipe/invite                                   833 B         103 kB
+├ ƒ /api/admin/finances                                        833 B         103 kB
+├ ƒ /api/admin/finances/[id]                                   833 B         103 kB
+├ ƒ /api/admin/kyc                                             833 B         103 kB
+├ ƒ /api/admin/kyc/details                                     833 B         103 kB
+├ ƒ /api/admin/notifications/history                           833 B         103 kB
+├ ƒ /api/admin/notifications/send                              833 B         103 kB
+├ ƒ /api/admin/orders                                          833 B         103 kB
+├ ƒ /api/admin/orders/[id]                                     833 B         103 kB
+├ ƒ /api/admin/reset-data                                      833 B         103 kB
+├ ƒ /api/admin/seed                                            833 B         103 kB
+├ ƒ /api/admin/seed-marketplace                                833 B         103 kB
+├ ƒ /api/admin/services                                        833 B         103 kB
+├ ƒ /api/admin/services/[id]                                   833 B         103 kB
+├ ƒ /api/admin/suppressions                                    833 B         103 kB
+├ ƒ /api/admin/suppressions/[id]                               833 B         103 kB
+├ ƒ /api/admin/team                                            833 B         103 kB
+├ ƒ /api/admin/users                                           833 B         103 kB
+├ ƒ /api/admin/users/[id]                                      833 B         103 kB
+├ ƒ /api/admin/users/[id]/impersonate                          833 B         103 kB
+├ ƒ /api/admin/users/[id]/reset-password                       833 B         103 kB
+├ ƒ /api/admin/users/search                                    833 B         103 kB
+├ ƒ /api/admin/verify-access-token                             833 B         103 kB
+├ ƒ /api/admin/wallet                                          833 B         103 kB
+├ ƒ /api/affiliation                                           833 B         103 kB
+├ ƒ /api/agence/clients/notes                                  833 B         103 kB
+├ ƒ /api/agence/equipe                                         833 B         103 kB
+├ ƒ /api/agence/equipe/[memberId]                              833 B         103 kB
+├ ƒ /api/agence/equipe/invite                                  833 B         103 kB
+├ ƒ /api/agence/orders                                         833 B         103 kB
+├ ƒ /api/agence/orders/[id]/assign                             833 B         103 kB
+├ ƒ /api/auth/[...nextauth]                                    833 B         103 kB
+├ ƒ /api/auth/account/deletion-request                         833 B         103 kB
+├ ƒ /api/auth/confirm-password-reset                           833 B         103 kB
+├ ƒ /api/auth/me                                               833 B         103 kB
+├ ƒ /api/auth/me-2fa                                           833 B         103 kB
+├ ƒ /api/auth/register                                         833 B         103 kB
+├ ƒ /api/auth/request-password-reset                           833 B         103 kB
+├ ƒ /api/auth/reset-password                                   833 B         103 kB
+├ ƒ /api/auth/sessions                                         833 B         103 kB
+├ ƒ /api/auth/setup-2fa                                        833 B         103 kB
+├ ƒ /api/auth/update-formations-role                           833 B         103 kB
+├ ƒ /api/auth/verify-2fa                                       833 B         103 kB
+├ ƒ /api/auth/verify-email                                     833 B         103 kB
+├ ƒ /api/automation                                            833 B         103 kB
+├ ƒ /api/billing/invoices                                      833 B         103 kB
+├ ƒ /api/billing/invoices/[id]/pdf                             833 B         103 kB
+├ ƒ /api/candidatures                                          833 B         103 kB
+├ ƒ /api/candidatures/[id]/accept                              833 B         103 kB
+├ ƒ /api/candidatures/[id]/refuse                              833 B         103 kB
+├ ƒ /api/categories                                            833 B         103 kB
+├ ƒ /api/contact                                               833 B         103 kB
+├ ƒ /api/conversations                                         833 B         103 kB
+├ ƒ /api/conversations/[id]/messages                           833 B         103 kB
+├ ƒ /api/conversations/[id]/messages/[messageId]               833 B         103 kB
+├ ƒ /api/conversations/[id]/messages/[messageId]/transcribe    833 B         103 kB
+├ ƒ /api/conversations/[id]/read                               833 B         103 kB
+├ ƒ /api/conversations/offer                                   833 B         103 kB
+├ ƒ /api/cron/abandoned-cart-check                             833 B         103 kB
+├ ƒ /api/cron/abandoned-cart-email                             833 B         103 kB
+├ ƒ /api/cron/account-deletion-cooldown                        833 B         103 kB
+├ ƒ /api/cron/churn-alert                                      833 B         103 kB
+├ ƒ /api/cron/cohort-status                                    833 B         103 kB
+├ ƒ /api/cron/deadline-reminder                                833 B         103 kB
+├ ƒ /api/cron/flash-promo-expiry                               833 B         103 kB
+├ ƒ /api/cron/mentor-escrow                                    833 B         103 kB
+├ ƒ /api/cron/mentor-reminders                                 833 B         103 kB
+├ ƒ /api/debug-media                                           833 B         103 kB
+├ ƒ /api/disputes/[id]/cancel                                  833 B         103 kB
+├ ƒ /api/disputes/[id]/settle                                  833 B         103 kB
+├ ƒ /api/downloads                                             833 B         103 kB
+├ ƒ /api/favorites                                             833 B         103 kB
+├ ƒ /api/feed                                                  833 B         103 kB
+├ ƒ /api/files/signed-url                                      833 B         103 kB
+├ ƒ /api/finances/summary                                      833 B         103 kB
+├ ƒ /api/finances/transactions                                 833 B         103 kB
+├ ƒ /api/finances/withdrawal                                   833 B         103 kB
+├ ƒ /api/formations/admin/charts                               833 B         103 kB
+├ ƒ /api/formations/admin/commentaires                         833 B         103 kB
+├ ƒ /api/formations/admin/configuration                        833 B         103 kB
+├ ƒ /api/formations/admin/dashboard                            833 B         103 kB
+├ ƒ /api/formations/admin/kyc                                  833 B         103 kB
+├ ƒ /api/formations/admin/kyc/[id]                             833 B         103 kB
+├ ƒ /api/formations/admin/mentor-disputes                      833 B         103 kB
+├ ƒ /api/formations/admin/mentor-disputes/[id]                 833 B         103 kB
+├ ƒ /api/formations/admin/produits                             833 B         103 kB
+├ ƒ /api/formations/admin/produits/[id]                        833 B         103 kB
+├ ƒ /api/formations/admin/seed-products                        833 B         103 kB
+├ ƒ /api/formations/admin/signalements                         833 B         103 kB
+├ ƒ /api/formations/admin/transactions                         833 B         103 kB
+├ ƒ /api/formations/admin/utilisateurs                         833 B         103 kB
+├ ƒ /api/formations/admin/utilisateurs/[id]                    833 B         103 kB
+├ ƒ /api/formations/admin/wipe-demo                            833 B         103 kB
+├ ƒ /api/formations/admin/withdrawals/[id]                     833 B         103 kB
+├ ƒ /api/formations/affilie/catalog                            833 B         103 kB
+├ ƒ /api/formations/affilie/commissions                        833 B         103 kB
+├ ƒ /api/formations/affilie/performances                       833 B         103 kB
+├ ƒ /api/formations/affilie/retraits                           833 B         103 kB
+├ ƒ /api/formations/affilie/stats                              833 B         103 kB
+├ ƒ /api/formations/apprenant/affiliate                        833 B         103 kB
+├ ƒ /api/formations/apprenant/cart                             833 B         103 kB
+├ ƒ /api/formations/apprenant/certificates                     833 B         103 kB
+├ ƒ /api/formations/apprenant/commandes                        833 B         103 kB
+├ ƒ /api/formations/apprenant/dashboard                        833 B         103 kB
+├ ƒ /api/formations/apprenant/enrollments                      833 B         103 kB
+├ ƒ /api/formations/apprenant/formation/[id]                   833 B         103 kB
+├ ƒ /api/formations/apprenant/gamification                     833 B         103 kB
+├ ƒ /api/formations/apprenant/lessons/[id]/complete            833 B         103 kB
+├ ƒ /api/formations/apprenant/mentors                          833 B         103 kB
+├ ƒ /api/formations/apprenant/products                         833 B         103 kB
+├ ƒ /api/formations/apprenant/sessions                         833 B         103 kB
+├ ƒ /api/formations/apprenant/sessions/[id]                    833 B         103 kB
+├ ƒ /api/formations/apprenant/sessions/[id]/review             833 B         103 kB
+├ ƒ /api/formations/apprenant/spending                         833 B         103 kB
+├ ƒ /api/formations/checkout                                   833 B         103 kB
+├ ƒ /api/formations/contact                                    833 B         103 kB
+├ ƒ /api/formations/dev/send-all-emails                        833 B         103 kB
+├ ƒ /api/formations/dev/send-sale-email                        833 B         103 kB
+├ ƒ /api/formations/dev/test-email                             833 B         103 kB
+├ ƒ /api/formations/discount/evaluate                          833 B         103 kB
+├ ƒ /api/formations/gift                                       833 B         103 kB
+├ ƒ /api/formations/kyc                                        833 B         103 kB
+├ ƒ /api/formations/mentor-bookings/[id]/attendance            833 B         103 kB
+├ ƒ /api/formations/mentor-bookings/[id]/confirm-payment       833 B         103 kB
+├ ƒ /api/formations/mentor/availability                        833 B         103 kB
+├ ƒ /api/formations/mentor/availability-slots                  833 B         103 kB
+├ ƒ /api/formations/mentor/bookings                            833 B         103 kB
+├ ƒ /api/formations/mentor/bookings/[id]                       833 B         103 kB
+├ ƒ /api/formations/mentor/dashboard                           833 B         103 kB
+├ ƒ /api/formations/mentor/notes                               833 B         103 kB
+├ ƒ /api/formations/mentor/notes/[id]                          833 B         103 kB
+├ ƒ /api/formations/mentor/packs                               833 B         103 kB
+├ ƒ /api/formations/mentor/packs/[id]/purchase                 833 B         103 kB
+├ ƒ /api/formations/mentor/profile                             833 B         103 kB
+├ ƒ /api/formations/mentor/resources                           833 B         103 kB
+├ ƒ /api/formations/mentors                                    833 B         103 kB
+├ ƒ /api/formations/mentors/[id]/book                          833 B         103 kB
+├ ƒ /api/formations/mentors/[id]/slots                         833 B         103 kB
+├ ƒ /api/formations/messages/conversations                     833 B         103 kB
+├ ƒ /api/formations/messages/conversations/[id]                833 B         103 kB
+├ ƒ /api/formations/newsletter                                 833 B         103 kB
+├ ƒ /api/formations/payment/init                               833 B         103 kB
+├ ƒ /api/formations/payment/verify                             833 B         103 kB
+├ ƒ /api/formations/public/explorer                            833 B         103 kB
+├ ƒ /api/formations/public/formation/[slug]                    833 B         103 kB
+├ ƒ /api/formations/public/funnel-item                         833 B         103 kB
+├ ƒ /api/formations/public/funnel/[slug]                       833 B         103 kB
+├ ƒ /api/formations/public/instructeur/[id]                    833 B         103 kB
+├ ƒ /api/formations/public/mentors/[id]                        833 B         103 kB
+├ ƒ /api/formations/public/produit/[slug]                      833 B         103 kB
+├ ƒ /api/formations/public/stats                               833 B         103 kB
+├ ƒ /api/formations/public/validate-discount                   833 B         103 kB
+├ ƒ /api/formations/quiz/[formationId]                         833 B         103 kB
+├ ƒ /api/formations/reviews                                    833 B         103 kB
+├ ƒ /api/formations/sessions/[id]                              833 B         103 kB
+├ ƒ /api/formations/upsell                                     833 B         103 kB
+├ ƒ /api/formations/vendeur/api-keys                           833 B         103 kB
+├ ƒ /api/formations/vendeur/api-keys/[id]                      833 B         103 kB
+├ ƒ /api/formations/vendeur/automatisations                    833 B         103 kB
+├ ƒ /api/formations/vendeur/automatisations/[id]               833 B         103 kB
+├ ƒ /api/formations/vendeur/automatisations/test-email         833 B         103 kB
+├ ƒ /api/formations/vendeur/automatisations/test-webhook       833 B         103 kB
+├ ƒ /api/formations/vendeur/bundles                            833 B         103 kB
+├ ƒ /api/formations/vendeur/catalog                            833 B         103 kB
+├ ƒ /api/formations/vendeur/communaute                         833 B         103 kB
+├ ƒ /api/formations/vendeur/dashboard                          833 B         103 kB
+├ ƒ /api/formations/vendeur/domain                             833 B         103 kB
+├ ƒ /api/formations/vendeur/domain/verify                      833 B         103 kB
+├ ƒ /api/formations/vendeur/formations                         833 B         103 kB
+├ ƒ /api/formations/vendeur/formations/[id]                    833 B         103 kB
+├ ƒ /api/formations/vendeur/funnels                            833 B         103 kB
+├ ƒ /api/formations/vendeur/funnels/[id]                       833 B         103 kB
+├ ƒ /api/formations/vendeur/integrations                       833 B         103 kB
+├ ƒ /api/formations/vendeur/lessons                            833 B         103 kB
+├ ƒ /api/formations/vendeur/lessons/[id]                       833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing                          833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/affiliation              833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/affiliation/[id]         833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/campagnes                833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/campagnes/[id]           833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/codes-promo              833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/codes-promo/[id]         833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/pixels                   833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/popups                   833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/popups/[id]              833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/sequences                833 B         103 kB
+├ ƒ /api/formations/vendeur/marketing/sequences/[id]           833 B         103 kB
+├ ƒ /api/formations/vendeur/messages                           833 B         103 kB
+├ ƒ /api/formations/vendeur/payment-settings                   833 B         103 kB
+├ ƒ /api/formations/vendeur/products/[id]                      833 B         103 kB
+├ ƒ /api/formations/vendeur/products/create                    833 B         103 kB
+├ ƒ /api/formations/vendeur/profile                            833 B         103 kB
+├ ƒ /api/formations/vendeur/resources                          833 B         103 kB
+├ ƒ /api/formations/vendeur/sections                           833 B         103 kB
+├ ƒ /api/formations/vendeur/sections/[id]                      833 B         103 kB
+├ ƒ /api/formations/vendeur/shops                              833 B         103 kB
+├ ƒ /api/formations/vendeur/shops/[id]                         833 B         103 kB
+├ ƒ /api/formations/vendeur/shops/[id]/domain                  833 B         103 kB
+├ ƒ /api/formations/vendeur/shops/[id]/domain/verify           833 B         103 kB
+├ ƒ /api/formations/vendeur/shops/active                       833 B         103 kB
+├ ƒ /api/formations/vendeur/stats                              833 B         103 kB
+├ ƒ /api/formations/vendeur/transactions                       833 B         103 kB
+├ ƒ /api/formations/wallet                                     833 B         103 kB
+├ ƒ /api/invoices                                              833 B         103 kB
+├ ƒ /api/invoices/[id]/email                                   833 B         103 kB
+├ ƒ /api/invoices/[id]/pdf                                     833 B         103 kB
+├ ƒ /api/kyc                                                   833 B         103 kB
+├ ƒ /api/link-preview                                          833 B         103 kB
+├ ƒ /api/marketing/affiliate                                   833 B         103 kB
+├ ƒ /api/marketing/affiliate/click                             833 B         103 kB
+├ ƒ /api/marketing/affiliate/join                              833 B         103 kB
+├ ƒ /api/marketing/affiliate/payout                            833 B         103 kB
+├ ƒ /api/marketing/affiliate/stats                             833 B         103 kB
+├ ƒ /api/marketing/affiliate/track                             833 B         103 kB
+├ ƒ /api/marketing/analytics                                   833 B         103 kB
+├ ƒ /api/marketing/campaigns                                   833 B         103 kB
+├ ƒ /api/marketing/campaigns/[slug]                            833 B         103 kB
+├ ƒ /api/marketing/discounts                                   833 B         103 kB
+├ ƒ /api/marketing/discounts/validate                          833 B         103 kB
+├ ƒ /api/marketing/flash-offers                                833 B         103 kB
+├ ƒ /api/marketing/funnels                                     833 B         103 kB
+├ ƒ /api/marketing/funnels/[id]/duplicate                      833 B         103 kB
+├ ƒ /api/marketing/funnels/[id]/events                         833 B         103 kB
+├ ƒ /api/marketing/funnels/checkout                            833 B         103 kB
+├ ƒ /api/marketing/overview                                    833 B         103 kB
+├ ƒ /api/marketing/popups                                      833 B         103 kB
+├ ƒ /api/marketing/popups/impression                           833 B         103 kB
+├ ƒ /api/marketing/sequences                                   833 B         103 kB
+├ ƒ /api/marketing/sequences/process                           833 B         103 kB
+├ ƒ /api/notifications                                         833 B         103 kB
+├ ƒ /api/offres                                                833 B         103 kB
+├ ƒ /api/offres/[id]                                           833 B         103 kB
+├ ƒ /api/offres/[id]/accept                                    833 B         103 kB
+├ ƒ /api/offres/[id]/refuse                                    833 B         103 kB
+├ ƒ /api/orders                                                833 B         103 kB
+├ ƒ /api/orders/[id]                                           833 B         103 kB
+├ ƒ /api/orders/[id]/messages                                  833 B         103 kB
+├ ƒ /api/orders/auto-cancel                                    833 B         103 kB
+├ ƒ /api/orders/auto-validate                                  833 B         103 kB
+├ ƒ /api/payment-methods                                       833 B         103 kB
+├ ƒ /api/payments/cinetpay                                     833 B         103 kB
+├ ƒ /api/plans/live                                            833 B         103 kB
+├ ƒ /api/productivite                                          833 B         103 kB
+├ ƒ /api/products/[id]/purchase                                833 B         103 kB
+├ ƒ /api/produits                                              833 B         103 kB
+├ ƒ /api/produits/[id]                                         833 B         103 kB
+├ ƒ /api/produits/[id]/download                                833 B         103 kB
+├ ƒ /api/produits/[id]/preview                                 833 B         103 kB
+├ ƒ /api/produits/checkout                                     833 B         103 kB
+├ ƒ /api/profile                                               833 B         103 kB
+├ ƒ /api/projects                                              833 B         103 kB
+├ ƒ /api/projects/[id]                                         833 B         103 kB
+├ ƒ /api/projects/[id]/bids                                    833 B         103 kB
+├ ƒ /api/propositions                                          833 B         103 kB
+├ ƒ /api/propositions/[id]                                     833 B         103 kB
+├ ƒ /api/public/agences/[slug]                                 833 B         103 kB
+├ ƒ /api/public/freelances/[username]                          833 B         103 kB
+├ ƒ /api/public/maintenance                                    833 B         103 kB
+├ ƒ /api/public/projects                                       833 B         103 kB
+├ ƒ /api/public/projects/[id]                                  833 B         103 kB
+├ ƒ /api/public/services                                       833 B         103 kB
+├ ƒ /api/public/services/[slug]                                833 B         103 kB
+├ ƒ /api/public/stats                                          833 B         103 kB
+├ ƒ /api/public/top-freelances                                 833 B         103 kB
+├ ƒ /api/public/top-services                                   833 B         103 kB
+├ ƒ /api/rank                                                  833 B         103 kB
+├ ƒ /api/reviews                                               833 B         103 kB
+├ ƒ /api/reviews/[id]/helpful                                  833 B         103 kB
+├ ƒ /api/reviews/[id]/reply                                    833 B         103 kB
+├ ƒ /api/reviews/[id]/report                                   833 B         103 kB
+├ ƒ /api/search                                                833 B         103 kB
+├ ƒ /api/services                                              833 B         103 kB
+├ ƒ /api/services/[id]                                         833 B         103 kB
+├ ƒ /api/services/[id]/boost                                   833 B         103 kB
+├ ƒ /api/services/[id]/seo                                     833 B         103 kB
+├ ƒ /api/services/[id]/toggle                                  833 B         103 kB
+├ ƒ /api/services/[id]/track-click                             833 B         103 kB
+├ ƒ /api/services/[id]/track-view                              833 B         103 kB
+├ ƒ /api/services/draft                                        833 B         103 kB
+├ ƒ /api/sessions                                              833 B         103 kB
+├ ƒ /api/signaling                                             833 B         103 kB
+├ ƒ /api/stats                                                 833 B         103 kB
+├ ƒ /api/subscription                                          833 B         103 kB
+├ ƒ /api/support-tickets                                       833 B         103 kB
+├ ƒ /api/support/ticket                                        833 B         103 kB
+├ ƒ /api/tracking/event                                        833 B         103 kB
+├ ƒ /api/tracking/service-stats/[id]                           833 B         103 kB
+├ ƒ /api/tracking/sessions                                     833 B         103 kB
+├ ƒ /api/tracking/stats                                        833 B         103 kB
+├ ƒ /api/turn-credentials                                      833 B         103 kB
+├ ƒ /api/upload/file                                           833 B         103 kB
+├ ƒ /api/upload/funnel-media                                   833 B         103 kB
+├ ƒ /api/upload/image                                          833 B         103 kB
+├ ƒ /api/upload/service-image                                  833 B         103 kB
+├ ƒ /api/v1/analytics                                          833 B         103 kB
+├ ƒ /api/v1/customers                                          833 B         103 kB
+├ ƒ /api/v1/orders                                             833 B         103 kB
+├ ƒ /api/v1/products                                           833 B         103 kB
+├ ƒ /api/wallet                                                833 B         103 kB
+├ ƒ /api/wallet/balance                                        833 B         103 kB
+├ ƒ /api/webhooks/cinetpay                                     833 B         103 kB
+├ ƒ /api/webhooks/moneroo                                      833 B         103 kB
+├ ƒ /api/webhooks/stripe                                       833 B         103 kB
+├ ƒ /apple-icon                                                833 B         103 kB
+├ ƒ /apprenant/affiliation                                   5.65 kB         129 kB
+├ ƒ /apprenant/certificats                                   3.03 kB         126 kB
+├ ƒ /apprenant/commandes                                     2.81 kB         117 kB
+├ ƒ /apprenant/commandes/[id]                                  194 B         106 kB
+├ ƒ /apprenant/dashboard                                     3.32 kB         127 kB
+├ ƒ /apprenant/depenses                                      2.64 kB         117 kB
+├ ƒ /apprenant/formation/[id]                                 5.7 kB         112 kB
+├ ƒ /apprenant/mentors                                       2.31 kB         116 kB
+├ ƒ /apprenant/mentors/[id]                                  3.92 kB         110 kB
+├ ƒ /apprenant/mes-formations                                 4.1 kB         118 kB
+├ ƒ /apprenant/panier                                        4.11 kB         118 kB
+├ ƒ /apprenant/parametres                                    4.42 kB         130 kB
+├ ƒ /apprenant/produits                                      4.44 kB         115 kB
+├ ƒ /apprenant/sessions                                      5.13 kB         111 kB
+├ ƒ /apprenant/sessions/[id]                                  4.2 kB         110 kB
+├ ƒ /backoffice/[slug]/connexion                             2.19 kB         114 kB
+├ ƒ /boutique/[slug]                                           133 B         115 kB
+├ ƒ /boutique/by-domain/[host]                                 133 B         115 kB
+├ ƒ /certificat/[code]                                         194 B         106 kB
+├ ƒ /cgu                                                       833 B         103 kB
+├ ƒ /checkout                                                5.12 kB         120 kB
+├ ƒ /confidentialite                                           833 B         103 kB
+├ ƒ /connexion                                               4.08 kB         119 kB
+├ ƒ /contact                                                 3.28 kB         109 kB
+├ ƒ /cookies                                                   194 B         106 kB
+├ ƒ /debug-media                                             3.69 kB         106 kB
+├ ƒ /developer                                               2.69 kB         115 kB
+├ ƒ /developer/docs                                          10.5 kB         116 kB
+├ ƒ /explorer                                                7.96 kB         122 kB
+├ ƒ /f/[slug]                                                 9.7 kB         112 kB
+├ ƒ /formation/[slug]                                         4.7 kB         111 kB
+├ ƒ /formation/[slug]/quiz                                   2.02 kB         108 kB
+├ ƒ /freelances                                                194 B         106 kB
+├ ƒ /icon                                                      833 B         103 kB
+├ ƒ /inscription                                              4.8 kB         120 kB
+├ ƒ /instructeurs/[id]                                       3.48 kB         118 kB
+├ ƒ /kyc                                                     6.33 kB         117 kB
+├ ƒ /maintenance                                             1.21 kB         104 kB
+├ ○ /manifest.webmanifest                                      833 B         103 kB
+├ ƒ /mentor/apprenants                                       2.73 kB         109 kB
+├ ƒ /mentor/calendrier                                       5.62 kB         112 kB
+├ ƒ /mentor/dashboard                                        5.63 kB         112 kB
+├ ƒ /mentor/finances                                         4.25 kB         110 kB
+├ ƒ /mentor/packs                                            2.98 kB         106 kB
+├ ƒ /mentor/profil                                           6.57 kB         240 kB
+├ ƒ /mentor/rendez-vous                                      4.19 kB         110 kB
+├ ƒ /mentor/ressources                                        3.3 kB         106 kB
+├ ƒ /mentors                                                 4.02 kB         110 kB
+├ ƒ /mentors/[id]                                            6.28 kB         121 kB
+├ ƒ /mentors/[id]/reserver                                   5.38 kB         120 kB
+├ ƒ /messages                                                2.35 kB         113 kB
+├ ƒ /messages/[id]                                           3.37 kB         118 kB
+├ ƒ /mot-de-passe-oublie                                     1.95 kB         108 kB
+├ ƒ /opengraph-image                                           833 B         103 kB
+├ ƒ /panier                                                  3.23 kB         114 kB
+├ ƒ /partenaires                                               194 B         106 kB
+├ ƒ /payment/return                                          2.19 kB         108 kB
+├ ƒ /produit/[slug]                                          4.08 kB         110 kB
+├ ƒ /reinitialiser-mot-de-passe                              2.43 kB         108 kB
+├ ○ /robots.txt                                                833 B         103 kB
+├ ƒ /services                                                  194 B         106 kB
+├ ƒ /sessions/[id]/salle                                     2.55 kB         109 kB
+├ ○ /sitemap.xml                                               833 B         103 kB          1m      1y
+├ ƒ /tarifs                                                  4.82 kB         111 kB
+├ ƒ /vendeur/api-keys                                        6.57 kB         121 kB
+├ ƒ /vendeur/automatisations                                 9.69 kB         124 kB
+├ ƒ /vendeur/automatisations/[id]                              13 kB         247 kB
+├ ƒ /vendeur/boutiques                                       2.87 kB         109 kB
+├ ƒ /vendeur/boutiques/[id]                                  6.47 kB         112 kB
+├ ƒ /vendeur/bundles                                         3.91 kB         106 kB
+├ ƒ /vendeur/choisir-boutique                                2.63 kB         109 kB
+├ ƒ /vendeur/coaching                                        2.91 kB         126 kB
+├ ƒ /vendeur/communaute                                      2.28 kB         113 kB
+├ ƒ /vendeur/cours/[id]/editer                               10.5 kB         125 kB
+├ ƒ /vendeur/dashboard                                       10.1 kB         240 kB
+├ ƒ /vendeur/marketing                                       3.48 kB         118 kB
+├ ƒ /vendeur/marketing/affiliation                           6.17 kB         117 kB
+├ ƒ /vendeur/marketing/campagnes                             5.91 kB         117 kB
+├ ƒ /vendeur/marketing/codes-promo                           5.63 kB         116 kB
+├ ƒ /vendeur/marketing/funnels                               2.98 kB         109 kB
+├ ƒ /vendeur/marketing/funnels/[id]                          32.5 kB         138 kB
+├ ƒ /vendeur/marketing/pixels                                4.93 kB         116 kB
+├ ƒ /vendeur/marketing/popups                                5.99 kB         117 kB
+├ ƒ /vendeur/marketing/sequences                             5.82 kB         117 kB
+├ ƒ /vendeur/marketing/sequences/[id]                        3.61 kB         237 kB
+├ ƒ /vendeur/messages                                          553 B         103 kB
+├ ƒ /vendeur/parametres                                      10.8 kB         136 kB
+├ ƒ /vendeur/produits                                         3.5 kB         118 kB
+├ ƒ /vendeur/produits/[id]/editer                            4.31 kB         250 kB
+├ ƒ /vendeur/produits/creer                                   6.6 kB         248 kB
+├ ƒ /vendeur/profil                                          5.16 kB         119 kB
+├ ƒ /vendeur/ressources                                      2.34 kB         108 kB
+├ ƒ /vendeur/statistiques                                    4.83 kB         232 kB
+├ ƒ /vendeur/transactions                                    3.84 kB         219 kB
+├ ƒ /verifier-email                                          2.84 kB         118 kB
+└ ƒ /wallet                                                  4.96 kB         111 kB
++ First Load JS shared by all                                 103 kB
+  ├ chunks/1941-0ef26c9311ce8234.js                          46.2 kB
+  ├ chunks/a3c0f6c7-2f4f37ee53590d48.js                      54.2 kB
+  └ other shared chunks (total)                              2.09 kB
+
+
+ƒ Middleware                                                 55.7 kB
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

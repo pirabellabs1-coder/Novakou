@@ -551,7 +551,24 @@ export async function POST(request: NextRequest) {
         freelanceId: service.userId,
       });
 
-      return NextResponse.json({ order }, { status: 201 });
+      // Create payment session (Moneroo via PaymentService)
+      const { PaymentService } = await import("@/lib/payments/service");
+      const payment = await PaymentService.createPayment({
+        userId: session.user.id,
+        amount,
+        currency: "XOF",
+        description: `Commande ${order.id.slice(0, 8)} - ${service.title}`,
+        type: "marketplace_order",
+        itemId: order.id,
+        metadata: {
+          order_id: order.id,
+          platform: "freelancehigh"
+        },
+        successUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/commandes/${order.id}?success=1`,
+        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/commandes/${order.id}?cancel=1`,
+      });
+
+      return NextResponse.json({ order, checkoutUrl: payment.checkoutUrl }, { status: 201 });
     }
   } catch (error) {
     console.error("[API /orders POST]", error);

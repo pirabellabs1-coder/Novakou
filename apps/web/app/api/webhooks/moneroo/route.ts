@@ -130,6 +130,53 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, type: "mentor_booking" });
   }
 
+  if (type === "marketplace_order") {
+    const orderId = String(metadata.itemId ?? metadata.order_id ?? "");
+    if (orderId) {
+      await prisma.order
+        .update({
+          where: { id: orderId },
+          data: {
+            paymentStatus: "PAID",
+            paidAt: new Date(),
+          } as any,
+        })
+        .catch((err) => console.warn("[moneroo webhook marketplace order]", err));
+
+      // Update wallet transaction: mark escrow as released (if model exists)
+      try {
+        await (prisma as any).walletTransaction.updateMany({
+          where: {
+            orderId,
+            escrowStatus: "held",
+          },
+          data: {
+            escrowStatus: "released",
+            releasedAt: new Date(),
+          },
+        });
+      } catch {
+        // Ignore if model or field does not exist
+      }
+    }
+    return NextResponse.json({ ok: true, type: "marketplace_order" });
+  }
+
+  if (type === "subscription") {
+    const userId = String(metadata.userId ?? "");
+    const planId = String(metadata.itemId ?? metadata.plan_id ?? "");
+    if (userId && planId) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          subscriptionTier: planId.toUpperCase(),
+          subscriptionUpdatedAt: new Date(),
+        } as any,
+      }).catch((err) => console.warn("[moneroo webhook subscription]", err));
+    }
+    return NextResponse.json({ ok: true, type: "subscription" });
+  }
+
   // Type inconnu — on log et on renvoie OK pour que Moneroo ne retente pas
   console.warn("[moneroo webhook] unknown metadata type:", type);
   return NextResponse.json({ ok: true, ignored: true, reason: "unknown_type" });
