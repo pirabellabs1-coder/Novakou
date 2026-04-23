@@ -210,6 +210,79 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+
+    // ── Provider dédié ACHETEURS : login par email + OTP (sans password) ──
+    // Utilisé par /acheteur/connexion. L'OTP est envoyé par email via
+    // /api/auth/buyer/send-otp puis vérifié ici.
+    CredentialsProvider({
+      id: "buyer-otp",
+      name: "Acheteur OTP",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        otpCode: { label: "Code OTP", type: "text" },
+      },
+      async authorize(credentials) {
+        const email = (credentials?.email as string)?.toLowerCase().trim();
+        const otpCode = (credentials?.otpCode as string)?.trim();
+        if (!email || !otpCode) return null;
+
+        const { verifyOTP } = await import("./otp");
+        const result = await verifyOTP(email, otpCode);
+        if (!result.valid) {
+          throw new Error(result.error || "Code OTP invalide");
+        }
+
+        // Find or create user (guest checkout → on crée un compte light)
+        try {
+          const { prisma } = await import("@freelancehigh/db");
+          let user = await prisma.user.findUnique({
+            where: { email },
+            select: {
+              id: true, email: true, name: true, role: true, kyc: true, plan: true,
+              status: true, formationsRole: true,
+            },
+          });
+          if (!user) {
+            // Guest user qui vient d'acheter → on crée son compte
+            const created = await prisma.user.create({
+              data: {
+                email,
+                name: email.split("@")[0],
+                passwordHash: "", // login par OTP uniquement
+                role: "CLIENT",
+                status: "ACTIF",
+                emailVerified: new Date(),
+                formationsRole: "apprenant",
+              },
+              select: {
+                id: true, email: true, name: true, role: true, kyc: true, plan: true,
+                status: true, formationsRole: true,
+              },
+            });
+            user = created;
+          }
+          if (user.status !== "ACTIF") {
+            throw new Error("Votre compte est desactive.");
+          }
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name || email.split("@")[0],
+            role: (user.role ?? "CLIENT").toLowerCase(),
+            kyc: user.kyc ?? 1,
+            plan: mapPlanName(((user.plan as string) || "gratuit").toLowerCase()),
+            formationsRole: user.formationsRole?.toLowerCase() || "apprenant",
+            twoFactorEnabled: false,
+            requires2FA: false,
+          };
+        } catch (err) {
+          console.error("[AUTH buyer-otp]", err);
+          if (err instanceof Error && err.message.includes("desactive")) throw err;
+          return null;
+        }
+      },
+    }),
+
     // OAuth providers
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
       ? [

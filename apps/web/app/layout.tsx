@@ -166,7 +166,7 @@ export default async function RootLayout({
             ],
             contactPoint: {
               "@type": "ContactPoint",
-              email: "contact@novakou.com",
+              email: "support@novakou.com",
               contactType: "customer support",
               availableLanguage: ["French", "English"],
             },

@@ -125,7 +125,7 @@ export async function POST(request: Request) {
   }
 
   // Notify admins (best-effort)
-  const adminEmail = process.env.ADMIN_EMAIL || "contact@novakou.com";
+  const adminEmail = process.env.ADMIN_EMAIL || "support@novakou.com";
   sendEmail({
     to: adminEmail,
     subject: `[ADMIN] Nouvelle demande de suppression — ${user?.email ?? userId}`,

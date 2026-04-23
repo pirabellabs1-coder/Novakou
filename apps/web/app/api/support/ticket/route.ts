@@ -117,7 +117,7 @@ export async function POST(req: Request) {
   `);
 
   sendEmail({
-    from: `Novakou Support <contact@novakou.com>`,
+    from: `Novakou Support <support@novakou.com>`,
     to: "support@novakou.com",
     subject: `[${ticketRef}] ${category.toUpperCase()} — ${subject}`,
     html,

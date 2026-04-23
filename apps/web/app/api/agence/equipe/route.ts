@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
       const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
-      const from = process.env.EMAIL_FROM || "Novakou <contact@novakou.com>";
+      const from = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 
       const roleLabels: Record<string, string> = {
         PROPRIETAIRE: "Proprietaire",

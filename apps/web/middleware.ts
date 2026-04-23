@@ -41,10 +41,11 @@ const PUBLIC_ROUTES = [
   "/backoffice", // Admin secret login (slug validé côté page server)
   "/f", // Public funnel landing pages
   "/invitation", // Pages d'acceptation d'invitations équipe boutique
+  "/acheteur",   // Espace acheteur — connexion OTP dédiée (pas de password)
 ];
 
 // Routes auth — accessibles uniquement si NON connecte
-const AUTH_ROUTES = ["/connexion", "/inscription", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe", "/onboarding", "/verifier-email", "/2fa"];
+const AUTH_ROUTES = ["/connexion", "/inscription", "/mot-de-passe-oublie", "/reinitialiser-mot-de-passe", "/onboarding", "/verifier-email", "/2fa", "/acheteur/connexion"];
 
 
 

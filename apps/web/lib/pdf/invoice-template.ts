@@ -110,7 +110,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
     "Novakou SAS",
     "123 Avenue de la Tech",
     "75001 Paris, France",
-    "contact@novakou.com",
+    "support@novakou.com",
     "SIRET : 123 456 789 00000",
   ];
 
@@ -233,7 +233,7 @@ export function generateInvoicePDF(invoice: InvoiceData): ArrayBuffer {
     { align: "center" }
   );
   doc.text(
-    "www.novakou.com | contact@novakou.com | SIRET 123 456 789 00000",
+    "www.novakou.com | support@novakou.com | SIRET 123 456 789 00000",
     pageWidth / 2,
     footerY + 4,
     { align: "center" }

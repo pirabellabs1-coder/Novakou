@@ -78,7 +78,7 @@ export async function POST(request: Request) {
     `;
 
     await sendEmail({
-      from: `${fromName} <no-reply@novakou.com>`,
+      from: `${fromName} <support@novakou.com>`,
       to,
       subject: `[TEST] ${subject}`,
       html: `${testBanner}${html}`,

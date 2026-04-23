@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       try {
         const resend = new Resend(resendKey);
         await resend.emails.send({
-          from: "Novakou <contact@novakou.com>",
+          from: "Novakou <support@novakou.com>",
           to: "support@novakou.com",
           replyTo: email,
           subject: `[Contact] ${subject ?? "general"} — ${name}`,

@@ -225,11 +225,11 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           commissionAmount: affAmount,
           status: "PENDING",
         },
-      }).catch(() => null);
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
       await prisma.affiliateProfile.update({
         where: { id: affiliate.profileId },
         data: { totalConversions: { increment: 1 }, pendingEarnings: { increment: affAmount } },
-      }).catch(() => null);
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
 
     createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
@@ -244,7 +244,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         totalDiscounted: { increment: discountAmount },
         revenue: { increment: totalAmount },
       },
-    }).catch(() => null);
+    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     await prisma.discountUsage.create({
       data: {
         discountId: appliedCode.id,
@@ -255,14 +255,14 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         discountAmount,
         finalAmount: totalAmount,
       },
-    }).catch(() => null);
+    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
   }
 
   // ── Vider le panier (formations) ────────────────────────────────────
   if (formationIds.length > 0) {
     await prisma.cartItem.deleteMany({
       where: { userId, formationId: { in: formationIds } },
-    }).catch(() => null);
+    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
   }
 
   // ── Notification récap acheteur ─────────────────────────────────────
@@ -279,7 +279,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         message: `Votre achat est confirmé : ${summary}.`,
         link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/produits",
       },
-    }).catch(() => null);
+    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
   }
 
   // ── Emails (best-effort) ────────────────────────────────────────────
@@ -296,7 +296,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       formationSlug: f.slug,
       paidAmount: Number((created.price / eurRate).toFixed(2)),
       locale: "fr",
-    }).catch(() => null);
+    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
 
     const vendorEmail = f.instructeur?.user?.email;
     const vendorName = f.instructeur?.user?.name ?? "Vendeur";
@@ -308,7 +308,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         studentName: fName,
         formationTitle: f.title,
         paidAmount: created.price,
-      }).catch(() => null);
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
     if (vendorUserId) {
       prisma.notification.create({
@@ -319,7 +319,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           message: `${fName} vient d'acheter votre formation « ${f.title} » pour ${Math.round(created.price * VENDOR_NET_RATE)} FCFA nets.`,
           link: "/vendeur/dashboard",
         },
-      }).catch(() => null);
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
   }
 
@@ -333,7 +333,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       productTitle: p.title,
       downloadUrl,
       locale: "fr",
-    }).catch(() => null);
+    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
 
     const vendorEmail = p.instructeur?.user?.email;
     const vendorName = p.instructeur?.user?.name ?? "Vendeur";
@@ -345,7 +345,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         studentName: fName,
         formationTitle: p.title,
         paidAmount: created.price,
-      }).catch(() => null);
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
     if (vendorUserId) {
       prisma.notification.create({
@@ -356,7 +356,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           message: `${fName} vient d'acheter votre produit « ${p.title} » pour ${Math.round(created.price * VENDOR_NET_RATE)} FCFA nets.`,
           link: "/vendeur/dashboard",
         },
-      }).catch(() => null);
+      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
   }
 
