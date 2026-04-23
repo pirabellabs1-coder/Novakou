@@ -21,9 +21,47 @@ export type MonerooInitParams = {
     phone?: string;
   };
   return_url: string;        // where Moneroo redirects after payment
-  metadata?: Record<string, string | number>;
+  /**
+   * Moneroo exige que chaque valeur metadata soit string / boolean / integer.
+   * On accepte `unknown` ici et on sanitize dans initPayment — les arrays sont
+   * sérialisés CSV, les objets en JSON, les null/undefined deviennent "".
+   */
+  metadata?: Record<string, unknown>;
   methods?: string[];        // optional payment method codes
 };
+
+/**
+ * Sanitize la metadata pour respecter les contraintes Moneroo :
+ * - string / boolean / integer uniquement (pas d'array, pas d'objet, pas de null)
+ * - clés ignorées si la valeur est undefined/null/objet vide
+ * - les arrays sont joints en CSV (ex: ["a","b"] → "a,b")
+ * - les objets sont JSON-stringifiés
+ * - tous les autres types sont coercés en String()
+ */
+function sanitizeMetadata(meta?: Record<string, unknown>): Record<string, string | number | boolean> | undefined {
+  if (!meta) return undefined;
+  const out: Record<string, string | number | boolean> = {};
+  for (const [k, v] of Object.entries(meta)) {
+    if (v === null || v === undefined) continue;
+    if (typeof v === "string" || typeof v === "boolean") {
+      out[k] = v;
+    } else if (typeof v === "number") {
+      out[k] = Number.isFinite(v) ? v : String(v);
+    } else if (Array.isArray(v)) {
+      // Array → comma-separated string (le webhook parse avec parseIdList)
+      out[k] = v.filter((x) => x !== null && x !== undefined).map((x) => String(x)).join(",");
+    } else if (typeof v === "object") {
+      try {
+        out[k] = JSON.stringify(v);
+      } catch {
+        // ignore
+      }
+    } else {
+      out[k] = String(v);
+    }
+  }
+  return out;
+}
 
 export type MonerooInitResponse = {
   message: string;
@@ -51,6 +89,18 @@ export type MonerooRetrieveResponse = {
 /** Initialize a Moneroo payment session. Returns the checkout URL to redirect to. */
 export async function initPayment(params: MonerooInitParams): Promise<MonerooInitResponse["data"]> {
   const apiKey = getApiKey();
+
+  // Build clean payload : metadata sanitized, customer required fields, amount rounded
+  const payload = {
+    amount: Math.round(params.amount),
+    currency: params.currency,
+    description: params.description,
+    customer: params.customer,
+    return_url: params.return_url,
+    metadata: sanitizeMetadata(params.metadata),
+    ...(params.methods && params.methods.length > 0 ? { methods: params.methods } : {}),
+  };
+
   const res = await fetch(`${MONEROO_API_BASE}/payments/initialize`, {
     method: "POST",
     headers: {
@@ -58,11 +108,18 @@ export async function initPayment(params: MonerooInitParams): Promise<MonerooIni
       Authorization: `Bearer ${apiKey}`,
       Accept: "application/json",
     },
-    body: JSON.stringify(params),
+    body: JSON.stringify(payload),
   });
-  const json = (await res.json()) as MonerooInitResponse | { message?: string; error?: string };
+  const json = (await res.json()) as MonerooInitResponse | { message?: string; error?: string; errors?: Record<string, string[]> };
   if (!res.ok || !("data" in json) || !json.data?.checkout_url) {
-    const msg = ("message" in json && json.message) || ("error" in json && json.error) || "Moneroo init failed";
+    // Moneroo renvoie parfois un champ `errors` avec détails par champ (ex: metadata.formationIds)
+    let msg = ("message" in json && json.message) || ("error" in json && json.error) || "Moneroo init failed";
+    if ("errors" in json && json.errors && typeof json.errors === "object") {
+      const details = Object.entries(json.errors as Record<string, string[]>)
+        .map(([k, arr]) => `${k}: ${Array.isArray(arr) ? arr.join(" / ") : String(arr)}`)
+        .join(" | ");
+      if (details) msg = `${msg} — ${details}`;
+    }
     throw new Error(msg);
   }
   return json.data;
