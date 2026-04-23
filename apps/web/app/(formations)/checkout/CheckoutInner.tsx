@@ -309,6 +309,52 @@ export default function CheckoutInner() {
                 />
                 <p className="text-[10px] text-[#5c647a] mt-1">Votre reçu et accès seront envoyés à cette adresse.</p>
               </div>
+
+              {/* Téléphone avec drapeau pays (utilisé par Moneroo pour Mobile Money) */}
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">
+                  Numéro de téléphone <span className="text-[#5c647a] font-normal">(WhatsApp de préférence)</span>
+                </label>
+                <div className="flex gap-2">
+                  <div className="relative flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setCountryOpen((v) => !v)}
+                      className="h-full px-3 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] min-w-[100px]"
+                    >
+                      <span className="text-base leading-none">{selectedCountry.flag}</span>
+                      <span className="font-semibold">{selectedCountry.code}</span>
+                      <span className="material-symbols-outlined text-[14px] text-[#5c647a]">expand_more</span>
+                    </button>
+                    {countryOpen && (
+                      <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-64 max-h-72 overflow-y-auto">
+                        {COUNTRIES.map((c) => (
+                          <button
+                            key={c.iso}
+                            type="button"
+                            onClick={() => { setCountryCode(c.code); setCountryOpen(false); }}
+                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-green-50 text-left ${countryCode === c.code ? "bg-green-50 text-[#006e2f] font-semibold" : "text-[#191c1e]"}`}
+                          >
+                            <span className="text-base">{c.flag}</span>
+                            <span className="flex-1">{c.label}</span>
+                            <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/[^\d\s]/g, ""))}
+                    placeholder="01 57 33 57 26"
+                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                  />
+                </div>
+                <p className="text-[10px] text-[#5c647a] mt-1">
+                  Requis si vous payez par Mobile Money (Orange, MTN, Moov, Wave).
+                </p>
+              </div>
             </div>
           </div>
 
@@ -404,33 +450,6 @@ export default function CheckoutInner() {
             )}
           </div>
           )}
-
-          {/* Info : paiement géré par Moneroo */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-start gap-3">
-              <span className="material-symbols-outlined text-[#006e2f] text-[24px] mt-0.5">lock</span>
-              <div>
-                <h2 className="font-bold text-[#191c1e] mb-1">Paiement sécurisé</h2>
-                <p className="text-sm text-[#5c647a] leading-relaxed">
-                  Après avoir cliqué sur <strong>Payer</strong>, vous serez redirigé vers notre partenaire de paiement sécurisé <strong>Moneroo</strong> où vous pourrez choisir votre moyen de paiement : <span className="text-[#006e2f] font-semibold">Orange Money, MTN MoMo, Moov Money, Wave, carte Visa / Mastercard, crypto</span>, etc.
-                </p>
-                <div className="flex items-center gap-3 mt-3">
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[14px] text-[#006e2f]">verified</span>
-                    SSL
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[14px] text-[#006e2f]">shield</span>
-                    Anti-fraude
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[14px] text-[#006e2f]">autorenew</span>
-                    Remboursable 30j
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Discount code */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">

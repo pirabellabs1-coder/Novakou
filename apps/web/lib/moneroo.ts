@@ -42,25 +42,37 @@ function sanitizeMetadata(meta?: Record<string, unknown>): Record<string, string
   if (!meta) return undefined;
   const out: Record<string, string | number | boolean> = {};
   for (const [k, v] of Object.entries(meta)) {
+    // Skip null / undefined (Moneroo n'accepte pas les values null)
     if (v === null || v === undefined) continue;
-    if (typeof v === "string" || typeof v === "boolean") {
-      out[k] = v;
+
+    let coerced: string | number | boolean | undefined;
+
+    if (typeof v === "boolean") {
+      coerced = v;
     } else if (typeof v === "number") {
-      out[k] = Number.isFinite(v) ? v : String(v);
+      coerced = Number.isFinite(v) ? v : String(v);
+    } else if (typeof v === "string") {
+      coerced = v;
     } else if (Array.isArray(v)) {
       // Array → comma-separated string (le webhook parse avec parseIdList)
-      out[k] = v.filter((x) => x !== null && x !== undefined).map((x) => String(x)).join(",");
+      coerced = v.filter((x) => x !== null && x !== undefined).map((x) => String(x)).join(",");
     } else if (typeof v === "object") {
       try {
-        out[k] = JSON.stringify(v);
+        coerced = JSON.stringify(v);
       } catch {
-        // ignore
+        coerced = String(v);
       }
     } else {
-      out[k] = String(v);
+      coerced = String(v);
     }
+
+    // Skip empty strings (Moneroo rejette "" dans metadata)
+    if (typeof coerced === "string" && coerced.length === 0) continue;
+    if (coerced === undefined) continue;
+
+    out[k] = coerced;
   }
-  return out;
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 export type MonerooInitResponse = {
