@@ -14,9 +14,44 @@
  */
 
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { retrievePayment } from "@/lib/moneroo";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
+
+/**
+ * Vérifie la signature HMAC Moneroo sur le body brut.
+ * Moneroo envoie un header `X-Moneroo-Signature` (ou `X-Hub-Signature-256`
+ * selon version) calculé en HMAC-SHA256 du body avec MONEROO_WEBHOOK_SECRET.
+ * Si le secret n'est PAS configuré côté server, on skip la vérif (le webhook
+ * restera protégé par la re-vérification via retrievePayment).
+ */
+function verifyMonerooSignature(rawBody: string, headers: Headers): boolean {
+  const secret = process.env.MONEROO_WEBHOOK_SECRET;
+  if (!secret) return true; // optional : safe car retrievePayment revérifie
+
+  const provided =
+    headers.get("x-moneroo-signature") ||
+    headers.get("x-hub-signature-256") ||
+    headers.get("x-webhook-signature") ||
+    "";
+  if (!provided) {
+    console.warn("[moneroo webhook] header signature manquant (secret configuré)");
+    return false;
+  }
+
+  const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+  // Format souvent préfixé par "sha256=<hex>"
+  const cleaned = provided.replace(/^sha256=/i, "").trim();
+  try {
+    const a = Buffer.from(cleaned, "hex");
+    const b = Buffer.from(expected, "hex");
+    if (a.length !== b.length) return false;
+    return crypto.timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
 
 interface MonerooWebhookPayload {
   event?: string;
@@ -28,9 +63,17 @@ interface MonerooWebhookPayload {
 }
 
 export async function POST(req: Request) {
+  // On lit le body brut AVANT de le parser, pour pouvoir vérifier la signature HMAC
+  const rawBody = await req.text();
+
+  if (!verifyMonerooSignature(rawBody, req.headers)) {
+    console.warn("[moneroo webhook] signature invalide — IP:", req.headers.get("x-forwarded-for") || "?");
+    return NextResponse.json({ error: "Signature invalide" }, { status: 401 });
+  }
+
   let body: MonerooWebhookPayload;
   try {
-    body = (await req.json()) as MonerooWebhookPayload;
+    body = JSON.parse(rawBody) as MonerooWebhookPayload;
   } catch {
     return NextResponse.json({ error: "Corps invalide" }, { status: 400 });
   }
