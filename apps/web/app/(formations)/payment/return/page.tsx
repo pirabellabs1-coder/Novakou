@@ -87,44 +87,47 @@ function ReturnInner() {
       }
 
       try {
-        const verify = await fetch(`/api/formations/payment/verify?id=${monerooId}`).then((r) => r.json());
+        // /verify fait maintenant TOUT : vérifie status Moneroo + fulfill (crée
+        // enrollments + crédite wallet + emails). Idempotent : si le webhook
+        // a déjà fulfill, il skip les existants. Pas besoin d'auth car on trust
+        // Moneroo comme source de vérité via retrievePayment.
+        const verifyRes = await fetch(`/api/formations/payment/verify?id=${monerooId}`);
+        const verify = await verifyRes.json();
+
         if (!verify.data) {
           setStatus("failed");
           setMessage(verify.error ?? "Vérification échouée");
           return;
         }
-        if (verify.data.status === "success") {
-          // Finalize via checkout API using metadata
-          const meta = verify.data.metadata || {};
-          const fids: string[] = (meta.formationIds || "").split(",").filter(Boolean);
-          const pids: string[] = (meta.productIds || "").split(",").filter(Boolean);
-          const code = meta.discountCode || undefined;
-          const res = await fetch("/api/formations/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ formationIds: fids, productIds: pids, discountCode: code, paymentMethod: "moneroo" }),
-          });
-          const json = await res.json();
-          if (json.data?.success) {
-            setStatus("success");
-            setMessage(`Achat confirmé : ${[...json.data.enrollments, ...json.data.purchases].length} produit(s)`);
-            setRedirectTo(json.data.enrollments?.length > 0
-              ? "/apprenant/mes-formations"
-              : "/apprenant/produits");
+
+        const paymentStatus = verify.data.status;
+
+        if (paymentStatus === "success") {
+          // Le verify a déjà fulfill (via fulfillCheckout)
+          const result = verify.data.result;
+          const enrollmentsCount = result?.enrollments?.length ?? 0;
+          const purchasesCount = result?.purchases?.length ?? 0;
+          const skipped = result?.skipped?.length ?? 0;
+          setStatus("success");
+          if (enrollmentsCount + purchasesCount > 0) {
+            setMessage(`Achat confirmé : ${enrollmentsCount + purchasesCount} produit(s) ajouté(s) à votre espace apprenant.`);
+          } else if (skipped > 0) {
+            setMessage(`Paiement déjà confirmé — vos produits sont disponibles dans votre espace apprenant.`);
           } else {
-            setStatus("failed");
-            setMessage(json.error ?? "Erreur lors de la finalisation");
+            setMessage("Paiement confirmé !");
           }
-        } else if (verify.data.status === "pending" || verify.data.status === "initiated") {
+          setRedirectTo(enrollmentsCount > 0 ? "/apprenant/mes-formations" : "/apprenant/produits");
+        } else if (paymentStatus === "pending" || paymentStatus === "initiated") {
           setStatus("pending");
           setMessage("Paiement en attente. Vous recevrez un email dès confirmation.");
         } else {
           setStatus("failed");
-          setMessage(`Paiement ${verify.data.status}`);
+          setMessage(`Paiement ${paymentStatus}`);
         }
-      } catch {
+      } catch (err) {
+        console.error("[payment/return]", err);
         setStatus("failed");
-        setMessage("Erreur lors de la vérification");
+        setMessage("Erreur réseau lors de la vérification");
       }
     }
     run();
