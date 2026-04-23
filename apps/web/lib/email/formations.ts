@@ -9,39 +9,57 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 // ── Layout HTML commun formations ──
 
-function emailLayout(content: string, lang: "fr" | "en" = "fr"): string {
+function emailLayout(content: string, lang: "fr" | "en" = "fr", variant: "default" | "celebration" = "default"): string {
+  const headerBg = variant === "celebration"
+    ? "linear-gradient(135deg,#22c55e 0%,#10b981 50%,#06b6d4 100%)"
+    : "linear-gradient(135deg,#006e2f,#22c55e)";
   return `
 <!DOCTYPE html>
 <html lang="${lang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
-      <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">🎓 FORMATIONS</p>
+    <div style="background:${headerBg};padding:40px 40px 32px;text-align:center;">
+      <div style="display:inline-block;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,0.15);padding:14px;margin:0 auto 12px;">
+        <div style="width:28px;height:28px;border-radius:8px;background:#ffffff;text-align:center;line-height:28px;color:#006e2f;font-weight:900;font-size:18px;">N</div>
+      </div>
+      <h1 style="color:#ffffff;font-size:26px;font-weight:800;margin:0;letter-spacing:-0.5px;">Novakou</h1>
+      <p style="color:rgba(255,255,255,0.85);font-size:11px;margin:6px 0 0;letter-spacing:2px;font-weight:600;">LA PLATEFORME DES CRÉATEURS</p>
     </div>
     <!-- Content -->
     <div style="padding:40px;">
       ${content}
     </div>
     <!-- Footer -->
-    <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">${lang === "fr" ? "L'équipe Novakou" : "The Novakou Team"}</p>
-      <p style="color:#9ca3af;font-size:11px;margin:0;">
-        <a href="${APP_URL}" style="color:#006e2f;text-decoration:none;">Formations</a> ·
-        <a href="${APP_URL}/apprenant/mes-formations" style="color:#006e2f;text-decoration:none;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
-        <a href="${APP_URL}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
+    <div style="padding:28px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
+      <p style="color:#6b7280;font-size:13px;font-weight:600;margin:0 0 12px;">${lang === "fr" ? "— L'équipe Novakou 💚" : "— The Novakou Team 💚"}</p>
+      <p style="color:#9ca3af;font-size:11px;margin:0 0 8px;">
+        <a href="${APP_URL}" style="color:#006e2f;text-decoration:none;font-weight:600;">Accueil</a> ·
+        <a href="${APP_URL}/apprenant/mes-formations" style="color:#006e2f;text-decoration:none;font-weight:600;">${lang === "fr" ? "Mes formations" : "My courses"}</a> ·
+        <a href="${APP_URL}/vendeur/dashboard" style="color:#006e2f;text-decoration:none;font-weight:600;">${lang === "fr" ? "Mes ventes" : "My sales"}</a> ·
+        <a href="${APP_URL}/contact" style="color:#006e2f;text-decoration:none;font-weight:600;">Support</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Fondée par" : "Founded by"} Pirabel Labs</p>
+      <p style="color:#d1d5db;font-size:10px;margin:8px 0 0;">© 2026 Novakou — ${lang === "fr" ? "Édité par" : "Published by"} Pirabel Labs</p>
     </div>
   </div>
 </body>
 </html>`;
 }
 
-function button(text: string, url: string): string {
-  return `<a href="${url}" style="display:inline-block;background:#006e2f;color:#ffffff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin:16px 0;">${text}</a>`;
+function button(text: string, url: string, variant: "primary" | "secondary" = "primary"): string {
+  const bg = variant === "primary"
+    ? "linear-gradient(135deg,#006e2f,#22c55e)"
+    : "#ffffff";
+  const color = variant === "primary" ? "#ffffff" : "#006e2f";
+  const border = variant === "secondary" ? "border:2px solid #006e2f;" : "";
+  return `<a href="${url}" style="display:inline-block;background:${bg};${border}color:${color};padding:16px 36px;border-radius:12px;text-decoration:none;font-weight:800;font-size:15px;margin:16px 0;letter-spacing:0.3px;box-shadow:0 4px 12px rgba(0,110,47,0.2);">${text}</a>`;
+}
+
+/** Astuce : on construit des liens "magic" qui autoconnectent ou redirigent vers login si déconnecté */
+function autoLoginLink(path: string): string {
+  // /connexion redirige vers ?callbackUrl s'il faut se connecter d'abord
+  return `${APP_URL}/connexion?callbackUrl=${encodeURIComponent(APP_URL + path)}`;
 }
 
 function successBadge(text: string): string {
@@ -62,49 +80,83 @@ export async function sendEnrollmentConfirmedEmail(params: {
 }) {
   const { email, name, formationTitle, formationSlug, paidAmount, locale = "fr" } = params;
   const isFr = locale === "fr";
-  const courseUrl = `${APP_URL}/apprenant/formation/${formationSlug}`;
+  const coursePath = `/apprenant/formation/${formationSlug}`;
+  const courseUrl = autoLoginLink(coursePath);
+  const myCoursesUrl = autoLoginLink("/apprenant/mes-formations");
 
   const html = emailLayout(
     `
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">
-      ${isFr ? `🎉 Félicitations, ${name} !` : `🎉 Congratulations, ${name}!`}
-    </h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
+    <div style="text-align:center;margin:0 0 24px;">
+      <div style="display:inline-block;font-size:56px;margin:0 0 8px;">🎉</div>
+      <h2 style="color:#111827;font-size:26px;font-weight:800;margin:0 0 8px;letter-spacing:-0.5px;">
+        ${isFr ? `Bienvenue ${name} !` : `Welcome ${name}!`}
+      </h2>
+      <p style="color:#006e2f;font-size:15px;font-weight:700;margin:0;">
+        ${isFr ? "Votre aventure commence maintenant 🚀" : "Your journey starts now 🚀"}
+      </p>
+    </div>
+
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 20px;">
       ${isFr
-        ? `Votre inscription à la formation <strong>${formationTitle}</strong> est confirmée. Vous pouvez commencer à apprendre dès maintenant !`
-        : `Your enrollment in <strong>${formationTitle}</strong> is confirmed. You can start learning right now!`
+        ? `Merci d'avoir fait confiance à Novakou. Votre achat de <strong style="color:#006e2f;">"${formationTitle}"</strong> est confirmé — vous avez <strong>un accès à vie</strong> au contenu complet, incluant toutes les leçons vidéo, ressources et mises à jour futures.`
+        : `Thank you for trusting Novakou. Your purchase of <strong style="color:#006e2f;">"${formationTitle}"</strong> is confirmed — you now have <strong>lifetime access</strong> to all lessons, resources, and future updates.`
       }
     </p>
-    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:0 0 24px;">
+
+    <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:2px solid #bbf7d0;border-radius:16px;padding:24px;margin:0 0 28px;">
       <table style="width:100%;border-collapse:collapse;">
         <tr>
-          <td style="color:#6b7280;padding:4px 0;font-size:14px;">${isFr ? "Formation" : "Course"}</td>
-          <td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${formationTitle}</td>
+          <td style="color:#4b5563;padding:6px 0;font-size:13px;">${isFr ? "📚 Formation" : "📚 Course"}</td>
+          <td style="color:#111827;font-weight:700;text-align:right;font-size:14px;">${formationTitle}</td>
         </tr>
         <tr>
-          <td style="color:#6b7280;padding:4px 0;font-size:14px;">${isFr ? "Montant payé" : "Amount paid"}</td>
-          <td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${paidAmount.toFixed(2)} €</td>
+          <td style="color:#4b5563;padding:6px 0;font-size:13px;">${isFr ? "💳 Montant payé" : "💳 Amount paid"}</td>
+          <td style="color:#006e2f;font-weight:800;text-align:right;font-size:16px;">${Math.round(paidAmount).toLocaleString("fr-FR")} FCFA</td>
         </tr>
         <tr>
-          <td style="color:#6b7280;padding:4px 0;font-size:14px;">${isFr ? "Accès" : "Access"}</td>
-          <td style="color:#16a34a;font-weight:600;text-align:right;font-size:14px;">♾️ ${isFr ? "À vie" : "Lifetime"}</td>
+          <td style="color:#4b5563;padding:6px 0;font-size:13px;">${isFr ? "♾️ Accès" : "♾️ Access"}</td>
+          <td style="color:#16a34a;font-weight:700;text-align:right;font-size:13px;">${isFr ? "À vie + mises à jour" : "Lifetime + updates"}</td>
+        </tr>
+        <tr>
+          <td style="color:#4b5563;padding:6px 0;font-size:13px;">${isFr ? "🛡️ Garantie" : "🛡️ Guarantee"}</td>
+          <td style="color:#6b7280;font-weight:600;text-align:right;font-size:13px;">${isFr ? "Satisfait ou remboursé 30j" : "30-day money back"}</td>
         </tr>
       </table>
     </div>
-    ${button(isFr ? "Commencer la formation" : "Start learning", courseUrl)}
-    <p style="color:#9ca3af;font-size:12px;margin:16px 0 0;">
+
+    <div style="text-align:center;margin:0 0 24px;">
+      ${button(isFr ? "🎬 Commencer la formation" : "🎬 Start learning", courseUrl)}
+      <div style="margin:12px 0 0;">
+        <a href="${myCoursesUrl}" style="color:#006e2f;font-size:13px;font-weight:600;text-decoration:none;">
+          ${isFr ? "Ou voir toutes mes formations →" : "Or see all my courses →"}
+        </a>
+      </div>
+    </div>
+
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px;margin:0 0 16px;">
+      <p style="color:#92400e;font-size:13px;line-height:1.6;margin:0;">
+        💡 <strong>${isFr ? "Déjà un compte vendeur ?" : "Already a vendor account?"}</strong>
+        ${isFr
+          ? `Pas de souci — le lien ci-dessus vous connecte automatiquement dans la bonne section apprenant. Votre compte vendeur reste intact.`
+          : `No worries — the link above automatically logs you into the learner section. Your vendor account stays untouched.`
+        }
+      </p>
+    </div>
+
+    <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:16px 0 0;text-align:center;">
       ${isFr
-        ? "Satisfait ou remboursé 30 jours. Contactez le support si vous avez des questions."
-        : "30-day money-back guarantee. Contact support if you have any questions."
+        ? `Besoin d'aide ? Réponds simplement à ce mail, on est là pour toi.`
+        : `Need help? Just reply to this email, we're here for you.`
       }
     </p>
   `,
-    locale
+    locale,
+    "celebration"
   );
 
   const subject = isFr
-    ? `✅ Inscription confirmée — ${formationTitle}`
-    : `✅ Enrollment confirmed — ${formationTitle}`;
+    ? `🎉 Bienvenue dans "${formationTitle}" — c'est parti !`
+    : `🎉 Welcome to "${formationTitle}" — let's go!`;
 
   return resend.emails.send({ from: FROM, to: email, subject, html });
 }
@@ -120,24 +172,78 @@ export async function sendNewStudentNotificationEmail(params: {
 }) {
   const { instructeurEmail, instructeurName, studentName, formationTitle, paidAmount } = params;
   const netAmount = paidAmount * 0.95; // 5% platform fee
+  const commission = paidAmount - netAmount;
+  const dashboardUrl = autoLoginLink("/vendeur/dashboard");
+  const transactionsUrl = autoLoginLink("/vendeur/transactions");
 
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">🎓 Nouvelle vente !</h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${instructeurName}, <strong>${studentName}</strong> vient d'acheter votre produit
-      <strong>${formationTitle}</strong>.
-    </p>
-    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
-      <p style="color:#16a34a;font-size:28px;font-weight:800;margin:0;">+${netAmount.toFixed(0)} FCFA</p>
-      <p style="color:#4ade80;font-size:13px;margin:4px 0 0;">Vos revenus nets (95%)</p>
+    <div style="text-align:center;margin:0 0 24px;">
+      <div style="display:inline-block;font-size:64px;margin:0 0 4px;line-height:1;">🎉💰</div>
+      <h2 style="color:#111827;font-size:30px;font-weight:900;margin:0 0 8px;letter-spacing:-0.8px;">
+        WAOUH ${instructeurName} !
+      </h2>
+      <p style="color:#006e2f;font-size:17px;font-weight:700;margin:0;">
+        Vous venez de faire une nouvelle vente 🚀
+      </p>
     </div>
-    ${button("Voir mes apprenants", `${APP_URL}/vendeur/etudiants`)}
-  `);
+
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;text-align:center;">
+      <strong style="color:#111827;">${studentName}</strong> vient d'acheter<br>
+      <strong style="color:#006e2f;font-size:17px;">"${formationTitle}"</strong>
+    </p>
+
+    <!-- GRAND MONTANT CÉLÉBRATION -->
+    <div style="background:linear-gradient(135deg,#006e2f 0%,#22c55e 50%,#10b981 100%);border-radius:20px;padding:36px 20px;text-align:center;margin:0 0 24px;box-shadow:0 12px 32px rgba(0,110,47,0.3);">
+      <p style="color:rgba(255,255,255,0.85);font-size:12px;font-weight:700;letter-spacing:2px;margin:0 0 8px;text-transform:uppercase;">
+        💵 Vos revenus nets
+      </p>
+      <p style="color:#ffffff;font-size:48px;font-weight:900;margin:0;letter-spacing:-1.5px;line-height:1;">
+        +${Math.round(netAmount).toLocaleString("fr-FR")}
+      </p>
+      <p style="color:rgba(255,255,255,0.9);font-size:14px;font-weight:700;margin:4px 0 0;">
+        FCFA · Crédité sur votre wallet
+      </p>
+    </div>
+
+    <!-- Détails -->
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:20px;margin:0 0 28px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="color:#6b7280;padding:6px 0;font-size:13px;">💳 Prix de vente</td>
+          <td style="color:#111827;font-weight:700;text-align:right;font-size:14px;">${Math.round(paidAmount).toLocaleString("fr-FR")} FCFA</td>
+        </tr>
+        <tr>
+          <td style="color:#6b7280;padding:6px 0;font-size:13px;">📊 Commission Novakou (5%)</td>
+          <td style="color:#9ca3af;font-weight:600;text-align:right;font-size:13px;">−${Math.round(commission).toLocaleString("fr-FR")} FCFA</td>
+        </tr>
+        <tr style="border-top:2px solid #e5e7eb;">
+          <td style="color:#006e2f;font-weight:700;padding:10px 0 0;font-size:14px;">✅ Votre net</td>
+          <td style="color:#006e2f;font-weight:900;text-align:right;font-size:17px;padding:10px 0 0;">+${Math.round(netAmount).toLocaleString("fr-FR")} FCFA</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align:center;margin:0 0 20px;">
+      ${button("📊 Voir mes ventes", transactionsUrl)}
+      <div style="margin:12px 0 0;">
+        <a href="${dashboardUrl}" style="color:#006e2f;font-size:13px;font-weight:600;text-decoration:none;">
+          Accéder à mon dashboard vendeur →
+        </a>
+      </div>
+    </div>
+
+    <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:8px;padding:14px 18px;margin:16px 0 0;">
+      <p style="color:#78350f;font-size:13px;line-height:1.6;margin:0;">
+        💡 <strong>Prochain objectif :</strong> ${Math.round(netAmount * 10).toLocaleString("fr-FR")} FCFA (10 ventes comme celle-ci).
+        Partage ta formation sur WhatsApp, LinkedIn ou tes réseaux pour booster les ventes.
+      </p>
+    </div>
+  `, "fr", "celebration");
 
   return resend.emails.send({
     from: FROM,
     to: instructeurEmail,
-    subject: `🎓 Nouvel apprenant — ${formationTitle}`,
+    subject: `🎉 WAOUH ! Nouvelle vente : +${Math.round(netAmount).toLocaleString("fr-FR")} FCFA`,
     html,
   });
 }
@@ -424,34 +530,71 @@ export async function sendDigitalProductDeliveryEmail(params: {
 }) {
   const { email, name, productTitle, downloadUrl, locale = "fr" } = params;
   const isFr = locale === "fr";
+  const myProductsUrl = autoLoginLink("/apprenant/mes-produits");
 
   const html = emailLayout(
     `
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">
-      📦 ${isFr ? `Votre produit est prêt, ${name} !` : `Your product is ready, ${name}!`}
-    </h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
+    <div style="text-align:center;margin:0 0 24px;">
+      <div style="display:inline-block;font-size:56px;margin:0 0 8px;">📦✨</div>
+      <h2 style="color:#111827;font-size:26px;font-weight:800;margin:0 0 8px;letter-spacing:-0.5px;">
+        ${isFr ? `Merci ${name} !` : `Thank you ${name}!`}
+      </h2>
+      <p style="color:#006e2f;font-size:15px;font-weight:700;margin:0;">
+        ${isFr ? "Votre produit est prêt à être téléchargé 🎁" : "Your product is ready to download 🎁"}
+      </p>
+    </div>
+
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 20px;text-align:center;">
       ${isFr
-        ? `Merci pour votre achat ! Votre produit <strong>${productTitle}</strong> est prêt à être téléchargé.`
-        : `Thank you for your purchase! Your product <strong>${productTitle}</strong> is ready to download.`
+        ? `Votre achat de <strong style="color:#006e2f;">"${productTitle}"</strong> est confirmé. Cliquez sur le bouton ci-dessous pour y accéder — c'est à vous, pour toujours.`
+        : `Your purchase of <strong style="color:#006e2f;">"${productTitle}"</strong> is confirmed. Click below to access it — it's yours, forever.`
       }
     </p>
-    ${successBadge(isFr ? "Achat confirmé" : "Purchase confirmed")}
-    ${button(isFr ? "Télécharger mon produit" : "Download my product", downloadUrl)}
-    <p style="color:#9ca3af;font-size:12px;margin:16px 0 0;">
+
+    <!-- GRAND CTA DOWNLOAD -->
+    <div style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:2px dashed #22c55e;border-radius:16px;padding:32px 20px;text-align:center;margin:0 0 24px;">
+      <p style="color:#006e2f;font-size:13px;font-weight:800;letter-spacing:1.5px;margin:0 0 16px;text-transform:uppercase;">
+        ${isFr ? "🎁 Votre fichier est prêt" : "🎁 Your file is ready"}
+      </p>
+      ${button(isFr ? "📥 Télécharger maintenant" : "📥 Download now", downloadUrl)}
+      <p style="color:#6b7280;font-size:12px;margin:12px 0 0;">
+        ${isFr ? "Lien sécurisé · Téléchargement immédiat" : "Secure link · Instant download"}
+      </p>
+    </div>
+
+    <div style="text-align:center;margin:0 0 24px;">
+      <a href="${myProductsUrl}" style="color:#006e2f;font-size:14px;font-weight:700;text-decoration:none;">
+        ${isFr ? "📚 Voir tous mes achats →" : "📚 See all my purchases →"}
+      </a>
+    </div>
+
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:16px;margin:0 0 16px;">
+      <p style="color:#92400e;font-size:13px;line-height:1.6;margin:0;">
+        💡 <strong>${isFr ? "Vous êtes aussi vendeur ?" : "Are you also a vendor?"}</strong>
+        ${isFr
+          ? `Pas de problème — le lien vous connecte automatiquement dans votre espace apprenant. Votre compte vendeur reste séparé et accessible depuis le menu en haut à droite.`
+          : `No problem — the link logs you into your learner space. Your vendor account stays separate and accessible from the top menu.`
+        }
+      </p>
+    </div>
+
+    <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:16px 0 0;text-align:center;">
       ${isFr
-        ? "Vous disposez de 5 téléchargements maximum. Conservez bien votre fichier."
-        : "You have a maximum of 5 downloads. Please keep your file safe."
+        ? `Besoin d'aide ? Réponds à ce mail, on t'aide tout de suite.`
+        : `Need help? Reply to this email, we'll help right away.`
       }
     </p>
   `,
-    locale
+    locale,
+    "celebration"
   );
 
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: isFr ? `📦 Votre produit est prêt — ${productTitle}` : `📦 Your product is ready — ${productTitle}`,
+    subject: isFr
+      ? `🎁 "${productTitle}" — votre téléchargement est prêt !`
+      : `🎁 "${productTitle}" — your download is ready!`,
     html,
   });
 }
