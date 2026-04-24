@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/config";
+import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { IS_DEV } from "@/lib/env";
 import { initPayout, isMonerooConfigured } from "@/lib/moneroo";
 import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
@@ -29,14 +28,17 @@ export const dynamic = "force-dynamic";
  *
  * Admin only. Retourne la reponse Moneroo (id + status) ou l'erreur brute.
  */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const startedAt = Date.now();
   const debug: Record<string, unknown> = {};
   try {
-    debug.step = "session_lookup";
-    const session = await getServerSession(authOptions);
-    const sessionRole = session?.user?.role?.toString().toUpperCase();
-    if (!session?.user || (sessionRole !== "ADMIN" && !IS_DEV)) {
+    // getToken est beaucoup plus rapide que getServerSession :
+    // il lit juste le cookie JWT + verifie la signature, sans charger
+    // authOptions + bcrypt + Prisma.
+    debug.step = "jwt_token_lookup";
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const tokenRole = token?.role?.toString().toUpperCase();
+    if ((!token || tokenRole !== "ADMIN") && !IS_DEV) {
       return NextResponse.json({ error: "Accès refusé — admin requis.", debug }, { status: 403 });
     }
 
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
     const amount: number = Number(body.amount ?? 500);
     const firstName: string = body.firstName ?? "Test";
     const lastName: string = body.lastName ?? "Novakou";
-    const email: string = body.email ?? session.user.email ?? "test@novakou.com";
+    const email: string = body.email ?? (token?.email as string | undefined) ?? "test@novakou.com";
 
     if (!method || !rawMsisdn) {
       return NextResponse.json(
