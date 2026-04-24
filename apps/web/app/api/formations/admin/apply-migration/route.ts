@@ -185,6 +185,62 @@ export async function POST(request: NextRequest) {
       )`,
       `CREATE INDEX IF NOT EXISTS "FunnelABTestEvent_testId_variant_eventType_idx" ON "FunnelABTestEvent"("testId", "variant", "eventType")`,
       `CREATE INDEX IF NOT EXISTS "FunnelABTestEvent_visitorId_idx" ON "FunnelABTestEvent"("visitorId")`,
+      // Migration 2026042407 — smart_popups (was missing, causing "Server error" when creating popups)
+      `DO $$ BEGIN
+         CREATE TYPE "PopupTrigger" AS ENUM ('EXIT_INTENT', 'TIME_DELAY', 'SCROLL_PERCENT', 'PAGE_VIEW_COUNT', 'MANUAL');
+       EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+      `DO $$ BEGIN
+         CREATE TYPE "PopupType" AS ENUM ('DISCOUNT', 'EMAIL_CAPTURE', 'ANNOUNCEMENT', 'UPSELL', 'COUNTDOWN');
+       EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+      `CREATE TABLE IF NOT EXISTS "SmartPopup" (
+        "id"               TEXT PRIMARY KEY,
+        "instructeurId"    TEXT NOT NULL,
+        "shopId"           TEXT,
+        "name"             TEXT NOT NULL,
+        "popupType"        "PopupType"    NOT NULL DEFAULT 'DISCOUNT',
+        "trigger"          "PopupTrigger" NOT NULL DEFAULT 'TIME_DELAY',
+        "delaySeconds"     INTEGER,
+        "scrollPercent"    INTEGER,
+        "pageViewCount"    INTEGER,
+        "headlineFr"       TEXT,
+        "headlineEn"       TEXT,
+        "bodyFr"           TEXT,
+        "bodyEn"           TEXT,
+        "ctaTextFr"        TEXT,
+        "ctaTextEn"        TEXT,
+        "imageBanner"      TEXT,
+        "discountCodeId"   TEXT,
+        "emailListTag"     TEXT,
+        "showOnPages"      TEXT[] NOT NULL DEFAULT '{}',
+        "excludePages"     TEXT[] NOT NULL DEFAULT '{}',
+        "showToNewOnly"    BOOLEAN NOT NULL DEFAULT FALSE,
+        "maxShowsPerUser"  INTEGER NOT NULL DEFAULT 1,
+        "isActive"         BOOLEAN NOT NULL DEFAULT FALSE,
+        "totalImpressions" INTEGER NOT NULL DEFAULT 0,
+        "totalClicks"      INTEGER NOT NULL DEFAULT 0,
+        "totalConversions" INTEGER NOT NULL DEFAULT 0,
+        "createdAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "SmartPopup_instructeurId_fkey" FOREIGN KEY ("instructeurId") REFERENCES "InstructeurProfile"("id") ON DELETE CASCADE
+      )`,
+      `CREATE INDEX IF NOT EXISTS "SmartPopup_instructeurId_idx" ON "SmartPopup"("instructeurId")`,
+      `CREATE INDEX IF NOT EXISTS "SmartPopup_isActive_idx"      ON "SmartPopup"("isActive")`,
+      `CREATE INDEX IF NOT EXISTS "SmartPopup_popupType_idx"     ON "SmartPopup"("popupType")`,
+      `CREATE TABLE IF NOT EXISTS "PopupImpression" (
+        "id"        TEXT PRIMARY KEY,
+        "popupId"   TEXT NOT NULL,
+        "userId"    TEXT,
+        "visitorId" TEXT,
+        "action"    TEXT NOT NULL,
+        "metadata"  JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PopupImpression_popupId_fkey" FOREIGN KEY ("popupId") REFERENCES "SmartPopup"("id") ON DELETE CASCADE,
+        CONSTRAINT "PopupImpression_userId_fkey"  FOREIGN KEY ("userId")  REFERENCES "User"("id")       ON DELETE SET NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS "PopupImpression_popupId_idx"   ON "PopupImpression"("popupId")`,
+      `CREATE INDEX IF NOT EXISTS "PopupImpression_userId_idx"    ON "PopupImpression"("userId")`,
+      `CREATE INDEX IF NOT EXISTS "PopupImpression_action_idx"    ON "PopupImpression"("action")`,
+      `CREATE INDEX IF NOT EXISTS "PopupImpression_createdAt_idx" ON "PopupImpression"("createdAt")`,
     ];
 
     const results: { sql: string; status: string; error?: string }[] = [];
