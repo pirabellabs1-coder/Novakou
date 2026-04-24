@@ -32,6 +32,7 @@ const navGroups = [
       { icon: "support_agent", label: "Mes mentors",  href: "/apprenant/mentors" },
       { icon: "event",         label: "Mes sessions", href: "/apprenant/sessions" },
       { icon: "forum",         label: "Messages",     href: "/messages" },
+      { icon: "psychology",    label: "Coach IA",     href: "/apprenant/ai-coach" },
     ],
   },
   {
