@@ -969,6 +969,7 @@ model InstructeurProfile {
   bundles             ProductBundle[]
   orderBumps          OrderBump[]          @relation("InstructeurOrderBumps")
   subscriptionPlans   SubscriptionPlan[]   @relation("InstructeurPlans")
+  productInquiries    ProductInquiry[]     @relation("InstructeurInquiries")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1146,6 +1147,7 @@ model Formation {
   bundleItems     ProductBundleItem[]
   quiz            FormationQuiz?
   orderBumpsAsBump OrderBump[]       @relation("BumpFormation")
+  inquiries        ProductInquiry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1542,6 +1544,7 @@ model DigitalProduct {
   marketingEvents MarketingEvent[]         @relation("ProductMarketingEvents")
   bundleItems     ProductBundleItem[]
   orderBumpsAsBump OrderBump[]             @relation("BumpProduct")
+  inquiries       ProductInquiry[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3352,4 +3355,49 @@ model SubscriptionInvoice {
   @@index([subscriptionId])
   @@index([userId])
   @@index([status])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// PRODUCT INQUIRIES — questions pre-achat (alternative simple au live chat)
+// ═════════════════════════════════════════════════════════════════════════════
+// Visiteur/acheteur peut poser une question sur une page produit sans s'inscrire.
+// Le vendeur recoit un email + voit l'inquiry dans son dashboard. Il repond via
+// email direct (reply-to pointe sur l'email du visiteur) ou via l'UI.
+
+model ProductInquiry {
+  id            String  @id @default(cuid())
+  instructeurId String
+  shopId        String?
+
+  // A quoi se rapporte la question
+  formationId String?
+  productId   String?
+
+  // Visiteur (peut etre guest, pas d'auth requise)
+  visitorUserId String? // si connecté
+  visitorName   String
+  visitorEmail  String
+  visitorPhone  String?
+
+  // Contenu
+  subject String
+  message String  @db.Text
+
+  // Etat
+  status     String    @default("pending") // pending | replied | closed
+  repliedAt  DateTime?
+  reply      String?   @db.Text // La reponse courte enregistree (optionnel)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  instructeur InstructeurProfile @relation("InstructeurInquiries", fields: [instructeurId], references: [id], onDelete: Cascade)
+  formation   Formation?         @relation(fields: [formationId], references: [id], onDelete: SetNull)
+  product     DigitalProduct?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([instructeurId, status])
+  @@index([formationId])
+  @@index([productId])
+  @@index([visitorEmail])
+  @@index([createdAt])
 }

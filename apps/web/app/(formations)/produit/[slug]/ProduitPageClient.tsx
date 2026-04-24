@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { InquiryWidget } from "@/components/formations/InquiryWidget";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
@@ -408,6 +409,14 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   <span className="material-symbols-outlined text-[18px]">{isFree ? "download" : "shopping_cart"}</span>
                   {isFree ? "Télécharger maintenant" : "Acheter maintenant"}
                 </button>
+
+                <div className="mt-3">
+                  <InquiryWidget
+                    productId={product.id}
+                    productTitle={product.title}
+                    vendorName={product.instructeur.name}
+                  />
+                </div>
 
                 <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">

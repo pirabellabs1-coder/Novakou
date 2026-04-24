@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { InquiryWidget } from "@/components/formations/InquiryWidget";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Lesson {
@@ -605,6 +606,14 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                       )}
                     </button>
                   )}
+                </div>
+
+                <div className="mt-3">
+                  <InquiryWidget
+                    formationId={formation.id}
+                    productTitle={formation.title}
+                    vendorName={formation.instructeur.name}
+                  />
                 </div>
 
                 <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
