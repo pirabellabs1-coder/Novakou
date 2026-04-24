@@ -169,27 +169,25 @@ export function isMonerooConfigured(): boolean {
 //   4. On peut aussi poller retrievePayout() pour vérifier le statut
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Codes méthode Moneroo officiels (docs.moneroo.io).
+// Attention : les noms NE contiennent PAS "_money_" (ex: "orange_ci", pas "orange_money_ci")
 export type MonerooPayoutMethod =
   // Côte d'Ivoire
-  | "orange_money_ci" | "mtn_ci" | "moov_ci" | "wave_ci"
+  | "orange_ci" | "mtn_ci" | "moov_ci" | "wave_ci" | "djamo_ci"
   // Sénégal
-  | "orange_money_sn" | "wave_sn" | "free_money_sn" | "expresso_sn"
+  | "orange_sn" | "wave_sn" | "freemoney_sn" | "e_money_sn" | "djamo_sn"
   // Mali
-  | "orange_money_ml" | "moov_ml"
-  // Burkina Faso
-  | "orange_money_bf" | "moov_bf"
-  // Niger
-  | "orange_money_ne" | "airtel_ne"
+  | "orange_ml"
   // Bénin
-  | "mtn_bj" | "moov_bj" | "celtis_bj"
+  | "mtn_bj" | "moov_bj"
   // Togo
-  | "tmoney_tg" | "flooz_tg"
+  | "moov_tg" | "togocel"
   // Cameroun
-  | "orange_money_cm" | "mtn_cm"
-  // Congo / Gabon
-  | "airtel_cg" | "airtel_ga"
-  // International
-  | "bank_transfer" | "paypal" | "wise";
+  | "orange_cm" | "mtn_cm"
+  // Airtel (plusieurs pays)
+  | "airtel_cd" | "airtel_mw" | "airtel_ng" | "airtel_rw" | "airtel_tz" | "airtel_ug" | "airtel_zm"
+  // M-Pesa
+  | "mpesa_ke" | "mpesa_tz";
 
 export type MonerooPayoutInitParams = {
   amount: number;
@@ -202,11 +200,12 @@ export type MonerooPayoutInitParams = {
     phone?: string;
   };
   method: MonerooPayoutMethod | string;
-  // Détails spécifiques à la méthode. Ex :
-  //   - Mobile Money : { phone: "+221 77 123 45 67" }
-  //   - Bank transfer : { iban, bic, bank_name, account_holder }
-  //   - PayPal : { email }
-  method_details: Record<string, string>;
+  /**
+   * ATTENTION : Moneroo attend un champ `recipient` (PAS `method_details`).
+   * Pour tous les mobile money, le champ est `msisdn` (numéro international
+   * SANS le + en tête, ex: "22951345020" pour le Bénin, "221771234567" pour le Sénégal).
+   */
+  recipient: Record<string, string>;
   metadata?: Record<string, unknown>;
 };
 
@@ -242,7 +241,9 @@ export async function initPayout(params: MonerooPayoutInitParams): Promise<Moner
     description: params.description,
     customer: params.customer,
     method: params.method,
-    method_details: params.method_details,
+    // Moneroo exige le champ `recipient` (pas `method_details`).
+    // Pour Mobile Money : { msisdn: "22177..." } (digits only, no +)
+    recipient: params.recipient,
     metadata: sanitizeMetadata(params.metadata),
   };
 
@@ -269,10 +270,13 @@ export async function initPayout(params: MonerooPayoutInitParams): Promise<Moner
   return json.data;
 }
 
-/** Récupère le statut d'un payout existant. Utilisé pour confirmer / poller. */
+/**
+ * Récupère le statut d'un payout existant.
+ * Endpoint officiel Moneroo : GET /v1/payouts/{id}/verify (ATTENTION au suffixe /verify).
+ */
 export async function retrievePayout(payoutId: string): Promise<MonerooPayoutResponse["data"]> {
   const apiKey = getApiKey();
-  const res = await fetch(`${MONEROO_API_BASE}/payouts/${payoutId}`, {
+  const res = await fetch(`${MONEROO_API_BASE}/payouts/${payoutId}/verify`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${apiKey}`,

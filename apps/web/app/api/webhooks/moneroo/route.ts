@@ -277,10 +277,14 @@ function inferStatusFromEvent(eventName: string, declared?: string): string {
   const n = eventName.toLowerCase();
   if (declared) {
     const d = declared.toLowerCase();
-    if (["success", "succeeded", "completed", "failed", "cancelled", "pending", "processing"].includes(d)) {
-      return d === "succeeded" || d === "completed" ? "success" : d;
+    if (["success", "succeeded", "completed", "failed", "cancelled", "pending", "processing", "initiated"].includes(d)) {
+      if (d === "succeeded" || d === "completed") return "success";
+      if (d === "initiated") return "pending";
+      return d;
     }
   }
+  // payout.initiated = l'ordre est parti, on n'a pas encore la confirmation
+  if (n.includes("initiated")) return "pending";
   if (n.includes("success") || n.includes("completed")) return "success";
   if (n.includes("failed")) return "failed";
   if (n.includes("cancelled") || n.includes("canceled")) return "cancelled";

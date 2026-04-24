@@ -9,6 +9,7 @@ import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import {
   getPayoutMethod,
+  normalizeMsisdn,
   resolveLegacyMethod,
 } from "@/lib/moneroo-payout-methods";
 
@@ -370,11 +371,20 @@ export async function POST(request: Request) {
       : resolveLegacyMethod(method, userCountry);
     if (monerooMethod) {
       method = monerooMethod;
-      // Valider les champs requis
       const def = getPayoutMethod(method);
       if (def) {
+        // Normaliser les champs legacy (phone -> msisdn) + valider
+        const details = accountDetails as Record<string, unknown>;
+        // Si on reçoit "phone" legacy, on le convertit en msisdn
+        if (!details.msisdn && (details.phone || details.phone_number)) {
+          details.msisdn = normalizeMsisdn(String(details.phone ?? details.phone_number));
+        }
+        // Re-normaliser msisdn si present (digits only, sans +)
+        if (details.msisdn) {
+          details.msisdn = normalizeMsisdn(String(details.msisdn));
+        }
         const missing = def.requiredFields.filter(
-          (f) => !(accountDetails as Record<string, unknown>)[f],
+          (f) => !details[f] || !String(details[f]).trim(),
         );
         if (missing.length > 0) {
           return NextResponse.json(
@@ -388,10 +398,11 @@ export async function POST(request: Request) {
         }
         if (amount < def.minAmount) {
           return NextResponse.json(
-            { error: `Montant minimum pour ${def.label} : ${def.minAmount} FCFA` },
+            { error: `Montant minimum pour ${def.label} : ${def.minAmount} ${def.currency}` },
             { status: 400 },
           );
         }
+        accountDetails = details;
       }
     }
     // Si method reste non reconnu (bank_transfer sans mapping exact), on laisse passer

@@ -70,21 +70,22 @@ interface PayoutMethodDef {
   icon: string;
   currency: string;
   countries: string[];
-  requiredFields: Array<"phone" | "iban" | "bic" | "bank_name" | "account_holder" | "email">;
+  requiredFields: Array<"msisdn" | "account_number">;
   placeholder: Record<string, string>;
   minAmount: number;
   processingTime: string;
-  category: "mobile_money" | "bank" | "international";
+  category: "mobile_money";
 }
 
 const FIELD_LABELS: Record<string, string> = {
-  phone: "Numéro de téléphone",
-  iban: "IBAN",
-  bic: "BIC / SWIFT",
-  bank_name: "Nom de la banque",
-  account_holder: "Titulaire du compte",
-  email: "Email",
+  msisdn: "Numéro Mobile Money",
+  account_number: "Numéro de compte",
 };
+
+// Normalise un numéro en format Moneroo msisdn : digits only, sans +
+function normalizeMsisdn(phone: string): string {
+  return phone.replace(/\D/g, "");
+}
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -170,7 +171,8 @@ export default function WalletPage() {
       if (!val) {
         missing.push(FIELD_LABELS[f] || f);
       } else {
-        accountDetails[f] = val;
+        // Pour msisdn, on normalise en digits only
+        accountDetails[f] = f === "msisdn" ? normalizeMsisdn(val) : val;
       }
     }
     if (missing.length > 0) {
@@ -570,12 +572,17 @@ export default function WalletPage() {
                     {FIELD_LABELS[f] || f}
                   </label>
                   <input
-                    type={f === "email" ? "email" : f === "phone" ? "tel" : "text"}
+                    type={f === "msisdn" ? "tel" : "text"}
                     value={fields[f] ?? ""}
                     onChange={(e) => setFields((prev) => ({ ...prev, [f]: e.target.value }))}
                     placeholder={selectedMethod.placeholder[f] ?? ""}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
                   />
+                  {f === "msisdn" && (
+                    <p className="text-[10px] text-[#5c647a] mt-1">
+                      Format international sans le + (ex : 221771234567). Les espaces sont retirés automatiquement.
+                    </p>
+                  )}
                 </div>
               ))}
 

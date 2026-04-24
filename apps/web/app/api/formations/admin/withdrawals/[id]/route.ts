@@ -4,12 +4,21 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { initPayout, isMonerooConfigured } from "@/lib/moneroo";
-import { getPayoutMethod, resolveLegacyMethod, shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import {
+  getPayoutMethod,
+  normalizeMsisdn,
+  resolveLegacyMethod,
+  shortMethodLabel,
+} from "@/lib/moneroo-payout-methods";
 
 type Params = { params: Promise<{ id: string }> };
 
 type AccountDetails = {
+  // Nouveau format Moneroo : msisdn (digits only, international, sans +)
+  msisdn?: string;
+  // Legacy : certains comptes vendeurs ont stocké "phone" avant la migration
   phone?: string;
+  // Legacy bancaire (non supporté en payout Moneroo)
   iban?: string;
   bic?: string;
   bank_name?: string;
@@ -125,16 +134,27 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       }
 
-      // Valider que les champs requis sont presents
+      // Construire le recipient selon les champs requis par la méthode
       const details = (w.accountDetails ?? {}) as AccountDetails;
-      const methodDetails: Record<string, string> = {};
+      const recipient: Record<string, string> = {};
       const missing: string[] = [];
       for (const f of methodDef.requiredFields) {
-        const val = details[f];
-        if (!val || !String(val).trim()) {
-          missing.push(f);
+        if (f === "msisdn") {
+          // Accepte msisdn direct OU phone legacy (on normalise)
+          const raw = details.msisdn ?? details.phone;
+          if (!raw || !String(raw).trim()) {
+            missing.push("msisdn (numéro Mobile Money)");
+          } else {
+            recipient.msisdn = normalizeMsisdn(String(raw));
+          }
         } else {
-          methodDetails[f] = String(val).trim();
+          // account_number ou autre
+          const val = (details as Record<string, unknown>)[f];
+          if (!val || !String(val).trim()) {
+            missing.push(f);
+          } else {
+            recipient[f] = String(val).trim();
+          }
         }
       }
       if (missing.length > 0) {
@@ -162,7 +182,7 @@ export async function PATCH(request: Request, { params }: Params) {
             last_name: lastName,
           },
           method: resolvedMethod,
-          method_details: methodDetails,
+          recipient,
           metadata: {
             type: "vendor_withdrawal",
             withdrawalId: w.id,
@@ -189,31 +209,26 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       }
 
-      // Statut initial : Moneroo renvoie souvent "pending" ou "processing"
-      // On marque TRAITE seulement si "success" d'emblée, sinon on laisse
-      // EN_ATTENTE en attendant le webhook.
-      const isImmediateSuccess = payoutData.status === "success";
-      const newStatus = isImmediateSuccess ? "TRAITE" : "EN_ATTENTE";
+      // Moneroo : la réponse à /payouts/initialize ne contient que { id }.
+      // Le statut final arrive via webhook (payout.initiated / success / failed).
+      // On reste en EN_ATTENTE tant que le webhook n'a pas confirmé.
       await prisma.instructorWithdrawal.update({
         where: { id },
         data: {
-          status: newStatus,
           paymentRef: payoutData.id,
           paymentProvider: "moneroo",
-          processedAt: isImmediateSuccess ? new Date() : null,
           errorMessage: null,
+          // status reste EN_ATTENTE — sera mis à TRAITE par le webhook
         },
       });
 
-      // Notif
+      // Notif : le paiement est en cours
       await prisma.notification.create({
         data: {
           userId: w.instructeur.user.id,
           type: "PAYMENT",
-          title: isImmediateSuccess ? "Retrait versé" : "Retrait en cours",
-          message: isImmediateSuccess
-            ? `Vos ${Math.round(w.amount)} FCFA ont été envoyés via ${shortMethodLabel(resolvedMethod)}.`
-            : `Votre retrait de ${Math.round(w.amount)} FCFA est en cours de traitement par Moneroo. Vous serez notifié quand il sera versé.`,
+          title: "Retrait en cours",
+          message: `Votre retrait de ${Math.round(w.amount)} FCFA via ${shortMethodLabel(resolvedMethod)} est en cours de traitement. Vous serez notifié quand les fonds arriveront sur votre compte.`,
           link: isMentor ? "/mentor/finances" : "/wallet",
         },
       }).catch(() => null);
@@ -221,11 +236,11 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({
         data: {
           id,
-          status: newStatus,
+          status: "EN_ATTENTE",
           role,
           mode: "moneroo",
-          monerooStatus: payoutData.status,
           paymentRef: payoutData.id,
+          note: "Envoyé à Moneroo. Le webhook confirmera le versement.",
         },
       });
     }
