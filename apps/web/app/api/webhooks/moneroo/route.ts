@@ -106,24 +106,16 @@ export async function POST(req: Request) {
   const metadata = (verified.metadata ?? {}) as Record<string, unknown>;
   const type = String(metadata.type ?? "");
 
-  // Audit log de l'événement reçu (trace)
-  await prisma.auditLog
-    .create({
-      data: {
-        action: `moneroo_webhook_${status}`,
-        targetType: "payment",
-        targetId: paymentId,
-        details: {
-          event: body.event,
-          status,
-          amount: verified.amount,
-          currency: verified.currency,
-          metadataType: type,
-          metadata,
-        } as object,
-      },
-    })
-    .catch(() => null);
+  // Log console — on ne peut pas creer un AuditLog sans actorId (Prisma required).
+  // Pour les webhooks systeme, on garde une trace console uniquement.
+  console.log("[moneroo webhook]", {
+    event: body.event,
+    id: paymentId,
+    status,
+    amount: verified.amount,
+    currency: verified.currency,
+    type,
+  });
 
   // Ne fulfill que sur success
   if (status !== "success") {
@@ -267,23 +259,15 @@ async function handlePayoutWebhook(payoutId: string, eventName: string) {
 
   const status = verified.status;
 
-  // Audit log
-  await prisma.auditLog
-    .create({
-      data: {
-        action: `moneroo_payout_${status}`,
-        targetType: "withdrawal",
-        targetId: payoutId,
-        details: {
-          event: eventName,
-          status,
-          amount: verified.amount,
-          currency: verified.currency,
-          method: verified.method,
-        } as object,
-      },
-    })
-    .catch(() => null);
+  // Log console — on ne peut pas creer un AuditLog sans actorId (Prisma required)
+  console.log("[moneroo webhook payout]", {
+    event: eventName,
+    id: payoutId,
+    status,
+    amount: verified.amount,
+    currency: verified.currency,
+    method: verified.method,
+  });
 
   // Retrouver le withdrawal via paymentRef
   const w = await prisma.instructorWithdrawal.findFirst({

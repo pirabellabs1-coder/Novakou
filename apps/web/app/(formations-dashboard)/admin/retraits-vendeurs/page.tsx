@@ -22,6 +22,9 @@ type Withdrawal = {
   accountDetails: Record<string, unknown>;
   processedAt: string | null;
   createdAt: string;
+  paymentRef: string | null;
+  paymentProvider: string | null;
+  errorMessage: string | null;
   user: {
     id: string;
     name: string | null;
@@ -90,20 +93,30 @@ export default function AdminRetraitsVendeursPage() {
   const summary = response?.summary;
 
   const approveMut = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/formations/admin/withdrawals/${id}`, {
+    mutationFn: async (args: { id: string; mode: "moneroo" | "manual" }) => {
+      const res = await fetch(`/api/formations/admin/withdrawals/${args.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "approve" }),
+        body: JSON.stringify({ action: "approve", mode: args.mode }),
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error || "Erreur");
       return j;
     },
-    onSuccess: () => {
-      setToast("Retrait approuvé");
+    onSuccess: (data) => {
+      const mode = data?.data?.mode;
+      const monerooStatus = data?.data?.monerooStatus;
+      if (mode === "moneroo") {
+        setToast(
+          monerooStatus === "success"
+            ? "Retrait versé via Moneroo ✅"
+            : "Retrait envoyé à Moneroo — traitement en cours"
+        );
+      } else {
+        setToast("Retrait marqué comme traité");
+      }
       qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
-      setTimeout(() => setToast(null), 3000);
+      setTimeout(() => setToast(null), 4000);
     },
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
   });
@@ -127,15 +140,26 @@ export default function AdminRetraitsVendeursPage() {
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
   });
 
-  async function handleApprove(w: Withdrawal) {
+  async function handleApproveMoneroo(w: Withdrawal) {
     const ok = await confirmAction({
-      title: `Approuver ce retrait de ${fmtFCFA(w.amount)} FCFA ?`,
-      message: `Bénéficiaire : ${w.user.name ?? w.user.email} · Méthode : ${methodLabel(w.method)}. Le paiement devra être effectué manuellement.`,
-      confirmLabel: "Approuver",
+      title: `Payer ${fmtFCFA(w.amount)} FCFA via Moneroo ?`,
+      message: `Bénéficiaire : ${w.user.name ?? w.user.email} · Méthode : ${methodLabel(w.method)}. Moneroo envoie l'argent directement au bénéficiaire.`,
+      confirmLabel: "Lancer le paiement",
       confirmVariant: "default",
-      icon: "check_circle",
+      icon: "payments",
     });
-    if (ok) approveMut.mutate(w.id);
+    if (ok) approveMut.mutate({ id: w.id, mode: "moneroo" });
+  }
+
+  async function handleApproveManual(w: Withdrawal) {
+    const ok = await confirmAction({
+      title: `Marquer comme traité manuellement ?`,
+      message: `Vous confirmez avoir viré ${fmtFCFA(w.amount)} FCFA à ${w.user.name ?? w.user.email} hors plateforme. Aucun paiement Moneroo ne sera déclenché.`,
+      confirmLabel: "Marquer traité",
+      confirmVariant: "warning",
+      icon: "done_all",
+    });
+    if (ok) approveMut.mutate({ id: w.id, mode: "manual" });
   }
 
   async function handleRefuse(w: Withdrawal) {
@@ -308,13 +332,23 @@ export default function AdminRetraitsVendeursPage() {
                       </span>
 
                       {w.status === "EN_ATTENTE" && (
-                        <div className="flex gap-0">
+                        <div className="flex gap-0 flex-wrap">
                           <button
-                            onClick={() => handleApprove(w)}
+                            onClick={() => handleApproveMoneroo(w)}
                             disabled={approveMut.isPending || refuseMut.isPending}
-                            className="px-4 py-2 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-50"
+                            className="px-4 py-2 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            title="Déclencher un vrai paiement Moneroo"
                           >
-                            Approuver
+                            <span className="material-symbols-outlined text-[14px]">payments</span>
+                            Payer Moneroo
+                          </button>
+                          <button
+                            onClick={() => handleApproveManual(w)}
+                            disabled={approveMut.isPending || refuseMut.isPending}
+                            className="px-3 py-2 bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-200 transition-colors disabled:opacity-50"
+                            title="Marquer traité (virement fait à la main)"
+                          >
+                            Manuel
                           </button>
                           <button
                             onClick={() => handleRefuse(w)}
@@ -332,13 +366,35 @@ export default function AdminRetraitsVendeursPage() {
                     <div className="mt-4 border-l-4 border-rose-200 pl-4 py-2 bg-rose-50">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-rose-700 mb-1">Motif de refus</p>
                       <p className="text-sm text-rose-900">{w.refusedReason}</p>
+                      {w.errorMessage && (
+                        <p className="text-[10px] text-rose-600 mt-1 font-mono">Erreur Moneroo : {w.errorMessage}</p>
+                      )}
+                    </div>
+                  )}
+
+                  {w.status === "EN_ATTENTE" && w.errorMessage && (
+                    <div className="mt-4 border-l-4 border-amber-200 pl-4 py-2 bg-amber-50">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-1">Dernière tentative</p>
+                      <p className="text-sm text-amber-900">{w.errorMessage}</p>
                     </div>
                   )}
 
                   {w.status === "TRAITE" && w.processedAt && (
-                    <div className="mt-4 flex items-center gap-2 text-[11px] text-emerald-700">
-                      <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                      Traité le {new Date(w.processedAt).toLocaleString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    <div className="mt-4 flex items-center gap-3 text-[11px] text-emerald-700 flex-wrap">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                        Traité le {new Date(w.processedAt).toLocaleString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      {w.paymentProvider === "moneroo" && w.paymentRef && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-mono text-[10px]">
+                          Moneroo · {w.paymentRef.slice(0, 16)}…
+                        </span>
+                      )}
+                      {w.paymentProvider === "manual" && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">
+                          Virement manuel
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

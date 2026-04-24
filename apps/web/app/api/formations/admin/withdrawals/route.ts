@@ -53,6 +53,9 @@ export async function GET(request: Request) {
       accountDetails: w.accountDetails,
       processedAt: w.processedAt,
       createdAt: w.createdAt,
+      paymentRef: w.paymentRef,
+      paymentProvider: w.paymentProvider,
+      errorMessage: w.errorMessage,
       user: {
         id: w.instructeur.user.id,
         name: w.instructeur.user.name,
