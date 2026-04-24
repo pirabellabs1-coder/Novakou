@@ -61,14 +61,30 @@ interface WalletData {
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
 
-const METHODS = [
-  { value: "orange_money", label: "Orange Money", icon: "📱", country: "🇸🇳🇨🇮🇨🇲", needsPhone: true },
-  { value: "wave", label: "Wave", icon: "🌊", country: "🇸🇳🇨🇮", needsPhone: true },
-  { value: "mtn", label: "MTN Mobile Money", icon: "📱", country: "🇨🇮🇨🇲🇧🇯", needsPhone: true },
-  { value: "moov", label: "Moov Money", icon: "📱", country: "🇧🇯🇹🇬🇧🇫", needsPhone: true },
-  { value: "bank", label: "Virement bancaire", icon: "🏦", country: "Tous", needsBank: true },
-  { value: "paypal", label: "PayPal", icon: "💳", country: "Mondial", needsEmail: true },
-];
+// Les méthodes sont maintenant chargées dynamiquement depuis
+// /api/formations/wallet/payout-methods selon le pays du vendeur.
+
+interface PayoutMethodDef {
+  id: string;
+  label: string;
+  icon: string;
+  currency: string;
+  countries: string[];
+  requiredFields: Array<"phone" | "iban" | "bic" | "bank_name" | "account_holder" | "email">;
+  placeholder: Record<string, string>;
+  minAmount: number;
+  processingTime: string;
+  category: "mobile_money" | "bank" | "international";
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  phone: "Numéro de téléphone",
+  iban: "IBAN",
+  bic: "BIC / SWIFT",
+  bank_name: "Nom de la banque",
+  account_holder: "Titulaire du compte",
+  email: "Email",
+};
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string }> = {
@@ -95,22 +111,32 @@ export default function WalletPage() {
   const [showWithdraw, setShowWithdraw] = useState<"vendor" | "mentor" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Withdrawal form state
+  // Payout methods fetched dynamically from /api/formations/wallet/payout-methods
+  const [methods, setMethods] = useState<PayoutMethodDef[]>([]);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
+
+  // Withdrawal form state — fields is a Record keyed by field name (phone, iban, etc)
   const [amount, setAmount] = useState<number>(0);
-  const [method, setMethod] = useState<string>("orange_money");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [iban, setIban] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [accountHolder, setAccountHolder] = useState("");
+  const [method, setMethod] = useState<string>("");
+  const [fields, setFields] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
 
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch("/api/formations/wallet");
-      const json = await res.json();
-      setData(json.data ?? null);
+      const [walletRes, methodsRes] = await Promise.all([
+        fetch("/api/formations/wallet"),
+        fetch("/api/formations/wallet/payout-methods"),
+      ]);
+      const walletJson = await walletRes.json();
+      setData(walletJson.data ?? null);
+
+      const methodsJson = await methodsRes.json();
+      const list = (methodsJson.data?.methods ?? []) as PayoutMethodDef[];
+      setMethods(list);
+      setUserCountry(methodsJson.data?.userCountry ?? null);
+      // Presélectionne la première méthode dispo (en général Wave ou Orange Money selon pays)
+      if (list.length > 0 && !method) setMethod(list[0].id);
     } finally {
       setLoading(false);
     }
@@ -118,7 +144,10 @@ export default function WalletPage() {
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const selectedMethod = methods.find((m) => m.id === method);
 
   function openWithdrawDialog(source: "vendor" | "mentor") {
     if (!data) return;
@@ -129,32 +158,28 @@ export default function WalletPage() {
   }
 
   async function handleWithdraw() {
-    if (!showWithdraw || submitting) return;
+    if (!showWithdraw || submitting || !selectedMethod) return;
     setSubmitting(true);
     setError(null);
 
+    // Valide que tous les champs requis sont remplis
     const accountDetails: Record<string, string> = {};
-    const m = METHODS.find((x) => x.value === method);
-    if (m?.needsPhone && phone) accountDetails.phone = phone.trim();
-    if (m?.needsEmail && email) accountDetails.email = email.trim();
-    if (m?.needsBank) {
-      accountDetails.iban = iban.trim();
-      accountDetails.bankName = bankName.trim();
-      accountDetails.accountHolder = accountHolder.trim();
+    const missing: string[] = [];
+    for (const f of selectedMethod.requiredFields) {
+      const val = (fields[f] ?? "").trim();
+      if (!val) {
+        missing.push(FIELD_LABELS[f] || f);
+      } else {
+        accountDetails[f] = val;
+      }
     }
-
-    if (m?.needsPhone && !accountDetails.phone) {
-      setError("Numéro de téléphone requis pour Mobile Money");
+    if (missing.length > 0) {
+      setError(`Champs requis : ${missing.join(", ")}`);
       setSubmitting(false);
       return;
     }
-    if (m?.needsEmail && !accountDetails.email) {
-      setError("Email PayPal requis");
-      setSubmitting(false);
-      return;
-    }
-    if (m?.needsBank && (!accountDetails.iban || !accountDetails.accountHolder)) {
-      setError("IBAN et titulaire du compte requis");
+    if (amount < selectedMethod.minAmount) {
+      setError(`Montant minimum pour ${selectedMethod.label} : ${selectedMethod.minAmount} FCFA`);
       setSubmitting(false);
       return;
     }
@@ -165,7 +190,7 @@ export default function WalletPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
-          method,
+          method: selectedMethod.id,
           accountDetails,
           source: showWithdraw,
         }),
@@ -175,11 +200,7 @@ export default function WalletPage() {
         throw new Error(j.error || "Erreur lors de la demande");
       }
       setShowWithdraw(null);
-      setPhone("");
-      setEmail("");
-      setIban("");
-      setBankName("");
-      setAccountHolder("");
+      setFields({});
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur inconnue");
@@ -507,107 +528,70 @@ export default function WalletPage() {
               <div>
                 <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
                   Méthode de retrait
+                  {userCountry && (
+                    <span className="text-[10px] font-normal text-[#5c647a] ml-1">
+                      (disponibles dans votre pays : {userCountry})
+                    </span>
+                  )}
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {METHODS.map((m) => (
-                    <button
-                      key={m.value}
-                      type="button"
-                      onClick={() => setMethod(m.value)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-left text-xs transition-colors ${
-                        method === m.value
-                          ? "border-[#006e2f] bg-[#006e2f]/5"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      <span className="text-base">{m.icon}</span>
-                      <div className="min-w-0">
-                        <p className="font-bold text-[#191c1e] truncate">{m.label}</p>
-                        <p className="text-[9px] text-[#5c647a] truncate">{m.country}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                {methods.length === 0 ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-900">
+                    Aucune méthode de retrait disponible pour votre pays. Configurez
+                    votre pays dans <strong>Paramètres → Compte</strong>.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                    {methods.map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => { setMethod(m.id); setFields({}); }}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-left text-xs transition-colors ${
+                          method === m.id
+                            ? "border-[#006e2f] bg-[#006e2f]/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[16px] text-[#006e2f] flex-shrink-0">{m.icon}</span>
+                        <div className="min-w-0">
+                          <p className="font-bold text-[#191c1e] truncate">{m.label}</p>
+                          <p className="text-[9px] text-[#5c647a] truncate">{m.processingTime}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Method-specific fields */}
-              {METHODS.find((m) => m.value === method)?.needsPhone && (
-                <div>
+              {/* Champs dynamiques selon la méthode sélectionnée */}
+              {selectedMethod && selectedMethod.requiredFields.map((f) => (
+                <div key={f}>
                   <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
-                    Numéro Mobile Money
+                    {FIELD_LABELS[f] || f}
                   </label>
                   <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+221 77 123 45 67"
+                    type={f === "email" ? "email" : f === "phone" ? "tel" : "text"}
+                    value={fields[f] ?? ""}
+                    onChange={(e) => setFields((prev) => ({ ...prev, [f]: e.target.value }))}
+                    placeholder={selectedMethod.placeholder[f] ?? ""}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
                   />
                 </div>
-              )}
+              ))}
 
-              {METHODS.find((m) => m.value === method)?.needsEmail && (
-                <div>
-                  <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
-                    Email PayPal
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="vous@email.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                  />
-                </div>
-              )}
-
-              {METHODS.find((m) => m.value === method)?.needsBank && (
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
-                      IBAN
-                    </label>
-                    <input
-                      type="text"
-                      value={iban}
-                      onChange={(e) => setIban(e.target.value)}
-                      placeholder="FR76 1234 5678 9012 3456 7890 123"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
-                      Nom de la banque
-                    </label>
-                    <input
-                      type="text"
-                      value={bankName}
-                      onChange={(e) => setBankName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">
-                      Titulaire du compte
-                    </label>
-                    <input
-                      type="text"
-                      value={accountHolder}
-                      onChange={(e) => setAccountHolder(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
-                    />
+              {selectedMethod && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-start gap-2">
+                  <span className="material-symbols-outlined text-blue-600 text-[16px] mt-0.5">
+                    schedule
+                  </span>
+                  <div className="flex-1 text-xs text-blue-900">
+                    <p className="font-bold">Délai : {selectedMethod.processingTime}</p>
+                    <p className="mt-0.5">
+                      Montant min {selectedMethod.minAmount} FCFA · Paiement via Moneroo après validation admin
+                    </p>
                   </div>
                 </div>
               )}
-
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
-                <span className="material-symbols-outlined text-amber-600 text-[16px] mt-0.5">
-                  schedule
-                </span>
-                <p className="text-xs text-amber-900">
-                  Les retraits sont traités sous 24-48h ouvrées. Vous recevrez un email de confirmation.
-                </p>
-              </div>
 
               <div className="flex gap-2">
                 <button
