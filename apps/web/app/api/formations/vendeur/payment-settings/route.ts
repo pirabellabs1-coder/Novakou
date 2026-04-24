@@ -46,6 +46,10 @@ interface PayoutMethod {
   label?: string;
   phone?: string;
   iban?: string;
+  // Champs bancaires requis par Moneroo pour les virements SEPA/international
+  bic?: string;
+  bank_name?: string;
+  account_holder?: string;
   email?: string;
   primary?: boolean;
 }
@@ -137,6 +141,10 @@ export async function PUT(req: Request) {
           );
         }
         entry.iban = iban;
+        // Moneroo exige egalement le BIC et le nom de la banque pour un virement
+        if (raw.bic) entry.bic = String(raw.bic).trim().toUpperCase();
+        if (raw.bank_name) entry.bank_name = String(raw.bank_name).trim().slice(0, 100);
+        if (raw.account_holder) entry.account_holder = String(raw.account_holder).trim().slice(0, 100);
       } else if (method === "paypal") {
         const email = String(raw.email ?? "").trim().toLowerCase();
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {

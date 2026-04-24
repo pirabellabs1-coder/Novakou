@@ -59,6 +59,9 @@ export default function PaymentSettingsPanel() {
     label: "",
     phone: "",
     iban: "",
+    bic: "",
+    bank_name: "",
+    account_holder: "",
     email: "",
   });
   const [savingPayout, setSavingPayout] = useState(false);
@@ -119,21 +122,30 @@ export default function PaymentSettingsPanel() {
     if (!settings) return;
     const spec = PAYOUT_METHODS.find((m) => m.id === newPayout.method);
     if (!spec) return;
-    const entry: PayoutMethod = {
+    const entry: PayoutMethod & { bic?: string; bank_name?: string; account_holder?: string } = {
       id: `pm-${Date.now()}`,
       method: newPayout.method,
       label: newPayout.label.trim() || undefined,
       primary: settings.payoutMethods.length === 0, // first one = primary
     };
-    if (spec.field === "phone") entry.phone = newPayout.phone.trim();
-    else if (spec.field === "iban") entry.iban = newPayout.iban.trim();
-    else if (spec.field === "email") entry.email = newPayout.email.trim();
+    if (spec.field === "phone") {
+      entry.phone = newPayout.phone.trim();
+    } else if (spec.field === "iban") {
+      entry.iban = newPayout.iban.trim();
+      // Pour un virement, Moneroo a aussi besoin du BIC, du nom de la banque
+      // et du titulaire. On les envoie si remplis, sinon l'admin devra les ajouter.
+      if (newPayout.bic.trim()) entry.bic = newPayout.bic.trim();
+      if (newPayout.bank_name.trim()) entry.bank_name = newPayout.bank_name.trim();
+      if (newPayout.account_holder.trim()) entry.account_holder = newPayout.account_holder.trim();
+    } else if (spec.field === "email") {
+      entry.email = newPayout.email.trim();
+    }
 
     setSavingPayout(true);
     try {
       await persist({ payoutMethods: [...settings.payoutMethods, entry] });
       setShowAddPayout(false);
-      setNewPayout({ method: "orange_money", label: "", phone: "", iban: "", email: "" });
+      setNewPayout({ method: "orange_money", label: "", phone: "", iban: "", bic: "", bank_name: "", account_holder: "", email: "" });
     } finally { setSavingPayout(false); }
   }
 
@@ -260,16 +272,51 @@ export default function PaymentSettingsPanel() {
               </div>
             )}
             {payoutSpec?.field === "iban" && (
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">IBAN</label>
-                <input
-                  type="text"
-                  value={newPayout.iban}
-                  onChange={(e) => setNewPayout((p) => ({ ...p, iban: e.target.value.toUpperCase() }))}
-                  placeholder="SN12 XXXX XXXX XXXX XXXX XXXX"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono"
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">IBAN</label>
+                  <input
+                    type="text"
+                    value={newPayout.iban}
+                    onChange={(e) => setNewPayout((p) => ({ ...p, iban: e.target.value.toUpperCase() }))}
+                    placeholder="SN12 XXXX XXXX XXXX XXXX XXXX"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">BIC / SWIFT</label>
+                  <input
+                    type="text"
+                    value={newPayout.bic}
+                    onChange={(e) => setNewPayout((p) => ({ ...p, bic: e.target.value.toUpperCase() }))}
+                    placeholder="BNPAFRPP"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Nom de la banque</label>
+                  <input
+                    type="text"
+                    value={newPayout.bank_name}
+                    onChange={(e) => setNewPayout((p) => ({ ...p, bank_name: e.target.value }))}
+                    placeholder="Ecobank Sénégal"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Titulaire du compte</label>
+                  <input
+                    type="text"
+                    value={newPayout.account_holder}
+                    onChange={(e) => setNewPayout((p) => ({ ...p, account_holder: e.target.value }))}
+                    placeholder="Prénom Nom"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[11px] text-blue-900">
+                  Ces 4 informations sont requises par Moneroo pour traiter un virement bancaire.
+                </div>
+              </>
             )}
             {payoutSpec?.field === "email" && (
               <div>
