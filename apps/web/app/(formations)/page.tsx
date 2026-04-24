@@ -7,6 +7,7 @@ import { BestSellers } from "@/components/formations/BestSellers";
 import { RevealOnScroll, AnimatedCounter } from "@/components/landing/RevealOnScroll";
 import { CodeSnippet } from "@/components/landing/CodeSnippet";
 import { FAQAccordion } from "@/components/landing/FAQAccordion";
+import { ProductCategoriesCarousel } from "@/components/landing/ProductCategoriesCarousel";
 
 export const metadata: Metadata = {
   title: "Novakou | La plateforme tout-en-un pour vendre en Afrique francophone",
@@ -24,7 +25,7 @@ export default async function FormationsPage() {
         <div className="flex-1 space-y-6 text-center md:text-left">
           <HeroBadge />
 
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] text-[#191c1e]">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[1] text-[#191c1e]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
             Vends tes formations<br />
             <span className="text-[#006e2f]">partout en Afrique</span><br />
             francophone.
@@ -151,8 +152,8 @@ export default async function FormationsPage() {
         <div className="max-w-5xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-12 md:mb-16">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Le problème</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Le problème</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 Vendre en ligne en Afrique, c&apos;est encore trop compliqué.
               </h2>
             </div>
@@ -208,14 +209,34 @@ export default async function FormationsPage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════ */}
+      {/* 4B. CE QUE TU PEUX VENDRE — carousel pills                   */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <section className="py-20 md:py-28 overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+          <RevealOnScroll>
+            <div className="text-center px-4 md:px-8 mb-10 md:mb-14">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">40+ types de produits</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
+                Vends tout ce que tu peux imaginer
+              </h2>
+              <p className="text-[#5c647a] text-base md:text-lg mt-5 max-w-2xl mx-auto">
+                Formation, ebook, coaching, template, plugin, podcast premium, abonnement. Novakou accepte et vend n&apos;importe quel produit digital.
+              </p>
+            </div>
+          </RevealOnScroll>
+          <ProductCategoriesCarousel />
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
       {/* 5. FEATURES SHOWCASE — organisé par catégorie, 1 palette     */}
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="py-20 md:py-28 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-14 md:mb-20">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Ce que tu peux faire</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Ce que tu peux faire</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 La boîte à outils complète,<br />
                 <span className="text-[#006e2f]">tout incluse dans 10 %</span>
               </h2>
@@ -344,8 +365,8 @@ export default async function FormationsPage() {
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-14">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">IA en action</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">IA en action</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 Le chatbot qui vend pendant que tu dors
               </h2>
               <p className="text-[#5c647a] text-base md:text-lg mt-5 max-w-2xl mx-auto">
@@ -410,8 +431,8 @@ export default async function FormationsPage() {
           <RevealOnScroll>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10 md:mb-12">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Déjà en vente</p>
-                <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">Les best-sellers</h2>
+                <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Déjà en vente</span>
+                <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>Les best-sellers</h2>
               </div>
               <Link href="/explorer" className="text-[#006e2f] font-bold flex items-center gap-2 group text-sm hover:text-[#005a26] transition-colors">
                 Explorer tout le catalogue
@@ -435,8 +456,8 @@ export default async function FormationsPage() {
         <div className="max-w-5xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-12 md:mb-16">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Pour développeurs</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Pour développeurs</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 Une API propre pour tout intégrer
               </h2>
               <p className="text-[#5c647a] text-base md:text-lg mt-5 max-w-2xl mx-auto">
@@ -507,8 +528,8 @@ X-Novakou-Signature: sha256=a1b2c3...
         <div className="max-w-6xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-12 md:mb-16">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Ils utilisent Novakou</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Ils utilisent Novakou</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 Des créateurs qui vendent vraiment
               </h2>
             </div>
@@ -572,8 +593,8 @@ X-Novakou-Signature: sha256=a1b2c3...
         <div className="max-w-4xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-10">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Tarification</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Tarification</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 Simple et honnête
               </h2>
             </div>
@@ -621,8 +642,8 @@ X-Novakou-Signature: sha256=a1b2c3...
         <div className="max-w-3xl mx-auto">
           <RevealOnScroll>
             <div className="text-center mb-12">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#5c647a] mb-3">Questions fréquentes</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-[1.15]">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#191c1e] text-white text-[11px] font-bold tracking-[0.1em] mb-5">Questions fréquentes</span>
+              <h2 className="text-4xl md:text-6xl font-semibold tracking-tight text-[#191c1e] leading-[1.1]" style={{ fontFamily: "'Fraunces', Georgia, serif" }}>
                 Tout ce qu&apos;on te demande souvent
               </h2>
             </div>
