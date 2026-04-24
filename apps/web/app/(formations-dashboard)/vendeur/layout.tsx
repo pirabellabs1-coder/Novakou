@@ -7,6 +7,7 @@ import { useSession, signOut } from "next-auth/react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
 import { ShopProvider, useActiveShop } from "@/components/formations/ShopProvider";
 import ShopSwitcher from "@/components/formations/ShopSwitcher";
+import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 
 type NavItem = {
   icon: string;
@@ -181,18 +182,15 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
               <span className="hidden xl:inline">Voir ma boutique</span>
             </Link>
           )}
-          <button
-            className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
-            aria-label="Notifications"
-          >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
-          </button>
-          <button
+          <NovakouNotificationBell tone="slate" />
+          <Link
+            href="/aide"
             className="hidden md:flex p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
             aria-label="Aide"
+            title="Centre d'aide"
           >
             <span className="material-symbols-outlined text-[20px]">help_outline</span>
-          </button>
+          </Link>
           <div className="w-px h-6 bg-slate-200 mx-1 hidden md:block" />
           <Link
             href="/vendeur/profil"

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 
 const navItems = [
   { icon: "dashboard", label: "Vue générale", href: "/admin/dashboard" },
@@ -100,16 +101,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/admin/signalements"
-            title="Signalements"
-            className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]"
-          >
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
-            {(badges.reports > 0 || badges.withdrawals > 0) && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-            )}
-          </Link>
+          <NovakouNotificationBell tone="light" />
           <Link
             href="/admin/configuration"
             title="Configuration"

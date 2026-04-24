@@ -79,6 +79,31 @@ export default function TransactionsPage() {
   const allTxns: Txn[] = response?.data ?? [];
   const summary = response?.summary;
 
+  function exportCSV() {
+    if (allTxns.length === 0) return;
+    const headers = ["Date", "Type", "Produit", "Acheteur", "Email", "Montant", "Statut"];
+    const rows = allTxns.map((t) => [
+      new Date(t.createdAt).toISOString(),
+      t.productType,
+      `"${t.productTitle.replace(/"/g, '""')}"`,
+      `"${t.buyerName.replace(/"/g, '""')}"`,
+      t.buyerEmail,
+      Math.round(t.amount),
+      t.status,
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `novakou-ventes-${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   const filtered = useMemo(() => {
     return allTxns.filter((t) => {
       const matchStatus = statusFilter === "all" || t.status === statusFilter;
@@ -136,7 +161,11 @@ export default function TransactionsPage() {
             {isLoading ? "Chargement…" : `${summary?.total ?? 0} transaction${(summary?.total ?? 0) !== 1 ? "s" : ""} · Historique complet`}
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] bg-white hover:bg-gray-50 transition-colors">
+        <button
+          onClick={exportCSV}
+          disabled={allTxns.length === 0}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+        >
           <span className="material-symbols-outlined text-[18px] text-[#5c647a]">download</span>
           Exporter CSV
         </button>

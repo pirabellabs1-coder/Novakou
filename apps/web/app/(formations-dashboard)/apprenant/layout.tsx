@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { RoleGuard } from "@/components/formations/RoleGuard";
+import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 
 const navGroups = [
   {
@@ -155,9 +156,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
 
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]">
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
-          </button>
+          <NovakouNotificationBell tone="light" />
 
           {/* Cart */}
           <Link href="/apprenant/panier" className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]">

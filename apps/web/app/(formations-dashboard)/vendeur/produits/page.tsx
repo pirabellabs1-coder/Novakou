@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type Product = {
   id: string;
@@ -125,13 +126,76 @@ function SkeletonRow() {
 }
 
 export default function ProduitsPage() {
+  const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("all");
+  const [toast, setToast] = useState<string | null>(null);
 
   const { data: response, isLoading } = useQuery<{ data: FormationsData | null }>({
     queryKey: ["vendeur-formations"],
     queryFn: () => fetch("/api/formations/vendeur/formations").then((r) => r.json()),
     staleTime: 30_000,
   });
+
+  const archiveMut = useMutation({
+    mutationFn: async (p: Product) => {
+      const isFormation = p.productKind === "formation";
+      const url = isFormation
+        ? `/api/formations/vendeur/formations/${p.id}`
+        : `/api/formations/vendeur/products/${p.id}`;
+      const res = await fetch(url, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "ARCHIVE" }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return j;
+    },
+    onSuccess: () => {
+      setToast("Produit archivé");
+      qc.invalidateQueries({ queryKey: ["vendeur-formations"] });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
+  async function handleArchive(p: Product) {
+    const ok = await confirmAction({
+      title: "Archiver ce produit ?",
+      message: "Il ne sera plus visible dans la marketplace ni dans la recherche. Vous pourrez le réactiver plus tard.",
+      confirmLabel: "Archiver",
+      confirmVariant: "warning",
+      icon: "archive",
+    });
+    if (ok) archiveMut.mutate(p);
+  }
+
+  function exportCSV() {
+    if (allItems.length === 0) return;
+    const headers = ["Titre", "Type", "Statut", "Prix", "Ventes", "Revenus", "Note", "Avis", "Créé le"];
+    const rows = allItems.map((p) => [
+      `"${p.title.replace(/"/g, '""')}"`,
+      kindLabel(p.productKind),
+      p.status,
+      Math.round(p.price),
+      p.sales,
+      Math.round(p.revenue),
+      p.rating.toFixed(1),
+      p.reviewsCount,
+      new Date(p.createdAt).toISOString().slice(0, 10),
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `novakou-produits-${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 
   const d = response?.data;
   const totals = d?.totals;
@@ -156,6 +220,11 @@ export default function ProduitsPage() {
 
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
+      {toast && (
+        <div className="fixed top-20 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl">
+          {toast}
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
@@ -165,7 +234,11 @@ export default function ProduitsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] bg-white hover:bg-gray-50 transition-colors">
+          <button
+            onClick={exportCSV}
+            disabled={allItems.length === 0}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
             <span className="material-symbols-outlined text-[18px] text-[#5c647a]">download</span>
             Exporter
           </button>
@@ -382,7 +455,12 @@ export default function ProduitsPage() {
                     >
                       <span className="material-symbols-outlined text-[18px]">bar_chart</span>
                     </Link>
-                    <button className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors" title="Archiver">
+                    <button
+                      onClick={() => handleArchive(product)}
+                      disabled={archiveMut.isPending || isArchived(product)}
+                      className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      title={isArchived(product) ? "Déjà archivé" : "Archiver"}
+                    >
                       <span className="material-symbols-outlined text-[18px]">archive</span>
                     </button>
                   </div>
