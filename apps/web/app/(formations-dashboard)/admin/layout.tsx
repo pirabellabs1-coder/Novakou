@@ -9,6 +9,7 @@ import { NovakouNotificationBell } from "@/components/notifications/NovakouNotif
 
 const navItems = [
   { icon: "dashboard", label: "Vue générale", href: "/admin/dashboard" },
+  { icon: "neurology", label: "IA Assistant", href: "/admin/ai-assistant" },
   { icon: "inventory_2", label: "Produits", href: "/admin/produits" },
   { icon: "people", label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: "receipt_long", label: "Transactions", href: "/admin/transactions" },

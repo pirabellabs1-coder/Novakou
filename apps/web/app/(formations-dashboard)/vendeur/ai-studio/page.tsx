@@ -178,7 +178,7 @@ ${SYSTEM_PROMPT}`;
 
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
-      {/* Puter.js SDK — GPT-4o-mini gratuit illimite cote navigateur */}
+      {/* Puter.js SDK — Claude Sonnet 4.6 cote navigateur */}
       <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
 
       <div className="mb-8">
@@ -309,7 +309,7 @@ ${SYSTEM_PROMPT}`;
               <span>{puterReady ? "SDK IA prêt · Claude Sonnet 4.6" : "Chargement du SDK IA…"}</span>
             </div>
             <p className="text-[10px] text-[#5c647a] text-center">
-              Propulsé par Anthropic Claude via Puter · 100 % gratuit (compte Puter requis la 1ère fois).
+              Propulsé par Anthropic Claude via Puter · compte Puter requis la 1ère fois.
             </p>
           </div>
         </div>
