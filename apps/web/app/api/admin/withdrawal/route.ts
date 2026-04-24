@@ -4,7 +4,7 @@
  *
  * Règles :
  *   - Admin role uniquement (session.user.role === "ADMIN" ou ADMIN_EMAIL env match)
- *   - Solde disponible = somme des PlatformRevenue.platformAmount - sommes déjà retirées
+ *   - Solde disponible = somme des PlatformRevenue.commissionAmount - sommes déjà retirées
  *   - Méthodes acceptées : virement | mobile_money | paypal | wise
  *   - Minimum 1000 FCFA
  */
