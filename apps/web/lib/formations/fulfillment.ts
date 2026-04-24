@@ -23,6 +23,7 @@ import {
   sendNewStudentNotificationEmail,
 } from "@/lib/email/formations";
 import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
+import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
 
 export interface FulfillParams {
   userId: string;
@@ -359,6 +360,32 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
     }
   }
+
+  // ── Declenche les webhooks sortants 'order.paid' pour chaque vendeur
+  // concerne par cette commande. Fire-and-forget : on ne bloque pas le return
+  // si un webhook rate (le vendeur verra le failureCount augmenter).
+  try {
+    // Union des instructeurIds de tous les produits achetes
+    const instructeurIdsSet = new Set<string>();
+    for (const f of formations) if (f.instructeurId) instructeurIdsSet.add(f.instructeurId);
+    for (const p of products) if (p.instructeurId) instructeurIdsSet.add(p.instructeurId);
+    for (const instructeurId of instructeurIdsSet) {
+      dispatchVendorEvent(instructeurId, "order.paid", {
+        sessionRef,
+        subTotal,
+        discountAmount,
+        totalAmount,
+        appliedCode: appliedCode?.code ?? null,
+        buyer: { email: user.email, name: user.name },
+        enrollments: createdEnrollments.filter((e) =>
+          formations.find((f) => f.id === e.id)?.instructeurId === instructeurId,
+        ),
+        purchases: createdPurchases.filter((pr) =>
+          products.find((p) => p.id === pr.id)?.instructeurId === instructeurId,
+        ),
+      }).catch(() => null);
+    }
+  } catch { /* ne jamais bloquer sur webhook */ }
 
   return {
     success: true,

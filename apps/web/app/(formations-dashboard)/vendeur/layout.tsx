@@ -38,6 +38,7 @@ const navItems: NavItem[] = [
   { icon: "folder_open", label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },
   // Développeur
   { icon: "key", label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
+  { icon: "webhook", label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
   { icon: "menu_book", label: "Documentation API", href: "/developer/docs", section: "Développeur" },
   // Compte
   { icon: "account_circle", label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
