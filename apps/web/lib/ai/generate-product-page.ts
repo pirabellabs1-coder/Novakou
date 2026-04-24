@@ -57,10 +57,91 @@ Tu generes TOUJOURS en JSON valide strict, avec ces champs EXACTS :
 
 JAMAIS de texte avant ou apres le JSON. Juste le JSON.`;
 
+/**
+ * DEMO MODE : si OPENAI_API_KEY absent ou invalide (commence par sk-abcdef
+ * ou autre placeholder), on retourne un contenu template realiste adapte au
+ * topic entre. Permet de tester l'UI sans budget OpenAI.
+ *
+ * Quand le vendeur ajoute une vraie cle, le demo mode desactive automatiquement.
+ */
+function generateDemoPage(input: GenerateInput): GeneratedPage {
+  const isFormation = input.productType === "formation";
+  const topic = input.topic;
+  const audience = input.targetAudience || "créateurs et entrepreneurs africains francophones";
+  const benefits = input.mainBenefits || "compétences pratiques immédiatement applicables";
+
+  const type = isFormation ? "formation" : "produit";
+  const titleVariants = [
+    `Maîtrisez ${topic} en quelques heures`,
+    `${topic} — la méthode complète`,
+    `${topic} de zéro à expert`,
+    `${topic} : le guide pratique`,
+  ];
+  const title = titleVariants[Math.floor(Math.random() * titleVariants.length)];
+
+  return {
+    title,
+    shortDesc: `${type === "formation" ? "Formation complète" : "Ressource pratique"} sur ${topic}. Conçu pour ${audience}.`,
+    description: `## À propos de cette ${type}
+
+${topic} n'est plus un mystère. Cette ${type} vous donne les bases solides et les techniques avancées pour avancer concrètement.
+
+## Ce que vous allez obtenir
+
+Vous ne trouverez pas de théorie inutile ici. Chaque section est pensée pour **résultat immédiat**. Vous apprenez ${benefits}, avec des exemples concrets tirés du quotidien des ${audience}.
+
+## Pourquoi choisir cette ${type}
+
+- **Conçue pour l'Afrique francophone** : exemples locaux, réalité de terrain
+- **Format court** : vous avancez vite, sans perdre de temps
+- **Applications concrètes** : chaque leçon = une action réalisable immédiatement
+- **Support continu** : vous n'êtes jamais seul face à une question
+
+## Pour qui ?
+
+Parfaite si vous êtes :
+- Débutant complet qui veut des fondations solides
+- Autodidacte qui veut structurer ses connaissances
+- Professionnel qui veut passer au niveau supérieur
+
+## Votre investissement
+
+Quelques heures de votre temps + un abonnement mobile money. En retour : une compétence qui peut vous rapporter 10× plus tout au long de votre carrière.
+
+---
+
+*Cette description est générée en mode démo. Ajoutez une clé OpenAI pour avoir une génération IA complète et personnalisée.*`,
+    learnPoints: [
+      `Comprendre les fondamentaux de ${topic}`,
+      "Appliquer les techniques sur des cas réels",
+      "Éviter les erreurs courantes qui ralentissent 90% des débutants",
+      "Construire un système pour progresser en continu",
+      "Mesurer vos résultats concrètement",
+      "Gagner en confiance et en efficacité",
+    ],
+    targetAudience: `Cette ${type} s'adresse aux ${audience} qui veulent maîtriser ${topic}.`,
+    faq: [
+      { q: `Je suis débutant, est-ce adapté ?`, a: `Oui. Nous partons des bases et avançons progressivement. Aucune connaissance préalable n'est requise.` },
+      { q: `Combien de temps ça prend ?`, a: `${isFormation ? "Environ 5 à 8 heures" : "Vous pouvez consulter tout le contenu en 2 heures"}, à votre rythme. Accès illimité.` },
+      { q: `Y a-t-il un support si j'ai des questions ?`, a: `Oui, vous avez accès à la communauté des apprenants + vous pouvez poser des questions directement sur chaque leçon.` },
+      { q: `Puis-je suivre sur mobile ?`, a: `Absolument. Tout est pensé mobile-first, vous pouvez apprendre depuis votre téléphone partout.` },
+      { q: `Combien ça coûte ?`, a: `Voir le prix en haut de cette page. Paiement Mobile Money, carte bancaire, ou virement.` },
+    ],
+  };
+}
+
 export async function generateProductPage(input: GenerateInput): Promise<GeneratedPage> {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY non configuree dans Vercel. Ajoute-la dans Settings > Environment Variables.");
+
+  // DEMO MODE : cle manquante ou placeholder evident
+  const isDemoKey = !apiKey ||
+    apiKey.includes("abcdef") ||
+    apiKey === "sk-xxxxxxxx" ||
+    apiKey.length < 20;
+  if (isDemoKey) {
+    // Simule un delai IA (2s) pour que l'UI affiche le spinner normalement
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return generateDemoPage(input);
   }
 
   const language = input.language || "fr";

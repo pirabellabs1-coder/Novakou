@@ -1,7 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import Script from "next/script";
+
+// Typage minimal pour Puter.js charge via CDN
+declare global {
+  interface Window {
+    puter?: {
+      ai: {
+        chat: (
+          prompt: string,
+          options?: { model?: string; temperature?: number; max_tokens?: number },
+        ) => Promise<{ message: { content: string } }>;
+      };
+    };
+  }
+}
 
 type Generated = {
   title: string;
@@ -47,30 +62,87 @@ export default function AIStudioPage() {
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState<Generated | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [puterReady, setPuterReady] = useState(false);
+
+  // Check Puter availability
+  useEffect(() => {
+    const check = () => {
+      if (typeof window !== "undefined" && window.puter) {
+        setPuterReady(true);
+        return true;
+      }
+      return false;
+    };
+    if (!check()) {
+      const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  const SYSTEM_PROMPT = `Tu es un copywriter expert specialise dans la vente de formations et produits digitaux pour les createurs africains francophones (Senegal, Cote d'Ivoire, Benin, Cameroun, Mali, Togo...).
+
+Ton style : direct, chaleureux, authentique (ton africain mais pro), phrases courtes et percutantes, focus sur la transformation concrete, zero fake promesses, exemples concrets.
+
+Tu dois generer UNIQUEMENT un objet JSON valide avec ces champs EXACTS :
+{
+  "title": "string (40-70 chars, accrocheur, benefice principal)",
+  "shortDesc": "string (100-160 chars, pour le catalog)",
+  "description": "string (Markdown, 800-1500 mots, avec ## titres, listes, gras)",
+  "learnPoints": ["6 a 8 benefices concrets, commence par verbe d'action"],
+  "targetAudience": "string (50-120 chars, a qui s'adresse le produit)",
+  "faq": [{"q": "question", "a": "reponse courte utile"}] (5 elements)
+}
+
+Reponds UNIQUEMENT avec le JSON, pas de texte avant ou apres.`;
 
   async function generate() {
     if (!topic.trim()) {
       setError("Décrivez le sujet de votre produit en 1 phrase minimum");
       return;
     }
+    if (!puterReady || !window.puter) {
+      setError("Puter.js n'est pas encore chargé. Attendez 2 secondes et réessayez.");
+      return;
+    }
     setError(null);
     setLoading(true);
     setGenerated(null);
+
+    const typeLabel = productType === "formation" ? "formation video" : "produit digital";
+    const userPrompt = `Genere une page de vente pour ce ${typeLabel} :
+
+Sujet : ${topic.trim()}
+${targetAudience.trim() ? `Public cible : ${targetAudience.trim()}` : ""}
+${mainBenefits.trim() ? `Benefices principaux : ${mainBenefits.trim()}` : ""}
+${priceHint.trim() ? `Contexte prix : ${priceHint.trim()}` : ""}
+
+Langue : Francais.
+
+${SYSTEM_PROMPT}`;
+
     try {
-      const res = await fetch("/api/formations/vendeur/ai-generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productType,
-          topic: topic.trim(),
-          targetAudience: targetAudience.trim() || undefined,
-          mainBenefits: mainBenefits.trim() || undefined,
-          priceHint: priceHint.trim() || undefined,
-        }),
+      const response = await window.puter.ai.chat(userPrompt, {
+        model: "gpt-4o-mini",
+        temperature: 0.7,
+        max_tokens: 3000,
       });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j.error || "Erreur");
-      setGenerated(j.data);
+      const text = response.message?.content ?? "";
+
+      // Extraire le JSON (parfois l'IA l'entoure de ```json ... ```)
+      let jsonText = text.trim();
+      const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) jsonText = jsonMatch[1];
+
+      try {
+        const parsed = JSON.parse(jsonText) as Generated;
+        if (!parsed.title || !Array.isArray(parsed.learnPoints)) {
+          throw new Error("JSON incomplet");
+        }
+        setGenerated(parsed);
+      } catch {
+        // Fallback : on renvoie le texte brut comme description, l'UI affiche au moins qqch
+        setError(`L'IA n'a pas renvoye du JSON valide. Texte brut :\n\n${text.slice(0, 400)}...`);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
     } finally {
@@ -80,6 +152,9 @@ export default function AIStudioPage() {
 
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
+      {/* Puter.js SDK — GPT-4o-mini gratuit illimite cote navigateur */}
+      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
+
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg">
@@ -181,7 +256,7 @@ export default function AIStudioPage() {
 
             <button
               onClick={generate}
-              disabled={loading || !topic.trim()}
+              disabled={loading || !topic.trim() || !puterReady}
               className="w-full py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
               style={{ background: "linear-gradient(135deg, #7c3aed, #ec4899)" }}
             >
@@ -189,6 +264,11 @@ export default function AIStudioPage() {
                 <>
                   <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
                   Génération en cours (30s)…
+                </>
+              ) : !puterReady ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  Chargement du SDK IA…
                 </>
               ) : (
                 <>
@@ -198,8 +278,12 @@ export default function AIStudioPage() {
               )}
             </button>
 
+            <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#5c647a]">
+              <span className={`w-1.5 h-1.5 rounded-full ${puterReady ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
+              <span>{puterReady ? "SDK IA prêt (Puter · GPT-4o-mini)" : "Chargement du SDK IA…"}</span>
+            </div>
             <p className="text-[10px] text-[#5c647a] text-center">
-              Powered by OpenAI GPT-4o-mini. Coût estimé ~10 F CFA par génération.
+              100 % gratuit · vous pouvez être invité à créer un compte Puter la 1ère fois.
             </p>
           </div>
         </div>
