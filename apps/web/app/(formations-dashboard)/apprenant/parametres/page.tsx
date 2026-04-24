@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
 import TwoFactorSetup from "@/components/account/TwoFactorSetup";
@@ -27,8 +27,108 @@ export default function ParametresPage() {
   const [bio, setBio] = useState("");
   const [phone, setPhone] = useState("");
   const [country, setCountry] = useState("");
+  const [image, setImage] = useState<string>("");
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Photo upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoError(null);
+    setUploadingPhoto(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("folder", "avatar");
+      const uploadRes = await fetch("/api/upload/image", { method: "POST", body: form });
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok) {
+        setPhotoError(uploadJson.error ?? "Erreur d'upload");
+        return;
+      }
+      // Save the returned URL on the user profile
+      const saveRes = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo: uploadJson.url }),
+      });
+      if (!saveRes.ok) {
+        const saveJson = await saveRes.json().catch(() => ({}));
+        setPhotoError(saveJson.error ?? "Impossible de sauvegarder la photo");
+        return;
+      }
+      setImage(uploadJson.url);
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  async function handlePhotoDelete() {
+    setPhotoError(null);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photo: null }),
+      });
+      if (res.ok) setImage("");
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : "Erreur");
+    }
+  }
+
+  // Password change
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwdSubmitting, setPwdSubmitting] = useState(false);
+  const [pwdMessage, setPwdMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function handleChangePassword() {
+    setPwdMessage(null);
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPwdMessage({ type: "error", text: "Remplissez tous les champs" });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwdMessage({ type: "error", text: "Le nouveau mot de passe doit faire au moins 8 caractères" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdMessage({ type: "error", text: "Les deux nouveaux mots de passe ne correspondent pas" });
+      return;
+    }
+    setPwdSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        setPwdMessage({ type: "error", text: j.error ?? "Erreur" });
+        return;
+      }
+      setPwdMessage({ type: "success", text: "Mot de passe modifié avec succès" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPwdMessage(null), 5000);
+    } catch (e) {
+      setPwdMessage({ type: "error", text: e instanceof Error ? e.message : "Erreur réseau" });
+    } finally {
+      setPwdSubmitting(false);
+    }
+  }
 
   // Load user data from the API (authoritative) — session only has name/email.
   useEffect(() => {
@@ -47,6 +147,7 @@ export default function ParametresPage() {
         if (u.phone) setPhone(u.phone);
         if (u.country) setCountry(u.country);
         if (u.bio) setBio(u.bio);
+        if (u.photo || u.image) setImage((u.photo ?? u.image) as string);
       } catch { /* ignore */ }
     })();
     return () => { cancelled = true; };
@@ -155,17 +256,35 @@ export default function ParametresPage() {
               {/* Avatar section */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 className="text-base font-bold text-[#191c1e] mb-5">Photo de profil</h2>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
                 <div className="flex items-center gap-5">
                   {/* Avatar */}
                   <div className="relative flex-shrink-0">
-                    <div
-                      className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold"
-                      style={{ background: "linear-gradient(135deg, #006e2f 0%, #22c55e 100%)" }}
-                    >
-                      {(prenom[0] ?? "A").toUpperCase()}{(nom[0] ?? "").toUpperCase()}
-                    </div>
+                    {image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={image}
+                        alt={prenom || "Apprenant"}
+                        className="w-20 h-20 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-extrabold"
+                        style={{ background: "linear-gradient(135deg, #006e2f 0%, #22c55e 100%)" }}
+                      >
+                        {(prenom[0] ?? "A").toUpperCase()}{(nom[0] ?? "").toUpperCase()}
+                      </div>
+                    )}
                     <button
-                      className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#006e2f] rounded-full flex items-center justify-center border-2 border-white hover:bg-[#005a26] transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingPhoto}
+                      className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#006e2f] rounded-full flex items-center justify-center border-2 border-white hover:bg-[#005a26] transition-colors disabled:opacity-50"
                       aria-label="Changer la photo"
                     >
                       <span className="material-symbols-outlined text-white text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -177,14 +296,26 @@ export default function ParametresPage() {
                     <p className="font-semibold text-[#191c1e] text-sm mb-1">{prenom || "Apprenant"} {nom}</p>
                     <p className="text-xs text-[#5c647a] mb-3">Apprenant · {email || "—"}</p>
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90"
-                        style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                        Changer la photo
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingPhoto}
+                        className="px-4 py-2 rounded-xl text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                        style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                      >
+                        {uploadingPhoto ? "Envoi…" : "Changer la photo"}
                       </button>
-                      <button className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5c647a] border border-gray-200 hover:bg-gray-50 transition-colors">
-                        Supprimer
-                      </button>
+                      {image && (
+                        <button
+                          onClick={handlePhotoDelete}
+                          className="px-4 py-2 rounded-xl text-xs font-semibold text-[#5c647a] border border-gray-200 hover:bg-gray-50 transition-colors"
+                        >
+                          Supprimer
+                        </button>
+                      )}
                     </div>
+                    {photoError && (
+                      <p className="text-xs text-rose-600 mt-1.5">{photoError}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -316,28 +447,66 @@ export default function ParametresPage() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 className="text-base font-bold text-[#191c1e] mb-5">Mot de passe</h2>
                 <div className="space-y-4">
-                  {[
-                    { label: "Mot de passe actuel", id: "current" },
-                    { label: "Nouveau mot de passe", id: "new" },
-                    { label: "Confirmer le nouveau mot de passe", id: "confirm" },
-                  ].map((field) => (
-                    <div key={field.id}>
-                      <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">{field.label}</label>
-                      <div className="relative">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[17px] text-[#5c647a]">lock</span>
-                        <input
-                          type="password"
-                          placeholder="••••••••"
-                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
-                        />
-                      </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Mot de passe actuel</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[17px] text-[#5c647a]">lock</span>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        autoComplete="current-password"
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
+                      />
                     </div>
-                  ))}
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Nouveau mot de passe</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[17px] text-[#5c647a]">lock</span>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        autoComplete="new-password"
+                        placeholder="Minimum 8 caractères"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Confirmer le nouveau mot de passe</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[17px] text-[#5c647a]">lock</span>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        autoComplete="new-password"
+                        placeholder="Répéter le nouveau mot de passe"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] bg-white transition-all"
+                      />
+                    </div>
+                  </div>
+                  {pwdMessage && (
+                    <div
+                      className={`px-4 py-3 rounded-xl text-sm ${
+                        pwdMessage.type === "success"
+                          ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                          : "bg-rose-50 border border-rose-200 text-rose-800"
+                      }`}
+                    >
+                      {pwdMessage.text}
+                    </div>
+                  )}
                   <button
-                    className="px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
+                    onClick={handleChangePassword}
+                    disabled={pwdSubmitting}
+                    className="px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
                     style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                   >
-                    Mettre à jour le mot de passe
+                    {pwdSubmitting ? "Mise à jour…" : "Mettre à jour le mot de passe"}
                   </button>
                 </div>
               </div>

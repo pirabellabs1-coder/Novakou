@@ -127,6 +127,51 @@ export default function ParamaetresPage() {
     await signOut({ callbackUrl: "/" });
   }
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwdSubmitting, setPwdSubmitting] = useState(false);
+  const [pwdMessage, setPwdMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  async function handleChangePassword() {
+    setPwdMessage(null);
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPwdMessage({ type: "error", text: "Remplissez tous les champs" });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPwdMessage({ type: "error", text: "Le nouveau mot de passe doit faire au moins 8 caractères" });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPwdMessage({ type: "error", text: "Les deux nouveaux mots de passe ne correspondent pas" });
+      return;
+    }
+    setPwdSubmitting(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const j = await res.json();
+      if (!res.ok) {
+        setPwdMessage({ type: "error", text: j.error ?? "Erreur" });
+        return;
+      }
+      setPwdMessage({ type: "success", text: "Mot de passe modifié avec succès" });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPwdMessage(null), 5000);
+    } catch (e) {
+      setPwdMessage({ type: "error", text: e instanceof Error ? e.message : "Erreur réseau" });
+    } finally {
+      setPwdSubmitting(false);
+    }
+  }
+
   // Coach mode state
   const [coachActif, setCoachActif] = useState(false);
   const [tarifSession, setTarifSession] = useState("25000");
@@ -562,26 +607,63 @@ export default function ParamaetresPage() {
           {/* Password */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
             <h2 className="text-base font-bold text-[#191c1e]">Changer le mot de passe</h2>
-            {[
-              { label: "Mot de passe actuel", placeholder: "••••••••••" },
-              { label: "Nouveau mot de passe", placeholder: "Minimum 8 caractères" },
-              { label: "Confirmer le nouveau mot de passe", placeholder: "Répéter le nouveau mot de passe" },
-            ].map((field) => (
-              <div key={field.label}>
-                <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">{field.label}</label>
-                <input
-                  type="password"
-                  placeholder={field.placeholder}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
-                />
+
+            <div>
+              <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Mot de passe actuel</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••••"
+                autoComplete="current-password"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Nouveau mot de passe</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimum 8 caractères"
+                autoComplete="new-password"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Confirmer le nouveau mot de passe</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Répéter le nouveau mot de passe"
+                autoComplete="new-password"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
+              />
+            </div>
+
+            {pwdMessage && (
+              <div
+                className={`px-4 py-3 rounded-xl text-sm ${
+                  pwdMessage.type === "success"
+                    ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                    : "bg-rose-50 border border-rose-200 text-rose-800"
+                }`}
+              >
+                {pwdMessage.text}
               </div>
-            ))}
+            )}
+
             <button
-              className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
+              onClick={handleChangePassword}
+              disabled={pwdSubmitting}
+              className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >
               <span className="material-symbols-outlined text-[18px]">lock_reset</span>
-              Mettre à jour le mot de passe
+              {pwdSubmitting ? "Mise à jour…" : "Mettre à jour le mot de passe"}
             </button>
           </div>
 

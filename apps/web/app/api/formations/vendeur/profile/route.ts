@@ -73,7 +73,7 @@ export async function PATCH(request: Request) {
     const userId = ctx.userId;
 
     const body = await request.json();
-    const { name, phone, country, bioFr, expertise, linkedin, website, youtube, yearsExp } = body;
+    const { name, phone, country, image, bioFr, expertise, linkedin, website, youtube, yearsExp } = body;
 
     // Build User update object only with defined keys — avoids overwriting
     // existing values with undefined.
@@ -81,6 +81,7 @@ export async function PATCH(request: Request) {
     if (typeof name === "string" && name.trim()) userUpdate.name = name.trim();
     if (typeof phone === "string") userUpdate.phone = phone.trim() || null;
     if (typeof country === "string") userUpdate.country = country.trim() || null;
+    if (typeof image === "string") userUpdate.image = image.trim() || null;
 
     await Promise.all([
       Object.keys(userUpdate).length > 0

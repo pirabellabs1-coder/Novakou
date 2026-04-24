@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type ProfileData = {
@@ -93,6 +93,47 @@ export default function ProfilPage() {
   const initials = getInitials(displayName || d?.user?.name);
   const avatarUrl = d?.user?.image;
 
+  // Photo upload
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadError(null);
+    setUploadingPhoto(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("folder", "avatar");
+      const uploadRes = await fetch("/api/upload/image", { method: "POST", body: form });
+      const uploadJson = await uploadRes.json();
+      if (!uploadRes.ok) {
+        setUploadError(uploadJson.error ?? "Erreur d'upload");
+        return;
+      }
+      // Save the returned URL on the user's profile
+      const saveRes = await fetch("/api/formations/vendeur/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: uploadJson.url }),
+      });
+      if (!saveRes.ok) {
+        const saveJson = await saveRes.json().catch(() => ({}));
+        setUploadError(saveJson.error ?? "Impossible de sauvegarder la photo");
+        return;
+      }
+      qc.invalidateQueries({ queryKey: ["vendeur-profile"] });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Erreur réseau");
+    } finally {
+      setUploadingPhoto(false);
+      // Reset the input so the same file can be selected again
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
   const socialValues: Record<string, string> = { linkedin, youtube, website };
   const socialSetters: Record<string, (v: string) => void> = {
     linkedin: setLinkedin,
@@ -161,11 +202,25 @@ export default function ProfilPage() {
                   </div>
                 )}
                 <div>
-                  <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors mb-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handlePhotoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors mb-2 disabled:opacity-50"
+                  >
                     <span className="material-symbols-outlined text-[16px] text-[#5c647a]">upload</span>
-                    Changer la photo
+                    {uploadingPhoto ? "Envoi en cours…" : "Changer la photo"}
                   </button>
                   <p className="text-xs text-[#5c647a]">JPG, PNG · Max 5 MB · Recommandé : 400×400px</p>
+                  {uploadError && (
+                    <p className="text-xs text-rose-600 mt-1.5">{uploadError}</p>
+                  )}
                 </div>
               </div>
             </div>
