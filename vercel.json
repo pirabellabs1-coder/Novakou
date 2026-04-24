@@ -36,7 +36,7 @@
     },
     {
       "path": "/api/cron/send-abandon-reminders",
-      "schedule": "*/30 * * * *"
+      "schedule": "0 10 * * *"
     }
   ],
   "headers": [
