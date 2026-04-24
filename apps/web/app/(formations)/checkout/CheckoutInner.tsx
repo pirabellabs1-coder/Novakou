@@ -67,6 +67,20 @@ export default function CheckoutInner() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartLoading, setCartLoading] = useState(true);
 
+  // ── Order Bumps ─────────────────────────────────────────────────────────────
+  type OrderBump = {
+    id: string;
+    title: string;
+    description: string;
+    imageUrl: string | null;
+    price: number;
+    originalPrice: number | null;
+    bumpFormation: { id: string; title: string; slug: string; thumbnail: string | null } | null;
+    bumpProduct: { id: string; title: string; slug: string; banner: string | null } | null;
+  };
+  const [availableBumps, setAvailableBumps] = useState<OrderBump[]>([]);
+  const [acceptedBumpIds, setAcceptedBumpIds] = useState<string[]>([]);
+
   // ── Pre-fill from session ───────────────────────────────────────────────────
   useEffect(() => {
     if (session?.user) {
@@ -180,8 +194,28 @@ export default function CheckoutInner() {
     load();
   }, [searchParams]);
 
+  // ── Fetch Order Bumps applicables au cart ──────────────────────────────────
+  useEffect(() => {
+    if (cartItems.length === 0) {
+      setAvailableBumps([]);
+      return;
+    }
+    const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
+    const productIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
+    const qs = new URLSearchParams();
+    if (formationIds.length > 0) qs.set("formationIds", formationIds.join(","));
+    if (productIds.length > 0) qs.set("productIds", productIds.join(","));
+    fetch(`/api/formations/public/order-bumps?${qs.toString()}`)
+      .then((r) => r.json())
+      .then((j) => setAvailableBumps(j.data ?? []))
+      .catch(() => setAvailableBumps([]));
+  }, [cartItems]);
+
   const subTotal = cartItems.reduce((s, i) => s + i.price, 0);
-  const totalAmount = Math.max(0, subTotal - discountAmount);
+  const bumpsTotal = availableBumps
+    .filter((b) => acceptedBumpIds.includes(b.id))
+    .reduce((s, b) => s + b.price, 0);
+  const totalAmount = Math.max(0, subTotal + bumpsTotal - discountAmount);
 
   // ── Validation live du code promo (debounce 500ms) ─────────────────────────
   useEffect(() => {
@@ -236,12 +270,17 @@ export default function CheckoutInner() {
 
     try {
       const fullPhone = phone ? `${countryCode}${phone.replace(/^0/, "")}` : undefined;
+      // Resoudre les bumps acceptes en formationIds / productIds additionnels
+      const acceptedBumps = availableBumps.filter((b) => acceptedBumpIds.includes(b.id));
+      const bumpFormationIds = acceptedBumps.map((b) => b.bumpFormation?.id).filter(Boolean) as string[];
+      const bumpProductIds = acceptedBumps.map((b) => b.bumpProduct?.id).filter(Boolean) as string[];
       const res = await fetch("/api/formations/payment/init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          formationIds,
-          productIds,
+          formationIds: [...formationIds, ...bumpFormationIds],
+          productIds: [...productIds, ...bumpProductIds],
+          bumpIds: acceptedBumpIds, // pour tracer le taux d'acceptation cote backend
           discountCode: discountCode || undefined,
           guestEmail: session ? undefined : email,
           guestName: session ? undefined : `${firstName} ${lastName}`.trim(),
@@ -595,12 +634,81 @@ export default function CheckoutInner() {
               )}
             </div>
 
+            {/* ─── Order Bumps (offres additionnelles) ─────────────────────── */}
+            {availableBumps.length > 0 && (
+              <div className="mb-5 space-y-2">
+                {availableBumps.map((bump) => {
+                  const isAccepted = acceptedBumpIds.includes(bump.id);
+                  const savings = bump.originalPrice && bump.originalPrice > bump.price
+                    ? bump.originalPrice - bump.price : 0;
+                  return (
+                    <label
+                      key={bump.id}
+                      className={`block border-2 rounded-2xl p-4 cursor-pointer transition-all ${
+                        isAccepted
+                          ? "border-[#006e2f] bg-[#006e2f]/5"
+                          : "border-dashed border-amber-300 bg-amber-50/50 hover:border-amber-400"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={isAccepted}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setAcceptedBumpIds((prev) => [...prev, bump.id]);
+                            } else {
+                              setAcceptedBumpIds((prev) => prev.filter((id) => id !== bump.id));
+                            }
+                          }}
+                          className="mt-1 w-5 h-5 accent-[#006e2f] cursor-pointer"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                              ⚡ Offre spéciale
+                            </span>
+                            {savings > 0 && (
+                              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                −{formatFCFA(savings)}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-sm font-extrabold text-[#191c1e]">{bump.title}</h4>
+                          <p className="text-xs text-[#5c647a] mt-1 line-clamp-2">{bump.description}</p>
+                          <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-base font-extrabold text-[#006e2f]">+ {formatFCFA(bump.price)}</span>
+                            {bump.originalPrice && bump.originalPrice > bump.price && (
+                              <span className="text-xs text-[#5c647a] line-through">{formatFCFA(bump.originalPrice)}</span>
+                            )}
+                          </div>
+                        </div>
+                        {bump.imageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={bump.imageUrl} alt={bump.title} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Price breakdown */}
             <div className="space-y-2.5 mb-5">
               <div className="flex justify-between text-sm">
                 <span className="text-[#5c647a]">Sous-total</span>
                 <span className="font-semibold text-[#191c1e]">{formatFCFA(subTotal)}</span>
               </div>
+              {bumpsTotal > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-amber-700 font-semibold inline-flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span>
+                    Offre{acceptedBumpIds.length > 1 ? "s" : ""} additionnelle{acceptedBumpIds.length > 1 ? "s" : ""}
+                  </span>
+                  <span className="font-bold text-amber-700">+{formatFCFA(bumpsTotal)}</span>
+                </div>
+              )}
               {discountStatus === "valid" && discountAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">

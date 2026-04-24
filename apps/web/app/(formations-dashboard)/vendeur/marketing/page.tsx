@@ -214,6 +214,20 @@ export default function MarketingPage() {
             active={(d?.funnels.active ?? 0) > 0}
             loading={isLoading}
           />
+          <ToolCard
+            href="/vendeur/marketing/order-bumps"
+            icon="add_shopping_cart"
+            iconBg="bg-orange-50"
+            iconColor="text-orange-500"
+            title="Order Bumps"
+            description="Proposez un produit complémentaire via checkbox au checkout, avant le paiement. +20 à 30% de panier moyen."
+            stat1="—"
+            stat1Label="bumps actifs"
+            stat2="Nouveau"
+            stat2Label="feature"
+            active={false}
+            loading={isLoading}
+          />
         </div>
       </div>
 

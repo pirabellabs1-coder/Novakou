@@ -966,6 +966,7 @@ model InstructeurProfile {
   webhooks            VendorWebhook[]      @relation("InstructeurWebhooks")
   apiKeys             VendorApiKey[]       @relation("InstructeurApiKeys")
   bundles             ProductBundle[]
+  orderBumps          OrderBump[]          @relation("InstructeurOrderBumps")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1142,6 +1143,7 @@ model Formation {
   salesPage       SalesPage?
   bundleItems     ProductBundleItem[]
   quiz            FormationQuiz?
+  orderBumpsAsBump OrderBump[]       @relation("BumpFormation")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1537,6 +1539,7 @@ model DigitalProduct {
   flashPromotions FlashPromotion[]         @relation("ProductFlashPromos")
   marketingEvents MarketingEvent[]         @relation("ProductMarketingEvents")
   bundleItems     ProductBundleItem[]
+  orderBumpsAsBump OrderBump[]             @relation("BumpProduct")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3180,4 +3183,60 @@ model AdminCampaignRecipient {
   @@index([campaignId])
   @@index([userId])
   @@index([status])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ORDER BUMPS — offres additionnelles au checkout (boost du panier moyen)
+// ═════════════════════════════════════════════════════════════════════════════
+// Un Order Bump est un produit proposé via checkbox au moment du checkout,
+// AVANT le paiement. Exemple : l'acheteur commande une formation à 25 000 F,
+// on lui propose « Ajoutez le pack ressources bonus + 2 900 F » → case cochée,
+// total = 27 900 F, une seule transaction, les 2 produits sont délivrés.
+//
+// Différent des Upsells (qui apparaissent APRÈS paiement) : les bumps boostent
+// la transaction initiale sans re-demander les coordonnées de paiement.
+//
+// - bumpFormationId OU bumpProductId (exactement un des deux)
+// - targetFormationIds + targetProductIds : sur quels produits ce bump apparaît
+// - appliesToAll : shortcut pour afficher ce bump sur TOUT le catalog du vendeur
+
+model OrderBump {
+  id            String  @id @default(cuid())
+  instructeurId String
+  shopId        String?
+
+  // Contenu affiché à l'acheteur
+  title       String  // "Pack ressources bonus"
+  description String  @db.Text // "Modèles Excel + 50 templates prêts à l'emploi"
+  imageUrl    String?
+
+  // Le produit proposé en bump (un seul des deux)
+  bumpFormationId String?
+  bumpProductId   String?
+
+  // Pricing
+  price         Float // Prix du bump (souvent discounté)
+  originalPrice Float? // Prix normal pour affichage barré
+
+  // Ciblage : sur quel(s) produit(s) de la source ce bump s'affiche
+  appliesToAll       Boolean  @default(false) // Si true, ignore les listes ci-dessous
+  targetFormationIds String[] @default([])
+  targetProductIds   String[] @default([])
+
+  // Stats (mises à jour par fulfillment)
+  viewsCount    Int @default(0)
+  acceptedCount Int @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  instructeur   InstructeurProfile @relation("InstructeurOrderBumps", fields: [instructeurId], references: [id], onDelete: Cascade)
+  bumpFormation Formation?         @relation("BumpFormation", fields: [bumpFormationId], references: [id], onDelete: SetNull)
+  bumpProduct   DigitalProduct?    @relation("BumpProduct", fields: [bumpProductId], references: [id], onDelete: SetNull)
+
+  @@index([instructeurId, isActive])
+  @@index([shopId])
+  @@index([bumpFormationId])
+  @@index([bumpProductId])
 }
