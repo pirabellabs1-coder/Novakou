@@ -103,10 +103,53 @@ export default function AdminRetraitsVendeursPage() {
           amount: testAmount,
         }),
       });
-      const j = await res.json();
-      setTestResult(j);
+      // On lit TOUJOURS en texte d'abord pour pouvoir diagnostiquer
+      // les reponses non-JSON (HTML d'erreur Vercel, page de login, 404, etc.)
+      const raw = await res.text();
+      const contentType = res.headers.get("content-type") ?? "";
+      const isJson = contentType.includes("application/json");
+
+      if (!isJson) {
+        const preview = raw.slice(0, 500).replace(/\s+/g, " ");
+        setTestResult({
+          ok: false,
+          error: "La reponse n'est pas du JSON — l'endpoint est probablement introuvable ou il y a une redirection",
+          diagnostic: {
+            httpStatus: res.status,
+            httpStatusText: res.statusText,
+            contentType,
+            finalUrl: res.url,
+            redirected: res.redirected,
+            first500chars: preview,
+          },
+          hint: res.status === 404
+            ? "L'endpoint /api/formations/admin/test-payout n'existe pas encore sur ce deploiement. Attendez que Vercel finisse le build."
+            : res.status === 302 || res.status === 307 || res.redirected
+            ? "Redirection detectee — votre session admin est peut-etre perdue. Reconnectez-vous."
+            : res.status >= 500
+            ? "Erreur serveur. Regardez les logs Vercel pour la stack trace."
+            : "Reponse inattendue. Copiez-moi le first500chars.",
+        });
+        return;
+      }
+
+      try {
+        const j = JSON.parse(raw);
+        setTestResult(j);
+      } catch {
+        setTestResult({
+          ok: false,
+          error: "Content-Type dit JSON mais le parsing a echoue",
+          rawResponse: raw.slice(0, 500),
+          httpStatus: res.status,
+        });
+      }
     } catch (e) {
-      setTestResult({ ok: false, error: e instanceof Error ? e.message : "Erreur reseau" });
+      setTestResult({
+        ok: false,
+        error: e instanceof Error ? e.message : "Erreur reseau",
+        type: "network_or_fetch_exception",
+      });
     } finally {
       setTesting(false);
     }
