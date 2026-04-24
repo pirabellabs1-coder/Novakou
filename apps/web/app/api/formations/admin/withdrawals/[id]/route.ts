@@ -24,10 +24,9 @@ export async function PATCH(request: Request, { params }: Params) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { action, refusedReason, reference } = body as {
+    const { action, refusedReason } = body as {
       action?: string;
       refusedReason?: string;
-      reference?: string;
     };
 
     if (action !== "approve" && action !== "refuse") {
@@ -62,7 +61,6 @@ export async function PATCH(request: Request, { params }: Params) {
         data: {
           status: "TRAITE",
           processedAt: new Date(),
-          ...(reference ? { paymentRef: reference } : {}),
         },
       });
 

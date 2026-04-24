@@ -11,6 +11,7 @@ const navItems = [
   { icon: "inventory_2", label: "Produits", href: "/admin/produits" },
   { icon: "people", label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: "receipt_long", label: "Transactions", href: "/admin/transactions" },
+  { icon: "payments", label: "Retraits vendeurs", href: "/admin/retraits-vendeurs" },
   { icon: "account_balance", label: "Retraits plateforme", href: "/admin/retraits" },
   { icon: "comment", label: "Commentaires", href: "/admin/commentaires" },
   { icon: "flag", label: "Signalements", href: "/admin/signalements" },
@@ -28,7 +29,7 @@ function getInitials(name?: string | null): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-type BadgeCounts = { reports: number; comments: number };
+type BadgeCounts = { reports: number; comments: number; withdrawals: number };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,9 +54,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     staleTime: 60_000,
   });
 
+  const { data: withdrawalsRes } = useQuery<{ summary: { pending: number } | null }>({
+    queryKey: ["admin-vendor-withdrawals-badge"],
+    queryFn: () => fetch("/api/formations/admin/withdrawals?status=EN_ATTENTE&role=all").then((r) => r.json()),
+    staleTime: 60_000,
+  });
+
   const badges: BadgeCounts = {
     reports: dashRes?.data?.quickStats?.pendingReports ?? 0,
     comments: commentsRes?.summary?.withoutResponse ?? 0,
+    withdrawals: withdrawalsRes?.summary?.pending ?? 0,
   };
 
   return (
@@ -197,6 +205,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     {item.icon === "comment" && badges.comments > 0 && (
                       <span className="ml-auto bg-yellow-100 text-yellow-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
                         {badges.comments}
+                      </span>
+                    )}
+                    {item.icon === "payments" && badges.withdrawals > 0 && (
+                      <span className="ml-auto bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                        {badges.withdrawals}
                       </span>
                     )}
                   </Link>
