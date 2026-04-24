@@ -40,6 +40,8 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }>
 
 export default function AdminTransactionsPage() {
   const [status, setStatus] = useState<string>("all");
+  const [type, setType] = useState<"all" | "formation" | "product">("all");
+  const [period, setPeriod] = useState<"all" | "7d" | "30d" | "90d">("all");
   const [search, setSearch] = useState("");
 
   const { data: response, isLoading } = useQuery<{ data: Txn[]; summary: Summary | null }>({
@@ -52,13 +54,23 @@ export default function AdminTransactionsPage() {
   const summary = response?.summary;
 
   const filtered = useMemo(() => {
+    const now = Date.now();
+    const periodMs: Record<typeof period, number> = {
+      all: Infinity,
+      "7d": 7 * 86400_000,
+      "30d": 30 * 86400_000,
+      "90d": 90 * 86400_000,
+    };
     return all.filter((t) => {
       const matchStatus = status === "all" || t.status === status;
+      const matchType = type === "all" || t.type === type;
+      const age = now - new Date(t.createdAt).getTime();
+      const matchPeriod = age <= periodMs[period];
       const q = search.toLowerCase();
       const matchSearch = !q || t.buyerName.toLowerCase().includes(q) || t.sellerName.toLowerCase().includes(q) || t.productTitle.toLowerCase().includes(q);
-      return matchStatus && matchSearch;
+      return matchStatus && matchType && matchPeriod && matchSearch;
     });
-  }, [all, status, search]);
+  }, [all, status, type, period, search]);
 
   const tabs = [
     { value: "all", label: "Toutes", count: summary?.total ?? 0 },
@@ -66,6 +78,34 @@ export default function AdminTransactionsPage() {
     { value: "pending_refund", label: "En cours", count: summary?.pendingRefund ?? 0 },
     { value: "refunded", label: "Remboursées", count: summary?.refunded ?? 0 },
   ];
+
+  function exportCSV() {
+    if (filtered.length === 0) return;
+    const headers = ["Date", "Type", "Produit", "Acheteur", "Email", "Vendeur", "Montant", "Commission", "Net", "Statut"];
+    const rows = filtered.map((t) => [
+      new Date(t.createdAt).toISOString(),
+      t.type === "formation" ? "Formation" : t.productType,
+      `"${t.productTitle.replace(/"/g, '""')}"`,
+      `"${t.buyerName.replace(/"/g, '""')}"`,
+      t.buyerEmail,
+      `"${t.sellerName.replace(/"/g, '""')}"`,
+      Math.round(t.amount),
+      Math.round(t.commission),
+      Math.round(t.netAmount),
+      t.status,
+    ]);
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `novakou-transactions-${today}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
@@ -103,8 +143,8 @@ export default function AdminTransactionsPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-8">
+        {/* Filters row 1 : search + status */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-4">
           <div className="relative flex-1">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-zinc-400">search</span>
             <input
@@ -130,6 +170,55 @@ export default function AdminTransactionsPage() {
                 </span>
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Filters row 2 : type + period + export */}
+        <div className="flex flex-col md:flex-row gap-4 mb-8 items-start md:items-center justify-between">
+          <div className="flex flex-wrap gap-0 border border-zinc-100 bg-white">
+            {([
+              { v: "all", l: "Tout" },
+              { v: "formation", l: "Formations" },
+              { v: "product", l: "Produits" },
+            ] as const).map((t) => (
+              <button
+                key={t.v}
+                onClick={() => setType(t.v)}
+                className={`px-5 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                  type === t.v ? "bg-[#22c55e] text-[#004b1e]" : "text-zinc-500 hover:text-zinc-900"
+                }`}
+              >
+                {t.l}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex flex-wrap gap-0 border border-zinc-100 bg-white">
+              {([
+                { v: "all", l: "Tout" },
+                { v: "90d", l: "90 j" },
+                { v: "30d", l: "30 j" },
+                { v: "7d", l: "7 j" },
+              ] as const).map((p) => (
+                <button
+                  key={p.v}
+                  onClick={() => setPeriod(p.v)}
+                  className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
+                    period === p.v ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
+                  }`}
+                >
+                  {p.l}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={exportCSV}
+              disabled={filtered.length === 0}
+              className="flex items-center gap-2 px-4 py-3 bg-[#006e2f] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#005a26] transition-colors disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              Export CSV
+            </button>
           </div>
         </div>
 

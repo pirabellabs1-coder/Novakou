@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { confirmAction } from "@/store/confirm";
 
 type Report = {
   id: string;
@@ -50,6 +51,8 @@ const REASON_LABELS: Record<string, string> = {
 
 export default function AdminSignalementsPage() {
   const [tab, setTab] = useState<"reports" | "refunds">("reports");
+  const qc = useQueryClient();
+  const [toast, setToast] = useState<string | null>(null);
 
   const { data: response, isLoading } = useQuery<{ data: Data; summary: Summary | null }>({
     queryKey: ["admin-signalements"],
@@ -61,8 +64,90 @@ export default function AdminSignalementsPage() {
   const refunds = response?.data?.refundRequests ?? [];
   const summary = response?.summary;
 
+  const reportMut = useMutation({
+    mutationFn: async (args: { id: string; action: "delete_content" | "dismiss" }) => {
+      const res = await fetch(`/api/formations/admin/signalements/${args.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: args.action }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur");
+      return json;
+    },
+    onSuccess: (_d, args) => {
+      setToast(args.action === "dismiss" ? "Signalement ignoré" : "Contenu supprimé");
+      qc.invalidateQueries({ queryKey: ["admin-signalements"] });
+      qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
+  const refundMut = useMutation({
+    mutationFn: async (args: { id: string; action: "approve" | "reject"; note?: string }) => {
+      const res = await fetch(`/api/formations/admin/signalements/refunds/${args.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: args.action, note: args.note }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Erreur");
+      return json;
+    },
+    onSuccess: (_d, args) => {
+      setToast(args.action === "approve" ? "Remboursement approuvé" : "Remboursement refusé");
+      qc.invalidateQueries({ queryKey: ["admin-signalements"] });
+      qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
+  async function handleDeleteContent(id: string) {
+    const ok = await confirmAction({
+      title: "Supprimer le contenu signalé ?",
+      message: "Le message sera masqué et tous les signalements associés seront fermés.",
+      confirmLabel: "Supprimer",
+      confirmVariant: "danger",
+      icon: "delete",
+    });
+    if (ok) reportMut.mutate({ id, action: "delete_content" });
+  }
+
+  async function handleDismissReport(id: string) {
+    reportMut.mutate({ id, action: "dismiss" });
+  }
+
+  async function handleApproveRefund(id: string) {
+    const ok = await confirmAction({
+      title: "Approuver le remboursement ?",
+      message: "L'apprenant sera remboursé et perdra l'accès à la formation.",
+      confirmLabel: "Approuver",
+      confirmVariant: "default",
+      icon: "check",
+    });
+    if (ok) refundMut.mutate({ id, action: "approve" });
+  }
+
+  async function handleRejectRefund(id: string) {
+    const ok = await confirmAction({
+      title: "Refuser le remboursement ?",
+      message: "L'apprenant sera notifié du refus.",
+      confirmLabel: "Refuser",
+      confirmVariant: "danger",
+      icon: "close",
+    });
+    if (ok) refundMut.mutate({ id, action: "reject" });
+  }
+
   return (
     <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      {toast && (
+        <div className="fixed top-6 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl">
+          {toast}
+        </div>
+      )}
       <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1400px] mx-auto">
         <header className="mb-12">
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
@@ -143,10 +228,18 @@ export default function AdminSignalementsPage() {
                       </span>
                     </div>
                     <div className="flex gap-0 flex-shrink-0">
-                      <button className="px-4 py-2 bg-[#ffdad6] text-[#93000a] text-[10px] font-bold uppercase tracking-widest hover:bg-[#ffb4a9] transition-colors">
+                      <button
+                        onClick={() => handleDeleteContent(r.id)}
+                        disabled={reportMut.isPending}
+                        className="px-4 py-2 bg-[#ffdad6] text-[#93000a] text-[10px] font-bold uppercase tracking-widest hover:bg-[#ffb4a9] transition-colors disabled:opacity-50"
+                      >
                         Supprimer
                       </button>
-                      <button className="px-4 py-2 bg-zinc-200 text-zinc-700 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-300 transition-colors">
+                      <button
+                        onClick={() => handleDismissReport(r.id)}
+                        disabled={reportMut.isPending}
+                        className="px-4 py-2 bg-zinc-200 text-zinc-700 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-300 transition-colors disabled:opacity-50"
+                      >
                         Ignorer
                       </button>
                     </div>
@@ -208,10 +301,18 @@ export default function AdminSignalementsPage() {
                       </p>
                     </div>
                     <div className="flex gap-0 flex-shrink-0">
-                      <button className="px-4 py-2 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors">
+                      <button
+                        onClick={() => handleApproveRefund(r.id)}
+                        disabled={refundMut.isPending}
+                        className="px-4 py-2 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-50"
+                      >
                         Approuver
                       </button>
-                      <button className="px-4 py-2 bg-[#ffdad6] text-[#93000a] text-[10px] font-bold uppercase tracking-widest hover:bg-[#ffb4a9] transition-colors">
+                      <button
+                        onClick={() => handleRejectRefund(r.id)}
+                        disabled={refundMut.isPending}
+                        className="px-4 py-2 bg-[#ffdad6] text-[#93000a] text-[10px] font-bold uppercase tracking-widest hover:bg-[#ffb4a9] transition-colors disabled:opacity-50"
+                      >
                         Refuser
                       </button>
                     </div>

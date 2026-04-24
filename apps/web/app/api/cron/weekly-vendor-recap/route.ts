@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
         where: {
           formation: { instructeurId: v.id },
           createdAt: { gte: weekAgo },
-          status: { in: ["ACTIVE", "COMPLETED"] },
+          refundedAt: null,
         },
         include: { formation: { select: { price: true } } },
       }),
@@ -124,7 +124,6 @@ export async function GET(req: NextRequest) {
         where: {
           product: { instructeurId: v.id },
           createdAt: { gte: weekAgo },
-          status: { in: ["PAID", "COMPLETED"] },
         },
         select: { paidAmount: true },
       }),

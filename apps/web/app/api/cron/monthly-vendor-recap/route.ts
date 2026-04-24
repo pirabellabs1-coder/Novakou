@@ -158,7 +158,7 @@ export async function GET(req: NextRequest) {
           where: {
             formation: { instructeurId: v.id },
             createdAt: { gte: start },
-            status: { in: ["ACTIVE", "COMPLETED"] },
+            refundedAt: null,
           },
           include: { formation: { select: { id: true, title: true, price: true } } },
         }),
@@ -166,7 +166,6 @@ export async function GET(req: NextRequest) {
           where: {
             product: { instructeurId: v.id },
             createdAt: { gte: start },
-            status: { in: ["PAID", "COMPLETED"] },
           },
           select: { paidAmount: true, productId: true, product: { select: { title: true } } },
         }),
@@ -198,7 +197,7 @@ export async function GET(req: NextRequest) {
           where: {
             formation: { instructeurId: v.id },
             createdAt: { gte: start },
-            status: { in: ["ACTIVE", "COMPLETED"] },
+            refundedAt: null,
           },
           _count: { formationId: true },
           orderBy: { _count: { formationId: "desc" } },
@@ -209,7 +208,6 @@ export async function GET(req: NextRequest) {
           where: {
             product: { instructeurId: v.id },
             createdAt: { gte: start },
-            status: { in: ["PAID", "COMPLETED"] },
           },
           _count: { productId: true },
           orderBy: { _count: { productId: "desc" } },

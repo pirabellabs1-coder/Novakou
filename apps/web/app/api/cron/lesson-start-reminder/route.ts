@@ -68,12 +68,12 @@ export async function GET(req: NextRequest) {
   const threeDaysAgoStart = new Date(now - 4 * 24 * 60 * 60 * 1000);
   const threeDaysAgoEnd = new Date(now - 3 * 24 * 60 * 60 * 1000);
 
-  // Enrollments sans progression créés dans la fenêtre
+  // Enrollments sans progression créés dans la fenêtre (non remboursés)
   const enrollments = await prisma.enrollment.findMany({
     where: {
       createdAt: { gte: threeDaysAgoStart, lte: threeDaysAgoEnd },
       progress: 0,
-      status: "ACTIVE",
+      refundedAt: null,
     },
     include: {
       user: { select: { email: true, name: true } },
