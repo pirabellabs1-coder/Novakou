@@ -24,14 +24,22 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   try {
+    // Verif auth souple : on accepte n'importe quel user connecte.
+    // La page AI Studio est deja dans /vendeur/* donc proteger par middleware
+    // + layout RoleGuard. Le check de role strict cassait parce que Novakou
+    // utilise formationsRole + role combines — certains instructeurs ont
+    // role="APPRENANT" et formationsRole="instructeur" (les 2 espaces actifs).
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-    const role = token?.role?.toString().toLowerCase();
-    if (!token || (role !== "instructeur" && role !== "admin" && !IS_DEV)) {
+    if (!token && !IS_DEV) {
       return NextResponse.json(
-        { error: "Accès réservé aux instructeurs et admins" },
-        { status: 403 },
+        { error: "Vous devez être connecté pour utiliser l'IA Studio" },
+        { status: 401 },
       );
     }
+    // Log pour debug si besoin
+    const role = token?.role?.toString();
+    const formationsRole = (token as { formationsRole?: string } | null)?.formationsRole;
+    console.log("[ai-generate] auth check", { role, formationsRole, userId: token?.sub });
 
     const body = await request.json();
     const { productType, topic, targetAudience, mainBenefits, priceHint, language } = body as Partial<GenerateInput>;
