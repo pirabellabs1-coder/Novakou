@@ -57,17 +57,31 @@ export default function AdminRetraitsPage() {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+
   async function load() {
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await fetch("/api/admin/withdrawal");
       const j = await res.json();
       if (!res.ok) {
-        toast("error", j.error ?? "Chargement impossible");
+        const msg = j.error ?? "Chargement impossible";
+        toast("error", msg);
+        setLoadError(msg);
+        // Fallback : solde à zéro pour permettre l'affichage de la page
+        setBalance({ total: 0, paid: 0, pending: 0, available: 0 });
+        setWithdrawals([]);
         return;
       }
-      setBalance(j.data.balance);
-      setWithdrawals(j.data.withdrawals);
+      setBalance(j.data.balance ?? { total: 0, paid: 0, pending: 0, available: 0 });
+      setWithdrawals(j.data.withdrawals ?? []);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erreur réseau";
+      toast("error", msg);
+      setLoadError(msg);
+      setBalance({ total: 0, paid: 0, pending: 0, available: 0 });
+      setWithdrawals([]);
     } finally {
       setLoading(false);
     }
@@ -162,6 +176,22 @@ export default function AdminRetraitsPage() {
             Retirer les 5% de commission perçus par Novakou sur chaque vente.
           </p>
         </header>
+
+        {loadError && (
+          <div className="mb-6 px-5 py-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
+            <span className="material-symbols-outlined text-rose-600 mt-0.5">error</span>
+            <div>
+              <p className="text-sm font-bold text-rose-900">Impossible de charger les données</p>
+              <p className="text-xs text-rose-700 mt-0.5">{loadError}</p>
+              <button
+                onClick={() => load()}
+                className="mt-2 text-xs font-bold text-rose-700 hover:text-rose-900 underline"
+              >
+                Réessayer
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Balance KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-zinc-100 mb-10 border border-zinc-100">

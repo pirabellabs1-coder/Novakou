@@ -30,7 +30,8 @@ function isAdminSession(session: Awaited<ReturnType<typeof getServerSession>>): 
 
 async function computeBalance(): Promise<{ total: number; paid: number; pending: number; available: number }> {
   const [totalAgg, paidAgg, pendingAgg] = await Promise.all([
-    prisma.platformRevenue.aggregate({ _sum: { platformAmount: true } }),
+    // Commission Novakou = 5 % de chaque vente (enregistré dans commissionAmount)
+    prisma.platformRevenue.aggregate({ _sum: { commissionAmount: true } }),
     prisma.platformPayout.aggregate({
       where: { status: "TRAITE" },
       _sum: { amount: true },
@@ -40,7 +41,7 @@ async function computeBalance(): Promise<{ total: number; paid: number; pending:
       _sum: { amount: true },
     }),
   ]);
-  const total = totalAgg._sum.platformAmount ?? 0;
+  const total = totalAgg._sum.commissionAmount ?? 0;
   const paid = paidAgg._sum.amount ?? 0;
   const pending = pendingAgg._sum.amount ?? 0;
   return {

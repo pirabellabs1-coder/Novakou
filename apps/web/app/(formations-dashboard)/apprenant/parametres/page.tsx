@@ -515,37 +515,8 @@ export default function ParametresPage() {
               <TwoFactorSetup />
 
 
-              {/* Sessions */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <h2 className="text-base font-bold text-[#191c1e] mb-4">Sessions actives</h2>
-                <div className="space-y-3">
-                  {[
-                    { device: "Chrome · Windows 11", location: "Abidjan, CI", date: "Maintenant", current: true },
-                    { device: "Safari · iPhone 15", location: "Abidjan, CI", date: "Il y a 2h", current: false },
-                  ].map((session, i) => (
-                    <div key={i} className="flex items-center justify-between gap-3 p-3 rounded-xl border border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${session.current ? "bg-[#006e2f]/10" : "bg-gray-100"}`}>
-                          <span className={`material-symbols-outlined text-[18px] ${session.current ? "text-[#006e2f]" : "text-[#5c647a]"}`}>
-                            {session.device.includes("iPhone") ? "phone_iphone" : "computer"}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-[#191c1e]">{session.device}</p>
-                          <p className="text-[11px] text-[#5c647a]">{session.location} · {session.date}</p>
-                        </div>
-                      </div>
-                      {session.current ? (
-                        <span className="text-[10px] font-bold bg-[#006e2f]/10 text-[#006e2f] px-2.5 py-1 rounded-full">Actif</span>
-                      ) : (
-                        <button className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors">
-                          Révoquer
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Sessions — real login history */}
+              <ActiveSessions />
             </div>
           )}
 
