@@ -7,6 +7,10 @@ import { computeHoldStatus, HOLD_PERIOD_HOURS } from "@/lib/formations/escrow";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import {
+  getPayoutMethod,
+  resolveLegacyMethod,
+} from "@/lib/moneroo-payout-methods";
 
 /**
  * GET /api/formations/wallet
@@ -352,6 +356,46 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    // ── Normaliser la méthode vers un code Moneroo valide ────────────────────
+    // Les anciens enregistrements utilisent "orange_money", "wave"... on les
+    // résout selon le pays du user en "orange_money_ci" / "wave_sn" / etc.
+    const userInfo = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { country: true },
+    });
+    const userCountry = userInfo?.country ?? null;
+    const monerooMethod = getPayoutMethod(method)
+      ? method
+      : resolveLegacyMethod(method, userCountry);
+    if (monerooMethod) {
+      method = monerooMethod;
+      // Valider les champs requis
+      const def = getPayoutMethod(method);
+      if (def) {
+        const missing = def.requiredFields.filter(
+          (f) => !(accountDetails as Record<string, unknown>)[f],
+        );
+        if (missing.length > 0) {
+          return NextResponse.json(
+            {
+              error: `Coordonnées incomplètes pour ${def.label}. Champs manquants : ${missing.join(", ")}`,
+              code: "MISSING_FIELDS",
+              missingFields: missing,
+            },
+            { status: 400 },
+          );
+        }
+        if (amount < def.minAmount) {
+          return NextResponse.json(
+            { error: `Montant minimum pour ${def.label} : ${def.minAmount} FCFA` },
+            { status: 400 },
+          );
+        }
+      }
+    }
+    // Si method reste non reconnu (bank_transfer sans mapping exact), on laisse passer
+    // — l'admin pourra traiter manuellement.
 
     // ── KYC CHECK : obligatoire pour tout retrait (vendeur ou mentor) ──
     // Niveau 2 minimum requis (pièce d'identité vérifiée par admin)

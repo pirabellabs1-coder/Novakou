@@ -1390,17 +1390,22 @@ model InstructorWithdrawal {
   instructeurId  String
   shopId          String?
   amount         Float
-  method         String // "virement", "paypal", "wave", "orange_money", "mtn"
-  accountDetails Json // IBAN, email PayPal, numéro mobile...
+  method         String // code Moneroo (wave_sn, orange_money_ci...) ou "bank_transfer"
+  accountDetails Json   // phone / iban / email / etc. selon la méthode
   status         String    @default("EN_ATTENTE") // EN_ATTENTE, TRAITE, REFUSE
   refusedReason  String?
   processedAt    DateTime?
+  // Trace Moneroo : id du payout côté provider + nom du provider
+  paymentRef     String?
+  paymentProvider String?  // "moneroo" | "manual"
+  errorMessage   String?   // message d'erreur Moneroo si echec
   createdAt      DateTime  @default(now())
 
   instructeur InstructeurProfile @relation("InstructeurWithdrawals", fields: [instructeurId], references: [id], onDelete: Cascade)
 
   @@index([instructeurId])
   @@index([status])
+  @@index([paymentRef])
 }
 
 /// Retraits de la commission plateforme Novakou (5% de chaque vente).

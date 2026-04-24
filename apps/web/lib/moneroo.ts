@@ -158,3 +158,130 @@ export async function retrievePayment(paymentId: string): Promise<MonerooRetriev
 export function isMonerooConfigured(): boolean {
   return Boolean(process.env.MONEROO_SECRET_KEY);
 }
+
+// ─── PAYOUTS (sortants : vendeur reçoit son argent) ──────────────────────────
+// Docs : https://docs.moneroo.io/api/payouts
+//
+// Le flow est le suivant :
+//   1. On appelle initPayout() avec la méthode + les détails du bénéficiaire
+//   2. Moneroo valide et commence le processus (status "pending" puis "processing")
+//   3. Moneroo envoie un webhook quand le statut final est atteint (success/failed)
+//   4. On peut aussi poller retrievePayout() pour vérifier le statut
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type MonerooPayoutMethod =
+  // Côte d'Ivoire
+  | "orange_money_ci" | "mtn_ci" | "moov_ci" | "wave_ci"
+  // Sénégal
+  | "orange_money_sn" | "wave_sn" | "free_money_sn" | "expresso_sn"
+  // Mali
+  | "orange_money_ml" | "moov_ml"
+  // Burkina Faso
+  | "orange_money_bf" | "moov_bf"
+  // Niger
+  | "orange_money_ne" | "airtel_ne"
+  // Bénin
+  | "mtn_bj" | "moov_bj" | "celtis_bj"
+  // Togo
+  | "tmoney_tg" | "flooz_tg"
+  // Cameroun
+  | "orange_money_cm" | "mtn_cm"
+  // Congo / Gabon
+  | "airtel_cg" | "airtel_ga"
+  // International
+  | "bank_transfer" | "paypal" | "wise";
+
+export type MonerooPayoutInitParams = {
+  amount: number;
+  currency: string;                       // "XOF", "XAF", "EUR", "USD"
+  description: string;
+  customer: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+  };
+  method: MonerooPayoutMethod | string;
+  // Détails spécifiques à la méthode. Ex :
+  //   - Mobile Money : { phone: "+221 77 123 45 67" }
+  //   - Bank transfer : { iban, bic, bank_name, account_holder }
+  //   - PayPal : { email }
+  method_details: Record<string, string>;
+  metadata?: Record<string, unknown>;
+};
+
+export type MonerooPayoutStatus = "pending" | "processing" | "success" | "failed" | "cancelled";
+
+export type MonerooPayoutResponse = {
+  message?: string;
+  data: {
+    id: string;
+    reference?: string;
+    status: MonerooPayoutStatus;
+    amount: number;
+    currency: string;
+    method: string;
+    created_at?: string;
+  };
+};
+
+/**
+ * Initialise un payout (retrait) via Moneroo.
+ * Le bénéficiaire recevra les fonds sur son compte (Mobile Money, banque, PayPal, etc.)
+ * selon la méthode choisie.
+ *
+ * Retourne l'objet Moneroo avec `id` et `status` — le statut initial peut être
+ * "pending" ou "processing" et finalisera via webhook.
+ */
+export async function initPayout(params: MonerooPayoutInitParams): Promise<MonerooPayoutResponse["data"]> {
+  const apiKey = getApiKey();
+
+  const payload = {
+    amount: Math.round(params.amount),
+    currency: params.currency,
+    description: params.description,
+    customer: params.customer,
+    method: params.method,
+    method_details: params.method_details,
+    metadata: sanitizeMetadata(params.metadata),
+  };
+
+  const res = await fetch(`${MONEROO_API_BASE}/payouts/initialize`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  const json = (await res.json()) as MonerooPayoutResponse | { message?: string; error?: string; errors?: Record<string, string[]> };
+  if (!res.ok || !("data" in json) || !json.data?.id) {
+    let msg = ("message" in json && json.message) || ("error" in json && json.error) || "Moneroo payout init failed";
+    if ("errors" in json && json.errors && typeof json.errors === "object") {
+      const details = Object.entries(json.errors as Record<string, string[]>)
+        .map(([k, arr]) => `${k}: ${Array.isArray(arr) ? arr.join(" / ") : String(arr)}`)
+        .join(" | ");
+      if (details) msg = `${msg} — ${details}`;
+    }
+    throw new Error(msg);
+  }
+  return json.data;
+}
+
+/** Récupère le statut d'un payout existant. Utilisé pour confirmer / poller. */
+export async function retrievePayout(payoutId: string): Promise<MonerooPayoutResponse["data"]> {
+  const apiKey = getApiKey();
+  const res = await fetch(`${MONEROO_API_BASE}/payouts/${payoutId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      Accept: "application/json",
+    },
+  });
+  const json = (await res.json()) as MonerooPayoutResponse | { message?: string };
+  if (!res.ok || !("data" in json)) {
+    throw new Error(("message" in json && json.message) || "Moneroo payout retrieve failed");
+  }
+  return json.data;
+}

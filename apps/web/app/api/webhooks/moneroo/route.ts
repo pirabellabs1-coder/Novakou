@@ -15,9 +15,10 @@
 
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { retrievePayment } from "@/lib/moneroo";
+import { retrievePayment, retrievePayout } from "@/lib/moneroo";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
+import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 
 /**
  * Vérifie la signature HMAC Moneroo sur le body brut.
@@ -81,6 +82,15 @@ export async function POST(req: Request) {
   const paymentId = body.data?.id;
   if (!paymentId) {
     return NextResponse.json({ error: "data.id manquant" }, { status: 400 });
+  }
+
+  // ─── Détecter si c'est un event de PAYOUT (retrait) plutôt qu'un payment ─
+  // Moneroo utilise des events nommés "payout.*" pour les retraits.
+  const eventName = (body.event ?? "").toLowerCase();
+  const isPayoutEvent = eventName.startsWith("payout.") || eventName.includes("payout");
+
+  if (isPayoutEvent) {
+    return handlePayoutWebhook(paymentId, eventName);
   }
 
   // Re-vérifier le status auprès de Moneroo (NE PAS faire confiance au body seul)
@@ -236,4 +246,102 @@ function parseIdList(raw: unknown): string[] {
     return raw.split(",").map((s) => s.trim()).filter(Boolean);
   }
   return [];
+}
+
+/**
+ * Gère les webhooks payout (retraits) de Moneroo.
+ * Events typiques : payout.success, payout.failed, payout.pending, payout.cancelled
+ *
+ * On re-vérifie le statut via retrievePayout() pour éviter tout spoofing,
+ * puis on met à jour l'InstructorWithdrawal correspondant (trouvé via paymentRef).
+ */
+async function handlePayoutWebhook(payoutId: string, eventName: string) {
+  // Re-verif auprès de Moneroo
+  let verified: Awaited<ReturnType<typeof retrievePayout>>;
+  try {
+    verified = await retrievePayout(payoutId);
+  } catch (err) {
+    console.error("[moneroo webhook payout] retrievePayout failed:", err);
+    return NextResponse.json({ error: "Vérification payout Moneroo échouée" }, { status: 502 });
+  }
+
+  const status = verified.status;
+
+  // Audit log
+  await prisma.auditLog
+    .create({
+      data: {
+        action: `moneroo_payout_${status}`,
+        targetType: "withdrawal",
+        targetId: payoutId,
+        details: {
+          event: eventName,
+          status,
+          amount: verified.amount,
+          currency: verified.currency,
+          method: verified.method,
+        } as object,
+      },
+    })
+    .catch(() => null);
+
+  // Retrouver le withdrawal via paymentRef
+  const w = await prisma.instructorWithdrawal.findFirst({
+    where: { paymentRef: payoutId },
+    include: { instructeur: { include: { user: { select: { id: true } } } } },
+  });
+  if (!w) {
+    console.warn("[moneroo webhook payout] withdrawal introuvable pour paymentRef:", payoutId);
+    return NextResponse.json({ ok: true, ignored: true, reason: "withdrawal_not_found" });
+  }
+
+  // ── success ──────────────────────────────────────────────────────────
+  if (status === "success") {
+    if (w.status !== "TRAITE") {
+      await prisma.instructorWithdrawal.update({
+        where: { id: w.id },
+        data: {
+          status: "TRAITE",
+          processedAt: new Date(),
+          errorMessage: null,
+        },
+      });
+      await prisma.notification.create({
+        data: {
+          userId: w.instructeur.user.id,
+          type: "PAYMENT",
+          title: "Retrait versé ✅",
+          message: `Vos ${Math.round(w.amount)} FCFA viennent d'être envoyés via ${shortMethodLabel(w.method)}. Vérifiez votre compte.`,
+          link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
+        },
+      }).catch(() => null);
+    }
+    return NextResponse.json({ ok: true, payout: "success" });
+  }
+
+  // ── failed / cancelled : on re-ouvre le retrait ───────────────────────
+  if (status === "failed" || status === "cancelled") {
+    await prisma.instructorWithdrawal.update({
+      where: { id: w.id },
+      data: {
+        status: "REFUSE",
+        processedAt: new Date(),
+        errorMessage: `Moneroo a rejeté le payout (status=${status}).`,
+        refusedReason: "Échec du transfert Moneroo — vérifiez vos coordonnées de réception et réessayez.",
+      },
+    });
+    await prisma.notification.create({
+      data: {
+        userId: w.instructeur.user.id,
+        type: "PAYMENT",
+        title: "Retrait échoué",
+        message: `Votre retrait de ${Math.round(w.amount)} FCFA n'a pas pu aboutir. Vérifiez vos coordonnées et créez une nouvelle demande.`,
+        link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
+      },
+    }).catch(() => null);
+    return NextResponse.json({ ok: true, payout: status });
+  }
+
+  // ── processing / pending : on ne touche pas au statut ────────────────
+  return NextResponse.json({ ok: true, payout: status, ignored: true });
 }
