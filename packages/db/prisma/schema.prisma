@@ -2220,6 +2220,7 @@ model SalesFunnel {
   instructeur InstructeurProfile @relation("InstructeurSalesFunnels", fields: [instructeurId], references: [id], onDelete: Cascade)
   steps       FunnelStep[]
   events      FunnelEvent[]
+  abTests     FunnelABTest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3400,4 +3401,48 @@ model ProductInquiry {
   @@index([productId])
   @@index([visitorEmail])
   @@index([createdAt])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// A/B TESTING FUNNELS (Phase 2 #8)
+// ═════════════════════════════════════════════════════════════════════════════
+// Un vendeur cree une experience A/B sur son funnel : 2 variantes de landing
+// page, Novakou route 50/50 selon un hash du visitor_id (cookie persistant).
+// Tracking des impressions + conversions par variante, tableau de bord simple.
+
+model FunnelABTest {
+  id       String @id @default(cuid())
+  funnelId String
+
+  name       String  // "Hero v2 vs original"
+  variantA   String  // nom de la variante A (ex: "Original")
+  variantB   String  // nom de la variante B (ex: "Avec badge urgence")
+  blocksA    Json    // snapshot blocks de la landing variante A
+  blocksB    Json    // snapshot blocks de la landing variante B
+
+  isActive  Boolean @default(true)
+  winner    String? // "A" | "B" | null (auto-determined ou admin)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  funnel SalesFunnel          @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+  events FunnelABTestEvent[]
+
+  @@index([funnelId, isActive])
+}
+
+model FunnelABTestEvent {
+  id        String   @id @default(cuid())
+  testId    String
+  variant   String   // "A" ou "B"
+  eventType String   // "view" | "conversion"
+  visitorId String   // cookie-based id stable
+  orderValue Float?  // si conversion, montant de l'achat
+  createdAt DateTime @default(now())
+
+  test FunnelABTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@index([testId, variant, eventType])
+  @@index([visitorId])
 }

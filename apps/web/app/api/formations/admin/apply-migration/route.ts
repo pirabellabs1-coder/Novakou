@@ -157,6 +157,34 @@ export async function POST(request: NextRequest) {
       `CREATE INDEX IF NOT EXISTS "ProductInquiry_productId_idx"            ON "ProductInquiry"("productId")`,
       `CREATE INDEX IF NOT EXISTS "ProductInquiry_visitorEmail_idx"         ON "ProductInquiry"("visitorEmail")`,
       `CREATE INDEX IF NOT EXISTS "ProductInquiry_createdAt_idx"            ON "ProductInquiry"("createdAt")`,
+      // Migration 2026042406 — funnel_ab_tests
+      `CREATE TABLE IF NOT EXISTS "FunnelABTest" (
+        "id" TEXT PRIMARY KEY,
+        "funnelId" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "variantA" TEXT NOT NULL,
+        "variantB" TEXT NOT NULL,
+        "blocksA" JSONB NOT NULL,
+        "blocksB" JSONB NOT NULL,
+        "isActive" BOOLEAN NOT NULL DEFAULT TRUE,
+        "winner" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "FunnelABTest_funnelId_fkey" FOREIGN KEY ("funnelId") REFERENCES "SalesFunnel"("id") ON DELETE CASCADE
+      )`,
+      `CREATE INDEX IF NOT EXISTS "FunnelABTest_funnelId_isActive_idx" ON "FunnelABTest"("funnelId", "isActive")`,
+      `CREATE TABLE IF NOT EXISTS "FunnelABTestEvent" (
+        "id" TEXT PRIMARY KEY,
+        "testId" TEXT NOT NULL,
+        "variant" TEXT NOT NULL,
+        "eventType" TEXT NOT NULL,
+        "visitorId" TEXT NOT NULL,
+        "orderValue" DOUBLE PRECISION,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "FunnelABTestEvent_testId_fkey" FOREIGN KEY ("testId") REFERENCES "FunnelABTest"("id") ON DELETE CASCADE
+      )`,
+      `CREATE INDEX IF NOT EXISTS "FunnelABTestEvent_testId_variant_eventType_idx" ON "FunnelABTestEvent"("testId", "variant", "eventType")`,
+      `CREATE INDEX IF NOT EXISTS "FunnelABTestEvent_visitorId_idx" ON "FunnelABTestEvent"("visitorId")`,
     ];
 
     const results: { sql: string; status: string; error?: string }[] = [];
