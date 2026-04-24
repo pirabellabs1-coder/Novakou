@@ -3,8 +3,17 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { PixelInjector } from "@/components/formations/PixelInjector";
 
 type Status = "loading" | "success" | "failed" | "pending";
+
+type VerifyResult = {
+  enrollments?: Array<{ id: string; title: string; price: number }>;
+  purchases?: Array<{ id: string; title: string; price: number }>;
+  skipped?: string[];
+  totalAmount?: number;
+  subTotal?: number;
+};
 
 function ReturnInner() {
   const params = useSearchParams();
@@ -12,6 +21,10 @@ function ReturnInner() {
   const [status, setStatus] = useState<Status>("loading");
   const [message, setMessage] = useState<string>("Vérification du paiement en cours…");
   const [redirectTo, setRedirectTo] = useState<string>("/apprenant/mes-formations");
+
+  // Pixels marketing des vendeurs concernés + montant pour event Purchase
+  const [purchasePixels, setPurchasePixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>>([]);
+  const [purchaseAmount, setPurchaseAmount] = useState<number>(0);
 
   useEffect(() => {
     async function run() {
@@ -104,10 +117,10 @@ function ReturnInner() {
 
         if (paymentStatus === "success") {
           // Le verify a déjà fulfill (via fulfillCheckout)
-          const result = verify.data.result;
-          const enrollmentsCount = result?.enrollments?.length ?? 0;
-          const purchasesCount = result?.purchases?.length ?? 0;
-          const skipped = result?.skipped?.length ?? 0;
+          const result: VerifyResult = verify.data.result || {};
+          const enrollmentsCount = result.enrollments?.length ?? 0;
+          const purchasesCount = result.purchases?.length ?? 0;
+          const skipped = result.skipped?.length ?? 0;
           setStatus("success");
           if (enrollmentsCount + purchasesCount > 0) {
             setMessage(`Achat confirmé : ${enrollmentsCount + purchasesCount} produit(s) ajouté(s) à votre espace apprenant.`);
@@ -117,6 +130,21 @@ function ReturnInner() {
             setMessage("Paiement confirmé !");
           }
           setRedirectTo(enrollmentsCount > 0 ? "/apprenant/mes-formations" : "/apprenant/produits");
+
+          // Fetch pixels + set amount pour event Purchase
+          try {
+            const formationIds = (result.enrollments ?? []).map((e) => e.id).filter(Boolean);
+            const productIds = (result.purchases ?? []).map((p) => p.id).filter(Boolean);
+            if (formationIds.length > 0 || productIds.length > 0) {
+              const qs = new URLSearchParams();
+              if (formationIds.length > 0) qs.set("formationIds", formationIds.join(","));
+              if (productIds.length > 0) qs.set("productIds", productIds.join(","));
+              const px = await fetch(`/api/formations/public/pixels?${qs.toString()}`).then((r) => r.json());
+              setPurchasePixels(px.data ?? []);
+            }
+            const total = Number(result.totalAmount ?? result.subTotal ?? verify.data.amount ?? 0);
+            setPurchaseAmount(total);
+          } catch { /* pixels optionnels */ }
         } else if (paymentStatus === "pending" || paymentStatus === "initiated") {
           setStatus("pending");
           setMessage("Paiement en attente. Vous recevrez un email dès confirmation.");
@@ -143,6 +171,13 @@ function ReturnInner() {
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-16" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      {/* Event Purchase : trigger les pixels des vendeurs avec montant */}
+      {status === "success" && purchasePixels.length > 0 && (
+        <PixelInjector
+          pixels={purchasePixels}
+          event={{ name: "Purchase", value: purchaseAmount, currency: "XOF" }}
+        />
+      )}
       <div className="max-w-md w-full text-center">
         {status === "loading" && (
           <>

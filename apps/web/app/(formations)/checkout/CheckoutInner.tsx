@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { PixelInjector } from "@/components/formations/PixelInjector";
 
 // ─── Country codes for Mobile Money ──────────────────────────────────────────
 const COUNTRIES = [
@@ -80,6 +81,9 @@ export default function CheckoutInner() {
   };
   const [availableBumps, setAvailableBumps] = useState<OrderBump[]>([]);
   const [acceptedBumpIds, setAcceptedBumpIds] = useState<string[]>([]);
+
+  // ── Pixels marketing vendeurs (FB, Google, TikTok) ──────────────────────
+  const [checkoutPixels, setCheckoutPixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>>([]);
 
   // ── Pre-fill from session ───────────────────────────────────────────────────
   useEffect(() => {
@@ -194,10 +198,11 @@ export default function CheckoutInner() {
     load();
   }, [searchParams]);
 
-  // ── Fetch Order Bumps applicables au cart ──────────────────────────────────
+  // ── Fetch Order Bumps + Pixels applicables au cart ─────────────────────
   useEffect(() => {
     if (cartItems.length === 0) {
       setAvailableBumps([]);
+      setCheckoutPixels([]);
       return;
     }
     const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
@@ -209,6 +214,10 @@ export default function CheckoutInner() {
       .then((r) => r.json())
       .then((j) => setAvailableBumps(j.data ?? []))
       .catch(() => setAvailableBumps([]));
+    fetch(`/api/formations/public/pixels?${qs.toString()}`)
+      .then((r) => r.json())
+      .then((j) => setCheckoutPixels(j.data ?? []))
+      .catch(() => setCheckoutPixels([]));
   }, [cartItems]);
 
   const subTotal = cartItems.reduce((s, i) => s + i.price, 0);
@@ -323,6 +332,13 @@ export default function CheckoutInner() {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb] py-8 px-4 md:px-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      {/* Pixels vendeurs : event InitiateCheckout (tous les pixels des vendeurs du panier) */}
+      {checkoutPixels.length > 0 && (
+        <PixelInjector
+          pixels={checkoutPixels}
+          event={{ name: "InitiateCheckout", value: subTotal, currency: "XOF" }}
+        />
+      )}
       {/* Breadcrumb */}
       <div className="max-w-5xl mx-auto mb-6">
         <div className="flex items-center gap-2 text-xs text-[#5c647a]">

@@ -20,6 +20,10 @@ export async function GET(_req: Request, { params }: Params) {
             expertise: true,
             bioFr: true,
             user: { select: { id: true, name: true, image: true } },
+            marketingPixels: {
+              where: { isActive: true },
+              select: { type: true, pixelId: true },
+            },
           },
         },
         category: { select: { id: true, slug: true, name: true } },
@@ -103,6 +107,7 @@ export async function GET(_req: Request, { params }: Params) {
           bio: formation.instructeur.bioFr,
           expertise: formation.instructeur.expertise,
           yearsExp: formation.instructeur.yearsExp,
+          marketingPixels: formation.instructeur.marketingPixels ?? [],
         },
         sections: formation.sections.map((s) => ({
           id: s.id,

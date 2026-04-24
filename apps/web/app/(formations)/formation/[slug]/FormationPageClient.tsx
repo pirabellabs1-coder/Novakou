@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { PixelInjector } from "@/components/formations/PixelInjector";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Lesson {
@@ -40,6 +41,7 @@ interface Instructeur {
   bio: string | null;
   expertise: string[];
   yearsExp: number;
+  marketingPixels?: Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>;
 }
 
 interface Formation {
@@ -279,6 +281,12 @@ export default function FormationPageClient({ slug }: { slug: string }) {
 
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
+      {/* Pixels vendeur (FB, Google, TikTok) — event ViewContent avec valeur */}
+      <PixelInjector
+        pixels={formation.instructeur.marketingPixels ?? []}
+        event={{ name: "ViewContent", value: formation.price, currency: "XOF" }}
+      />
+
       {/* Breadcrumb minimal — no hero cover */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6">
         <Link
