@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
+import { IS_DEV } from "@/lib/env";
 
 /**
  * GET /api/formations/admin/withdrawals?status=&role=
@@ -15,18 +16,19 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !["admin", "ADMIN"].includes(session.user.role as string)) {
+    const sessionRole = session?.user?.role?.toString().toUpperCase();
+    if (!session?.user || (sessionRole !== "ADMIN" && !IS_DEV)) {
       return NextResponse.json({ error: "Accès refusé — admin requis." }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") ?? "all";
-    const role = searchParams.get("role") ?? "all";
+    const roleFilter = searchParams.get("role") ?? "all";
 
     const where: Record<string, unknown> = {};
     if (status !== "all") where.status = status;
-    if (role === "mentor") where.method = { endsWith: "_mentor" };
-    if (role === "vendor") where.NOT = { method: { endsWith: "_mentor" } };
+    if (roleFilter === "mentor") where.method = { endsWith: "_mentor" };
+    if (roleFilter === "vendor") where.NOT = { method: { endsWith: "_mentor" } };
 
     const withdrawals = await prisma.instructorWithdrawal.findMany({
       where,
