@@ -869,36 +869,6 @@ X-Novakou-Signature: sha256=a1b2c3...
         </div>
       </section>
 
-      {/* ── 10.5 FOUNDER STORY ──────────────────────────────────── */}
-      <section className="py-16 md:py-24 px-4 md:px-8 bg-gradient-to-br from-[#006e2f] to-emerald-700 text-white">
-        <div className="max-w-4xl mx-auto">
-          <RevealOnScroll>
-            <div className="text-center">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-200 mb-3">Notre histoire</p>
-              <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
-                Pourquoi on a créé Novakou
-              </h2>
-            </div>
-            <div className="mt-10 space-y-5 text-base md:text-lg leading-relaxed text-white/90">
-              <p>
-                Je suis <strong>Lissanon Gildas</strong>, créateur de contenu et entrepreneur digital. Pendant 3 ans, j&apos;ai vu des centaines de formateurs africains incroyables <em>galérer</em> avec les outils étrangers : Gumroad, Teachable, Systeme.io, Podia.
-              </p>
-              <p>
-                Les frais qui rongeaient leur marge. Les paiements qui ne passaient pas parce que Mobile Money n&apos;était pas supporté. Les interfaces traduites robotiquement. Le support qui ne comprenait pas leur marché.
-              </p>
-              <p>
-                En 2025, j&apos;ai décidé : <strong>on mérite mieux</strong>. Une plateforme conçue <em>pour nous</em>, par quelqu&apos;un qui comprend le marché africain francophone. Pas un outil occidental qu&apos;on essaie de faire fonctionner.
-              </p>
-              <p>
-                Novakou, c&apos;est ça. <strong>Mobile Money natif. IA intégrée. Commissions justes. Support en français africain.</strong> Et ce n&apos;est que le début.
-              </p>
-              <p className="text-emerald-200 font-semibold italic pt-3">
-                Rejoindre Novakou, c&apos;est rejoindre un mouvement : prouver que l&apos;Afrique francophone peut avoir les meilleurs outils digitaux du monde, pas juste des copies traduites.
-              </p>
-            </div>
-          </RevealOnScroll>
-        </div>
-      </section>
 
       {/* ── 10B. AVIS & TÉMOIGNAGES ──────────────────────────────── */}
       <section className="py-16 md:py-24 px-4 md:px-8 bg-slate-50">
