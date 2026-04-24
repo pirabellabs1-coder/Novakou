@@ -82,6 +82,36 @@ export default function AdminRetraitsVendeursPage() {
   const [roleFilter, setRoleFilter] = useState<"all" | "vendor" | "mentor">("all");
   const [toast, setToast] = useState<string | null>(null);
 
+  // ── Test Moneroo direct (outil de diagnostic) ────────────────────────────
+  const [showTest, setShowTest] = useState(false);
+  const [testMethod, setTestMethod] = useState("mtn_bj");
+  const [testMsisdn, setTestMsisdn] = useState("");
+  const [testAmount, setTestAmount] = useState(500);
+  const [testResult, setTestResult] = useState<unknown>(null);
+  const [testing, setTesting] = useState(false);
+
+  async function runTestPayout() {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/formations/admin/test-payout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: testMethod,
+          msisdn: testMsisdn,
+          amount: testAmount,
+        }),
+      });
+      const j = await res.json();
+      setTestResult(j);
+    } catch (e) {
+      setTestResult({ ok: false, error: e instanceof Error ? e.message : "Erreur reseau" });
+    } finally {
+      setTesting(false);
+    }
+  }
+
   const { data: response, isLoading } = useQuery<{ data: Withdrawal[]; summary: Summary | null }>({
     queryKey: ["admin-vendor-withdrawals", statusFilter, roleFilter],
     queryFn: () =>
@@ -201,18 +231,122 @@ export default function AdminRetraitsVendeursPage() {
           Dashboard
         </Link>
 
-        <header className="mb-10">
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
-            Paiements vendeurs &amp; mentors
-          </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">
-            Demandes de retrait
-          </h1>
-          <p className="text-sm text-zinc-500 mt-3 max-w-2xl">
-            Approuvez ou refusez les retraits des vendeurs et mentors. Les paiements réels
-            doivent être effectués manuellement via Mobile Money / virement / PayPal.
-          </p>
+        <header className="mb-10 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
+              Paiements vendeurs &amp; mentors
+            </span>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">
+              Demandes de retrait
+            </h1>
+            <p className="text-sm text-zinc-500 mt-3 max-w-2xl">
+              Approuvez ou refusez les retraits des vendeurs et mentors. Cliquez « Payer Moneroo »
+              pour envoyer les fonds automatiquement via l&apos;API Moneroo.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowTest(!showTest)}
+            className="px-4 py-2.5 bg-blue-50 text-blue-800 text-[11px] font-bold uppercase tracking-widest hover:bg-blue-100 transition-colors inline-flex items-center gap-2 self-start"
+          >
+            <span className="material-symbols-outlined text-[16px]">science</span>
+            Tester Moneroo
+          </button>
         </header>
+
+        {/* ── Panneau de test Moneroo direct ──────────────────────────────── */}
+        {showTest && (
+          <div className="mb-10 bg-white rounded-2xl border-2 border-blue-200 p-6">
+            <div className="flex items-start gap-3 mb-5">
+              <span className="material-symbols-outlined text-blue-600 text-[22px] mt-0.5">science</span>
+              <div>
+                <h2 className="text-base font-bold text-zinc-900">Test Moneroo direct</h2>
+                <p className="text-xs text-zinc-500 mt-1 max-w-2xl">
+                  Envoie un payout direct à Moneroo sans passer par InstructorWithdrawal. Utile pour vérifier
+                  que les codes méthode et le format msisdn sont acceptés.
+                  <strong> Attention : l&apos;argent sortira réellement de votre solde Moneroo (sandbox ou prod selon votre clé).</strong>
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">Méthode</label>
+                <select
+                  value={testMethod}
+                  onChange={(e) => setTestMethod(e.target.value)}
+                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-sm"
+                >
+                  <optgroup label="Sénégal">
+                    <option value="wave_sn">Wave (SN)</option>
+                    <option value="orange_sn">Orange Money (SN)</option>
+                    <option value="freemoney_sn">Free Money (SN)</option>
+                    <option value="e_money_sn">E-Money (SN)</option>
+                  </optgroup>
+                  <optgroup label="Côte d'Ivoire">
+                    <option value="wave_ci">Wave (CI)</option>
+                    <option value="orange_ci">Orange Money (CI)</option>
+                    <option value="mtn_ci">MTN (CI)</option>
+                    <option value="moov_ci">Moov (CI)</option>
+                  </optgroup>
+                  <optgroup label="Bénin">
+                    <option value="mtn_bj">MTN (BJ)</option>
+                    <option value="moov_bj">Moov (BJ)</option>
+                  </optgroup>
+                  <optgroup label="Togo">
+                    <option value="moov_tg">Moov (TG)</option>
+                    <option value="togocel">Togocel (TG)</option>
+                  </optgroup>
+                  <optgroup label="Mali / Cameroun">
+                    <option value="orange_ml">Orange Money (ML)</option>
+                    <option value="orange_cm">Orange Money (CM)</option>
+                    <option value="mtn_cm">MTN (CM)</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
+                  Numéro (msisdn)
+                </label>
+                <input
+                  type="tel"
+                  value={testMsisdn}
+                  onChange={(e) => setTestMsisdn(e.target.value)}
+                  placeholder="Ex: 22957335726 (sans le +)"
+                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-sm font-mono"
+                />
+                <p className="text-[10px] text-zinc-500 mt-0.5">Digits only, format international sans +</p>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">Montant</label>
+                <input
+                  type="number"
+                  value={testAmount}
+                  onChange={(e) => setTestAmount(Number(e.target.value))}
+                  min={100}
+                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-sm"
+                />
+                <p className="text-[10px] text-zinc-500 mt-0.5">500 = 500 FCFA / XOF</p>
+              </div>
+            </div>
+
+            <button
+              onClick={runTestPayout}
+              disabled={testing || !testMsisdn}
+              className="px-5 py-2.5 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+            >
+              {testing ? "Envoi en cours…" : "Envoyer à Moneroo"}
+            </button>
+
+            {testResult !== null && (
+              <div className="mt-4 rounded-xl border p-4 font-mono text-[11px] overflow-x-auto bg-zinc-50 border-zinc-200">
+                <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${(testResult as { ok?: boolean }).ok ? "text-emerald-700" : "text-rose-700"}`}>
+                  {(testResult as { ok?: boolean }).ok ? "✓ Succès" : "✗ Erreur Moneroo"}
+                </p>
+                <pre className="whitespace-pre-wrap break-all text-zinc-800">{JSON.stringify(testResult, null, 2)}</pre>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* KPIs */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-zinc-100 mb-10 border border-zinc-100">
