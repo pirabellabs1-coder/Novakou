@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 
 const navItems = [
@@ -100,13 +100,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
-          <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]">
+          <Link
+            href="/admin/signalements"
+            title="Signalements"
+            className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]"
+          >
             <span className="material-symbols-outlined text-[22px]">notifications</span>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
-          </button>
-          <button className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]">
+            {(badges.reports > 0 || badges.withdrawals > 0) && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white"></span>
+            )}
+          </Link>
+          <Link
+            href="/admin/configuration"
+            title="Configuration"
+            className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]"
+          >
             <span className="material-symbols-outlined text-[22px]">settings</span>
-          </button>
+          </Link>
           {/* Admin avatar */}
           <div className="flex items-center gap-2 ml-1">
             {avatarUrl ? (
@@ -241,7 +251,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Bottom section */}
         <div className="px-3 py-4 border-t border-gray-100">
-          <button className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200">
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
+          >
             <span className="material-symbols-outlined text-[20px]">logout</span>
             Déconnexion
           </button>
