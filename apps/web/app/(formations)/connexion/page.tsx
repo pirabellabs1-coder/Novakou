@@ -286,6 +286,24 @@ function ConnexionInner() {
             </p>
           </div>
 
+          {/* ── Séparateur + accès acheteurs (ceux qui ont acheté sans créer de compte vendeur) ── */}
+          <div className="mt-6 bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-5 text-center">
+            <p className="text-sm text-[#191c1e] font-semibold mb-1">
+              Vous avez déjà effectué un achat sur Novakou ?
+            </p>
+            <p className="text-xs text-[#5c647a] mb-3">
+              Accédez à vos formations et produits sans créer de compte vendeur.
+            </p>
+            <Link
+              href="/acheteur/connexion"
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-[#006e2f] hover:underline"
+            >
+              <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+              Accéder à mes achats
+              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+            </Link>
+          </div>
+
           <p className="text-center text-[11px] text-[#5c647a] mt-4 flex items-center justify-center gap-1.5">
             <span className="material-symbols-outlined text-[13px]">lock</span>
             Connexion sécurisée SSL 256-bit
