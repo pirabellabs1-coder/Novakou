@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 import crypto from "crypto";
 
 /**
@@ -87,7 +88,7 @@ export async function POST(request: Request) {
       // Update instructor's earned amount
       await prisma.instructeurProfile.update({
         where: { id: formation.instructeurId },
-        data: { totalEarned: { increment: formation.price * 0.95 } },
+        data: { totalEarned: { increment: formation.price * VENDOR_NET_RATE } },
       });
 
       // Increment students count
@@ -136,7 +137,7 @@ export async function POST(request: Request) {
 
       await prisma.instructeurProfile.update({
         where: { id: product.instructeurId },
-        data: { totalEarned: { increment: product.price * 0.95 } },
+        data: { totalEarned: { increment: product.price * VENDOR_NET_RATE } },
       });
 
       await prisma.digitalProduct.update({

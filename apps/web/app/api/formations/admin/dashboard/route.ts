@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
 export async function GET() {
   try {
@@ -112,11 +113,11 @@ export async function GET() {
     const totalPurchaseRevenue = allPurchases.reduce((s, p) => s + p.paidAmount, 0);
     const totalRevenue = totalEnrollmentRevenue + totalPurchaseRevenue;
 
-    // Platform commission from real PlatformRevenue ledger (precise), fallback to 5% estimate
+    // Platform commission from real PlatformRevenue ledger (precise), fallback to commission rate estimate
     const realCommission = platformRevenueAgg._sum.commissionAmount ?? 0;
     const realAffiliatePaid = platformRevenueAgg._sum.affiliateAmount ?? 0;
     const realGross = platformRevenueAgg._sum.grossAmount ?? 0;
-    const platformCommission = realCommission > 0 ? realCommission : totalRevenue * 0.05;
+    const platformCommission = realCommission > 0 ? realCommission : totalRevenue * PLATFORM_COMMISSION_RATE;
 
     // Transactions this month
     const enrollmentsThisMonth = allEnrollments.filter((e) => e.createdAt >= startOfMonth);

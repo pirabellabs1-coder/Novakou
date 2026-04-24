@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
+import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 
 /**
  * GET /api/mentor/dashboard
@@ -96,7 +97,7 @@ export async function GET() {
       where: { mentorId: profile.id },
       select: { status: true, paidAmount: true, escrowStatus: true },
     });
-    const RATE = 0.95;
+    const RATE = VENDOR_NET_RATE;
     const releasedBookings = allBookings.filter((b) => b.escrowStatus === "RELEASED");
     const heldBookings = allBookings.filter((b) => b.escrowStatus === "HELD");
     const disputedBookings = allBookings.filter((b) => b.escrowStatus === "DISPUTED");

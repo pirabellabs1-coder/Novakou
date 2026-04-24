@@ -7,6 +7,7 @@ import { computeHoldStatus, HOLD_PERIOD_HOURS } from "@/lib/formations/escrow";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 import {
   getPayoutMethod,
   normalizeMsisdn,
@@ -93,7 +94,7 @@ export async function GET() {
         paidAmount: r.vendorAmount, // déjà net pour le vendeur
         timestamp: r.createdAt,
       }));
-      // computeHoldStatus retourne netReleased/netPending = paidAmount × 0.95 (interne)
+      // computeHoldStatus retourne netReleased/netPending = paidAmount × VENDOR_NET_RATE (interne)
       // Or paidAmount EST DÉJÀ le net vendeur. On override le calcul.
       const HOLD_MS = 24 * 3_600_000;
       let grossReleased = 0;
@@ -188,7 +189,7 @@ export async function GET() {
         },
       });
 
-      const RATE = 0.95;
+      const RATE = VENDOR_NET_RATE;
       const heldBookings = allBookings.filter((b) => b.escrowStatus === "HELD");
       const releasedBookings = allBookings.filter((b) => b.escrowStatus === "RELEASED");
       const disputedBookings = allBookings.filter((b) => b.escrowStatus === "DISPUTED");

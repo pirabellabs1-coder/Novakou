@@ -1,10 +1,10 @@
 // Novakou — Constantes centralisées
 // Valeur unique de la commission plateforme — utilisée partout
 
-/** Pourcentage de commission prélevé par la plateforme sur chaque vente (5%). */
-export const PLATFORM_COMMISSION_RATE = 0.05;
+/** Pourcentage de commission prélevé par la plateforme sur chaque vente (10%). */
+export const PLATFORM_COMMISSION_RATE = 0.10;
 
-/** Pourcentage net reversé au vendeur (95%). */
+/** Pourcentage net reversé au vendeur (90%). */
 export const VENDOR_NET_RATE = 1 - PLATFORM_COMMISSION_RATE;
 
 /** Calcule le montant net que touche le vendeur sur une vente. */

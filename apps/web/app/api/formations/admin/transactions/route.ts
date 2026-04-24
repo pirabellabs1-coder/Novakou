@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
 
 export async function GET() {
   try {
@@ -50,8 +51,8 @@ export async function GET() {
         buyerEmail: e.user.email,
         sellerName: e.formation.instructeur.user.name ?? "—",
         amount: e.paidAmount,
-        commission: e.paidAmount * 0.05,
-        netAmount: e.paidAmount * 0.95,
+        commission: e.paidAmount * PLATFORM_COMMISSION_RATE,
+        netAmount: e.paidAmount * VENDOR_NET_RATE,
         createdAt: e.createdAt,
         status: e.refundedAt ? "refunded" : e.refundRequested ? "pending_refund" : "completed",
       })),
@@ -64,8 +65,8 @@ export async function GET() {
         buyerEmail: p.user.email,
         sellerName: p.product.instructeur.user.name ?? "—",
         amount: p.paidAmount,
-        commission: p.paidAmount * 0.05,
-        netAmount: p.paidAmount * 0.95,
+        commission: p.paidAmount * PLATFORM_COMMISSION_RATE,
+        netAmount: p.paidAmount * VENDOR_NET_RATE,
         createdAt: p.createdAt,
         status: "completed",
       })),
