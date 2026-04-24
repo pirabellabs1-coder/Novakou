@@ -640,66 +640,167 @@ X-Novakou-Signature: sha256=a1b2c3...
         </div>
       </section>
 
-      {/* ── 8.5 COMPARISON TABLE ─────────────────────────────────── */}
+      {/* ── 8.5 ALL FEATURES SHOWCASE ───────────────────────────── */}
       <section className="py-16 md:py-24 px-4 md:px-8 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <RevealOnScroll>
-            <div className="text-center mb-10 md:mb-14">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Comparaison honnête</p>
+            <div className="text-center mb-12 md:mb-16">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-[#006e2f] mb-3">Ce que tu peux faire</p>
               <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-[#191c1e] leading-tight">
-                Pourquoi les créateurs <span className="text-gradient">quittent</span> la concurrence
+                La boîte à outils <span className="text-gradient">la plus complète</span><br/>
+                pour vendre en Afrique francophone
               </h2>
+              <p className="text-[#5c647a] text-base md:text-lg mt-5 max-w-3xl mx-auto leading-relaxed">
+                Plus de 60 fonctionnalités intégrées, classées en 7 catégories. Tout est inclus dans les 10% de commission — zéro module payant caché.
+              </p>
             </div>
           </RevealOnScroll>
 
-          <RevealOnScroll>
-            <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xl">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-[#5c647a]">
-                      <th className="text-left px-5 py-5 font-bold text-xs uppercase tracking-widest">Fonctionnalité</th>
-                      <th className="px-5 py-5 font-bold text-center bg-[#006e2f]/5">
-                        <div className="inline-flex items-center gap-2 justify-center">
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-xs font-bold">NK</div>
-                          <span className="text-[#191c1e] text-base">Novakou</span>
+          <div className="space-y-8 md:space-y-10">
+            {[
+              {
+                label: "Ventes & Produits",
+                icon: "storefront",
+                color: "from-[#006e2f] to-[#22c55e]",
+                features: [
+                  { t: "Formations vidéo illimitées", d: "Upload Cloudinary ou lien YouTube/Vimeo, chapitres, ressources" },
+                  { t: "Produits digitaux", d: "Ebook PDF, template, pack de fichiers, code source, audio" },
+                  { t: "Abonnements & Memberships", d: "Mensuel / annuel, trial gratuit, contenu premium verrouillé" },
+                  { t: "Bundles multi-produits", d: "Groupe plusieurs produits avec réduction, panier unique" },
+                  { t: "Coaching 1-to-1 (mentors)", d: "Calendrier intégré, paiement auto, visio externe (Zoom, Meet)" },
+                  { t: "Forfaits mentor", d: "Packs 3 sessions, 6 sessions, illimité — paiement en une fois" },
+                  { t: "Ventes à l'acte ou par abonnement", d: "Même produit peut avoir les deux modes" },
+                  { t: "Preview gratuit du contenu", d: "Rends certaines leçons accessibles pour convertir" },
+                ],
+              },
+              {
+                label: "Paiements & Finances",
+                icon: "payments",
+                color: "from-blue-500 to-cyan-500",
+                features: [
+                  { t: "Mobile Money natif", d: "Orange, Wave, MTN MoMo, Moov, Free Money — 17 pays" },
+                  { t: "Carte bancaire Visa/Mastercard", d: "Pour la diaspora et les acheteurs internationaux" },
+                  { t: "Virement SEPA", d: "Pour les clients en Europe francophone" },
+                  { t: "Escrow 48h automatique", d: "Protection acheteur, libération auto sur ton wallet" },
+                  { t: "Retraits en 1 clic", d: "Vers Orange Money, Wave, MTN ou compte bancaire" },
+                  { t: "Wallet multi-devises", d: "FCFA, EUR, USD — conversion auto au taux du jour" },
+                  { t: "Codes promo", d: "Pourcentage ou montant fixe, expiration, quota max" },
+                  { t: "Reçus & factures auto", d: "PDF envoyé à chaque vente, archivé dans le wallet" },
+                ],
+              },
+              {
+                label: "IA & Automatisation",
+                icon: "auto_awesome",
+                color: "from-purple-500 to-pink-500",
+                features: [
+                  { t: "AI Studio (page de vente)", d: "Claude génère titre, description 1500 mots, FAQ, bénéfices" },
+                  { t: "AI Tunnel Builder", d: "Tunnel 4 étapes prêt à publier en 30 secondes" },
+                  { t: "Chatbot IA sur ta boutique", d: "Répond aux visiteurs 24/7 avec ton contexte" },
+                  { t: "Coach IA Vendeur", d: "Rédige tes emails, planifie tes ventes, optimise tes pages" },
+                  { t: "Coach IA Apprenant", d: "Explique les concepts, motive, planifie l'apprentissage" },
+                  { t: "Coach IA Mentor", d: "Structure tes sessions, rédige tes offres, crée tes packs" },
+                  { t: "Emails relance auto", d: "2 emails après un abandon/échec, sans rien configurer" },
+                  { t: "Réponses auto aux avis", d: "Suggérées par IA, tu valides et publies" },
+                ],
+              },
+              {
+                label: "Marketing & Croissance",
+                icon: "campaign",
+                color: "from-orange-500 to-rose-500",
+                features: [
+                  { t: "Tunnels de vente visuels", d: "Éditeur drag & drop, 20+ types de blocks, templates" },
+                  { t: "Order bumps au checkout", d: "+20 à 30% de panier moyen, checkbox simple" },
+                  { t: "Upsells / Downsells", d: "Après achat, propose un produit complémentaire" },
+                  { t: "Popups intelligents", d: "Exit-intent, scroll %, timer — capture email ou réduction" },
+                  { t: "A/B testing tunnels", d: "2 variantes, split 50/50, gagnant détecté auto" },
+                  { t: "Pixels Meta / Google / TikTok", d: "Tracking conversions pour tes publicités" },
+                  { t: "Liens UTM trackés", d: "Mesure quelle source convertit le mieux" },
+                  { t: "Programme d'affiliation", d: "Les autres peuvent promouvoir tes produits, commission auto" },
+                  { t: "Flash promos limitées", d: "Compte à rebours, urgence, quota max de ventes" },
+                  { t: "Boosts publicitaires internes", d: "Mets en avant tes produits dans la marketplace Novakou" },
+                ],
+              },
+              {
+                label: "Relation clients",
+                icon: "forum",
+                color: "from-cyan-500 to-teal-500",
+                features: [
+                  { t: "Messagerie directe acheteur↔vendeur", d: "Historique par commande, notifications" },
+                  { t: "Questions pré-achat", d: "Le visiteur pose une question avant d'acheter, tu réponds" },
+                  { t: "Récupération des abandons", d: "Vois qui a tenté de payer et n'a pas abouti, relance par email/WhatsApp" },
+                  { t: "Communauté privée par formation", d: "Discussions, messages épinglés, membres vérifiés" },
+                  { t: "Avis clients avec réponses publiques", d: "Réponds aux avis pour montrer ton sérieux" },
+                  { t: "Support WhatsApp direct", d: "Lien wa.me/... cliquable sur chaque abandon" },
+                  { t: "Newsletters aux acheteurs", d: "Segmente par produit acheté, relance, nouveautés" },
+                ],
+              },
+              {
+                label: "Boutique & Branding",
+                icon: "palette",
+                color: "from-pink-500 to-rose-500",
+                features: [
+                  { t: "Sous-domaine gratuit", d: "tonnom.novakou.com dès l'inscription" },
+                  { t: "Nom de domaine personnalisé", d: "boutique.tonsite.com avec SSL auto" },
+                  { t: "Multi-boutiques", d: "Plusieurs marques sous un seul compte créateur" },
+                  { t: "Thème couleur personnalisé", d: "Couleur principale propagée sur toute ta boutique" },
+                  { t: "Logo & bannière HD", d: "Upload direct, optimisation Cloudinary auto" },
+                  { t: "Profil vendeur public", d: "Bio, expertise, années d'expérience, portfolio" },
+                  { t: "Bio longue + compétences", d: "Rassure l'acheteur avec ton parcours complet" },
+                ],
+              },
+              {
+                label: "Analytics & Développeur",
+                icon: "analytics",
+                color: "from-indigo-500 to-purple-500",
+                features: [
+                  { t: "Dashboard temps réel", d: "Revenus du jour, top produits, pays des acheteurs" },
+                  { t: "Statistiques par produit", d: "Vues, taux de conversion, revenus, pays" },
+                  { t: "Funnel de conversion détaillé", d: "Vois où tes visiteurs abandonnent l'entonnoir" },
+                  { t: "Export CSV", d: "Clients, ventes, abandons — rien n'est verrouillé" },
+                  { t: "API publique REST", d: "Crée paiements, vois commandes, gère produits programmatiquement" },
+                  { t: "Webhooks sortants", d: "Reçois les événements sur ton endpoint (HMAC-SHA256)" },
+                  { t: "Intégration Zapier / n8n / Make", d: "Connecte à 5000+ apps sans coder" },
+                  { t: "Cron jobs configurables", d: "Automatise tes tâches récurrentes" },
+                ],
+              },
+            ].map((cat, i) => (
+              <RevealOnScroll key={i} delay={i * 50}>
+                <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
+                  {/* Category header */}
+                  <div className="flex items-center gap-4 p-5 md:p-6 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-white">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center text-white shadow-md flex-shrink-0`}>
+                      <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl md:text-2xl font-extrabold text-[#191c1e]">{cat.label}</h3>
+                      <p className="text-xs text-[#5c647a]">{cat.features.length} fonctionnalités inclues</p>
+                    </div>
+                  </div>
+                  {/* Features grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 divide-y md:divide-y-0 md:divide-x lg:divide-y-0 lg:divide-x divide-gray-100">
+                    {cat.features.map((f, j) => (
+                      <div key={j} className="p-4 md:p-5 hover:bg-slate-50/60 transition-colors">
+                        <div className="flex items-start gap-2 mb-1">
+                          <span className="material-symbols-outlined text-[#006e2f] text-[18px] mt-0.5 flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                          <h4 className="text-sm font-bold text-[#191c1e] leading-tight">{f.t}</h4>
                         </div>
-                      </th>
-                      <th className="px-5 py-5 font-bold text-center">Chariow</th>
-                      <th className="px-5 py-5 font-bold text-center">Marketou</th>
-                      <th className="px-5 py-5 font-bold text-center">Gumroad</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-[#191c1e]">
-                    {[
-                      { f: "Commission par vente", nk: "10% tout compris", c: "10% + 2.9%", m: "8% + frais banque", g: "10% + 30 cts" },
-                      { f: "Paiements Mobile Money Afrique", nk: "✅ Orange, Wave, MTN, Moov", c: "❌", m: "⚠️ Limité", g: "❌" },
-                      { f: "Tunnel de vente IA", nk: "✅ Généré par Claude 4.6", c: "Manuel", m: "Manuel", g: "❌" },
-                      { f: "Chatbot IA sur ta boutique", nk: "✅ Claude inclus", c: "❌ (add-on $49/mois)", m: "❌", g: "❌" },
-                      { f: "AI Studio (pages de vente)", nk: "✅ Illimité", c: "❌", m: "❌", g: "❌" },
-                      { f: "Coach IA (4 rôles)", nk: "✅ Inclus", c: "❌", m: "❌", g: "❌" },
-                      { f: "Emails relance abandon auto", nk: "✅ 2 relances inclus", c: "Add-on", m: "Add-on", g: "❌" },
-                      { f: "Communauté privée par formation", nk: "✅ Inclus", c: "❌", m: "❌", g: "❌" },
-                      { f: "Order bumps au checkout", nk: "✅", c: "✅", m: "❌", g: "❌" },
-                      { f: "A/B testing tunnels", nk: "✅", c: "Pro +€", m: "❌", g: "❌" },
-                      { f: "Abonnements/Memberships", nk: "✅", c: "✅", m: "⚠️", g: "✅" },
-                      { f: "Interface en français africain", nk: "✅ Natif", c: "⚠️ Traduit", m: "✅", g: "❌ Anglais" },
-                      { f: "Support humain", nk: "✅ FR africain, 24h", c: "EN uniquement", m: "FR, 72h", g: "EN uniquement" },
-                      { f: "Frais mensuels", nk: "0 FCFA", c: "€49/mois", m: "€29/mois", g: "€0" },
-                    ].map((row, i) => (
-                      <tr key={i} className={`border-b border-gray-50 last:border-0 ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
-                        <td className="px-5 py-4 font-medium">{row.f}</td>
-                        <td className="px-5 py-4 text-center font-bold bg-[#006e2f]/5 text-[#006e2f]">{row.nk}</td>
-                        <td className="px-5 py-4 text-center text-[#5c647a]">{row.c}</td>
-                        <td className="px-5 py-4 text-center text-[#5c647a]">{row.m}</td>
-                        <td className="px-5 py-4 text-center text-[#5c647a]">{row.g}</td>
-                      </tr>
+                        <p className="text-xs text-[#5c647a] leading-relaxed ml-6">{f.d}</p>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="bg-[#006e2f]/5 px-5 py-4 text-center text-xs text-[#5c647a]">
-                Comparaison mise à jour en avril 2026 · Les prix et features des concurrents peuvent évoluer.
+                  </div>
+                </div>
+              </RevealOnScroll>
+            ))}
+          </div>
+
+          <RevealOnScroll>
+            <div className="mt-10 md:mt-14 text-center">
+              <div className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-gradient-to-r from-[#006e2f]/5 to-emerald-50 border border-[#006e2f]/20">
+                <span className="material-symbols-outlined text-[#006e2f] text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                <div className="text-left">
+                  <p className="font-extrabold text-[#191c1e]">60+ fonctionnalités · 7 catégories</p>
+                  <p className="text-xs text-[#5c647a]">Toutes incluses dans les 10% de commission · Aucun module payant</p>
+                </div>
               </div>
             </div>
           </RevealOnScroll>
