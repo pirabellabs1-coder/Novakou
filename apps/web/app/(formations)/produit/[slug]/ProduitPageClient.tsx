@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
+import AISupportWidget from "@/components/formations/AISupportWidget";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
@@ -175,6 +176,12 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
       <PixelInjector
         pixels={product.instructeur.marketingPixels ?? []}
         event={{ name: "ViewContent", value: product.price, currency: "XOF" }}
+      />
+
+      {/* Widget IA Support Client (si vendeur actif) */}
+      <AISupportWidget
+        instructeurId={product.instructeur.id}
+        pageContext={`Le visiteur consulte le produit "${product.title}" à ${product.price} F CFA.`}
       />
 
       {/* Breadcrumb */}

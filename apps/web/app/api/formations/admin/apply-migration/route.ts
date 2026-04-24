@@ -241,6 +241,11 @@ export async function POST(request: NextRequest) {
       `CREATE INDEX IF NOT EXISTS "PopupImpression_userId_idx"    ON "PopupImpression"("userId")`,
       `CREATE INDEX IF NOT EXISTS "PopupImpression_action_idx"    ON "PopupImpression"("action")`,
       `CREATE INDEX IF NOT EXISTS "PopupImpression_createdAt_idx" ON "PopupImpression"("createdAt")`,
+      // Migration 2026042408 — ai_support_client (chatbot IA public)
+      `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiEnabled" BOOLEAN NOT NULL DEFAULT FALSE`,
+      `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiWelcome" TEXT`,
+      `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiContext" TEXT`,
+      `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiColor"   TEXT`,
     ];
 
     const results: { sql: string; status: string; error?: string }[] = [];

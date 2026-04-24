@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
+import AISupportWidget from "@/components/formations/AISupportWidget";
 
 interface Item {
   kind: "formation" | "product";
@@ -36,10 +37,14 @@ export default function BoutiqueView({
   owner,
   formations,
   products,
+  instructeurId,
+  shopSlug,
 }: {
   owner: Owner;
   formations: Item[];
   products: Item[];
+  instructeurId?: string;
+  shopSlug?: string;
 }) {
   const all = useMemo(() => [...formations, ...products], [formations, products]);
 
@@ -74,6 +79,15 @@ export default function BoutiqueView({
       className="min-h-screen bg-slate-50"
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
     >
+      {/* Widget IA Support Client (si vendeur actif) */}
+      {(instructeurId || shopSlug) && (
+        <AISupportWidget
+          instructeurId={instructeurId}
+          shopSlug={shopSlug}
+          pageContext={`Le visiteur est sur la boutique "${owner.name}" — ${all.length} produit(s) dans le catalogue.`}
+        />
+      )}
+
       {/* ─── Hero (cover-like) ────────────────────────────────────────────── */}
       <header className="relative overflow-hidden">
         {owner.coverUrl ? (

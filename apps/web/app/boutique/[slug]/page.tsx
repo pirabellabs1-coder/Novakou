@@ -69,6 +69,8 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
   const { shop, formations, products } = data;
   return (
     <BoutiqueView
+      instructeurId={shop.instructeur?.id}
+      shopSlug={shop.slug}
       owner={{
         name: shop.name || shop.instructeur.user?.name || "Créateur",
         email: shop.instructeur.user?.email ?? null,

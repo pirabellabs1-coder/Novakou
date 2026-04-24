@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
+import AISupportWidget from "@/components/formations/AISupportWidget";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Lesson {
@@ -286,6 +287,12 @@ export default function FormationPageClient({ slug }: { slug: string }) {
       <PixelInjector
         pixels={formation.instructeur.marketingPixels ?? []}
         event={{ name: "ViewContent", value: formation.price, currency: "XOF" }}
+      />
+
+      {/* Widget IA Support Client (si vendeur actif) */}
+      <AISupportWidget
+        instructeurId={formation.instructeur.id}
+        pageContext={`Le visiteur consulte la formation "${formation.title}" à ${formation.price} F CFA.`}
       />
 
       {/* Breadcrumb minimal — no hero cover */}

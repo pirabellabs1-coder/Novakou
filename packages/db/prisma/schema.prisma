@@ -948,6 +948,15 @@ model InstructeurProfile {
   //   {"id":"...","method":"bank_transfer","label":"Ecobank","iban":"SN12...","primary":false}]
   payoutMethods Json?
 
+  // AI Support Client — chatbot public sur la boutique du vendeur.
+  // Le vendeur active, fournit un contexte (FAQ, politiques, infos produits)
+  // et le widget apparait sur ses pages publiques. Claude via Puter.js
+  // repond aux visiteurs avec ce contexte.
+  supportAiEnabled Boolean @default(false)
+  supportAiWelcome String? @db.Text // Message d'accueil du chatbot
+  supportAiContext String? @db.Text // Contexte d'entrainement (max ~8000 chars)
+  supportAiColor   String? // Couleur du widget (#hex), defaut = Novakou green
+
   user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   formations      Formation[]
   withdrawals     InstructorWithdrawal[] @relation("InstructeurWithdrawals")
