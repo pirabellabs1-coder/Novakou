@@ -31,6 +31,7 @@ const navItems: NavItem[] = [
   { icon: "bolt", label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
   // Engagement
   { icon: "chat_bubble", label: "Messages", href: "/messages", section: "Engagement" },
+  { icon: "reviews", label: "Avis clients", href: "/vendeur/avis", section: "Engagement" },
   { icon: "groups", label: "Communauté", href: "/vendeur/communaute", section: "Engagement" },
   { icon: "support_agent", label: "Coaching", href: "/vendeur/coaching", section: "Engagement", badge: "Pro" },
   { icon: "folder_open", label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },

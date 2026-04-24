@@ -56,6 +56,9 @@ export default function CheckoutInner() {
   const [countryOpen, setCountryOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("orange_money");
   const [discountCode, setDiscountCode] = useState("");
+  const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountMessage, setDiscountMessage] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -178,6 +181,45 @@ export default function CheckoutInner() {
   }, [searchParams]);
 
   const subTotal = cartItems.reduce((s, i) => s + i.price, 0);
+  const totalAmount = Math.max(0, subTotal - discountAmount);
+
+  // ── Validation live du code promo (debounce 500ms) ─────────────────────────
+  useEffect(() => {
+    const code = discountCode.trim().toUpperCase();
+    if (!code) {
+      setDiscountStatus("idle");
+      setDiscountAmount(0);
+      setDiscountMessage(null);
+      return;
+    }
+    if (code.length < 3 || subTotal === 0) return;
+    setDiscountStatus("validating");
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/formations/public/validate-discount", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, orderAmount: subTotal }),
+        });
+        const j = await res.json();
+        if (j.valid) {
+          setDiscountStatus("valid");
+          setDiscountAmount(Number(j.discountAmount) || 0);
+          const pct = j.discountType === "PERCENTAGE" ? ` (-${j.discountValue}%)` : "";
+          setDiscountMessage(`Code appliqué${pct} — économie de ${formatFCFA(Number(j.discountAmount) || 0)}`);
+        } else {
+          setDiscountStatus("invalid");
+          setDiscountAmount(0);
+          setDiscountMessage(j.error || "Code invalide ou expiré");
+        }
+      } catch {
+        setDiscountStatus("invalid");
+        setDiscountAmount(0);
+        setDiscountMessage("Erreur de vérification du code");
+      }
+    }, 500);
+    return () => clearTimeout(t);
+  }, [discountCode, subTotal]);
   const formationIds = cartItems.filter((i) => i.kind === "formation").map((i) => i.id);
   const productIds = cartItems.filter((i) => i.kind === "product").map((i) => i.id);
 
@@ -457,15 +499,37 @@ export default function CheckoutInner() {
               <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
               Code promo (optionnel)
             </h2>
-            <div className="flex gap-3">
+            <div className="relative">
               <input
                 type="text"
                 value={discountCode}
                 onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
                 placeholder="PROMO20"
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm tabular-nums font-bold text-[#191c1e] uppercase placeholder:font-normal placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                className={`w-full px-4 py-3 pr-12 rounded-xl border text-sm tabular-nums font-bold uppercase placeholder:font-normal focus:outline-none focus:ring-2 transition-colors ${
+                  discountStatus === "valid"
+                    ? "border-emerald-300 bg-emerald-50 text-emerald-900 placeholder:text-emerald-400 focus:ring-emerald-200"
+                    : discountStatus === "invalid"
+                      ? "border-red-300 bg-red-50 text-red-900 placeholder:text-red-400 focus:ring-red-200"
+                      : "border-gray-200 bg-[#f7f9fb] text-[#191c1e] placeholder:text-[#5c647a] focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                }`}
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                {discountStatus === "validating" && (
+                  <span className="material-symbols-outlined text-[#5c647a] text-[20px] animate-spin">progress_activity</span>
+                )}
+                {discountStatus === "valid" && (
+                  <span className="material-symbols-outlined text-emerald-600 text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                )}
+                {discountStatus === "invalid" && (
+                  <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
+                )}
+              </div>
             </div>
+            {discountMessage && (
+              <p className={`text-xs font-semibold mt-2 ${discountStatus === "valid" ? "text-emerald-700" : "text-red-600"}`}>
+                {discountMessage}
+              </p>
+            )}
           </div>
 
           {/* Terms */}
@@ -537,6 +601,15 @@ export default function CheckoutInner() {
                 <span className="text-[#5c647a]">Sous-total</span>
                 <span className="font-semibold text-[#191c1e]">{formatFCFA(subTotal)}</span>
               </div>
+              {discountStatus === "valid" && discountAmount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">local_offer</span>
+                    Code {discountCode}
+                  </span>
+                  <span className="font-bold text-emerald-600">−{formatFCFA(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-[#5c647a]">Frais de traitement</span>
                 <span className="font-semibold text-green-600">Gratuit</span>
@@ -547,8 +620,8 @@ export default function CheckoutInner() {
             <div className="flex justify-between items-center py-4 border-t border-gray-100 mb-5">
               <span className="font-bold text-[#191c1e]">Total</span>
               <div className="text-right">
-                <p className="text-xl font-extrabold text-[#006e2f] tracking-tight">{formatFCFA(subTotal)}</p>
-                <p className="text-xs text-[#5c647a]">≈ {toEur(subTotal)} €</p>
+                <p className="text-xl font-extrabold text-[#006e2f] tracking-tight">{formatFCFA(totalAmount)}</p>
+                <p className="text-xs text-[#5c647a]">≈ {toEur(totalAmount)} €</p>
               </div>
             </div>
 
@@ -567,7 +640,7 @@ export default function CheckoutInner() {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[20px]">lock</span>
-                  Payer {formatFCFA(subTotal)}
+                  Payer {formatFCFA(totalAmount)}
                 </>
               )}
             </button>

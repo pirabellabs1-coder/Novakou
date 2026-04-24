@@ -116,6 +116,8 @@ export async function GET(_req: Request, { params }: Params) {
           id: r.id,
           rating: r.rating,
           comment: r.comment,
+          response: r.response,
+          respondedAt: r.respondedAt,
           createdAt: r.createdAt,
           user: r.user,
         })),

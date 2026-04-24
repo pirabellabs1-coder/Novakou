@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
+import { sendCertificateIssuedEmail } from "@/lib/email/formations";
 import { randomBytes } from "crypto";
 
 /**
@@ -125,6 +126,30 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         });
         certificateId = newCert.id;
         certificateCode = newCert.code;
+
+        // Email de félicitations + certificat (best-effort, ne bloque pas)
+        try {
+          const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true, name: true },
+          });
+          const formation = await prisma.formation.findUnique({
+            where: { id: formationId },
+            select: { title: true },
+          });
+          if (user?.email && formation) {
+            sendCertificateIssuedEmail({
+              email: user.email,
+              name: user.name || user.email.split("@")[0],
+              formationTitle: formation.title,
+              certificateCode: code,
+              score: avgScore,
+              locale: "fr",
+            }).catch((e) => console.error("[cert email]", e?.message ?? e));
+          }
+        } catch (e) {
+          console.error("[cert email lookup]", e);
+        }
       }
     }
 

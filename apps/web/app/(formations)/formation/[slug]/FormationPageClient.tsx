@@ -26,6 +26,8 @@ interface Review {
   id: string;
   rating: number;
   comment: string;
+  response: string | null;
+  respondedAt: string | null;
   createdAt: string;
   user: { id: string; name: string | null; image: string | null };
 }
@@ -496,7 +498,23 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                             <span className="text-[11px] text-[#5c647a]">{timeAgo(r.createdAt)}</span>
                           </div>
                           <StarRating rating={r.rating} size={13} />
-                          <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed">{r.comment}</p>
+                          <p className="text-sm text-[#5c647a] mt-1.5 leading-relaxed whitespace-pre-wrap">{r.comment}</p>
+
+                          {/* Vendor response */}
+                          {r.response && (
+                            <div className="mt-3 ml-0 border-l-2 border-emerald-300 pl-4 py-2 bg-emerald-50/40 rounded-r-lg">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <span className="material-symbols-outlined text-[14px] text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                                <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">
+                                  Réponse du créateur
+                                </p>
+                                {r.respondedAt && (
+                                  <span className="text-[11px] text-emerald-600">· {timeAgo(r.respondedAt)}</span>
+                                )}
+                              </div>
+                              <p className="text-sm text-[#191c1e] leading-relaxed whitespace-pre-wrap">{r.response}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

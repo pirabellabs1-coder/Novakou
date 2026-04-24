@@ -37,6 +37,11 @@ export async function GET() {
     const inst = await getInstructeur(userId);
     if (!inst) return NextResponse.json({ data: [] });
 
+    // Scope by active shop (optionnel — sans cookie, retourne tous les funnels du vendeur)
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+
     const funnels = await prisma.salesFunnel.findMany({
       where: { instructeurId: inst.id, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { updatedAt: "desc" },
@@ -74,9 +79,10 @@ export async function POST(request: Request) {
         { error: "Impossible de résoudre votre session. Déconnectez-vous et reconnectez-vous." },
         { status: 401 }
       );
-    const activeShopId = await getActiveShopId(session, { devFallback: IS_DEV ? "dev-instructeur-001" : undefined });
     }
-    const userId = ctx.userId;
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
     const inst = { id: ctx.instructeurId };
 
     const body = await request.json();

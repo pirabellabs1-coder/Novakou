@@ -4,6 +4,11 @@
   "installCommand": "cd ../.. && pnpm install",
   "buildCommand": "cd ../.. && pnpm --filter=@freelancehigh/db generate && pnpm --filter=@freelancehigh/web build",
   "regions": ["cdg1"],
+  "crons": [
+    { "path": "/api/cron/lesson-start-reminder", "schedule": "0 9 * * *" },
+    { "path": "/api/cron/weekly-vendor-recap",   "schedule": "0 18 * * 0" },
+    { "path": "/api/cron/monthly-vendor-recap",  "schedule": "0 9 1 * *" }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
