@@ -30,6 +30,7 @@ const navItems: NavItem[] = [
   { icon: "account_balance_wallet", label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
   // Croissance
   { icon: "campaign", label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
+  { icon: "auto_awesome", label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
   { icon: "bolt", label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
   // Engagement
   { icon: "chat_bubble", label: "Messages", href: "/messages", section: "Engagement" },
