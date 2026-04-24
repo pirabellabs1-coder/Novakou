@@ -238,6 +238,89 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, type: "subscription" });
   }
 
+  // Nouveau : abonnement initial via SubscriptionPlan (Memberships vendeurs)
+  if (type === "subscription_initial" || type === "subscription_renewal") {
+    const userId = String(metadata.userId ?? "");
+    const planId = String(metadata.planId ?? "");
+    const isRenewal = type === "subscription_renewal";
+    const renewingSubId = String(metadata.subscriptionId ?? "");
+
+    if (!userId || !planId) {
+      return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
+    }
+
+    try {
+      const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
+      if (!plan) {
+        return NextResponse.json({ error: "Plan introuvable" }, { status: 400 });
+      }
+
+      const periodStart = new Date();
+      const periodEnd = new Date(periodStart);
+      if (plan.interval === "yearly") {
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+      } else {
+        periodEnd.setMonth(periodEnd.getMonth() + 1);
+      }
+
+      // Creer ou mettre a jour la Subscription
+      const sub = await prisma.subscription.upsert({
+        where: isRenewal && renewingSubId
+          ? { id: renewingSubId }
+          : { userId_planId: { userId, planId } },
+        create: {
+          userId,
+          planId,
+          status: "active",
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
+          lastPaymentAt: new Date(),
+          totalPaid: plan.price,
+          renewalCount: 0,
+        },
+        update: {
+          status: "active",
+          currentPeriodStart: periodStart,
+          currentPeriodEnd: periodEnd,
+          lastPaymentAt: new Date(),
+          totalPaid: { increment: plan.price },
+          renewalCount: { increment: isRenewal ? 1 : 0 },
+          cancelAtPeriodEnd: false,
+        },
+      });
+
+      // Invoice
+      await prisma.subscriptionInvoice.create({
+        data: {
+          subscriptionId: sub.id,
+          userId,
+          amount: plan.price,
+          currency: plan.currency,
+          status: "paid",
+          periodStart,
+          periodEnd,
+          paymentRef: paymentId,
+          paymentProvider: "moneroo",
+          paidAt: new Date(),
+        },
+      });
+
+      // Update plan stats
+      await prisma.subscriptionPlan.update({
+        where: { id: planId },
+        data: {
+          totalEarned: { increment: plan.price },
+          ...(isRenewal ? {} : { activeCount: { increment: 1 } }),
+        },
+      }).catch(() => null);
+
+      return NextResponse.json({ ok: true, subscription: sub.id, type });
+    } catch (err) {
+      console.error("[moneroo webhook subscription_initial/renewal]", err);
+      return NextResponse.json({ error: "Subscription fulfillment failed" }, { status: 500 });
+    }
+  }
+
   // Type inconnu — on log et on renvoie OK pour que Moneroo ne retente pas
   console.warn("[moneroo webhook] unknown metadata type:", type);
   return NextResponse.json({ ok: true, ignored: true, reason: "unknown_type" });

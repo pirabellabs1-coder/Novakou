@@ -248,6 +248,7 @@ model User {
   userTags            UserTag[]                 @relation("UserTags")
   refundRequests      RefundRequest[]           @relation("UserRefundRequests")
   discussionReports   DiscussionReport[]        @relation("UserDiscussionReports")
+  subscriptions       Subscription[]            @relation("UserSubscriptions")
 
   // Mentor relations
   mentorProfile  MentorProfile?  @relation("UserMentorProfile")
@@ -967,6 +968,7 @@ model InstructeurProfile {
   apiKeys             VendorApiKey[]       @relation("InstructeurApiKeys")
   bundles             ProductBundle[]
   orderBumps          OrderBump[]          @relation("InstructeurOrderBumps")
+  subscriptionPlans   SubscriptionPlan[]   @relation("InstructeurPlans")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3239,4 +3241,115 @@ model OrderBump {
   @@index([shopId])
   @@index([bumpFormationId])
   @@index([bumpProductId])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MEMBERSHIPS — abonnements recurrents aux formations/contenu
+// ═════════════════════════════════════════════════════════════════════════════
+// Un vendeur cree un SubscriptionPlan (tarif mensuel/annuel, liste de
+// formations/produits inclus). Les acheteurs s'abonnent -> paiement initial
+// via Moneroo -> Subscription cree avec currentPeriodEnd = now + interval.
+// Un cron quotidien verifie les abonnements qui expirent, envoie un email
+// de renouvellement avec lien de paiement. Si l'acheteur ne paie pas dans
+// les 3 jours, status passe a PAST_DUE puis EXPIRED.
+
+model SubscriptionPlan {
+  id            String  @id @default(cuid())
+  instructeurId String
+  shopId        String?
+
+  // Contenu marketing
+  name        String  // "Membre Elite", "Mentorat Mensuel", etc.
+  description String  @db.Text
+  imageUrl    String?
+
+  // Pricing
+  price    Float   // Prix par periode (ex: 15000 pour 15k FCFA/mois)
+  currency String  @default("XOF")
+  interval String  // "monthly" | "yearly" (simple pour MVP)
+
+  // Acces offert
+  linkedFormationIds String[] @default([]) // formations debloqees
+  linkedProductIds   String[] @default([])
+
+  // Features optionnelles
+  trialDays   Int? // 0 ou null = pas d'essai gratuit
+  maxMembers  Int? // optionnel, cap le nb d'abonnes actifs
+
+  // Stats
+  activeCount Int @default(0) // maintenu par cron/webhook
+  totalEarned Float @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  instructeur  InstructeurProfile @relation("InstructeurPlans", fields: [instructeurId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+
+  @@index([instructeurId, isActive])
+  @@index([shopId])
+}
+
+model Subscription {
+  id     String @id @default(cuid())
+  userId String
+  planId String
+
+  // Cycle
+  status   String   // "trialing" | "active" | "past_due" | "cancelled" | "expired"
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  trialEndsAt        DateTime?
+  cancelAtPeriodEnd  Boolean  @default(false)
+  cancelledAt        DateTime?
+
+  // Historique
+  lastPaymentAt  DateTime?
+  nextInvoiceAt  DateTime?
+  totalPaid      Float    @default(0)
+  renewalCount   Int      @default(0)
+
+  // Paiement
+  paymentMethod String? // snapshot de la methode utilisee (ex: "mtn_bj")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User             @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  plan    SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  invoices SubscriptionInvoice[]
+
+  @@unique([userId, planId]) // un user = 1 sub active par plan
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([currentPeriodEnd])
+}
+
+model SubscriptionInvoice {
+  id             String @id @default(cuid())
+  subscriptionId String
+  userId         String
+
+  amount    Float
+  currency  String @default("XOF")
+  status    String // "pending" | "paid" | "failed"
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  paymentRef      String? // Moneroo payout/payment ID
+  paymentProvider String? // "moneroo"
+  paidAt          DateTime?
+  failedAt        DateTime?
+  errorMessage    String?
+
+  createdAt DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@index([userId])
+  @@index([status])
 }
