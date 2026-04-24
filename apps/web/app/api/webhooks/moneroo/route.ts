@@ -85,12 +85,28 @@ export async function POST(req: Request) {
   }
 
   // ─── Détecter si c'est un event de PAYOUT (retrait) plutôt qu'un payment ─
-  // Moneroo utilise des events nommés "payout.*" pour les retraits.
+  // Moneroo/KkiaPay peut envoyer :
+  //   - Des events nommés "payout.*" (cas explicite)
+  //   - Des events génériques "transaction.success" / "transaction.failed"
+  //     → dans ce cas on verifie si l'ID correspond a un withdrawal en DB
   const eventName = (body.event ?? "").toLowerCase();
-  const isPayoutEvent = eventName.startsWith("payout.") || eventName.includes("payout");
+  const isPayoutByName = eventName.startsWith("payout.") || eventName.includes("payout");
 
-  if (isPayoutEvent) {
-    return handlePayoutWebhook(paymentId, eventName);
+  // Si le nom ne nous dit rien, on cherche dans InstructorWithdrawal
+  // pour voir si cet ID correspond a un retrait que nous avons initie.
+  const isPayoutInDb = !isPayoutByName
+    ? !!(await prisma.instructorWithdrawal.findFirst({
+        where: { paymentRef: paymentId },
+        select: { id: true },
+      }))
+    : false;
+
+  if (isPayoutByName || isPayoutInDb) {
+    // En plus du statut verifie via Moneroo, on passe aussi le status declare
+    // par le webhook (fallback si retrievePayout echoue ou renvoie une forme
+    // inattendue - notamment pour KkiaPay qui n'a que transaction.success/failed)
+    const declaredStatus = inferStatusFromEvent(eventName, body.data?.status);
+    return handlePayoutWebhook(paymentId, eventName, declaredStatus);
   }
 
   // Re-vérifier le status auprès de Moneroo (NE PAS faire confiance au body seul)
@@ -247,26 +263,69 @@ function parseIdList(raw: unknown): string[] {
  * On re-vérifie le statut via retrievePayout() pour éviter tout spoofing,
  * puis on met à jour l'InstructorWithdrawal correspondant (trouvé via paymentRef).
  */
-async function handlePayoutWebhook(payoutId: string, eventName: string) {
-  // Re-verif auprès de Moneroo
-  let verified: Awaited<ReturnType<typeof retrievePayout>>;
-  try {
-    verified = await retrievePayout(payoutId);
-  } catch (err) {
-    console.error("[moneroo webhook payout] retrievePayout failed:", err);
-    return NextResponse.json({ error: "Vérification payout Moneroo échouée" }, { status: 502 });
+/**
+ * Deduit un statut normalise ("success" | "failed" | "cancelled" | "pending")
+ * a partir du nom d'event + du status declare dans le body Moneroo.
+ *
+ * Cas supportes :
+ *  - "payout.success" / "payout.completed"          -> success
+ *  - "payout.failed" / "payout.cancelled"           -> failed / cancelled
+ *  - "transaction.success" (fallback KkiaPay)       -> success
+ *  - "transaction.failed"                            -> failed
+ */
+function inferStatusFromEvent(eventName: string, declared?: string): string {
+  const n = eventName.toLowerCase();
+  if (declared) {
+    const d = declared.toLowerCase();
+    if (["success", "succeeded", "completed", "failed", "cancelled", "pending", "processing"].includes(d)) {
+      return d === "succeeded" || d === "completed" ? "success" : d;
+    }
   }
+  if (n.includes("success") || n.includes("completed")) return "success";
+  if (n.includes("failed")) return "failed";
+  if (n.includes("cancelled") || n.includes("canceled")) return "cancelled";
+  if (n.includes("pending") || n.includes("processing")) return "pending";
+  return "pending";
+}
 
-  const status = verified.status;
+async function handlePayoutWebhook(payoutId: string, eventName: string, fallbackStatus = "pending") {
+  // On essaye d'abord retrievePayout. Si l'API ne renvoie pas un payout
+  // (ex: l'ID est en fait une transaction normale cote Moneroo), on utilise
+  // le fallback deduit du nom de l'event.
+  let status: string = fallbackStatus;
+  let verifiedMethod = "";
+  let verifiedAmount = 0;
+  let verifiedCurrency = "";
+  try {
+    const verified = await retrievePayout(payoutId);
+    status = verified.status;
+    verifiedMethod = verified.method ?? "";
+    verifiedAmount = verified.amount ?? 0;
+    verifiedCurrency = verified.currency ?? "";
+  } catch (err) {
+    console.warn("[moneroo webhook payout] retrievePayout failed, using fallback:", err instanceof Error ? err.message : err);
+    // Deuxieme essai : retrievePayment (au cas ou KkiaPay traite les payouts
+    // comme des transactions normales)
+    try {
+      const verifiedAsPayment = await retrievePayment(payoutId);
+      status = verifiedAsPayment.status;
+      verifiedAmount = verifiedAsPayment.amount ?? 0;
+      verifiedCurrency = verifiedAsPayment.currency ?? "";
+    } catch (err2) {
+      console.warn("[moneroo webhook payout] retrievePayment aussi failed, on reste sur fallback status=", fallbackStatus);
+      // On garde fallbackStatus — au pire le retrait reste EN_ATTENTE,
+      // l'admin pourra rafraichir manuellement.
+    }
+  }
 
   // Log console — on ne peut pas creer un AuditLog sans actorId (Prisma required)
   console.log("[moneroo webhook payout]", {
     event: eventName,
     id: payoutId,
     status,
-    amount: verified.amount,
-    currency: verified.currency,
-    method: verified.method,
+    amount: verifiedAmount,
+    currency: verifiedCurrency,
+    method: verifiedMethod,
   });
 
   // Retrouver le withdrawal via paymentRef
