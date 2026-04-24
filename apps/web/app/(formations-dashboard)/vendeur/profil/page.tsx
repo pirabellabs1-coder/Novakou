@@ -380,12 +380,25 @@ export default function ProfilPage() {
                     )}
                   </div>
 
-                  <button
-                    className="w-full py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
-                    style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-                  >
-                    Voir ses formations
-                  </button>
+                  {d?.user?.id ? (
+                    <Link
+                      href={`/instructeurs/${d.user.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block text-center w-full py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
+                      style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                    >
+                      Voir mon profil public
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="w-full py-2.5 rounded-xl text-white text-sm font-bold opacity-50 cursor-not-allowed"
+                      style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                    >
+                      Voir ses formations
+                    </button>
+                  )}
                 </div>
               </div>
 
