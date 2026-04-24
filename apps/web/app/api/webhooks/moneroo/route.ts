@@ -133,6 +133,33 @@ export async function POST(req: Request) {
     type,
   });
 
+  // Trace le resultat sur CheckoutAttempt (abandons / echecs + recuperation)
+  const attemptId = metadata.attemptId ? String(metadata.attemptId) : null;
+  if (attemptId) {
+    try {
+      const reason = typeof verified === "object" && verified !== null && "error" in verified
+        ? String((verified as { error?: unknown }).error ?? "")
+        : "";
+      const errorCode = typeof verified === "object" && verified !== null && "error_code" in verified
+        ? String((verified as { error_code?: unknown }).error_code ?? "")
+        : "";
+      await prisma.checkoutAttempt.update({
+        where: { id: attemptId },
+        data: {
+          status: status === "success" ? "COMPLETED" : "FAILED",
+          ...(status === "success" && { recoveredAt: new Date() }),
+          ...(status !== "success" && {
+            failureReason: reason || `Moneroo status: ${status}`,
+            failureCode: errorCode || status,
+          }),
+          providerRef: paymentId,
+        },
+      });
+    } catch (e) {
+      console.warn("[moneroo webhook] attempt update failed:", e);
+    }
+  }
+
   // Ne fulfill que sur success
   if (status !== "success") {
     return NextResponse.json({ ok: true, status, ignored: true });

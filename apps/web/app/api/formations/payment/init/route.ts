@@ -76,13 +76,13 @@ export async function POST(request: Request) {
       formationIds.length > 0
         ? prisma.formation.findMany({
             where: { id: { in: formationIds }, status: "ACTIF" },
-            select: { id: true, title: true, price: true },
+            select: { id: true, title: true, price: true, instructeurId: true, shopId: true },
           })
         : Promise.resolve([]),
       productIds.length > 0
         ? prisma.digitalProduct.findMany({
             where: { id: { in: productIds }, status: "ACTIF" },
-            select: { id: true, title: true, price: true },
+            select: { id: true, title: true, price: true, instructeurId: true, shopId: true },
           })
         : Promise.resolve([]),
     ]);
@@ -153,6 +153,40 @@ export async function POST(request: Request) {
     // Phone number from body — required for Mobile Money methods
     const phoneRaw: string | undefined = body.phone?.toString().replace(/\s/g, "") || undefined;
 
+    // Identifier le vendeur principal (1er produit/formation de la commande).
+    // Multi-vendeur : on trace sur le 1er ; le reste pourra etre attribue a la
+    // completion via le fulfillment.
+    const primaryInstructeurId =
+      formations[0]?.instructeurId ?? products[0]?.instructeurId ?? null;
+    const primaryShopId = formations[0]?.shopId ?? products[0]?.shopId ?? null;
+
+    // Cree l'attempt AVANT l'appel Moneroo pour pouvoir tracer meme un echec
+    // d'init cote provider. Status STARTED → le webhook le passera a COMPLETED
+    // ou FAILED selon le retour Moneroo.
+    const attempt = await prisma.checkoutAttempt.create({
+      data: {
+        userId: userId,
+        visitorEmail: userEmail?.toLowerCase() ?? null,
+        visitorName: (userName ?? null) || `${first} ${last}`.trim() || null,
+        visitorPhone: phoneRaw ?? null,
+        instructeurId: primaryInstructeurId,
+        shopId: primaryShopId,
+        formationId: formations[0]?.id ?? null,
+        productId: products[0]?.id ?? null,
+        amount: totalAmount,
+        currency: "XOF",
+        paymentMethod: body.paymentMethod ?? null,
+        status: "STARTED",
+        metadata: {
+          formationIds: formationIds,
+          productIds: productIds,
+          internalRef,
+          discountCode: appliedCode ?? null,
+        } as never,
+      },
+      select: { id: true },
+    });
+
     const moneroo = await initPayment({
       amount: Math.round(totalAmount),
       currency: "XOF", // FCFA West Africa CFA franc
@@ -163,7 +197,7 @@ export async function POST(request: Request) {
         last_name: last,
         phone: phoneRaw,
       },
-      return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}`,
+      return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}`,
       metadata: {
         // Type discriminator lu par /api/webhooks/moneroo pour router le fulfillment
         type: "formations_checkout",
@@ -173,7 +207,16 @@ export async function POST(request: Request) {
         productIds: productIds.join(","),
         discountCode: appliedCode ?? "",
         internalRef,
+        // attemptId permet au webhook de retrouver la ligne CheckoutAttempt
+        // pour la passer a COMPLETED ou FAILED
+        attemptId: attempt.id,
       },
+    });
+
+    // Propager providerRef sur le CheckoutAttempt pour debug/correlation
+    await prisma.checkoutAttempt.update({
+      where: { id: attempt.id },
+      data: { providerRef: moneroo.id },
     });
 
     return NextResponse.json({
@@ -185,6 +228,7 @@ export async function POST(request: Request) {
         subTotal,
         discountAmount,
         appliedCode,
+        attemptId: attempt.id,
       },
     });
   } catch (err) {
