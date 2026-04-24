@@ -463,6 +463,17 @@ REGLES STRICTES :
 }
 
 // ─── TAB 4 : VENDOR COACH ──────────────────────────────────────
+// Extrait la section "Message a envoyer au vendeur" du rapport Claude
+function extractMessageDraft(report: string): string | null {
+  const match = report.match(/##\s*💬?\s*Message\s+[àa]\s+envoyer[^#]*/i);
+  if (!match) return null;
+  // Retire le header
+  let msg = match[0].replace(/^##\s*💬?\s*Message\s+[àa]\s+envoyer[^\n]*\n+/i, "").trim();
+  // Retire blockquotes `>` en debut de ligne (Claude les utilise souvent)
+  msg = msg.replace(/^>\s?/gm, "").trim();
+  return msg || null;
+}
+
 function CoachTab({ puterReady }: { puterReady: boolean }) {
   const [vendors, setVendors] = useState<VendorItem[]>([]);
   const [query, setQuery] = useState("");
@@ -470,6 +481,9 @@ function CoachTab({ puterReady }: { puterReady: boolean }) {
   const [vendorData, setVendorData] = useState<Record<string, unknown> | null>(null);
   const [coaching, setCoaching] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [messageDraft, setMessageDraft] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailResult, setEmailResult] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -529,11 +543,38 @@ REGLES :
 - Si le vendeur a 0 ventes, concentre-toi sur le premier achat`;
         const r = await claudeChat(prompt, { temperature: 0.4, max_tokens: 3500 });
         setCoaching(r);
+        const draft = extractMessageDraft(r);
+        if (draft) setMessageDraft(draft);
+        setEmailResult(null);
       }
     } catch (e) {
       setCoaching(`⚠️ Erreur : ${e instanceof Error ? e.message : "inconnue"}`);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function sendEmailToVendor() {
+    if (!selected || !messageDraft.trim()) return;
+    setSendingEmail(true);
+    setEmailResult(null);
+    try {
+      const res = await fetch("/api/formations/admin/ai-vendor-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          vendorId: selected.id,
+          subject: `Un mot de l'equipe Novakou pour ${selected.name}`,
+          message: messageDraft.trim(),
+        }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error ?? "Erreur");
+      setEmailResult(`✅ Email envoyé à ${j.sentTo}`);
+    } catch (e) {
+      setEmailResult(`❌ Erreur : ${e instanceof Error ? e.message : "inconnue"}`);
+    } finally {
+      setSendingEmail(false);
     }
   }
 
@@ -612,6 +653,50 @@ REGLES :
               </div>}
               {coaching && <div className="space-y-1">{md(coaching)}</div>}
             </div>
+
+            {/* Message draft + bouton d'envoi */}
+            {messageDraft && (
+              <div className="bg-gradient-to-br from-[#006e2f]/5 to-emerald-50 rounded-2xl border border-[#006e2f]/20 p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="material-symbols-outlined text-[#006e2f]">mail</span>
+                  <h3 className="text-base font-bold text-[#191c1e]">Message à envoyer au vendeur</h3>
+                </div>
+                <p className="text-xs text-[#5c647a] mb-3">
+                  Claude a rédigé ce message. Tu peux le modifier avant envoi — il sera envoyé par email à <strong>{selected.email}</strong>.
+                </p>
+                <textarea
+                  value={messageDraft}
+                  onChange={(e) => setMessageDraft(e.target.value)}
+                  rows={10}
+                  className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm leading-relaxed bg-white"
+                />
+                <div className="flex items-center gap-3 mt-3 flex-wrap">
+                  <button
+                    onClick={sendEmailToVendor}
+                    disabled={sendingEmail || !messageDraft.trim()}
+                    className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
+                    style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                  >
+                    {sendingEmail ? (
+                      <>
+                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                        Envoi en cours…
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[16px]">send</span>
+                        Envoyer à {selected.name}
+                      </>
+                    )}
+                  </button>
+                  {emailResult && (
+                    <span className={`text-xs font-bold ${emailResult.startsWith("✅") ? "text-emerald-700" : "text-rose-700"}`}>
+                      {emailResult}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
