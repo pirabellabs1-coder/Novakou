@@ -4,18 +4,35 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Script from "next/script";
 
-// Typage minimal pour Puter.js charge via CDN
+// Typage minimal pour Puter.js charge via CDN.
+// Claude renvoie content sous forme d'array (content blocks), OpenAI sous forme de string — on accepte les deux.
+type PuterContentBlock = { type?: string; text?: string };
+type PuterChatResponse = {
+  message: { content: string | PuterContentBlock[] };
+};
 declare global {
   interface Window {
     puter?: {
       ai: {
         chat: (
           prompt: string,
-          options?: { model?: string; temperature?: number; max_tokens?: number },
-        ) => Promise<{ message: { content: string } }>;
+          options?: { model?: string; temperature?: number; max_tokens?: number; stream?: boolean },
+        ) => Promise<PuterChatResponse>;
       };
     };
   }
+}
+
+// Extrait le texte quel que soit le shape renvoye par Puter.
+function extractText(res: PuterChatResponse): string {
+  const c = res.message?.content;
+  if (typeof c === "string") return c;
+  if (Array.isArray(c)) {
+    return c
+      .map((block) => (block && typeof block === "object" && typeof block.text === "string" ? block.text : ""))
+      .join("");
+  }
+  return "";
 }
 
 type Generated = {
@@ -122,16 +139,25 @@ ${SYSTEM_PROMPT}`;
 
     try {
       const response = await window.puter.ai.chat(userPrompt, {
-        model: "gpt-4o-mini",
+        model: "claude-sonnet-4-6",
         temperature: 0.7,
-        max_tokens: 3000,
+        max_tokens: 4000,
       });
-      const text = response.message?.content ?? "";
+      const text = extractText(response);
 
-      // Extraire le JSON (parfois l'IA l'entoure de ```json ... ```)
+      // Extraire le JSON (Claude respecte bien les consignes mais peut entourer de ```json ... ```)
       let jsonText = text.trim();
       const jsonMatch = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (jsonMatch) jsonText = jsonMatch[1];
+
+      // Fallback : trouver le premier { et le dernier } pour isoler le JSON
+      if (!jsonText.startsWith("{")) {
+        const firstBrace = jsonText.indexOf("{");
+        const lastBrace = jsonText.lastIndexOf("}");
+        if (firstBrace >= 0 && lastBrace > firstBrace) {
+          jsonText = jsonText.slice(firstBrace, lastBrace + 1);
+        }
+      }
 
       try {
         const parsed = JSON.parse(jsonText) as Generated;
@@ -263,7 +289,7 @@ ${SYSTEM_PROMPT}`;
               {loading ? (
                 <>
                   <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                  Génération en cours (30s)…
+                  Claude travaille (30-60s)…
                 </>
               ) : !puterReady ? (
                 <>
@@ -280,10 +306,10 @@ ${SYSTEM_PROMPT}`;
 
             <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#5c647a]">
               <span className={`w-1.5 h-1.5 rounded-full ${puterReady ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
-              <span>{puterReady ? "SDK IA prêt (Puter · GPT-4o-mini)" : "Chargement du SDK IA…"}</span>
+              <span>{puterReady ? "SDK IA prêt · Claude Sonnet 4.6" : "Chargement du SDK IA…"}</span>
             </div>
             <p className="text-[10px] text-[#5c647a] text-center">
-              100 % gratuit · vous pouvez être invité à créer un compte Puter la 1ère fois.
+              Propulsé par Anthropic Claude via Puter · 100 % gratuit (compte Puter requis la 1ère fois).
             </p>
           </div>
         </div>
@@ -303,8 +329,13 @@ ${SYSTEM_PROMPT}`;
           {loading && (
             <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
               <span className="material-symbols-outlined text-5xl text-purple-500 animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-              <p className="text-sm text-[#191c1e] font-bold mt-4">L'IA travaille pour vous…</p>
-              <p className="text-xs text-[#5c647a] mt-1">Génération de titre, description, bénéfices, FAQ…</p>
+              <p className="text-sm text-[#191c1e] font-bold mt-4">Claude travaille pour vous…</p>
+              <p className="text-xs text-[#5c647a] mt-1">Génération du titre, description, bénéfices et FAQ adaptés au marché africain francophone</p>
+              <div className="mt-5 flex items-center justify-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+              </div>
             </div>
           )}
 
