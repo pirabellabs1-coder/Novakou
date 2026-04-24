@@ -103,9 +103,13 @@ export default function AdminEmailsPage() {
               </thead>
               <tbody>
                 {campaigns.map((c) => (
-                  <tr key={c.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
+                  <tr
+                    key={c.id}
+                    className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors cursor-pointer"
+                    onClick={() => { window.location.href = `/admin/emails/${c.id}`; }}
+                  >
                     <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-zinc-900 truncate max-w-[320px]">{c.subject}</p>
+                      <p className="text-sm font-semibold text-zinc-900 truncate max-w-[320px] hover:text-[#006e2f]">{c.subject}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-zinc-600">{c.segmentLabel}</span>
