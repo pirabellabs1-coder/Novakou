@@ -3131,3 +3131,48 @@ model MentorResourceShare {
   @@index([bookingId])
   @@index([resourceId])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN — Campagnes email broadcast (newsletter interne, annonces, conseils)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AdminCampaign {
+  id             String    @id @default(cuid())
+  subject        String    // objet du mail (max 200 char)
+  htmlBody       String    @db.Text // contenu HTML (éditeur riche)
+  segment        String    // "all" | "vendors" | "mentors" | "learners"
+  segmentFilter  Json?     // pour segments custom (V2)
+  status         String    @default("draft") // draft | sending | sent | failed
+  sentAt         DateTime?
+  recipientCount Int       @default(0)
+  openedCount    Int       @default(0)
+  clickedCount   Int       @default(0)
+  failedCount    Int       @default(0)
+  createdBy      String    // userId de l'admin qui a créé
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  recipients AdminCampaignRecipient[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdBy])
+}
+
+model AdminCampaignRecipient {
+  id         String    @id @default(cuid())
+  campaignId String
+  userId     String
+  email      String
+  resendId   String?   // ID Resend pour tracking
+  status     String    @default("pending") // pending | sent | failed | bounced
+  sentAt     DateTime?
+  openedAt   DateTime?
+  clickedAt  DateTime?
+
+  campaign AdminCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([status])
+}

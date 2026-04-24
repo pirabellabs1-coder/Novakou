@@ -17,6 +17,7 @@ const navItems = [
   { icon: "gavel", label: "Disputes mentor", href: "/admin/mentor-disputes" },
   { icon: "badge", label: "Vérification KYC", href: "/admin/kyc" },
   { icon: "person_remove", label: "Suppressions de compte", href: "/admin/suppressions" },
+  { icon: "campaign", label: "Campagnes email", href: "/admin/emails" },
   { icon: "settings", label: "Configuration", href: "/admin/configuration" },
 ];
 
