@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Product = {
   id: string;
   kind: "formation" | "product";
   title: string;
+  slug?: string;
   price: number;
   thumbnail: string | null;
   status: string;
@@ -204,10 +206,18 @@ export default function AdminProduitsPage() {
                             Refuser
                           </button>
                         </>
+                      ) : p.slug ? (
+                        <Link
+                          href={p.kind === "formation" ? `/formation/${p.slug}` : `/produit/${p.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 bg-zinc-100 text-zinc-700 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors inline-flex items-center gap-1"
+                        >
+                          Voir
+                          <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                        </Link>
                       ) : (
-                        <button className="px-4 py-2 bg-zinc-100 text-zinc-500 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-200 transition-colors">
-                          Détails
-                        </button>
+                        <span className="px-4 py-2 text-[10px] text-zinc-400 uppercase tracking-widest">—</span>
                       )}
                     </div>
                   </div>

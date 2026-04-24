@@ -30,7 +30,7 @@ export async function GET(request: Request) {
         take: 100,
         orderBy: { createdAt: "desc" },
         select: {
-          id: true, title: true, price: true, thumbnail: true, status: true, createdAt: true,
+          id: true, title: true, slug: true, price: true, thumbnail: true, status: true, createdAt: true,
           studentsCount: true, rating: true, customCategory: true,
           instructeur: { select: { user: { select: { name: true, email: true } } } },
           enrollments: { select: { paidAmount: true, refundedAt: true } },
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
         take: 100,
         orderBy: { createdAt: "desc" },
         select: {
-          id: true, title: true, price: true, banner: true, status: true, createdAt: true,
+          id: true, title: true, slug: true, price: true, banner: true, status: true, createdAt: true,
           salesCount: true, rating: true, productType: true,
           instructeur: { select: { user: { select: { name: true, email: true } } } },
           purchases: { select: { paidAmount: true } },
@@ -54,6 +54,7 @@ export async function GET(request: Request) {
         id: f.id,
         kind: "formation" as const,
         title: f.title,
+        slug: f.slug,
         price: f.price,
         thumbnail: f.thumbnail,
         status: f.status,
@@ -69,6 +70,7 @@ export async function GET(request: Request) {
         id: p.id,
         kind: "product" as const,
         title: p.title,
+        slug: p.slug,
         price: p.price,
         thumbnail: p.banner,
         status: p.status,

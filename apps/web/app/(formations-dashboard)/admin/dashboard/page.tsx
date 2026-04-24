@@ -99,6 +99,7 @@ type DashboardData = {
     totalUsers: number;
     newUsersToday: number;
     totalProducts: number;
+    publishedProducts: number;
     pendingProducts: number;
     transactionsThisMonth: number;
     transactionsThisMonthRevenue: number;
@@ -254,8 +255,9 @@ export default function AdminDashboardPage() {
                 Produits publiés
               </p>
               <h2 className="text-xl md:text-2xl font-extrabold tracking-tight break-all text-zinc-900 tabular-nums">
-                {isLoading ? "…" : (d?.kpis.totalProducts ?? 0).toLocaleString("fr-FR")}
+                {isLoading ? "…" : (d?.kpis.publishedProducts ?? 0).toLocaleString("fr-FR")}
               </h2>
+              <p className="text-[10px] text-zinc-400 mt-1">sur {(d?.kpis.totalProducts ?? 0).toLocaleString("fr-FR")} au total</p>
             </div>
             <div className="mt-8 flex items-center gap-2">
               <span className="text-[10px] tabular-nums font-bold text-zinc-500 bg-zinc-100 px-2 py-0.5">
