@@ -246,6 +246,44 @@ export async function POST(request: NextRequest) {
       `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiWelcome" TEXT`,
       `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiContext" TEXT`,
       `ALTER TABLE "InstructeurProfile" ADD COLUMN IF NOT EXISTS "supportAiColor"   TEXT`,
+      // Migration 2026042409 — checkout_attempts (abandons + paiements echoues)
+      `DO $$ BEGIN
+         CREATE TYPE "CheckoutAttemptStatus" AS ENUM ('STARTED', 'ABANDONED', 'FAILED', 'COMPLETED', 'RECOVERED');
+       EXCEPTION WHEN duplicate_object THEN NULL; END $$`,
+      `CREATE TABLE IF NOT EXISTS "CheckoutAttempt" (
+        "id"               TEXT PRIMARY KEY,
+        "userId"           TEXT,
+        "visitorEmail"     TEXT,
+        "visitorName"      TEXT,
+        "visitorPhone"     TEXT,
+        "instructeurId"    TEXT,
+        "shopId"           TEXT,
+        "formationId"      TEXT,
+        "productId"        TEXT,
+        "funnelId"         TEXT,
+        "amount"           DOUBLE PRECISION NOT NULL,
+        "currency"         TEXT NOT NULL DEFAULT 'XOF',
+        "paymentMethod"    TEXT,
+        "status"           "CheckoutAttemptStatus" NOT NULL DEFAULT 'STARTED',
+        "failureReason"    TEXT,
+        "failureCode"      TEXT,
+        "providerRef"      TEXT,
+        "reminder1SentAt"  TIMESTAMP(3),
+        "reminder2SentAt"  TIMESTAMP(3),
+        "vendorContactedAt" TIMESTAMP(3),
+        "recoveredAt"      TIMESTAMP(3),
+        "metadata"         JSONB,
+        "createdAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CheckoutAttempt_userId_fkey"        FOREIGN KEY ("userId")        REFERENCES "User"("id")               ON DELETE SET NULL,
+        CONSTRAINT "CheckoutAttempt_instructeurId_fkey" FOREIGN KEY ("instructeurId") REFERENCES "InstructeurProfile"("id") ON DELETE SET NULL,
+        CONSTRAINT "CheckoutAttempt_formationId_fkey"   FOREIGN KEY ("formationId")   REFERENCES "Formation"("id")          ON DELETE SET NULL,
+        CONSTRAINT "CheckoutAttempt_productId_fkey"     FOREIGN KEY ("productId")     REFERENCES "DigitalProduct"("id")     ON DELETE SET NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS "CheckoutAttempt_instructeurId_status_idx" ON "CheckoutAttempt"("instructeurId", "status")`,
+      `CREATE INDEX IF NOT EXISTS "CheckoutAttempt_visitorEmail_idx"         ON "CheckoutAttempt"("visitorEmail")`,
+      `CREATE INDEX IF NOT EXISTS "CheckoutAttempt_status_createdAt_idx"     ON "CheckoutAttempt"("status", "createdAt")`,
+      `CREATE INDEX IF NOT EXISTS "CheckoutAttempt_createdAt_idx"            ON "CheckoutAttempt"("createdAt")`,
     ];
 
     const results: { sql: string; status: string; error?: string }[] = [];

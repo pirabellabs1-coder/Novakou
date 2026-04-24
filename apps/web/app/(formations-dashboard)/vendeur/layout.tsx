@@ -27,6 +27,7 @@ const navItems: NavItem[] = [
   { icon: "category", label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
   { icon: "store", label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
   { icon: "receipt_long", label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
+  { icon: "payments", label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
   { icon: "account_balance_wallet", label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
   // Croissance
   { icon: "campaign", label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },

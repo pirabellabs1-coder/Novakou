@@ -233,6 +233,7 @@ model User {
   productPurchases   DigitalProductPurchase[] @relation("UserProductPurchases")
   productReviews     DigitalProductReview[]   @relation("UserProductReviews")
   abandonedCarts     AbandonedCart[]          @relation("UserAbandonedCarts")
+  checkoutAttempts   CheckoutAttempt[]        @relation("UserCheckoutAttempts")
   marketingEvents    MarketingEvent[]         @relation("UserMarketingEvents")
   courseDiscussions  CourseDiscussion[]       @relation("UserDiscussions")
   discussionReplies  CourseDiscussionReply[]  @relation("UserDiscussionReplies")
@@ -979,6 +980,7 @@ model InstructeurProfile {
   orderBumps          OrderBump[]          @relation("InstructeurOrderBumps")
   subscriptionPlans   SubscriptionPlan[]   @relation("InstructeurPlans")
   productInquiries    ProductInquiry[]     @relation("InstructeurInquiries")
+  checkoutAttempts    CheckoutAttempt[]    @relation("InstructeurCheckoutAttempts")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1157,6 +1159,7 @@ model Formation {
   quiz            FormationQuiz?
   orderBumpsAsBump OrderBump[]       @relation("BumpFormation")
   inquiries        ProductInquiry[]
+  checkoutAttempts CheckoutAttempt[] @relation("FormationCheckoutAttempts")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1554,6 +1557,7 @@ model DigitalProduct {
   bundleItems     ProductBundleItem[]
   orderBumpsAsBump OrderBump[]             @relation("BumpProduct")
   inquiries       ProductInquiry[]
+  checkoutAttempts CheckoutAttempt[]       @relation("ProductCheckoutAttempts")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1655,6 +1659,70 @@ model AbandonedCart {
   @@index([email])
   @@index([status])
   @@index([detectedAt])
+}
+
+// ── Checkout Attempts (abandons + paiements echoues) ───────────
+// Trace chaque tentative d'achat : si le visiteur a demarre un paiement
+// mais n'est pas alle au bout (abandonne) OU si le paiement a echoue
+// cote provider, on l'enregistre avec ses coordonnees. Le vendeur peut
+// ensuite relancer par email/WhatsApp. Novakou envoie automatiquement
+// 2 rappels par email (30 min puis 24h apres).
+
+enum CheckoutAttemptStatus {
+  STARTED     // checkout ouvert, paiement pas lance
+  ABANDONED   // visiteur a quitte sans payer (timeout 30min)
+  FAILED      // paiement initie mais a echoue (carte refusee, fonds insuffisants, etc.)
+  COMPLETED   // achat reussi — on garde pour stats
+  RECOVERED   // apres un abandon/echec, le visiteur est revenu et a termine
+}
+
+model CheckoutAttempt {
+  id            String @id @default(cuid())
+
+  // Visiteur
+  userId        String?  // si connecte
+  visitorEmail  String?
+  visitorName   String?
+  visitorPhone  String?  // format E.164 (+221 77...) pour WhatsApp
+
+  // Contexte vendeur
+  instructeurId String?
+  shopId        String?
+  formationId   String?
+  productId     String?
+  funnelId      String?
+
+  // Paiement
+  amount        Float
+  currency      String   @default("XOF")
+  paymentMethod String?  // "card", "orange_sn", "wave_sn", "mtn_ci", etc.
+
+  // Etat
+  status        CheckoutAttemptStatus @default(STARTED)
+  failureReason String?  @db.Text    // message lisible : "Carte refusee par la banque"
+  failureCode   String?               // code technique du provider
+  providerRef   String?               // Moneroo transaction id
+
+  // Relances (geree par cron)
+  reminder1SentAt DateTime?  // email 30min apres
+  reminder2SentAt DateTime?  // email 24h apres
+  vendorContactedAt DateTime? // si le vendeur a relance manuellement
+  recoveredAt      DateTime? // si le visiteur a termine l'achat ensuite
+
+  metadata Json? // divers (user agent, utm, etc.)
+
+  user        User?               @relation("UserCheckoutAttempts", fields: [userId], references: [id], onDelete: SetNull)
+  instructeur InstructeurProfile? @relation("InstructeurCheckoutAttempts", fields: [instructeurId], references: [id], onDelete: SetNull)
+  formation   Formation?          @relation("FormationCheckoutAttempts", fields: [formationId], references: [id], onDelete: SetNull)
+  product     DigitalProduct?     @relation("ProductCheckoutAttempts", fields: [productId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([instructeurId, status])
+  @@index([visitorEmail])
+  @@index([status, createdAt])
+  @@index([createdAt])
 }
 
 // ── Marketing Pixels ──
