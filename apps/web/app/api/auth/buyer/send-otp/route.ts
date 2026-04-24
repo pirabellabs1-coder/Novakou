@@ -23,7 +23,7 @@ function emailHtml(code: string, _email: string): string {
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8"></head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
+  <div style="max-width:720px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
     <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:36px 40px;text-align:center;">
       <div style="display:inline-block;width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.15);padding:12px;margin:0 auto 10px;">
         <div style="width:28px;height:28px;border-radius:8px;background:#ffffff;text-align:center;line-height:28px;color:#006e2f;font-weight:900;font-size:18px;">N</div>

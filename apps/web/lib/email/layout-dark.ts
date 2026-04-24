@@ -13,7 +13,7 @@ export function emailLayoutDark(content: string): string {
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#030712;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;background:#0B1120;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;border:1px solid #1E293B;">
+  <div style="max-width:720px;margin:0 auto;background:#0B1120;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;border:1px solid #1E293B;">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
       <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>

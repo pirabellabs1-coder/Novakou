@@ -16,7 +16,7 @@ function layout(content: string, subtitle: string, ctaLabel?: string, ctaUrl?: s
 <html lang="fr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f7f9fb;font-family:-apple-system,'Manrope',BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;">
-  <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.04);border:1px solid #eef0f3;">
+  <div style="max-width:720px;margin:40px auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.04);border:1px solid #eef0f3;">
     <div style="background:linear-gradient(135deg,#003d1a 0%,${headerColor} 50%,#22c55e 100%);padding:32px 40px;text-align:center;">
       <div style="display:inline-block;width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,0.15);line-height:48px;margin-bottom:12px;">
         <span style="color:#ffffff;font-weight:800;font-size:16px;">FH</span>

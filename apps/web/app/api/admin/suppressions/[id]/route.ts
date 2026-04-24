@@ -63,7 +63,7 @@ export async function POST(req: Request, { params }: Params) {
       sendEmail({
         to: dr.user.email,
         subject: "Demande de suppression refusée — Novakou",
-        html: `<div style="font-family:Manrope,Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f7f9fb">
+        html: `<div style="font-family:Manrope,Arial,sans-serif;max-width:720px;margin:0 auto;padding:24px;background:#f7f9fb">
           <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:24px;text-align:center;border-radius:12px">
             <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">Demande refusée</h1>
           </div>
@@ -95,7 +95,7 @@ export async function POST(req: Request, { params }: Params) {
     sendEmail({
       to: dr.user.email,
       subject: "Compte Novakou supprimé",
-      html: `<div style="font-family:Manrope,Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f7f9fb">
+      html: `<div style="font-family:Manrope,Arial,sans-serif;max-width:720px;margin:0 auto;padding:24px;background:#f7f9fb">
         <div style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:24px;text-align:center;border-radius:12px">
           <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800">Compte supprimé</h1>
         </div>

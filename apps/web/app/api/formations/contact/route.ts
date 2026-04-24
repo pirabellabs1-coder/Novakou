@@ -26,7 +26,7 @@ export async function POST(request: Request) {
           replyTo: email,
           subject: `[Contact] ${subject ?? "general"} — ${name}`,
           html: `
-            <div style="font-family: 'Manrope', -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; background: #f7f9fb;">
+            <div style="font-family: 'Manrope', -apple-system, sans-serif; max-width: 720px; margin: 0 auto; padding: 24px; background: #f7f9fb;">
               <div style="background: white; border-radius: 16px; padding: 24px; border: 1px solid #eef0f3;">
                 <div style="background: linear-gradient(135deg, #006e2f, #22c55e); width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; margin-bottom: 16px;">NK</div>
                 <h2 style="margin: 0 0 8px; color: #191c1e; font-size: 18px;">Nouveau message de contact</h2>

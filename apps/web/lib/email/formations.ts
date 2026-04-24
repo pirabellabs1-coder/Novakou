@@ -18,7 +18,7 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr", variant: "defaul
 <html lang="${lang}">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
+  <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
     <!-- Header -->
     <div style="background:${headerBg};padding:40px 40px 32px;text-align:center;">
       <div style="display:inline-block;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,0.15);padding:14px;margin:0 auto 12px;">

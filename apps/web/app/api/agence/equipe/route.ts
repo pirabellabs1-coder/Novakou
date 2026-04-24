@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
         to: email,
         subject: `${session.user.name} vous invite a rejoindre son agence sur Novakou`,
         html: `
-          <div style="max-width:600px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+          <div style="max-width:720px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
             <div style="background:linear-gradient(135deg,#6C2BD9,#8B5CF6);padding:32px 40px;text-align:center;border-radius:12px 12px 0 0;">
               <h1 style="color:#fff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
             </div>

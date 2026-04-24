@@ -19,7 +19,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
     const amountFormatted = invoice.amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #0f0f14; color: #e2e8f0; padding: 32px;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 720px; margin: 0 auto; background: #0f0f14; color: #e2e8f0; padding: 32px;">
         <div style="text-align: center; margin-bottom: 32px;">
           <h1 style="color: #006e2f; font-size: 24px; margin: 0;">Novakou</h1>
         </div>
