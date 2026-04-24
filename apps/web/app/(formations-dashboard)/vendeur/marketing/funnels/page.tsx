@@ -96,14 +96,23 @@ export default function FunnelsListPage() {
             Créez des tunnels de vente complets : landing, checkout, upsell, page de remerciement.
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-sm hover:opacity-90 transition-opacity"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-        >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Nouveau funnel
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/vendeur/marketing/funnels/nouveau-ai"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-sm hover:opacity-90 transition-opacity"
+            style={{ background: "linear-gradient(135deg, #7c3aed, #ec4899)" }}
+          >
+            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+            Générer avec l&apos;IA
+          </Link>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[#191c1e] font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Nouveau funnel
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -130,14 +139,23 @@ export default function FunnelsListPage() {
             Un funnel de vente, c&apos;est un parcours optimisé qui guide vos visiteurs depuis la découverte
             jusqu&apos;à l&apos;achat — avec upsells et page de remerciement personnalisée.
           </p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
-            Créer mon premier funnel
-          </button>
+          <div className="flex items-center gap-2 flex-wrap justify-center">
+            <Link
+              href="/vendeur/marketing/funnels/nouveau-ai"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition-opacity"
+              style={{ background: "linear-gradient(135deg, #7c3aed, #ec4899)" }}
+            >
+              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              Générer avec l&apos;IA
+            </Link>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[#191c1e] font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              Créer manuellement
+            </button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

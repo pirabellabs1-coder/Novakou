@@ -228,6 +228,20 @@ export default function MarketingPage() {
             active={false}
             loading={isLoading}
           />
+          <ToolCard
+            href="/vendeur/support-ia"
+            icon="support_agent"
+            iconBg="bg-cyan-50"
+            iconColor="text-cyan-600"
+            title="Support Client IA"
+            description="Un chatbot Claude Sonnet 4.6 sur vos pages publiques qui répond aux questions de vos clients 24/7. Propulsé par Puter.js."
+            stat1="Nouveau"
+            stat1Label="feature"
+            stat2="Claude 4.6"
+            stat2Label="IA"
+            active={false}
+            loading={isLoading}
+          />
         </div>
       </div>
 
