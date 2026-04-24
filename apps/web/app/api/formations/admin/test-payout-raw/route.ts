@@ -17,6 +17,18 @@ export async function POST(request: Request) {
   const push = (s: string) => { trace.push(`[${new Date().toISOString()}] ${s}`); };
 
   try {
+    // SECURITE : token admin obligatoire (sinon n'importe qui pourrait vider
+    // ton solde Moneroo). Le token est stocke dans la DB Configuration ou
+    // via l'env var TEST_PAYOUT_TOKEN cote Vercel.
+    const providedToken = request.headers.get("x-test-token") ?? "";
+    const expectedToken = process.env.TEST_PAYOUT_TOKEN || "";
+    if (!expectedToken || providedToken !== expectedToken) {
+      return NextResponse.json(
+        { ok: false, error: "Unauthorized. Header X-Test-Token invalide ou TEST_PAYOUT_TOKEN non configure dans Vercel." },
+        { status: 401 },
+      );
+    }
+
     push("START");
     const body = await request.json().catch(() => ({}));
     push(`body parsed: ${JSON.stringify(body).slice(0, 200)}`);
