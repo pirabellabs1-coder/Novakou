@@ -26,10 +26,39 @@ export async function POST(request: NextRequest) {
     // Chaque ALTER TABLE est dans son propre $executeRawUnsafe pour pouvoir
     // detecter quelle etape echoue. ADD COLUMN IF NOT EXISTS -> idempotent.
     const statements = [
+      // Migration 2026042402 — withdrawal_payment_ref
       `ALTER TABLE "InstructorWithdrawal" ADD COLUMN IF NOT EXISTS "paymentRef" TEXT`,
       `ALTER TABLE "InstructorWithdrawal" ADD COLUMN IF NOT EXISTS "paymentProvider" TEXT`,
       `ALTER TABLE "InstructorWithdrawal" ADD COLUMN IF NOT EXISTS "errorMessage" TEXT`,
       `CREATE INDEX IF NOT EXISTS "InstructorWithdrawal_paymentRef_idx" ON "InstructorWithdrawal"("paymentRef")`,
+      // Migration 2026042403 — order_bumps
+      `CREATE TABLE IF NOT EXISTS "OrderBump" (
+        "id"                 TEXT PRIMARY KEY,
+        "instructeurId"      TEXT NOT NULL,
+        "shopId"             TEXT,
+        "title"              TEXT NOT NULL,
+        "description"        TEXT NOT NULL,
+        "imageUrl"           TEXT,
+        "bumpFormationId"    TEXT,
+        "bumpProductId"      TEXT,
+        "price"              DOUBLE PRECISION NOT NULL,
+        "originalPrice"      DOUBLE PRECISION,
+        "appliesToAll"       BOOLEAN NOT NULL DEFAULT FALSE,
+        "targetFormationIds" TEXT[] NOT NULL DEFAULT '{}',
+        "targetProductIds"   TEXT[] NOT NULL DEFAULT '{}',
+        "viewsCount"         INTEGER NOT NULL DEFAULT 0,
+        "acceptedCount"      INTEGER NOT NULL DEFAULT 0,
+        "isActive"           BOOLEAN NOT NULL DEFAULT TRUE,
+        "createdAt"          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt"          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "OrderBump_instructeurId_fkey"   FOREIGN KEY ("instructeurId")   REFERENCES "InstructeurProfile"("id") ON DELETE CASCADE,
+        CONSTRAINT "OrderBump_bumpFormationId_fkey" FOREIGN KEY ("bumpFormationId") REFERENCES "Formation"("id")          ON DELETE SET NULL,
+        CONSTRAINT "OrderBump_bumpProductId_fkey"   FOREIGN KEY ("bumpProductId")   REFERENCES "DigitalProduct"("id")     ON DELETE SET NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS "OrderBump_instructeurId_isActive_idx" ON "OrderBump"("instructeurId", "isActive")`,
+      `CREATE INDEX IF NOT EXISTS "OrderBump_shopId_idx"                 ON "OrderBump"("shopId")`,
+      `CREATE INDEX IF NOT EXISTS "OrderBump_bumpFormationId_idx"        ON "OrderBump"("bumpFormationId")`,
+      `CREATE INDEX IF NOT EXISTS "OrderBump_bumpProductId_idx"          ON "OrderBump"("bumpProductId")`,
     ];
 
     const results: { sql: string; status: string; error?: string }[] = [];
