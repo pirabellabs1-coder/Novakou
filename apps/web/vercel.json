@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install",
-  "buildCommand": "cd ../.. && pnpm --filter=@freelancehigh/db generate && pnpm --filter=@freelancehigh/db exec prisma migrate deploy --schema prisma/schema.prisma && pnpm --filter=@freelancehigh/web build",
+  "buildCommand": "cd ../.. && pnpm --filter=@freelancehigh/db generate && pnpm --filter=@freelancehigh/web build",
   "regions": ["cdg1"],
   "crons": [
     { "path": "/api/cron/lesson-start-reminder", "schedule": "0 9 * * *" },
