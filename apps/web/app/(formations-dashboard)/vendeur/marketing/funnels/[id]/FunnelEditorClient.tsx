@@ -11,6 +11,7 @@ import { ConfirmModal } from "@/components/funnels/ConfirmModal";
 import { TemplatePreviewMockup } from "@/components/funnels/TemplatePreviewMockup";
 import { LANDING_TEMPLATES } from "@/lib/funnels/templates";
 import { confirmAction } from "@/store/confirm";
+import DndBlockCanvas from "@/components/funnels/DndBlockCanvas";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -21,11 +22,13 @@ type BlockType =
   // Atomic content
   | "heading" | "text" | "image" | "button" | "icon-box" | "divider" | "spacer" | "list" | "html"
   // Media
-  | "video"
+  | "video" | "image-gallery"
   // Product picker (pulls from vendor catalog)
   | "product"
   // Ready-made sections
-  | "hero" | "features" | "countdown" | "testimonials" | "faq" | "cta" | "stats" | "pricing";
+  | "hero" | "features" | "countdown" | "testimonials" | "faq" | "cta" | "stats" | "pricing"
+  // Conversion & Trust
+  | "scarcity" | "guarantee" | "logo-bar" | "alert" | "social-proof" | "comparison" | "floating-cta";
 
 interface Block {
   id: string;
@@ -69,6 +72,8 @@ interface Funnel {
   totalRevenue: number;
   theme: Theme | null;
   steps: Step[];
+  salesLimit: number | null;
+  salesCount: number;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -209,7 +214,8 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   video: {
     label: "Vidéo",
     icon: "play_circle",
-    default: { url: "", externalUrl: "", caption: "" },
+    atomic: true,
+    default: { externalUrl: "", caption: "" },
   },
   // ─── Ready-made sections ────────────────────────────────────────────────
   hero: {
@@ -242,7 +248,20 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   countdown: {
     label: "Compteur urgence",
     icon: "timer",
-    default: { title: "Offre limitée — fin dans :", endsInHours: 48, subtitle: "Après cette date, le prix passera au tarif normal." },
+    default: {
+      title: "Offre limitée — fin dans :",
+      endsInHours: 48,
+      subtitle: "Après cette date, le prix passera au tarif normal.",
+      mode: "duration" as "duration" | "fixed_date" | "per_visitor",
+      endsAt: "",
+      durationMinutes: 30,
+      expiredBehavior: "text" as "hide" | "text" | "redirect",
+      expiredText: "Cette offre a expiré.",
+      expiredRedirect: "",
+      bgColor: "",
+      textColor: "",
+      size: "md" as "sm" | "md" | "lg",
+    },
   },
   testimonials: {
     label: "Témoignages",
@@ -297,6 +316,122 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
       accentColor: "",
     },
   },
+  scarcity: {
+    label: "Rareté / Limite",
+    icon: "local_fire_department",
+    default: {
+      text: "Plus que {remaining} places disponibles !",
+      urgentThreshold: 5,
+      showProgressBar: true,
+      barColor: "",
+      textColor: "",
+      emptyText: "COMPLET — inscriptions fermées",
+      style: "banner" as "banner" | "badge" | "inline",
+    },
+  },
+  guarantee: {
+    label: "Badge garantie",
+    icon: "verified_user",
+    default: {
+      icon: "verified_user",
+      title: "Garantie 14 jours",
+      text: "Satisfait ou remboursé, sans condition. Testez sans risque.",
+      style: "card" as "card" | "banner" | "minimal",
+      accentColor: "",
+    },
+  },
+  "logo-bar": {
+    label: "Barre de logos",
+    icon: "corporate_fare",
+    default: {
+      title: "Ils nous font confiance",
+      items: [
+        { label: "Orange Money", icon: "account_balance_wallet" },
+        { label: "Wave", icon: "payments" },
+        { label: "Visa", icon: "credit_card" },
+        { label: "Mastercard", icon: "credit_card" },
+        { label: "SSL", icon: "lock" },
+      ],
+      style: "icons" as "icons" | "text" | "images",
+      bgColor: "",
+      grayscale: true,
+    },
+  },
+  alert: {
+    label: "Alerte / Bannière",
+    icon: "campaign",
+    default: {
+      text: "Offre flash : -50% pendant 24h seulement !",
+      variant: "warning" as "info" | "success" | "warning" | "danger",
+      icon: "campaign",
+      dismissible: false,
+    },
+  },
+  "social-proof": {
+    label: "Preuve sociale",
+    icon: "group",
+    default: {
+      style: "live" as "live" | "counter" | "recent",
+      liveText: "{count} personnes regardent cette page",
+      liveCount: 12,
+      liveVariance: 5,
+      counterItems: [
+        { value: "2 847", label: "Clients satisfaits", icon: "group" },
+        { value: "4.9/5", label: "Note moyenne", icon: "star" },
+        { value: "98%", label: "Recommandent", icon: "thumb_up" },
+      ],
+      recentItems: [
+        { name: "Aminata D.", city: "Dakar", action: "vient d'acheter", time: "il y a 3 min" },
+        { name: "Kouakou K.", city: "Abidjan", action: "vient d'acheter", time: "il y a 7 min" },
+      ],
+      accentColor: "",
+    },
+  },
+  comparison: {
+    label: "Tableau comparatif",
+    icon: "compare",
+    default: {
+      title: "Pourquoi nous choisir ?",
+      columns: ["Sans nous", "Avec nous"],
+      rows: [
+        { label: "Résultats", values: ["Incertains", "Garantis"] },
+        { label: "Support", values: ["Aucun", "24/7"] },
+        { label: "Communauté", values: ["Seul(e)", "1000+ membres"] },
+      ],
+      highlightColumn: 1,
+      accentColor: "",
+    },
+  },
+  "floating-cta": {
+    label: "CTA flottant",
+    icon: "vertical_align_bottom",
+    default: {
+      text: "Profitez de l'offre maintenant",
+      buttonText: "Commander",
+      buttonLink: "",
+      showPrice: true,
+      price: "25 000 FCFA",
+      originalPrice: "50 000 FCFA",
+      bgColor: "",
+      position: "bottom" as "bottom" | "top",
+    },
+  },
+  "image-gallery": {
+    label: "Galerie d'images",
+    icon: "photo_library",
+    atomic: true,
+    default: {
+      images: [
+        { url: "", alt: "Image 1", caption: "" },
+        { url: "", alt: "Image 2", caption: "" },
+        { url: "", alt: "Image 3", caption: "" },
+      ],
+      columns: 3,
+      gap: 8,
+      radius: 12,
+      lightbox: true,
+    },
+  },
 };
 
 // PaletteKey = either a BlockType or a preset (row with N columns)
@@ -329,12 +464,17 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: string; items: PaletteIte
     label: "Média", icon: "perm_media", items: [
       { key: "image", label: "Image", icon: "image" },
       { key: "video", label: "Vidéo", icon: "play_circle" },
+      { key: "image-gallery", label: "Galerie", icon: "photo_library" },
     ],
   },
   {
     label: "Conversion", icon: "ads_click", items: [
       { key: "button", label: "Bouton", icon: "smart_button" },
       { key: "product", label: "Produit / Formation", icon: "shopping_bag" },
+      { key: "scarcity", label: "Rareté / Limite", icon: "local_fire_department" },
+      { key: "guarantee", label: "Garantie", icon: "verified_user" },
+      { key: "floating-cta", label: "CTA flottant", icon: "vertical_align_bottom" },
+      { key: "alert", label: "Alerte / Bannière", icon: "campaign" },
     ],
   },
   {
@@ -347,6 +487,13 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: string; items: PaletteIte
       { key: "countdown", label: "Countdown", icon: "timer" },
       { key: "cta", label: "Appel à l'action", icon: "ads_click" },
       { key: "pricing", label: "Pricing", icon: "sell" },
+      { key: "comparison", label: "Comparatif", icon: "compare" },
+    ],
+  },
+  {
+    label: "Confiance", icon: "verified", items: [
+      { key: "logo-bar", label: "Barre de logos", icon: "corporate_fare" },
+      { key: "social-proof", label: "Preuve sociale", icon: "group" },
     ],
   },
   { label: "Avancé", icon: "code", items: [{ key: "html", label: "Code HTML", icon: "code" }] },
@@ -598,6 +745,7 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "left"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
           </div>
           <ColorPicker label="Couleur" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
+          <BackgroundPicker label="Dégradé texte (optionnel)" value={(block.data.gradient as string) ?? null} onChange={(g) => update({ gradient: g })} />
         </div>
       );
     case "text":
@@ -663,11 +811,29 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
     case "divider":
       return (
         <div className="space-y-2.5">
-          <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Épaisseur (px)" value={(block.data.thickness as number) ?? 1} onChange={(v) => update({ thickness: v })} />
-            <NumberInput label="Largeur (%)" value={(block.data.width as number) ?? 100} onChange={(v) => update({ width: v })} />
-          </div>
+          <SelectInput label="Style" value={(block.data.shape as string) ?? "line"} options={[
+            { value: "line", label: "Ligne" },
+            { value: "wave", label: "Vague" },
+            { value: "angle", label: "Angle" },
+            { value: "curve", label: "Courbe" },
+          ]} onChange={(v) => update({ shape: v })} />
+          {((block.data.shape as string) ?? "line") === "line" && (
+            <div className="grid grid-cols-2 gap-2">
+              <NumberInput label="Épaisseur (px)" value={(block.data.thickness as number) ?? 1} onChange={(v) => update({ thickness: v })} />
+              <NumberInput label="Largeur (%)" value={(block.data.width as number) ?? 100} onChange={(v) => update({ width: v })} />
+            </div>
+          )}
+          {((block.data.shape as string) ?? "line") !== "line" && (
+            <NumberInput label="Hauteur (px)" value={(block.data.height as number) ?? 60} onChange={(v) => update({ height: v })} />
+          )}
           <ColorPicker label="Couleur" value={(block.data.color as string) ?? "#e5e7eb"} onChange={(c) => update({ color: c ?? "#e5e7eb" })} />
+          <div className="flex items-center gap-3">
+            <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Inverser</label>
+            <button onClick={() => update({ flip: !block.data.flip })}
+              className={`w-9 h-5 rounded-full transition-colors relative ${block.data.flip ? "bg-[#006e2f]" : "bg-gray-300"}`}>
+              <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.flip ? "left-4" : "left-0.5"}`} />
+            </button>
+          </div>
         </div>
       );
     case "spacer":
@@ -694,10 +860,12 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
     case "video":
       return (
         <div className="space-y-2.5">
-          <MediaUpload label="Vidéo (upload direct)" value={(block.data.url as string) ?? null} onChange={(url) => update({ url })} accept="video" aspectRatio="video" />
-          <p className="text-[10px] text-[#5c647a]">Ou collez un lien YouTube/Vimeo :</p>
-          <StringInput label="URL externe" value={(block.data.externalUrl as string) ?? ""} onChange={(v) => update({ externalUrl: v })} placeholder="https://www.youtube.com/watch?v=..." />
-          <StringInput label="Légende" value={(block.data.caption as string) ?? ""} onChange={(v) => update({ caption: v })} />
+          <StringInput label="Lien vidéo (YouTube, Vimeo, ou MP4)" value={(block.data.externalUrl as string) ?? ""} onChange={(v) => update({ externalUrl: v })} placeholder="https://www.youtube.com/watch?v=..." />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[10px] text-blue-800">
+            <span className="material-symbols-outlined text-[12px] align-text-top mr-1">info</span>
+            Formats acceptés : YouTube, Vimeo, ou lien direct .mp4/.webm
+          </div>
+          <StringInput label="Légende (optionnel)" value={(block.data.caption as string) ?? ""} onChange={(v) => update({ caption: v })} />
         </div>
       );
     case "product":
@@ -748,14 +916,61 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
           />
         </div>
       );
-    case "countdown":
+    case "countdown": {
+      const cdMode = (block.data.mode as string) ?? "duration";
+      const cdExpired = (block.data.expiredBehavior as string) ?? "text";
       return (
         <div className="space-y-3">
           <StringInput label="Titre" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
-          <NumberInput label="Durée (heures)" value={(block.data.endsInHours as number) ?? 48} onChange={(v) => update({ endsInHours: v })} />
+          <SelectInput label="Mode" value={cdMode} options={[
+            { value: "duration", label: "Durée fixe" },
+            { value: "fixed_date", label: "Date précise" },
+            { value: "per_visitor", label: "Par visiteur" },
+          ]} onChange={(v) => update({ mode: v })} />
+          {cdMode === "duration" && (
+            <NumberInput label="Durée (heures)" value={(block.data.endsInHours as number) ?? 48} onChange={(v) => update({ endsInHours: v })} />
+          )}
+          {cdMode === "fixed_date" && (
+            <div>
+              <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Date de fin</label>
+              <input type="datetime-local" value={(block.data.endsAt as string) ?? ""}
+                onChange={(e) => update({ endsAt: e.target.value })}
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm" />
+            </div>
+          )}
+          {cdMode === "per_visitor" && (
+            <NumberInput label="Durée par visiteur (minutes)" value={(block.data.durationMinutes as number) ?? 30} onChange={(v) => update({ durationMinutes: v })} />
+          )}
           <StringInput label="Sous-titre" value={(block.data.subtitle as string) ?? ""} onChange={(v) => update({ subtitle: v })} />
+          <SelectInput label="Taille" value={(block.data.size as string) ?? "md"} options={[
+            { value: "sm", label: "Compact" },
+            { value: "md", label: "Normal" },
+            { value: "lg", label: "Grand" },
+          ]} onChange={(v) => update({ size: v })} />
+          <BackgroundPicker label="Arrière-plan du countdown" value={(block.data.bgColor as string) || null} onChange={(c) => update({ bgColor: c ?? "" })} />
+          <ColorPicker label="Couleur du texte" value={(block.data.textColor as string) || null} onChange={(c) => update({ textColor: c ?? "" })} />
+          <details className="border border-gray-100 rounded-lg">
+            <summary className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
+              <span className="material-symbols-outlined text-[14px]">timer_off</span>
+              Après expiration
+            </summary>
+            <div className="px-3 pb-3 space-y-2">
+              <SelectInput label="Comportement" value={cdExpired} options={[
+                { value: "hide", label: "Masquer" },
+                { value: "text", label: "Texte alternatif" },
+                { value: "redirect", label: "Rediriger" },
+              ]} onChange={(v) => update({ expiredBehavior: v })} />
+              {cdExpired === "text" && (
+                <StringInput label="Texte affiché" value={(block.data.expiredText as string) ?? "Cette offre a expiré."} onChange={(v) => update({ expiredText: v })} />
+              )}
+              {cdExpired === "redirect" && (
+                <StringInput label="URL de redirection" value={(block.data.expiredRedirect as string) ?? ""} onChange={(v) => update({ expiredRedirect: v })} placeholder="https://..." />
+              )}
+            </div>
+          </details>
         </div>
       );
+    }
     case "testimonials":
       return (
         <div className="space-y-3">
@@ -864,6 +1079,219 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
           <StringInput label="Lien du bouton" value={(block.data.ctaLink as string) ?? ""} onChange={(v) => update({ ctaLink: v })} placeholder="Vide = checkout par défaut" />
           <StringInput label="Garantie (optionnel)" value={(block.data.guaranteeText as string) ?? ""} onChange={(v) => update({ guaranteeText: v })} placeholder="Ex: Garantie 14 jours satisfait ou remboursé" />
           <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />
+        </div>
+      );
+    case "scarcity":
+      return (
+        <div className="space-y-3">
+          <StringInput label="Texte (utilisez {remaining} et {limit})" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} />
+          <NumberInput label="Seuil urgence (rouge)" value={(block.data.urgentThreshold as number) ?? 5} onChange={(v) => update({ urgentThreshold: v })} />
+          <SelectInput label="Style" value={(block.data.style as string) ?? "banner"} options={[
+            { value: "banner", label: "Bannière" },
+            { value: "badge", label: "Badge" },
+            { value: "inline", label: "Texte" },
+          ]} onChange={(v) => update({ style: v })} />
+          <div className="flex items-center gap-3">
+            <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Barre de progression</label>
+            <button onClick={() => update({ showProgressBar: !block.data.showProgressBar })}
+              className={`w-9 h-5 rounded-full transition-colors relative ${block.data.showProgressBar ? "bg-[#006e2f]" : "bg-gray-300"}`}>
+              <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.showProgressBar ? "left-4" : "left-0.5"}`} />
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker label="Couleur barre" value={(block.data.barColor as string) || null} onChange={(c) => update({ barColor: c ?? "" })} />
+            <ColorPicker label="Couleur texte" value={(block.data.textColor as string) || null} onChange={(c) => update({ textColor: c ?? "" })} />
+          </div>
+          <StringInput label="Texte quand complet" value={(block.data.emptyText as string) ?? ""} onChange={(v) => update({ emptyText: v })} />
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-[10px] text-amber-800">
+            <span className="material-symbols-outlined text-[12px] align-text-top mr-1">info</span>
+            La limite se configure dans les paramètres du funnel (salesLimit). Le compteur se met à jour automatiquement.
+          </div>
+        </div>
+      );
+    case "guarantee":
+      return (
+        <div className="space-y-3">
+          <div>
+            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label>
+            <IconPicker value={(block.data.icon as string) ?? "verified_user"} onChange={(ic) => update({ icon: ic })} />
+          </div>
+          <StringInput label="Titre" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <StringInput label="Description" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} multiline />
+          <SelectInput label="Style" value={(block.data.style as string) ?? "card"} options={[
+            { value: "card", label: "Carte" },
+            { value: "banner", label: "Bannière" },
+            { value: "minimal", label: "Minimal" },
+          ]} onChange={(v) => update({ style: v })} />
+          <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />
+        </div>
+      );
+    case "logo-bar":
+      return (
+        <div className="space-y-3">
+          <StringInput label="Titre (optionnel)" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <SelectInput label="Style" value={(block.data.style as string) ?? "icons"} options={[
+            { value: "icons", label: "Icônes" },
+            { value: "text", label: "Texte" },
+            { value: "images", label: "Images" },
+          ]} onChange={(v) => update({ style: v })} />
+          <ListEditor
+            label="Logos / Éléments"
+            items={(block.data.items as Array<{ label: string; icon?: string; url?: string }>) ?? []}
+            template={{ label: "Nouveau", icon: "star" }}
+            onChange={(items) => update({ items })}
+            renderItem={(item, patch) => (
+              <div className="space-y-2">
+                <StringInput label="Nom" value={item.label} onChange={(v) => patch({ label: v })} />
+                {(block.data.style as string) === "images" ? (
+                  <MediaUpload label="Logo" value={item.url ?? null} onChange={(url) => patch({ url: url ?? "" })} accept="image" />
+                ) : (
+                  <div><label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label><IconPicker value={item.icon ?? "star"} onChange={(ic) => patch({ icon: ic })} /></div>
+                )}
+              </div>
+            )}
+          />
+          <div className="flex items-center gap-3">
+            <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Niveaux de gris</label>
+            <button onClick={() => update({ grayscale: !block.data.grayscale })}
+              className={`w-9 h-5 rounded-full transition-colors relative ${block.data.grayscale ? "bg-[#006e2f]" : "bg-gray-300"}`}>
+              <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.grayscale ? "left-4" : "left-0.5"}`} />
+            </button>
+          </div>
+          <BackgroundPicker label="Arrière-plan" value={(block.data.bgColor as string) || null} onChange={(c) => update({ bgColor: c ?? "" })} />
+        </div>
+      );
+    case "alert":
+      return (
+        <div className="space-y-3">
+          <StringInput label="Message" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} multiline />
+          <SelectInput label="Type" value={(block.data.variant as string) ?? "warning"} options={[
+            { value: "info", label: "Info" },
+            { value: "success", label: "Succès" },
+            { value: "warning", label: "Urgent" },
+            { value: "danger", label: "Critique" },
+          ]} onChange={(v) => update({ variant: v })} />
+          <div>
+            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label>
+            <IconPicker value={(block.data.icon as string) ?? "campaign"} onChange={(ic) => update({ icon: ic })} />
+          </div>
+        </div>
+      );
+    case "social-proof":
+      return (
+        <div className="space-y-3">
+          <SelectInput label="Style" value={(block.data.style as string) ?? "live"} options={[
+            { value: "live", label: "En direct" },
+            { value: "counter", label: "Compteurs" },
+            { value: "recent", label: "Achats récents" },
+          ]} onChange={(v) => update({ style: v })} />
+          {(block.data.style as string) === "live" && (
+            <>
+              <StringInput label="Texte ({count} = nombre)" value={(block.data.liveText as string) ?? ""} onChange={(v) => update({ liveText: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <NumberInput label="Nombre de base" value={(block.data.liveCount as number) ?? 12} onChange={(v) => update({ liveCount: v })} />
+                <NumberInput label="Variance (±)" value={(block.data.liveVariance as number) ?? 5} onChange={(v) => update({ liveVariance: v })} />
+              </div>
+            </>
+          )}
+          {(block.data.style as string) === "counter" && (
+            <ListEditor
+              label="Compteurs"
+              items={(block.data.counterItems as Array<{ value: string; label: string; icon: string }>) ?? []}
+              template={{ value: "100+", label: "Label", icon: "group" }}
+              onChange={(items) => update({ counterItems: items })}
+              renderItem={(item, patch) => (
+                <div className="space-y-2">
+                  <div><label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label><IconPicker value={item.icon} onChange={(ic) => patch({ icon: ic })} /></div>
+                  <StringInput label="Valeur" value={item.value} onChange={(v) => patch({ value: v })} />
+                  <StringInput label="Label" value={item.label} onChange={(v) => patch({ label: v })} />
+                </div>
+              )}
+            />
+          )}
+          {(block.data.style as string) === "recent" && (
+            <ListEditor
+              label="Achats récents"
+              items={(block.data.recentItems as Array<{ name: string; city: string; action: string; time: string }>) ?? []}
+              template={{ name: "Prénom N.", city: "Ville", action: "vient d'acheter", time: "il y a 2 min" }}
+              onChange={(items) => update({ recentItems: items })}
+              renderItem={(item, patch) => (
+                <div className="space-y-2">
+                  <StringInput label="Nom" value={item.name} onChange={(v) => patch({ name: v })} />
+                  <StringInput label="Ville" value={item.city} onChange={(v) => patch({ city: v })} />
+                  <StringInput label="Action" value={item.action} onChange={(v) => patch({ action: v })} />
+                  <StringInput label="Temps" value={item.time} onChange={(v) => patch({ time: v })} />
+                </div>
+              )}
+            />
+          )}
+          <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />
+        </div>
+      );
+    case "comparison":
+      return (
+        <div className="space-y-3">
+          <StringInput label="Titre" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Colonne 1" value={((block.data.columns as string[]) ?? [])[0] ?? ""} onChange={(v) => { const cols = [...((block.data.columns as string[]) ?? [])]; cols[0] = v; update({ columns: cols }); }} />
+            <StringInput label="Colonne 2" value={((block.data.columns as string[]) ?? [])[1] ?? ""} onChange={(v) => { const cols = [...((block.data.columns as string[]) ?? [])]; cols[1] = v; update({ columns: cols }); }} />
+          </div>
+          <SelectInput label="Colonne mise en avant" value={String((block.data.highlightColumn as number) ?? 1)} options={[
+            { value: "0", label: "Colonne 1" }, { value: "1", label: "Colonne 2" },
+          ]} onChange={(v) => update({ highlightColumn: Number(v) })} />
+          <ListEditor
+            label="Lignes"
+            items={(block.data.rows as Array<{ label: string; values: string[] }>) ?? []}
+            template={{ label: "Critère", values: ["Non", "Oui"] }}
+            onChange={(items) => update({ rows: items })}
+            renderItem={(item, patch) => (
+              <div className="space-y-2">
+                <StringInput label="Critère" value={item.label} onChange={(v) => patch({ label: v })} />
+                <div className="grid grid-cols-2 gap-2">
+                  <StringInput label="Val. 1" value={item.values[0] ?? ""} onChange={(v) => patch({ values: [v, item.values[1] ?? ""] })} />
+                  <StringInput label="Val. 2" value={item.values[1] ?? ""} onChange={(v) => patch({ values: [item.values[0] ?? "", v] })} />
+                </div>
+              </div>
+            )}
+          />
+          <ColorPicker label="Couleur accent" value={(block.data.accentColor as string) || null} onChange={(c) => update({ accentColor: c ?? "" })} />
+        </div>
+      );
+    case "floating-cta":
+      return (
+        <div className="space-y-3">
+          <StringInput label="Texte d'accroche" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} />
+          <StringInput label="Texte du bouton" value={(block.data.buttonText as string) ?? ""} onChange={(v) => update({ buttonText: v })} />
+          <StringInput label="Lien du bouton" value={(block.data.buttonLink as string) ?? ""} onChange={(v) => update({ buttonLink: v })} placeholder="Vide = checkout" />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Prix" value={(block.data.price as string) ?? ""} onChange={(v) => update({ price: v })} />
+            <StringInput label="Prix barré" value={(block.data.originalPrice as string) ?? ""} onChange={(v) => update({ originalPrice: v })} />
+          </div>
+          <SelectInput label="Position" value={(block.data.position as string) ?? "bottom"} options={[
+            { value: "bottom", label: "Bas" }, { value: "top", label: "Haut" },
+          ]} onChange={(v) => update({ position: v })} />
+          <BackgroundPicker label="Arrière-plan" value={(block.data.bgColor as string) || null} onChange={(c) => update({ bgColor: c ?? "" })} />
+        </div>
+      );
+    case "image-gallery":
+      return (
+        <div className="space-y-3">
+          <ColumnPicker value={(block.data.columns as number) ?? 3} onChange={(cols) => update({ columns: cols })} options={[2, 3, 4]} />
+          <NumberInput label="Espace (px)" value={(block.data.gap as number) ?? 8} onChange={(v) => update({ gap: v })} />
+          <NumberInput label="Arrondi (px)" value={(block.data.radius as number) ?? 12} onChange={(v) => update({ radius: v })} />
+          <ListEditor
+            label="Images"
+            items={(block.data.images as Array<{ url: string; alt: string; caption?: string }>) ?? []}
+            template={{ url: "", alt: "Nouvelle image", caption: "" }}
+            onChange={(items) => update({ images: items })}
+            renderItem={(item, patch) => (
+              <div className="space-y-2">
+                <MediaUpload label="Image" value={item.url || null} onChange={(url) => patch({ url: url ?? "" })} accept="image" />
+                <StringInput label="Texte alt" value={item.alt} onChange={(v) => patch({ alt: v })} />
+                <StringInput label="Légende (optionnel)" value={item.caption ?? ""} onChange={(v) => patch({ caption: v })} />
+              </div>
+            )}
+          />
         </div>
       );
     default:
@@ -1077,6 +1505,16 @@ function SectionEditor({ block, onChange, onDelete }: { block: Block; onChange: 
           <BackgroundPicker label="Arrière-plan de la section" value={(block.data.bgColor as string) || null} onChange={(c) => updateData({ bgColor: c ?? "" })} />
           <ColorPicker label="Couleur du texte" value={(block.data.textColor as string) || null} onChange={(c) => updateData({ textColor: c ?? "" })} />
           <MediaUpload label="Image de fond (optionnel — par-dessus la couleur)" value={(block.data.bgImage as string) ?? null} onChange={(url) => updateData({ bgImage: url ?? "" })} accept="image" aspectRatio="landscape" />
+          {(block.data.bgImage as string) && (
+            <div className="flex items-center gap-3">
+              <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Effet parallaxe</label>
+              <button onClick={() => updateData({ parallax: !block.data.parallax })}
+                className={`w-9 h-5 rounded-full transition-colors relative ${block.data.parallax ? "bg-[#006e2f]" : "bg-gray-300"}`}>
+                <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.parallax ? "left-4" : "left-0.5"}`} />
+              </button>
+            </div>
+          )}
+          <ColorPicker label="Overlay (optionnel)" value={(block.data.overlayColor as string) || null} onChange={(c) => updateData({ overlayColor: c ?? "" })} />
         </>
       )}
     />
@@ -1106,9 +1544,10 @@ function ContentBoxEditor({ block, onChange, onDelete }: { block: Block; onChang
               { value: "none", label: "Aucune" }, { value: "sm", label: "Petite" }, { value: "md", label: "Moyenne" }, { value: "lg", label: "Grande" },
             ]} onChange={(v) => updateData({ shadow: v })} />
           </div>
+          <BackgroundPicker label="Arrière-plan de la boîte" value={bg} onChange={(c) => updateData({ bgColor: c ?? "#ffffff" })} />
           <div className="grid grid-cols-2 gap-2">
-            <ColorPicker label="Couleur de fond" value={bg} onChange={(c) => updateData({ bgColor: c ?? "#ffffff" })} />
             <ColorPicker label="Couleur bord" value={border} onChange={(c) => updateData({ borderColor: c ?? "#e5e7eb" })} />
+            <ColorPicker label="Couleur du texte" value={(block.data.textColor as string) || null} onChange={(c) => updateData({ textColor: c ?? "" })} />
           </div>
         </>
       )}
@@ -1228,6 +1667,8 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
 
   const tpl = BLOCK_TEMPLATES[block.type];
   const isAtomic = tpl.atomic;
+  const animValue = (block.data._animation as string) ?? "none";
+  const visValue = (block.data._visibility as string) ?? "all";
 
   return (
     <div className="bg-[#f7f9fb] rounded-xl border border-gray-200">
@@ -1235,6 +1676,16 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[#006e2f] text-[18px]">{tpl.icon}</span>
           <span className="font-bold text-[#191c1e] text-sm">{tpl.label}</span>
+          {visValue !== "all" && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
+              {visValue === "desktop" ? "Desktop" : "Mobile"}
+            </span>
+          )}
+          {animValue !== "none" && (
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 uppercase">
+              {animValue}
+            </span>
+          )}
         </div>
         <button onClick={onDelete} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
           <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -1243,6 +1694,43 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
       <div className={compact ? "p-3" : "p-4"}>
         {isAtomic ? renderAtomicEditor(block, update) : renderSectionEditor(block, update)}
       </div>
+      {/* Advanced: Animation + Visibility */}
+      <details className="border-t border-gray-200">
+        <summary className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
+          <span className="material-symbols-outlined text-[14px]">tune</span>
+          Animation &amp; visibilité
+          <span className="ml-auto material-symbols-outlined text-[14px]">expand_more</span>
+        </summary>
+        <div className="px-4 pb-3 space-y-2">
+          <SelectInput label="Animation" value={animValue} options={[
+            { value: "none", label: "Aucune" },
+            { value: "fade-in", label: "Fondu" },
+            { value: "slide-up", label: "Glisser ↑" },
+            { value: "slide-left", label: "Glisser ←" },
+            { value: "bounce", label: "Rebond" },
+            { value: "zoom", label: "Zoom" },
+          ]} onChange={(v) => update({ _animation: v })} />
+          <SelectInput label="Visible sur" value={visValue} options={[
+            { value: "all", label: "Tous" },
+            { value: "desktop", label: "Desktop" },
+            { value: "mobile", label: "Mobile" },
+          ]} onChange={(v) => update({ _visibility: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Marge haut (px)" value={(block.data._marginTop as number) ?? 0} onChange={(v) => update({ _marginTop: v })} />
+            <NumberInput label="Marge bas (px)" value={(block.data._marginBottom as number) ?? 0} onChange={(v) => update({ _marginBottom: v })} />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">CSS personnalisé</label>
+            <textarea
+              value={(block.data._customCss as string) ?? ""}
+              onChange={(e) => update({ _customCss: e.target.value })}
+              rows={2}
+              placeholder=".block { border-radius: 20px; }"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-xs font-mono resize-y"
+            />
+          </div>
+        </div>
+      </details>
     </div>
   );
 }
@@ -1400,6 +1888,52 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
               <p className="text-[9px] font-bold text-[#5c647a] uppercase">URL publique</p>
               <p className="text-[10px] text-[#191c1e] tabular-nums bg-gray-50 px-2 py-1 rounded truncate">/f/{funnel.slug}</p>
+            </div>
+            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+              <p className="text-[9px] font-bold text-[#5c647a] uppercase flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px]">local_fire_department</span>Limite de ventes
+              </p>
+              <div className="flex items-center gap-1.5">
+                <input type="number" min="0" placeholder="∞"
+                  value={funnel.salesLimit ?? ""}
+                  onChange={(e) => {
+                    const val = e.target.value ? parseInt(e.target.value) : null;
+                    setFunnel((f) => f ? { ...f, salesLimit: val } : f);
+                  }}
+                  onBlur={() => save({ salesLimit: funnel.salesLimit })}
+                  className="w-full px-2 py-1 text-[11px] rounded border border-gray-200 bg-white" />
+              </div>
+              {funnel.salesLimit !== null && funnel.salesLimit > 0 && (
+                <p className="text-[9px] text-[#5c647a]">
+                  {funnel.salesCount}/{funnel.salesLimit} ventes
+                </p>
+              )}
+              {/* Theme settings */}
+              <details className="mt-2 border border-gray-100 rounded-lg overflow-hidden">
+                <summary className="flex items-center gap-1.5 px-2 py-1.5 text-[9px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
+                  <span className="material-symbols-outlined text-[12px]">palette</span>
+                  Thème
+                  <span className="ml-auto material-symbols-outlined text-[12px]">expand_more</span>
+                </summary>
+                <div className="px-2 pb-2 space-y-2">
+                  <ColorPicker label="Couleur principale" value={funnel.theme?.primaryColor || "#006e2f"} onChange={(c) => save({ theme: { ...funnel.theme, primaryColor: c ?? "#006e2f" } })} />
+                  <ColorPicker label="Couleur accent" value={funnel.theme?.accentColor || "#22c55e"} onChange={(c) => save({ theme: { ...funnel.theme, accentColor: c ?? "#22c55e" } })} />
+                  <ColorPicker label="Couleur texte" value={funnel.theme?.textColor || "#191c1e"} onChange={(c) => save({ theme: { ...funnel.theme, textColor: c ?? "#191c1e" } })} />
+                  <BackgroundPicker label="Fond de page" value={funnel.theme?.bgColor || "#f7f9fb"} onChange={(c) => save({ theme: { ...funnel.theme, bgColor: c ?? "#f7f9fb" } })} />
+                  <div>
+                    <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Police</label>
+                    <select
+                      value={funnel.theme?.font || "Manrope"}
+                      onChange={(e) => save({ theme: { ...funnel.theme, font: e.target.value } })}
+                      className="w-full px-2 py-1.5 text-[11px] rounded border border-gray-200 bg-white"
+                    >
+                      {["Manrope", "Inter", "DM Sans", "Poppins", "Montserrat", "Raleway", "Playfair Display", "Lora", "Nunito", "Space Grotesk", "Outfit", "Plus Jakarta Sans"].map((f) => (
+                        <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </details>
               <button onClick={handleDelete} className="w-full mt-2 text-[10px] text-red-500 hover:text-red-700 flex items-center justify-center gap-1 py-1.5">
                 <span className="material-symbols-outlined text-[12px]">delete</span>Supprimer
               </button>
@@ -1485,30 +2019,34 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             </div>
           ) : (
             <>
-              {blocks.map((block, i) => (
-                <div key={block.id} className="group/block relative">
-                  {/* Floating toolbar (top-level blocks only) */}
-                  <div className="absolute -top-3 right-4 z-10 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 opacity-0 group-hover/block:opacity-100 transition-opacity">
-                    <button onClick={() => moveBlock(i, -1)} disabled={i === 0}
-                      className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed rounded-l-lg transition-colors"
-                      title="Monter">
-                      <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
-                    </button>
-                    <button onClick={() => moveBlock(i, 1)} disabled={i === blocks.length - 1}
-                      className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                      title="Descendre">
-                      <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
-                    </button>
-                    <div className="w-px h-4 bg-gray-200" />
-                    <button onClick={() => duplicateBlock(i)}
-                      className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 rounded-r-lg transition-colors"
-                      title="Dupliquer">
-                      <span className="material-symbols-outlined text-[16px]">content_copy</span>
-                    </button>
-                  </div>
-                  <BlockEditor block={block} onChange={(b) => updateBlock(i, b)} onDelete={() => deleteBlock(i)} />
-                </div>
-              ))}
+              <DndBlockCanvas
+                blocks={blocks}
+                onReorder={persistBlocks}
+                renderBlock={(block, i) => (
+                  <>
+                    {/* Floating toolbar */}
+                    <div className="absolute -top-3 right-4 z-10 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 opacity-0 group-hover/block:opacity-100 transition-opacity">
+                      <button onClick={() => moveBlock(i, -1)} disabled={i === 0}
+                        className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed rounded-l-lg transition-colors"
+                        title="Monter">
+                        <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+                      </button>
+                      <button onClick={() => moveBlock(i, 1)} disabled={i === blocks.length - 1}
+                        className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        title="Descendre">
+                        <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
+                      </button>
+                      <div className="w-px h-4 bg-gray-200" />
+                      <button onClick={() => duplicateBlock(i)}
+                        className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 rounded-r-lg transition-colors"
+                        title="Dupliquer">
+                        <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                      </button>
+                    </div>
+                    <BlockEditor block={block} onChange={(b) => updateBlock(i, b)} onDelete={() => deleteBlock(i)} />
+                  </>
+                )}
+              />
               <button onClick={() => setShowAddBlock(true)}
                 className="w-full py-3.5 rounded-2xl border-2 border-dashed border-gray-300 text-sm font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-[18px]">add</span>Ajouter un élément

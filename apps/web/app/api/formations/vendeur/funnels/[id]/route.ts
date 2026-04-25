@@ -72,6 +72,17 @@ export async function PATCH(request: Request, { params }: Params) {
     if (typeof body.description === "string") funnelUpdate.description = body.description;
     if (typeof body.isActive === "boolean") funnelUpdate.isActive = body.isActive;
     if (body.theme !== undefined) funnelUpdate.theme = body.theme;
+    if (body.salesLimit !== undefined) {
+      if (body.salesLimit === null) {
+        funnelUpdate.salesLimit = null;
+      } else {
+        const parsed = Number(body.salesLimit);
+        if (!Number.isFinite(parsed) || parsed < 0 || !Number.isInteger(parsed)) {
+          return NextResponse.json({ error: "salesLimit doit être un entier positif ou null" }, { status: 400 });
+        }
+        funnelUpdate.salesLimit = parsed;
+      }
+    }
 
     if (Object.keys(funnelUpdate).length > 0) {
       await prisma.salesFunnel.update({ where: { id }, data: funnelUpdate });

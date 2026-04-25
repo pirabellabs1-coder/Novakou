@@ -201,6 +201,7 @@ model User {
   deletionRequest     AccountDeletionRequest? @relation("UserDeletionRequest")
   auditLogsAsActor    AuditLog[]           @relation("AuditActor")
   auditLogsAsTarget   AuditLog[]           @relation("AuditTarget")
+  savedReports        SavedReport[]        @relation("SavedReports")
   messages            Message[]
   notifications       Notification[]
   conversationUsers   ConversationUser[]
@@ -759,6 +760,23 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@index([targetType, targetId])
+}
+
+model SavedReport {
+  id          String   @id @default(cuid())
+  type        String   // "financial" | "users" | "sales" | "products"
+  title       String
+  dateFrom    DateTime?
+  dateTo      DateTime?
+  data        Json
+  generatedBy String
+  generatedAt DateTime @default(now())
+
+  generator User @relation("SavedReports", fields: [generatedBy], references: [id], onDelete: Cascade)
+
+  @@index([type])
+  @@index([generatedAt])
+  @@index([generatedBy])
 }
 
 model Conversation {
@@ -2293,6 +2311,10 @@ model SalesFunnel {
 
   // Theme config (shared across steps): { primaryColor, accentColor, font, logoUrl, ... }
   theme Json?
+
+  // Sales limit / scarcity
+  salesLimit Int?              // null = unlimited
+  salesCount Int     @default(0)
 
   instructeur InstructeurProfile @relation("InstructeurSalesFunnels", fields: [instructeurId], references: [id], onDelete: Cascade)
   steps       FunnelStep[]

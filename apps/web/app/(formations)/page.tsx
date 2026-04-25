@@ -655,7 +655,113 @@ export default async function FormationsPage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* 11. FINAL CTA                                                */}
+        {/* 11. GUIDES DÉTAILLÉS                                         */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        <section className="w-full py-24 px-6 -mx-6 md:mx-0" style={{ backgroundColor: COLORS.surface }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <CategoryPill>Ressources gratuites</CategoryPill>
+              <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+                Guides pas-à-pas pour réussir.
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
+                Des guides complets, écrits par des experts, pour vous accompagner de la création de votre produit à votre première vente.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Guide 1 */}
+              <Link href="/guides/creer-son-produit" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #006e2f, #22c55e)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>package_2</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    12 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: `${COLORS.primary}10`, color: COLORS.primary }}>Débutant</span>
+                    <span className="text-[10px] text-gray-400">8 étapes</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#006e2f] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Comment créer son premier produit digital
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    De l&apos;idée à la publication : identifiez votre expertise, structurez votre contenu, produisez avec un smartphone et publiez sur Novakou.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: COLORS.primary }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 2 */}
+              <Link href="/guides/vendre-en-ligne" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #7c3aed, #ec4899)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>trending_up</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    15 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed10", color: "#7c3aed" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-400">12 chapitres</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#7c3aed] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Comment vendre ses formations en Afrique
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    Pages de vente, tunnels, leviers psychologiques, réseaux sociaux, email marketing, affiliation. Toutes les stratégies qui marchent.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#7c3aed" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 3 */}
+              <Link href="/guides/guide-complet-novakou" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #f59e0b, #ef4444)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>menu_book</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    20 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#f59e0b10", color: "#f59e0b" }}>Complet</span>
+                    <span className="text-[10px] text-gray-400">15 chapitres · 2500+ mots</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#f59e0b] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Le guide complet Novakou : de A à Z
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    De l&apos;inscription à votre première vente. Boutique, paiements, tunnels, IA, emails, affiliation, retraits. Tout est couvert.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#f59e0b" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {/* 12. FINAL CTA                                                */}
         {/* ═══════════════════════════════════════════════════════════ */}
         <section className="w-full py-24 px-6 text-center -mx-6 md:mx-0" style={{ backgroundColor: COLORS.primary }}>
           <div className="max-w-4xl mx-auto">

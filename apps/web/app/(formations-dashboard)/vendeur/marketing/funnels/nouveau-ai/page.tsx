@@ -127,9 +127,25 @@ CONTRAINTES STRICTES :
 - PRODUCT step : blocks TOUJOURS [] (c'est le checkout, rendu par Novakou)
 - Reponds UNIQUEMENT avec le JSON, RIEN avant, RIEN apres, pas de \`\`\`json.`;
 
+// ─── Types catalogue ───────────────────────────────────────────
+type CatalogItem = {
+  kind: "formation" | "product";
+  id: string;
+  title: string;
+  image: string | null;
+  price: number;
+  isFree: boolean;
+  status: string;
+};
+
 // ─── Composant ─────────────────────────────────────────────────
 export default function AIFunnelBuilderPage() {
   const router = useRouter();
+
+  // Catalog
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [selectedCatalogItem, setSelectedCatalogItem] = useState<CatalogItem | null>(null);
 
   // Form
   const [product, setProduct] = useState("");
@@ -143,6 +159,15 @@ export default function AIFunnelBuilderPage() {
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<GeneratedFunnel | null>(null);
   const [puterReady, setPuterReady] = useState(false);
+
+  // Load catalog
+  useEffect(() => {
+    fetch("/api/formations/vendeur/catalog")
+      .then((r) => r.json())
+      .then((j) => setCatalog(j.data ?? []))
+      .catch(() => {})
+      .finally(() => setCatalogLoading(false));
+  }, []);
 
   // Check Puter availability
   useEffect(() => {
@@ -159,6 +184,17 @@ export default function AIFunnelBuilderPage() {
     }
   }, []);
 
+  function handleCatalogSelect(value: string) {
+    if (!value) { setSelectedCatalogItem(null); return; }
+    const [kind, id] = value.split("::");
+    const item = catalog.find((c) => c.kind === kind && c.id === id);
+    if (item) {
+      setSelectedCatalogItem(item);
+      if (!product.trim()) setProduct(item.title);
+      if (!price.trim()) setPrice(`${new Intl.NumberFormat("fr-FR").format(item.price)} FCFA`);
+    }
+  }
+
   async function generate() {
     if (!product.trim()) {
       setError("Décrivez votre produit en 1 phrase minimum");
@@ -172,12 +208,17 @@ export default function AIFunnelBuilderPage() {
     setLoading(true);
     setGenerated(null);
 
+    const productContext = selectedCatalogItem
+      ? `\nDONNEES DU PRODUIT EXISTANT :\n- Titre exact : ${selectedCatalogItem.title}\n- Type : ${selectedCatalogItem.kind === "formation" ? "Formation en ligne" : "Produit digital"}\n- Prix : ${new Intl.NumberFormat("fr-FR").format(selectedCatalogItem.price)} FCFA\n- Utilise ce titre et ce prix dans le tunnel.\n`
+      : "";
+
     const userPrompt = `Genere un tunnel de vente complet en 4 etapes pour ce produit :
 
 Produit : ${product.trim()}
 ${audience.trim() ? `Public cible : ${audience.trim()}` : ""}
 ${price.trim() ? `Prix : ${price.trim()}` : ""}
 ${goal.trim() ? `Objectif du vendeur : ${goal.trim()}` : ""}
+${productContext}
 
 Langue : Francais (avec touches africaines naturelles).
 Le tunnel doit convertir un visiteur froid en acheteur, puis en client VIP grace a l'upsell.
@@ -224,10 +265,15 @@ ${SYSTEM_PROMPT}`;
     setCreating(true);
     setError(null);
     try {
+      const payload = {
+        ...generated,
+        ...(selectedCatalogItem?.kind === "formation" && { formationId: selectedCatalogItem.id }),
+        ...(selectedCatalogItem?.kind === "product" && { productId: selectedCatalogItem.id }),
+      };
       const res = await fetch("/api/formations/vendeur/funnels/ai-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(generated),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
@@ -272,6 +318,55 @@ ${SYSTEM_PROMPT}`;
           <p className="text-xs text-[#5c647a] mb-5">Plus vous êtes précis, meilleur est le tunnel.</p>
 
           <div className="space-y-4">
+            {/* Product selector from catalog */}
+            <div>
+              <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
+                Sélectionnez votre produit <span className="font-normal text-[#5c647a]">(optionnel)</span>
+              </label>
+              {catalogLoading ? (
+                <div className="text-xs text-[#5c647a] px-3 py-2.5 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                  Chargement du catalogue…
+                </div>
+              ) : catalog.length === 0 ? (
+                <div className="text-xs text-[#5c647a] px-3 py-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                  Aucun produit dans votre catalogue. Décrivez votre produit manuellement ci-dessous.
+                </div>
+              ) : (
+                <select
+                  value={selectedCatalogItem ? `${selectedCatalogItem.kind}::${selectedCatalogItem.id}` : ""}
+                  onChange={(e) => handleCatalogSelect(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm bg-white"
+                >
+                  <option value="">— Choisir un produit existant —</option>
+                  {catalog.filter((c) => c.kind === "formation").length > 0 && (
+                    <optgroup label="Formations">
+                      {catalog.filter((c) => c.kind === "formation").map((c) => (
+                        <option key={c.id} value={`${c.kind}::${c.id}`}>
+                          {c.title} — {new Intl.NumberFormat("fr-FR").format(c.price)} FCFA
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {catalog.filter((c) => c.kind === "product").length > 0 && (
+                    <optgroup label="Produits digitaux">
+                      {catalog.filter((c) => c.kind === "product").map((c) => (
+                        <option key={c.id} value={`${c.kind}::${c.id}`}>
+                          {c.title} — {new Intl.NumberFormat("fr-FR").format(c.price)} FCFA
+                        </option>
+                      ))}
+                    </optgroup>
+                  )}
+                </select>
+              )}
+              {selectedCatalogItem && (
+                <p className="text-[10px] text-emerald-600 mt-1 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                  L&apos;IA adaptera le tunnel à ce produit.
+                </p>
+              )}
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
                 Produit ou formation <span className="text-red-500">*</span>

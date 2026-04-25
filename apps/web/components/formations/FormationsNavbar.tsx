@@ -14,10 +14,77 @@ function initials(name: string | null | undefined) {
 const NAV_LINKS = [
   { href: "/", label: "Explorer" },
   { href: "/explorer", label: "Marketplace" },
-  { href: "/mentors", label: "Mentors" },
+  { href: "/fonctionnalites", label: "Fonctionnalités", mega: true },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/affiliation", label: "Affiliation" },
 ];
+
+const FEATURE_CATEGORIES = [
+  {
+    title: "Vendre",
+    items: [
+      { icon: "storefront", label: "Boutique en ligne", desc: "Votre vitrine pro en 3 min", href: "/fonctionnalites#boutique" },
+      { icon: "account_tree", label: "Tunnels de vente", desc: "Funnels qui convertissent", href: "/fonctionnalites#funnels" },
+      { icon: "sell", label: "Pricing flexible", desc: "Forfaits, promos, coupons", href: "/fonctionnalites#pricing" },
+    ],
+  },
+  {
+    title: "Encaisser",
+    items: [
+      { icon: "account_balance_wallet", label: "Mobile Money", desc: "Wave, Orange, MTN — 17 pays", href: "/fonctionnalites#paiements" },
+      { icon: "credit_card", label: "Carte & PayPal", desc: "Visa, Mastercard, SEPA", href: "/fonctionnalites#paiements" },
+      { icon: "payments", label: "Retraits rapides", desc: "Sous 24-48h sur votre compte", href: "/fonctionnalites#retraits" },
+    ],
+  },
+  {
+    title: "Créer",
+    items: [
+      { icon: "auto_awesome", label: "Assistant IA", desc: "Rédaction, structure, quiz", href: "/fonctionnalites#ia" },
+      { icon: "play_circle", label: "Hébergement vidéo", desc: "Vidéos sécurisées incluses", href: "/fonctionnalites#video" },
+      { icon: "workspace_premium", label: "Certificats", desc: "Diplômes auto-générés", href: "/fonctionnalites#certificats" },
+    ],
+  },
+  {
+    title: "Automatiser",
+    items: [
+      { icon: "mail", label: "Emails automatiques", desc: "Séquences & notifications", href: "/fonctionnalites#emails" },
+      { icon: "bolt", label: "Automatisations", desc: "Workflows sans code", href: "/fonctionnalites#automatisations" },
+      { icon: "group", label: "Affiliation", desc: "Vos clients deviennent vendeurs", href: "/fonctionnalites#affiliation" },
+    ],
+  },
+];
+
+function FeaturesMegaMenu({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[720px] bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden z-50">
+      <div className="grid grid-cols-2 gap-0 divide-x divide-gray-100">
+        {FEATURE_CATEGORIES.map((cat) => (
+          <div key={cat.title} className="p-4">
+            <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-widest mb-2">{cat.title}</p>
+            <div className="space-y-1">
+              {cat.items.map((item) => (
+                <Link key={item.label} href={item.href} onClick={onClose}
+                  className="flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-[#006e2f]/5 transition-colors group">
+                  <span className="material-symbols-outlined text-[20px] text-[#006e2f] mt-0.5 group-hover:scale-110 transition-transform" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
+                  <div>
+                    <p className="text-sm font-bold text-[#191c1e]">{item.label}</p>
+                    <p className="text-xs text-[#5c647a]">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <p className="text-xs text-[#5c647a]">10 % de commission · Zéro abonnement</p>
+        <Link href="/fonctionnalites" onClick={onClose} className="text-xs font-bold text-[#006e2f] hover:underline flex items-center gap-1">
+          Voir toutes les fonctionnalités <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 function UserMenu({
   name, email, image, role, formationsRole,
@@ -117,6 +184,9 @@ export function FormationsNavbar() {
   const { data: session, status } = useSession();
   const isLoggedIn = status === "authenticated" && session?.user;
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const megaRef = useRef<HTMLDivElement | null>(null);
+  const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(15,23,42,0.06)]">
@@ -131,10 +201,22 @@ export function FormationsNavbar() {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex gap-8 items-center text-sm font-medium tracking-tight" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-          {NAV_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} className="text-slate-600 hover:text-green-500 transition-colors duration-300">{l.label}</Link>
-          ))}
+        <div className="hidden md:flex gap-8 items-center text-sm font-medium tracking-tight relative" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+          {NAV_LINKS.map((l) =>
+            l.mega ? (
+              <div key={l.href} ref={megaRef} className="relative"
+                onMouseEnter={() => { if (megaTimer.current) clearTimeout(megaTimer.current); setMegaOpen(true); }}
+                onMouseLeave={() => { megaTimer.current = setTimeout(() => setMegaOpen(false), 200); }}>
+                <button className="text-slate-600 hover:text-green-500 transition-colors duration-300 flex items-center gap-0.5">
+                  {l.label}
+                  <span className={`material-symbols-outlined text-[16px] transition-transform ${megaOpen ? "rotate-180" : ""}`}>expand_more</span>
+                </button>
+                {megaOpen && <FeaturesMegaMenu onClose={() => setMegaOpen(false)} />}
+              </div>
+            ) : (
+              <Link key={l.href} href={l.href} className="text-slate-600 hover:text-green-500 transition-colors duration-300">{l.label}</Link>
+            )
+          )}
         </div>
 
         {/* Right side */}
@@ -180,9 +262,9 @@ export function FormationsNavbar() {
 
       {/* Mobile dropdown menu */}
       {mobileMenu && (
-        <div className="md:hidden bg-white border-t border-gray-100 shadow-xl">
+        <div className="md:hidden bg-white border-t border-gray-100 shadow-xl max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-3 space-y-1">
-            {NAV_LINKS.map((l) => (
+            {NAV_LINKS.filter((l) => !l.mega).map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -192,6 +274,18 @@ export function FormationsNavbar() {
                 {l.label}
               </Link>
             ))}
+            {/* Fonctionnalités expanded on mobile */}
+            <div className="my-2 border-t border-gray-100" />
+            <p className="px-3 py-1 text-[10px] font-bold text-[#5c647a] uppercase tracking-widest">Fonctionnalités</p>
+            {FEATURE_CATEGORIES.map((cat) =>
+              cat.items.map((item) => (
+                <Link key={item.label} href={item.href} onClick={() => setMobileMenu(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#191c1e] hover:bg-[#006e2f]/5 transition-colors">
+                  <span className="material-symbols-outlined text-[18px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
+                  {item.label}
+                </Link>
+              ))
+            )}
             {!isLoggedIn && (
               <>
                 <div className="my-2 border-t border-gray-100" />
