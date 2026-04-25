@@ -44,7 +44,7 @@ const navItems: NavItem[] = [
   // Développeur
   { icon: "key", label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
   { icon: "webhook", label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
-  { icon: "menu_book", label: "Documentation API", href: "/developer/docs", section: "Développeur" },
+  { icon: "menu_book", label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
   // Compte
   { icon: "account_circle", label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
   { icon: "groups", label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
@@ -188,7 +188,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
               <span className="hidden xl:inline">Voir ma boutique</span>
             </Link>
           )}
-          <NovakouNotificationBell tone="slate" />
+          <NovakouNotificationBell tone="slate" viewAllHref="/vendeur/notifications" />
           <Link
             href="/aide"
             className="hidden md:flex p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"

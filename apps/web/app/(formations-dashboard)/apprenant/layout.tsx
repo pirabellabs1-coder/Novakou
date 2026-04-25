@@ -157,7 +157,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
 
         <div className="flex items-center gap-2">
           {/* Notifications */}
-          <NovakouNotificationBell tone="light" />
+          <NovakouNotificationBell tone="light" viewAllHref="/apprenant/notifications" />
 
           {/* Cart */}
           <Link href="/apprenant/panier" className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]">

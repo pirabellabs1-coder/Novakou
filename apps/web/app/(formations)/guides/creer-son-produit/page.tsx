@@ -353,7 +353,7 @@ export default function CreerSonProduitPage() {
           style={{ color: C.dark }}
         >
           L&apos;Afrique francophone vit une transformation numerique sans
-          precedent. Avec plus de 400 millions de francophones sur le continent,
+          precedent. Avec un nombre croissant de francophones sur le continent,
           une penetration mobile en croissance exponentielle et une classe
           moyenne de plus en plus connectee, le marche des produits digitaux
           represente une opportunite historique pour les entrepreneurs africains.
@@ -374,8 +374,8 @@ export default function CreerSonProduitPage() {
           style={{ color: C.dark }}
         >
           En 2026, les chiffres parlent d&apos;eux-memes : le marche de
-          l&apos;e-learning en Afrique depasse les 8 milliards de dollars, avec
-          une croissance annuelle de 15 %. Les createurs qui se positionnent
+          l&apos;e-learning en Afrique est en pleine expansion, avec
+          une croissance annuelle soutenue. Les createurs qui se positionnent
           maintenant construisent les empires de demain. Et contrairement a ce
           que beaucoup croient, vous n&apos;avez pas besoin d&apos;etre un
           expert mondial ou d&apos;avoir du materiel professionnel pour
@@ -398,9 +398,9 @@ export default function CreerSonProduitPage() {
         <MockupFrame title="Statistiques du marche digital africain">
           <div className="grid grid-cols-3 gap-4 text-center">
             {[
-              { value: "400M+", label: "Francophones en Afrique" },
-              { value: "$8Mds", label: "Marche e-learning 2026" },
-              { value: "+15%", label: "Croissance annuelle" },
+              { value: "Croissant", label: "Marche francophone" },
+              { value: "Milliards", label: "Marche e-learning en expansion" },
+              { value: "Soutenue", label: "Croissance annuelle" },
             ].map((stat) => (
               <div key={stat.label} className="py-4">
                 <p
@@ -441,7 +441,7 @@ export default function CreerSonProduitPage() {
               {
                 icon: "1",
                 name: "Formations video",
-                desc: "Cours structures en modules et lecons. Le format roi : marge de 90%, scalable a l'infini.",
+                desc: "Cours structures en modules et lecons. Le format roi : forte marge, scalable a l'infini.",
                 price: "15 000 - 150 000 FCFA",
                 color: C.primary,
               },

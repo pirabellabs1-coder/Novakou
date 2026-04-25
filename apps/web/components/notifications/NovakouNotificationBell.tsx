@@ -43,6 +43,7 @@ function timeAgo(dateStr: string): string {
 
 interface NovakouNotificationBellProps {
   tone?: "light" | "slate";
+  viewAllHref?: string;
 }
 
 /**
@@ -52,7 +53,7 @@ interface NovakouNotificationBellProps {
  * - Dropdown avec list + actions marquer comme lu + "tout marquer lu"
  * - Lien de chaque notification si `link` present
  */
-export function NovakouNotificationBell({ tone = "slate" }: NovakouNotificationBellProps) {
+export function NovakouNotificationBell({ tone = "slate", viewAllHref }: NovakouNotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -210,6 +211,16 @@ export function NovakouNotificationBell({ tone = "slate" }: NovakouNotificationB
               })
             )}
           </div>
+
+          {viewAllHref && (
+            <Link
+              href={viewAllHref}
+              onClick={() => setOpen(false)}
+              className="block px-4 py-3 text-center text-xs font-bold text-[#006e2f] hover:bg-[#006e2f]/5 border-t border-zinc-100 transition-colors"
+            >
+              Voir toutes les notifications
+            </Link>
+          )}
         </div>
       )}
     </div>

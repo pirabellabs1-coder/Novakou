@@ -113,7 +113,7 @@ export default function ApiKeysPage() {
         </div>
         <div className="flex gap-2">
           <Link
-            href="/developer/docs"
+            href="/vendeur/documentation-api"
             target="_blank"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#191c1e] hover:bg-gray-50"
           >

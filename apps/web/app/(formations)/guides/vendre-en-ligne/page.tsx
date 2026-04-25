@@ -370,9 +370,9 @@ export default function VendreEnLignePage() {
         </Paragraph>
 
         <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 16, margin: "32px 0" }}>
-          <StatBox value="400M+" label="Francophones d ici 2050" />
-          <StatBox value="78%" label="Acces mobile en Afrique de l Ouest" />
-          <StatBox value="x3" label="Croissance e-learning Afrique 2023-2026" />
+          <StatBox value="Croissant" label="Marche francophone en expansion" />
+          <StatBox value="Mobile" label="Acces mobile en forte progression" />
+          <StatBox value="En hausse" label="Croissance e-learning en Afrique" />
         </div>
 
         <Paragraph>
@@ -457,7 +457,7 @@ export default function VendreEnLignePage() {
             <div style={{ ...SH, fontSize: 22, color: C.dark, marginBottom: 8 }}>Doublez vos ventes en 30 jours</div>
             <div style={{ ...S, fontSize: 14, color: C.muted, marginBottom: 20 }}>La methode complete de marketing digital pour entrepreneurs africains</div>
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 20 }}>
-              {["127 apprenants", "4.8/5 etoiles", "Garantie 14 jours"].map((t) => (
+              {["\u2014 apprenants", "Garantie 14 jours"].map((t) => (
                 <span key={t} style={{ ...S, fontSize: 11, color: C.primary, background: `${C.primary}10`, padding: "4px 10px", borderRadius: 6, fontWeight: 600 }}>{t}</span>
               ))}
             </div>

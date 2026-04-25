@@ -32,7 +32,7 @@ const TABS = [
     sub: "Publiez vos formations, ebooks, templates et coaching sur une vitrine professionnelle clé en main. Aucune connaissance technique requise — votre boutique est active dès que vous créez votre compte, avec votre branding, vos couleurs et votre domaine personnalisé.",
     features: [
       { icon: "palette", title: "Design 100% personnalisable", desc: "Couleurs, logo, polices, bannière, palette de couleurs — tout reflète votre marque, pas la nôtre. Chaque créateur a une boutique unique qui renforce son image professionnelle auprès de ses clients." },
-      { icon: "devices", title: "100% responsive mobile", desc: "Expérience parfaite sur smartphone Android ou iPhone, tablette et desktop. En Afrique, 80% des achats se font sur mobile — votre boutique est conçue pour ça dès le départ." },
+      { icon: "devices", title: "100% responsive mobile", desc: "Expérience parfaite sur smartphone Android ou iPhone, tablette et desktop. Votre boutique est conçue pour le mobile dès le départ." },
       { icon: "search", title: "SEO automatique intégré", desc: "Balises meta générées automatiquement, URLs propres et lisibles, sitemap dynamique soumis à Google, schema.org pour les produits. Votre boutique se positionne naturellement dans les résultats de recherche sans effort technique de votre part." },
       { icon: "link", title: "Domaine personnalisé gratuit", desc: "Connectez votre propre nom de domaine (monsite.com) en quelques clics pour une image 100% professionnelle. Fini les URLs génériques — votre marque s'affiche partout." },
       { icon: "category", title: "Catalogue organisé intelligemment", desc: "Catégories hiérarchisées, filtres avancés par prix, type, niveau, recherche interne en temps réel. Vos clients trouvent le bon produit en moins de 2 clics, ce qui augmente vos conversions." },
@@ -75,14 +75,14 @@ const TABS = [
     label: "Paiements",
     color: "#f59e0b",
     headline: "Encaissez partout en Afrique et dans le monde",
-    sub: "Orange Money, Wave, MTN MoMo, Moov Money, cartes Visa / Mastercard, PayPal, virement SEPA. 17 pays africains couverts nativement. Vos clients paient avec le moyen qu'ils utilisent au quotidien — aucune friction, maximum de conversions.",
+    sub: "Orange Money, Wave, MTN MoMo, Moov Money, cartes Visa / Mastercard, PayPal, virement SEPA. Vos clients paient avec le moyen qu'ils utilisent au quotidien — aucune friction, maximum de conversions.",
     features: [
-      { icon: "phone_android", title: "Mobile Money 17 pays nativement", desc: "Intégration native Orange Money SN/CI/CM/ML, Wave SN/CI, MTN MoMo CI/CM/GH, Moov, M-Pesa. Les paiements mobiles représentent 70% des transactions en Afrique — Novakou est la seule plateforme à les proposer tous sans configuration supplémentaire." },
+      { icon: "phone_android", title: "Mobile Money intégré nativement", desc: "Intégration native Orange Money, Wave, MTN MoMo, Moov, M-Pesa. Novakou est la seule plateforme à les proposer tous sans configuration supplémentaire." },
       { icon: "credit_card", title: "Cartes & paiements internationaux", desc: "Visa, Mastercard, SEPA, PayPal, Apple Pay. Parfait pour la diaspora africaine en France, Belgique, Canada et les clients internationaux qui veulent suivre une formation de votre catalogue. Paiement en 3× disponible pour les formations > 30 000 FCFA." },
       { icon: "lock", title: "Sécurité bancaire SSL/TLS", desc: "Chaque transaction est chiffrée avec les standards bancaires SSL/TLS. Conformité PCI DSS pour les paiements par carte. Vos clients voient le cadenas de sécurité et achètent en toute confiance — les taux d'abandon au checkout sont réduits de 40%." },
       { icon: "receipt_long", title: "Factures PDF automatiques conformes", desc: "Chaque vente génère et envoie automatiquement une facture PDF professionnelle à l'acheteur : numéro de facture, TVA si applicable, détail de la commande, coordonnées du vendeur. Aucun travail administratif pour vous." },
       { icon: "speed", title: "Retraits rapides sous 24-48h", desc: "Demandez un retrait depuis votre tableau de bord, recevez votre argent sous 24h sur Mobile Money ou sous 48h sur compte bancaire. Pas de seuil minimum abusif — retirez dès 5 000 FCFA." },
-      { icon: "public", title: "17 pays africains couverts", desc: "Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso, Guinée, Mauritanie, Gabon, Congo, RDC, Madagascar, Niger, Tchad, Centrafrique, Djibouti. Et l'international via Stripe." },
+      { icon: "public", title: "Afrique francophone + international", desc: "Couverture Mobile Money dans plusieurs pays africains : Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso et plus. L'international via Stripe." },
     ],
     mockup: {
       title: "Passerelle de paiement",
@@ -104,9 +104,9 @@ const TABS = [
     sub: "Générez des plans de cours complets, rédigez vos pages de vente, créez des quiz pertinents, structurez vos modules pédagogiques. Notre IA est entraînée sur des données du marché francophone africain — les textes générés résonnent avec votre audience, pas avec celle du marché américain.",
     features: [
       { icon: "school", title: "Structure de formation en 10 secondes", desc: "Donnez votre sujet (ex : 'Marketing digital pour PME africaines'), l'IA génère un plan complet avec modules, leçons, objectifs pédagogiques et durée estimée. Économisez 3-4 heures de conception pédagogique dès votre premier cours." },
-      { icon: "edit_note", title: "Copywriting de vente qui convertit", desc: "Pages de vente, titres accrocheurs, descriptions de produits, séquences email, posts réseaux sociaux — des textes adaptés aux codes culturels et aux attentes de l'Afrique francophone. Plus de 3 000 créateurs ont utilisé cet outil pour augmenter leur taux de conversion." },
-      { icon: "quiz", title: "Quiz et évaluations automatiques", desc: "Générez des QCM pertinents, des exercices pratiques et des études de cas pour chaque module de votre formation en un clic. Les formations avec des évaluations ont 55% de meilleur taux de complétion et reçoivent de meilleures notes." },
-      { icon: "smart_toy", title: "Chatbot support apprenant 24/7", desc: "Configurez un assistant IA qui répond aux questions de vos apprenants à toute heure avec le contexte de votre formation. Réduction de 70% du temps de support, disponibilité permanente, même quand vous dormez." },
+      { icon: "edit_note", title: "Copywriting de vente qui convertit", desc: "Pages de vente, titres accrocheurs, descriptions de produits, séquences email, posts réseaux sociaux — des textes adaptés aux codes culturels et aux attentes de l'Afrique francophone." },
+      { icon: "quiz", title: "Quiz et évaluations automatiques", desc: "Générez des QCM pertinents, des exercices pratiques et des études de cas pour chaque module de votre formation en un clic." },
+      { icon: "smart_toy", title: "Chatbot support apprenant 24/7", desc: "Configurez un assistant IA qui répond aux questions de vos apprenants à toute heure avec le contexte de votre formation. Disponibilité permanente, même quand vous dormez." },
       { icon: "translate", title: "Contexte culturel africain intégré", desc: "L'IA intègre des références, exemples et cas d'usage pertinents pour le marché africain : noms, devises, situations professionnelles locales, plateformes de paiement régionales. Vos textes générés sonnent locaux, pas traduits." },
       { icon: "psychology", title: "Optimisation SEO assistée", desc: "Suggestions de titres optimisés pour Google, mots-clés à intégrer dans vos descriptions, meta descriptions générées automatiquement, score de lisibilité. Vos produits remontent dans les recherches Google sans effort technique." },
     ],
@@ -566,7 +566,7 @@ export default function FonctionnalitesPage() {
               <tbody>
                 {[
                   ["Mobile Money (Wave, Orange, MTN)", true, false, false],
-                  ["17 pays africains couverts", true, false, false],
+                  ["Mobile Money Afrique francophone", true, false, false],
                   ["Tunnels de vente (30+ blocs)", true, true, false],
                   ["Génération IA de tunnels et textes", true, false, false],
                   ["Hébergement vidéo inclus sans limite", true, true, false],
@@ -628,24 +628,24 @@ export default function FonctionnalitesPage() {
                 name: "Aminata K.",
                 location: "Dakar, Sénégal",
                 domain: "Formation Comptabilité",
-                revenue: "500 000 FCFA/mois",
-                quote: "Novakou m'a permis de vendre mes formations en Excel à des comptables dans 8 pays africains. Le Mobile Money change tout — mes clients paient avec Wave en 10 secondes.",
+                revenue: "",
+                quote: "Novakou m'a permis de vendre mes formations en Excel à des comptables en Afrique francophone. Le Mobile Money change tout — mes clients paient avec Wave en quelques secondes.",
               },
               {
                 photo: "https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=400&q=80",
                 name: "Ibrahim D.",
                 location: "Abidjan, Côte d'Ivoire",
                 domain: "Marketing Digital",
-                revenue: "320 000 FCFA/mois",
-                quote: "L'assistant IA m'a aidé à créer mon tunnel de vente en 30 minutes. Mon taux de conversion est passé de 2% à 7%. J'aurais dû commencer sur Novakou bien avant.",
+                revenue: "",
+                quote: "L'assistant IA m'a aidé à créer mon tunnel de vente rapidement. L'outil est intuitif et puissant. J'aurais dû commencer sur Novakou bien avant.",
               },
               {
                 photo: "https://images.unsplash.com/photo-1573496799515-eebbb63814f2?auto=format&fit=crop&w=400&q=80",
                 name: "Fatou N.",
                 location: "Douala, Cameroun",
                 domain: "Design Canva",
-                revenue: "280 000 FCFA/mois",
-                quote: "Avant Novakou, je ne savais pas comment accepter les paiements. Maintenant 80% de mes clients paient par Wave ou Orange Money. Les automatisations gèrent tout à ma place.",
+                revenue: "",
+                quote: "Avant Novakou, je ne savais pas comment accepter les paiements. Maintenant mes clients paient facilement par Wave ou Orange Money. Les automatisations gèrent tout à ma place.",
               },
             ].map((creator) => (
               <div key={creator.name} className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
@@ -670,10 +670,12 @@ export default function FonctionnalitesPage() {
                       <p className="text-sm font-bold" style={{ color: C.dark }}>{creator.name}</p>
                       <p className="text-xs" style={{ color: C.muted }}>{creator.location}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-extrabold" style={{ color: C.primary }}>{creator.revenue}</p>
-                      <p className="text-[10px]" style={{ color: C.muted }}>revenus mensuels</p>
-                    </div>
+                    {creator.revenue && (
+                      <div className="text-right">
+                        <p className="text-sm font-extrabold" style={{ color: C.primary }}>{creator.revenue}</p>
+                        <p className="text-[10px]" style={{ color: C.muted }}>revenus mensuels</p>
+                      </div>
+                    )}
                   </div>
                   <p className="text-xs leading-relaxed italic" style={{ color: C.muted }}>
                     &ldquo;{creator.quote}&rdquo;
@@ -743,18 +745,15 @@ export default function FonctionnalitesPage() {
                   Les paiements que votre audience utilise vraiment
                 </h3>
                 <p className="text-sm leading-relaxed mb-4" style={{ color: C.muted }}>
-                  En Afrique francophone, seulement 20% à 30% de la population
-                  adulte dispose d'une carte bancaire. En revanche, plus de
-                  70% utilisent un service de Mobile Money au quotidien. Novakou
+                  En Afrique francophone, la majorité de la population
+                  utilise un service de Mobile Money au quotidien. Novakou
                   intègre nativement Wave, Orange Money, MTN MoMo, et Moov Money
-                  dans 17 pays — permettant à vos clients de payer en 10 secondes
+                  — permettant à vos clients de payer en quelques secondes
                   avec leur téléphone, sans compte bancaire requis.
                 </p>
                 <p className="text-sm leading-relaxed" style={{ color: C.muted }}>
                   Cette intégration n'est pas en option, n'est pas un module
-                  payant : elle est au cœur de la plateforme. Les créateurs qui
-                  activent le paiement Mobile Money voient leur taux de
-                  conversion augmenter de 40% à 60% en moyenne.
+                  payant : elle est au cœur de la plateforme.
                 </p>
               </div>
             </div>
@@ -878,7 +877,7 @@ export default function FonctionnalitesPage() {
               },
               {
                 q: "Quels pays africains sont couverts pour les paiements Mobile Money ?",
-                a: "Novakou couvre 17 pays africains en Mobile Money : Sénégal (Wave, Orange Money), Côte d'Ivoire (Wave, Orange Money, MTN), Cameroun (Orange Money, MTN), Mali (Orange Money), Burkina Faso (Orange Money, Moov), Togo, Bénin, Guinée, Mauritanie, Gabon, Congo, RDC, Madagascar, Niger, Tchad, Centrafrique et Djibouti. Pour les clients internationaux (France, Belgique, Canada, USA), les paiements par carte bancaire Visa/Mastercard et PayPal sont également disponibles.",
+                a: "Novakou couvre plusieurs pays africains en Mobile Money : Sénégal (Wave, Orange Money), Côte d'Ivoire (Wave, Orange Money, MTN), Cameroun (Orange Money, MTN), Mali, Burkina Faso, Togo, Bénin, et d'autres pays en Afrique francophone. Pour les clients internationaux, les paiements par carte bancaire Visa/Mastercard et PayPal sont également disponibles.",
               },
               {
                 q: "Comment fonctionne la commission de 10% ? Y a-t-il d'autres frais cachés ?",

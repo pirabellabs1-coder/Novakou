@@ -105,7 +105,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Right actions */}
         <div className="flex items-center gap-2">
-          <NovakouNotificationBell tone="light" />
+          <NovakouNotificationBell tone="light" viewAllHref="/admin/notifications" />
           <Link
             href="/admin/configuration"
             title="Configuration"

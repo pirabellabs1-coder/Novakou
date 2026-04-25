@@ -141,10 +141,10 @@ function MockDashboard() {
         <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: C.muted, ...S }}>Tableau de bord</div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { label: "Ventes", value: "127", sub: "+18% ce mois", color: C.primary },
-            { label: "Revenus", value: "845 000 F", sub: "Ce mois", color: "#2563eb" },
-            { label: "Apprenants", value: "1 204", sub: "+42 cette semaine", color: "#7c3aed" },
-            { label: "Taux conversion", value: "4.8%", sub: "Tunnel principal", color: "#f59e0b" },
+            { label: "Ventes", value: "\u2014", sub: "Ce mois", color: C.primary },
+            { label: "Revenus", value: "\u2014 F", sub: "Ce mois", color: "#2563eb" },
+            { label: "Apprenants", value: "\u2014", sub: "Cette semaine", color: "#7c3aed" },
+            { label: "Taux conversion", value: "\u2014", sub: "Tunnel principal", color: "#f59e0b" },
           ].map((s) => (
             <div key={s.label} className="rounded-xl p-3 border" style={{ borderColor: "#e5eae1" }}>
               <div className="text-[11px] uppercase tracking-wider mb-1" style={{ color: C.muted, ...S }}>{s.label}</div>

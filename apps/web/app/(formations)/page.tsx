@@ -182,10 +182,10 @@ export default async function FormationsPage() {
                 {/* KPI Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
-                    { label: "Revenus (7j)", value: "487 500 F", trend: "+12.5%", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Ventes (7j)", value: "32", trend: "+4", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Visiteurs", value: "1 204", trend: "0%", trendColor: "#6f7a6e", icon: "trending_flat" },
-                    { label: "Taux de conv.", value: "2.6%", trend: "-0.2%", trendColor: "#ba1a1a", icon: "trending_down" },
+                    { label: "Revenus (7j)", value: "— F", trend: "", trendColor: COLORS.primary, icon: "trending_up" },
+                    { label: "Ventes (7j)", value: "—", trend: "", trendColor: COLORS.primary, icon: "trending_up" },
+                    { label: "Visiteurs", value: "—", trend: "", trendColor: "#6f7a6e", icon: "trending_flat" },
+                    { label: "Taux de conv.", value: "—", trend: "", trendColor: "#ba1a1a", icon: "trending_down" },
                   ].map((k) => (
                     <div key={k.label} className="p-5 rounded-xl border" style={{ backgroundColor: COLORS.surfaceLow, borderColor: COLORS.outlineVariant + "33" }}>
                       <div className="text-sm mb-2" style={{ color: COLORS.muted }}>{k.label}</div>
@@ -226,9 +226,9 @@ export default async function FormationsPage() {
                     <div className="text-sm mb-4" style={{ color: COLORS.muted }}>Ventes récentes</div>
                     <div className="space-y-4 overflow-y-auto pr-2">
                       {[
-                        { name: "Koffi D.", initials: "KD", time: "Il y a 10 min", amount: "+ 15 000 F" },
-                        { name: "Marie A.", initials: "MA", time: "Il y a 1h", amount: "+ 25 000 F" },
-                        { name: "Seydou O.", initials: "SO", time: "Il y a 3h", amount: "+ 15 000 F" },
+                        { name: "Client A.", initials: "CA", time: "Récemment", amount: "+ — F" },
+                        { name: "Client B.", initials: "CB", time: "Récemment", amount: "+ — F" },
+                        { name: "Client C.", initials: "CC", time: "Récemment", amount: "+ — F" },
                       ].map((s, i) => (
                         <div key={i} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -486,7 +486,7 @@ export default async function FormationsPage() {
                   <span className="material-symbols-outlined text-slate-300">radio_button_unchecked</span>
                 </div>
                 <button className="w-full text-white py-3 rounded-lg font-bold" style={{ ...satoshi, backgroundColor: COLORS.primary }}>
-                  Payer 15 000 F
+                  Payer maintenant
                 </button>
               </div>
 
@@ -495,7 +495,7 @@ export default async function FormationsPage() {
                 <h3 className="text-xl mb-6" style={{ ...satoshiHeading, color: COLORS.dark, fontWeight: 600, letterSpacing: "-0.02em" }}>Retraits rapides</h3>
                 <div className="rounded-xl p-6 mb-6 text-center" style={{ backgroundColor: COLORS.surfaceLow }}>
                   <div className="text-sm mb-1" style={{ color: COLORS.muted }}>Solde disponible</div>
-                  <div className="text-3xl font-bold" style={{ ...satoshiHeading, color: COLORS.dark }}>350 000 F</div>
+                  <div className="text-3xl font-bold" style={{ ...satoshiHeading, color: COLORS.dark }}>— F</div>
                 </div>
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
@@ -537,7 +537,7 @@ export default async function FormationsPage() {
               {
                 name: "Fatou D.",
                 role: "Coach Business, Dakar",
-                text: "Avant Novakou, je perdais des ventes car mes clients ne pouvaient pas payer par carte. Depuis que j'ai intégré Mobile Money via la plateforme, mon chiffre d'affaires a fait x3 en un mois.",
+                text: "Avant Novakou, je perdais des ventes car mes clients ne pouvaient pas payer par carte. Depuis que j'ai intégré Mobile Money via la plateforme, je touche un public beaucoup plus large.",
               },
               {
                 name: "Marc K.",
@@ -946,75 +946,7 @@ export default async function FormationsPage() {
           </div>
         </section>
 
-        {/* ═══════════════════════════════════════════════════════════ */}
-        {/* 12. COMMUNAUTÉ PAR PAYS                                      */}
-        {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-12 md:py-20 px-4 sm:px-6 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-10 md:mb-14">
-              <CategoryPill>Présence africaine</CategoryPill>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
-                Une communauté dans 17 pays
-              </h2>
-              <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
-                Des créateurs et des apprenants de toute l&apos;Afrique francophone utilisent Novakou chaque jour pour apprendre et vendre.
-              </p>
-            </div>
-
-            {/* Pays principaux */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-              {[
-                { country: "Sénégal", flag: "🇸🇳", users: "420+", rank: 1 },
-                { country: "Côte d'Ivoire", flag: "🇨🇮", users: "380+", rank: 2 },
-                { country: "Cameroun", flag: "🇨🇲", users: "290+", rank: 3 },
-                { country: "Mali", flag: "🇲🇱", users: "180+", rank: 4 },
-                { country: "Bénin", flag: "🇧🇯", users: "140+", rank: 5 },
-                { country: "Togo", flag: "🇹🇬", users: "110+", rank: 6 },
-                { country: "Burkina Faso", flag: "🇧🇫", users: "95+", rank: 7 },
-                { country: "Guinée", flag: "🇬🇳", users: "85+", rank: 8 },
-                { country: "Madagascar", flag: "🇲🇬", users: "75+", rank: 9 },
-                { country: "Niger", flag: "🇳🇪", users: "65+", rank: 10 },
-                { country: "Congo RDC", flag: "🇨🇩", users: "60+", rank: 11 },
-                { country: "France (diaspora)", flag: "🇫🇷", users: "55+", rank: 12 },
-              ].map((item) => (
-                <div
-                  key={item.country}
-                  className="bg-white rounded-2xl border border-gray-100 p-4 text-center hover:shadow-md hover:-translate-y-0.5 transition-all"
-                >
-                  <div className="text-3xl mb-2">{item.flag}</div>
-                  <div className="text-base font-extrabold mb-0.5" style={{ color: COLORS.primary }}>
-                    {item.users}
-                  </div>
-                  <div className="text-[11px] font-medium" style={{ color: COLORS.muted }}>
-                    {item.country}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Stats globales */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 md:p-8 rounded-3xl" style={{ backgroundColor: COLORS.surface }}>
-              {[
-                { value: "17", label: "pays actifs", icon: "public" },
-                { value: "2 400+", label: "créateurs inscrits", icon: "people" },
-                { value: "12 500+", label: "apprenants actifs", icon: "school" },
-                { value: "850M+", label: "FCFA de formations vendues", icon: "payments" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <span className="material-symbols-outlined text-[28px] mb-2 block" style={{ color: COLORS.accent, fontVariationSettings: "'FILL' 1" }}>
-                    {stat.icon}
-                  </span>
-                  <div className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ color: COLORS.dark, ...satoshiHeading }}>
-                    {stat.value}
-                  </div>
-                  <div className="text-xs font-medium" style={{ color: COLORS.muted }}>
-                    {stat.label}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Section communauté par pays retirée — données réelles à venir */}
 
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 13. FINAL CTA                                                */}
