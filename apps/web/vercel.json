@@ -8,14 +8,14 @@
     { "path": "/api/cron/lesson-start-reminder",   "schedule": "0 9 * * *" },
     { "path": "/api/cron/weekly-vendor-recap",      "schedule": "0 18 * * 0" },
     { "path": "/api/cron/monthly-vendor-recap",     "schedule": "0 9 1 * *" },
-    { "path": "/api/cron/abandoned-cart-check",     "schedule": "*/30 * * * *" },
-    { "path": "/api/cron/abandoned-cart-email",     "schedule": "*/15 * * * *" },
-    { "path": "/api/cron/deadline-reminder",        "schedule": "0 * * * *" },
-    { "path": "/api/cron/mentor-escrow",            "schedule": "*/30 * * * *" },
-    { "path": "/api/cron/flash-promo-expiry",       "schedule": "0 */6 * * *" },
+    { "path": "/api/cron/abandoned-cart-check",     "schedule": "0 8 * * *" },
+    { "path": "/api/cron/abandoned-cart-email",     "schedule": "0 11 * * *" },
+    { "path": "/api/cron/deadline-reminder",        "schedule": "0 7 * * *" },
+    { "path": "/api/cron/mentor-escrow",            "schedule": "0 14 * * *" },
+    { "path": "/api/cron/flash-promo-expiry",       "schedule": "0 6 * * *" },
     { "path": "/api/cron/cohort-status",            "schedule": "0 8 * * *" },
     { "path": "/api/cron/churn-alert",              "schedule": "0 10 * * *" },
-    { "path": "/api/cron/send-abandon-reminders",   "schedule": "*/15 * * * *" }
+    { "path": "/api/cron/send-abandon-reminders",   "schedule": "0 12 * * *" }
   ],
   "headers": [
     {
