@@ -575,30 +575,37 @@ function CountdownBlock({ data, theme, blockId, funnelSlug }: { data: Record<str
     bgColor?: string; textColor?: string; size?: string;
   };
 
-  const [target] = useState(() => {
-    if (mode === "fixed_date" && endsAt) return new Date(endsAt).getTime();
-    if (mode === "per_visitor") {
+  // Prevent hydration mismatch: render placeholder on server, real countdown on client
+  const [mounted, setMounted] = useState(false);
+  const [target, setTarget] = useState(0);
+  const [now, setNow] = useState(0);
+
+  useEffect(() => {
+    let t: number;
+    if (mode === "fixed_date" && endsAt) {
+      t = new Date(endsAt).getTime();
+    } else if (mode === "per_visitor") {
       const key = `countdown_${funnelSlug ?? "f"}_${blockId ?? "b"}`;
-      const stored = typeof window !== "undefined" ? localStorage.getItem(key) : null;
-      if (stored) return Number(stored);
-      const t = Date.now() + (durationMinutes ?? 30) * 60 * 1000;
-      if (typeof window !== "undefined") localStorage.setItem(key, String(t));
-      return t;
+      const stored = localStorage.getItem(key);
+      if (stored) { t = Number(stored); }
+      else { t = Date.now() + (durationMinutes ?? 30) * 60 * 1000; localStorage.setItem(key, String(t)); }
+    } else {
+      t = Date.now() + (endsInHours ?? 48) * 60 * 60 * 1000;
     }
-    return Date.now() + (endsInHours ?? 48) * 60 * 60 * 1000;
-  });
+    setTarget(t);
+    setNow(Date.now());
+    setMounted(true);
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, [mode, endsAt, endsInHours, durationMinutes, funnelSlug, blockId]);
 
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => { const tick = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(tick); }, []);
-
-  const remaining = Math.max(0, target - now);
-  const expired = remaining === 0;
+  const remaining = mounted ? Math.max(0, target - now) : (endsInHours ?? 48) * 3600000;
+  const expired = mounted && remaining === 0;
   const days = Math.floor(remaining / 86400000);
   const hours = Math.floor((remaining % 86400000) / 3600000);
   const minutes = Math.floor((remaining % 3600000) / 60000);
   const seconds = Math.floor((remaining % 60000) / 1000);
 
-  // Handle expiration behavior
   useEffect(() => {
     if (expired && expiredBehavior === "redirect" && expiredRedirect) {
       window.location.href = expiredRedirect;
@@ -932,7 +939,14 @@ function SocialProofBlock({ data, theme }: { data: Record<string, unknown>; them
     accentColor?: string;
   };
   const accent = accentColor || theme.primaryColor;
-  const [count, setCount] = useState(liveCount);
+
+  // All hooks must be called unconditionally (Rules of Hooks)
+  const [mounted, setMounted] = useState(false);
+  const [count, setCount] = useState(liveCount ?? 12);
+  const [visibleIdx, setVisibleIdx] = useState(0);
+
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     if (style !== "live") return;
     const tick = setInterval(() => {
@@ -940,16 +954,23 @@ function SocialProofBlock({ data, theme }: { data: Record<string, unknown>; them
         const delta = Math.floor(Math.random() * 3) - 1;
         return Math.max(1, Math.min(c + delta, (liveCount ?? 12) + (liveVariance ?? 5)));
       });
-    }, 3000 + Math.random() * 4000);
+    }, 4000);
     return () => clearInterval(tick);
   }, [style, liveCount, liveVariance]);
+
+  const items = recentItems ?? [];
+  useEffect(() => {
+    if (style !== "recent" || items.length <= 1) return;
+    const tick = setInterval(() => setVisibleIdx((i) => (i + 1) % items.length), 4000);
+    return () => clearInterval(tick);
+  }, [style, items.length]);
 
   if (style === "live") {
     return (
       <div className="py-4 px-4 text-center">
         <span className="inline-flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-full text-sm font-bold">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          {(liveText ?? "").replace("{count}", String(count))}
+          {(liveText ?? "").replace("{count}", String(mounted ? count : (liveCount ?? 12)))}
         </span>
       </div>
     );
@@ -972,15 +993,8 @@ function SocialProofBlock({ data, theme }: { data: Record<string, unknown>; them
   }
 
   // recent purchases
-  const [visibleIdx, setVisibleIdx] = useState(0);
-  const items = recentItems ?? [];
-  useEffect(() => {
-    if (items.length <= 1) return;
-    const tick = setInterval(() => setVisibleIdx((i) => (i + 1) % items.length), 4000);
-    return () => clearInterval(tick);
-  }, [items.length]);
   const current = items[visibleIdx];
-  if (!current) return null;
+  if (!mounted || !current) return null;
   return (
     <div className="fixed bottom-4 left-4 z-40 animate-slide-in">
       <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 px-4 py-3 flex items-center gap-3 max-w-xs">
