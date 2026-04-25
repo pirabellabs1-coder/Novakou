@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const msisdn = normalizeMsisdn(rawMsisdn);
+    const msisdn = normalizeMsisdn(rawMsisdn, method);
 
     const payload = {
       amount: Math.round(amount),

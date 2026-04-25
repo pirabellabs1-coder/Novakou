@@ -231,7 +231,7 @@ export async function PATCH(request: Request, { params }: Params) {
           if (!raw || !String(raw).trim()) {
             missing.push("msisdn (numéro Mobile Money)");
           } else {
-            recipient.msisdn = normalizeMsisdn(String(raw));
+            recipient.msisdn = normalizeMsisdn(String(raw), resolvedMethod);
           }
         } else {
           // account_number ou autre

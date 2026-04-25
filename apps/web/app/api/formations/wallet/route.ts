@@ -378,11 +378,11 @@ export async function POST(request: Request) {
         const details = accountDetails as Record<string, unknown>;
         // Si on reçoit "phone" legacy, on le convertit en msisdn
         if (!details.msisdn && (details.phone || details.phone_number)) {
-          details.msisdn = normalizeMsisdn(String(details.phone ?? details.phone_number));
+          details.msisdn = normalizeMsisdn(String(details.phone ?? details.phone_number), method);
         }
         // Re-normaliser msisdn si present (digits only, sans +)
         if (details.msisdn) {
-          details.msisdn = normalizeMsisdn(String(details.msisdn));
+          details.msisdn = normalizeMsisdn(String(details.msisdn), method);
         }
         const missing = def.requiredFields.filter(
           (f) => !details[f] || !String(details[f]).trim(),

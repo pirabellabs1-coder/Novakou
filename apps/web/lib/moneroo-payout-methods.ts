@@ -362,12 +362,53 @@ export function shortMethodLabel(id: string): string {
 }
 
 /**
+ * Table des préfixes téléphoniques internationaux par code pays ISO-2.
+ * Utilisée pour convertir un numéro local en format international msisdn.
+ */
+const COUNTRY_DIAL_CODES: Record<string, string> = {
+  BJ: "229", SN: "221", CI: "225", CM: "237", TG: "228", ML: "223",
+  KE: "254", TZ: "255", UG: "256", RW: "250", ZM: "260",
+  NG: "234", CD: "243", MW: "265", GH: "233",
+};
+
+/**
  * Normalise un numéro de téléphone en format `msisdn` Moneroo :
  * digits only, international, SANS le + en tête.
- * Ex : "+221 77 123 45 67" -> "221771234567"
+ *
+ * Si `methodId` est fourni, on détecte le pays via le catalogue et on
+ * ajoute le préfixe international si le numéro est en format local.
+ *
+ * Ex : normalizeMsisdn("57335726", "mtn_bj")  -> "22957335726"
+ * Ex : normalizeMsisdn("+229 57 33 57 26")     -> "22957335726"
+ * Ex : normalizeMsisdn("22957335726")           -> "22957335726"
+ * Ex : normalizeMsisdn("0157335726", "mtn_bj") -> "22957335726"  (strip leading 0, add prefix)
  */
-export function normalizeMsisdn(phone: string): string {
-  return phone.replace(/\D/g, "");
+export function normalizeMsisdn(phone: string, methodId?: string): string {
+  // Step 1: strip all non-digit characters
+  let digits = phone.replace(/\D/g, "");
+
+  // Step 2: strip leading "00" (international dialing prefix)
+  if (digits.startsWith("00")) {
+    digits = digits.slice(2);
+  }
+
+  // Step 3: if we know the method, resolve expected country prefix
+  if (methodId) {
+    const methodDef = getPayoutMethod(methodId);
+    if (methodDef && methodDef.countries.length > 0) {
+      const countryCode = methodDef.countries[0];
+      const dialCode = COUNTRY_DIAL_CODES[countryCode];
+      if (dialCode && !digits.startsWith(dialCode)) {
+        // Strip leading 0 (local format) before adding international prefix
+        if (digits.startsWith("0")) {
+          digits = digits.slice(1);
+        }
+        digits = dialCode + digits;
+      }
+    }
+  }
+
+  return digits;
 }
 
 /**
