@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -287,6 +288,21 @@ export default function CreerSonProduitPage() {
           </div>
         </div>
       </section>
+
+      {/* ───────────────── FEATURED IMAGE ───────────────── */}
+      <div className="max-w-[860px] mx-auto px-4 sm:px-6 pb-2">
+        <div className="rounded-2xl overflow-hidden shadow-sm">
+          <Image
+            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
+            alt="Créateurs africains collaborant sur leurs produits digitaux"
+            width={1200}
+            height={500}
+            className="w-full object-cover"
+            style={{ maxHeight: 460 }}
+            priority
+          />
+        </div>
+      </div>
 
       {/* ───────────────── BODY ───────────────── */}
       <section className="max-w-[860px] mx-auto px-6 pb-32">
@@ -866,6 +882,23 @@ export default function CreerSonProduitPage() {
           pas la qualite de la production.
         </p>
 
+        {/* Image: setup d'enregistrement minimaliste */}
+        <div className="rounded-2xl overflow-hidden my-8 shadow-sm">
+          <Image
+            src="https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=900&q=80"
+            alt="Un micro professionnel — l'audio est plus important que la vidéo"
+            width={900}
+            height={420}
+            className="w-full object-cover"
+          />
+          <div
+            className="px-5 py-3 text-xs text-center"
+            style={{ backgroundColor: C.surfaceLow, color: C.muted, ...S }}
+          >
+            Un micro-cravate à 5 000 FCFA + votre smartphone = un setup professionnel. L&apos;audio prime sur la vidéo.
+          </div>
+        </div>
+
         <h3
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
@@ -1007,6 +1040,23 @@ export default function CreerSonProduitPage() {
           plus simple possible, meme si vous n&apos;avez aucune experience
           technique. Voici les etapes detaillees pour creer votre produit.
         </p>
+
+        {/* Image: plateforme en action */}
+        <div className="rounded-2xl overflow-hidden my-8 shadow-sm">
+          <Image
+            src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=900&q=80"
+            alt="Un entrepreneur africain gère sa boutique en ligne depuis son ordinateur"
+            width={900}
+            height={420}
+            className="w-full object-cover"
+          />
+          <div
+            className="px-5 py-3 text-xs text-center"
+            style={{ backgroundColor: C.surfaceLow, color: C.muted, ...S }}
+          >
+            Gérez votre boutique, vos formations et vos ventes depuis votre tableau de bord Novakou.
+          </div>
+        </div>
 
         <h3
           className="text-xl font-bold mt-10 mb-4"

@@ -34,50 +34,85 @@ function extractText(res: PuterChatResponse): string {
 // ─── Mini parser Markdown pour le chat ─────────────────────────
 // Gere : **gras**, *italique*, `code`, [lien](url), listes simples
 // Retourne un array de React nodes qui preservent les sauts de ligne.
+/** Parse inline markdown (bold, code, links, italic) */
+function renderInline(line: string, lineIdx: number): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  const regex = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|\*[^*]+\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(line)) !== null) {
+    if (match.index > lastIndex) parts.push(line.slice(lastIndex, match.index));
+    const token = match[0];
+    if (token.startsWith("**")) {
+      parts.push(<strong key={`${lineIdx}-${match.index}`}>{token.slice(2, -2)}</strong>);
+    } else if (token.startsWith("`")) {
+      parts.push(<code key={`${lineIdx}-${match.index}`} className="px-1 py-0.5 rounded bg-gray-100 text-[11px] font-mono">{token.slice(1, -1)}</code>);
+    } else if (token.startsWith("[")) {
+      const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (linkMatch) {
+        parts.push(<a key={`${lineIdx}-${match.index}`} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="underline text-inherit">{linkMatch[1]}</a>);
+      } else parts.push(token);
+    } else if (token.startsWith("*")) {
+      parts.push(<em key={`${lineIdx}-${match.index}`}>{token.slice(1, -1)}</em>);
+    }
+    lastIndex = match.index + token.length;
+  }
+  if (lastIndex < line.length) parts.push(line.slice(lastIndex));
+  return parts;
+}
+
 function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split("\n");
   const nodes: React.ReactNode[] = [];
+  let i = 0;
 
-  lines.forEach((line, lineIdx) => {
-    const parts: React.ReactNode[] = [];
-    // Regex capture dans l'ordre : **bold**, `code`, [text](url), *italic*
-    const regex = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\)|\*[^*]+\*)/g;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
+  while (i < lines.length) {
+    // Detect markdown table: current line starts with |, next line is separator
+    if (
+      lines[i].trim().startsWith("|") &&
+      i + 1 < lines.length &&
+      /^[\s|:-]+$/.test(lines[i + 1].trim()) &&
+      lines[i + 1].includes("|")
+    ) {
+      const parseCells = (line: string) => line.split("|").map((c) => c.trim()).filter((_, ci, arr) => ci > 0 && ci < arr.length);
+      const headers = parseCells(lines[i]);
+      i += 2; // skip header + separator
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        rows.push(parseCells(lines[i]));
+        i++;
+      }
+      nodes.push(
+        <div key={`tbl-${i}`} className="my-2 overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full text-[11px] border-collapse">
+            <thead>
+              <tr className="bg-gray-50">
+                {headers.map((h, hi) => (
+                  <th key={hi} className="px-2 py-1.5 text-left font-semibold border-b border-gray-200 whitespace-nowrap">{renderInline(h, hi)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, ri) => (
+                <tr key={ri} className={ri % 2 === 1 ? "bg-gray-50/50" : ""}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} className="px-2 py-1 border-b border-gray-100 whitespace-nowrap">{renderInline(cell, ri * 100 + ci)}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      );
+      continue;
+    }
 
-    while ((match = regex.exec(line)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(line.slice(lastIndex, match.index));
-      }
-      const token = match[0];
-      if (token.startsWith("**")) {
-        parts.push(<strong key={`${lineIdx}-${match.index}`}>{token.slice(2, -2)}</strong>);
-      } else if (token.startsWith("`")) {
-        parts.push(<code key={`${lineIdx}-${match.index}`} className="px-1 py-0.5 rounded bg-gray-100 text-[11px] font-mono">{token.slice(1, -1)}</code>);
-      } else if (token.startsWith("[")) {
-        const linkMatch = token.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-        if (linkMatch) {
-          parts.push(
-            <a key={`${lineIdx}-${match.index}`} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="underline text-inherit">
-              {linkMatch[1]}
-            </a>,
-          );
-        } else {
-          parts.push(token);
-        }
-      } else if (token.startsWith("*")) {
-        parts.push(<em key={`${lineIdx}-${match.index}`}>{token.slice(1, -1)}</em>);
-      }
-      lastIndex = match.index + token.length;
-    }
-    if (lastIndex < line.length) {
-      parts.push(line.slice(lastIndex));
-    }
-    nodes.push(<span key={lineIdx}>{parts}</span>);
-    if (lineIdx < lines.length - 1) {
-      nodes.push(<br key={`br-${lineIdx}`} />);
-    }
-  });
+    // Normal line
+    nodes.push(<span key={i}>{renderInline(lines[i], i)}</span>);
+    if (i < lines.length - 1) nodes.push(<br key={`br-${i}`} />);
+    i++;
+  }
 
   return nodes;
 }

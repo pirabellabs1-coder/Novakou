@@ -15,15 +15,16 @@ interface AuditLogParams {
 }
 
 export async function createAuditLog(params: AuditLogParams): Promise<void> {
+  // Always log to console in dev for debugging
   if (IS_DEV) {
     console.log(`[AUDIT] ${params.action}`, {
       actor: params.actorId,
       target: params.targetUserId || params.targetId,
       details: params.details,
     });
-    return;
   }
 
+  // Always persist to DB (removed dev-only stub)
   try {
     await prisma.auditLog.create({
       data: {

@@ -46,6 +46,104 @@ function formatTime(ts: string) {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
+/** Detect if text contains a markdown table */
+function containsMarkdownTable(text: string): boolean {
+  return /\|.+\|[\r\n]+\|[-:\s|]+\|/m.test(text);
+}
+
+/** Parse markdown table into rows, handling separator rows */
+function parseMarkdownTable(tableText: string): { headers: string[]; rows: string[][] } | null {
+  const lines = tableText.trim().split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length < 3) return null;
+
+  const parseLine = (line: string): string[] =>
+    line.split("|").map((c) => c.trim()).filter((_, i, arr) => i > 0 && i < arr.length);
+
+  const headers = parseLine(lines[0]);
+  if (headers.length === 0) return null;
+
+  // Line 1 should be separator (---|---)
+  const sepLine = lines[1].trim();
+  if (!/^[\s|:-]+$/.test(sepLine)) return null;
+
+  const rows = lines.slice(2).map(parseLine);
+  return { headers, rows };
+}
+
+/** Render text content with markdown table support */
+function renderTextContent(content: string): React.ReactNode {
+  if (!containsMarkdownTable(content)) {
+    return <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{content}</p>;
+  }
+
+  // Split content into text and table segments
+  const segments: React.ReactNode[] = [];
+  // Match table blocks: lines starting with | that include a separator row
+  const tableRegex = /(?:^|\n)((?:\|.+\|[ \t]*\n?)+)/gm;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let segIdx = 0;
+
+  const fullContent = content;
+  tableRegex.lastIndex = 0;
+
+  while ((match = tableRegex.exec(fullContent)) !== null) {
+    const tableBlock = match[1].trim();
+    const parsed = parseMarkdownTable(tableBlock);
+    if (!parsed) continue;
+
+    // Text before the table
+    const before = fullContent.slice(lastIndex, match.index).trim();
+    if (before) {
+      segments.push(
+        <p key={`t${segIdx++}`} className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{before}</p>
+      );
+    }
+
+    // Render table
+    segments.push(
+      <div key={`tbl${segIdx++}`} className="my-2 overflow-x-auto">
+        <table className="min-w-full text-xs border-collapse">
+          <thead>
+            <tr>
+              {parsed.headers.map((h, i) => (
+                <th key={i} className="px-2 py-1.5 text-left font-semibold border border-border-dark/30 bg-white/5">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {parsed.rows.map((row, ri) => (
+              <tr key={ri} className={ri % 2 === 0 ? "" : "bg-white/[0.02]"}>
+                {row.map((cell, ci) => (
+                  <td key={ci} className="px-2 py-1.5 border border-border-dark/20">
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // Text after last table
+  const after = fullContent.slice(lastIndex).trim();
+  if (after) {
+    segments.push(
+      <p key={`t${segIdx++}`} className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{after}</p>
+    );
+  }
+
+  return segments.length > 0 ? <>{segments}</> : (
+    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{content}</p>
+  );
+}
+
 function formatCallDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
@@ -375,8 +473,8 @@ export function MessageBubble({
                     );
                   })()
                 ) : (
-                  /* Text message */
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{message.content}</p>
+                  /* Text message — with markdown table support */
+                  renderTextContent(message.content)
                 )}
 
                 {/* Link previews (up to 3) */}

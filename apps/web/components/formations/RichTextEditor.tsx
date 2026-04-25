@@ -11,7 +11,18 @@ import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Highlight } from "@tiptap/extension-highlight";
 import { useRef, useState, useCallback, useEffect } from "react";
+import Script from "next/script";
 import { useToastStore } from "@/store/toast";
+
+declare global {
+  interface Window {
+    puter?: {
+      ai: {
+        chat: (prompt: string, options?: { model?: string; temperature?: number; max_tokens?: number }) => Promise<{ message?: { content: string } } | string>;
+      };
+    };
+  }
+}
 
 type Props = {
   value: string;
@@ -122,6 +133,83 @@ export function RichTextEditor({
   const [videoError, setVideoError] = useState<string | null>(null);
   const [textColorOpen, setTextColorOpen] = useState(false);
   const [highlightOpen, setHighlightOpen] = useState(false);
+
+  // AI enhancement state
+  const [puterReady, setPuterReady] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiPreview, setAiPreview] = useState<string | null>(null);
+
+  // Puter SDK readiness polling
+  useEffect(() => {
+    const check = () => {
+      if (window.puter) { setPuterReady(true); return true; }
+      return false;
+    };
+    if (check()) return;
+    const interval = setInterval(() => { if (check()) clearInterval(interval); }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAiEnhance = useCallback(async () => {
+    if (!editor || !puterReady || aiLoading) return;
+    const currentHtml = editor.getHTML();
+    const textContent = editor.getText().trim();
+    if (!textContent || textContent.length < 20) {
+      useToastStore.getState().addToast("error", "Écrivez au moins quelques phrases avant d'utiliser l'IA");
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const systemPrompt = `Tu es un expert copywriter spécialisé dans les formations en ligne et le marché Afrique francophone.
+Tu reçois une description de produit/formation en HTML (format Tiptap).
+Ta mission : réécrire cette description pour la rendre :
+- Plus persuasive et engageante (copywriting conversion)
+- Mieux structurée avec des titres H2/H3, des listes à puces, des points clés en gras
+- SEO-friendly avec des mots-clés naturels
+- Adaptée au marché Afrique francophone (ton professionnel mais accessible)
+- Conserve le sens original et les informations factuelles
+
+IMPORTANT :
+- Retourne UNIQUEMENT le HTML amélioré, sans explication ni commentaire
+- Utilise les mêmes balises HTML (h2, h3, p, ul, li, strong, em, blockquote)
+- Ne rajoute PAS de balises style, script ou div wrapper
+- La longueur doit rester similaire (±30%)`;
+
+      const prompt = `${systemPrompt}\n\n--- DESCRIPTION ACTUELLE ---\n${currentHtml}\n--- FIN ---\n\nRetourne le HTML amélioré :`;
+
+      const res = await window.puter!.ai.chat(prompt, {
+        model: "claude-sonnet-4-6",
+        temperature: 0.7,
+        max_tokens: 2000,
+      });
+
+      const result = typeof res === "string" ? res : res?.message?.content;
+      if (!result) throw new Error("Réponse vide");
+
+      // Clean: remove ```html wrapping if present
+      let cleaned = result.trim();
+      if (cleaned.startsWith("```html")) cleaned = cleaned.slice(7);
+      if (cleaned.startsWith("```")) cleaned = cleaned.slice(3);
+      if (cleaned.endsWith("```")) cleaned = cleaned.slice(0, -3);
+      cleaned = cleaned.trim();
+
+      setAiPreview(cleaned);
+    } catch (err) {
+      console.error("[AI Enhance]", err);
+      useToastStore.getState().addToast("error", "Service IA temporairement indisponible. Réessayez dans quelques instants.");
+    } finally {
+      setAiLoading(false);
+    }
+  }, [editor, puterReady, aiLoading]);
+
+  const applyAiResult = useCallback(() => {
+    if (!editor || !aiPreview) return;
+    editor.commands.setContent(aiPreview);
+    onChange(aiPreview);
+    setAiPreview(null);
+    useToastStore.getState().addToast("success", "Description améliorée appliquée !");
+  }, [editor, aiPreview, onChange]);
 
   const editor = useEditor({
     extensions: [
@@ -281,6 +369,7 @@ export function RichTextEditor({
 
   return (
     <div className="border border-zinc-200 bg-white">
+      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
       <style dangerouslySetInnerHTML={{ __html: rteStyles }} />
       {/* Toolbar */}
       <div className="flex items-center flex-wrap gap-px border-b border-zinc-200 bg-[#f9f9f9] px-2 py-1.5">
@@ -454,6 +543,26 @@ export function RichTextEditor({
 
         {btn({ onClick: () => editor.chain().focus().undo().run(), icon: "undo", title: "Annuler (Ctrl+Z)", disabled: !editor.can().undo() })}
         {btn({ onClick: () => editor.chain().focus().redo().run(), icon: "redo", title: "Refaire (Ctrl+Y)", disabled: !editor.can().redo() })}
+
+        <div className="w-px h-6 bg-zinc-200 mx-1" />
+
+        {/* AI Enhance button */}
+        <button
+          type="button"
+          onClick={handleAiEnhance}
+          disabled={aiLoading || !puterReady}
+          title={puterReady ? "Améliorer avec l'IA" : "Chargement de l'IA…"}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold transition-all ${
+            aiLoading
+              ? "bg-violet-100 text-violet-500 animate-pulse"
+              : "bg-gradient-to-r from-violet-500 to-purple-500 text-white hover:from-violet-600 hover:to-purple-600 disabled:opacity-40"
+          }`}
+        >
+          <span className={`material-symbols-outlined text-[16px] ${aiLoading ? "animate-spin" : ""}`}>
+            {aiLoading ? "progress_activity" : "auto_awesome"}
+          </span>
+          {aiLoading ? "Amélioration…" : "IA"}
+        </button>
       </div>
 
       {/* Link input row */}
@@ -609,6 +718,47 @@ export function RichTextEditor({
         <span>{editor.storage.characterCount?.characters?.() ?? editor.getText().length} caractères</span>
         <span>Glissez-déposez une image ou cliquez sur l&apos;icône</span>
       </div>
+
+      {/* AI Preview Modal */}
+      {aiPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={() => setAiPreview(null)}>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-violet-500 text-[20px]">auto_awesome</span>
+                <h3 className="text-sm font-bold text-zinc-900">Description améliorée par l&apos;IA</h3>
+              </div>
+              <button type="button" onClick={() => setAiPreview(null)} className="text-zinc-400 hover:text-zinc-900">
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <style dangerouslySetInnerHTML={{ __html: rteStyles }} />
+              <div
+                className="rte-content border border-zinc-200 rounded-lg p-4 bg-zinc-50"
+                dangerouslySetInnerHTML={{ __html: aiPreview }}
+              />
+            </div>
+            <div className="flex items-center gap-3 justify-end px-5 py-3 border-t border-zinc-100">
+              <button
+                type="button"
+                onClick={() => setAiPreview(null)}
+                className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={applyAiResult}
+                className="px-5 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs font-bold uppercase tracking-widest hover:from-violet-600 hover:to-purple-600 transition-all rounded-lg flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[16px]">check</span>
+                Appliquer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

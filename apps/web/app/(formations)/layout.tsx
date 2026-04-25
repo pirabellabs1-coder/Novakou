@@ -23,7 +23,7 @@ export default function FormationsLayout({
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
     >
       <FormationsNavbar />
-      <main className="flex-1 pt-24 overflow-x-hidden">{children}</main>
+      <main className="flex-1 pt-16 overflow-x-hidden">{children}</main>
       <FormationsFooter />
       <ToastContainer />
       <CookieBanner />

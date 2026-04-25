@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -608,6 +609,21 @@ export default function GuideCompletNovakou() {
         </div>
       </section>
 
+      {/* ======== FEATURED IMAGE ======== */}
+      <div className="mx-auto max-w-3xl px-5 pt-8 pb-2">
+        <div className="rounded-2xl overflow-hidden shadow-sm">
+          <Image
+            src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=80"
+            alt="Un créateur africain gère sa boutique et ses formations en ligne sur Novakou"
+            width={1200}
+            height={480}
+            className="w-full object-cover"
+            style={{ maxHeight: 440 }}
+            priority
+          />
+        </div>
+      </div>
+
       <div className="mx-auto max-w-3xl px-5 py-12">
         {/* ======== TABLE OF CONTENTS ======== */}
         <div className="rounded-2xl border p-6 mb-12" style={{ borderColor: "#e5eae1", backgroundColor: C.surface }}>
@@ -774,6 +790,24 @@ export default function GuideCompletNovakou() {
           Les boutiques avec une vraie photo de l&apos;instructeur convertissent 35% mieux que celles avec
           un avatar generique.</p>
         </Tip>
+
+        {/* ── Image: boutique en action ──────────────────────────── */}
+        <div className="rounded-2xl overflow-hidden my-8 shadow-sm">
+          <Image
+            src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=900&q=80"
+            alt="Tableau de bord analytics — suivez vos ventes et vos apprenants en temps réel"
+            width={900}
+            height={380}
+            className="w-full object-cover"
+            style={{ maxHeight: 360 }}
+          />
+          <div
+            className="px-5 py-3 text-xs text-center"
+            style={{ backgroundColor: "#f6fbf2", color: "#5c647a", fontFamily: "'Satoshi', -apple-system, sans-serif" }}
+          >
+            Votre tableau de bord Novakou centralise tout : ventes, apprenants, revenus et performances.
+          </div>
+        </div>
 
         {/* ============================================================ */}
         {/*  SECTION 4 — Creer sa premiere formation                     */}

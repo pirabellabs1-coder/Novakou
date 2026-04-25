@@ -24,6 +24,8 @@ const PUBLIC_ROUTES = [
   "/contact",
   "/affiliation",
   "/partenaires",
+  "/fonctionnalites", // Page des fonctionnalités
+  "/guides",          // Guides gratuits (pas d'auth requise)
   "/faq",
   "/cgu",
   "/confidentialite",

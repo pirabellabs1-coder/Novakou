@@ -1850,7 +1850,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               : savedAt ? (<><span className="material-symbols-outlined text-[14px] text-green-500">check_circle</span>Sauvegardé</>)
               : null}
           </div>
-          <a href={`/f/${funnel.slug}`} target="_blank" rel="noopener noreferrer"
+          <a href={`/f/${funnel.slug}${funnel.isActive ? "" : "?preview=1"}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
             <span className="material-symbols-outlined text-[14px]">open_in_new</span>Aperçu
           </a>

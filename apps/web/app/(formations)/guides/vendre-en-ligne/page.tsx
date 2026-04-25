@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -281,6 +282,22 @@ export default function VendreEnLignePage() {
           </div>
         </div>
       </section>
+
+      {/* ================================================================ */}
+      {/*  FEATURED IMAGE                                                  */}
+      {/* ================================================================ */}
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px 48px" }}>
+        <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
+          <Image
+            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=80"
+            alt="Analyser ses performances de vente en ligne et optimiser ses résultats"
+            width={1200}
+            height={500}
+            style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: 460 }}
+            priority
+          />
+        </div>
+      </div>
 
       {/* ================================================================ */}
       {/*  TABLE OF CONTENTS                                               */}
@@ -718,6 +735,20 @@ export default function VendreEnLignePage() {
           80 % de contenu utile, 20 % de promotion.
         </Paragraph>
 
+        {/* Image: promotion sur mobile / réseaux sociaux */}
+        <div style={{ borderRadius: 16, overflow: "hidden", margin: "28px 0", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+          <Image
+            src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?auto=format&fit=crop&w=900&q=80"
+            alt="Partager son contenu sur les réseaux sociaux africains pour attirer des clients"
+            width={900}
+            height={400}
+            style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: 380 }}
+          />
+          <div style={{ ...S, fontSize: 12, color: C.muted, textAlign: "center", padding: "10px 16px", background: "#f8fafc" }}>
+            WhatsApp Status, Facebook, TikTok — chaque plateforme a ses codes. Adaptez votre message à chaque canal.
+          </div>
+        </div>
+
         <SubHeading>TikTok et Instagram : le format court</SubHeading>
 
         <Paragraph>
@@ -1002,6 +1033,31 @@ export default function VendreEnLignePage() {
           africains, elle maitrise parfaitement son domaine mais n&apos;avait jamais envisage de vendre des
           formations en ligne. Voici son parcours, mois par mois.
         </Paragraph>
+
+        {/* Image: portrait créatrice africaine */}
+        <div style={{ borderRadius: 16, overflow: "hidden", margin: "28px 0", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
+          <Image
+            src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=900&q=80"
+            alt="Aminata K. — formatrice en comptabilité, 500 000 FCFA par mois sur Novakou"
+            width={900}
+            height={380}
+            style={{ width: "100%", objectFit: "cover", display: "block", maxHeight: 360, objectPosition: "center top" }}
+          />
+          <div
+            style={{
+              ...S,
+              fontSize: 13,
+              color: C.primary,
+              fontWeight: 700,
+              textAlign: "center",
+              padding: "12px 16px",
+              background: "#f0fdf4",
+              borderTop: `2px solid ${C.accent}`,
+            }}
+          >
+            &ldquo; J&apos;ai validé ma première vente avant même d&apos;enregistrer une seule vidéo. &rdquo;
+          </div>
+        </div>
 
         {/* Timeline */}
         <div style={{ margin: "28px 0", borderLeft: `3px solid ${C.accent}40`, paddingLeft: 28 }}>

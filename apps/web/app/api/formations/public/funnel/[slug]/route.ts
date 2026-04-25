@@ -6,9 +6,11 @@ type Params = { params: Promise<{ slug: string }> };
 /**
  * GET /api/formations/public/funnel/[slug]
  * Returns the live (public) funnel.
+ * Accepts ?preview=1 to show inactive funnels (for vendor preview before publishing).
  */
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(req: Request, { params }: Params) {
   const { slug } = await params;
+  const isPreview = new URL(req.url).searchParams.get("preview") === "1";
   try {
     const funnel = await prisma.salesFunnel.findUnique({
       where: { slug },
@@ -27,28 +29,29 @@ export async function GET(_req: Request, { params }: Params) {
       },
     });
 
-    if (!funnel || !funnel.isActive) {
+    if (!funnel || (!funnel.isActive && !isPreview)) {
       return NextResponse.json({ error: "Funnel introuvable ou inactif" }, { status: 404 });
     }
 
-    // Increment view counter (fire-and-forget)
-    prisma.salesFunnel
-      .update({
-        where: { id: funnel.id },
-        data: { totalViews: { increment: 1 } },
-      })
-      .catch(() => null);
+    // Only track views for live funnels (not preview mode)
+    if (!isPreview) {
+      prisma.salesFunnel
+        .update({
+          where: { id: funnel.id },
+          data: { totalViews: { increment: 1 } },
+        })
+        .catch(() => null);
 
-    // Track funnel event
-    prisma.funnelEvent
-      .create({
-        data: {
-          funnelId: funnel.id,
-          stepId: funnel.steps[0]?.id ?? null,
-          eventType: "view",
-        },
-      })
-      .catch(() => null);
+      prisma.funnelEvent
+        .create({
+          data: {
+            funnelId: funnel.id,
+            stepId: funnel.steps[0]?.id ?? null,
+            eventType: "view",
+          },
+        })
+        .catch(() => null);
+    }
 
     return NextResponse.json({ data: funnel });
   } catch (err) {

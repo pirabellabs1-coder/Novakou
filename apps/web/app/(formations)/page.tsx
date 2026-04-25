@@ -49,12 +49,12 @@ function CategoryPill({ children }: { children: React.ReactNode }) {
 export default async function FormationsPage() {
   return (
     <div style={{ backgroundColor: COLORS.surface, color: COLORS.dark, ...satoshi }}>
-      <main className="pb-24 space-y-32">
+      <main className="pb-16 md:pb-24 space-y-16 md:space-y-24 lg:space-y-32 overflow-x-hidden">
 
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 1. HERO — 1 colonne centrée                                  */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="max-w-[1280px] mx-auto px-6 text-center pt-20">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-6 text-center pt-8 md:pt-16 lg:pt-20">
           <div className="flex justify-center mb-8">
             <div
               className="inline-flex items-center space-x-3 px-4 py-2 rounded-full border"
@@ -117,7 +117,7 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 2. DASHBOARD PREVIEW — light theme premium                   */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="max-w-[1280px] mx-auto px-6">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-6">
           <div className="relative rounded-xl overflow-hidden bg-white border" style={{ borderColor: COLORS.outlineVariant + "33", boxShadow: "0 20px 40px rgba(25, 28, 30, 0.04)" }}>
             {/* Browser Chrome */}
             <div className="flex items-center px-4 py-3 border-b" style={{ backgroundColor: COLORS.surfaceLow, borderColor: COLORS.outlineVariant + "33" }}>
@@ -257,19 +257,19 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 4. COMMENT ÇA MARCHE — 3 étapes                              */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 -mx-6 md:mx-0" style={{ backgroundColor: "white" }}>
-          <div className="max-w-[1280px] mx-auto px-6">
-          <div className="text-center mb-16">
+        <section className="w-full py-12 md:py-24" style={{ backgroundColor: "white" }}>
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 md:mb-16">
             <CategoryPill>Comment ça marche</CategoryPill>
-            <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
               De l&apos;idée au revenu<br />en 3 étapes
             </h2>
-            <p className="text-lg max-w-2xl mx-auto leading-[1.6]" style={{ color: COLORS.muted }}>
+            <p className="text-base md:text-lg max-w-2xl mx-auto leading-[1.6]" style={{ color: COLORS.muted }}>
               Créer votre boutique, partager vos liens et encaisser vos ventes devient un jeu d&apos;enfant.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             {[
               {
                 n: "01",
@@ -314,18 +314,18 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 5. FEATURES — 8 essentielles fusionnées                        */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="max-w-[1280px] mx-auto px-6" id="features">
-          <div className="text-center mb-16">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-6" id="features">
+          <div className="text-center mb-10 md:mb-16">
             <CategoryPill>Fonctionnalités</CategoryPill>
-            <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
               Tout ce dont vous avez besoin
             </h2>
-            <p className="text-lg max-w-2xl mx-auto leading-[1.6]" style={{ color: COLORS.muted }}>
+            <p className="text-base md:text-lg max-w-2xl mx-auto leading-[1.6]" style={{ color: COLORS.muted }}>
               Une suite complète d&apos;outils pour gérer, vendre et développer votre activité de formation en ligne.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
             {[
               { icon: "storefront", title: "Boutique en ligne", desc: "Créez votre boutique vitrine personnalisée en quelques clics, sans coder." },
               { icon: "account_balance_wallet", title: "Paiements locaux", desc: "Acceptez Mobile Money (Wave, Orange, MTN) et les cartes bancaires internationales." },
@@ -353,9 +353,9 @@ export default async function FormationsPage() {
               </div>
             ))}
           </div>
-          <div className="text-center mt-12">
+          <div className="text-center mt-8 md:mt-12">
             <Link
-              href="/tarifs"
+              href="/fonctionnalites"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white border rounded-lg font-medium hover:border-emerald-500 transition-colors"
               style={{ ...satoshi, color: COLORS.dark, borderColor: COLORS.outlineVariant }}
             >
@@ -368,13 +368,13 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 7. AI FEATURE — chatbot demo                                 */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 -mx-6 md:mx-0" style={{ backgroundColor: COLORS.primary }}>
-          <div className="max-w-[1280px] mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <section className="w-full py-12 md:py-24" style={{ backgroundColor: COLORS.primary }}>
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-16 items-center">
             <div>
               <span className="inline-block px-3 py-1 text-xs font-bold tracking-widest rounded-full mb-4 uppercase" style={{ ...satoshi, backgroundColor: "rgba(255,255,255,0.15)", color: "white" }}>
                 IA intégrée
               </span>
-              <h2 className="text-4xl md:text-6xl mb-6 leading-tight" style={{ ...satoshiHeading, color: "white", lineHeight: 1.05 }}>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl mb-6 leading-tight" style={{ ...satoshiHeading, color: "white", lineHeight: 1.05 }}>
                 Votre assistant personnel pour créer plus vite
               </h2>
               <p className="text-lg mb-8 leading-[1.6]" style={{ color: "#a7f3d0" }}>
@@ -440,10 +440,10 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 6. BEST-SELLERS                                              */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="max-w-[1280px] mx-auto px-6">
-          <div className="text-center mb-12">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 md:mb-12">
             <CategoryPill>Déjà en vente</CategoryPill>
-            <h2 className="text-4xl md:text-6xl" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
               Les best-sellers du moment
             </h2>
           </div>
@@ -453,23 +453,23 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 7. PAYMENT FEATURE                                           */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 -mx-6 md:mx-0" style={{ backgroundColor: COLORS.primary }}>
-          <div className="max-w-[1280px] mx-auto px-6">
-            <div className="text-center mb-16">
+        <section className="w-full py-12 md:py-24" style={{ backgroundColor: COLORS.primary }}>
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
+            <div className="text-center mb-10 md:mb-16">
               <span className="inline-block px-3 py-1 text-xs font-bold tracking-widest rounded-full mb-4 uppercase" style={{ ...satoshi, backgroundColor: "rgba(255,255,255,0.15)", color: "white" }}>
                 Paiements
               </span>
-              <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: "white", lineHeight: 1.05 }}>
+              <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: "white", lineHeight: 1.05 }}>
                 Encaissez partout en Afrique
               </h2>
-              <p className="text-lg max-w-2xl mx-auto leading-[1.6]" style={{ color: "#a7f3d0" }}>
+              <p className="text-base md:text-lg max-w-2xl mx-auto leading-[1.6]" style={{ color: "#a7f3d0" }}>
                 Acceptez les paiements par Mobile Money de vos clients dans plusieurs pays d&apos;Afrique, et retirez vos fonds facilement.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
               {/* Checkout */}
-              <div className="bg-white rounded-2xl shadow-2xl p-8 transform rotate-1 hover:rotate-0 transition-transform">
+              <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 sm:transform sm:rotate-1 hover:rotate-0 transition-transform">
                 <h3 className="text-xl mb-6" style={{ ...satoshiHeading, color: COLORS.dark, fontWeight: 600, letterSpacing: "-0.02em" }}>Paiement sécurisé</h3>
                 <div className="border rounded-xl p-4 mb-4 flex justify-between items-center bg-slate-50 cursor-pointer ring-1" style={{ borderColor: COLORS.primary, color: COLORS.primary }}>
                   <div className="flex items-center gap-3">
@@ -491,7 +491,7 @@ export default async function FormationsPage() {
               </div>
 
               {/* Withdrawal */}
-              <div className="bg-white rounded-2xl shadow-2xl p-8 transform -rotate-1 hover:rotate-0 transition-transform mt-8 md:mt-16">
+              <div className="bg-white rounded-2xl shadow-2xl p-6 md:p-8 sm:transform sm:-rotate-1 hover:rotate-0 transition-transform md:mt-16">
                 <h3 className="text-xl mb-6" style={{ ...satoshiHeading, color: COLORS.dark, fontWeight: 600, letterSpacing: "-0.02em" }}>Retraits rapides</h3>
                 <div className="rounded-xl p-6 mb-6 text-center" style={{ backgroundColor: COLORS.surfaceLow }}>
                   <div className="text-sm mb-1" style={{ color: COLORS.muted }}>Solde disponible</div>
@@ -524,15 +524,15 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 8. TESTIMONIALS                                              */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 -mx-6 md:mx-0" style={{ backgroundColor: "white" }} id="testimonials">
-          <div className="max-w-[1280px] mx-auto px-6">
-          <div className="text-center mb-16">
+        <section className="w-full py-12 md:py-24" style={{ backgroundColor: "white" }} id="testimonials">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 md:mb-16">
             <CategoryPill>Ils utilisent Novakou</CategoryPill>
-            <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
               Rejoignez l&apos;élite des créateurs
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             {[
               {
                 name: "Fatou D.",
@@ -573,14 +573,14 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 9. PRICING                                                   */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="max-w-[1280px] mx-auto px-6" id="pricing">
-          <div className="text-center mb-16">
+        <section className="max-w-[1280px] mx-auto px-4 sm:px-6" id="pricing">
+          <div className="text-center mb-10 md:mb-16">
             <CategoryPill>Tarification</CategoryPill>
-            <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
               Simple, transparent, équitable.
             </h2>
           </div>
-          <div className="max-w-lg mx-auto bg-white rounded-3xl p-10 shadow-xl border text-center relative overflow-hidden" style={{ borderColor: COLORS.outlineVariant + "33" }}>
+          <div className="max-w-lg mx-auto bg-white rounded-3xl p-7 sm:p-10 shadow-xl border text-center relative overflow-hidden" style={{ borderColor: COLORS.outlineVariant + "33" }}>
             <div className="absolute top-0 right-0 w-32 h-32 rounded-bl-full -z-10" style={{ backgroundColor: COLORS.primary + "1A" }} />
             <div className="absolute bottom-0 left-0 w-32 h-32 rounded-tr-full -z-10" style={{ backgroundColor: COLORS.accent + "1A" }} />
             <h3 className="text-2xl mb-2" style={{ ...satoshiHeading, color: COLORS.dark, fontWeight: 600, letterSpacing: "-0.02em" }}>
@@ -615,11 +615,11 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 10. FAQ                                                      */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 -mx-6 md:mx-0" style={{ backgroundColor: "white" }} id="faq">
-          <div className="max-w-3xl mx-auto px-6">
-          <div className="text-center mb-16">
+        <section className="w-full py-12 md:py-24" style={{ backgroundColor: "white" }} id="faq">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 md:mb-16">
             <CategoryPill>Questions fréquentes</CategoryPill>
-            <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+            <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
               On vous dit tout.
             </h2>
           </div>
@@ -639,7 +639,7 @@ export default async function FormationsPage() {
                 className="group bg-white rounded-xl border p-6 [&_summary::-webkit-details-marker]:hidden"
                 style={{ borderColor: COLORS.outlineVariant + "4D" }}
               >
-                <summary className="flex items-center justify-between cursor-pointer font-bold text-lg" style={{ ...satoshi, color: COLORS.dark }}>
+                <summary className="flex items-center justify-between cursor-pointer font-semibold text-base md:text-lg gap-3" style={{ ...satoshi, color: COLORS.dark }}>
                   {item.q}
                   <span className="transition group-open:rotate-180">
                     <span className="material-symbols-outlined">expand_more</span>
@@ -657,19 +657,19 @@ export default async function FormationsPage() {
         {/* ═══════════════════════════════════════════════════════════ */}
         {/* 11. GUIDES DÉTAILLÉS                                         */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 px-6 -mx-6 md:mx-0" style={{ backgroundColor: COLORS.surface }}>
+        <section className="w-full py-12 md:py-24 px-4 sm:px-6" style={{ backgroundColor: COLORS.surface }}>
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 md:mb-16">
               <CategoryPill>Ressources gratuites</CategoryPill>
-              <h2 className="text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
-                Guides pas-à-pas pour réussir.
+              <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+                9 guides gratuits pour vendre en Afrique.
               </h2>
-              <p className="text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
-                Des guides complets, écrits par des experts, pour vous accompagner de la création de votre produit à votre première vente.
+              <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
+                Créer, vendre, automatiser — nos guides détaillés couvrent tout le parcours du créateur africain, de l&apos;idée à la première vente.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
               {/* Guide 1 */}
               <Link href="/guides/creer-son-produit" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
                 <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #006e2f, #22c55e)` }}>
@@ -756,19 +756,275 @@ export default async function FormationsPage() {
                   </span>
                 </div>
               </Link>
+
+              {/* Guide 4 */}
+              <Link href="/guides/trouver-son-idee-de-produit" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #2563eb, #06b6d4)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    10 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#2563eb10", color: "#2563eb" }}>Débutant</span>
+                    <span className="text-[10px] text-gray-400">9 sections</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#2563eb] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Comment trouver son idée de produit digital
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    La méthode des 3 cercles, les niches portantes en Afrique, validation gratuite en 48h — de zéro idée à un concept validé.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#2563eb" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 5 */}
+              <Link href="/guides/publicite-facebook" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #1877f2, #0ea5e9)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>campaign</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    18 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#1877f210", color: "#1877f2" }}>Avancé</span>
+                    <span className="text-[10px] text-gray-400">12 chapitres</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#1877f2] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Publicité Facebook pour vendre en Afrique
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    Créer des campagnes rentables depuis 2 000 FCFA/jour. Ciblage Afrique francophone, pixel, visuels, optimisation ROAS.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#1877f2" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 6 */}
+              <Link href="/guides/automatisations-novakou" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #06b6d4, #6366f1)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    12 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#06b6d410", color: "#06b6d4" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-400">10 chapitres</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#06b6d4] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Automatisations Novakou : vendre pendant que vous dormez
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    Séquences de bienvenue, relance panier, certificats automatiques, upsell post-achat — configurez une fois, encaissez toujours.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#06b6d4" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 7 */}
+              <Link href="/guides/sequences-emails" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #ec4899, #f59e0b)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    15 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#ec489910", color: "#ec4899" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-400">12 chapitres</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#ec4899] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Séquences emails qui vendent en automatique
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    Lead magnets, séquence de bienvenue en 5 emails, relances, segmentation. 23 templates email inclus sur Novakou.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#ec4899" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 8 */}
+              <Link href="/guides/description-produit" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #10b981, #06b6d4)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>edit_note</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    10 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#10b98110", color: "#10b981" }}>Débutant</span>
+                    <span className="text-[10px] text-gray-400">10 sections</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#10b981] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Rédiger une description de produit irrésistible
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    La structure AIDA, transformer vos modules en bénéfices, le titre parfait, la preuve sociale — avec 3 exemples avant/après.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#10b981" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+
+              {/* Guide 9 */}
+              <Link href="/guides/tunnel-de-vente-novakou" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #7c3aed, #ec4899)` }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
+                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>account_tree</span>
+                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
+                    15 min
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed10", color: "#7c3aed" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-400">13 chapitres</span>
+                  </div>
+                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#7c3aed] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
+                    Tunnel de vente sur Novakou : guide pas-à-pas
+                  </h3>
+                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                    Builder drag-and-drop, 30+ blocs, page de capture, page de vente, checkout Mobile Money, upsell, A/B testing.
+                  </p>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#7c3aed" }}>
+                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </span>
+                </div>
+              </Link>
+            </div>
+
+            {/* Lien "Voir tous les guides" */}
+            <div className="mt-10 text-center">
+              <Link
+                href="/guides"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-base transition-all hover:shadow-lg hover:-translate-y-0.5"
+                style={{ backgroundColor: COLORS.primary, color: "#fff", ...satoshi }}
+              >
+                Voir tous les guides
+                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+              </Link>
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════ */}
-        {/* 12. FINAL CTA                                                */}
+        {/* 12. COMMUNAUTÉ PAR PAYS                                      */}
         {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-24 px-6 text-center -mx-6 md:mx-0" style={{ backgroundColor: COLORS.primary }}>
+        <section className="w-full py-12 md:py-20 px-4 sm:px-6 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-10 md:mb-14">
+              <CategoryPill>Présence africaine</CategoryPill>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+                Une communauté dans 17 pays
+              </h2>
+              <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
+                Des créateurs et des apprenants de toute l&apos;Afrique francophone utilisent Novakou chaque jour pour apprendre et vendre.
+              </p>
+            </div>
+
+            {/* Pays principaux */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+              {[
+                { country: "Sénégal", flag: "🇸🇳", users: "420+", rank: 1 },
+                { country: "Côte d'Ivoire", flag: "🇨🇮", users: "380+", rank: 2 },
+                { country: "Cameroun", flag: "🇨🇲", users: "290+", rank: 3 },
+                { country: "Mali", flag: "🇲🇱", users: "180+", rank: 4 },
+                { country: "Bénin", flag: "🇧🇯", users: "140+", rank: 5 },
+                { country: "Togo", flag: "🇹🇬", users: "110+", rank: 6 },
+                { country: "Burkina Faso", flag: "🇧🇫", users: "95+", rank: 7 },
+                { country: "Guinée", flag: "🇬🇳", users: "85+", rank: 8 },
+                { country: "Madagascar", flag: "🇲🇬", users: "75+", rank: 9 },
+                { country: "Niger", flag: "🇳🇪", users: "65+", rank: 10 },
+                { country: "Congo RDC", flag: "🇨🇩", users: "60+", rank: 11 },
+                { country: "France (diaspora)", flag: "🇫🇷", users: "55+", rank: 12 },
+              ].map((item) => (
+                <div
+                  key={item.country}
+                  className="bg-white rounded-2xl border border-gray-100 p-4 text-center hover:shadow-md hover:-translate-y-0.5 transition-all"
+                >
+                  <div className="text-3xl mb-2">{item.flag}</div>
+                  <div className="text-base font-extrabold mb-0.5" style={{ color: COLORS.primary }}>
+                    {item.users}
+                  </div>
+                  <div className="text-[11px] font-medium" style={{ color: COLORS.muted }}>
+                    {item.country}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Stats globales */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 md:p-8 rounded-3xl" style={{ backgroundColor: COLORS.surface }}>
+              {[
+                { value: "17", label: "pays actifs", icon: "public" },
+                { value: "2 400+", label: "créateurs inscrits", icon: "people" },
+                { value: "12 500+", label: "apprenants actifs", icon: "school" },
+                { value: "850M+", label: "FCFA de formations vendues", icon: "payments" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <span className="material-symbols-outlined text-[28px] mb-2 block" style={{ color: COLORS.accent, fontVariationSettings: "'FILL' 1" }}>
+                    {stat.icon}
+                  </span>
+                  <div className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ color: COLORS.dark, ...satoshiHeading }}>
+                    {stat.value}
+                  </div>
+                  <div className="text-xs font-medium" style={{ color: COLORS.muted }}>
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {/* 13. FINAL CTA                                                */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        <section className="w-full py-14 md:py-24 px-4 sm:px-6 text-center" style={{ backgroundColor: COLORS.primary }}>
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-5xl sm:text-7xl text-white mb-6 leading-tight" style={{ ...satoshiHeading }}>
+            <h2 className="text-4xl sm:text-5xl md:text-7xl text-white mb-5 md:mb-6 leading-tight" style={{ ...satoshiHeading }}>
               Prêt à monétiser votre expertise ?
             </h2>
-            <p className="text-xl mb-10 max-w-2xl mx-auto leading-[1.6]" style={{ color: "#d1fae5" }}>
+            <p className="text-base md:text-xl mb-8 md:mb-10 max-w-2xl mx-auto leading-[1.6]" style={{ color: "#d1fae5" }}>
               Rejoignez plus de 1 000 créateurs qui vivent de leur passion en Afrique grâce à Novakou.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
