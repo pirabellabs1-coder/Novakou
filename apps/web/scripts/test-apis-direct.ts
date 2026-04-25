@@ -39,11 +39,11 @@ async function main() {
   });
   const enrollments = profile?.formations.flatMap((f) => f.enrollments) ?? [];
   const totalRevenue = enrollments.reduce((s, e) => s + (e.paidAmount || 0), 0);
-  const netRevenue = Math.round(totalRevenue * 0.95);
+  const netRevenue = Math.round(totalRevenue * 0.90);
   ok("Dashboard renvoie la formation test", (profile?.formations.length ?? 0) > 0, `${profile?.formations.length} formations`);
   ok("Dashboard renvoie ≥1 enrollment", enrollments.length > 0, `${enrollments.length} enrollments`);
   ok("Dashboard: revenue total correct", totalRevenue === 29900, `${totalRevenue} FCFA`);
-  ok("Dashboard: net revenue (95%)", netRevenue === 28405, `${netRevenue} FCFA`);
+  ok("Dashboard: net revenue (90%)", netRevenue === 26910, `${netRevenue} FCFA`);
 
   // ── API /vendeur/transactions ────────────────────────────────
   console.log("\n━━━ API /vendeur/transactions ━━━");

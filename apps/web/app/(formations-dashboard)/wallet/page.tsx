@@ -304,7 +304,7 @@ export default function WalletPage() {
                 <p className="text-2xl font-extrabold text-[#191c1e]">
                   {fmt(data.vendor.available)}
                 </p>
-                <p className="text-[10px] text-[#5c647a] mb-2">FCFA disponibles (95% net)</p>
+                <p className="text-[10px] text-[#5c647a] mb-2">FCFA disponibles (90% net)</p>
                 {(data.vendor.pendingHold ?? 0) > 0 && (
                   <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-lg px-2 py-1.5 mb-2">
                     <span className="text-[10px] text-orange-700 font-medium">
@@ -354,7 +354,7 @@ export default function WalletPage() {
             {data.mentor ? (
               <>
                 <p className="text-2xl font-extrabold text-[#191c1e]">{fmt(data.mentor.available)}</p>
-                <p className="text-[10px] text-[#5c647a] mb-2">FCFA disponibles (95% net)</p>
+                <p className="text-[10px] text-[#5c647a] mb-2">FCFA disponibles (90% net)</p>
                 {(data.mentor.pendingHold ?? 0) > 0 && (
                   <div className="flex items-center justify-between bg-orange-50 border border-orange-100 rounded-lg px-2 py-1.5 mb-2">
                     <span className="text-[10px] text-orange-700 font-medium">

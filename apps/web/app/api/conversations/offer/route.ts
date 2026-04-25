@@ -26,6 +26,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Champs requis: title, amount, delay, description" }, { status: 400 });
     }
 
+    // Input bounds validation
+    const numAmount = Number(amount);
+    const numDelay = Number(delay);
+    const numRevisions = Number(revisions) || 0;
+    if (isNaN(numAmount) || numAmount < 5 || numAmount > 50000) {
+      return NextResponse.json({ error: "Le montant doit être entre 5 € et 50 000 €." }, { status: 400 });
+    }
+    if (isNaN(numDelay) || numDelay < 1 || numDelay > 180) {
+      return NextResponse.json({ error: "Le délai doit être entre 1 et 180 jours." }, { status: 400 });
+    }
+    if (numRevisions < 0 || numRevisions > 10) {
+      return NextResponse.json({ error: "Le nombre de révisions doit être entre 0 et 10." }, { status: 400 });
+    }
+
     const validDays = Number(validityDays) || 14;
     const expiresAt = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000).toISOString();
 

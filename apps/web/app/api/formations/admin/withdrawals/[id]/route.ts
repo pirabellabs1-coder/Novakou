@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { initPayout, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayout, isMonerooConfigured, classifyMonerooError } from "@/lib/moneroo";
 import {
   getPayoutMethod,
   normalizeMsisdn,
@@ -56,8 +56,8 @@ export async function PATCH(request: Request, { params }: Params) {
     const refusedReason: string = body.refusedReason ?? "";
     const mode: "moneroo" | "manual" = body.mode === "manual" ? "manual" : "moneroo";
 
-    if (action !== "approve" && action !== "refuse") {
-      return NextResponse.json({ error: "Action invalide (approve | refuse)." }, { status: 400 });
+    if (!["approve", "refuse", "retry", "reject"].includes(action)) {
+      return NextResponse.json({ error: "Action invalide (approve | refuse | retry | reject)." }, { status: 400 });
     }
 
     const w = await prisma.instructorWithdrawal.findUnique({
@@ -72,7 +72,60 @@ export async function PATCH(request: Request, { params }: Params) {
     if (!w) {
       return NextResponse.json({ error: "Demande introuvable." }, { status: 404 });
     }
-    if (w.status !== "EN_ATTENTE") {
+
+    // ─── REJECT : refuser manuellement un retrait EN_ATTENTE sans appeler Moneroo ─
+    if (action === "reject") {
+      if (w.status !== "EN_ATTENTE") {
+        return NextResponse.json({ error: `Seuls les retraits EN_ATTENTE peuvent être refusés (actuel: ${w.status}).` }, { status: 400 });
+      }
+      const reason = (refusedReason || "Refusé manuellement par l'admin").trim();
+      await prisma.instructorWithdrawal.update({
+        where: { id },
+        data: { status: "REFUSE", processedAt: new Date(), refusedReason: reason },
+      });
+      await prisma.notification.create({
+        data: {
+          userId: w.instructeur.user.id,
+          type: "PAYMENT",
+          title: "Retrait refusé",
+          message: `Votre demande de retrait de ${Math.round(w.amount)} FCFA a été refusée. Motif : ${reason}`,
+          link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
+        },
+      }).catch(() => null);
+      return NextResponse.json({ data: { id, status: "REFUSE", refusedReason: reason } });
+    }
+
+    // ─── RETRY : relancer un retrait REFUSE ────────────────────────────────────
+    if (action === "retry") {
+      if (w.status !== "REFUSE") {
+        return NextResponse.json({ error: `Seuls les retraits REFUSE peuvent être relancés (actuel: ${w.status}).` }, { status: 400 });
+      }
+      // Parse retryCount from accountDetails JSON
+      const details = (w.accountDetails ?? {}) as Record<string, unknown>;
+      const retryCount = typeof details._retryCount === "number" ? details._retryCount : 0;
+      if (retryCount >= 3) {
+        return NextResponse.json({ error: "Limite de 3 tentatives atteinte. Contactez le support Moneroo.", retryCount }, { status: 400 });
+      }
+      // Reset to EN_ATTENTE and increment retryCount
+      await prisma.instructorWithdrawal.update({
+        where: { id },
+        data: {
+          status: "EN_ATTENTE",
+          processedAt: null,
+          errorMessage: null,
+          refusedReason: null,
+          paymentRef: null,
+          accountDetails: { ...details, _retryCount: retryCount + 1 },
+        },
+      });
+      // Fall through to the approve logic below (action is "retry" but we treat it as approve)
+    }
+
+    if (action !== "approve" && action !== "retry") {
+      // Only approve and retry reach the payout logic
+    }
+
+    if (action === "approve" && w.status !== "EN_ATTENTE") {
       return NextResponse.json(
         { error: `Cette demande a déjà été traitée (${w.status}).` },
         { status: 400 },
@@ -109,6 +162,39 @@ export async function PATCH(request: Request, { params }: Params) {
       }
 
       // Mode Moneroo : déclencher un vrai payout
+      // Re-validate balance before payout (prevent negative balance if refund happened since request)
+      const revenueRows = await prisma.platformRevenue.findMany({
+        where: { instructeurId: w.instructeurId, orderType: { in: ["formation", "product"] } },
+        select: { vendorAmount: true, createdAt: true },
+      });
+      const HOLD_MS = 24 * 3_600_000;
+      const nowMs = Date.now();
+      let netReleased = 0;
+      for (const r of revenueRows) {
+        if (nowMs - new Date(r.createdAt).getTime() >= HOLD_MS) netReleased += r.vendorAmount;
+      }
+      const allWithdrawals = await prisma.instructorWithdrawal.aggregate({
+        where: {
+          instructeurId: w.instructeurId,
+          NOT: isMentor ? undefined : { method: { endsWith: "_mentor" } },
+          ...(isMentor ? { method: { endsWith: "_mentor" } } : {}),
+          status: { in: ["EN_ATTENTE", "TRAITE"] },
+          id: { not: id }, // exclude current withdrawal from calculation
+        },
+        _sum: { amount: true },
+      });
+      const currentAvailable = Math.max(0, netReleased - (allWithdrawals._sum.amount ?? 0));
+      if (w.amount > currentAvailable) {
+        await prisma.instructorWithdrawal.update({
+          where: { id },
+          data: { status: "REFUSE", processedAt: new Date(), refusedReason: `Solde insuffisant au moment du payout (disponible: ${Math.round(currentAvailable)} FCFA, demandé: ${Math.round(w.amount)} FCFA)` },
+        }).catch(() => null);
+        return NextResponse.json(
+          { error: `Solde insuffisant. Disponible : ${Math.round(currentAvailable)} FCFA. Le retrait a été refusé automatiquement.` },
+          { status: 400 }
+        );
+      }
+
       // On retire le suffixe _mentor pour obtenir le vrai method code
       const rawMethod = w.method.replace(/_mentor$/, "");
       const userCountry = w.instructeur.user.country ?? null;
@@ -172,6 +258,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
       let payoutData;
       try {
+        console.log(`[moneroo:payout] id=${id} amount=${Math.round(w.amount)} currency=${methodDef.currency} method=${resolvedMethod}`);
         payoutData = await initPayout({
           amount: Math.round(w.amount),
           currency: methodDef.currency,
@@ -193,17 +280,23 @@ export async function PATCH(request: Request, { params }: Params) {
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
+        console.error(`[moneroo:payout:error] id=${id} amount=${Math.round(w.amount)} currency=${methodDef.currency} method=${resolvedMethod} error=${msg}`);
+        const classified = classifyMonerooError(msg);
         await prisma.instructorWithdrawal.update({
           where: { id },
           data: {
+            status: "REFUSE",
+            processedAt: new Date(),
             paymentProvider: "moneroo",
             errorMessage: msg.slice(0, 500),
+            refusedReason: `Moneroo: ${classified.userMessage}`,
           },
         }).catch(() => null);
         return NextResponse.json(
           {
-            error: `Moneroo payout initialization failed: ${msg}`,
+            error: classified.userMessage,
             code: "MONEROO_INIT_FAILED",
+            category: classified.category,
           },
           { status: 502 },
         );

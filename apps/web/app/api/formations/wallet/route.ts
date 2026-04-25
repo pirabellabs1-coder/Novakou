@@ -17,9 +17,9 @@ import {
 /**
  * GET /api/formations/wallet
  * Returns all wallet balances for the authenticated user across roles:
- * - vendor (instructor): sum of enrollments + product purchases × 95%, split into
+ * - vendor (instructor): sum of enrollments + product purchases × 90%, split into
  *   released (>24h) and pendingHold (<24h), minus previous vendor withdrawals
- * - mentor: sum of completed bookings × 95%, same 24h hold split, minus withdrawals
+ * - mentor: sum of completed bookings × 90%, same 24h hold split, minus withdrawals
  * - affiliate: pendingEarnings
  */
 export async function GET() {
@@ -72,7 +72,7 @@ export async function GET() {
       });
 
       // Multi-shop wallet :
-      // On lit PlatformRevenue (qui contient déjà vendorAmount = brut - 5% - commission affilié)
+      // On lit PlatformRevenue (qui contient déjà vendorAmount = brut - 10% - commission affilié)
       // → la part vendeur est exacte même quand un affilié est intervenu.
       const revenueRows = await prisma.platformRevenue.findMany({
         where: {
@@ -170,7 +170,7 @@ export async function GET() {
     if (mentor) {
       // ── Semantique escrow (source unique de verite) ──
       //   "Gains bruts"     = sessions RELEASED uniquement (argent acquis, session terminee)
-      //   "Gains nets"      = 95% des gains bruts
+      //   "Gains nets"      = 90% des gains bruts
       //   "Fonds en attente"= sessions HELD (PENDING/CONFIRMED/COMPLETED pas encore liberes)
       //   "Solde dispo"     = netReleased - retraits
       //   "En dispute"      = sessions DISPUTED (bloquees, en attente admin)
@@ -456,7 +456,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // Lecture sur PlatformRevenue (vendorAmount = exact, déjà - 5% - affilié)
+      // Lecture sur PlatformRevenue (vendorAmount = exact, déjà - 10% - affilié)
       const revenueRows = await prisma.platformRevenue.findMany({
         where: {
           instructeurId: inst.id,
@@ -487,6 +487,23 @@ export async function POST(request: Request) {
         return NextResponse.json(
           { error: `Solde insuffisant. Disponible : ${Math.round(available)} FCFA (les ventes de moins de ${HOLD_PERIOD_HOURS}h sont en attente).` },
           { status: 400 }
+        );
+      }
+
+      // Deduplication: prevent double withdrawal within 2-minute window
+      const recentDuplicate = await prisma.instructorWithdrawal.findFirst({
+        where: {
+          instructeurId: inst.id,
+          amount,
+          method,
+          status: "EN_ATTENTE",
+          createdAt: { gte: new Date(Date.now() - 2 * 60_000) },
+        },
+      });
+      if (recentDuplicate) {
+        return NextResponse.json(
+          { error: "Une demande identique a été soumise il y a moins de 2 minutes. Patientez avant de réessayer.", existingId: recentDuplicate.id },
+          { status: 409 }
         );
       }
 
@@ -557,6 +574,23 @@ export async function POST(request: Request) {
         return NextResponse.json(
           { error: `Solde mentor insuffisant. Disponible : ${remaining} FCFA (les séances terminées depuis moins de ${HOLD_PERIOD_HOURS}h sont en attente).` },
           { status: 400 }
+        );
+      }
+
+      // Deduplication: prevent double mentor withdrawal within 2-minute window
+      const recentDuplicate = await prisma.instructorWithdrawal.findFirst({
+        where: {
+          instructeurId: inst.id,
+          amount,
+          method: `${method}_mentor`,
+          status: "EN_ATTENTE",
+          createdAt: { gte: new Date(Date.now() - 2 * 60_000) },
+        },
+      });
+      if (recentDuplicate) {
+        return NextResponse.json(
+          { error: "Une demande identique a été soumise il y a moins de 2 minutes.", existingId: recentDuplicate.id },
+          { status: 409 }
         );
       }
 

@@ -8,7 +8,7 @@ interface MentorWallet {
   mentorId: string;
   totalSessions: number;        // sessions RELEASED
   gross: number;                // brut acquis
-  netEarned: number;            // net acquis (95%)
+  netEarned: number;            // net acquis (90%)
   available: number;            // retirable (net - retraits)
   pendingHold: number;          // net HELD (en escrow)
   pendingGross?: number;
@@ -174,7 +174,7 @@ export default function MentorFinancesPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-[#191c1e]">Mes finances</h1>
           <p className="text-sm text-[#5c647a] mt-1">
-            Suivi de vos revenus, commissions et retraits. Commission plateforme : 5 %.
+            Suivi de vos revenus, commissions et retraits. Commission plateforme : 10 %.
           </p>
         </div>
 
@@ -266,7 +266,7 @@ export default function MentorFinancesPage() {
               <div className="bg-white rounded-2xl border border-gray-100 p-4">
                 <p className="text-[11px] text-[#5c647a] font-medium">Gains bruts acquis</p>
                 <p className="text-xl font-extrabold text-[#191c1e] mt-1">{fmt(wallet.gross)} F</p>
-                <p className="text-[10px] text-[#5c647a] mt-0.5">Après commission 5%</p>
+                <p className="text-[10px] text-[#5c647a] mt-0.5">Après commission 10%</p>
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-4">
                 <p className="text-[11px] text-[#5c647a] font-medium">En escrow (bloqué)</p>

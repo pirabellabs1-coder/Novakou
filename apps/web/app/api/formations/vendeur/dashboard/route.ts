@@ -8,7 +8,7 @@ import { getActiveShopId } from "@/lib/formations/active-shop";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
-const PLATFORM_FEE = PLATFORM_COMMISSION_RATE; // 5% platform commission (single source of truth)
+const PLATFORM_FEE = PLATFORM_COMMISSION_RATE; // 10% platform commission (single source of truth)
 
 export async function GET() {
   try {

@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         escrowStatus: "HELD",
         completedAt: { lte: cutoff },
       },
-      select: { id: true, paidAmount: true, paymentRef: true },
+      select: { id: true, paidAmount: true, paymentRef: true, mentor: { select: { userId: true, user: { select: { email: true, name: true } } } } },
     });
 
     for (const b of toRelease) {
@@ -91,6 +91,19 @@ export async function GET(request: NextRequest) {
         });
         revenuesLogged++;
         autoReleased++;
+
+        // Notify mentor that funds are available for withdrawal
+        if (b.mentor?.userId) {
+          await prisma.notification.create({
+            data: {
+              userId: b.mentor.userId,
+              type: "PAYMENT",
+              title: "Fonds disponibles",
+              message: `${vendorAmount} FCFA de votre séance de mentorat sont maintenant disponibles pour retrait.`,
+              link: "/mentor/finances",
+            },
+          }).catch(() => null);
+        }
       } catch (err) {
         errors.push(`auto-release ${b.id}: ${err instanceof Error ? err.message : String(err)}`);
       }

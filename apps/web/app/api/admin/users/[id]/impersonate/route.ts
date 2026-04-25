@@ -30,9 +30,12 @@ export async function POST(
     );
   }
 
+  const impersonationExpiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+
   return NextResponse.json({
     message: `Impersonation started for user ${id}`,
     success: true,
+    impersonationExpiresAt,
   });
 }
 

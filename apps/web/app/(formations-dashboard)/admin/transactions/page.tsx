@@ -128,14 +128,14 @@ export default function AdminTransactionsPage() {
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA · Toutes transactions</p>
           </div>
           <div className="bg-white p-8">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Commission (5%)</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-4">Commission (10%)</p>
             <p className="text-xl md:text-2xl font-extrabold tracking-tight text-amber-600 tabular-nums break-all">
               {isLoading ? "…" : formatFCFA(summary?.totalCommission ?? 0)}
             </p>
             <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA · Prélevés</p>
           </div>
           <div className="bg-[#22c55e] p-8 text-[#004b1e]">
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-4">Versé aux vendeurs (95%)</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-4">Versé aux vendeurs (90%)</p>
             <p className="text-xl md:text-2xl font-extrabold tracking-tight tabular-nums break-all">
               {isLoading ? "…" : formatFCFA(summary?.totalNetPaid ?? 0)}
             </p>
@@ -264,11 +264,11 @@ export default function AdminTransactionsPage() {
                     </div>
                     <div>
                       <p className="text-sm font-bold tabular-nums text-amber-600">{formatFCFA(tx.commission)}</p>
-                      <p className="text-[9px] text-zinc-400 uppercase tracking-widest">5%</p>
+                      <p className="text-[9px] text-zinc-400 uppercase tracking-widest">10%</p>
                     </div>
                     <div>
                       <p className="text-sm font-bold tabular-nums text-[#006e2f]">{formatFCFA(tx.netAmount)}</p>
-                      <p className="text-[9px] text-zinc-400 uppercase tracking-widest">95%</p>
+                      <p className="text-[9px] text-zinc-400 uppercase tracking-widest">90%</p>
                     </div>
                     <div>
                       <span className={`inline-block px-3 py-1 text-[9px] font-bold uppercase tracking-widest ${sc.bg} ${sc.text}`}>

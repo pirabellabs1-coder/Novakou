@@ -47,7 +47,7 @@ const INCLUDED_FEATURES = [
 ];
 
 const COMPETITORS = [
-  { name: "Novakou", commission: "5%", monthly: "0 FCFA", highlighted: true },
+  { name: "Novakou", commission: "10%", monthly: "0 FCFA", highlighted: true },
   { name: "Gumroad", commission: "10%", monthly: "0 FCFA" },
   { name: "Systeme.io", commission: "0%", monthly: "~19 000 FCFA (~30 €)" },
   { name: "Hotmart", commission: "9,9% + 1€", monthly: "0 FCFA" },
@@ -58,11 +58,11 @@ const COMPETITORS = [
 const FAQS = [
   {
     q: "Comment Novakou gagne-t-il de l'argent si c'est gratuit ?",
-    a: "La plateforme prélève une commission de 5 % sur chaque vente réalisée. C'est tout. Pas d'abonnement, pas de frais cachés, pas de paiement par mois. Vous payez seulement quand vous gagnez.",
+    a: "La plateforme prélève une commission de 10 % sur chaque vente réalisée. C'est tout. Pas d'abonnement, pas de frais cachés, pas de paiement par mois. Vous payez seulement quand vous gagnez.",
   },
   {
-    q: "Y a-t-il des frais de transaction en plus des 5 % ?",
-    a: "Non. Les 5 % incluent tous les frais : traitement des paiements Mobile Money, cartes bancaires, hébergement, emails transactionnels. Votre prestataire de paiement peut appliquer des frais séparés sur les retraits (ex. Orange Money retire ~1 % sur les retraits), mais ça ne dépend pas de nous.",
+    q: "Y a-t-il des frais de transaction en plus des 10 % ?",
+    a: "Non. Les 10 % incluent tous les frais : traitement des paiements Mobile Money, cartes bancaires, hébergement, emails transactionnels. Votre prestataire de paiement peut appliquer des frais séparés sur les retraits (ex. Orange Money retire ~1 % sur les retraits), mais ça ne dépend pas de nous.",
   },
   {
     q: "Quand puis-je retirer mes gains ?",
@@ -70,11 +70,11 @@ const FAQS = [
   },
   {
     q: "Y a-t-il des limites sur le nombre de produits ou d'élèves ?",
-    a: "Non. Vous pouvez publier autant de formations, ebooks, templates ou services que vous voulez. Vous pouvez avoir un ou mille élèves, c'est le même prix : 5 % par vente.",
+    a: "Non. Vous pouvez publier autant de formations, ebooks, templates ou services que vous voulez. Vous pouvez avoir un ou mille élèves, c'est le même prix : 10 % par vente.",
   },
   {
-    q: "Les 5 % s'appliquent-ils aussi aux séances de mentorat ?",
-    a: "Oui, le modèle est uniforme : 5 % sur les formations, 5 % sur les produits numériques, 5 % sur les séances de mentorat. Le mentor garde 95 % de chaque séance.",
+    q: "Les 10 % s'appliquent-ils aussi aux séances de mentorat ?",
+    a: "Oui, le modèle est uniforme : 10 % sur les formations, 10 % sur les produits numériques, 10 % sur les séances de mentorat. Le mentor garde 90 % de chaque séance.",
   },
   {
     q: "Puis-je utiliser Novakou uniquement comme acheteur ?",
@@ -86,7 +86,7 @@ const FAQS = [
   },
   {
     q: "Que se passe-t-il si un client demande un remboursement ?",
-    a: "Les clients ont 14 jours pour demander un remboursement (si le contenu n'a pas été consommé à plus de 30 %). Dans ce cas, votre part et la commission de 5 % sont intégralement annulées — vous ne perdez rien.",
+    a: "Les clients ont 14 jours pour demander un remboursement (si le contenu n'a pas été consommé à plus de 30 %). Dans ce cas, votre part et la commission de 10 % sont intégralement annulées — vous ne perdez rien.",
   },
 ];
 
@@ -98,7 +98,7 @@ export default function TarifsPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [simulatedSale, setSimulatedSale] = useState(50000);
 
-  const commission = Math.round(simulatedSale * 0.05);
+  const commission = Math.round(simulatedSale * 0.10);
   const vendorShare = simulatedSale - commission;
 
   return (
@@ -123,9 +123,9 @@ export default function TarifsPage() {
             Aucun abonnement. Jamais.
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-5">
-            <span className="text-[#22c55e]">95 %</span> pour vous,
+            <span className="text-[#22c55e]">90 %</span> pour vous,
             <br />
-            <span className="text-white/80">5 %</span> pour la plateforme.
+            <span className="text-white/80">10 %</span> pour la plateforme.
           </h1>
           <p className="text-white/85 text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
             Publier, vendre, encaisser : tout est gratuit. Vous ne payez que quand vous gagnez.
@@ -219,7 +219,7 @@ export default function TarifsPage() {
                 <p className="text-2xl md:text-3xl font-extrabold text-[#5c647a]">
                   {formatFCFA(commission)}
                 </p>
-                <p className="text-xs text-[#5c647a] mt-1">FCFA · 5% fixe</p>
+                <p className="text-xs text-[#5c647a] mt-1">FCFA · 10% fixe</p>
               </div>
             </div>
 
@@ -228,7 +228,7 @@ export default function TarifsPage() {
                 lightbulb
               </span>
               <p className="text-xs text-amber-900">
-                <strong>Pas de frais cachés.</strong> Les 5 % incluent le traitement des paiements, l&apos;hébergement, les emails, le support et toutes les fonctionnalités. Aucun abonnement mensuel.
+                <strong>Pas de frais cachés.</strong> Les 10 % incluent le traitement des paiements, l&apos;hébergement, les emails, le support et toutes les fonctionnalités. Aucun abonnement mensuel.
               </p>
             </div>
           </div>

@@ -60,6 +60,10 @@ declare module "next-auth/jwt" {
     // True when the user signed in but still needs to enter their 2FA code.
     // Middleware blocks dashboards while this is true.
     tfaPending?: boolean;
+    // Admin impersonation — set when an admin impersonates another user.
+    // Automatically cleared by middleware when impersonationExpiresAt is reached.
+    impersonatedUserId?: string;
+    impersonationExpiresAt?: number;
   }
 }
 
@@ -573,6 +577,25 @@ export const authOptions: NextAuthOptions = {
       // TOTP code. Clear the pending flag on the next JWT pass.
       if (trigger === "update" && (session as { tfaVerified?: boolean } | undefined)?.tfaVerified === true) {
         token.tfaPending = false;
+      }
+
+      // Admin impersonation — set/clear via update()
+      if (trigger === "update") {
+        const s = session as { impersonateUserId?: string; stopImpersonation?: boolean } | undefined;
+        if (s?.impersonateUserId) {
+          token.impersonatedUserId = s.impersonateUserId;
+          token.impersonationExpiresAt = Date.now() + 30 * 60 * 1000; // 30 minutes
+        }
+        if (s?.stopImpersonation) {
+          delete token.impersonatedUserId;
+          delete token.impersonationExpiresAt;
+        }
+      }
+
+      // Auto-clear expired impersonation
+      if (token.impersonatedUserId && token.impersonationExpiresAt && Date.now() >= token.impersonationExpiresAt) {
+        delete token.impersonatedUserId;
+        delete token.impersonationExpiresAt;
       }
 
       // Refresh KYC level from DB when session is updated or periodically

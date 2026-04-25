@@ -485,7 +485,7 @@ export default function CreerProduitPage() {
                     <p className="text-xs text-zinc-600 mt-0.5">
                       {isFree
                         ? "Les apprenants y accèdent sans payer. Idéal pour acquérir une audience."
-                        : "Les apprenants paient pour accéder. Vous touchez 95% du prix."}
+                        : "Les apprenants paient pour accéder. Vous touchez 90% du prix."}
                     </p>
                   </div>
                   <button
@@ -532,12 +532,12 @@ export default function CreerProduitPage() {
                         </div>
                         <div className="h-px bg-white/10" />
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Votre part (95%)</p>
-                          <p className="text-2xl font-bold tabular-nums text-[#22c55e]">{formatFCFA(price * 0.95)}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Votre part (90%)</p>
+                          <p className="text-2xl font-bold tabular-nums text-[#22c55e]">{formatFCFA(price * 0.90)}</p>
                         </div>
                         <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Commission Novakou (5%)</p>
-                          <p className="text-lg font-bold tabular-nums text-zinc-300">{formatFCFA(price * 0.05)}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Commission Novakou (10%)</p>
+                          <p className="text-lg font-bold tabular-nums text-zinc-300">{formatFCFA(price * 0.10)}</p>
                         </div>
                       </div>
                     </div>

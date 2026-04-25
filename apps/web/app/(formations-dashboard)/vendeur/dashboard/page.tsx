@@ -249,7 +249,7 @@ export default function VendeurDashboard() {
               </h3>
               <p className="text-sm text-slate-400 max-w-xl">
                 Formation vidéo, ebook, template ou pack — vous commencez à vendre dès la publication.
-                5 % de commission seulement.
+                10 % de commission seulement.
               </p>
             </div>
             <Link

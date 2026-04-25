@@ -159,6 +159,36 @@ export function isMonerooConfigured(): boolean {
   return Boolean(process.env.MONEROO_SECRET_KEY);
 }
 
+// ─── ERROR CLASSIFICATION ────────────────────────────────────────────────────
+
+export type MonerooErrorCategory = "insufficient_funds" | "validation" | "network" | "unknown";
+
+export function classifyMonerooError(msg: string): { category: MonerooErrorCategory; userMessage: string } {
+  const lower = msg.toLowerCase();
+  if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("solde")) {
+    return {
+      category: "insufficient_funds",
+      userMessage: "Le solde de votre compte Moneroo est insuffisant pour effectuer ce virement. Rechargez votre compte Moneroo puis relancez.",
+    };
+  }
+  if (lower.includes("invalid") || lower.includes("validation") || lower.includes("msisdn") || lower.includes("recipient")) {
+    return {
+      category: "validation",
+      userMessage: `Erreur de validation Moneroo : ${msg}. Vérifiez les informations du bénéficiaire.`,
+    };
+  }
+  if (lower.includes("timeout") || lower.includes("econnrefused") || lower.includes("network") || lower.includes("fetch failed")) {
+    return {
+      category: "network",
+      userMessage: "Moneroo est temporairement indisponible. Réessayez dans quelques minutes.",
+    };
+  }
+  return {
+    category: "unknown",
+    userMessage: `Erreur Moneroo : ${msg}`,
+  };
+}
+
 // ─── PAYOUTS (sortants : vendeur reçoit son argent) ──────────────────────────
 // Docs : https://docs.moneroo.io/api/payouts
 //

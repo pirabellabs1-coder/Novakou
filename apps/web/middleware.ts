@@ -238,6 +238,19 @@ export async function middleware(req: NextRequest) {
   const userRole = token?.role as string | undefined;
   const tfaPending = !!(token as { tfaPending?: boolean } | null)?.tfaPending;
 
+  // ── Impersonation expiry check ──
+  // If an admin is impersonating a user and the 30-minute window has elapsed,
+  // redirect to the admin dashboard so they know the session expired.
+  if (token) {
+    const impersonatedUserId = (token as { impersonatedUserId?: string }).impersonatedUserId;
+    const impersonationExpiresAt = (token as { impersonationExpiresAt?: number }).impersonationExpiresAt;
+    if (impersonatedUserId && impersonationExpiresAt && Date.now() >= impersonationExpiresAt) {
+      const adminUrl = new URL("/admin/dashboard", req.url);
+      adminUrl.searchParams.set("impersonation_expired", "1");
+      return withLocaleCookie(NextResponse.redirect(adminUrl));
+    }
+  }
+
   // Routes auth — rediriger vers le bon espace si deja connecte
   // Exception : /2fa reste accessible tant que la 2FA n'est pas validée.
   if (isAuthRoute(pathname)) {

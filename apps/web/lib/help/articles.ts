@@ -539,8 +539,8 @@ Si vous désactivez une méthode, elle n'apparaîtra plus dans le sélecteur de 
 - **Déjà retiré** : historique complet
 
 ## Commission Novakou
-- **5%** sur chaque vente + **0,3%** frais de traitement
-- Le reste est crédité sur votre wallet (95% pour un vendeur, 95% moins la commission affilié si applicable)
+- **10%** sur chaque vente (frais de traitement inclus)
+- Le reste est crédité sur votre wallet (90% pour un vendeur, 90% moins la commission affilié si applicable)
 
 ## Délai de séquestre
 Les fonds sont bloqués **24 heures** après paiement, le temps que la transaction soit confirmée et qu'un éventuel remboursement client ne casse pas votre bilan.
@@ -580,7 +580,7 @@ Vous devez avoir validé votre pièce d'identité pour retirer.
     slug: "commission-affiliation",
     category: "paiements",
     title: "Comment fonctionne la commission quand on a un affilié",
-    excerpt: "Novakou 5%, affilié X%, vendeur le reste. Exemple détaillé.",
+    excerpt: "Novakou 10%, affilié X%, vendeur le reste. Exemple détaillé.",
     readingMin: 3,
     lastUpdated: "2026-04-18",
     tags: ["affiliation", "commission", "revenus"],
@@ -592,15 +592,15 @@ Pour chaque vente de **100 000 FCFA** :
 ### Cas 1 — Vente directe (pas d'affilié)
 | | Part | Montant |
 |---|---|---|
-| Novakou (plateforme) | 5% | 5 000 FCFA |
-| Vendeur | 95% | 95 000 FCFA |
+| Novakou (plateforme) | 10% | 10 000 FCFA |
+| Vendeur | 90% | 90 000 FCFA |
 
 ### Cas 2 — Vente via un affilié qui a 20% de commission
 | | Part | Montant |
 |---|---|---|
-| Novakou (plateforme) | 5% | 5 000 FCFA |
+| Novakou (plateforme) | 10% | 10 000 FCFA |
 | Affilié | 20% | 20 000 FCFA |
-| Vendeur | 75% | 75 000 FCFA |
+| Vendeur | 70% | 70 000 FCFA |
 
 > 💡 La commission affiliée sort **de votre part**, pas de celle de Novakou. C'est normal : vous « achetez » du trafic qualifié via vos ambassadeurs.
 

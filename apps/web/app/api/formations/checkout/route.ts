@@ -125,7 +125,7 @@ export async function POST(request: Request) {
 
     // Apply discount code
     let discountAmount = 0;
-    let appliedCode: { id: string; code: string } | null = null;
+    let appliedCode: { id: string; code: string; hasMaxUses: boolean } | null = null;
     if (discountCodeStr) {
       const code = await prisma.discountCode.findUnique({
         where: { code: discountCodeStr },
@@ -139,6 +139,16 @@ export async function POST(request: Request) {
       if (code.maxUses && code.usedCount >= code.maxUses) {
         return NextResponse.json({ error: "Code promo épuisé" }, { status: 400 });
       }
+      // Atomic claim: increment usedCount only if still under maxUses (prevents race condition)
+      if (code.maxUses) {
+        const claimed = await prisma.discountCode.updateMany({
+          where: { id: code.id, usedCount: { lt: code.maxUses } },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (claimed.count === 0) {
+          return NextResponse.json({ error: "Code promo épuisé (concurrent)" }, { status: 400 });
+        }
+      }
       if (code.minOrderAmount && subTotal < code.minOrderAmount) {
         return NextResponse.json({
           error: `Montant minimum requis : ${code.minOrderAmount} FCFA`,
@@ -150,7 +160,7 @@ export async function POST(request: Request) {
       } else {
         discountAmount = Math.min(code.discountValue, subTotal);
       }
-      appliedCode = { id: code.id, code: code.code };
+      appliedCode = { id: code.id, code: code.code, hasMaxUses: !!code.maxUses };
     }
 
     const totalAmount = Math.max(0, subTotal - discountAmount);
@@ -273,9 +283,9 @@ export async function POST(request: Request) {
       });
 
       // Répartition vente affiliée :
-      //   Plateforme (Novakou) prend toujours 5% du prix final
+      //   Plateforme (Novakou) prend toujours 10% du prix final
       //   Affilié prend X% du prix final (configuré par programme du vendeur)
-      //   Vendeur reçoit le reste = prix - 5% - X%
+      //   Vendeur reçoit le reste = prix - 10% - X%
       // → l'affilié est payé par le vendeur (sur sa marge), pas par la plateforme
       const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
       const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
@@ -307,7 +317,7 @@ export async function POST(request: Request) {
           instructeurId: f.instructeurId,
           shopId: f.shopId ?? null,
         },
-      }).catch((e) => console.warn("[platformRevenue]", e));
+      });
 
       // Create affiliate commission record
       if (affiliateProfile && affAmount > 0) {
@@ -348,7 +358,7 @@ export async function POST(request: Request) {
       });
 
       // Répartition vente affiliée (idem formation) :
-      //   5% Novakou, X% affilié, reste vendeur
+      //   10% Novakou, X% affilié, reste vendeur
       const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
       const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
       const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
@@ -378,7 +388,7 @@ export async function POST(request: Request) {
           instructeurId: p.instructeurId,
           shopId: p.shopId ?? null,
         },
-      }).catch((e) => console.warn("[platformRevenue]", e));
+      });
 
       if (affiliateProfile && affAmount > 0) {
         await prisma.affiliateCommission.create({
@@ -407,10 +417,11 @@ export async function POST(request: Request) {
     // Record discount usage
     if (appliedCode && (createdEnrollments.length + createdPurchases.length) > 0) {
       const orderId = sessionRef;
+      // usedCount already incremented atomically above for codes with maxUses
       await prisma.discountCode.update({
         where: { id: appliedCode.id },
         data: {
-          usedCount: { increment: 1 },
+          ...(!appliedCode.hasMaxUses ? { usedCount: { increment: 1 } } : {}),
           totalDiscounted: { increment: discountAmount },
           revenue: { increment: totalAmount },
         },

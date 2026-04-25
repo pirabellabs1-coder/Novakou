@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { sendKycSubmittedEmail } from "@/lib/email/kyc";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 /**
  * GET /api/formations/kyc
@@ -61,6 +62,12 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+    // Rate limit: 5 KYC submissions per hour
+    const rl = rateLimit(`kyc:${session.user.id}`, 5, 3600_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop de soumissions KYC. Réessayez plus tard." }, { status: 429 });
+    }
 
     const body = await request.json();
     const { documentType, documentUrl, requestedLevel } = body as {

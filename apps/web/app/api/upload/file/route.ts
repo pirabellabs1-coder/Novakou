@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/api-rate-limit";
 import {
   uploadFile,
   getSignedUrl,
@@ -68,6 +69,12 @@ export async function POST(req: NextRequest) {
         { error: "Authentification requise" },
         { status: 401 }
       );
+    }
+
+    // Rate limit: 20 uploads/hour per user
+    const rl = rateLimit(`upload:${userId}`, 20, 3600_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop d'uploads. Réessayez dans quelques minutes." }, { status: 429 });
     }
 
     const formData = await req.formData();

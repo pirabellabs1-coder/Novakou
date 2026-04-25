@@ -33,7 +33,7 @@ export interface HoldStatus {
 
 /**
  * Sépare les ventes en "released" (>24h, retirables) et "pendingHold" (<24h).
- * Calcule les totaux bruts et nets (après commission plateforme 5%).
+ * Calcule les totaux bruts et nets (après commission plateforme 10%).
  */
 export function computeHoldStatus(sales: SaleLike[], now: Date = new Date()): HoldStatus {
   const threshold = holdThreshold(now);

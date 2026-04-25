@@ -19,6 +19,7 @@ import { retrievePayment, retrievePayout } from "@/lib/moneroo";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 /**
  * Vérifie la signature HMAC Moneroo sur le body brut.
@@ -64,6 +65,13 @@ interface MonerooWebhookPayload {
 }
 
 export async function POST(req: Request) {
+  // Rate limit: 200 webhook calls per minute (protect against replay floods)
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(`webhook:moneroo:${ip}`, 200, 60_000);
+  if (!rl.allowed) {
+    return NextResponse.json({ error: "Rate limited" }, { status: 429 });
+  }
+
   // On lit le body brut AVANT de le parser, pour pouvoir vérifier la signature HMAC
   const rawBody = await req.text();
 

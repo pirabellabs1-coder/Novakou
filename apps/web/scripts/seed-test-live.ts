@@ -147,8 +147,8 @@ async function main() {
       data: { studentsCount: { increment: 1 } },
     });
 
-    // Log platform revenue (5% commission)
-    const commissionRate = 0.05;
+    // Log platform revenue (10% commission)
+    const commissionRate = 0.10;
     const commissionAmount = Math.round(formation.price * commissionRate);
     const vendorAmount = formation.price - commissionAmount;
     await prisma.platformRevenue.create({

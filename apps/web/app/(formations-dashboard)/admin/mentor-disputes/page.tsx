@@ -311,7 +311,7 @@ export default function MentorDisputesAdminPage() {
                 >
                   <span className="material-symbols-outlined text-[24px] text-[#006e2f]">payments</span>
                   <span className="text-sm font-bold text-[#191c1e]">Libérer au mentor</span>
-                  <span className="text-[11px] text-[#5c647a] tabular-nums">{formatFCFA(selected.paidAmount * 0.95)} FCFA net</span>
+                  <span className="text-[11px] text-[#5c647a] tabular-nums">{formatFCFA(selected.paidAmount * 0.90)} FCFA net</span>
                 </button>
               </div>
             </>

@@ -14,17 +14,58 @@ interface ImpersonatedUser {
 
 interface AuthState {
   impersonatedUser: ImpersonatedUser | null;
-  startImpersonation: (user: ImpersonatedUser) => void;
+  impersonationExpiresAt: number | null;
+  startImpersonation: (user: ImpersonatedUser, expiresAt: number) => void;
   stopImpersonation: () => void;
   isImpersonating: () => boolean;
 }
 
+let _expiryTimer: ReturnType<typeof setTimeout> | null = null;
+
 export const useAuthStore = create<AuthState>()((set, get) => ({
   impersonatedUser: null,
+  impersonationExpiresAt: null,
 
-  startImpersonation: (user) => set({ impersonatedUser: user }),
+  startImpersonation: (user, expiresAt) => {
+    // Clear any existing timer
+    if (_expiryTimer) clearTimeout(_expiryTimer);
 
-  stopImpersonation: () => set({ impersonatedUser: null }),
+    const msRemaining = expiresAt - Date.now();
+    if (msRemaining <= 0) {
+      // Already expired — do not start
+      return;
+    }
 
-  isImpersonating: () => get().impersonatedUser !== null,
+    // Auto-clear impersonation when the 30-minute window expires
+    _expiryTimer = setTimeout(() => {
+      set({ impersonatedUser: null, impersonationExpiresAt: null });
+      _expiryTimer = null;
+    }, msRemaining);
+
+    set({ impersonatedUser: user, impersonationExpiresAt: expiresAt });
+  },
+
+  stopImpersonation: () => {
+    if (_expiryTimer) {
+      clearTimeout(_expiryTimer);
+      _expiryTimer = null;
+    }
+    set({ impersonatedUser: null, impersonationExpiresAt: null });
+  },
+
+  isImpersonating: () => {
+    const state = get();
+    if (!state.impersonatedUser) return false;
+    // Check expiry
+    if (state.impersonationExpiresAt && Date.now() >= state.impersonationExpiresAt) {
+      // Expired — clear state
+      if (_expiryTimer) {
+        clearTimeout(_expiryTimer);
+        _expiryTimer = null;
+      }
+      set({ impersonatedUser: null, impersonationExpiresAt: null });
+      return false;
+    }
+    return true;
+  },
 }));

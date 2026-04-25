@@ -310,6 +310,26 @@ async function handlePaymentSuccessPrisma(
       return;
     }
 
+    // Double-payment prevention: check if a COMPLETE payment already exists (e.g., from Stripe)
+    const existingCompletePayment = await prisma.payment.findFirst({
+      where: { orderId, status: "COMPLETE" },
+    });
+    if (existingCompletePayment) {
+      console.warn(
+        `[CinetPay Webhook] Order ${orderId} already has a COMPLETE payment (id=${existingCompletePayment.id}), skipping`
+      );
+      return;
+    }
+
+    // Amount validation: verify webhook amount matches order amount to prevent fraud
+    const webhookAmount = parseFloat(amount);
+    if (!isNaN(webhookAmount) && Math.abs(webhookAmount - order.amount) > 1) {
+      console.error(
+        `[CinetPay Webhook] AMOUNT MISMATCH orderId=${orderId}: webhook=${webhookAmount}, order=${order.amount}. Rejecting.`
+      );
+      return;
+    }
+
     const serviceTitle = order.title || order.service?.title || `Commande ${orderId}`;
 
     await prisma.$transaction(async (tx) => {

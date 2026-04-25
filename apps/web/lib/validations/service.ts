@@ -215,7 +215,7 @@ export const PRICE_OPTIONS: number[] = [
 
 export const COMMISSION_RATES: Record<string, number> = {
   DECOUVERTE: PLAN_RULES.DECOUVERTE.commissionValue / 100, // 12% → 0.12
-  ASCENSION: PLAN_RULES.ASCENSION.commissionValue / 100, // 5% → 0.05
+  ASCENSION: PLAN_RULES.ASCENSION.commissionValue / 100, // 10% → 0.10
   SOMMET: 0, // Not a percentage — flat 1 EUR. Use calculateCommissionEur() instead.
   EMPIRE: 0,
   // Legacy aliases

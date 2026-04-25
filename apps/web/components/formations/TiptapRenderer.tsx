@@ -1,5 +1,7 @@
 "use client";
 
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
+
 interface TiptapRendererProps {
   content: string;
   className?: string;
@@ -10,7 +12,7 @@ export function TiptapRenderer({ content, className = "" }: TiptapRendererProps)
   return (
     <div
       className={`prose prose-slate max-w-none ${className}`}
-      dangerouslySetInnerHTML={{ __html: content }}
+      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(content) }}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 /**
  * Page /admin/retraits
- * L'admin peut retirer la commission plateforme (5% sur chaque vente).
+ * L'admin peut retirer la commission plateforme (10% sur chaque vente).
  * Affiche :
  *   - Solde disponible (revenus totaux - déjà retirés - en attente)
  *   - Formulaire de demande (montant + méthode + coordonnées)
@@ -173,7 +173,7 @@ export default function AdminRetraitsPage() {
             Retraits commission plateforme
           </h1>
           <p className="text-sm text-zinc-500 mt-3">
-            Retirer les 5% de commission perçus par Novakou sur chaque vente.
+            Retirer les 10% de commission perçus par Novakou sur chaque vente.
           </p>
         </header>
 

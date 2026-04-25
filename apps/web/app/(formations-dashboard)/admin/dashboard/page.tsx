@@ -218,7 +218,7 @@ export default function AdminDashboardPage() {
                   {formatFCFA(d?.kpis.platformCommission ?? 0)} FCFA
                 </span>
                 <span className="text-[10px] text-zinc-400 uppercase tracking-wider">
-                  Commission 5% Novakou
+                  Commission 10% Novakou
                 </span>
               </div>
               <div className="flex items-center gap-2">

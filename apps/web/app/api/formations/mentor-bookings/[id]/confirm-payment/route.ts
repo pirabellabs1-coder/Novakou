@@ -46,7 +46,7 @@ export async function POST(_request: Request, { params }: Params) {
     }
 
     // Idempotency: if already paid, return success
-    if (booking.status !== "PAYMENT_PENDING" && booking.escrowStatus !== "NONE") {
+    if (booking.status !== "PAYMENT_PENDING" || booking.escrowStatus !== "NONE") {
       return NextResponse.json({
         data: { bookingId: booking.id, status: booking.status, escrowStatus: booking.escrowStatus, alreadyConfirmed: true },
       });

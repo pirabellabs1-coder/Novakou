@@ -123,7 +123,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     });
 
     const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-    const affAmount = affiliate ? Math.round(finalPrice * affiliate.commissionRate) : 0;
+    const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
+    const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
 
     await prisma.instructeurProfile.update({
@@ -150,9 +151,11 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         instructeurId: f.instructeurId,
         shopId: f.shopId ?? null,
       },
-    }).catch((e) => console.warn("[fulfillment platformRevenue]", e));
+    });
 
     if (affiliate && affAmount > 0) {
+      // Commission stays PENDING for 14 days (refund window).
+      // pendingEarnings is NOT credited now — a cron job will approve after the hold period.
       await prisma.affiliateCommission.create({
         data: {
           affiliateId: affiliate.profileId,
@@ -166,7 +169,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       }).catch((e) => console.warn("[fulfillment affiliateCommission]", e));
       await prisma.affiliateProfile.update({
         where: { id: affiliate.profileId },
-        data: { totalConversions: { increment: 1 }, pendingEarnings: { increment: affAmount } },
+        data: { totalConversions: { increment: 1 } },
       }).catch((e) => console.warn("[fulfillment affiliateProfile]", e));
     }
 
@@ -186,7 +189,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     });
 
     const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-    const affAmount = affiliate ? Math.round(finalPrice * affiliate.commissionRate) : 0;
+    const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
+    const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
 
     await prisma.instructeurProfile.update({
@@ -213,9 +217,10 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         instructeurId: p.instructeurId,
         shopId: p.shopId ?? null,
       },
-    }).catch((e) => console.warn("[fulfillment platformRevenue product]", e));
+    });
 
     if (affiliate && affAmount > 0) {
+      // Commission stays PENDING for 14 days (refund window). No pendingEarnings credit yet.
       await prisma.affiliateCommission.create({
         data: {
           affiliateId: affiliate.profileId,
@@ -226,11 +231,11 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           commissionAmount: affAmount,
           status: "PENDING",
         },
-      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+      }).catch((e) => console.error("[fulfillment affiliateCommission product]", e?.message ?? e));
       await prisma.affiliateProfile.update({
         where: { id: affiliate.profileId },
-        data: { totalConversions: { increment: 1 }, pendingEarnings: { increment: affAmount } },
-      }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+        data: { totalConversions: { increment: 1 } },
+      }).catch((e) => console.error("[fulfillment affiliateProfile product]", e?.message ?? e));
     }
 
     createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
@@ -386,6 +391,19 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       }).catch(() => null);
     }
   } catch { /* ne jamais bloquer sur webhook */ }
+
+  // Mark abandoned carts as converted now that purchase completed
+  if (createdEnrollments.length + createdPurchases.length > 0) {
+    await prisma.abandonedCart.updateMany({
+      where: { userId, status: { in: ["DETECTE", "RELANCE_1", "RELANCE_2", "RELANCE_3"] } },
+      data: { status: "CONVERTI" },
+    }).catch(() => null);
+    // Mark checkout attempts as recovered
+    await prisma.checkoutAttempt.updateMany({
+      where: { userId, status: { in: ["FAILED", "ABANDONED"] } },
+      data: { status: "RECOVERED", recoveredAt: new Date() },
+    }).catch(() => null);
+  }
 
   return {
     success: true,

@@ -42,7 +42,7 @@ export default function CGUPage() {
           <div>
             <h2 className="text-lg font-bold mb-2">4. Commission de la Plateforme</h2>
             <p className="text-[#5c647a]">
-              Novakou prélève une commission de <strong>5 %</strong> sur chaque vente réalisée. Le vendeur conserve <strong>95 %</strong> des revenus nets. Cette commission couvre les frais de paiement, l&apos;hébergement et l&apos;assistance.
+              Novakou prélève une commission de <strong>10 %</strong> sur chaque vente réalisée. Le vendeur conserve <strong>90 %</strong> des revenus nets. Cette commission couvre les frais de paiement, l&apos;hébergement et l&apos;assistance.
             </p>
           </div>
 

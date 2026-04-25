@@ -205,7 +205,7 @@ export async function PATCH(request: Request, { params }: Params) {
         if (booking.status !== "CONFIRMED")
           return NextResponse.json({ error: "Seules les séances confirmées peuvent être marquées terminées" }, { status: 400 });
 
-        // Commission split (like formations/products): 5% platform, 95% vendor
+        // Commission split (like formations/products): 10% platform, 90% vendor
         const commissionAmount = Math.round(booking.paidAmount * PLATFORM_COMMISSION_RATE);
         const vendorAmount = booking.paidAmount - commissionAmount;
 

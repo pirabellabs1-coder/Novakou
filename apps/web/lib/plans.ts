@@ -26,7 +26,7 @@ export const PLAN_RULES = {
     name: "Ascension",
     nameEn: "Ascension",
     commissionType: "percentage" as const,
-    commissionValue: 5, // 5%
+    commissionValue: 10, // 10%
     priceMonthly: 15,
     priceAnnual: 135, // 15 × 12 × 0.75
     serviceLimit: 15,
@@ -62,7 +62,7 @@ export const PLAN_RULES = {
     name: "Agence Starter",
     nameEn: "Agency Starter",
     commissionType: "percentage" as const,
-    commissionValue: 5, // 5%
+    commissionValue: 10, // 10%
     priceMonthly: 20,
     priceAnnual: 180, // 20 × 12 × 0.75
     serviceLimit: Infinity,
@@ -146,7 +146,7 @@ export const PLAN_FEATURES: Record<PlanName, string[]> = {
   ASCENSION: [
     "15 services actifs",
     "30 candidatures/mois",
-    "Commission 5%",
+    "Commission 10%",
     "3 boosts/mois",
     "3 scénarios automatisés",
     "Statistiques avancées",
@@ -165,7 +165,7 @@ export const PLAN_FEATURES: Record<PlanName, string[]> = {
   AGENCE_STARTER: [
     "Services illimités",
     "Candidatures illimitées",
-    "Commission 5%",
+    "Commission 10%",
     "5 boosts/mois",
     "Jusqu'à 5 membres",
     "CRM clients",

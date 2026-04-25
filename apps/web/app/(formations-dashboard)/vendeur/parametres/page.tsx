@@ -422,7 +422,7 @@ export default function ParamaetresPage() {
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#5c647a]">FCFA</span>
                     </div>
                     <p className="text-xs text-[#5c647a] mt-1">
-                      ≈ {Math.round(Number(tarifSession) / 655.957)} € · Vous recevez {Math.round(Number(tarifSession) * 0.85).toLocaleString("fr-FR")} FCFA (15% commission)
+                      ≈ {Math.round(Number(tarifSession) / 655.957)} € · Vous recevez {Math.round(Number(tarifSession) * 0.90).toLocaleString("fr-FR")} FCFA (10% commission)
                     </p>
                   </div>
                   <div>

@@ -90,7 +90,7 @@ export async function GET() {
     });
 
     // ── Stats alignees avec la semantique escrow (meme source que /api/formations/wallet) ──
-    // Gains nets (95%) = sessions RELEASED uniquement (argent reellement acquis)
+    // Gains nets (90%) = sessions RELEASED uniquement (argent reellement acquis)
     // En attente      = sessions HELD (payees mais pas encore liberees)
     // En dispute      = sessions DISPUTED (bloquees par admin)
     const allBookings = await prisma.mentorBooking.findMany({

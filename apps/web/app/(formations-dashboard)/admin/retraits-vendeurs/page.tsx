@@ -213,6 +213,44 @@ export default function AdminRetraitsVendeursPage() {
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
   });
 
+  const retryMut = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/formations/admin/withdrawals/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "retry" }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return j;
+    },
+    onSuccess: () => {
+      setToast("Payout relancé via Moneroo");
+      qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
+      setTimeout(() => setToast(null), 4000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
+  const rejectMut = useMutation({
+    mutationFn: async (args: { id: string; refusedReason: string }) => {
+      const res = await fetch(`/api/formations/admin/withdrawals/${args.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reject", refusedReason: args.refusedReason }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return j;
+    },
+    onSuccess: () => {
+      setToast("Retrait refusé — fonds débloqués");
+      qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (e: Error) => setToast(`Erreur : ${e.message}`),
+  });
+
   async function handleApproveMoneroo(w: Withdrawal) {
     const ok = await confirmAction({
       title: `Payer ${fmtFCFA(w.amount)} FCFA via Moneroo ?`,
@@ -245,6 +283,43 @@ export default function AdminRetraitsVendeursPage() {
       return;
     }
     refuseMut.mutate({ id: w.id, refusedReason: reason.trim() });
+  }
+
+  async function handleRetry(w: Withdrawal) {
+    const ok = await confirmAction({
+      title: `Relancer le payout de ${fmtFCFA(w.amount)} FCFA ?`,
+      message: `Le payout précédent a échoué. Moneroo sera rappelé pour ${w.user.name ?? w.user.email}.`,
+      confirmLabel: "Relancer",
+      confirmVariant: "default",
+      icon: "refresh",
+    });
+    if (ok) retryMut.mutate(w.id);
+  }
+
+  async function handleReject(w: Withdrawal) {
+    const reason = window.prompt(
+      `Motif de refus pour ${w.user.name ?? w.user.email} (les fonds seront débloqués) :`,
+      "",
+    );
+    if (!reason || reason.trim().length < 5) {
+      if (reason !== null) setToast("Motif requis (5 caractères minimum)");
+      return;
+    }
+    rejectMut.mutate({ id: w.id, refusedReason: reason.trim() });
+  }
+
+  function getRetryCount(w: Withdrawal): number {
+    const d = w.accountDetails || {};
+    return typeof d._retryCount === "number" ? d._retryCount : 0;
+  }
+
+  function classifyError(msg: string | null): "insufficient_funds" | "validation" | "network" | "unknown" {
+    if (!msg) return "unknown";
+    const lower = msg.toLowerCase();
+    if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("solde")) return "insufficient_funds";
+    if (lower.includes("invalid") || lower.includes("validation") || lower.includes("msisdn") || lower.includes("recipient")) return "validation";
+    if (lower.includes("timeout") || lower.includes("network") || lower.includes("fetch")) return "network";
+    return "unknown";
   }
 
   function renderAccountInfo(w: Withdrawal) {
@@ -539,15 +614,44 @@ export default function AdminRetraitsVendeursPage() {
                     </div>
                   </div>
 
-                  {w.status === "REFUSE" && w.refusedReason && (
-                    <div className="mt-4 border-l-4 border-rose-200 pl-4 py-2 bg-rose-50">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-rose-700 mb-1">Motif de refus</p>
-                      <p className="text-sm text-rose-900">{w.refusedReason}</p>
-                      {w.errorMessage && (
-                        <p className="text-[10px] text-rose-600 mt-1 font-mono">Erreur Moneroo : {w.errorMessage}</p>
-                      )}
-                    </div>
-                  )}
+                  {w.status === "REFUSE" && (w.refusedReason || w.errorMessage) && (() => {
+                    const errCat = classifyError(w.errorMessage);
+                    const retries = getRetryCount(w);
+                    const canRetry = retries < 3 && w.errorMessage;
+                    return (
+                      <div className={`mt-4 border-l-4 pl-4 py-3 ${errCat === "insufficient_funds" ? "border-red-300 bg-red-50" : errCat === "validation" ? "border-orange-300 bg-orange-50" : "border-rose-200 bg-rose-50"}`}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-rose-700 mb-1">
+                          {errCat === "insufficient_funds" ? "Solde Moneroo insuffisant" : errCat === "validation" ? "Erreur de validation" : "Motif de refus"}
+                        </p>
+                        {w.refusedReason && <p className="text-sm text-rose-900">{w.refusedReason}</p>}
+                        {w.errorMessage && (
+                          <p className="text-[10px] text-rose-600 mt-1 font-mono">Erreur Moneroo : {w.errorMessage}</p>
+                        )}
+                        {errCat === "insufficient_funds" && (
+                          <p className="text-xs text-red-700 mt-2 font-semibold">Rechargez votre compte Moneroo puis relancez le payout.</p>
+                        )}
+                        {errCat === "validation" && (
+                          <p className="text-xs text-orange-700 mt-2 font-semibold">Vérifiez le numéro du bénéficiaire avant de relancer.</p>
+                        )}
+                        <div className="flex items-center gap-2 mt-3">
+                          {canRetry ? (
+                            <button
+                              onClick={() => handleRetry(w)}
+                              disabled={retryMut.isPending}
+                              className="px-3 py-1.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">refresh</span>
+                              Relancer ({3 - retries} essais restants)
+                            </button>
+                          ) : retries >= 3 ? (
+                            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                              3/3 tentatives épuisées — contactez le support Moneroo
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {w.status === "EN_ATTENTE" && w.errorMessage && (
                     <div className="mt-4 border-l-4 border-amber-200 pl-4 py-2 bg-amber-50">
