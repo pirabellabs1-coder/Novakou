@@ -62,9 +62,9 @@ export function emailLayout(content: string): string {
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 4px 6px rgba(0,0,0,0.05);">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
-      <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">LA PLATEFORME FREELANCE</p>
+    <div style="background:#ffffff;padding:24px 40px;text-align:center;border-bottom:1px solid #e5e7eb;">
+      <img src="${getAppUrl()}/apple-icon" alt="Novakou" width="56" height="56" style="display:inline-block;border-radius:12px;vertical-align:middle;" />
+      <span style="display:inline-block;vertical-align:middle;margin-left:12px;color:#111827;font-size:22px;font-weight:800;letter-spacing:-0.5px;">Novakou</span>
     </div>
     <!-- Content -->
     <div style="padding:40px;">

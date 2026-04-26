@@ -20,12 +20,9 @@ function emailLayout(content: string, lang: "fr" | "en" = "fr", variant: "defaul
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:720px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;margin-top:40px;margin-bottom:40px;box-shadow:0 8px 24px rgba(0,110,47,0.12);">
     <!-- Header -->
-    <div style="background:${headerBg};padding:40px 40px 32px;text-align:center;">
-      <div style="display:inline-block;width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,0.15);padding:14px;margin:0 auto 12px;">
-        <div style="width:28px;height:28px;border-radius:8px;background:#ffffff;text-align:center;line-height:28px;color:#006e2f;font-weight:900;font-size:18px;">N</div>
-      </div>
-      <h1 style="color:#ffffff;font-size:26px;font-weight:800;margin:0;letter-spacing:-0.5px;">Novakou</h1>
-      <p style="color:rgba(255,255,255,0.85);font-size:11px;margin:6px 0 0;letter-spacing:2px;font-weight:600;">LA PLATEFORME DES CRÉATEURS</p>
+    <div style="background:#ffffff;padding:28px 40px;text-align:center;border-bottom:1px solid #e5e7eb;">
+      <img src="${APP_URL}/apple-icon" alt="Novakou" width="56" height="56" style="display:inline-block;border-radius:12px;vertical-align:middle;" />
+      <span style="display:inline-block;vertical-align:middle;margin-left:12px;color:#111827;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Novakou</span>
     </div>
     <!-- Content -->
     <div style="padding:40px;">
