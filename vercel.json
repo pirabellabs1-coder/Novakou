@@ -52,7 +52,7 @@
     },
     {
       "path": "/api/marketing/sequences/process",
-      "schedule": "0 * * * *"
+      "schedule": "0 7 * * *"
     },
     {
       "path": "/api/cron/affiliate-payout",
