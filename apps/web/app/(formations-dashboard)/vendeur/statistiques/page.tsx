@@ -20,6 +20,7 @@ import {
   Legend,
 } from "recharts";
 import { countryToFlag, countryName } from "@/lib/tracking/geo";
+import { Flag } from "@/components/ui/Flag";
 
 type Period = "7d" | "30d" | "90d" | "12m" | "all";
 
@@ -185,7 +186,7 @@ export default function StatistiquesPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
         <Kpi
           label="Revenus bruts"
           value={overview ? `${formatFCFA(overview.revenue)} FCFA` : "—"}
@@ -340,8 +341,10 @@ export default function StatistiquesPage() {
                       {countryRows.map((row) => (
                         <tr key={row.country} className="border-t border-gray-100">
                           <td className="py-2 font-semibold text-[#191c1e]">
-                            <span className="mr-1.5">{countryToFlag(row.country)}</span>
-                            {countryName(row.country)}
+                            <span className="inline-flex items-center gap-1.5">
+                              <Flag code={row.country} size="sm" />
+                              {countryName(row.country)}
+                            </span>
                           </td>
                           <td className="py-2 text-right text-[#191c1e]">{row.views.toLocaleString("fr-FR")}</td>
                           <td className="py-2 text-right text-[#191c1e]">{row.sales.toLocaleString("fr-FR")}</td>

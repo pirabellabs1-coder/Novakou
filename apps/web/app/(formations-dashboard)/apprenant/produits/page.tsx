@@ -5,6 +5,14 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReviewModal } from "@/components/formations/ReviewModal";
 
+type ProductFileLite = {
+  id: string;
+  name: string;
+  url: string;
+  size: number | null;
+  mimeType: string | null;
+};
+
 type Purchase = {
   id: string;
   paidAmount: number;
@@ -18,6 +26,7 @@ type Purchase = {
     banner: string | null;
     fileSize: number | null;
     fileUrl: string | null;
+    files?: ProductFileLite[];
     instructeurId: string | null;
     reviews?: { id: string; rating: number; comment: string }[];
   };
@@ -71,8 +80,17 @@ export default function ProduitsPage() {
   const downloadedCount = purchases.filter((p) => p.downloadCount > 0 || downloaded.has(p.id)).length;
 
   const handleDownload = (p: Purchase) => {
-    if (p.product?.fileUrl) {
-      window.open(p.product.fileUrl, "_blank");
+    const files = p.product?.files ?? [];
+    if (files.length > 1) {
+      // Multi-file: open each in a new tab. Browsers may pop-up-block beyond
+      // the first; users can retry from the expanded list rendered below.
+      files.forEach((f) => window.open(f.url, "_blank"));
+      setDownloaded((prev) => new Set([...prev, p.id]));
+      return;
+    }
+    const single = files[0]?.url ?? p.product?.fileUrl;
+    if (single) {
+      window.open(single, "_blank");
       setDownloaded((prev) => new Set([...prev, p.id]));
     } else {
       useToastStore.getState().addToast("error", "Fichier non disponible pour ce produit. Contactez le vendeur.");
@@ -91,7 +109,7 @@ export default function ProduitsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
           { icon: "inventory_2",    bg: "bg-amber-50",        color: "text-amber-600",    label: "Total produits",  value: isLoading ? "…" : String(purchases.length) },
           { icon: "download_done",  bg: "bg-green-50",        color: "text-[#006e2f]",    label: "Téléchargés",     value: isLoading ? "…" : String(downloadedCount) },
@@ -141,8 +159,12 @@ export default function ProduitsPage() {
             const icon = typeIcons[type] ?? "inventory_2";
             const purchaseDate = new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
+            const productFiles = p.product?.files ?? [];
+            const fileCount = productFiles.length;
+
             return (
-              <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex gap-4">
+              <div key={p.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                <div className="flex gap-4">
                 <div className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}>
                   <span className="material-symbols-outlined text-white text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
@@ -155,10 +177,15 @@ export default function ProduitsPage() {
                     {isDown && (
                       <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700 flex-shrink-0">Téléchargé</span>
                     )}
+                    {fileCount > 1 && (
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 flex-shrink-0">
+                        {fileCount} fichiers
+                      </span>
+                    )}
                   </div>
                   <h3 className="font-bold text-[#191c1e] text-sm leading-snug mb-1">{p.product?.title ?? "Produit"}</h3>
                   <div className="flex items-center gap-3 text-[10px] text-[#5c647a] flex-wrap">
-                    {p.product?.fileSize != null && (
+                    {p.product?.fileSize != null && fileCount <= 1 && (
                       <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[11px]">folder</span>
                         {p.product.fileSize > 1_000_000
@@ -201,6 +228,36 @@ export default function ProduitsPage() {
                     );
                   })()}
                 </div>
+                </div>
+                {fileCount > 1 && (
+                  <ul className="mt-4 pt-4 border-t border-gray-100 space-y-1.5">
+                    {productFiles.map((f) => (
+                      <li key={f.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                        <span className="material-symbols-outlined text-[16px] text-[#006e2f] flex-shrink-0">
+                          {f.mimeType?.startsWith("audio/") ? "audio_file"
+                            : f.mimeType?.startsWith("video/") ? "video_file"
+                            : f.mimeType === "application/pdf" || /\.pdf$/i.test(f.name) ? "picture_as_pdf"
+                            : /\.(zip|rar|7z)$/i.test(f.name) ? "folder_zip"
+                            : "draft"}
+                        </span>
+                        <span className="flex-1 text-xs text-[#191c1e] truncate">{f.name}</span>
+                        {f.size != null && f.size > 0 && (
+                          <span className="text-[10px] text-[#5c647a] tabular-nums flex-shrink-0">
+                            {f.size > 1_000_000 ? `${(f.size / 1_000_000).toFixed(1)} Mo` : `${Math.round(f.size / 1000)} Ko`}
+                          </span>
+                        )}
+                        <a
+                          href={f.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] hover:underline flex-shrink-0"
+                        >
+                          Télécharger →
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             );
           })}

@@ -105,6 +105,10 @@ export async function POST(request: Request) {
               shopId: true,
               productType: true,
               fileUrl: true,
+              files: {
+                orderBy: { order: "asc" },
+                select: { name: true, url: true },
+              },
               instructeur: {
                 select: {
                   user: { select: { id: true, email: true, name: true } },
@@ -509,12 +513,14 @@ export async function POST(request: Request) {
         const created = createdPurchases.find((q) => q.title === p.title);
         if (!created) continue;
 
-        const downloadUrl = p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
+        const downloadUrl =
+          p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
         await sendDigitalProductDeliveryEmail({
           email: user.email,
           name: fName,
           productTitle: p.title,
           downloadUrl,
+          files: Array.isArray(p.files) && p.files.length > 0 ? p.files : undefined,
           locale: "fr",
         }).catch((err) => console.warn("[email product]", err));
 

@@ -131,7 +131,7 @@ export default function CampagnesPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Liens actifs", value: campaigns.filter((c) => c.isActive).length, icon: "link", color: "text-teal-600", bg: "bg-teal-50" },
           { label: "Clics totaux", value: totalClicks.toLocaleString("fr-FR"), icon: "ads_click", color: "text-blue-600", bg: "bg-blue-50" },

@@ -20,10 +20,13 @@ export async function getOrCreateInstructeur(userId: string) {
       update: {}, // No-op update, just to make it idempotent
     });
 
-    // Also align the user's formationsRole — best effort, non-blocking
+    // Align formationsRole only when unset — never overwrite an existing
+    // role like "mentor" or "apprenant". A mentor visiting a vendor API
+    // (e.g. domain settings) gets an instructeurProfile auto-created but
+    // keeps their primary role for sidebar/RoleGuard purposes.
     prisma.user
-      .update({
-        where: { id: userId },
+      .updateMany({
+        where: { id: userId, OR: [{ formationsRole: null }, { formationsRole: "" }] },
         data: { formationsRole: "instructeur" },
       })
       .catch(() => null);

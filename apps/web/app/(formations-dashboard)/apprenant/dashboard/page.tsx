@@ -204,8 +204,8 @@ export default function ApprenantDashboardPage() {
       {/* Stats rapides */}
       <section className="mb-8">
         <h2 className="text-base font-bold text-[#191c1e] mb-4">Vos statistiques</h2>
-        {isLoading ? <div className="grid grid-cols-2 lg:grid-cols-4 gap-3"><SkeletonBlock className="h-28" /><SkeletonBlock className="h-28" /><SkeletonBlock className="h-28" /><SkeletonBlock className="h-28" /></div> : (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {isLoading ? <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3"><SkeletonBlock className="h-28" /><SkeletonBlock className="h-28" /><SkeletonBlock className="h-28" /><SkeletonBlock className="h-28" /></div> : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
             {[
               { icon: "play_circle",        iconColor: "text-blue-500",     bg: "bg-blue-50",         label: "Formations",       value: String(stats.totalEnrollments ?? 0),  sub: "acquises" },
               { icon: "check_circle",       iconColor: "text-[#006e2f]",    bg: "bg-[#006e2f]/10",    label: "Terminées",        value: String(stats.completed ?? 0),         sub: "formations" },

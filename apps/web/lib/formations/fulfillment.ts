@@ -24,6 +24,7 @@ import {
 } from "@/lib/email/formations";
 import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
 import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
+import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 
 export interface FulfillParams {
   userId: string;
@@ -75,6 +76,10 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             id: true, slug: true, title: true, price: true, productType: true, fileUrl: true,
             instructeurId: true, shopId: true,
             instructeur: { select: { user: { select: { id: true, email: true, name: true } } } },
+            files: {
+              orderBy: { order: "asc" },
+              select: { name: true, url: true },
+            },
           },
         })
       : Promise.resolve([]),
@@ -174,6 +179,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     }
 
     createdEnrollments.push({ id: enrollment.id, title: f.title, price: finalPrice });
+
+    // Trigger marketing automation hooks (séquences email, workflows…) — non bloquant
+    onFormationPurchase(userId, f.id, finalPrice, {
+      formationTitle: f.title,
+      paymentRef: sessionRef,
+    }).catch((e) => console.warn("[fulfillment hook formation]", e?.message ?? e));
   }
 
   // ── Produits digitaux ───────────────────────────────────────────────
@@ -239,6 +250,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     }
 
     createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
+
+    // Trigger marketing automation hooks — non bloquant
+    onProductPurchase(userId, p.id, finalPrice, {
+      productTitle: p.title,
+      paymentRef: sessionRef,
+    }).catch((e) => console.warn("[fulfillment hook product]", e?.message ?? e));
   }
 
   // ── Usage du code promo ─────────────────────────────────────────────
@@ -332,12 +349,14 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   for (const p of products) {
     const created = createdPurchases.find((q) => q.title === p.title);
     if (!created) continue;
-    const downloadUrl = p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
+    const downloadUrl =
+      p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
     sendDigitalProductDeliveryEmail({
       email: user.email,
       name: fName,
       productTitle: p.title,
       downloadUrl,
+      files: Array.isArray(p.files) && p.files.length > 0 ? p.files : undefined,
       locale: "fr",
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
 

@@ -124,7 +124,7 @@ export default function PopupsPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
           { label: "Popups actifs", value: popups.filter((p) => p.isActive).length, icon: "ads_click", color: "text-pink-500", bg: "bg-pink-50" },
           { label: "Impressions totales", value: totalImpressions.toLocaleString("fr-FR"), icon: "visibility", color: "text-blue-600", bg: "bg-blue-50" },

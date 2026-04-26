@@ -171,7 +171,7 @@ export default function MentorApprenantsPage() {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
           <div className="bg-white rounded-2xl border border-gray-100 p-4">
             <p className="text-xs text-[#5c647a] font-medium">Total apprenants</p>
             <p className="text-2xl font-extrabold text-[#006e2f] mt-1">{students.length}</p>

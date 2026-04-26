@@ -18,7 +18,8 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { countryToFlag, countryName } from "@/lib/tracking/geo";
+import { countryName } from "@/lib/tracking/geo";
+import { Flag } from "@/components/ui/Flag";
 
 type Dashboard = {
   kpis: {
@@ -262,7 +263,7 @@ export default function VendeurDashboard() {
         )}
 
         {/* KPI grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
           <KpiCard
             label="Revenus nets"
             value={isLoading ? "…" : formatFCFA(d?.kpis.netRevenue ?? 0)}
@@ -491,7 +492,7 @@ export default function VendeurDashboard() {
                     <div key={tc.country} className="group">
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-base leading-none">{countryToFlag(tc.country)}</span>
+                          <Flag code={tc.country} size="md" />
                           <span className="text-xs font-bold text-slate-900 truncate">{countryName(tc.country)}</span>
                           <span className="text-[10px] text-slate-400 uppercase tracking-wider">{tc.sales}</span>
                         </div>

@@ -71,7 +71,8 @@ export async function POST(request: Request) {
       thumbnail,
       publish,
       modules, // For formations: [{ title, lessons: [{ title, duration }] }]
-      fileUrl, // For digital products: URL of the downloadable file
+      fileUrl, // For digital products: backward-compat single-file URL
+      files, // For digital products: [{ name, url, size?, mimeType? }]
     } = body;
 
     if (!kind || !title || price === undefined || price === null) {
@@ -169,6 +170,28 @@ export async function POST(request: Request) {
         ? (productType as DigitalProductType)
         : "EBOOK";
 
+      const safeFiles = Array.isArray(files)
+        ? (files as unknown[])
+            .filter((f): f is { name?: string; url: string; size?: number; mimeType?: string } =>
+              !!f && typeof f === "object" && typeof (f as { url?: unknown }).url === "string" && !!(f as { url?: string }).url,
+            )
+            .slice(0, 50)
+            .map((f, idx) => ({
+              name: typeof f.name === "string" && f.name.trim() ? f.name.trim() : `fichier-${idx + 1}`,
+              url: f.url.trim(),
+              size: typeof f.size === "number" ? f.size : null,
+              mimeType: typeof f.mimeType === "string" ? f.mimeType : null,
+              order: idx,
+            }))
+        : [];
+
+      // Backward-compat: if no `files` array but legacy `fileUrl` is provided, seed one row.
+      const filesToCreate = safeFiles.length > 0
+        ? safeFiles
+        : (typeof fileUrl === "string" && fileUrl.trim()
+            ? [{ name: fileUrl.split("/").pop() ?? "fichier", url: fileUrl.trim(), size: null, mimeType: null, order: 0 }]
+            : []);
+
       const product = await prisma.digitalProduct.create({
         data: {
           slug,
@@ -177,13 +200,14 @@ export async function POST(request: Request) {
           productType: type,
           categoryId: cat.id,
           banner: thumbnail || null,
-          fileUrl: fileUrl?.trim() || null,
+          fileUrl: filesToCreate[0]?.url ?? null,
           price: parseFloat(price),
           originalPrice: originalPrice ? parseFloat(originalPrice) : null,
           isFree: parseFloat(price) === 0,
           status: publish ? "ACTIF" : "BROUILLON",
           instructeurId: profile.id,
           shopId: activeShopId,
+          ...(filesToCreate.length > 0 ? { files: { create: filesToCreate } } : {}),
         },
       });
 

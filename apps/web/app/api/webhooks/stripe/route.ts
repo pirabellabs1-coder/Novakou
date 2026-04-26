@@ -590,6 +590,10 @@ async function handleDigitalProductCheckout(session: Stripe.Checkout.Session) {
       instructeur: {
         include: { user: { select: { email: true, name: true } } },
       },
+      files: {
+        orderBy: { order: "asc" },
+        select: { name: true, url: true },
+      },
     },
   });
 
@@ -697,12 +701,16 @@ async function handleDigitalProductCheckout(session: Stripe.Checkout.Session) {
         locale: "fr",
       }).catch((err) => console.error("[Email] sendLicenseKeyEmail:", err));
     } else {
-      // Standard digital product — send delivery email
+      // Standard digital product — send delivery email with all attached files.
       sendDigitalProductDeliveryEmail({
         email: buyer.email,
         name: buyer.name ?? "Utilisateur",
         productTitle: product.title,
         downloadUrl,
+        files:
+          Array.isArray(product.files) && product.files.length > 0
+            ? product.files
+            : undefined,
         locale: "fr",
       }).catch((err) => console.error("[Email] sendDigitalProductDeliveryEmail:", err));
     }

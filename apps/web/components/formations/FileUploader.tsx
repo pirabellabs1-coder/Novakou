@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 type UploadedFile = {
   name: string;
@@ -40,6 +40,20 @@ export function FileUploader({ value, onChange, productType = "PDF", accept }: P
 
   const config = TYPE_CONFIG[productType] ?? TYPE_CONFIG.AUTRE;
   const acceptAttr = accept ?? config.accept;
+
+  // Sync uploaded preview when `value` prop arrives from parent (e.g. data loaded
+  // after mount in an edit page). Without this the UI shows the empty drop zone
+  // even when a file is already attached in DB.
+  useEffect(() => {
+    if (value && (!uploaded || uploaded.url !== value)) {
+      const fileName =
+        decodeURIComponent(value.split("?")[0].split("/").pop() ?? "fichier") ||
+        "fichier";
+      setUploaded({ name: fileName, size: 0, url: value });
+    } else if (!value && uploaded) {
+      setUploaded(null);
+    }
+  }, [value, uploaded]);
 
   const handleFile = useCallback(async (file: File) => {
     setError(null);
@@ -100,9 +114,11 @@ export function FileUploader({ value, onChange, productType = "PDF", accept }: P
             <div className="flex-1 min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">Fichier uploadé</p>
               <p className="text-sm font-bold text-zinc-900 truncate">{uploaded.name}</p>
-              <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
-                {formatSize(uploaded.size)}
-              </p>
+              {uploaded.size > 0 && (
+                <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest mt-1">
+                  {formatSize(uploaded.size)}
+                </p>
+              )}
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <a

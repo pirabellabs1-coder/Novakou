@@ -231,7 +231,7 @@ export default function AutomationsPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
           { label: "Workflows actifs", value: activeWorkflows, icon: "bolt", color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
           { label: "Séquences actives", value: activeSequences, icon: "mark_email_read", color: "text-orange-500", bg: "bg-orange-50" },
@@ -247,24 +247,26 @@ export default function AutomationsPage() {
         ))}
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
-        {([
-          { value: "workflows", label: "Workflows", icon: "bolt" },
-          { value: "sequences", label: "Séquences email", icon: "mark_email_read" },
-          { value: "integrations", label: "Intégrations", icon: "hub" },
-        ] as const).map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-              activeTab === tab.value ? "bg-white text-[#191c1e] shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
-            }`}
-          >
-            <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
+      {/* Tabs — horizontally scrollable on mobile so all 3 stay reachable */}
+      <div className="-mx-1 mb-6 overflow-x-auto">
+        <div className="inline-flex gap-1 bg-gray-100 p-1 rounded-xl mx-1">
+          {([
+            { value: "workflows", label: "Workflows", icon: "bolt" },
+            { value: "sequences", label: "Séquences email", icon: "mark_email_read" },
+            { value: "integrations", label: "Intégrations", icon: "hub" },
+          ] as const).map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
+                activeTab === tab.value ? "bg-white text-[#191c1e] shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Workflows tab */}

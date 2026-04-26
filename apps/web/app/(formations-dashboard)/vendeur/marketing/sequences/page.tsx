@@ -95,7 +95,7 @@ export default function SequencesPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
           { label: "Séquences actives", value: activeCount, icon: "mark_email_read", color: "text-orange-500", bg: "bg-orange-50" },
           { label: "Abonnés totaux", value: totalEnrolled.toLocaleString("fr-FR"), icon: "group", color: "text-blue-600", bg: "bg-blue-50" },

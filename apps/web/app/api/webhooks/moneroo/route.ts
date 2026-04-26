@@ -20,6 +20,7 @@ import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 import { rateLimit } from "@/lib/api-rate-limit";
+import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
 
 /**
  * Vérifie la signature HMAC Moneroo sur le body brut.
@@ -349,10 +350,114 @@ export async function POST(req: Request) {
         },
       }).catch(() => null);
 
+      // Grant access — auto-create Enrollment / DigitalProductPurchase rows
+      // for every linked formation/product so the buyer can access content
+      // immediately. We tag stripeSessionId with `sub_<subId>` so a future
+      // expiration cron can identify subscription-granted enrollments and
+      // revoke them when the subscription ends.
+      const subTag = `sub_${sub.id}`;
+      for (const fid of plan.linkedFormationIds) {
+        await prisma.enrollment.upsert({
+          where: { userId_formationId: { userId, formationId: fid } },
+          create: { userId, formationId: fid, paidAmount: 0, stripeSessionId: subTag },
+          update: {}, // existing enrollment kept untouched
+        }).catch((e) => console.warn("[moneroo subscription enroll]", fid, e?.message ?? e));
+      }
+      for (const pid of plan.linkedProductIds) {
+        await prisma.digitalProductPurchase.upsert({
+          where: { userId_productId: { userId, productId: pid } },
+          create: { userId, productId: pid, paidAmount: 0, stripeSessionId: subTag },
+          update: {},
+        }).catch((e) => console.warn("[moneroo subscription purchase]", pid, e?.message ?? e));
+      }
+
       return NextResponse.json({ ok: true, subscription: sub.id, type });
     } catch (err) {
       console.error("[moneroo webhook subscription_initial/renewal]", err);
       return NextResponse.json({ error: "Subscription fulfillment failed" }, { status: 500 });
+    }
+  }
+
+  // Achat d'un Bundle (multi-items à prix groupé)
+  if (type === "bundle_purchase") {
+    const userId = String(metadata.userId ?? "");
+    const bundleId = String(metadata.bundleId ?? "");
+
+    if (!userId || !bundleId) {
+      return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
+    }
+
+    try {
+      const bundle = await prisma.productBundle.findUnique({
+        where: { id: bundleId },
+        include: { items: true, instructeur: { include: { user: { select: { email: true, name: true } } } } },
+      });
+      if (!bundle) {
+        return NextResponse.json({ error: "Bundle introuvable" }, { status: 400 });
+      }
+
+      // Idempotence : si la purchase existe déjà pour ce paymentRef, ne pas dupliquer
+      const existing = await prisma.productBundlePurchase.findFirst({
+        where: { bundleId, userId },
+      });
+      if (existing) {
+        return NextResponse.json({ ok: true, alreadyProcessed: true });
+      }
+
+      // Créer la ProductBundlePurchase
+      const purchase = await prisma.productBundlePurchase.create({
+        data: { bundleId, userId, paidAmount: bundle.priceXof },
+      });
+
+      // Auto-enroller chaque item — tag stripeSessionId = "bundle_<id>" pour
+      // pouvoir tracer / auditer l'origine.
+      const tag = `bundle_${purchase.id}`;
+      let enrolledFormations = 0;
+      let enrolledProducts = 0;
+      for (const item of bundle.items) {
+        if (item.itemKind === "formation" && item.formationId) {
+          await prisma.enrollment.upsert({
+            where: { userId_formationId: { userId, formationId: item.formationId } },
+            create: { userId, formationId: item.formationId, paidAmount: 0, stripeSessionId: tag },
+            update: {},
+          }).catch((e) => console.warn("[moneroo bundle enroll]", item.formationId, e?.message ?? e));
+          enrolledFormations++;
+        } else if (item.itemKind === "digital" && item.productId) {
+          await prisma.digitalProductPurchase.upsert({
+            where: { userId_productId: { userId, productId: item.productId } },
+            create: { userId, productId: item.productId, paidAmount: 0, stripeSessionId: tag },
+            update: {},
+          }).catch((e) => console.warn("[moneroo bundle purchase]", item.productId, e?.message ?? e));
+          enrolledProducts++;
+        }
+      }
+
+      // Email de confirmation à l'acheteur
+      const buyer = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true },
+      });
+      if (buyer?.email) {
+        const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+        sendDigitalProductDeliveryEmail({
+          email: buyer.email,
+          name: buyer.name ?? "Acheteur",
+          productTitle: `Bundle : ${bundle.title}`,
+          downloadUrl: `${APP_URL}/apprenant/mes-formations`,
+          locale: "fr",
+        }).catch((e) => console.warn("[moneroo bundle email buyer]", e?.message ?? e));
+      }
+
+      return NextResponse.json({
+        ok: true,
+        bundleId,
+        purchaseId: purchase.id,
+        enrolledFormations,
+        enrolledProducts,
+      });
+    } catch (err) {
+      console.error("[moneroo webhook bundle_purchase]", err);
+      return NextResponse.json({ error: "Bundle fulfillment failed" }, { status: 500 });
     }
   }
 

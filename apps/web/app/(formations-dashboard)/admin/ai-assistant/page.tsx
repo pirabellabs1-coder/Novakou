@@ -635,7 +635,7 @@ REGLES :
                 </span>
               </div>
               {vendorData && typeof vendorData === "object" && "stats" in vendorData && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-2 text-center">
                   {Object.entries((vendorData as { stats: Record<string, unknown> }).stats).slice(0, 8).map(([k, v]) => (
                     <div key={k} className="bg-gray-50 rounded-xl p-2">
                       <p className="text-[10px] text-[#5c647a] uppercase">{k}</p>

@@ -710,7 +710,7 @@ function PalettePicker({ onPick, onClose, allowed }: { onPick: (key: PaletteKey)
                 <span className="material-symbols-outlined text-[#006e2f] text-[16px]">{cat.icon}</span>
                 <h3 className="text-xs font-bold text-[#5c647a] uppercase tracking-wider">{cat.label}</h3>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-2.5">
                 {cat.items.map((item) => (
                   <button key={item.key} onClick={() => onPick(item.key)}
                     className="bg-[#f7f9fb] rounded-2xl p-3 text-left hover:bg-[#006e2f]/5 hover:ring-2 hover:ring-[#006e2f]/30 transition-all group">

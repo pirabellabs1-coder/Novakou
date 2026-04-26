@@ -119,34 +119,30 @@ export default function MessagesPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-xl mx-auto px-4 h-14 flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-          </button>
-          <span className="text-sm font-bold text-[#191c1e] flex-1">
+    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8">
+      <div className="max-w-3xl mx-auto">
+        {/* ── Page header (intégré dans le shell, plus de barre fixée séparée) ─── */}
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] flex items-center gap-3">
             Messages
             {unreadCount > 0 && (
-              <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#006e2f] text-white text-[10px] font-bold">
+              <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-[#006e2f] text-white text-xs font-bold">
                 {unreadCount}
               </span>
             )}
-          </span>
+          </h1>
           <button
             onClick={() => refetch()}
-            className="text-[#5c647a] hover:text-[#191c1e]"
+            className="p-2 rounded-lg text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-100 transition-colors"
             title="Rafraîchir"
           >
-            <span className="material-symbols-outlined text-[18px]">refresh</span>
+            <span className="material-symbols-outlined text-[20px]">refresh</span>
           </button>
         </div>
-      </div>
 
-      <div className="max-w-xl mx-auto">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {/* Search */}
-        <div className="px-4 py-3 bg-white border-b border-gray-100">
+        <div className="px-4 py-3 border-b border-gray-100">
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[16px] text-[#5c647a]">
               search
@@ -162,7 +158,7 @@ export default function MessagesPage() {
         </div>
 
         {/* List */}
-        <div className="bg-white">
+        <div>
           {isLoading ? (
             <div className="divide-y divide-gray-100">
               {[1, 2, 3, 4].map((i) => (
@@ -204,6 +200,7 @@ export default function MessagesPage() {
               />
             ))
           )}
+        </div>
         </div>
       </div>
     </div>

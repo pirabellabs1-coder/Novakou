@@ -322,7 +322,7 @@ export default function MentorDashboardPage() {
       <div className="min-h-screen bg-[#f7f9fb] p-6">
         <div className="max-w-6xl mx-auto space-y-6 animate-pulse">
           <div className="h-8 w-64 bg-gray-200 rounded-xl" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-24 bg-gray-200 rounded-2xl" />
             ))}
@@ -461,7 +461,7 @@ export default function MentorDashboardPage() {
         )}
 
         {/* ── KPI Grid ─────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
           <KpiCard
             icon="payments"
             label="Revenus nets acquis"

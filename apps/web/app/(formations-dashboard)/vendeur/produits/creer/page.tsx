@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
-import { FileUploader } from "@/components/formations/FileUploader";
+import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 
 type ProductSubType = "cours_video" | "ebook" | "pdf" | "template" | "audio" | null;
 
@@ -82,7 +82,7 @@ export default function CreerProduitPage() {
   ]);
 
   // Product-specific
-  const [fileUrl, setFileUrl] = useState("");
+  const [files, setFiles] = useState<ProductFile[]>([]);
 
   const selected = productTypes.find((p) => p.value === selectedType);
   const isFormation = selected?.kind === "formation";
@@ -121,7 +121,7 @@ export default function CreerProduitPage() {
           isFree,
           publish,
           modules: isFormation ? modules.filter((m) => m.title.trim()) : undefined,
-          fileUrl: !isFormation ? fileUrl : undefined,
+          files: !isFormation ? files : undefined,
         }),
       }).then((r) => r.json()),
     onSuccess: (res) => {
@@ -453,9 +453,9 @@ export default function CreerProduitPage() {
                   </p>
                 </div>
 
-                <FileUploader
-                  value={fileUrl}
-                  onChange={setFileUrl}
+                <MultiFileUploader
+                  value={files}
+                  onChange={setFiles}
                   productType={(selected?.productType as "EBOOK" | "PDF" | "TEMPLATE" | "AUDIO") ?? "PDF"}
                 />
 
@@ -581,7 +581,7 @@ export default function CreerProduitPage() {
                               { label: "Curriculum", value: `${modules.filter((m) => m.title.trim()).length} modules · ${totalLessons} leçons · ${totalDuration} min` },
                             ]
                           : [
-                              { label: "Fichier", value: fileUrl ? "URL configurée" : "Non configuré" },
+                              { label: "Fichiers", value: files.length > 0 ? `${files.length} fichier${files.length > 1 ? "s" : ""}` : "Aucun fichier" },
                             ]),
                         { label: "Prix", value: isFree ? "Gratuit" : `${formatFCFA(price)} FCFA · ≈ ${formatFCFA(euroEquiv)} €` },
                       ].map((row) => (

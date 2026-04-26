@@ -58,7 +58,7 @@ export default function DepensesPage() {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
         {isLoading ? (
           [0,1,2,3].map((i) => <SkeletonBlock key={i} className="h-28" />)
         ) : [

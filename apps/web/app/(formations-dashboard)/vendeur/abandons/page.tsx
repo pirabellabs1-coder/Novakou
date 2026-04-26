@@ -108,7 +108,7 @@ export default function AbandonsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 mb-6">
         <StatCard label="Potentiel perdu" value={fmtFCFA(totalLost)} sub={`${(stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0)} tentatives`} color="rose" />
         <StatCard label="Récupéré" value={fmtFCFA(totalRecovered)} sub={`${stats.RECOVERED?.count ?? 0} récupérations`} color="emerald" />
         <StatCard label="Paiements réussis" value={fmtFCFA(totalCompleted)} sub={`${stats.COMPLETED?.count ?? 0} commandes`} color="blue" />

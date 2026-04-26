@@ -119,19 +119,52 @@ export async function GET(req: NextRequest) {
     if (scope === "public") {
       try {
         const prisma = (await import("@freelancehigh/db")).default;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const popups = await (prisma as any).marketingPopup.findMany({
+        const popupsRaw = await prisma.smartPopup.findMany({
           where: { isActive: true },
           select: {
-            id: true, type: true, trigger: true, triggerValue: true,
-            headlineFr: true, headlineEn: true, bodyFr: true, bodyEn: true,
-            ctaTextFr: true, ctaTextEn: true, imageBannerUrl: true,
-            discountCode: true, emailCaptureTag: true, countdownEndsAt: true,
-            upsellProductId: true, upsellOriginalPrice: true, upsellDiscountedPrice: true,
-            ctaUrl: true, showOnPages: true, excludePages: true,
-            newVisitorsOnly: true, maxShowsPerUser: true,
+            id: true,
+            popupType: true,
+            trigger: true,
+            delaySeconds: true,
+            scrollPercent: true,
+            pageViewCount: true,
+            headlineFr: true, headlineEn: true,
+            bodyFr: true, bodyEn: true,
+            ctaTextFr: true, ctaTextEn: true,
+            imageBanner: true,
+            discountCodeId: true,
+            emailListTag: true,
+            showOnPages: true,
+            excludePages: true,
+            showToNewOnly: true,
+            maxShowsPerUser: true,
           },
         });
+        // Map to the shape expected by SmartPopupRenderer
+        const popups = popupsRaw.map((p) => ({
+          id: p.id,
+          type: p.popupType,
+          trigger: p.trigger,
+          triggerValue: p.delaySeconds ?? p.scrollPercent ?? p.pageViewCount,
+          headlineFr: p.headlineFr,
+          headlineEn: p.headlineEn,
+          bodyFr: p.bodyFr,
+          bodyEn: p.bodyEn,
+          ctaTextFr: p.ctaTextFr,
+          ctaTextEn: p.ctaTextEn,
+          imageBannerUrl: p.imageBanner,
+          discountCode: null,
+          emailCaptureTag: p.emailListTag,
+          countdownEndsAt: null,
+          upsellProductId: null,
+          upsellOriginalPrice: null,
+          upsellDiscountedPrice: null,
+          ctaUrl: null,
+          showOnPages: p.showOnPages,
+          excludePages: p.excludePages,
+          newVisitorsOnly: p.showToNewOnly,
+          maxShowsPerUser: p.maxShowsPerUser,
+        }));
         return NextResponse.json({ popups });
       } catch {
         // Model may not exist yet in production schema — return empty
@@ -152,7 +185,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
     }
 
-    const popups = await prisma.marketingPopup.findMany({
+    const popups = await prisma.smartPopup.findMany({
       where: { instructeurId: instructeur.id },
       orderBy: { createdAt: "desc" },
     });
@@ -317,7 +350,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
     }
 
-    const popup = await prisma.marketingPopup.create({
+    const popup = await prisma.smartPopup.create({
       data: {
         instructeurId: instructeur.id,
         name,
@@ -393,7 +426,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
     }
 
-    const existing = await prisma.marketingPopup.findFirst({
+    const existing = await prisma.smartPopup.findFirst({
       where: { id, instructeurId: instructeur.id },
     });
     if (!existing) {
@@ -422,7 +455,7 @@ export async function PUT(req: NextRequest) {
       safeUpdates.countdownEndsAt = new Date(safeUpdates.countdownEndsAt as string);
     }
 
-    const popup = await prisma.marketingPopup.update({
+    const popup = await prisma.smartPopup.update({
       where: { id },
       data: safeUpdates,
     });
@@ -470,14 +503,14 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Instructeur non trouve" }, { status: 403 });
     }
 
-    const existing = await prisma.marketingPopup.findFirst({
+    const existing = await prisma.smartPopup.findFirst({
       where: { id, instructeurId: instructeur.id },
     });
     if (!existing) {
       return NextResponse.json({ error: "Popup non trouve" }, { status: 404 });
     }
 
-    await prisma.marketingPopup.delete({ where: { id } });
+    await prisma.smartPopup.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[DELETE /api/marketing/popups]", error);

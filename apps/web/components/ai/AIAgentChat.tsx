@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Script from "next/script";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // ─── Typage Puter ──────────────────────────────────────────────
 type PuterContentBlock = { type?: string; text?: string };
@@ -29,35 +31,75 @@ function extractText(res: PuterChatResponse): string {
   return "";
 }
 
-// ─── Mini Markdown ─────────────────────────────────────────────
-function md(text: string): React.ReactNode[] {
-  const lines = text.split("\n");
-  const nodes: React.ReactNode[] = [];
-  lines.forEach((line, i) => {
-    if (/^###\s/.test(line)) { nodes.push(<h3 key={i} className="text-base font-bold text-[#191c1e] mt-4 mb-2">{line.replace(/^###\s*/, "")}</h3>); return; }
-    if (/^##\s/.test(line)) { nodes.push(<h2 key={i} className="text-lg font-extrabold text-[#191c1e] mt-5 mb-2">{line.replace(/^##\s*/, "")}</h2>); return; }
-    if (/^[\-\*]\s/.test(line)) { nodes.push(<li key={i} className="ml-5 list-disc text-sm text-[#191c1e]">{inline(line.replace(/^[\-\*]\s*/, ""), i)}</li>); return; }
-    if (/^\d+\.\s/.test(line)) { nodes.push(<li key={i} className="ml-5 list-decimal text-sm text-[#191c1e]">{inline(line.replace(/^\d+\.\s*/, ""), i)}</li>); return; }
-    if (line.trim() === "") { nodes.push(<div key={i} className="h-2" />); return; }
-    nodes.push(<p key={i} className="text-sm text-[#191c1e] leading-relaxed">{inline(line, i)}</p>);
-  });
-  return nodes;
-}
-function inline(text: string, lineIdx: number): React.ReactNode[] {
-  const parts: React.ReactNode[] = [];
-  const re = /(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*)/g;
-  let last = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    const t = m[0];
-    if (t.startsWith("**")) parts.push(<strong key={`${lineIdx}-${m.index}`}>{t.slice(2, -2)}</strong>);
-    else if (t.startsWith("`")) parts.push(<code key={`${lineIdx}-${m.index}`} className="px-1 py-0.5 rounded bg-gray-100 text-[12px] font-mono">{t.slice(1, -1)}</code>);
-    else if (t.startsWith("*")) parts.push(<em key={`${lineIdx}-${m.index}`}>{t.slice(1, -1)}</em>);
-    last = m.index + t.length;
-  }
-  if (last < text.length) parts.push(text.slice(last));
-  return parts;
+// ─── Markdown rendering ────────────────────────────────────────
+// Uses react-markdown + remark-gfm for full GFM support (tables, links,
+// code blocks, strikethrough, task lists). The previous home-grown parser
+// silently dropped tables, leaving raw `|` characters in the response.
+function MarkdownMessage({ children }: { children: string }) {
+  return (
+    <div className="text-sm text-[#191c1e] leading-relaxed space-y-2">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={{
+          h1: ({ children }) => <h1 className="text-xl font-extrabold text-[#191c1e] mt-5 mb-2">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-lg font-extrabold text-[#191c1e] mt-5 mb-2">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-base font-bold text-[#191c1e] mt-4 mb-2">{children}</h3>,
+          p: ({ children }) => <p className="text-sm text-[#191c1e] leading-relaxed">{children}</p>,
+          ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>,
+          li: ({ children }) => <li className="text-sm text-[#191c1e] leading-relaxed">{children}</li>,
+          strong: ({ children }) => <strong className="font-bold text-[#191c1e]">{children}</strong>,
+          em: ({ children }) => <em className="italic">{children}</em>,
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#006e2f] underline underline-offset-2 hover:text-[#22c55e]"
+            >
+              {children}
+            </a>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-4 border-[#22c55e] pl-3 my-2 text-zinc-600 italic">
+              {children}
+            </blockquote>
+          ),
+          hr: () => <hr className="my-3 border-zinc-200" />,
+          // Tables — the missing feature that broke this UX
+          table: ({ children }) => (
+            <div className="my-3 overflow-x-auto rounded-lg border border-zinc-200">
+              <table className="w-full text-xs border-collapse">{children}</table>
+            </div>
+          ),
+          thead: ({ children }) => <thead className="bg-zinc-50">{children}</thead>,
+          tbody: ({ children }) => <tbody>{children}</tbody>,
+          tr: ({ children }) => <tr className="border-b border-zinc-100 last:border-0">{children}</tr>,
+          th: ({ children }) => (
+            <th className="px-3 py-2 text-left font-bold text-[#191c1e] uppercase tracking-wide text-[10px]">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => <td className="px-3 py-2 align-top text-[#191c1e]">{children}</td>,
+          // Code: distinguish inline vs fenced block via the `inline` prop
+          code: ({ className, children, ...props }) => {
+            const isBlock = /language-/.test(className ?? "") || String(children).includes("\n");
+            return isBlock ? (
+              <pre className="my-2 overflow-x-auto rounded-lg bg-zinc-900 text-emerald-300 p-3 text-[12px] leading-relaxed">
+                <code {...props}>{children}</code>
+              </pre>
+            ) : (
+              <code className="px-1 py-0.5 rounded bg-gray-100 text-[12px] font-mono text-[#191c1e]">
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {children}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 // ─── Props ─────────────────────────────────────────────────────
@@ -182,7 +224,7 @@ export default function AIAgentChat({
                 }`}
                 style={m.role === "user" ? { background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` } : {}}
               >
-                {m.role === "assistant" ? md(m.content) : m.content}
+                {m.role === "assistant" ? <MarkdownMessage>{m.content}</MarkdownMessage> : m.content}
               </div>
             </div>
           ))}

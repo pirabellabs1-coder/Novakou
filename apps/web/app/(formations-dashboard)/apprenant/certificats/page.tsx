@@ -83,7 +83,7 @@ export default function CertificatsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
           { icon: "workspace_premium", bg: "bg-purple-50",        color: "text-purple-600",    label: "Certificats obtenus",   value: isLoading ? "…" : String(certs.length) },
           { icon: "verified",          bg: "bg-[#006e2f]/10",     color: "text-[#006e2f]",     label: "Certifications valides", value: isLoading ? "…" : String(certs.length) },

@@ -95,9 +95,15 @@ export async function resolveVendorContext(
       update: {},
     });
 
-    // Align formationsRole (non-blocking)
+    // Align formationsRole only when unset — never overwrite an existing
+    // role like "mentor" or "apprenant". A mentor visiting their settings
+    // page legitimately auto-creates an instructeurProfile (so they can use
+    // domain, payments, etc.) but should keep their primary role.
     prisma.user
-      .update({ where: { id: userId }, data: { formationsRole: "instructeur" } })
+      .updateMany({
+        where: { id: userId, OR: [{ formationsRole: null }, { formationsRole: "" }] },
+        data: { formationsRole: "instructeur" },
+      })
       .catch(() => null);
 
     return { userId, instructeurId: inst.id };

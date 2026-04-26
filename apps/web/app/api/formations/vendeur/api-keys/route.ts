@@ -91,6 +91,23 @@ export async function POST(request: Request) {
     });
     if (!ctx) return NextResponse.json({ error: "Session invalide" }, { status: 401 });
 
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+
+    // Reject when no active shop is selected — would create a ghost key:
+    // verifyApiKey doesn't filter on shopId so the key would auth, but the
+    // GET listing filters by activeShopId so the vendor can never see it.
+    if (!activeShopId) {
+      return NextResponse.json(
+        {
+          error:
+            "Sélectionnez une boutique active avant de créer une clé API.",
+        },
+        { status: 400 },
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const { name, scopes, expiresInDays } = body as {
       name?: string;

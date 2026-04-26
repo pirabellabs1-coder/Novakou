@@ -18,7 +18,9 @@ type Item = {
   desc: string;
   priceFcfa: number;
   salesCount: number;
+  reviewsCount: number;
   isFree: boolean;
+  kind: "formation" | "product";
 };
 
 async function fetchBestSellers(): Promise<Item[]> {
@@ -38,6 +40,7 @@ async function fetchBestSellers(): Promise<Item[]> {
           isFree: true,
           rating: true,
           studentsCount: true,
+          reviewsCount: true,
           thumbnail: true,
           createdAt: true,
         },
@@ -54,6 +57,7 @@ async function fetchBestSellers(): Promise<Item[]> {
           isFree: true,
           rating: true,
           salesCount: true,
+          reviewsCount: true,
           banner: true,
           createdAt: true,
         },
@@ -80,7 +84,9 @@ async function fetchBestSellers(): Promise<Item[]> {
         desc: f.shortDesc || stripHtml(f.description)?.slice(0, 80) || "",
         priceFcfa: f.price,
         salesCount: f.studentsCount,
+        reviewsCount: f.reviewsCount ?? 0,
         isFree: f.isFree,
+        kind: "formation" as const,
       };
     });
 
@@ -101,7 +107,9 @@ async function fetchBestSellers(): Promise<Item[]> {
         desc: stripHtml(p.description)?.slice(0, 80) || "",
         priceFcfa: p.price,
         salesCount: p.salesCount,
+        reviewsCount: p.reviewsCount ?? 0,
         isFree: p.isFree,
+        kind: "product" as const,
       };
     });
 
@@ -182,8 +190,22 @@ export async function BestSellers() {
               )}
             </div>
             <h3 className="font-bold text-base md:text-lg mb-1 text-[#191c1e] line-clamp-2">{item.title}</h3>
-            <p className="text-sm text-[#5c647a] mb-5 line-clamp-2">{item.desc || "—"}</p>
-            <div className="flex justify-between items-center">
+            <p className="text-sm text-[#5c647a] mb-3 line-clamp-2">{item.desc || "—"}</p>
+            {/* Stats : avis à gauche, ventes à droite (justify-between pour espacer) */}
+            <div className="flex items-center justify-between text-[11px] text-[#5c647a] mb-4">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[14px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                {item.rating > 0 && item.reviewsCount >= 1 && (
+                  <span className="font-bold text-[#191c1e]">{item.rating.toFixed(1)}</span>
+                )}
+                <span>{item.reviewsCount.toLocaleString("fr-FR")} avis</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[14px]">{item.kind === "formation" ? "group" : "shopping_bag"}</span>
+                <span>{item.salesCount.toLocaleString("fr-FR")} {item.kind === "formation" ? "apprenant" : "vente"}{item.salesCount !== 1 ? "s" : ""}</span>
+              </span>
+            </div>
+            <div className="flex flex-col gap-3">
               <div>
                 <div className="text-lg md:text-xl font-extrabold text-[#191c1e]">
                   {item.isFree ? "Gratuit" : `${new Intl.NumberFormat("fr-FR").format(item.priceFcfa)} FCFA`}
@@ -194,9 +216,12 @@ export async function BestSellers() {
                   </div>
                 )}
               </div>
-              <div className="w-9 h-9 rounded-full bg-[#eceef0] flex items-center justify-center group-hover:bg-[#006e2f] group-hover:text-white transition-colors">
-                <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </div>
+              <span className="flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold bg-gradient-to-r from-[#006e2f] to-[#22c55e] group-hover:shadow-lg transition-shadow">
+                <span className="material-symbols-outlined text-[16px]">
+                  {item.isFree ? "play_arrow" : "shopping_cart"}
+                </span>
+                {item.isFree ? (item.kind === "formation" ? "Commencer" : "Télécharger") : "Acheter"}
+              </span>
             </div>
           </div>
         </Link>

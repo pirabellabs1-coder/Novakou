@@ -467,7 +467,7 @@ export default function AdminRetraitsVendeursPage() {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-zinc-100 mb-10 border border-zinc-100">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-px bg-zinc-100 mb-10 border border-zinc-100">
           <div className="bg-white p-6">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">En attente</p>
             <p className="text-xl md:text-2xl font-extrabold text-amber-600 tabular-nums break-all">

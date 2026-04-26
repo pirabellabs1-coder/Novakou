@@ -21,6 +21,10 @@ export async function GET() {
     const profile = await getProfile(userId);
     if (!profile) return NextResponse.json({ data: [] });
 
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
+
     const codes = await prisma.discountCode.findMany({
       where: { instructeurId: profile.id, ...(activeShopId ? { shopId: activeShopId } : {}) },
       orderBy: { createdAt: "desc" },
@@ -54,6 +58,10 @@ export async function POST(request: Request) {
     // Check unique code
     const existing = await prisma.discountCode.findUnique({ where: { code: code.toUpperCase() } });
     if (existing) return NextResponse.json({ error: "Ce code existe déjà" }, { status: 409 });
+
+    const activeShopId = await getActiveShopId(session, {
+      devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
+    });
 
     const created = await prisma.discountCode.create({
       data: { instructeurId: profile.id, shopId: activeShopId,

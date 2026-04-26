@@ -242,7 +242,7 @@ export default function AdminCampaignDetailPage() {
         </header>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl border border-zinc-100 p-5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Envoyés</p>
             <p className="text-2xl font-extrabold text-emerald-600 tabular-nums">{successCount.toLocaleString("fr-FR")}</p>

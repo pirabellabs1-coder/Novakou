@@ -5,8 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 
 type Formation = {
   id: string;
+  kind: "formation" | "produit";
   title: string;
   slug: string;
+  thumbnail: string | null;
   customCategory: string | null;
   level: string | null;
   price: number;
@@ -83,9 +85,11 @@ export default function LiensPage() {
     return m;
   }, [perPage]);
 
-  function buildLink(slug: string) {
+  function buildLink(slug: string, kind: "formation" | "produit" = "formation") {
     if (!affiliateCode) return "";
-    return `${typeof window !== "undefined" ? window.location.origin : "https://novakou.com"}/formation/${slug}?ref=${affiliateCode}`;
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
+    const path = kind === "produit" ? "/produit" : "/formation";
+    return `${origin}${path}/${slug}?ref=${affiliateCode}`;
   }
 
   function handleCopy(link: string, id: string) {
@@ -125,7 +129,8 @@ export default function LiensPage() {
           <h1 className="text-xl md:text-2xl font-extrabold text-white">Mes liens affiliés</h1>
           <p className="text-sm text-[#5c9e7a] mt-0.5">
             Chaque achat via votre lien crédite{" "}
-            <strong className="text-[#22c55e]">{COMM_PCT}% automatiquement</strong> sur votre solde
+            <strong className="text-[#22c55e]">{COMM_PCT}% automatiquement</strong> sur votre solde.
+            Le reste (50&nbsp;%) est reversé au formateur, et la plateforme prélève 10&nbsp;% — sans aucune action de votre part.
           </p>
         </div>
         {affiliateCode && (
@@ -219,7 +224,7 @@ export default function LiensPage() {
             <div className="space-y-4">
               {myFormations.map((f, idx) => {
                 const [gFrom, gTo] = GRADIENTS[idx % GRADIENTS.length];
-                const link = buildLink(f.slug);
+                const link = buildLink(f.slug, f.kind);
                 const perf = perfBySlug[f.slug];
                 const isCopied = copiedId === f.id;
                 const commission = Math.round(f.price * (COMM_PCT / 100));
@@ -381,7 +386,7 @@ export default function LiensPage() {
                 const commission = Math.round(f.price * (COMM_PCT / 100));
                 const isPinned = pinnedIds.has(f.id);
                 const hasActivity = activeSlugs.has(f.slug);
-                const link = buildLink(f.slug);
+                const link = buildLink(f.slug, f.kind);
                 return (
                   <div key={f.id} className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] overflow-hidden">
                     <div className="h-1" style={{ background: `linear-gradient(to right, ${gFrom}, ${gTo})` }} />

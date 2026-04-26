@@ -33,6 +33,7 @@ const navItems: NavItem[] = [
   { icon: "campaign", label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
   { icon: "auto_awesome", label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
   { icon: "psychology", label: "Coach IA", href: "/vendeur/ai-coach", section: "Croissance", badge: "IA" },
+  { icon: "smart_toy", label: "Bot support boutique", href: "/vendeur/support-ia", section: "Croissance", badge: "IA" },
   { icon: "bolt", label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
   // Engagement
   { icon: "chat_bubble", label: "Messages", href: "/messages", section: "Engagement" },

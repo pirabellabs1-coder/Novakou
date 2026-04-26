@@ -257,7 +257,7 @@ export default function MentorFinancesPage() {
                  • En dispute (DISPUTED)    = annulation en attente de decision admin
                  • Retraits                 = demandes de payout
             */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               <div className="bg-white rounded-2xl border border-gray-100 p-4">
                 <p className="text-[11px] text-[#5c647a] font-medium">Gains nets acquis</p>
                 <p className="text-xl font-extrabold text-[#006e2f] mt-1">{fmt(wallet.netEarned)} F</p>

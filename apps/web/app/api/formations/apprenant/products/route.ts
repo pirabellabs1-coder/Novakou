@@ -26,6 +26,10 @@ export async function GET() {
             fileSize: true,
             fileUrl: true,
             instructeurId: true,
+            files: {
+              orderBy: { order: "asc" },
+              select: { id: true, name: true, url: true, size: true, mimeType: true },
+            },
             reviews: {
               where: { userId },
               select: { id: true, rating: true, comment: true },

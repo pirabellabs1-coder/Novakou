@@ -6,7 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
-import { FileUploader } from "@/components/formations/FileUploader";
+import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import { confirmAction } from "@/store/confirm";
 
 interface Product {
@@ -26,6 +26,7 @@ interface Product {
   tags: string[];
   status: string;
   fileUrl: string | null;
+  files: ProductFile[];
   downloadable: boolean;
   hiddenFromMarketplace: boolean;
   category: { id: string; slug: string; name: string } | null;
@@ -66,7 +67,7 @@ export default function EditerProduitPage() {
   const [price, setPrice] = useState(0);
   const [originalPrice, setOriginalPrice] = useState<string>("");
   const [tagsInput, setTagsInput] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
+  const [files, setFiles] = useState<ProductFile[]>([]);
   const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
@@ -88,7 +89,7 @@ export default function EditerProduitPage() {
       setPrice(product.price);
       setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
       setTagsInput((product.tags ?? []).join(", "));
-      setFileUrl(product.fileUrl ?? "");
+      setFiles(Array.isArray(product.files) ? product.files : []);
       setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
       setDirty(false);
     }
@@ -138,7 +139,7 @@ export default function EditerProduitPage() {
       price,
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
       tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
-      fileUrl,
+      files,
       hiddenFromMarketplace,
     });
   }
@@ -237,7 +238,7 @@ export default function EditerProduitPage() {
       <div className="max-w-5xl mx-auto px-5 md:px-8 py-6 space-y-6">
 
         {/* Stats card */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
           {[
             { label: "Ventes", value: product.salesCount, icon: "shopping_bag", color: "#006e2f" },
             { label: "Vues", value: product.viewsCount, icon: "visibility", color: "#2563eb" },
@@ -346,7 +347,11 @@ export default function EditerProduitPage() {
         <div className="bg-white rounded-2xl border border-gray-100 p-6">
           <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Fichier à livrer</h2>
           <p className="text-xs text-[#5c647a] mb-4">Le fichier que les acheteurs téléchargeront après leur paiement.</p>
-          <FileUploader value={fileUrl} onChange={(url) => track(setFileUrl, url)} />
+          <MultiFileUploader
+            value={files}
+            onChange={(next) => track(setFiles, next)}
+            productType={(productType as "EBOOK" | "PDF" | "TEMPLATE" | "AUDIO" | "VIDEO" | "LICENCE" | "AUTRE") || "PDF"}
+          />
         </div>
 
         {/* Section: Visibilité marketplace */}

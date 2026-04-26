@@ -113,7 +113,7 @@ export default function CoachingPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="h-28 bg-gray-100 rounded-2xl animate-pulse" />
           ))}
@@ -122,7 +122,7 @@ export default function CoachingPage() {
 
       {/* Stats */}
       {!isLoading && stats && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
           {[
             {
               label: "Sessions complétées",

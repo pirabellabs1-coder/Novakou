@@ -1272,6 +1272,25 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
     load();
   }, [slug]);
 
+  // Compute the font BEFORE any early return so the next useEffect always runs
+  // in the same hook order (React's Rules of Hooks).
+  const fontFamily = funnel?.theme?.font || "Manrope";
+
+  // Load Google Font dynamically if not the default. Must run on every render
+  // path — keep it above the early returns below.
+  useEffect(() => {
+    if (fontFamily && fontFamily !== "Manrope") {
+      const id = `gfont-${fontFamily.replace(/\s/g, "-")}`;
+      if (!document.getElementById(id)) {
+        const link = document.createElement("link");
+        link.id = id;
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@300;400;500;600;700;800&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+  }, [fontFamily]);
+
   function handleCta() {
     if (!funnel) return;
     const landing = funnel.steps[0];
@@ -1301,23 +1320,8 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   }
 
   const theme = { ...DEFAULT_THEME, ...(funnel.theme ?? {}) };
-  const fontFamily = theme.font || "Manrope";
   const landingStep = funnel.steps.find((s) => s.stepType === "LANDING") ?? funnel.steps[0];
   const blocks = (landingStep?.blocks as Block[] | null) ?? [];
-
-  // Load Google Font dynamically if not default
-  useEffect(() => {
-    if (fontFamily && fontFamily !== "Manrope") {
-      const id = `gfont-${fontFamily.replace(/\s/g, "-")}`;
-      if (!document.getElementById(id)) {
-        const link = document.createElement("link");
-        link.id = id;
-        link.rel = "stylesheet";
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@300;400;500;600;700;800&display=swap`;
-        document.head.appendChild(link);
-      }
-    }
-  }, [fontFamily]);
 
   return (
     <div style={{ background: theme.bgColor, color: theme.textColor, fontFamily: `'${fontFamily}', sans-serif` }}>

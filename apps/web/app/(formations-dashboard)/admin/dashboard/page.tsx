@@ -201,7 +201,7 @@ export default function AdminDashboardPage() {
         </header>
 
         {/* High-Level Stats (Bento) */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-6 mb-12">
           <div className="bg-white p-8 flex flex-col justify-between hover:translate-x-1 transition-transform duration-300">
             <div>
               <p className="font-sans text-[10px] uppercase tracking-widest font-bold text-zinc-500 mb-4">
@@ -285,7 +285,7 @@ export default function AdminDashboardPage() {
         {charts?.data && (
           <div className="mb-12 space-y-6">
             {/* KPI strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
               {[
                 { label: "Revenus 30j (brut)", value: `${formatFCFA(charts.data.totals.grossLast30)} F`, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10", icon: "payments" },
                 { label: "Commission plateforme", value: `${formatFCFA(charts.data.totals.commissionLast30)} F`, color: "text-amber-600", bg: "bg-amber-50", icon: "account_balance" },

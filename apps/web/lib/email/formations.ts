@@ -503,10 +503,14 @@ export async function sendDigitalProductDeliveryEmail(params: {
   name: string;
   productTitle: string;
   downloadUrl: string;
+  /** Optional list of all attached files. When provided and length >= 2, the
+   *  email shows a list of named download links instead of a single button. */
+  files?: Array<{ name: string; url: string }>;
   locale?: "fr" | "en";
 }) {
-  const { email, name, productTitle, downloadUrl, locale = "fr" } = params;
+  const { email, name, productTitle, downloadUrl, files, locale = "fr" } = params;
   const isFr = locale === "fr";
+  const hasMultipleFiles = Array.isArray(files) && files.length >= 2;
   // Lien magic : auto-envoi OTP à l'email de l'acheteur + redirect vers ses produits
   const myProductsUrl = buyerMagicLink(email, "/apprenant/mes-produits");
 
@@ -527,9 +531,30 @@ export async function sendDigitalProductDeliveryEmail(params: {
       }
     </p>
 
-    <div style="text-align:center;margin:0 0 28px;">
-      ${button(isFr ? "Accéder à mon produit" : "Access my product", downloadUrl)}
-    </div>
+    ${hasMultipleFiles
+      ? `<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:18px 22px;margin:0 0 28px;">
+          <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;">
+            ${isFr ? `${files!.length} fichiers à télécharger` : `${files!.length} files to download`}
+          </p>
+          <ul style="list-style:none;padding:0;margin:0;">
+            ${files!
+              .map(
+                (f) =>
+                  `<li style="padding:10px 0;border-top:1px solid #e5e7eb;">
+                    <a href="${f.url}" style="color:#006e2f;font-size:14px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:8px;">
+                      <span style="display:inline-block;width:18px;text-align:center;">📄</span>
+                      <span style="flex:1;">${f.name}</span>
+                      <span style="color:#9ca3af;font-size:12px;font-weight:500;">${isFr ? "Télécharger" : "Download"} →</span>
+                    </a>
+                  </li>`,
+              )
+              .join("")}
+          </ul>
+        </div>`
+      : `<div style="text-align:center;margin:0 0 28px;">
+          ${button(isFr ? "Accéder à mon produit" : "Access my product", downloadUrl)}
+        </div>`
+    }
 
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:22px;margin:0 0 24px;">
       <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;">
@@ -967,3 +992,62 @@ export async function sendDisputeNotificationEmail(params: {
     html,
   });
 }
+
+
+/**
+ * Email envoyé quand un abonnement arrive à échéance (cron renouvellement).
+ * Inclut le lien Moneroo pour relancer le paiement.
+ */
+export async function sendSubscriptionRenewalEmail(params: {
+  email: string;
+  name: string;
+  planName: string;
+  price: number;
+  currency: string;
+  interval: "monthly" | "yearly" | string;
+  checkoutUrl: string;
+  currentPeriodEnd: Date | string;
+}) {
+  const { email, name, planName, price, currency, interval, checkoutUrl, currentPeriodEnd } = params;
+  const periodLabel = interval === "yearly" ? "annuel" : "mensuel";
+  const dateStr = new Date(currentPeriodEnd).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const fmtPrice = new Intl.NumberFormat("fr-FR").format(Math.round(price));
+
+  const html = emailLayout(`
+    <h2 style="color:#111827;font-size:22px;font-weight:800;margin:0 0 14px;letter-spacing:-0.3px;">
+      Bonjour ${name},
+    </h2>
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;">
+      Votre abonnement <strong style="color:#111827;">« ${planName} »</strong> arrive à échéance le <strong>${dateStr}</strong>. Pour continuer à profiter de votre accès sans interruption, merci de procéder au paiement du renouvellement ${periodLabel} ci-dessous.
+    </p>
+    <div style="text-align:center;margin:0 0 28px;">
+      ${button(`Payer ${fmtPrice} ${currency} et renouveler`, checkoutUrl)}
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:22px;margin:0 0 24px;">
+      <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;">
+        Récapitulatif
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Plan</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${planName}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Cycle</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${periodLabel}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Montant</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:14px;">${fmtPrice} ${currency}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Échéance</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${dateStr}</td></tr>
+      </table>
+    </div>
+    <p style="color:#6b7280;line-height:1.6;font-size:13px;margin:0 0 8px;">
+      Vous avez <strong>14 jours</strong> à partir de l'échéance pour régulariser. Passé ce délai, votre accès aux contenus sera automatiquement suspendu.
+    </p>
+    <p style="color:#6b7280;line-height:1.6;font-size:13px;margin:0;">
+      Si vous souhaitez annuler votre abonnement, vous pouvez le faire depuis votre espace
+      <a href="${APP_URL}/apprenant/abonnements" style="color:#006e2f;text-decoration:none;font-weight:600;">Mes abonnements</a>.
+    </p>
+  `);
+
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: `Renouvellement de votre abonnement « ${planName} »`,
+    html,
+  });
+}
+

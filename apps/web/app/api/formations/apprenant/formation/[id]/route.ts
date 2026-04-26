@@ -64,14 +64,11 @@ export async function GET(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
   }
 
-  // Vérifier l'accès
+  // Vérifier l'accès — soit Enrollment direct, soit via Subscription active
   let hasAccess = !!formation.isFree;
   if (!hasAccess && userId) {
-    const enrollment = await prisma.enrollment.findUnique({
-      where: { userId_formationId: { userId, formationId: formation.id } },
-      select: { id: true, refundedAt: true },
-    }).catch(() => null);
-    hasAccess = !!enrollment && !enrollment.refundedAt;
+    const { userHasFormationAccess } = await import("@/lib/formations/access");
+    hasAccess = await userHasFormationAccess(userId, formation.id);
   }
 
   // Si l'utilisateur n'a pas accès : on masque les videoUrls sauf les leçons isFree (preview)

@@ -150,6 +150,46 @@ export function RichTextEditor({
     return () => clearInterval(interval);
   }, []);
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      Underline,
+      TextStyle,
+      Color,
+      Highlight.configure({ multicolor: true }),
+      Image.configure({
+        inline: false,
+        allowBase64: true,
+        HTMLAttributes: { class: "rounded-lg max-w-full my-3" },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: { class: "text-[#006e2f] underline", rel: "noopener noreferrer", target: "_blank" },
+      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      Placeholder.configure({ placeholder }),
+      VideoEmbed,
+    ],
+    content: value,
+    editorProps: {
+      attributes: {
+        class: "rte-content focus:outline-none text-zinc-900 leading-relaxed px-5 py-4",
+      },
+    },
+    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    immediatelyRender: false,
+  });
+
+  // Sync editor content when `value` prop changes (e.g. data fetched after mount).
+  // Only update if value differs from current HTML to avoid loops with onUpdate.
+  useEffect(() => {
+    if (!editor) return;
+    const current = editor.getHTML();
+    if (value !== current) {
+      editor.commands.setContent(value || "", false);
+    }
+  }, [editor, value]);
+
   const handleAiEnhance = useCallback(async () => {
     if (!editor || !puterReady || aiLoading) return;
     const currentHtml = editor.getHTML();
@@ -210,36 +250,6 @@ IMPORTANT :
     setAiPreview(null);
     useToastStore.getState().addToast("success", "Description améliorée appliquée !");
   }, [editor, aiPreview, onChange]);
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
-      Underline,
-      TextStyle,
-      Color,
-      Highlight.configure({ multicolor: true }),
-      Image.configure({
-        inline: false,
-        allowBase64: true,
-        HTMLAttributes: { class: "rounded-lg max-w-full my-3" },
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: { class: "text-[#006e2f] underline", rel: "noopener noreferrer", target: "_blank" },
-      }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-      Placeholder.configure({ placeholder }),
-      VideoEmbed,
-    ],
-    content: value,
-    editorProps: {
-      attributes: {
-        class: "rte-content focus:outline-none text-zinc-900 leading-relaxed px-5 py-4",
-      },
-    },
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
-    immediatelyRender: false,
-  });
 
   // Close color popovers when clicking outside
   useEffect(() => {

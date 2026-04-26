@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import AISupportWidget from "@/components/formations/AISupportWidget";
+import SmartPopupRenderer from "@/components/marketing/SmartPopupRenderer";
 
 interface Item {
   kind: "formation" | "product";
@@ -87,6 +88,9 @@ export default function BoutiqueView({
           pageContext={`Le visiteur est sur la boutique "${owner.name}" — ${all.length} produit(s) dans le catalogue.`}
         />
       )}
+
+      {/* Popups intelligents (exit-intent / scroll / timer) */}
+      <SmartPopupRenderer />
 
       {/* ─── Hero (cover-like) ────────────────────────────────────────────── */}
       <header className="relative overflow-hidden">
@@ -323,55 +327,40 @@ export default function BoutiqueView({
                       <h3 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-700 transition-colors min-h-[2.5em]">
                         {item.title}
                       </h3>
-                      {/* Stats : on n'affiche les chiffres que si significatifs.
-                          Sinon → badge "Nouveau" (jamais "1 vente" / "0 avis" qui décrédibilisent). */}
-                      {(() => {
-                        const hasMeaningfulRating = item.rating > 0 && (item.reviewsCount ?? 0) >= 3;
-                        const hasMeaningfulCount = item.count >= 10;
-                        if (!hasMeaningfulRating && !hasMeaningfulCount) {
-                          return (
-                            <div className="mt-2">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700">
-                                <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                                  auto_awesome
-                                </span>
-                                Nouveau
-                              </span>
-                            </div>
-                          );
-                        }
-                        return (
-                          <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mt-2 text-[10px] text-slate-600 font-medium">
-                            {hasMeaningfulRating && (
-                              <span className="inline-flex items-center gap-0.5">
-                                <span
-                                  className="material-symbols-outlined text-[12px] text-amber-400"
-                                  style={{ fontVariationSettings: "'FILL' 1" }}
-                                >
-                                  star
-                                </span>
-                                <span className="font-bold text-slate-700">{item.rating.toFixed(1)}</span>
-                                <span className="text-slate-400">({item.reviewsCount} avis)</span>
-                              </span>
-                            )}
-                            {hasMeaningfulRating && hasMeaningfulCount && <span className="text-slate-300">·</span>}
-                            {hasMeaningfulCount && (
-                              <span className="inline-flex items-center gap-0.5 text-slate-500">
-                                <span className="material-symbols-outlined text-[12px]">
-                                  {item.kind === "formation" ? "group" : "shopping_bag"}
-                                </span>
-                                <span>{item.count.toLocaleString("fr-FR")} {item.kind === "formation" ? "apprenants" : "ventes"}</span>
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })()}
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                        <span className="text-base font-extrabold" style={{ color: themeColor }}>
-                          {item.isFree || item.price === 0 ? "Gratuit" : fmtFCFA(item.price)}
+                      {/* Stats — toujours visibles : nb avis + nb ventes (justifiés aux extrémités pour espacement clair) */}
+                      <div className="flex items-center justify-between flex-wrap gap-y-1 mt-3 text-[11px] text-slate-600 font-medium">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[14px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>
+                            star
+                          </span>
+                          {item.rating > 0 && (item.reviewsCount ?? 0) >= 1 && (
+                            <span className="font-bold text-slate-700">{item.rating.toFixed(1)}</span>
+                          )}
+                          <span className="text-slate-500">{(item.reviewsCount ?? 0).toLocaleString("fr-FR")} avis</span>
                         </span>
-                        <span className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all">
-                          arrow_forward
+                        <span className="inline-flex items-center gap-1.5 text-slate-500">
+                          <span className="material-symbols-outlined text-[14px]">
+                            {item.kind === "formation" ? "group" : "shopping_bag"}
+                          </span>
+                          <span>{item.count.toLocaleString("fr-FR")} {item.kind === "formation" ? "apprenant" : "vente"}{item.count !== 1 ? "s" : ""}</span>
+                        </span>
+                      </div>
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-baseline justify-between mb-3">
+                          <span className="text-lg font-extrabold" style={{ color: themeColor }}>
+                            {item.isFree || item.price === 0 ? "Gratuit" : fmtFCFA(item.price)}
+                          </span>
+                        </div>
+                        <span
+                          className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow"
+                          style={{ background: `linear-gradient(135deg, ${themeColor}, #22c55e)` }}
+                        >
+                          <span className="material-symbols-outlined text-[16px]">
+                            {item.isFree || item.price === 0 ? "play_arrow" : "shopping_cart"}
+                          </span>
+                          {item.isFree || item.price === 0
+                            ? (item.kind === "formation" ? "Commencer" : "Télécharger")
+                            : "Acheter"}
                         </span>
                       </div>
                     </div>

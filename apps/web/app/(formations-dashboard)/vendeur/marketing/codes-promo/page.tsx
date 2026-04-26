@@ -126,7 +126,7 @@ export default function CodesPromoPage() {
       </div>
 
       {/* Summary */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
           { label: "Codes actifs", value: activeCodes, icon: "local_offer", color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
           { label: "Utilisations totales", value: codes.reduce((s, c) => s + c.usedCount, 0), icon: "shopping_cart", color: "text-blue-600", bg: "bg-blue-50" },

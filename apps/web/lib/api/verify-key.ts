@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { apiError } from "@/lib/api/v1-helpers";
 
 function hashKey(rawKey: string): string {
   return crypto.createHash("sha256").update(rawKey).digest("hex");
@@ -33,12 +34,10 @@ export async function verifyApiKey(
   const auth = request.headers.get("authorization") ?? "";
   const match = auth.match(/^Bearer\s+(nk_(?:live|test)_[a-f0-9]+)$/i);
   if (!match) {
-    return NextResponse.json(
-      {
-        error: "Clé API manquante ou invalide",
-        hint: "Incluez le header: Authorization: Bearer nk_live_xxxxxxxx",
-      },
-      { status: 401 },
+    return apiError(
+      "INVALID_API_KEY",
+      "Clé API manquante ou invalide. Incluez le header Authorization: Bearer nk_live_xxxxxxxx",
+      401,
     );
   }
   const rawKey = match[1];
@@ -58,9 +57,10 @@ export async function verifyApiKey(
   });
 
   if (!key) {
-    return NextResponse.json(
-      { error: "Clé API invalide, révoquée ou expirée" },
-      { status: 401 },
+    return apiError(
+      "INVALID_API_KEY",
+      "Clé API invalide, révoquée ou expirée",
+      401,
     );
   }
 
@@ -68,12 +68,11 @@ export async function verifyApiKey(
     const hasScope =
       key.scopes.includes("admin") || key.scopes.includes(opts.requiredScope);
     if (!hasScope) {
-      return NextResponse.json(
-        {
-          error: `Permission manquante : ${opts.requiredScope}`,
-          hint: "Générez une nouvelle clé avec ce scope depuis votre dashboard Novakou",
-        },
-        { status: 403 },
+      return apiError(
+        "MISSING_SCOPE",
+        `Permission manquante : ${opts.requiredScope}. Générez une nouvelle clé avec ce scope depuis votre dashboard.`,
+        403,
+        { requiredScope: opts.requiredScope },
       );
     }
   }

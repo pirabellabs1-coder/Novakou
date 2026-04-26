@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { countryToFlag } from "@/lib/tracking/geo";
+import { Flag } from "@/components/ui/Flag";
 
 interface Session {
   id: string;
@@ -125,7 +125,7 @@ export default function ActiveSessions() {
                 s.isCurrent ? "border-[#006e2f]/25 bg-[#006e2f]/5" : "border-gray-100"
               }`}
             >
-              <span className="text-lg">{s.country ? countryToFlag(s.country) : "🌐"}</span>
+              <Flag code={s.country} size="md" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-sm font-bold text-[#191c1e] truncate">{s.location}</p>

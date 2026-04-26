@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
-import { useQuery } from "@tanstack/react-query";
 
 const navItems = [
   { icon: "bar_chart",          label: "Tableau de bord", href: "/affilie/dashboard" },
@@ -13,6 +12,7 @@ const navItems = [
   { icon: "payments",           label: "Commissions",     href: "/affilie/commissions" },
   { icon: "account_balance_wallet", label: "Retraits",    href: "/affilie/retraits" },
   { icon: "leaderboard",        label: "Performances",    href: "/affilie/performances" },
+  { icon: "settings",           label: "Paramètres",      href: "/affilie/parametres" },
 ];
 
 function getInitials(name?: string | null): string {
@@ -52,19 +52,6 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
   const userName    = session?.user?.name ?? "Affilié";
   const userImage   = session?.user?.image;
   const initials    = getInitials(session?.user?.name);
-
-  // Fetch real balance from stats
-  const { data: statsData } = useQuery({
-    queryKey: ["affilie-stats"],
-    queryFn: () => fetch("/api/formations/affilie/stats").then((r) => r.json()),
-    staleTime: 60_000,
-  });
-
-  const balance       = statsData?.profile?.pendingEarnings ?? 0;
-  const commissionPct = statsData?.commissionPct ?? 40;
-
-  function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-  function toEur(n: number)      { return Math.round(n / 655.957); }
 
   return (
     <div className="min-h-screen bg-[#0a1510]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
@@ -123,9 +110,9 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        {/* User + balance */}
+        {/* User identity (name + status badge) */}
         <div className="px-5 py-4 border-b border-[#1e3a2f]">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-center gap-3">
             {userImage ? (
               <img src={userImage} alt={userName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
             ) : (
@@ -137,12 +124,6 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
               <p className="font-semibold text-white text-sm truncate">{userName}</p>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#22c55e]/20 text-[#22c55e]">Affilié Actif</span>
             </div>
-          </div>
-          {/* Quick balance */}
-          <div className="bg-[#1e3a2f] rounded-xl p-3">
-            <p className="text-[10px] text-[#5c9e7a] mb-0.5">Solde disponible</p>
-            <p className="text-lg font-extrabold text-white">{formatFcfa(balance)}</p>
-            <p className="text-[10px] text-[#5c9e7a]">≈ {toEur(balance)} €</p>
           </div>
         </div>
 
@@ -187,20 +168,11 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
           </Link>
         </nav>
 
-        {/* Commission rate badge */}
+        {/* Footer: logout only */}
         <div className="px-3 py-4 border-t border-[#1e3a2f]">
-          <div className="bg-gradient-to-br from-[#006e2f]/40 to-[#22c55e]/20 border border-[#22c55e]/20 rounded-xl p-4">
-            <div className="flex items-center justify-between mb-1">
-              <p className="text-xs font-bold text-[#22c55e]">Taux de commission</p>
-              <span className="text-lg font-extrabold text-white">{commissionPct}%</span>
-            </div>
-            <p className="text-[10px] text-[#5c9e7a] leading-relaxed">
-              Gagnez {commissionPct}% sur chaque vente générée via vos liens.
-            </p>
-          </div>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="mt-3 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-400 text-xs font-semibold hover:bg-red-500/10 transition-colors border border-red-500/20"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-400 text-xs font-semibold hover:bg-red-500/10 transition-colors border border-red-500/20"
           >
             <span className="material-symbols-outlined text-[16px]">logout</span>
             Se déconnecter

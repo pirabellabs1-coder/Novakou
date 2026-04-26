@@ -345,7 +345,7 @@ export async function GET(req: NextRequest) {
         where: { instructeurId: instructeur.id },
       }),
       // Popups
-      prisma.marketingPopup.findMany({
+      prisma.smartPopup.findMany({
         where: { instructeurId: instructeur.id },
       }),
       // Campaigns

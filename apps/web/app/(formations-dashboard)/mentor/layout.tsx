@@ -18,6 +18,7 @@ const NAV = [
   { icon: "verified_user", label: "Vérification KYC", href: "/kyc" },
   { icon: "account_circle", label: "Profil public", href: "/mentor/profil" },
   { icon: "forum", label: "Messages", href: "/messages" },
+  { icon: "settings", label: "Paramètres", href: "/mentor/parametres" },
 ];
 
 function initials(n?: string | null): string {

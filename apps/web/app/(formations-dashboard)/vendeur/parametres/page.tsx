@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import VendorDomainTab from "@/components/formations/VendorDomainTab";
 import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
@@ -11,7 +12,7 @@ import PaymentSettingsPanel from "@/components/vendeur/PaymentSettingsPanel";
 
 type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
-const tabs: { value: Tab; label: string; icon: string }[] = [
+const ALL_TABS: { value: Tab; label: string; icon: string }[] = [
   { value: "compte", label: "Compte", icon: "manage_accounts" },
   { value: "domaine", label: "Nom de domaine", icon: "alternate_email" },
   { value: "paiements", label: "Paiements", icon: "account_balance_wallet" },
@@ -68,6 +69,12 @@ const SPECIALITES_OPTIONS = [
 ];
 
 export default function ParamaetresPage() {
+  const pathname = usePathname();
+  // Mentors are already coaches by definition — hide the "Mode Coach"
+  // toggle for them since the rest of the platform routes them through
+  // the mentor space (calendrier, packs, rendez-vous…).
+  const isMentorContext = pathname?.startsWith("/mentor") ?? false;
+  const tabs = isMentorContext ? ALL_TABS.filter((t) => t.value !== "coaching") : ALL_TABS;
   const [activeTab, setActiveTab] = useState<Tab>("compte");
 
   // Real user/account state (loaded from API)

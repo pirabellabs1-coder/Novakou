@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     const field = incrementField[action];
     if (field) {
-      await prisma.marketingPopup.update({
+      await prisma.smartPopup.update({
         where: { id: popupId },
         data: {
           [field]: { increment: 1 },
