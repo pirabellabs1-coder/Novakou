@@ -94,12 +94,12 @@ export async function PATCH(req: Request) {
     },
   });
 
-  // Bio lives on role-specific profiles (InstructeurProfile, MentorProfile…),
-  // never on User. Persist it to whichever profile exists for this user.
+  // Bio lives on role-specific profiles, never on User. Persist it to
+  // whichever profile exists (instructeur uses bioFr; mentor uses bio).
   if (data.bio !== undefined) {
     await prisma.instructeurProfile.updateMany({
       where: { userId },
-      data: { bio: data.bio || null },
+      data: { bioFr: data.bio || null },
     }).catch(() => null);
     await prisma.mentorProfile.updateMany({
       where: { userId },
