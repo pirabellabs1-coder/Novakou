@@ -22,6 +22,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         rating: true, reviewsCount: true, salesCount: true, viewsCount: true,
         tags: true, status: true, fileUrl: true,
         hiddenFromMarketplace: true,
+        previewEnabled: true, previewPages: true, watermarkEnabled: true,
         createdAt: true, updatedAt: true,
         category: { select: { id: true, slug: true, name: true } },
         files: {
@@ -99,6 +100,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         status: body.status ?? undefined,
         fileUrl: fileUrlSync,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
+        previewEnabled: typeof body.previewEnabled === "boolean" ? body.previewEnabled : undefined,
+        previewPages: typeof body.previewPages === "number" && body.previewPages >= 1 && body.previewPages <= 20
+          ? Math.floor(body.previewPages)
+          : undefined,
+        watermarkEnabled: typeof body.watermarkEnabled === "boolean" ? body.watermarkEnabled : undefined,
         ...(filesUpdate ? { files: filesUpdate } : {}),
       },
       include: {

@@ -27,6 +27,10 @@ export async function GET(_req: Request, { params }: Params) {
           },
         },
         category: { select: { id: true, slug: true, name: true } },
+        files: {
+          orderBy: { order: "asc" },
+          select: { id: true, name: true, mimeType: true },
+        },
         reviews: {
           where: { rating: { gte: 1 } },
           orderBy: { createdAt: "desc" },
@@ -50,6 +54,13 @@ export async function GET(_req: Request, { params }: Params) {
       })
       .catch(() => null);
 
+    // Whether the buyer can use the preview tab: opt-in by vendor, and at
+    // least one file (legacy fileUrl included) is a PDF that pdf-lib can read.
+    const hasPdfFile =
+      product.files.some((f) => (f.mimeType ?? "").toLowerCase() === "application/pdf") ||
+      (typeof product.fileUrl === "string" && product.fileUrl.toLowerCase().endsWith(".pdf"));
+    const previewAvailable = product.previewEnabled === true && hasPdfFile;
+
     return NextResponse.json({
       data: {
         id: product.id,
@@ -69,6 +80,10 @@ export async function GET(_req: Request, { params }: Params) {
         tags: product.tags,
         maxBuyers: product.maxBuyers,
         currentBuyers: product.currentBuyers,
+        previewEnabled: product.previewEnabled,
+        previewPages: product.previewPages,
+        watermarkEnabled: product.watermarkEnabled,
+        previewAvailable,
         category: product.category,
         instructeur: {
           id: product.instructeur.id,
