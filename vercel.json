@@ -57,6 +57,10 @@
     {
       "path": "/api/cron/affiliate-payout",
       "schedule": "0 5 5 * *"
+    },
+    {
+      "path": "/api/cron/abandon-stale-checkouts",
+      "schedule": "0 11 * * *"
     }
   ],
   "headers": [

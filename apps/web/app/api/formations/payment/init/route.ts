@@ -3,8 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { initPayment, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import crypto from "crypto";
+
+type PaymentProvider = "moneroo" | "paygenius";
+
+function resolveProvider(raw: unknown): PaymentProvider {
+  const v = String(raw ?? "").toLowerCase().trim();
+  if (v === "paygenius") return "paygenius";
+  return "moneroo"; // défaut — rétro-compatible avec le code existant
+}
 
 /**
  * POST /api/formations/payment/init
@@ -118,15 +127,21 @@ export async function POST(request: Request) {
       });
     }
 
-    // App URL for return redirects (used in both mock and real Moneroo flows)
+    // App URL for return redirects (used in both mock and real flows)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // If Moneroo is not configured (e.g. dev mode without keys), simulate a successful payment
-    if (!isMonerooConfigured()) {
+    // Choix du provider : "moneroo" (défaut) ou "paygenius"
+    const provider = resolveProvider(body.provider);
+    const providerConfigured = provider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
+
+    // Si le provider demandé n'est pas configuré (dev / clés manquantes),
+    // on simule un paiement réussi via la page mock.
+    if (!providerConfigured) {
       const internalRef = `dev:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
       const mockUrl = new URL("/payment/return", appUrl);
       mockUrl.searchParams.set("mock", "1");
       mockUrl.searchParams.set("ref", internalRef);
+      mockUrl.searchParams.set("provider", provider);
       if (formationIds.length > 0) mockUrl.searchParams.set("fids", formationIds.join(","));
       if (productIds.length > 0) mockUrl.searchParams.set("pids", productIds.join(","));
       if (appliedCode) mockUrl.searchParams.set("code", appliedCode);
@@ -134,6 +149,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         data: {
           mock: true,
+          provider,
           checkout_url: mockUrl.pathname + mockUrl.search,
           internalRef,
           amount: totalAmount,
@@ -144,8 +160,9 @@ export async function POST(request: Request) {
       });
     }
 
-    // Init real Moneroo payment
-    const internalRef = `mnr:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+    // Init real payment via le provider sélectionné
+    const refPrefix = provider === "paygenius" ? "pg" : "mnr";
+    const internalRef = `${refPrefix}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
     const fName = userName ?? userEmail?.split("@")[0] ?? "Apprenant";
     const [first, ...rest] = fName.split(" ");
     const last = rest.join(" ") || "User";
@@ -160,9 +177,9 @@ export async function POST(request: Request) {
       formations[0]?.instructeurId ?? products[0]?.instructeurId ?? null;
     const primaryShopId = formations[0]?.shopId ?? products[0]?.shopId ?? null;
 
-    // Cree l'attempt AVANT l'appel Moneroo pour pouvoir tracer meme un echec
+    // Cree l'attempt AVANT l'appel provider pour pouvoir tracer meme un echec
     // d'init cote provider. Status STARTED → le webhook le passera a COMPLETED
-    // ou FAILED selon le retour Moneroo.
+    // ou FAILED selon le retour du provider.
     const attempt = await prisma.checkoutAttempt.create({
       data: {
         userId: userId,
@@ -182,47 +199,97 @@ export async function POST(request: Request) {
           productIds: productIds,
           internalRef,
           discountCode: appliedCode ?? null,
+          paymentProvider: provider,
         } as never,
       },
       select: { id: true },
     });
 
-    const moneroo = await initPayment({
-      amount: Math.round(totalAmount),
-      currency: "XOF", // FCFA West Africa CFA franc
-      description: `Achat Novakou — ${formations.length + products.length} produit(s)`,
-      customer: {
-        email: userEmail || "client@novakou.com",
-        first_name: first || "Apprenant",
-        last_name: last,
-        phone: phoneRaw,
-      },
-      return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}`,
-      metadata: {
-        // Type discriminator lu par /api/webhooks/moneroo pour router le fulfillment
-        type: "formations_checkout",
-        sessionRef: internalRef,
-        userId,
-        formationIds: formationIds.join(","),
-        productIds: productIds.join(","),
-        discountCode: appliedCode ?? "",
-        internalRef,
-        // attemptId permet au webhook de retrouver la ligne CheckoutAttempt
-        // pour la passer a COMPLETED ou FAILED
-        attemptId: attempt.id,
-      },
-    });
+    // Metadata commune envoyée au provider (clés string/number/boolean uniquement)
+    const providerMetadata = {
+      type: "formations_checkout",
+      sessionRef: internalRef,
+      userId,
+      formationIds: formationIds.join(","),
+      productIds: productIds.join(","),
+      discountCode: appliedCode ?? "",
+      internalRef,
+      attemptId: attempt.id,
+      paymentProvider: provider,
+    };
+
+    const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&attempt=${attempt.id}&provider=${provider}`;
+    const description = `Achat Novakou — ${formations.length + products.length} produit(s)`;
+
+    let providerId: string;
+    let checkoutUrl: string;
+
+    try {
+      if (provider === "paygenius") {
+        const pg = await initPayGenius({
+          amount: Math.round(totalAmount),
+          currency: "XOF",
+          description,
+          customer: {
+            email: userEmail || "client@novakou.com",
+            name: `${first || "Apprenant"} ${last}`.trim(),
+            phone: phoneRaw,
+          },
+          return_url: returnUrl,
+          metadata: providerMetadata,
+        });
+        providerId = pg.reference; // on stocke la `reference` (MTX-…) pour retrouver via /payments/{ref}
+        checkoutUrl = pg.checkout_url;
+      } else {
+        const mnr = await initMoneroo({
+          amount: Math.round(totalAmount),
+          currency: "XOF",
+          description,
+          customer: {
+            email: userEmail || "client@novakou.com",
+            first_name: first || "Apprenant",
+            last_name: last,
+            phone: phoneRaw,
+          },
+          return_url: returnUrl,
+          metadata: providerMetadata,
+        });
+        providerId = mnr.id;
+        checkoutUrl = mnr.checkout_url;
+      }
+    } catch (err) {
+      // Marque l'attempt en FAILED si l'init du provider échoue
+      const message = err instanceof Error ? err.message : "Erreur inconnue";
+      await prisma.checkoutAttempt
+        .update({
+          where: { id: attempt.id },
+          data: {
+            status: "FAILED",
+            failureReason: message.slice(0, 500),
+            failureCode: `${provider}_init_failed`,
+          },
+        })
+        .catch(() => null);
+      console.error(`[payment/init:${provider}]`, err);
+      return NextResponse.json(
+        { error: `${provider === "paygenius" ? "PayGenius" : "Moneroo"}: ${message}` },
+        { status: 500 },
+      );
+    }
 
     // Propager providerRef sur le CheckoutAttempt pour debug/correlation
     await prisma.checkoutAttempt.update({
       where: { id: attempt.id },
-      data: { providerRef: moneroo.id },
+      data: { providerRef: providerId },
     });
 
     return NextResponse.json({
       data: {
-        checkout_url: moneroo.checkout_url,
-        moneroo_id: moneroo.id,
+        checkout_url: checkoutUrl,
+        provider,
+        // Champ historique conservé pour rétro-compat des clients existants
+        moneroo_id: provider === "moneroo" ? providerId : undefined,
+        provider_ref: providerId,
         internalRef,
         amount: totalAmount,
         subTotal,
@@ -234,6 +301,6 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("[payment/init]", err);
     const message = err instanceof Error ? err.message : "Erreur inconnue";
-    return NextResponse.json({ error: `Moneroo: ${message}` }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

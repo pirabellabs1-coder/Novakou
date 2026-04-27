@@ -1,33 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { COUNTRIES as ALL_COUNTRIES } from "@/lib/countries";
 
-// ─── Country codes for Mobile Money ──────────────────────────────────────────
-const COUNTRIES = [
-  { code: "+221", flag: "🇸🇳", label: "Sénégal", iso: "SN" },
-  { code: "+225", flag: "🇨🇮", label: "Côte d'Ivoire", iso: "CI" },
-  { code: "+229", flag: "🇧🇯", label: "Bénin", iso: "BJ" },
-  { code: "+237", flag: "🇨🇲", label: "Cameroun", iso: "CM" },
-  { code: "+223", flag: "🇲🇱", label: "Mali", iso: "ML" },
-  { code: "+226", flag: "🇧🇫", label: "Burkina Faso", iso: "BF" },
-  { code: "+228", flag: "🇹🇬", label: "Togo", iso: "TG" },
-  { code: "+224", flag: "🇬🇳", label: "Guinée", iso: "GN" },
-  { code: "+227", flag: "🇳🇪", label: "Niger", iso: "NE" },
-  { code: "+242", flag: "🇨🇬", label: "Congo", iso: "CG" },
-  { code: "+235", flag: "🇹🇩", label: "Tchad", iso: "TD" },
-  { code: "+241", flag: "🇬🇦", label: "Gabon", iso: "GA" },
-  { code: "+212", flag: "🇲🇦", label: "Maroc", iso: "MA" },
-  { code: "+216", flag: "🇹🇳", label: "Tunisie", iso: "TN" },
-  { code: "+213", flag: "🇩🇿", label: "Algérie", iso: "DZ" },
-  { code: "+33", flag: "🇫🇷", label: "France", iso: "FR" },
-  { code: "+1", flag: "🇺🇸", label: "USA / Canada", iso: "US" },
-] as const;
+// On adapte la liste centralisée (lib/countries.ts) au format attendu
+// par le sélecteur du checkout : { code: "+221", label: "...", iso: "SN" }.
+const COUNTRIES = ALL_COUNTRIES.map((c) => ({
+  code: c.dial,
+  label: c.name,
+  iso: c.code,
+}));
 
 type PaymentMethod = "orange_money" | "wave" | "mtn" | "card";
+type PaymentProvider = "moneroo" | "paygenius";
+type ProviderInfo = { id: PaymentProvider; label: string; available: boolean; description: string };
 type CartItem = {
   id: string;
   kind: "formation" | "product";
@@ -56,6 +46,16 @@ export default function CheckoutInner() {
   const [countryCode, setCountryCode] = useState("+221");
   const [countryOpen, setCountryOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("orange_money");
+  const [provider, setProvider] = useState<PaymentProvider>("moneroo");
+  const [availableProviders, setAvailableProviders] = useState<ProviderInfo[]>([]);
+  const [countrySearch, setCountrySearch] = useState("");
+  const filteredCountries = useMemo(() => {
+    const q = countrySearch.trim().toLowerCase();
+    if (!q) return COUNTRIES;
+    return COUNTRIES.filter(
+      (c) => c.label.toLowerCase().includes(q) || c.iso.toLowerCase().includes(q) || c.code.includes(q),
+    );
+  }, [countrySearch]);
   const [discountCode, setDiscountCode] = useState("");
   const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
   const [discountAmount, setDiscountAmount] = useState(0);
@@ -84,6 +84,24 @@ export default function CheckoutInner() {
 
   // ── Pixels marketing vendeurs (FB, Google, TikTok) ──────────────────────
   const [checkoutPixels, setCheckoutPixels] = useState<Array<{ type: "FACEBOOK" | "GOOGLE" | "TIKTOK"; pixelId: string }>>([]);
+
+  // ── Charger la liste des providers de paiement disponibles ─────────────
+  // Source unique de vérité = /api/formations/payment/providers (vérifie les
+  // env vars côté serveur). Si Moneroo n'est pas configuré, il ne s'affiche pas.
+  useEffect(() => {
+    fetch("/api/formations/payment/providers")
+      .then((r) => r.json())
+      .then((j) => {
+        const list = (j.data ?? []) as ProviderInfo[];
+        setAvailableProviders(list);
+        // Si le default "moneroo" n'est pas disponible, basculer sur le premier dispo
+        if (list.length > 0 && !list.find((p) => p.id === "moneroo" && p.available)) {
+          const firstAvail = list.find((p) => p.available) ?? list[0];
+          if (firstAvail) setProvider(firstAvail.id);
+        }
+      })
+      .catch(() => setAvailableProviders([]));
+  }, []);
 
   // ── Pre-fill from session ───────────────────────────────────────────────────
   useEffect(() => {
@@ -295,6 +313,7 @@ export default function CheckoutInner() {
           guestName: session ? undefined : `${firstName} ${lastName}`.trim(),
           phone: fullPhone,
           paymentMethod,
+          provider,
         }),
       });
       const json = await res.json();
@@ -419,24 +438,62 @@ export default function CheckoutInner() {
                       onClick={() => setCountryOpen((v) => !v)}
                       className="h-full px-3 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] min-w-[100px]"
                     >
-                      <span className="text-base leading-none">{selectedCountry.flag}</span>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://flagcdn.com/24x18/${selectedCountry.iso.toLowerCase()}.png`}
+                        srcSet={`https://flagcdn.com/48x36/${selectedCountry.iso.toLowerCase()}.png 2x`}
+                        alt={selectedCountry.label}
+                        width={24}
+                        height={18}
+                        className="rounded-sm"
+                      />
                       <span className="font-semibold">{selectedCountry.code}</span>
                       <span className="material-symbols-outlined text-[14px] text-[#5c647a]">expand_more</span>
                     </button>
                     {countryOpen && (
-                      <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-64 max-h-72 overflow-y-auto">
-                        {COUNTRIES.map((c) => (
-                          <button
-                            key={c.iso}
-                            type="button"
-                            onClick={() => { setCountryCode(c.code); setCountryOpen(false); }}
-                            className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-green-50 text-left ${countryCode === c.code ? "bg-green-50 text-[#006e2f] font-semibold" : "text-[#191c1e]"}`}
-                          >
-                            <span className="text-base">{c.flag}</span>
-                            <span className="flex-1">{c.label}</span>
-                            <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
-                          </button>
-                        ))}
+                      <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 max-h-80 overflow-hidden flex flex-col">
+                        <div className="p-2 border-b border-gray-100 sticky top-0 bg-white">
+                          <input
+                            type="text"
+                            value={countrySearch}
+                            onChange={(e) => setCountrySearch(e.target.value)}
+                            placeholder="Rechercher un pays…"
+                            autoFocus
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-[#f7f9fb] text-xs placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+                          />
+                        </div>
+                        <div className="overflow-y-auto flex-1">
+                          {filteredCountries.length === 0 ? (
+                            <div className="px-4 py-6 text-center text-xs text-[#5c647a]">
+                              Aucun pays trouvé
+                            </div>
+                          ) : (
+                            filteredCountries.map((c) => (
+                              <button
+                                key={c.iso}
+                                type="button"
+                                onClick={() => {
+                                  setCountryCode(c.code);
+                                  setCountryOpen(false);
+                                  setCountrySearch("");
+                                }}
+                                className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-green-50 text-left ${countryCode === c.code ? "bg-green-50 text-[#006e2f] font-semibold" : "text-[#191c1e]"}`}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={`https://flagcdn.com/24x18/${c.iso.toLowerCase()}.png`}
+                                  srcSet={`https://flagcdn.com/48x36/${c.iso.toLowerCase()}.png 2x`}
+                                  alt=""
+                                  width={24}
+                                  height={18}
+                                  className="rounded-sm flex-shrink-0"
+                                />
+                                <span className="flex-1 truncate">{c.label}</span>
+                                <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
+                              </button>
+                            ))
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -501,7 +558,15 @@ export default function CheckoutInner() {
                       onClick={() => setCountryOpen((v) => !v)}
                       className="h-full px-3 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] flex items-center gap-1.5 whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] min-w-[90px]"
                     >
-                      <span className="text-base leading-none">{selectedCountry.flag}</span>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={`https://flagcdn.com/24x18/${selectedCountry.iso.toLowerCase()}.png`}
+                        srcSet={`https://flagcdn.com/48x36/${selectedCountry.iso.toLowerCase()}.png 2x`}
+                        alt={selectedCountry.label}
+                        width={24}
+                        height={18}
+                        className="rounded-sm"
+                      />
                       <span className="font-semibold">{selectedCountry.code}</span>
                       <span className="material-symbols-outlined text-[14px] text-[#5c647a]">expand_more</span>
                     </button>
@@ -548,10 +613,70 @@ export default function CheckoutInner() {
           </div>
           )}
 
+          {/* Provider selector — visible si plusieurs providers configurés */}
+          {availableProviders.filter((p) => p.available).length > 1 && (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+              <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
+                Passerelle de paiement
+              </h2>
+              <p className="text-xs text-[#5c647a] mb-4">
+                Choisissez la passerelle qui traitera votre paiement. Les méthodes acceptées sont
+                identiques (Mobile Money, carte bancaire) — seul le prestataire change.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {availableProviders
+                  .filter((p) => p.available)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setProvider(p.id)}
+                      className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                        provider === p.id
+                          ? "border-[#006e2f] bg-green-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[22px] mt-0.5 ${
+                          provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"
+                        }`}
+                      >
+                        {p.id === "paygenius" ? "auto_awesome" : "account_balance_wallet"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`text-sm font-bold ${
+                              provider === p.id ? "text-[#006e2f]" : "text-[#191c1e]"
+                            }`}
+                          >
+                            {p.label}
+                          </span>
+                          {provider === p.id && (
+                            <span
+                              className="material-symbols-outlined text-[#006e2f] text-[16px] ml-auto"
+                              style={{ fontVariationSettings: "'FILL' 1" }}
+                            >
+                              check_circle
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[#5c647a] mt-1 leading-snug">{p.description}</p>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+
           {/* Discount code */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
+              <span className="w-6 h-6 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">
+                {availableProviders.filter((p) => p.available).length > 1 ? 3 : 2}
+              </span>
               Code promo (optionnel)
             </h2>
             <div className="relative">

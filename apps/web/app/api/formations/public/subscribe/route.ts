@@ -4,7 +4,13 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
-import { initPayment } from "@/lib/moneroo";
+import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
+
+type PaymentProvider = "moneroo" | "paygenius";
+function resolveProvider(raw: unknown): PaymentProvider {
+  return String(raw ?? "").toLowerCase() === "paygenius" ? "paygenius" : "moneroo";
+}
 
 /**
  * POST /api/formations/public/subscribe
@@ -30,8 +36,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { planId } = await request.json();
+    const body = await request.json();
+    const { planId, provider: rawProvider } = body as { planId?: string; provider?: string };
     if (!planId) return NextResponse.json({ error: "planId requis" }, { status: 400 });
+    const provider: PaymentProvider = resolveProvider(rawProvider);
 
     const plan = await prisma.subscriptionPlan.findUnique({
       where: { id: planId },
@@ -77,23 +85,53 @@ export async function POST(request: Request) {
 
     const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
-    // Init paiement Moneroo
-    const payment = await initPayment({
-      amount: Math.round(plan.price),
-      currency: plan.currency || "XOF",
-      description: `Abonnement : ${plan.name}`,
-      customer: { email: user.email, first_name: firstName, last_name: lastName },
-      return_url: `${APP_URL}/payment/return`,
-      metadata: {
-        type: "subscription_initial",
-        planId: plan.id,
-        userId,
-        instructeurId: plan.instructeurId,
-        interval: plan.interval,
-      },
-    });
+    // Vérifier que le provider demandé est configuré, sinon fallback
+    const providerConfigured = provider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
+    if (!providerConfigured) {
+      return NextResponse.json(
+        { error: `Le provider ${provider} n'est pas configuré sur cette plateforme` },
+        { status: 503 },
+      );
+    }
 
-    return NextResponse.json({ data: { checkout_url: payment.checkout_url, id: payment.id } });
+    const sharedMeta = {
+      type: "subscription_initial",
+      planId: plan.id,
+      userId,
+      instructeurId: plan.instructeurId,
+      interval: plan.interval,
+    };
+    const description = `Abonnement : ${plan.name}`;
+    const returnUrl = `${APP_URL}/payment/return?provider=${provider}`;
+
+    let checkoutUrl: string;
+    let providerRefId: string;
+
+    if (provider === "paygenius") {
+      const pg = await initPayGenius({
+        amount: Math.round(plan.price),
+        currency: plan.currency || "XOF",
+        description,
+        customer: { email: user.email, name: `${firstName} ${lastName}`.trim() },
+        return_url: returnUrl,
+        metadata: sharedMeta,
+      });
+      checkoutUrl = pg.checkout_url;
+      providerRefId = pg.reference;
+    } else {
+      const mnr = await initMoneroo({
+        amount: Math.round(plan.price),
+        currency: plan.currency || "XOF",
+        description,
+        customer: { email: user.email, first_name: firstName, last_name: lastName },
+        return_url: returnUrl,
+        metadata: sharedMeta,
+      });
+      checkoutUrl = mnr.checkout_url;
+      providerRefId = mnr.id;
+    }
+
+    return NextResponse.json({ data: { checkout_url: checkoutUrl, id: providerRefId, provider } });
   } catch (err) {
     console.error("[public/subscribe POST]", err);
     return NextResponse.json(

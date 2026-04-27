@@ -1,20 +1,25 @@
 import { NextResponse } from "next/server";
-import { retrievePayment, isMonerooConfigured } from "@/lib/moneroo";
+import { retrievePayment as retrieveMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { retrievePayment as retrievePayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
 
 /**
- * GET /api/formations/payment/verify?id=xxx
+ * GET /api/formations/payment/verify?id=xxx&provider=moneroo|paygenius
  *
- * Vérifie un paiement Moneroo ET finalise la commande (crée enrollments,
- * crédite wallet vendeur, envoie emails) en utilisant la metadata stockée
- * sur Moneroo — PAS besoin de session utilisateur car on trust la source
- * (Moneroo) qu'on re-interroge directement.
+ * Vérifie un paiement (Moneroo ou PayGenius) ET finalise la commande
+ * (crée enrollments, crédite wallet vendeur, envoie emails) en utilisant
+ * la metadata stockée chez le provider — PAS besoin de session utilisateur.
  *
  * Idempotent : si fulfillCheckout a déjà tourné (via webhook ou retour user),
- * il skip les enrollments déjà existants. Donc rappeler cet endpoint
- * n'effectuera pas de double achat.
+ * il skip les enrollments déjà existants.
  */
+
+type Provider = "moneroo" | "paygenius";
+
+function resolveProvider(raw: string | null): Provider {
+  return raw === "paygenius" ? "paygenius" : "moneroo";
+}
 
 function parseIdList(raw: unknown): string[] {
   if (Array.isArray(raw)) return raw.map(String).filter(Boolean);
@@ -30,15 +35,25 @@ function parseIdList(raw: unknown): string[] {
 
 export async function GET(request: Request) {
   try {
-    if (!isMonerooConfigured()) {
-      return NextResponse.json({ error: "Moneroo non configuré" }, { status: 503 });
-    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
 
-    // 1. Récupère le paiement depuis Moneroo (source de vérité)
-    const payment = await retrievePayment(id);
+    const provider = resolveProvider(searchParams.get("provider"));
+
+    if (provider === "paygenius" && !isPayGeniusConfigured()) {
+      return NextResponse.json({ error: "PayGenius non configuré" }, { status: 503 });
+    }
+    if (provider === "moneroo" && !isMonerooConfigured()) {
+      return NextResponse.json({ error: "Moneroo non configuré" }, { status: 503 });
+    }
+
+    // 1. Récupère le paiement depuis le provider (source de vérité)
+    //    PayGenius : `id` = reference (MTX-XXXXXXXXXX)
+    //    Moneroo   : `id` = transaction id
+    const payment = provider === "paygenius"
+      ? await retrievePayGenius(id)
+      : await retrieveMoneroo(id);
     const metadata = (payment.metadata ?? {}) as Record<string, unknown>;
 
     // Si pas encore succès, on retourne juste le status (page affiche "en attente" / "échoué")
@@ -50,6 +65,7 @@ export async function GET(request: Request) {
           amount: payment.amount,
           currency: payment.currency,
           metadata,
+          provider,
           fulfilled: false,
         },
       });
@@ -127,6 +143,7 @@ export async function GET(request: Request) {
           amount: payment.amount,
           currency: payment.currency,
           metadata,
+          provider,
           fulfilled: true,
           result,
         },

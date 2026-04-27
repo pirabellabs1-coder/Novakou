@@ -5,7 +5,14 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { isSlotStillAvailable } from "@/lib/mentor/slots";
 import { generateRoomId } from "@/lib/mentor/jitsi";
-import { initPayment, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
+
+type PaymentProvider = "moneroo" | "paygenius";
+
+function resolveProvider(raw: unknown): PaymentProvider {
+  return String(raw ?? "").toLowerCase() === "paygenius" ? "paygenius" : "moneroo";
+}
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -41,11 +48,13 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const { slotStart, studentGoals, durationMinutes: requestedDuration } = body as {
+    const { slotStart, studentGoals, durationMinutes: requestedDuration, provider: rawProvider } = body as {
       slotStart?: string;
       studentGoals?: string;
       durationMinutes?: number;
+      provider?: string;
     };
+    const requestedProvider: PaymentProvider = resolveProvider(rawProvider);
 
     // Validation basique
     if (!slotStart || typeof slotStart !== "string") {
@@ -189,55 +198,76 @@ export async function POST(request: Request, { params }: Params) {
       });
     }
 
-    // ── STEP 2: Init payment (Moneroo or mock) ────────────────────────────
+    // ── STEP 2: Init payment (Moneroo / PayGenius / mock) ─────────────────
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
     const internalRef = `mnt:${booking.id}`;
     let checkoutUrl: string = "";
-    let provider: "moneroo" | "mock" = "mock";
+    let provider: "moneroo" | "paygenius" | "mock" = "mock";
 
-    const useMock = !isMonerooConfigured();
-    let monerooFallback = false;
+    const providerConfigured =
+      requestedProvider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
+    const useMock = !providerConfigured;
+    let initFallback = false;
 
     if (!useMock) {
-      // Try real Moneroo payment first
       const fName = session.user.name ?? session.user.email?.split("@")[0] ?? "Apprenant";
       const [first, ...rest] = fName.split(" ");
       const last = rest.join(" ") || first;
+      const sharedMeta = {
+        bookingId: booking.id,
+        mentorId: mentor.id,
+        studentId,
+        internalRef,
+        type: "mentor_booking",
+      };
+      const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&bookingId=${booking.id}&provider=${requestedProvider}`;
+      const description = `Réservation mentor — ${mentor.specialty || "Séance"}`;
+
       try {
-        const moneroo = await initPayment({
-          amount: mentor.sessionPrice,
-          currency: "XOF",
-          description: `Réservation mentor — ${mentor.specialty || "Séance"}`,
-          customer: {
-            email: session.user.email!,
-            first_name: first || "Apprenant",
-            last_name: last || "—",
-          },
-          return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(internalRef)}&bookingId=${booking.id}`,
-          metadata: {
-            bookingId: booking.id,
-            mentorId: mentor.id,
-            studentId,
-            internalRef,
-            type: "mentor_booking",
-          },
-        });
-        provider = "moneroo";
-        checkoutUrl = moneroo.checkout_url;
+        let providerRefId: string;
+        if (requestedProvider === "paygenius") {
+          const pg = await initPayGenius({
+            amount: mentor.sessionPrice,
+            currency: "XOF",
+            description,
+            customer: {
+              email: session.user.email!,
+              name: `${first || "Apprenant"} ${last || ""}`.trim(),
+            },
+            return_url: returnUrl,
+            metadata: sharedMeta,
+          });
+          provider = "paygenius";
+          checkoutUrl = pg.checkout_url;
+          providerRefId = pg.reference;
+        } else {
+          const mnr = await initMoneroo({
+            amount: mentor.sessionPrice,
+            currency: "XOF",
+            description,
+            customer: {
+              email: session.user.email!,
+              first_name: first || "Apprenant",
+              last_name: last || "—",
+            },
+            return_url: returnUrl,
+            metadata: sharedMeta,
+          });
+          provider = "moneroo";
+          checkoutUrl = mnr.checkout_url;
+          providerRefId = mnr.id;
+        }
         await prisma.mentorBooking.update({
           where: { id: booking.id },
-          data: { paymentProvider: provider, paymentRef: moneroo.id },
+          data: { paymentProvider: provider, paymentRef: providerRefId },
         });
       } catch (err) {
-        // Moneroo rejected (e.g. payment method not enabled for currency).
-        // Fallback to mock so the flow continues — in production you'd want
-        // to propagate this; here we keep the UX unblocked while keys get fixed.
-        console.warn("[book] Moneroo failed, falling back to mock:", err instanceof Error ? err.message : err);
-        monerooFallback = true;
+        console.warn(`[book] ${requestedProvider} failed, falling back to mock:`, err instanceof Error ? err.message : err);
+        initFallback = true;
       }
     }
 
-    if (useMock || monerooFallback) {
+    if (useMock || initFallback) {
       provider = "mock";
       checkoutUrl = `/payment/return?mock=1&bookingId=${booking.id}&ref=${encodeURIComponent(internalRef)}`;
       await prisma.mentorBooking.update({

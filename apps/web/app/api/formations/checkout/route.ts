@@ -11,7 +11,13 @@ import {
 import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
 import crypto from "crypto";
 import { cookies } from "next/headers";
-import { initPayment, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
+
+type PaymentProvider = "moneroo" | "paygenius";
+function resolveProvider(raw: unknown): PaymentProvider {
+  return String(raw ?? "").toLowerCase() === "paygenius" ? "paygenius" : "moneroo";
+}
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 
 /**
@@ -205,46 +211,72 @@ export async function POST(request: Request) {
     // Commandes gratuites (totalAmount = 0) : fulfillment immédiat.
     // Moneroo non configuré (ex. dev) : fulfillment immédiat (mode mock).
     const isFree = totalAmount <= 0 || paymentMethod === "free";
-    const useMoneroo = !isFree && isMonerooConfigured();
+    const requestedProvider: PaymentProvider = resolveProvider((body as { provider?: string }).provider);
+    const providerConfigured =
+      requestedProvider === "paygenius" ? isPayGeniusConfigured() : isMonerooConfigured();
+    const useProvider = !isFree && providerConfigured;
 
-    if (useMoneroo) {
+    if (useProvider) {
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
       const fName = user.name ?? user.email.split("@")[0];
       const [first, ...rest] = fName.split(" ");
       const last = rest.join(" ") || first;
 
-      try {
-        const moneroo = await initPayment({
-          amount: totalAmount,
-          currency: "XOF",
-          description: `Commande Novakou #${sessionRef}`,
-          customer: {
-            email: user.email,
-            first_name: first || "Client",
-            last_name: last || "—",
-          },
-          return_url: `${appUrl}/payment/return?ref=${encodeURIComponent(sessionRef)}`,
-          metadata: {
-            type: "formations_checkout",
-            sessionRef,
-            userId,
-            // Stocké en JSON string car les providers limitent souvent
-            // les metadata à des primitives.
-            formationIds: JSON.stringify(formationIds),
-            productIds: JSON.stringify(productIds),
-            discountCode: discountCodeStr ?? "",
-            affiliateProfileId: affiliateProfile?.id ?? "",
-            affiliateCommissionRate: String(affiliateCommissionRate),
-            paymentMethod,
-          },
-        });
+      const sharedMeta = {
+        type: "formations_checkout",
+        sessionRef,
+        userId,
+        formationIds: JSON.stringify(formationIds),
+        productIds: JSON.stringify(productIds),
+        discountCode: discountCodeStr ?? "",
+        affiliateProfileId: affiliateProfile?.id ?? "",
+        affiliateCommissionRate: String(affiliateCommissionRate),
+        paymentMethod,
+        paymentProvider: requestedProvider,
+      };
+      const description = `Commande Novakou #${sessionRef}`;
+      const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(sessionRef)}&provider=${requestedProvider}`;
 
-        // On NE crée PAS encore les enrollments — le webhook le fera.
+      try {
+        let checkoutUrl: string;
+        let providerRefId: string;
+
+        if (requestedProvider === "paygenius") {
+          const pg = await initPayGenius({
+            amount: totalAmount,
+            currency: "XOF",
+            description,
+            customer: { email: user.email, name: `${first || "Client"} ${last || ""}`.trim() },
+            return_url: returnUrl,
+            metadata: sharedMeta,
+          });
+          checkoutUrl = pg.checkout_url;
+          providerRefId = pg.reference;
+        } else {
+          const mnr = await initMoneroo({
+            amount: totalAmount,
+            currency: "XOF",
+            description,
+            customer: {
+              email: user.email,
+              first_name: first || "Client",
+              last_name: last || "—",
+            },
+            return_url: returnUrl,
+            metadata: sharedMeta,
+          });
+          checkoutUrl = mnr.checkout_url;
+          providerRefId = mnr.id;
+        }
+
         return NextResponse.json({
           data: {
             needsPayment: true,
-            checkoutUrl: moneroo.checkout_url,
-            monerooPaymentId: moneroo.id,
+            checkoutUrl,
+            provider: requestedProvider,
+            // Champs historiques conservés pour rétro-compat
+            monerooPaymentId: requestedProvider === "moneroo" ? providerRefId : undefined,
+            providerRef: providerRefId,
             sessionRef,
             subTotal,
             discountAmount,
@@ -252,7 +284,7 @@ export async function POST(request: Request) {
           },
         });
       } catch (err) {
-        console.error("[checkout] Moneroo init failed, fallback to mock:", err);
+        console.error(`[checkout] ${requestedProvider} init failed, fallback to mock:`, err);
         // Fall through vers le fulfillment immédiat (dev/mock)
       }
     }

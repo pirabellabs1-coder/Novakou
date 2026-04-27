@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { initPayment, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
+import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { sendSubscriptionRenewalEmail } from "@/lib/email/formations";
 
 /**
@@ -28,8 +29,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  if (!isMonerooConfigured()) {
-    return NextResponse.json({ skipped: true, reason: "MONEROO_SECRET_KEY non configurée" });
+  // Au moins un provider doit être configuré
+  if (!isMonerooConfigured() && !isPayGeniusConfigured()) {
+    return NextResponse.json({
+      skipped: true,
+      reason: "Aucun provider configuré (ni MONEROO_SECRET_KEY ni PAYGENIUS_API_KEY)",
+    });
   }
 
   const now = new Date();
@@ -71,34 +76,70 @@ export async function GET(request: NextRequest) {
       const firstName = (sub.user.name || sub.user.email.split("@")[0]).split(" ")[0];
       const lastName = (sub.user.name || "").split(" ").slice(1).join(" ") || "Membre";
 
-      const payment = await initPayment({
-        amount: Math.round(sub.plan.price),
-        currency: sub.plan.currency || "XOF",
-        description: `Renouvellement : ${sub.plan.name}`,
-        customer: {
-          email: sub.user.email,
-          first_name: firstName,
-          last_name: lastName,
-        },
-        return_url: `${APP_URL}/payment/return`,
-        metadata: {
-          type: "subscription_renewal",
-          planId: sub.plan.id,
-          subscriptionId: sub.id,
-          userId: sub.user.id,
-          instructeurId: sub.plan.instructeurId,
-          interval: sub.plan.interval,
-        },
+      // Choix du provider pour la relance : on regarde la dernière facture
+      // payée. Si elle existe, on garde le même provider (cohérence pour
+      // l'abonné). Sinon on prend Moneroo si configuré, sinon PayGenius.
+      const lastInvoice = await prisma.subscriptionInvoice.findFirst({
+        where: { subscriptionId: sub.id, status: "paid" },
+        orderBy: { createdAt: "desc" },
+        select: { paymentProvider: true },
       });
+      const preferredProvider: "moneroo" | "paygenius" =
+        lastInvoice?.paymentProvider === "paygenius"
+          ? "paygenius"
+          : isMonerooConfigured()
+          ? "moneroo"
+          : "paygenius";
+      const provider: "moneroo" | "paygenius" =
+        preferredProvider === "paygenius" && isPayGeniusConfigured()
+          ? "paygenius"
+          : isMonerooConfigured()
+          ? "moneroo"
+          : "paygenius";
+
+      const sharedMeta = {
+        type: "subscription_renewal",
+        planId: sub.plan.id,
+        subscriptionId: sub.id,
+        userId: sub.user.id,
+        instructeurId: sub.plan.instructeurId,
+        interval: sub.plan.interval,
+        paymentProvider: provider,
+      };
+      const description = `Renouvellement : ${sub.plan.name}`;
+      const returnUrl = `${APP_URL}/payment/return?provider=${provider}`;
+
+      let checkoutUrl: string;
+      if (provider === "paygenius") {
+        const pg = await initPayGenius({
+          amount: Math.round(sub.plan.price),
+          currency: sub.plan.currency || "XOF",
+          description,
+          customer: { email: sub.user.email, name: `${firstName} ${lastName}`.trim() },
+          return_url: returnUrl,
+          metadata: sharedMeta,
+        });
+        checkoutUrl = pg.checkout_url;
+      } else {
+        const mnr = await initMoneroo({
+          amount: Math.round(sub.plan.price),
+          currency: sub.plan.currency || "XOF",
+          description,
+          customer: { email: sub.user.email, first_name: firstName, last_name: lastName },
+          return_url: returnUrl,
+          metadata: sharedMeta,
+        });
+        checkoutUrl = mnr.checkout_url;
+      }
 
       // Note the checkout link to dedupe within 23h.
       await prisma.subscription.update({
         where: { id: sub.id },
-        data: { nextInvoiceAt: now, paymentMethod: payment.checkout_url ?? null },
+        data: { nextInvoiceAt: now, paymentMethod: checkoutUrl ?? null },
       }).catch(() => null);
 
       // Email the apprenant the checkout link so they can pay.
-      if (payment.checkout_url) {
+      if (checkoutUrl) {
         sendSubscriptionRenewalEmail({
           email: sub.user.email,
           name: firstName,
@@ -106,7 +147,7 @@ export async function GET(request: NextRequest) {
           price: sub.plan.price,
           currency: sub.plan.currency || "XOF",
           interval: sub.plan.interval,
-          checkoutUrl: payment.checkout_url,
+          checkoutUrl,
           currentPeriodEnd: sub.currentPeriodEnd,
         }).catch((e) => console.warn("[cron/subscription-renewal email]", sub.id, e?.message ?? e));
       }

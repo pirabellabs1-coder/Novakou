@@ -3,13 +3,28 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { initPayout, isMonerooConfigured, classifyMonerooError } from "@/lib/moneroo";
+import {
+  initPayout as initMonerooPayout,
+  isMonerooConfigured,
+  classifyMonerooError,
+} from "@/lib/moneroo";
+import {
+  initPayout as initPayGeniusPayout,
+  isPayGeniusConfigured,
+  classifyPayGeniusError,
+} from "@/lib/paygenius";
 import {
   getPayoutMethod,
   normalizeMsisdn,
   resolveLegacyMethod,
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
+import {
+  getPayGeniusPayoutMethod,
+  normalizePayGeniusMsisdn,
+  shortPayGeniusMethodLabel,
+  resolvePayGeniusLegacyMethod,
+} from "@/lib/paygenius-payout-methods";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -30,18 +45,24 @@ type AccountDetails = {
  * PATCH /api/formations/admin/withdrawals/[id]
  *
  * Body :
- *   { action: "approve", mode?: "moneroo" | "manual" }
- *     → "moneroo" (défaut) : déclenche un vrai payout via Moneroo et passe
- *       à TRAITE si Moneroo renvoie success immédiatement, sinon laisse
- *       EN_ATTENTE (le webhook finira le job). Si Moneroo échoue à init, la
- *       demande reste EN_ATTENTE avec errorMessage rempli.
- *     → "manual" : l'admin fait le virement hors plateforme et marque
- *       simplement la demande comme TRAITE (ancien comportement).
+ *   { action: "approve", mode?: "moneroo" | "paygenius" | "manual" }
+ *     → "moneroo" (défaut) : payout via Moneroo
+ *     → "paygenius"        : payout via PayGenius (wallet pré-financé requis)
+ *     → "manual"           : virement hors plateforme, marque TRAITE direct
  *
  *   { action: "refuse", refusedReason: string } → REFUSE + motif
  *
  * Admin-only (role=ADMIN). En dev, bypass de la verif role.
  */
+type PayoutMode = "moneroo" | "paygenius" | "manual";
+
+function resolvePayoutMode(raw: unknown): PayoutMode {
+  const v = String(raw ?? "").toLowerCase();
+  if (v === "manual") return "manual";
+  if (v === "paygenius") return "paygenius";
+  return "moneroo";
+}
+
 export async function PATCH(request: Request, { params }: Params) {
   const { id } = await params;
   try {
@@ -54,7 +75,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const body = await request.json().catch(() => ({}));
     const action: string = body.action;
     const refusedReason: string = body.refusedReason ?? "";
-    const mode: "moneroo" | "manual" = body.mode === "manual" ? "manual" : "moneroo";
+    const mode: PayoutMode = resolvePayoutMode(body.mode);
 
     if (!["approve", "refuse", "retry", "reject"].includes(action)) {
       return NextResponse.json({ error: "Action invalide (approve | refuse | retry | reject)." }, { status: 400 });
@@ -135,9 +156,15 @@ export async function PATCH(request: Request, { params }: Params) {
     const isMentor = w.method.endsWith("_mentor");
     const role = isMentor ? "mentor" : "vendeur";
 
-    // ─── APPROVE : déclencher paiement réel via Moneroo OU manuel ──────────
+    // ─── APPROVE : déclencher paiement réel via provider OU manuel ──────────
     if (action === "approve") {
-      if (mode === "manual" || !isMonerooConfigured()) {
+      // Si le provider sélectionné n'est pas configuré, on retombe en manuel
+      const providerConfigured =
+        mode === "paygenius" ? isPayGeniusConfigured() :
+        mode === "moneroo" ? isMonerooConfigured() :
+        true; // mode === "manual"
+
+      if (mode === "manual" || !providerConfigured) {
         // Mode manuel (ancien comportement) : l'admin vire hors plateforme
         await prisma.instructorWithdrawal.update({
           where: { id },
@@ -161,7 +188,7 @@ export async function PATCH(request: Request, { params }: Params) {
         return NextResponse.json({ data: { id, status: "TRAITE", role, mode: "manual" } });
       }
 
-      // Mode Moneroo : déclencher un vrai payout
+      // Mode Moneroo OU PayGenius : déclencher un vrai payout
       // Re-validate balance before payout (prevent negative balance if refund happened since request)
       const revenueRows = await prisma.platformRevenue.findMany({
         where: { instructeurId: w.instructeurId, orderType: { in: ["formation", "product"] } },
@@ -198,6 +225,151 @@ export async function PATCH(request: Request, { params }: Params) {
       // On retire le suffixe _mentor pour obtenir le vrai method code
       const rawMethod = w.method.replace(/_mentor$/, "");
       const userCountry = w.instructeur.user.country ?? null;
+      const details = (w.accountDetails ?? {}) as AccountDetails;
+
+      // Nom du bénéficiaire (commun aux deux providers)
+      const fullName = (w.instructeur.user.name || w.instructeur.user.email || "Vendeur").trim();
+      const nameParts = fullName.split(/\s+/);
+      const firstName = nameParts[0] || "Vendeur";
+      const lastName = nameParts.slice(1).join(" ") || "Novakou";
+
+      const sharedMetadata = {
+        type: "vendor_withdrawal",
+        withdrawalId: w.id,
+        instructeurId: w.instructeurId,
+        role,
+        userId: w.instructeur.user.id,
+      };
+
+      let payoutRefId: string;
+      let methodLabelHumain: string;
+
+      // ── BRANCH PAYGENIUS ───────────────────────────────────────────────
+      if (mode === "paygenius") {
+        // Résolution : si le vendeur a stocké un code générique ("orange_money",
+        // "wave"…) ou un code Moneroo ("orange_ci"), on le convertit en code
+        // PayGenius via le pays du vendeur.
+        const pgMethodId =
+          getPayGeniusPayoutMethod(rawMethod)?.id ??
+          resolvePayGeniusLegacyMethod(rawMethod, userCountry);
+        const methodDef = pgMethodId ? getPayGeniusPayoutMethod(pgMethodId) : undefined;
+        if (!methodDef) {
+          await prisma.instructorWithdrawal.update({
+            where: { id },
+            data: { errorMessage: `Méthode inconnue dans le catalogue PayGenius : ${rawMethod}` },
+          }).catch(() => null);
+          return NextResponse.json(
+            {
+              error: `Méthode "${rawMethod}" non supportée par PayGenius. Choisissez mode=moneroo ou mode=manual.`,
+              code: "UNKNOWN_METHOD_PAYGENIUS",
+            },
+            { status: 400 },
+          );
+        }
+
+        // Récupère le numéro / IBAN selon les champs requis
+        const missing: string[] = [];
+        let account = "";
+        let recipientPhone = details.msisdn || details.phone || "";
+        if (methodDef.requiredFields.includes("msisdn")) {
+          if (!recipientPhone || !String(recipientPhone).trim()) {
+            missing.push("msisdn (numéro Mobile Money)");
+          } else {
+            account = normalizePayGeniusMsisdn(String(recipientPhone), methodDef.id);
+            recipientPhone = account; // PayGenius veut le même numéro côté recipient + destination
+          }
+        } else if (methodDef.requiredFields.includes("iban")) {
+          const ibanRaw = details.iban || "";
+          if (!ibanRaw.trim()) {
+            missing.push("iban");
+          } else {
+            account = ibanRaw.trim().toUpperCase().replace(/\s/g, "");
+            // pour bank_transfer, recipient.phone reste optionnel mais requis par l'API → on
+            // utilise l'email du bénéficiaire comme contact si pas de phone
+            if (!recipientPhone) recipientPhone = ""; // gérer plus bas
+          }
+        }
+        if (missing.length > 0) {
+          return NextResponse.json(
+            { error: `Coordonnées incomplètes. Champs manquants : ${missing.join(", ")}` },
+            { status: 400 },
+          );
+        }
+
+        try {
+          console.log(`[paygenius:payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
+          const payoutData = await initPayGeniusPayout({
+            amount: Math.round(w.amount),
+            currency: "XOF",
+            description: `Retrait Novakou - ${shortPayGeniusMethodLabel(methodDef.id)}`,
+            recipient: {
+              name: `${firstName} ${lastName}`.trim(),
+              phone: recipientPhone || normalizePayGeniusMsisdn("0000000000", methodDef.id),
+              email: w.instructeur.user.email,
+            },
+            destination: {
+              type: methodDef.destinationType,
+              provider: methodDef.destinationProvider,
+              account,
+            },
+            metadata: sharedMetadata,
+            idempotency_key: `wd_${w.id}`,
+          });
+          payoutRefId = payoutData.reference; // on stocke la `reference` PYT-…
+          methodLabelHumain = shortPayGeniusMethodLabel(methodDef.id);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error(`[paygenius:payout:error] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id} error=${msg}`);
+          const classified = classifyPayGeniusError(msg);
+          await prisma.instructorWithdrawal.update({
+            where: { id },
+            data: {
+              status: "REFUSE",
+              processedAt: new Date(),
+              paymentProvider: "paygenius",
+              errorMessage: msg.slice(0, 500),
+              refusedReason: `PayGenius: ${classified.userMessage}`,
+            },
+          }).catch(() => null);
+          return NextResponse.json(
+            { error: classified.userMessage, code: "PAYGENIUS_INIT_FAILED", category: classified.category },
+            { status: 502 },
+          );
+        }
+
+        // Statut final via webhook (cashout.completed / payout.completed)
+        await prisma.instructorWithdrawal.update({
+          where: { id },
+          data: {
+            paymentRef: payoutRefId,
+            paymentProvider: "paygenius",
+            errorMessage: null,
+          },
+        });
+
+        await prisma.notification.create({
+          data: {
+            userId: w.instructeur.user.id,
+            type: "PAYMENT",
+            title: "Retrait en cours",
+            message: `Votre retrait de ${Math.round(w.amount)} FCFA via ${methodLabelHumain} (PayGenius) est en cours. Vous serez notifié quand les fonds arriveront.`,
+            link: isMentor ? "/mentor/finances" : "/wallet",
+          },
+        }).catch(() => null);
+
+        return NextResponse.json({
+          data: {
+            id,
+            status: "EN_ATTENTE",
+            role,
+            mode: "paygenius",
+            paymentRef: payoutRefId,
+            note: "Envoyé à PayGenius. Le webhook confirmera le versement.",
+          },
+        });
+      }
+
+      // ── BRANCH MONEROO (par défaut) ─────────────────────────────────────
       // Si le vendeur a enregistré "orange_money" (legacy), on le résout selon le pays
       const resolvedMethod = getPayoutMethod(rawMethod)
         ? rawMethod
@@ -213,7 +385,7 @@ export async function PATCH(request: Request, { params }: Params) {
         }).catch(() => null);
         return NextResponse.json(
           {
-            error: `Méthode "${rawMethod}" non supportée par Moneroo. Utilisez mode=manual ou corrigez la méthode enregistrée.`,
+            error: `Méthode "${rawMethod}" non supportée par Moneroo. Utilisez mode=manual ou mode=paygenius selon votre besoin.`,
             code: "UNKNOWN_METHOD",
           },
           { status: 400 },
@@ -221,45 +393,36 @@ export async function PATCH(request: Request, { params }: Params) {
       }
 
       // Construire le recipient selon les champs requis par la méthode
-      const details = (w.accountDetails ?? {}) as AccountDetails;
       const recipient: Record<string, string> = {};
-      const missing: string[] = [];
+      const missingMnr: string[] = [];
       for (const f of methodDef.requiredFields) {
         if (f === "msisdn") {
-          // Accepte msisdn direct OU phone legacy (on normalise)
           const raw = details.msisdn ?? details.phone;
           if (!raw || !String(raw).trim()) {
-            missing.push("msisdn (numéro Mobile Money)");
+            missingMnr.push("msisdn (numéro Mobile Money)");
           } else {
             recipient.msisdn = normalizeMsisdn(String(raw), resolvedMethod);
           }
         } else {
-          // account_number ou autre
           const val = (details as Record<string, unknown>)[f];
           if (!val || !String(val).trim()) {
-            missing.push(f);
+            missingMnr.push(f);
           } else {
             recipient[f] = String(val).trim();
           }
         }
       }
-      if (missing.length > 0) {
+      if (missingMnr.length > 0) {
         return NextResponse.json(
-          { error: `Coordonnées incomplètes. Champs manquants : ${missing.join(", ")}` },
+          { error: `Coordonnées incomplètes. Champs manquants : ${missingMnr.join(", ")}` },
           { status: 400 },
         );
       }
 
-      // Nom du bénéficiaire
-      const fullName = (w.instructeur.user.name || w.instructeur.user.email || "Vendeur").trim();
-      const nameParts = fullName.split(/\s+/);
-      const firstName = nameParts[0] || "Vendeur";
-      const lastName = nameParts.slice(1).join(" ") || "Novakou";
-
       let payoutData;
       try {
         console.log(`[moneroo:payout] id=${id} amount=${Math.round(w.amount)} currency=${methodDef.currency} method=${resolvedMethod}`);
-        payoutData = await initPayout({
+        payoutData = await initMonerooPayout({
           amount: Math.round(w.amount),
           currency: methodDef.currency,
           description: `Retrait Novakou - ${shortMethodLabel(resolvedMethod)}`,
@@ -270,13 +433,7 @@ export async function PATCH(request: Request, { params }: Params) {
           },
           method: resolvedMethod,
           recipient,
-          metadata: {
-            type: "vendor_withdrawal",
-            withdrawalId: w.id,
-            instructeurId: w.instructeurId,
-            role,
-            userId: w.instructeur.user.id,
-          },
+          metadata: sharedMetadata,
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -302,20 +459,15 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       }
 
-      // Moneroo : la réponse à /payouts/initialize ne contient que { id }.
-      // Le statut final arrive via webhook (payout.initiated / success / failed).
-      // On reste en EN_ATTENTE tant que le webhook n'a pas confirmé.
       await prisma.instructorWithdrawal.update({
         where: { id },
         data: {
           paymentRef: payoutData.id,
           paymentProvider: "moneroo",
           errorMessage: null,
-          // status reste EN_ATTENTE — sera mis à TRAITE par le webhook
         },
       });
 
-      // Notif : le paiement est en cours
       await prisma.notification.create({
         data: {
           userId: w.instructeur.user.id,

@@ -166,7 +166,7 @@ export default function AdminRetraitsVendeursPage() {
   const summary = response?.summary;
 
   const approveMut = useMutation({
-    mutationFn: async (args: { id: string; mode: "moneroo" | "manual" }) => {
+    mutationFn: async (args: { id: string; mode: "moneroo" | "paygenius" | "manual" }) => {
       const res = await fetch(`/api/formations/admin/withdrawals/${args.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -185,6 +185,8 @@ export default function AdminRetraitsVendeursPage() {
             ? "Retrait versé via Moneroo ✅"
             : "Retrait envoyé à Moneroo — traitement en cours"
         );
+      } else if (mode === "paygenius") {
+        setToast("Retrait envoyé à PayGenius — traitement en cours");
       } else {
         setToast("Retrait marqué comme traité");
       }
@@ -260,6 +262,17 @@ export default function AdminRetraitsVendeursPage() {
       icon: "payments",
     });
     if (ok) approveMut.mutate({ id: w.id, mode: "moneroo" });
+  }
+
+  async function handleApprovePayGenius(w: Withdrawal) {
+    const ok = await confirmAction({
+      title: `Payer ${fmtFCFA(w.amount)} FCFA via PayGenius ?`,
+      message: `Bénéficiaire : ${w.user.name ?? w.user.email} · Méthode : ${methodLabel(w.method)}. PayGenius débite le wallet pré-financé et envoie l'argent au bénéficiaire.`,
+      confirmLabel: "Lancer le paiement",
+      confirmVariant: "default",
+      icon: "auto_awesome",
+    });
+    if (ok) approveMut.mutate({ id: w.id, mode: "paygenius" });
   }
 
   async function handleApproveManual(w: Withdrawal) {
@@ -593,6 +606,15 @@ export default function AdminRetraitsVendeursPage() {
                           >
                             <span className="material-symbols-outlined text-[14px]">payments</span>
                             Payer Moneroo
+                          </button>
+                          <button
+                            onClick={() => handleApprovePayGenius(w)}
+                            disabled={approveMut.isPending || refuseMut.isPending}
+                            className="px-4 py-2 bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-600 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            title="Déclencher un paiement via PayGenius (wallet pré-financé requis)"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                            Payer PayGenius
                           </button>
                           <button
                             onClick={() => handleApproveManual(w)}
