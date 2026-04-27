@@ -72,13 +72,13 @@ export function emailLayout(content: string): string {
     </div>
     <!-- Footer -->
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
+      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'équipe Novakou</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
         <a href="${getAppUrl()}/cgu" style="color:#006e2f;text-decoration:none;">CGU</a> ·
-        <a href="${getAppUrl()}/confidentialite" style="color:#006e2f;text-decoration:none;">Confidentialite</a> ·
+        <a href="${getAppUrl()}/confidentialite" style="color:#006e2f;text-decoration:none;">Confidentialité</a> ·
         <a href="${getAppUrl()}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Editee par Pirabel Labs</p>
+      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Éditée par Pirabel Labs</p>
     </div>
   </div>
 </body>
@@ -91,32 +91,87 @@ export function button(text: string, url: string): string {
 
 // ── 1. Email de bienvenue ──
 
-export async function sendWelcomeEmail(email: string, name: string, dashboardUrl?: string) {
-  const profileUrl = dashboardUrl || `${getAppUrl()}/dashboard/profil`;
-  const kycUrl = `${getAppUrl()}/dashboard/kyc`;
+export type FormationsRole = "instructeur" | "apprenant" | "mentor" | "affilie";
+
+function welcomeContentFor(role: FormationsRole | undefined) {
+  const base = getAppUrl();
+  switch (role) {
+    case "instructeur":
+      return {
+        intro: "Votre compte vendeur est activé. Vous pouvez désormais publier vos formations, e-books, templates et services de coaching, et toucher des milliers d'apprenants en Afrique francophone.",
+        steps: [
+          "Complétez votre profil et personnalisez votre boutique",
+          "Publiez votre première formation ou produit numérique",
+          "Configurez votre méthode de retrait (Mobile Money, Wave, virement)",
+        ],
+        primary: { label: "Accéder à mon espace vendeur", url: `${base}/vendeur/dashboard` },
+        secondary: { label: "Compléter mon profil", url: `${base}/vendeur/parametres` },
+      };
+    case "apprenant":
+      return {
+        intro: "Votre compte est activé. Vous avez maintenant accès à des centaines de formations, e-books et produits numériques créés par les meilleurs créateurs d'Afrique francophone.",
+        steps: [
+          "Explorez le catalogue de formations et produits",
+          "Complétez votre profil pour personnaliser vos recommandations",
+          "Sauvegardez vos favoris et reprenez votre apprentissage à tout moment",
+        ],
+        primary: { label: "Explorer le catalogue", url: `${base}/explorer` },
+        secondary: { label: "Mon espace apprenant", url: `${base}/apprenant/dashboard` },
+      };
+    case "mentor":
+      return {
+        intro: "Votre compte mentor est activé. Vous pouvez désormais proposer des sessions de coaching 1-to-1 aux apprenants et monétiser votre expertise.",
+        steps: [
+          "Complétez votre profil mentor (expertise, expérience, tarif)",
+          "Définissez vos disponibilités hebdomadaires",
+          "Recevez vos premières demandes de session",
+        ],
+        primary: { label: "Accéder à mon espace mentor", url: `${base}/mentor/dashboard` },
+        secondary: { label: "Compléter mon profil", url: `${base}/mentor/profil` },
+      };
+    case "affilie":
+      return {
+        intro: "Votre compte affilié est activé. Vous pouvez désormais promouvoir les meilleurs produits de la plateforme et toucher jusqu'à 40 % de commission sur chaque vente.",
+        steps: [
+          "Récupérez votre lien d'affiliation unique",
+          "Choisissez les produits à promouvoir dans le catalogue",
+          "Suivez vos clics, ventes et commissions en temps réel",
+        ],
+        primary: { label: "Accéder à mon espace affilié", url: `${base}/affilie/dashboard` },
+        secondary: { label: "Voir le catalogue à promouvoir", url: `${base}/explorer` },
+      };
+    default:
+      return {
+        intro: "Votre compte a été créé avec succès. Bienvenue sur la plateforme qui réunit les meilleurs créateurs digitaux d'Afrique francophone : formations, e-books, templates, coaching.",
+        steps: [
+          "Complétez votre profil",
+          "Choisissez votre espace : vendeur, apprenant, mentor ou affilié",
+          "Découvrez le catalogue et la communauté",
+        ],
+        primary: { label: "Accéder à mon compte", url: `${base}/apprenant/dashboard` },
+        secondary: { label: "Explorer le catalogue", url: `${base}/explorer` },
+      };
+  }
+}
+
+export async function sendWelcomeEmail(email: string, name: string, role?: FormationsRole) {
+  const c = welcomeContentFor(role);
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Bienvenue sur Novakou, ${name} !</h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Votre compte a ete cree avec succes. Vous faites maintenant partie de la plus grande communaute
-      de freelances en Afrique francophone et a l'international.
-    </p>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 8px;">
-      <strong>Prochaines etapes :</strong>
-    </p>
+    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">${c.intro}</p>
+    <p style="color:#4b5563;line-height:1.6;margin:0 0 8px;"><strong>Prochaines étapes :</strong></p>
     <ol style="color:#4b5563;line-height:1.8;margin:0 0 24px;padding-left:20px;">
-      <li>Completez votre profil (photo, bio, competences)</li>
-      <li>Verifiez votre identite pour debloquer toutes les fonctionnalites</li>
-      <li>Publiez votre premier service ou explorez les offres</li>
+      ${c.steps.map((s) => `<li>${s}</li>`).join("")}
     </ol>
-    ${button("Completer mon profil", profileUrl)}
+    ${button(c.primary.label, c.primary.url)}
     <div style="margin:16px 0;">
-      ${button("Verifier mon identite", kycUrl)}
+      ${button(c.secondary.label, c.secondary.url)}
     </div>
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 0;">
-      Si vous avez des questions, n'hesitez pas a nous contacter a
+      Une question ? Écrivez-nous à
       <a href="mailto:support@novakou.com" style="color:#006e2f;">support@novakou.com</a>
     </p>
-    <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— L'équipe Pirabel Labs</p>
+    <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— L'équipe Novakou</p>
   `);
 
   return sendEmail({ to: email, subject: "Bienvenue sur Novakou !", html });

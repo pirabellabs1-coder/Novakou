@@ -371,7 +371,7 @@ export const authOptions: NextAuthOptions = {
 
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
-                sendWelcomeEmail(email, user.name || email.split("@")[0]).catch((err) =>
+                sendWelcomeEmail(email, user.name || email.split("@")[0], pendingFormationsRole as "instructeur" | "apprenant" | "mentor" | "affilie" | undefined).catch((err) =>
                   console.error("[AUTH OAuth] Erreur envoi email bienvenue:", err)
                 );
               });
@@ -471,7 +471,7 @@ export const authOptions: NextAuthOptions = {
 
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
-                sendWelcomeEmail(email, user.name || email.split("@")[0]).catch((err) =>
+                sendWelcomeEmail(email, user.name || email.split("@")[0], pendingFormationsRole as "instructeur" | "apprenant" | "mentor" | "affilie" | undefined).catch((err) =>
                   console.error("[AUTH OAuth] Erreur envoi email bienvenue:", err)
                 );
               });

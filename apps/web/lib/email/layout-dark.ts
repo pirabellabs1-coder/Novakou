@@ -15,9 +15,9 @@ export function emailLayoutDark(content: string): string {
 <body style="margin:0;padding:0;background:#030712;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:720px;margin:0 auto;background:#0B1120;border-radius:12px;overflow:hidden;margin-top:40px;margin-bottom:40px;border:1px solid #1E293B;">
     <!-- Header -->
-    <div style="background:linear-gradient(135deg,#006e2f,#22c55e);padding:32px 40px;text-align:center;">
-      <h1 style="color:#ffffff;font-size:24px;font-weight:800;margin:0;">Novakou</h1>
-      <p style="color:rgba(255,255,255,0.8);font-size:12px;margin:4px 0 0;letter-spacing:1px;">LA PLATEFORME FREELANCE</p>
+    <div style="background:#ffffff;padding:24px 40px;text-align:center;border-bottom:1px solid #1E293B;">
+      <img src="${getAppUrl()}/apple-icon" alt="Novakou" width="48" height="48" style="display:inline-block;border-radius:10px;vertical-align:middle;" />
+      <span style="display:inline-block;vertical-align:middle;margin-left:12px;color:#0B1120;font-size:22px;font-weight:800;letter-spacing:-0.5px;">Novakou</span>
     </div>
     <!-- Content -->
     <div style="padding:40px;">
@@ -25,13 +25,13 @@ export function emailLayoutDark(content: string): string {
     </div>
     <!-- Footer -->
     <div style="padding:24px 40px;background:#0F172A;border-top:1px solid #1E293B;text-align:center;">
-      <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
+      <p style="color:#94A3B8;font-size:12px;margin:0 0 8px;">L'équipe Novakou</p>
       <p style="color:#475569;font-size:11px;margin:0;">
         <a href="${getAppUrl()}/cgu" style="color:#22c55e;text-decoration:none;">CGU</a> ·
-        <a href="${getAppUrl()}/confidentialite" style="color:#22c55e;text-decoration:none;">Confidentialite</a> ·
+        <a href="${getAppUrl()}/confidentialite" style="color:#22c55e;text-decoration:none;">Confidentialité</a> ·
         <a href="${getAppUrl()}/contact" style="color:#22c55e;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Editee par Pirabel Labs</p>
+      <p style="color:#334155;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Éditée par Pirabel Labs</p>
     </div>
   </div>
 </body>

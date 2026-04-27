@@ -827,15 +827,22 @@ export const EVENT_REGISTRY: {
   // ═══════════════════════════════════════════════════════════════════
 
   "system.welcome": {
-    notification: (p: SystemEventPayload) => ({
-      userId: p.userId,
-      title: "Bienvenue sur Novakou !",
-      message: "Votre compte a ete cree avec succes. Completez votre profil pour commencer.",
-      type: "system",
-      link: "/dashboard/profil",
-    }),
+    notification: (p: SystemEventPayload) => {
+      const link =
+        p.formationsRole === "instructeur" ? "/vendeur/dashboard" :
+        p.formationsRole === "mentor" ? "/mentor/dashboard" :
+        p.formationsRole === "affilie" ? "/affilie/dashboard" :
+        "/apprenant/dashboard";
+      return {
+        userId: p.userId,
+        title: "Bienvenue sur Novakou !",
+        message: "Votre compte a été créé avec succès. Complétez votre profil pour commencer.",
+        type: "system",
+        link,
+      };
+    },
     email: async (p: SystemEventPayload) => {
-      await sendWelcomeDarkEmail(p.userEmail, p.userName, p.dashboardUrl);
+      await sendWelcomeDarkEmail(p.userEmail, p.userName, p.formationsRole);
     },
   },
 
