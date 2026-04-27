@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { avatarSrc } from "@/lib/utils/image-url";
 
 type Profile = {
   id: string;
@@ -144,7 +145,12 @@ export default function InstructeurPublicPage() {
             <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#006e2f]/80 to-emerald-600 relative">
               {profile.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={profile.image} alt={profile.name} className="w-full h-full object-cover" />
+                <img
+                  src={avatarSrc(profile.image, 800) ?? profile.image}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="text-white text-[120px] font-extrabold opacity-30">
