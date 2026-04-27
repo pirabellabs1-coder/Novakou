@@ -278,28 +278,41 @@ export default function InstructeurPublicPage() {
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {formations.map((f) => (
-                <Link
+              {formations.map((f) => {
+                const discount =
+                  f.originalPrice && f.originalPrice > f.price
+                    ? Math.round(((f.originalPrice - f.price) / f.originalPrice) * 100)
+                    : 0;
+                return (
+                <article
                   key={f.id}
-                  href={`/formation/${f.slug}`}
-                  className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#006e2f]/20 transition-all"
+                  className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#006e2f]/20 transition-all flex flex-col"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center relative overflow-hidden">
-                    {f.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                    ) : (
-                      <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
-                    )}
-                    {f.customCategory && (
-                      <span className="absolute top-3 left-3 bg-white/90 text-[#006e2f] px-2 py-0.5 rounded-full text-[10px] font-bold">
-                        {f.customCategory}
-                      </span>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-[#191c1e] text-sm line-clamp-2 mb-2">{f.title}</h3>
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <Link href={`/formation/${f.slug}`} className="block">
+                    <div className="aspect-video bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center relative overflow-hidden">
+                      {f.thumbnail ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      ) : (
+                        <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+                      )}
+                      {f.customCategory && (
+                        <span className="absolute top-3 left-3 bg-white/90 text-[#006e2f] px-2 py-0.5 rounded-full text-[10px] font-bold">
+                          {f.customCategory}
+                        </span>
+                      )}
+                      {discount > 0 && (
+                        <span className="absolute top-3 right-3 bg-zinc-900 text-white px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide shadow-md">
+                          -{discount}% OFF
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                  <div className="p-4 flex flex-col gap-3 flex-1">
+                    <Link href={`/formation/${f.slug}`} className="block">
+                      <h3 className="font-bold text-[#191c1e] text-sm line-clamp-2 mb-2 hover:text-[#006e2f] transition-colors">{f.title}</h3>
+                    </Link>
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Stars rating={f.rating} />
                       <span className="text-[11px] text-[#5c647a]">
                         {f.rating > 0 ? f.rating.toFixed(1) : "Nouveau"}
@@ -317,9 +330,17 @@ export default function InstructeurPublicPage() {
                         <span className="text-xs text-[#5c647a] line-through">{formatFCFA(f.originalPrice)}</span>
                       )}
                     </div>
+                    <Link
+                      href={`/checkout?fids=${f.id}`}
+                      className="mt-auto inline-flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-zinc-700 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                      Acheter maintenant
+                    </Link>
                   </div>
-                </Link>
-              ))}
+                </article>
+                );
+              })}
             </div>
           </section>
         )}
@@ -334,46 +355,67 @@ export default function InstructeurPublicPage() {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {products.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/produit/${p.slug}`}
-                  className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-violet-500/20 transition-all"
-                >
-                  <div className="aspect-video bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
-                    {p.banner ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.banner} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                    ) : (
-                      <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>download</span>
-                    )}
-                    <span className="absolute top-3 left-3 bg-white/90 text-violet-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                      {p.productType}
-                    </span>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-[#191c1e] text-sm line-clamp-2 mb-2">{p.title}</h3>
-                    <div className="flex items-center gap-2 mb-3 flex-wrap">
-                      <Stars rating={p.rating} />
-                      <span className="text-[11px] text-[#5c647a]">
-                        {p.rating > 0 ? p.rating.toFixed(1) : "Nouveau"}
-                        {p.reviewsCount > 0 && ` (${p.reviewsCount})`}
-                      </span>
-                      <span className="text-[11px] text-[#5c647a] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">shopping_bag</span>
-                        <span className="font-semibold text-[#191c1e]">{p.salesCount}</span>
-                        vente{p.salesCount !== 1 ? "s" : ""}
-                      </span>
+              {products.map((p) => {
+                const discount =
+                  p.originalPrice && p.originalPrice > p.price
+                    ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
+                    : 0;
+                return (
+                  <article
+                    key={p.id}
+                    className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-violet-500/20 transition-all flex flex-col"
+                  >
+                    <Link href={`/produit/${p.slug}`} className="block">
+                      <div className="aspect-video bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
+                        {p.banner ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.banner} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                        ) : (
+                          <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>download</span>
+                        )}
+                        <span className="absolute top-3 left-3 bg-white/95 text-violet-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                          {p.productType}
+                        </span>
+                        {discount > 0 && (
+                          <span className="absolute top-3 right-3 bg-zinc-900 text-white px-2.5 py-1 rounded-full text-[10px] font-extrabold tracking-wide shadow-md">
+                            -{discount}% OFF
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                    <div className="p-4 flex flex-col gap-3 flex-1">
+                      <Link href={`/produit/${p.slug}`} className="block">
+                        <h3 className="font-bold text-[#191c1e] text-sm line-clamp-2 mb-2 hover:text-violet-600 transition-colors">{p.title}</h3>
+                      </Link>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Stars rating={p.rating} />
+                        <span className="text-[11px] text-[#5c647a]">
+                          {p.rating > 0 ? p.rating.toFixed(1) : "Nouveau"}
+                          {p.reviewsCount > 0 && ` (${p.reviewsCount})`}
+                        </span>
+                        <span className="text-[11px] text-[#5c647a] flex items-center gap-1">
+                          <span className="material-symbols-outlined text-[12px]">shopping_bag</span>
+                          <span className="font-semibold text-[#191c1e]">{p.salesCount}</span>
+                          vente{p.salesCount !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-extrabold text-violet-600">{formatFCFA(p.price)} FCFA</span>
+                        {p.originalPrice && p.originalPrice > p.price && (
+                          <span className="text-xs text-[#5c647a] line-through">{formatFCFA(p.originalPrice)}</span>
+                        )}
+                      </div>
+                      <Link
+                        href={`/checkout?pids=${p.id}`}
+                        className="mt-auto inline-flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                        Acheter maintenant
+                      </Link>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-extrabold text-violet-600">{formatFCFA(p.price)} FCFA</span>
-                      {p.originalPrice && p.originalPrice > p.price && (
-                        <span className="text-xs text-[#5c647a] line-through">{formatFCFA(p.originalPrice)}</span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           </section>
         )}
