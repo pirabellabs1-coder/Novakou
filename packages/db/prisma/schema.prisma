@@ -3562,3 +3562,49 @@ model FunnelABTestEvent {
   @@index([testId, variant, eventType])
   @@index([visitorId])
 }
+
+// ── Support tickets (contact form + AI auto-reply) ────────────────────────────
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  reference String   @unique // "NK-XXXXXXXX" (8 chars base32)
+
+  // Sender
+  name    String
+  email   String
+  subject String?
+
+  // Original message
+  message String @db.Text
+
+  // AI auto-reply (Claude/GPT) — generated at submission time
+  aiReply       String?  @db.Text
+  aiReplyModel  String? // "claude-opus" | "gpt-4o-mini" | etc.
+  aiReplySentAt DateTime?
+
+  // Admin follow-up
+  adminReply    String?   @db.Text
+  adminReplyAt  DateTime?
+  adminUserId   String? // who replied
+  adminNotes    String?   @db.Text
+
+  status SupportTicketStatus @default(NEW)
+
+  // Tracking
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+enum SupportTicketStatus {
+  NEW          // Reçu, pas encore traité
+  AUTO_REPLIED // IA a envoyé une réponse
+  HUMAN_REPLIED // Admin a répondu manuellement
+  CLOSED       // Fermé
+}

@@ -22,6 +22,7 @@ const navItems = [
   { icon: "person_remove", label: "Suppressions de compte", href: "/admin/suppressions" },
   { icon: "campaign", label: "Campagnes email", href: "/admin/emails" },
   { icon: "forum", label: "Conversations", href: "/admin/conversations" },
+  { icon: "support_agent", label: "Tickets support", href: "/admin/tickets" },
   { icon: "history", label: "Journal d'audit", href: "/admin/audit" },
   { icon: "assessment", label: "Rapports", href: "/admin/rapports" },
   { icon: "settings", label: "Configuration", href: "/admin/configuration" },
