@@ -362,8 +362,10 @@ export default function StatistiquesPage() {
         </div>
 
         <ChartCard title="Entonnoir de conversion" subtitle="Visite → Produit → Achat">
-          {isLoading || !funnel ? (
+          {isLoading ? (
             <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+          ) : !funnel || (funnel.views === 0 && funnel.productViews === 0 && funnel.purchases === 0) ? (
+            <EmptyState icon="filter_alt" label="Pas encore de visites tracées" />
           ) : (
             <div className="space-y-4 py-2">
               {[
