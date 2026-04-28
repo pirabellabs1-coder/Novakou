@@ -142,13 +142,36 @@ export default function CreerProduitPage() {
         }),
       }).then((r) => r.json()),
     onSuccess: (res) => {
-      if (res.error) { setError(res.error); return; }
+      if (res.error) {
+        setError(res.error);
+        // V2.5 — proposer la suppression du brouillon si la création a échoué
+        // côté serveur (ex. validation prix). Sans cela, l'utilisateur peut
+        // se retrouver bloqué avec un draft pollué qui ressuscite à chaque visite.
+        if (typeof window !== "undefined") {
+          const keep = window.confirm(
+            "La création a échoué. Conserver le brouillon pour réessayer ?\n\n" +
+            "OK = conserver · Annuler = effacer le brouillon",
+          );
+          if (!keep) clearDrafts(DRAFT_PREFIX);
+        }
+        return;
+      }
       // Wipe every saved field for this form once the product was created
       // server-side, otherwise the next visit would resurrect the draft.
       clearDrafts(DRAFT_PREFIX);
       router.push("/vendeur/produits");
     },
-    onError: () => setError("Erreur serveur — réessayez"),
+    onError: () => {
+      setError("Erreur serveur — réessayez");
+      // V2.5 — même logique en cas d'erreur réseau / fetch failure.
+      if (typeof window !== "undefined") {
+        const keep = window.confirm(
+          "Erreur serveur. Conserver le brouillon pour réessayer ?\n\n" +
+          "OK = conserver · Annuler = effacer le brouillon",
+        );
+        if (!keep) clearDrafts(DRAFT_PREFIX);
+      }
+    },
   });
 
   const canProceed = (() => {

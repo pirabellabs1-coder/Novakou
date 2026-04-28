@@ -83,6 +83,35 @@ export async function POST(request: Request) {
       );
     }
 
+    // V2.1 — server-side price validation (never trust client clamping)
+    const priceNum = parseFloat(price);
+    if (!Number.isFinite(priceNum) || priceNum < 0) {
+      return NextResponse.json(
+        { error: "Le prix doit être un nombre positif ou nul." },
+        { status: 400 }
+      );
+    }
+    const isFreeFlag = priceNum === 0;
+    if (!isFreeFlag && priceNum <= 0) {
+      return NextResponse.json(
+        { error: "Le prix doit être strictement supérieur à 0 pour un produit payant." },
+        { status: 400 }
+      );
+    }
+
+    // V2.3 — originalPrice (prix barré) doit être > price si fourni
+    let originalPriceNum: number | null = null;
+    if (originalPrice !== undefined && originalPrice !== null && originalPrice !== "" && originalPrice !== 0) {
+      const tmp = parseFloat(originalPrice);
+      if (!Number.isFinite(tmp) || tmp <= priceNum) {
+        return NextResponse.json(
+          { error: "Le prix barré doit être strictement supérieur au prix de vente." },
+          { status: 400 }
+        );
+      }
+      originalPriceNum = tmp;
+    }
+
     const baseSlug = slugify(title);
     let slug = baseSlug || `produit-${Date.now()}`;
     let suffix = 1;
@@ -113,11 +142,13 @@ export async function POST(request: Request) {
           customCategory: category || null,
           categoryId: cat.id,
           thumbnail: thumbnail || null,
-          price: parseFloat(price),
-          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-          isFree: parseFloat(price) === 0,
+          price: priceNum,
+          originalPrice: originalPriceNum,
+          isFree: isFreeFlag,
           duration: totalDuration,
           status: publish ? "ACTIF" : "BROUILLON",
+          // V2.2 — stamp publishedAt when going live (null when staying as draft)
+          publishedAt: publish ? new Date() : null,
           instructeurId: profile.id,
           shopId: activeShopId,
           sections: validModules.length > 0 ? {
@@ -206,9 +237,9 @@ export async function POST(request: Request) {
           thumbnail: thumbnail || banner || null,
           banner: banner || thumbnail || null,
           fileUrl: filesToCreate[0]?.url ?? null,
-          price: parseFloat(price),
-          originalPrice: originalPrice ? parseFloat(originalPrice) : null,
-          isFree: parseFloat(price) === 0,
+          price: priceNum,
+          originalPrice: originalPriceNum,
+          isFree: isFreeFlag,
           status: publish ? "ACTIF" : "BROUILLON",
           instructeurId: profile.id,
           shopId: activeShopId,

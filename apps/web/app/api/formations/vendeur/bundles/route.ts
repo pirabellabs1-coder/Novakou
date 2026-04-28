@@ -138,6 +138,17 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
+  // V2.4 — cap supérieur : un bundle doit offrir au moins 5% de remise sur la somme
+  // des prix individuels. Sans cela, le "bundle" est un simple prix gonflé.
+  const maxBundlePrice = Math.floor(originalPrice * 0.95);
+  if (priceXof > maxBundlePrice) {
+    return NextResponse.json(
+      {
+        error: `Le prix du bundle (${priceXof}) ne peut pas dépasser 95% de la somme des articles (max ${maxBundlePrice} FCFA). Offrez au moins 5% de remise pour justifier un bundle.`,
+      },
+      { status: 400 },
+    );
+  }
 
   // Slug unique
   const baseSlug = slugify(title) || "bundle";

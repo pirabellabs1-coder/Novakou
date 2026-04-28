@@ -54,6 +54,44 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const body = await request.json();
 
+    // V2.1 — server-side price validation on update
+    let priceVal: number | undefined;
+    if (body.price !== undefined) {
+      const tmp = parseFloat(body.price);
+      if (!Number.isFinite(tmp) || tmp < 0) {
+        return NextResponse.json(
+          { error: "Le prix doit être un nombre positif ou nul." },
+          { status: 400 }
+        );
+      }
+      priceVal = tmp;
+    }
+    // Effective price after potential update (fallback to existing record)
+    const effectivePrice = priceVal !== undefined ? priceVal : existing.price;
+
+    // V2.3 — originalPrice strictement supérieur au prix
+    let originalPriceVal: number | null | undefined;
+    if (body.originalPrice !== undefined) {
+      if (body.originalPrice === null || body.originalPrice === "" || body.originalPrice === 0) {
+        originalPriceVal = null;
+      } else {
+        const tmp = parseFloat(body.originalPrice);
+        if (!Number.isFinite(tmp) || tmp <= effectivePrice) {
+          return NextResponse.json(
+            { error: "Le prix barré doit être strictement supérieur au prix de vente." },
+            { status: 400 }
+          );
+        }
+        originalPriceVal = tmp;
+      }
+    }
+
+    // V2.2 — publishedAt management
+    // Stamp it the first time the product becomes ACTIF; null it on return to BROUILLON.
+    // DigitalProduct has no publishedAt column in the schema, so we don't write one — but
+    // we still gate the status transition behind the same logic (no-op).
+    void body.status;
+
     // Files: replace-all if `files` array is provided. Each item: { name, url, size?, mimeType? }.
     // We delete existing rows and recreate to keep the order in sync with the array index.
     let filesUpdate: { deleteMany: object; create: Array<{ name: string; url: string; size: number | null; mimeType: string | null; order: number }> } | undefined;
@@ -94,8 +132,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         descriptionFormat: body.descriptionFormat ?? undefined,
         thumbnail: body.thumbnail !== undefined ? (body.thumbnail || null) : undefined,
         banner: body.banner !== undefined ? (body.banner || null) : undefined,
-        price: body.price !== undefined ? parseFloat(body.price) : undefined,
-        originalPrice: body.originalPrice !== undefined ? (body.originalPrice ? parseFloat(body.originalPrice) : null) : undefined,
+        price: priceVal,
+        originalPrice: originalPriceVal,
         productType: body.productType ?? undefined,
         tags: Array.isArray(body.tags) ? body.tags : undefined,
         status: body.status ?? undefined,
