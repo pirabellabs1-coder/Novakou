@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import crypto from "node:crypto";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
@@ -157,28 +158,67 @@ export async function POST(request: Request, { params }: Params) {
     const activePack = candidates.find((p) => p.sessionsConsumed < p.sessionsTotal) ?? null;
 
     // ── STEP 1: Create booking (PAYMENT_PENDING or CONFIRMED via pack) ────
-    const booking = await prisma.mentorBooking.create({
-      data: {
-        mentorId: mentor.id,
-        studentId,
-        status: activePack ? "CONFIRMED" : "PAYMENT_PENDING",
-        scheduledAt: slotDate,
-        durationMinutes: duration,
-        paidAmount: activePack ? 0 : mentor.sessionPrice,
-        studentGoals: studentGoals.trim(),
-        meetingRoomId: "",
-        escrowStatus: activePack ? "RELEASED" : "NONE",
-        packPurchaseId: activePack?.id ?? null,
-        paidAt: activePack ? new Date() : null,
-      },
-    });
+    // Pre-generate the booking id so we can compute meetingRoomId BEFORE the
+    // transaction and avoid a separate (non-atomic) update afterwards.
+    const newBookingId = crypto.randomUUID();
+    const roomId = generateRoomId(newBookingId);
+    const slotEnd = new Date(slotDate.getTime() + duration * 60 * 1000);
+    // Widen the window by the longest plausible session length so we also catch
+    // existing bookings that started BEFORE this slot but whose end-time falls
+    // inside it. The exact overlap is then refined in JS below.
+    const maxSessionMs = 180 * 60 * 1000;
+    const overlapWindowStart = new Date(slotDate.getTime() - maxSessionMs);
 
-    // Attach generated jitsi room id
-    const roomId = generateRoomId(booking.id);
-    await prisma.mentorBooking.update({
-      where: { id: booking.id },
-      data: { meetingRoomId: roomId },
-    });
+    let booking;
+    try {
+      booking = await prisma.$transaction(async (tx) => {
+        // Re-query overlap INSIDE the transaction (anti race-condition).
+        const candidates = await tx.mentorBooking.findMany({
+          where: {
+            mentorId: mentor.id,
+            scheduledAt: { gte: overlapWindowStart, lt: slotEnd },
+            status: { in: ["PENDING", "CONFIRMED", "PAYMENT_PENDING"] },
+            escrowStatus: { not: "REFUNDED" },
+          },
+          select: { scheduledAt: true, durationMinutes: true },
+        });
+        const hasOverlap = candidates.some(
+          (c: { scheduledAt: Date; durationMinutes: number }) => {
+            const cStart = c.scheduledAt.getTime();
+            const cEnd = cStart + (c.durationMinutes ?? 60) * 60 * 1000;
+            // overlap = (cStart < slotEnd) && (cEnd > slotStart)
+            return cStart < slotEnd.getTime() && cEnd > slotDate.getTime();
+          },
+        );
+        if (hasOverlap) {
+          throw new Error("SLOT_TAKEN");
+        }
+        return tx.mentorBooking.create({
+          data: {
+            id: newBookingId,
+            mentorId: mentor.id,
+            studentId,
+            status: activePack ? "CONFIRMED" : "PAYMENT_PENDING",
+            scheduledAt: slotDate,
+            durationMinutes: duration,
+            paidAmount: activePack ? 0 : mentor.sessionPrice,
+            studentGoals: studentGoals.trim(),
+            meetingRoomId: roomId,
+            escrowStatus: activePack ? "RELEASED" : "NONE",
+            packPurchaseId: activePack?.id ?? null,
+            paidAt: activePack ? new Date() : null,
+          },
+        });
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === "SLOT_TAKEN") {
+        return NextResponse.json(
+          { error: "Ce créneau vient d'être pris ou n'est plus disponible." },
+          { status: 409 },
+        );
+      }
+      throw err;
+    }
 
     // Consume one session from the pack
     if (activePack) {
