@@ -307,7 +307,11 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 8 * 60 * 60, // 8 hours for financial platform security
+    // Financial platform: keep tokens short-lived (2h max) and rotate them
+    // every 30 min of activity so an idle/stolen token expires quickly while
+    // active users stay seamlessly logged in.
+    maxAge: 2 * 60 * 60, // 2h hard cap
+    updateAge: 30 * 60, // refresh JWT every 30 min of activity
   },
   pages: {
     signIn: "/connexion",
