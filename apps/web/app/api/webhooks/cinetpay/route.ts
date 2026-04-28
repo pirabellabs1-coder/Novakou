@@ -65,6 +65,12 @@ export async function POST(req: NextRequest) {
     // ── Verify payment status with CinetPay API ─────────────────────────
     // This is the recommended approach per CinetPay docs: never trust the
     // webhook payload alone, always verify server-to-server.
+    //
+    // SECURITY: CinetPay does NOT sign webhooks (provider limitation). The
+    // server-to-server re-check is the ONLY anti-spoofing barrier we have,
+    // so it MUST be mandatory in production. We refuse the webhook (4xx) if
+    // either the API is not configured OR the re-check fails. CinetPay
+    // retries automatically on non-2xx for legitimate transactions.
     if (!isCinetPayConfigured()) {
       if (IS_DEV && !USE_PRISMA_FOR_DATA) {
         console.warn("[CinetPay Webhook] API not configured — simulating success in dev mode");
@@ -72,7 +78,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ received: true, devMode: true });
       }
       // Production: refuse webhook if CinetPay is not configured — prevents free money
-      console.error("[CinetPay Webhook] REJECTED — CinetPay not configured in production");
+      console.error(
+        "[CinetPay Webhook] CRITICAL: CinetPay not configured in production — refusing webhook (only anti-spoofing barrier since CinetPay does not sign)",
+      );
       return NextResponse.json({ error: "CinetPay non configure" }, { status: 503 });
     }
 
@@ -82,12 +90,23 @@ export async function POST(req: NextRequest) {
       console.error(
         `[CinetPay Webhook] Could not verify transaction status: ${transactionId}`
       );
-      // Return 200 to acknowledge receipt — we'll retry verification via a job later
-      return NextResponse.json({
-        received: true,
-        verified: false,
-        message: "Impossible de verifier le statut — sera retente",
-      });
+      if (IS_DEV && !USE_PRISMA_FOR_DATA) {
+        // Dev only : on tolère un re-check qui échoue (sandbox flaky)
+        return NextResponse.json({
+          received: true,
+          verified: false,
+          message: "Impossible de verifier le statut — sera retente (dev)",
+        });
+      }
+      // Production : on REFUSE (CinetPay retentera). Le re-check API est
+      // notre seule barrière anti-spoofing puisque CinetPay ne signe pas.
+      console.error(
+        "[CinetPay Webhook] CRITICAL: server-to-server re-check failed in production — refusing webhook to prevent spoofed notifications",
+      );
+      return NextResponse.json(
+        { error: "Verification status echouee — webhook refuse", verified: false },
+        { status: 502 },
+      );
     }
 
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {

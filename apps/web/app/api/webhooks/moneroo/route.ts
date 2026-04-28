@@ -26,12 +26,27 @@ import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
  * Vérifie la signature HMAC Moneroo sur le body brut.
  * Moneroo envoie un header `X-Moneroo-Signature` (ou `X-Hub-Signature-256`
  * selon version) calculé en HMAC-SHA256 du body avec MONEROO_WEBHOOK_SECRET.
- * Si le secret n'est PAS configuré côté server, on skip la vérif (le webhook
- * restera protégé par la re-vérification via retrievePayment).
+ *
+ * SECURITY (production) : si le secret est absent en production, on REFUSE
+ * le webhook (sinon replay attack possible). En dev on accepte (le re-check
+ * via retrievePayment garde un filet de sécurité).
+ *
+ * Replay protection : si le payload contient un `timestamp` (Unix seconds ou
+ * ms), on rejette tout webhook plus vieux que 5 minutes.
  */
+const MONEROO_REPLAY_WINDOW_MS = 5 * 60 * 1000; // 5 min
+
 function verifyMonerooSignature(rawBody: string, headers: Headers): boolean {
   const secret = process.env.MONEROO_WEBHOOK_SECRET;
-  if (!secret) return true; // optional : safe car retrievePayment revérifie
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[Moneroo Webhook] CRITICAL: MONEROO_WEBHOOK_SECRET missing in production — refusing webhook to prevent replay attack",
+      );
+      return false; // refuse webhook in production
+    }
+    return true; // dev only : retrievePayment revérifie de toute façon
+  }
 
   const provided =
     headers.get("x-moneroo-signature") ||
@@ -54,6 +69,54 @@ function verifyMonerooSignature(rawBody: string, headers: Headers): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Anti-replay : si le payload contient un timestamp (Unix sec ou ms), on
+ * rejette tout webhook plus vieux que MONEROO_REPLAY_WINDOW_MS.
+ * Retourne `true` si OK, `false` si trop vieux.
+ */
+function verifyMonerooTimestamp(rawBody: string): boolean {
+  let parsed: any;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return true; // si pas parseable, on laisse la signature trancher
+  }
+  const ts = parsed?.timestamp ?? parsed?.data?.timestamp ?? parsed?.created_at;
+  if (ts === undefined || ts === null || ts === "") return true; // pas de timestamp → skip
+
+  let tsMs: number;
+  if (typeof ts === "number") {
+    // Unix seconds (10 chiffres) vs ms (13 chiffres)
+    tsMs = ts < 1e12 ? ts * 1000 : ts;
+  } else if (typeof ts === "string") {
+    const n = Number(ts);
+    if (Number.isFinite(n)) {
+      tsMs = n < 1e12 ? n * 1000 : n;
+    } else {
+      // ISO string
+      const d = Date.parse(ts);
+      if (!Number.isFinite(d)) return true;
+      tsMs = d;
+    }
+  } else {
+    return true;
+  }
+
+  const now = Date.now();
+  if (now - tsMs > MONEROO_REPLAY_WINDOW_MS) {
+    console.warn(
+      `[moneroo webhook] timestamp trop ancien (${Math.round((now - tsMs) / 1000)}s) — rejeté pour replay protection`,
+    );
+    return false;
+  }
+  // Tolérance future skew : 5 min également
+  if (tsMs - now > MONEROO_REPLAY_WINDOW_MS) {
+    console.warn(`[moneroo webhook] timestamp dans le futur (skew) — rejeté`);
+    return false;
+  }
+  return true;
 }
 
 interface MonerooWebhookPayload {
@@ -79,6 +142,11 @@ export async function POST(req: Request) {
   if (!verifyMonerooSignature(rawBody, req.headers)) {
     console.warn("[moneroo webhook] signature invalide — IP:", req.headers.get("x-forwarded-for") || "?");
     return NextResponse.json({ error: "Signature invalide" }, { status: 401 });
+  }
+
+  // Anti-replay : rejet si le timestamp dépasse 5 min de skew
+  if (!verifyMonerooTimestamp(rawBody)) {
+    return NextResponse.json({ error: "Timestamp hors fenêtre (replay protection)" }, { status: 401 });
   }
 
   let body: MonerooWebhookPayload;
