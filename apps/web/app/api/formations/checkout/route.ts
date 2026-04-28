@@ -318,13 +318,25 @@ export async function POST(request: Request) {
         },
       });
 
+      // Self-referral guard — an affiliate cannot earn commission when:
+      //   1. they ARE the vendor of this item (vendor would steal their own
+      //      margin via their own affiliate code), or
+      //   2. they ARE the buyer (anyone earning commission on their own
+      //      purchase, e.g. by passing their own ?ref=… in a URL bar).
+      const isSelfReferral =
+        !!affiliateProfile && (
+          affiliateProfile.userId === f.instructeur.user.id ||
+          affiliateProfile.userId === userId
+        );
+      const effectiveAffiliate = isSelfReferral ? null : affiliateProfile;
+
       // Répartition vente affiliée :
       //   Plateforme (Novakou) prend toujours 10% du prix final
       //   Affilié prend X% du prix final (configuré par programme du vendeur)
       //   Vendeur reçoit le reste = prix - 10% - X%
       // → l'affilié est payé par le vendeur (sur sa marge), pas par la plateforme
       const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+      const affAmount = effectiveAffiliate ? Math.round(finalPrice * affiliateCommissionRate) : 0;
       const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
       const commissionAmount = platformAmount;
 
@@ -346,7 +358,7 @@ export async function POST(request: Request) {
           commissionRate: PLATFORM_COMMISSION_RATE,
           commissionAmount,
           vendorAmount: vendorNet,
-          affiliateId: affiliateProfile?.id ?? null,
+          affiliateId: effectiveAffiliate?.id ?? null,
           affiliateAmount: affAmount,
           paymentRef: sessionRef,
           currency: "XOF",
@@ -356,10 +368,10 @@ export async function POST(request: Request) {
       });
 
       // Create affiliate commission record
-      if (affiliateProfile && affAmount > 0) {
+      if (effectiveAffiliate && affAmount > 0) {
         await prisma.affiliateCommission.create({
           data: {
-            affiliateId: affiliateProfile.id,
+            affiliateId: effectiveAffiliate.id,
             orderId: enrollment.id,
             orderType: "formation",
             orderAmount: finalPrice,
@@ -369,7 +381,7 @@ export async function POST(request: Request) {
           },
         }).catch((e) => console.warn("[affiliateCommission]", e));
         await prisma.affiliateProfile.update({
-          where: { id: affiliateProfile.id },
+          where: { id: effectiveAffiliate.id },
           data: {
             totalConversions: { increment: 1 },
             pendingEarnings: { increment: affAmount },
@@ -393,10 +405,18 @@ export async function POST(request: Request) {
         },
       });
 
+      // Self-referral guard — same rationale as the formation loop above.
+      const isSelfReferralProd =
+        !!affiliateProfile && (
+          affiliateProfile.userId === p.instructeur.user.id ||
+          affiliateProfile.userId === userId
+        );
+      const effectiveAffiliateProd = isSelfReferralProd ? null : affiliateProfile;
+
       // Répartition vente affiliée (idem formation) :
       //   10% Novakou, X% affilié, reste vendeur
       const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+      const affAmount = effectiveAffiliateProd ? Math.round(finalPrice * affiliateCommissionRate) : 0;
       const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
       const commissionAmount = platformAmount;
 
@@ -417,7 +437,7 @@ export async function POST(request: Request) {
           commissionRate: PLATFORM_COMMISSION_RATE,
           commissionAmount,
           vendorAmount: vendorNet,
-          affiliateId: affiliateProfile?.id ?? null,
+          affiliateId: effectiveAffiliateProd?.id ?? null,
           affiliateAmount: affAmount,
           paymentRef: sessionRef,
           currency: "XOF",
@@ -426,10 +446,10 @@ export async function POST(request: Request) {
         },
       });
 
-      if (affiliateProfile && affAmount > 0) {
+      if (effectiveAffiliateProd && affAmount > 0) {
         await prisma.affiliateCommission.create({
           data: {
-            affiliateId: affiliateProfile.id,
+            affiliateId: effectiveAffiliateProd.id,
             orderId: purchase.id,
             orderType: "product",
             orderAmount: finalPrice,
@@ -439,7 +459,7 @@ export async function POST(request: Request) {
           },
         }).catch((e) => console.warn("[affiliateCommission]", e));
         await prisma.affiliateProfile.update({
-          where: { id: affiliateProfile.id },
+          where: { id: effectiveAffiliateProd.id },
           data: {
             totalConversions: { increment: 1 },
             pendingEarnings: { increment: affAmount },
