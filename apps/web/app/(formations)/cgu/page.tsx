@@ -1,8 +1,17 @@
+import { loadRefundConfig } from "@/lib/formations/refund-policy";
+
 export const metadata = {
   title: "Conditions Générales d'Utilisation — Novakou",
 };
 
-export default function CGUPage() {
+export default async function CGUPage() {
+  const refund = await loadRefundConfig().catch(() => ({
+    windowDays: 7,
+    maxConsumedPct: 30,
+    maxRefundsPerBuyer30d: 1,
+    mentorCancelHours: 24,
+    autoApprove: false,
+  }));
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
       <section
@@ -56,7 +65,14 @@ export default function CGUPage() {
           <div>
             <h2 className="text-lg font-bold mb-2">6. Remboursements</h2>
             <p className="text-[#5c647a]">
-              Une politique de remboursement de 14 jours s&apos;applique aux formations et produits numériques, à condition que le contenu n&apos;ait pas été consommé à plus de 30 %. Les séances de mentorat sont remboursables si annulées plus de 24h avant la séance.
+              Une politique de remboursement de {refund.windowDays} jour{refund.windowDays > 1 ? "s" : ""}{" "}
+              s&apos;applique aux formations, à condition que le contenu n&apos;ait pas été consommé à plus de{" "}
+              {refund.maxConsumedPct} %. Limite : {refund.maxRefundsPerBuyer30d} remboursement
+              {refund.maxRefundsPerBuyer30d > 1 ? "s" : ""} par acheteur tous les 30 jours. Les séances de
+              mentorat sont remboursables si annulées plus de {refund.mentorCancelHours}h avant la séance.
+              Les produits numériques téléchargés ne sont pas remboursables (le téléchargement vaut
+              renonciation au droit de rétractation, conformément à l&apos;article L221-28 13° du Code de la
+              consommation).
             </p>
           </div>
 

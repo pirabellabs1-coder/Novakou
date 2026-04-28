@@ -21,8 +21,11 @@ const CONFIG_SECTIONS = [
     title: "Remboursements",
     eyebrow: "Refund Policy",
     items: [
-      { key: "refund_window_days", label: "Fenêtre de remboursement (jours)", hint: "Après cette période, remboursement refusé", type: "number" as const, default: "14" },
-      { key: "auto_approve_refunds", label: "Approbation automatique", hint: "Approuver automatiquement les demandes", type: "toggle" as const, default: "false" },
+      { key: "refund_window_days", label: "Fenêtre de remboursement (jours)", hint: "Après cette période, remboursement refusé. 7 jours est le standard marché.", type: "number" as const, default: "7" },
+      { key: "max_consumed_pct", label: "Plafond contenu consommé (%)", hint: "Au-delà de ce % de leçons terminées, remboursement refusé. Anti-abus.", type: "number" as const, default: "30" },
+      { key: "max_refunds_per_buyer_30d", label: "Max remboursements / acheteur / 30j", hint: "Empêche un même acheteur d'enchaîner les remboursements", type: "number" as const, default: "1" },
+      { key: "mentor_cancel_hours", label: "Préavis annulation séance mentor (heures)", hint: "Au-delà de cette heure avant la séance, remboursement refusé", type: "number" as const, default: "24" },
+      { key: "auto_approve_refunds", label: "Approbation automatique", hint: "Approuver automatiquement si toutes les conditions sont remplies", type: "toggle" as const, default: "false" },
     ],
   },
   {

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { invalidateRefundConfigCache } from "@/lib/formations/refund-policy";
 
 export async function GET() {
   try {
@@ -44,6 +45,9 @@ export async function PATCH(request: Request) {
         })
       )
     );
+
+    // Bust refund-policy cache so new values are read on next eligibility check
+    invalidateRefundConfigCache();
 
     return NextResponse.json({ success: true });
   } catch (err) {
