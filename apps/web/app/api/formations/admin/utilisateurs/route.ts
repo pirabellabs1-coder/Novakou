@@ -2,17 +2,13 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
 
 export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    // Hard authorization gate — listing every platform user is admin-only.
-    // Without this check, any authenticated buyer could enumerate every
-    // registered email + role + KYC level on the platform.
-    if (session?.user && typeof session.user.role === "string" && session.user.role.toLowerCase() !== "admin") {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session?.user || (role !== "admin" && role !== "ADMIN")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);

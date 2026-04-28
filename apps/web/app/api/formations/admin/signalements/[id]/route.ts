@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { createAuditLog } from "@/lib/admin/audit";
 
 /**
  * PATCH /api/formations/admin/signalements/[id]
@@ -17,19 +17,9 @@ import { IS_DEV } from "@/lib/env";
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-    // Hard admin check: previous version had `session?.user?.role && ...` so
-    // a session without a role string (which can happen with some OAuth
-    // providers before the JWT callback fills it in) would skip the role
-    // gate entirely. We now require BOTH a session AND an admin role
-    // (case-insensitive).
-    if (session?.user) {
-      const role = typeof session.user.role === "string" ? session.user.role.toLowerCase() : "";
-      if (role !== "admin" && !IS_DEV) {
-        return NextResponse.json({ error: "Accès admin requis" }, { status: 403 });
-      }
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session?.user || (role !== "admin" && role !== "ADMIN")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -44,8 +34,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Signalement introuvable" }, { status: 404 });
     }
 
+    const actorId = (session.user as { id?: string }).id;
+
     if (action === "dismiss") {
       await prisma.discussionReport.delete({ where: { id } });
+      if (actorId) {
+        await createAuditLog({
+          actorId,
+          action: "report.dismissed",
+          targetType: "discussionReport",
+          targetId: id,
+        }).catch(() => null);
+      }
       return NextResponse.json({ data: { dismissed: true } });
     }
 
@@ -69,6 +69,15 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         ]);
       } else {
         return NextResponse.json({ error: "Signalement sans cible" }, { status: 400 });
+      }
+      if (actorId) {
+        await createAuditLog({
+          actorId,
+          action: "report.content_deleted",
+          targetType: report.replyId ? "courseDiscussionReply" : "courseDiscussion",
+          targetId: report.replyId ?? report.discussionId ?? id,
+          details: { reportId: id },
+        }).catch(() => null);
       }
       return NextResponse.json({ data: { deleted: true } });
     }

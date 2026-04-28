@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { IS_DEV } from "@/lib/env";
+import { createAuditLog } from "@/lib/admin/audit";
 
 /**
  * POST /api/admin/wipe-demo
@@ -15,8 +15,9 @@ import { IS_DEV } from "@/lib/env";
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    const role = (session?.user as { role?: string } | undefined)?.role;
+    if (!session?.user || (role !== "admin" && role !== "ADMIN")) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -112,6 +113,16 @@ export async function POST(request: Request) {
       stats.workflows = workflows.count;
       stats.funnels = funnels.count;
       stats.pixels = pixels.count;
+    }
+
+    const actorId = (session.user as { id?: string }).id;
+    if (actorId) {
+      await createAuditLog({
+        actorId,
+        action: "data.wipe",
+        targetType: "system",
+        details: { mode, deleted: stats },
+      }).catch(() => null);
     }
 
     return NextResponse.json({
