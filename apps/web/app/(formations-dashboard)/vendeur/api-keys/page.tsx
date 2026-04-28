@@ -18,15 +18,47 @@ interface ApiKey {
   createdAt: string;
 }
 
-const SCOPE_LABELS: Record<string, { label: string; color: string }> = {
-  "read:products": { label: "Lire produits", color: "bg-blue-50 text-blue-700" },
-  "write:products": { label: "Écrire produits", color: "bg-blue-100 text-blue-800" },
-  "read:orders": { label: "Lire commandes", color: "bg-green-50 text-green-700" },
-  "write:orders": { label: "Écrire commandes", color: "bg-green-100 text-green-800" },
-  "read:customers": { label: "Lire clients", color: "bg-purple-50 text-purple-700" },
-  "write:customers": { label: "Écrire clients", color: "bg-purple-100 text-purple-800" },
-  "read:analytics": { label: "Analytics", color: "bg-orange-50 text-orange-700" },
-  "admin": { label: "Admin (tout)", color: "bg-red-50 text-red-700" },
+const SCOPE_LABELS: Record<string, { label: string; color: string; description: string }> = {
+  "read:products": {
+    label: "Lire produits",
+    color: "bg-blue-50 text-blue-700",
+    description: "Lecture des produits, formations et bundles de votre boutique (titres, prix, descriptions, statuts).",
+  },
+  "write:products": {
+    label: "Écrire produits",
+    color: "bg-blue-100 text-blue-800",
+    description: "Créer, modifier ou supprimer des produits, formations et bundles. Inclut la gestion de prix et de visibilité.",
+  },
+  "read:orders": {
+    label: "Lire commandes",
+    color: "bg-green-50 text-green-700",
+    description: "Consulter l'historique des commandes, paiements, statuts et détails de livraison.",
+  },
+  "write:orders": {
+    label: "Modifier commandes",
+    color: "bg-green-100 text-green-800",
+    description: "Modifier les commandes (rembourser, annuler, marquer comme livré). Action sensible : à utiliser avec précaution.",
+  },
+  "read:customers": {
+    label: "Lire clients",
+    color: "bg-purple-50 text-purple-700",
+    description: "Lecture des données clients : email, nom, historique d'achat, inscriptions aux formations.",
+  },
+  "write:customers": {
+    label: "Modifier clients",
+    color: "bg-purple-100 text-purple-800",
+    description: "Mettre à jour les données clients (tags, notes internes). Ne donne pas accès à la modification du compte utilisateur.",
+  },
+  "read:analytics": {
+    label: "Lire analytics",
+    color: "bg-orange-50 text-orange-700",
+    description: "Accès en lecture aux statistiques de votre boutique : ventes, revenus, conversions, top produits.",
+  },
+  "admin": {
+    label: "Admin (tout)",
+    color: "bg-red-50 text-red-700",
+    description: "Accès complet à toutes les ressources de votre boutique. Équivaut à toutes les permissions ci-dessus combinées. À n'utiliser que pour des intégrations 100% de confiance.",
+  },
 };
 
 const ALL_SCOPES = Object.keys(SCOPE_LABELS);
@@ -43,6 +75,7 @@ function fmtDate(iso: string | null): string {
 export default function ApiKeysPage() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [showScopesHelp, setShowScopesHelp] = useState(false);
   const [form, setForm] = useState<{ name: string; scopes: string[]; expiresInDays: number | null }>({
     name: "",
     scopes: ["read:products", "read:orders"],
@@ -320,7 +353,34 @@ export default function ApiKeysPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase mb-2">Permissions (scopes)</label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-gray-700 uppercase">Permissions (scopes)</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowScopesHelp((v) => !v)}
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-gray-100 hover:bg-[#006e2f]/10 hover:text-[#006e2f] text-gray-600 text-[11px] font-bold transition-colors"
+                    aria-label="Aide : que signifie chaque scope ?"
+                    title="Que signifie chaque scope ?"
+                  >
+                    ?
+                  </button>
+                </div>
+                {showScopesHelp && (
+                  <div className="mb-3 rounded-xl border border-blue-200 bg-blue-50 p-3 text-[11px] text-blue-900 space-y-1.5">
+                    <p className="font-bold mb-1.5">Liste des scopes disponibles</p>
+                    {ALL_SCOPES.map((s) => (
+                      <div key={s} className="flex gap-2">
+                        <code className="font-mono font-bold text-[10px] bg-white border border-blue-200 px-1.5 py-0.5 rounded h-fit whitespace-nowrap">
+                          {s}
+                        </code>
+                        <p className="leading-snug">
+                          <span className="font-bold">{SCOPE_LABELS[s].label}.</span>{" "}
+                          {SCOPE_LABELS[s].description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                   {ALL_SCOPES.map((s) => {
                     const checked = form.scopes.includes(s);
@@ -330,6 +390,7 @@ export default function ApiKeysPage() {
                         className={`flex items-center gap-2 text-xs cursor-pointer p-1.5 rounded-lg border transition-colors ${
                           checked ? "bg-[#006e2f]/5 border-[#006e2f]/30" : "border-gray-100 hover:bg-gray-50"
                         }`}
+                        title={SCOPE_LABELS[s].description}
                       >
                         <input
                           type="checkbox"
@@ -343,7 +404,7 @@ export default function ApiKeysPage() {
                           }}
                           className="w-3.5 h-3.5 rounded accent-[#006e2f] flex-shrink-0"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p className="tabular-nums font-bold text-[10px] text-[#191c1e] truncate">{s}</p>
                           <p className="text-[10px] text-[#5c647a] truncate">{SCOPE_LABELS[s].label}</p>
                         </div>
