@@ -25,7 +25,18 @@ export function getDashboardForFormationsRole(
   if (role && DASHBOARDS[role]) {
     return DASHBOARDS[role];
   }
-  // No role yet → apprenant by default (least privileged)
+  // No formationsRole yet → fall back to the marketplace `userRole`. Old
+  // accounts created before formationsRole existed still have role set, and
+  // a vendor with role="freelance" should land on /vendeur/dashboard, not
+  // be silently dropped into the apprenant space (which was the bug behind
+  // "I logged in via /connexion and ended up in /apprenant").
+  if (typeof userRole === "string") {
+    const r = userRole.toLowerCase();
+    if (r === "freelance" || r === "instructeur" || r === "vendeur") return DASHBOARDS.instructeur;
+    if (r === "mentor") return DASHBOARDS.mentor;
+    if (r === "affilie" || r === "affiliate") return DASHBOARDS.affilie;
+  }
+  // No identifying signal at all → apprenant by default (least privileged).
   return "/apprenant/dashboard";
 }
 

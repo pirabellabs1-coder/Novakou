@@ -46,7 +46,10 @@ function ConnexionInner() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email.trim().toLowerCase() }),
           }).catch(() => {});
-          const cb = callbackUrlParam ?? "/apprenant/dashboard";
+          // After OTP verification we want to land on the correct role
+          // dashboard, not always the apprenant one. "/" lets the middleware
+          // resolve the right destination once the session is ready.
+          const cb = callbackUrlParam ?? "/";
           const params = new URLSearchParams({
             email: email.trim().toLowerCase(),
             callbackUrl: cb,
@@ -115,7 +118,11 @@ function ConnexionInner() {
     setError(null);
     // Set pending formationsRole cookie before OAuth redirect
     document.cookie = "pendingFormationsRole=; path=/; max-age=0";
-    await signIn("google", { callbackUrl: callbackUrlParam ?? "/apprenant/dashboard" });
+    // Don't hardcode /apprenant/dashboard here — that landed every Google-
+    // signed-in vendor / mentor / affilié in the buyer space. Sending them
+    // to "/" instead lets the middleware's home-page handler route them to
+    // the correct role dashboard once the session is set.
+    await signIn("google", { callbackUrl: callbackUrlParam ?? "/" });
   }
 
   return (
