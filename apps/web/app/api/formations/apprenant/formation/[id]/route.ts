@@ -35,6 +35,11 @@ export async function GET(_req: Request, { params }: Params) {
       thumbnail: true,
       price: true,
       isFree: true,
+      instructeur: {
+        select: {
+          user: { select: { name: true, image: true } },
+        },
+      },
       sections: {
         orderBy: { order: "asc" },
         select: {
@@ -48,11 +53,24 @@ export async function GET(_req: Request, { params }: Params) {
               id: true,
               title: true,
               desc: true,
+              content: true,
               videoUrl: true,
+              pdfUrl: true,
+              audioUrl: true,
               duration: true,
               order: true,
               isFree: true,
               type: true,
+              allowDownload: true,
+              resources: {
+                select: {
+                  id: true,
+                  name: true,
+                  url: true,
+                  fileSize: true,
+                  mimeType: true,
+                },
+              },
             },
           },
         },
@@ -71,15 +89,45 @@ export async function GET(_req: Request, { params }: Params) {
     hasAccess = await userHasFormationAccess(userId, formation.id);
   }
 
+  // Charger la progression (leçons déjà terminées) pour cet utilisateur
+  let completedLessonIds = new Set<string>();
+  let progressPct = 0;
+  let enrollmentId: string | null = null;
+  if (userId) {
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { userId_formationId: { userId, formationId: formation.id } },
+      select: {
+        id: true,
+        progress: true,
+        lessonProgress: {
+          where: { completed: true },
+          select: { lessonId: true },
+        },
+      },
+    });
+    if (enrollment) {
+      enrollmentId = enrollment.id;
+      progressPct = enrollment.progress;
+      completedLessonIds = new Set(enrollment.lessonProgress.map((p) => p.lessonId));
+    }
+  }
+
   // Si l'utilisateur n'a pas accès : on masque les videoUrls sauf les leçons isFree (preview)
   const sanitized = {
     ...formation,
     hasAccess,
+    enrollmentId,
+    progressPct,
     sections: formation.sections.map((s) => ({
       ...s,
       lessons: s.lessons.map((l) => ({
         ...l,
         videoUrl: hasAccess || l.isFree ? l.videoUrl : null,
+        pdfUrl: hasAccess || l.isFree ? l.pdfUrl : null,
+        audioUrl: hasAccess || l.isFree ? l.audioUrl : null,
+        content: hasAccess || l.isFree ? l.content : null,
+        resources: hasAccess || l.isFree ? l.resources : [],
+        completed: completedLessonIds.has(l.id),
       })),
     })),
   };
