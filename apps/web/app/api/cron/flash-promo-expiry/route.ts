@@ -3,13 +3,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@freelancehigh/db";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 export async function GET(req: NextRequest) {
-  // Vérifier le secret cron
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   try {
     const now = new Date();

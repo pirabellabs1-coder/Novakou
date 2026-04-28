@@ -9,14 +9,13 @@ import {
   sendAbandonedCartEmail2,
   sendAbandonedCartEmail3,
 } from "@/lib/email/formations";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   try {
     const now = Date.now();

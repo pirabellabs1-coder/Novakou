@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 /**
  * GET /api/cron/approve-affiliate-commissions
@@ -15,18 +16,8 @@ import { prisma } from "@/lib/prisma";
 const REFUND_WINDOW_DAYS = 14;
 
 export async function GET(req: NextRequest) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret && process.env.NODE_ENV === "production") {
-    console.error("[CRON approve-affiliate-commissions] CRON_SECRET missing in production");
-    return NextResponse.json({ error: "Server misconfigured" }, { status: 503 });
-  }
-  if (secret) {
-    const auth = req.headers.get("authorization");
-    const vercelCron = req.headers.get("x-vercel-cron");
-    if (!vercelCron && auth !== `Bearer ${secret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   try {
     const cutoff = new Date(Date.now() - REFUND_WINDOW_DAYS * 24 * 60 * 60 * 1000);

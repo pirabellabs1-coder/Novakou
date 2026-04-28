@@ -7,6 +7,7 @@ import {
   resolveLegacyMethod,
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 /**
  * GET /api/cron/auto-payout
@@ -40,12 +41,8 @@ type AccountDetails = {
 };
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret (Vercel injecte automatiquement le header)
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   if (!isMonerooConfigured()) {
     return NextResponse.json({ skipped: true, reason: "MONEROO_SECRET_KEY non configurée" });

@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { emitEvent } from "@/lib/events/dispatcher";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 export async function GET(request: NextRequest) {
-  // Verify cron secret (Vercel cron or manual trigger)
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Non autorise" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   // --- DEV mode: use in-memory store ---
   if (IS_DEV && !USE_PRISMA_FOR_DATA) {

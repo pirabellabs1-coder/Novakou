@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
@@ -58,10 +59,8 @@ function reminderHtml(firstName: string, formationTitle: string, slug: string, e
 }
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && !req.headers.get("x-vercel-cron")) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   // Fenêtre : enrollments créés il y a 3 jours (entre 3j00 et 3j23)
   const now = Date.now();

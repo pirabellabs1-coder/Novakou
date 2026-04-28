@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 /**
  * Cron quotidien : passe les demandes PENDING_COOLDOWN dont le délai 72h est écoulé
@@ -7,15 +8,9 @@ import { prisma } from "@/lib/prisma";
  *
  * Configuré dans vercel.json (ou Vercel UI) — appelé une fois par jour.
  */
-export async function GET(request: Request) {
-  // Vercel Cron envoie un Authorization: Bearer <CRON_SECRET> si défini
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const auth = request.headers.get("authorization");
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-  }
+export async function GET(request: NextRequest) {
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   const now = new Date();
   const expired = await prisma.accountDeletionRequest.updateMany({

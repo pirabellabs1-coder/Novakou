@@ -11,17 +11,10 @@
  * unique constraint (@@unique([bookingId, kind])) sur MentorBookingReminder.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout, button, getAppUrl } from "@/lib/email";
-
-// Sécurité : seul Vercel Cron ou un appelant avec le secret peut déclencher
-function isAuthorized(req: Request): boolean {
-  const auth = req.headers.get("authorization") ?? "";
-  const expected = process.env.CRON_SECRET;
-  if (!expected) return true; // permissif si pas configuré (dev)
-  return auth === `Bearer ${expected}`;
-}
+import { requireCronAuth } from "@/lib/cron/auth";
 
 async function sendReminderEmail(booking: {
   id: string;
@@ -76,10 +69,9 @@ async function sendReminderEmail(booking: {
   });
 }
 
-export async function GET(req: Request) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function GET(req: NextRequest) {
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   const now = new Date();
   const in15mLo = new Date(now.getTime() + 14 * 60_000);

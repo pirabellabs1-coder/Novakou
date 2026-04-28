@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 /**
  * GET /api/cron/mentor-escrow
@@ -11,12 +12,8 @@ import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
  *  3. Log PlatformRevenue entry when escrow is released
  */
 export async function GET(request: NextRequest) {
-  // Verify cron secret
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   const now = new Date();
   const GRACE_AFTER_END_MS = 30 * 60 * 1000; // 30 min after scheduled end
