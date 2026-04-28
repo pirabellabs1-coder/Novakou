@@ -57,17 +57,34 @@ const ROLE_ROUTES: Record<string, string[]> = {
   admin: ["/admin"],
 };
 
-// Map role → dashboard URL — admin a son dashboard Novakou.
-// Les rôles instructeur/apprenant sont routés côté client via RoleGuard.
+// Map role → dashboard URL — covers BOTH the marketplace `role` enum
+// (freelance/client/agence) AND the formations `formationsRole` enum
+// (instructeur/apprenant/mentor/affilie). Previously this map only had
+// 3 keys (admin/instructeur/apprenant), so any other value fell back to
+// "/connexion" and the middleware then redirected /connexion → /connexion
+// → ERR_TOO_MANY_REDIRECTS for vendors (role=freelance), mentors,
+// affiliates, and "client" buyers.
 const ROLE_DASHBOARD: Record<string, string> = {
   admin: "/admin/dashboard",
+  // formationsRole values
   instructeur: "/vendeur/dashboard",
   apprenant: "/apprenant/dashboard",
+  mentor: "/mentor/dashboard",
+  affilie: "/affilie/dashboard",
+  affiliate: "/affilie/dashboard",
+  // marketplace User.role values (lowercased)
+  freelance: "/vendeur/dashboard",
+  vendeur: "/vendeur/dashboard",
+  client: "/apprenant/dashboard",
+  agence: "/vendeur/dashboard",
 };
 
 function getDashboardForRole(role: string | undefined): string {
-  if (!role) return "/connexion";
-  return ROLE_DASHBOARD[role.toLowerCase()] || "/connexion";
+  // Last-resort fallback is the apprenant space (always reachable to any
+  // authenticated user), never "/connexion" — that was the root cause of
+  // the redirect loop.
+  if (!role) return "/apprenant/dashboard";
+  return ROLE_DASHBOARD[role.toLowerCase()] ?? "/apprenant/dashboard";
 }
 
 function isPublicRoute(pathname: string): boolean {
