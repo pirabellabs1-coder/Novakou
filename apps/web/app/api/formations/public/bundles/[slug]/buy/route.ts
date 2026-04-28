@@ -29,6 +29,10 @@ export async function POST(request: Request, { params }: Params) {
     const { slug } = await params;
     const body = await request.json().catch(() => ({}));
     const provider: PaymentProvider = resolveProvider((body as { provider?: string }).provider);
+    const discountCodeStr: string | null =
+      typeof (body as { discountCode?: unknown }).discountCode === "string"
+        ? (body as { discountCode: string }).discountCode.trim().toUpperCase() || null
+        : null;
     const session = await getServerSession(authOptions);
     const userId = await resolveActiveUserId(session, {
       devFallback: IS_DEV ? "dev-apprenant-001" : undefined,
@@ -85,11 +89,73 @@ export async function POST(request: Request, { params }: Params) {
       );
     }
 
+    // ── Discount code (optional) ────────────────────────────────────────
+    // Valide et applique un code promo sur le prix bundle. Le rabais est
+    // calculé ici ; le webhook créera le DiscountUsage post-fulfillment.
+    let subTotal = Math.round(bundle.priceXof);
+    let discountAmount = 0;
+    let appliedDiscountCodeId: string | null = null;
+    if (discountCodeStr) {
+      const code = await prisma.discountCode.findUnique({ where: { code: discountCodeStr } });
+      if (!code || !code.isActive) {
+        return NextResponse.json({ error: "Code promo invalide ou expiré" }, { status: 400 });
+      }
+      if (code.expiresAt && code.expiresAt < new Date()) {
+        return NextResponse.json({ error: "Code promo expiré" }, { status: 400 });
+      }
+      if (code.maxUses && code.usedCount >= code.maxUses) {
+        return NextResponse.json({ error: "Code promo épuisé" }, { status: 400 });
+      }
+      // Per-user limit
+      if (code.maxUsesPerUser != null) {
+        const userPriorUses = await prisma.discountUsage.count({
+          where: { discountId: code.id, userId },
+        });
+        if (userPriorUses >= code.maxUsesPerUser) {
+          return NextResponse.json(
+            { error: "Vous avez déjà utilisé ce code le nombre maximum de fois" },
+            { status: 400 },
+          );
+        }
+      }
+      if (code.minOrderAmount && subTotal < code.minOrderAmount) {
+        return NextResponse.json(
+          { error: `Montant minimum requis : ${code.minOrderAmount} FCFA` },
+          { status: 400 },
+        );
+      }
+      // Compute discount
+      if (code.discountType === "PERCENTAGE") {
+        discountAmount = Math.round(subTotal * (code.discountValue / 100));
+      } else {
+        discountAmount = Math.min(code.discountValue, subTotal);
+      }
+      appliedDiscountCodeId = code.id;
+      // Atomic claim global (maxUses) — best-effort ; le DiscountUsage sera créé
+      // par le webhook avec la contrainte unique [discountId,userId,orderId]
+      // qui empêche le double-comptage.
+      if (code.maxUses) {
+        const claimed = await prisma.discountCode.updateMany({
+          where: { id: code.id, usedCount: { lt: code.maxUses } },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (claimed.count === 0) {
+          return NextResponse.json({ error: "Code promo épuisé (concurrent)" }, { status: 400 });
+        }
+      }
+    }
+    const totalAmount = Math.max(0, subTotal - discountAmount);
+
     const sharedMeta = {
       type: "bundle_purchase",
       bundleId: bundle.id,
       userId,
       instructeurId: bundle.instructeurId,
+      // Propagated for webhook → DiscountUsage create post-fulfillment
+      discountCode: discountCodeStr ?? "",
+      discountCodeId: appliedDiscountCodeId ?? "",
+      discountAmount: String(discountAmount),
+      bundleSubTotal: String(subTotal),
     };
     const description = `Bundle : ${bundle.title}`;
     const returnUrl = `${APP_URL}/payment/return?provider=${provider}`;
@@ -99,7 +165,7 @@ export async function POST(request: Request, { params }: Params) {
 
     if (provider === "paygenius") {
       const pg = await initPayGenius({
-        amount: Math.round(bundle.priceXof),
+        amount: totalAmount,
         currency: "XOF",
         description,
         customer: { email: user.email, name: `${firstName} ${lastName}`.trim() },
@@ -110,7 +176,7 @@ export async function POST(request: Request, { params }: Params) {
       providerRefId = pg.reference;
     } else {
       const mnr = await initMoneroo({
-        amount: Math.round(bundle.priceXof),
+        amount: totalAmount,
         currency: "XOF",
         description,
         customer: { email: user.email, first_name: firstName, last_name: lastName },
@@ -121,7 +187,16 @@ export async function POST(request: Request, { params }: Params) {
       providerRefId = mnr.id;
     }
 
-    return NextResponse.json({ data: { checkout_url: checkoutUrl, id: providerRefId, provider } });
+    return NextResponse.json({
+      data: {
+        checkout_url: checkoutUrl,
+        id: providerRefId,
+        provider,
+        subTotal,
+        discountAmount,
+        totalAmount,
+      },
+    });
   } catch (err) {
     console.error("[public/bundles/buy POST]", err);
     return NextResponse.json(

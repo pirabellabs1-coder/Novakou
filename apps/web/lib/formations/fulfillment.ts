@@ -98,12 +98,29 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     const code = await prisma.discountCode.findUnique({ where: { code: discountCodeStr } });
     if (code && code.isActive && (!code.expiresAt || code.expiresAt >= new Date())) {
       if (!code.minOrderAmount || subTotal >= code.minOrderAmount) {
-        if (code.discountType === "PERCENTAGE") {
-          discountAmount = Math.round(subTotal * (code.discountValue / 100));
-        } else {
-          discountAmount = Math.min(code.discountValue, subTotal);
+        // Atomic per-user limit : empêche un user d'utiliser le code plus de
+        // maxUsesPerUser fois. Si dépassé, on n'applique pas le rabais (mais
+        // on continue le fulfillment pour ne pas annuler une commande payée).
+        let allowed = true;
+        if (code.maxUsesPerUser != null) {
+          const userPriorUses = await prisma.discountUsage.count({
+            where: { discountId: code.id, userId },
+          });
+          if (userPriorUses >= code.maxUsesPerUser) {
+            console.warn(
+              `[fulfillment] discount ${code.code} maxUsesPerUser dépassé pour ${userId} — rabais ignoré`,
+            );
+            allowed = false;
+          }
         }
-        appliedCode = { id: code.id, code: code.code };
+        if (allowed) {
+          if (code.discountType === "PERCENTAGE") {
+            discountAmount = Math.round(subTotal * (code.discountValue / 100));
+          } else {
+            discountAmount = Math.min(code.discountValue, subTotal);
+          }
+          appliedCode = { id: code.id, code: code.code };
+        }
       }
     }
   }
@@ -268,17 +285,24 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         revenue: { increment: totalAmount },
       },
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
-    await prisma.discountUsage.create({
-      data: {
-        discountId: appliedCode.id,
-        userId,
-        orderType: createdEnrollments.length > 0 ? "formation" : "product",
-        orderId: sessionRef,
-        originalAmount: subTotal,
-        discountAmount,
-        finalAmount: totalAmount,
-      },
-    }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    await prisma.discountUsage
+      .create({
+        data: {
+          discountId: appliedCode.id,
+          userId,
+          orderType: createdEnrollments.length > 0 ? "formation" : "product",
+          orderId: sessionRef,
+          originalAmount: subTotal,
+          discountAmount,
+          finalAmount: totalAmount,
+        },
+      })
+      .catch((err) => {
+        // P2002 = unique constraint sur (discountId, userId, orderId) — déjà créé, idempotent
+        if ((err as { code?: string }).code === "P2002") return null;
+        console.error("[fulfillment discountUsage]", (err as { message?: string })?.message ?? err);
+        return null;
+      });
   }
 
   // ── Vider le panier (formations) ────────────────────────────────────

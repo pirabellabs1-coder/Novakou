@@ -149,6 +149,22 @@ export async function POST(request: Request) {
       if (code.maxUses && code.usedCount >= code.maxUses) {
         return NextResponse.json({ error: "Code promo épuisé" }, { status: 400 });
       }
+      // ── Atomic per-user limit ────────────────────────────────────────
+      // Avant toute reservation globale : vérifier que CET utilisateur
+      // n'a pas déjà épuisé son quota personnel sur ce code.
+      // (la vraie atomicité se fait via le @@unique([discountId,userId,orderId])
+      // au moment de la création du DiscountUsage en post-fulfillment)
+      if (code.maxUsesPerUser != null) {
+        const userPriorUses = await prisma.discountUsage.count({
+          where: { discountId: code.id, userId },
+        });
+        if (userPriorUses >= code.maxUsesPerUser) {
+          return NextResponse.json(
+            { error: "Vous avez déjà utilisé ce code le nombre maximum de fois" },
+            { status: 400 },
+          );
+        }
+      }
       // Atomic claim: increment usedCount only if still under maxUses (prevents race condition)
       if (code.maxUses) {
         const claimed = await prisma.discountCode.updateMany({
@@ -482,17 +498,24 @@ export async function POST(request: Request) {
           revenue: { increment: totalAmount },
         },
       });
-      await prisma.discountUsage.create({
-        data: {
-          discountId: appliedCode.id,
-          userId,
-          orderType: createdEnrollments.length > 0 ? "formation" : "product",
-          orderId,
-          originalAmount: subTotal,
-          discountAmount,
-          finalAmount: totalAmount,
-        },
-      }).catch(() => null);
+      await prisma.discountUsage
+        .create({
+          data: {
+            discountId: appliedCode.id,
+            userId,
+            orderType: createdEnrollments.length > 0 ? "formation" : "product",
+            orderId,
+            originalAmount: subTotal,
+            discountAmount,
+            finalAmount: totalAmount,
+          },
+        })
+        .catch((err) => {
+          // P2002 = unique constraint (discountId, userId, orderId) — déjà créé, idempotent
+          if ((err as { code?: string }).code === "P2002") return null;
+          console.warn("[checkout discountUsage]", err);
+          return null;
+        });
     }
 
     if (clearCart && formationIds.length > 0) {
