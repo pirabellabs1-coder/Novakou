@@ -97,8 +97,10 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
       href={href}
       className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 hover:border-[#006e2f]/20 transition-all duration-300 overflow-hidden flex flex-col h-full"
     >
-      {/* HERO IMAGE — aspect 16/9 cohérent avec la recommandation vendeur (1280×720) */}
-      <div className={`relative aspect-video bg-gradient-to-br ${gradient} overflow-hidden`}>
+      {/* HERO IMAGE — carré 1:1 façon Chariow/Gumroad. La vignette dédiée
+          (`thumbnail`) recommandée 600×600 remplit parfaitement ; un `banner`
+          16:9 fait fallback (centré, légèrement rogné gauche/droite). */}
+      <div className={`relative aspect-square bg-gradient-to-br ${gradient} overflow-hidden`}>
         {item.thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

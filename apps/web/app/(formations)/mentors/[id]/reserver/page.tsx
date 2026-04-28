@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Slot {
@@ -88,7 +89,10 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
   const [error, setError] = useState<string | null>(null);
 
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
-  const [goals, setGoals] = useState("");
+  // `goals` is a free-form description of what the apprenant wants to work on
+  // — the only field we persist, since slots/dates are validated against
+  // live availability and shouldn't survive a refresh.
+  const [goals, setGoals] = useDraftField(`mentor:reserver:${id}:goals`, "");
   const [confirming, setConfirming] = useState(false);
   const [bookingResult, setBookingResult] = useState<{
     bookingId: string;
@@ -194,11 +198,13 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
       // Redirect to payment (Moneroo or mock return page)
       // The return page will call /confirm-payment which sets status=PENDING + escrowStatus=HELD
       if (json.data.checkoutUrl) {
+        clearDrafts(`mentor:reserver:${id}`);
         window.location.href = json.data.checkoutUrl;
         return;
       }
 
       // Fallback (shouldn't happen): legacy response
+      clearDrafts(`mentor:reserver:${id}`);
       setBookingResult({
         bookingId: json.data.bookingId,
         meetingUrl: json.data.meetingUrl ?? "",

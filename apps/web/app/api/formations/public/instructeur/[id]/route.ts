@@ -35,7 +35,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
           where: { status: "ACTIF" },
           orderBy: { createdAt: "desc" },
           select: {
-            id: true, slug: true, title: true, description: true, banner: true,
+            id: true, slug: true, title: true, description: true, thumbnail: true, banner: true,
             productType: true, price: true, originalPrice: true, rating: true,
             reviewsCount: true, salesCount: true,
           },
@@ -73,7 +73,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
               where: { status: "ACTIF" },
               orderBy: { createdAt: "desc" },
               select: {
-                id: true, slug: true, title: true, description: true, banner: true,
+                id: true, slug: true, title: true, description: true, thumbnail: true, banner: true,
                 productType: true, price: true, originalPrice: true, rating: true,
                 reviewsCount: true, salesCount: true,
               },

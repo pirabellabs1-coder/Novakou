@@ -42,6 +42,7 @@ const PUBLIC_ROUTES = [
   "/debug-media",
   "/backoffice", // Admin secret login (slug validé côté page server)
   "/f", // Public funnel landing pages
+  "/a", // Public affiliate boutique landing pages — /a/[code]
   "/invitation", // Pages d'acceptation d'invitations équipe boutique
   "/acheteur",   // Espace acheteur — connexion OTP dédiée (pas de password)
 ];

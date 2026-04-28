@@ -6,6 +6,9 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { COUNTRIES as ALL_COUNTRIES } from "@/lib/countries";
+import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
+
+const CHECKOUT_DRAFT_PREFIX = "checkout:contact";
 
 // On adapte la liste centralisée (lib/countries.ts) au format attendu
 // par le sélecteur du checkout : { code: "+221", label: "...", iso: "SN" }.
@@ -39,11 +42,14 @@ export default function CheckoutInner() {
   const router = useRouter();
 
   // ── Form state ──────────────────────────────────────────────────────────────
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState("+221");
+  // Persist contact details across refreshes — buyers on slow mobile
+  // connections lose the form when CinetPay/Moneroo redirects them back
+  // after a failed payment, otherwise they retype everything.
+  const [firstName, setFirstName] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:firstName`, "");
+  const [lastName, setLastName] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:lastName`, "");
+  const [email, setEmail] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:email`, "");
+  const [phone, setPhone] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:phone`, "");
+  const [countryCode, setCountryCode] = useDraftField(`${CHECKOUT_DRAFT_PREFIX}:countryCode`, "+221");
   const [countryOpen, setCountryOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("orange_money");
   const [provider, setProvider] = useState<PaymentProvider>("moneroo");
@@ -325,6 +331,11 @@ export default function CheckoutInner() {
       }
 
       const checkoutUrl: string = json.data.checkout_url;
+
+      // Payment provider has the order — clear the saved draft so a buyer
+      // doesn't see their previous contact details on a fresh checkout for
+      // a different product.
+      clearDrafts(CHECKOUT_DRAFT_PREFIX);
 
       // Mock/dev mode — go to return page
       if (json.data.mock || json.data.free) {

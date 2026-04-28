@@ -8,6 +8,12 @@ import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import { confirmAction } from "@/store/confirm";
+import {
+  useDraftField,
+  useDraftSavedAt,
+  formatSavedAt,
+  clearDrafts,
+} from "@/lib/hooks/use-draft-storage";
 
 interface Product {
   id: string;
@@ -16,6 +22,7 @@ interface Product {
   description: string | null;
   descriptionFormat: string;
   productType: string;
+  thumbnail: string | null;
   banner: string | null;
   price: number;
   originalPrice: number | null;
@@ -63,20 +70,30 @@ export default function EditerProduitPage() {
   const router = useRouter();
   const qc = useQueryClient();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [productType, setProductType] = useState("EBOOK");
-  const [banner, setBanner] = useState("");
-  const [price, setPrice] = useState(0);
-  const [originalPrice, setOriginalPrice] = useState<string>("");
-  const [tagsInput, setTagsInput] = useState("");
-  const [files, setFiles] = useState<ProductFile[]>([]);
-  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
-  const [previewEnabled, setPreviewEnabled] = useState(false);
-  const [previewPages, setPreviewPages] = useState(5);
-  const [watermarkEnabled, setWatermarkEnabled] = useState(true);
+  // Auto-save scope: per-product. Each product edit has its own draft slot
+  // so editing two tabs in parallel never bleeds state across them.
+  const draftPrefix = `vendeur:product:edit:${id}`;
+
+  const [title, setTitle] = useDraftField(`${draftPrefix}:title`, "");
+  const [description, setDescription] = useDraftField(`${draftPrefix}:description`, "");
+  const [productType, setProductType] = useDraftField(`${draftPrefix}:productType`, "EBOOK");
+  const [thumbnail, setThumbnail] = useDraftField(`${draftPrefix}:thumbnail`, "");
+  const [banner, setBanner] = useDraftField(`${draftPrefix}:banner`, "");
+  const [price, setPrice] = useDraftField(`${draftPrefix}:price`, 0);
+  const [originalPrice, setOriginalPrice] = useDraftField<string>(`${draftPrefix}:originalPrice`, "");
+  const [tagsInput, setTagsInput] = useDraftField(`${draftPrefix}:tagsInput`, "");
+  const [files, setFiles] = useDraftField<ProductFile[]>(`${draftPrefix}:files`, []);
+  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useDraftField(`${draftPrefix}:hiddenFromMarketplace`, false);
+  const [previewEnabled, setPreviewEnabled] = useDraftField(`${draftPrefix}:previewEnabled`, false);
+  const [previewPages, setPreviewPages] = useDraftField(`${draftPrefix}:previewPages`, 5);
+  const [watermarkEnabled, setWatermarkEnabled] = useDraftField(`${draftPrefix}:watermarkEnabled`, true);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  // Tracks whether we've already pulled the API value into state on first
+  // load — this is what lets drafts win over fresh refetches.
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const draftSavedAtTs = useDraftSavedAt(draftPrefix);
+  const draftLabel = formatSavedAt(draftSavedAtTs);
 
   const { data: response, isLoading, error } = useQuery<{ data: Product; error?: string }>({
     queryKey: ["product", id],
@@ -87,10 +104,27 @@ export default function EditerProduitPage() {
   const product = response?.data;
 
   useEffect(() => {
-    if (product) {
+    if (!product || hasHydrated) return;
+
+    // Drafts win over a fresh API load: if any field for this product has a
+    // saved draft entry in localStorage, we trust the draft and skip the
+    // hydration entirely. Otherwise we populate state with the API values.
+    const hasDraft = typeof window !== "undefined"
+      ? (() => {
+          const target = `nk-draft:${draftPrefix}:`;
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (k && k.startsWith(target)) return true;
+          }
+          return false;
+        })()
+      : false;
+
+    if (!hasDraft) {
       setTitle(product.title);
       setDescription(product.description ?? "");
       setProductType(product.productType);
+      setThumbnail(product.thumbnail ?? "");
       setBanner(product.banner ?? "");
       setPrice(product.price);
       setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
@@ -101,8 +135,14 @@ export default function EditerProduitPage() {
       setPreviewPages(typeof product.previewPages === "number" ? product.previewPages : 5);
       setWatermarkEnabled(product.watermarkEnabled !== false);
       setDirty(false);
+    } else {
+      // Draft restored — show the user the form is pre-populated and they
+      // have unsaved work.
+      setDirty(true);
     }
-  }, [product]);
+    setHasHydrated(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, hasHydrated, draftPrefix]);
 
   const saveMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -113,6 +153,9 @@ export default function EditerProduitPage() {
       }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["product", id] });
+      // Persisted to backend → drop the local draft so the next visit
+      // re-hydrates from the canonical product, not stale localStorage.
+      clearDrafts(draftPrefix);
       setDirty(false);
       setSavedAt(new Date());
     },
@@ -131,7 +174,10 @@ export default function EditerProduitPage() {
   const deleteMutation = useMutation({
     mutationFn: () =>
       fetch(`/api/formations/vendeur/products/${id}`, { method: "DELETE" }).then((r) => r.json()),
-    onSuccess: () => router.push("/vendeur/produits"),
+    onSuccess: () => {
+      clearDrafts(draftPrefix);
+      router.push("/vendeur/produits");
+    },
   });
 
   function track<T>(setter: (v: T) => void, v: T) {
@@ -144,6 +190,7 @@ export default function EditerProduitPage() {
       title,
       description,
       productType,
+      thumbnail,
       banner,
       price,
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
@@ -218,6 +265,14 @@ export default function EditerProduitPage() {
               <><span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>Sauvegarde…</>
             ) : savedAt ? (
               <><span className="material-symbols-outlined text-[14px] text-green-500">check_circle</span>Sauvegardé</>
+            ) : draftLabel ? (
+              <span
+                title="Vos modifications sont stockées localement à chaque saisie. Vous pouvez fermer l'onglet et revenir, elles seront restaurées."
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700"
+              >
+                <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
+                Brouillon {draftLabel}
+              </span>
             ) : null}
           </div>
           <a href={`/produit/${product.slug}`} target="_blank" rel="noopener noreferrer"
@@ -267,15 +322,35 @@ export default function EditerProduitPage() {
           ))}
         </div>
 
-        {/* Section: Image principale */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Image de couverture</h2>
-          <p className="text-xs text-[#5c647a] mb-4">L&apos;image principale visible sur la marketplace et la page produit.</p>
-          <ImageUploader
-            value={banner}
-            onChange={(url) => track(setBanner, url)}
-            aspectClass="aspect-video"
-          />
+        {/* Section: Images — vignette (carte) + bannière (page produit) */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+          <div>
+            <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Images du produit</h2>
+            <p className="text-xs text-[#5c647a]">
+              La <strong>vignette</strong> apparaît sur les cartes du marketplace.
+              La <strong>bannière</strong> apparaît en haut de la page détail. Vous pouvez n&apos;en mettre qu&apos;une, l&apos;autre la remplacera.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <p className="text-xs font-bold text-[#5c647a] uppercase tracking-wider mb-2">Vignette</p>
+              <ImageUploader
+                value={thumbnail}
+                onChange={(url) => track(setThumbnail, url)}
+                aspectClass="aspect-square"
+                helper="600×600 carré · JPG/PNG · Max 5 MB"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#5c647a] uppercase tracking-wider mb-2">Bannière de couverture</p>
+              <ImageUploader
+                value={banner}
+                onChange={(url) => track(setBanner, url)}
+                aspectClass="aspect-video"
+                helper="1280×720 (16:9) · JPG/PNG · Max 5 MB"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Section: Infos */}

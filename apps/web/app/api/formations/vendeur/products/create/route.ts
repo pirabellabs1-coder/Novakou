@@ -68,7 +68,8 @@ export async function POST(request: Request) {
       price,
       originalPrice,
       category,
-      thumbnail,
+      thumbnail, // square vignette (~600×600) shown on marketplace cards
+      banner,    // wide cover (~1280×720) shown on the product detail page
       publish,
       modules, // For formations: [{ title, lessons: [{ title, duration }] }]
       fileUrl, // For digital products: backward-compat single-file URL
@@ -199,7 +200,11 @@ export async function POST(request: Request) {
           description: description?.trim() || null,
           productType: type,
           categoryId: cat.id,
-          banner: thumbnail || null,
+          // Backward-compat: legacy clients only sent `thumbnail` (which was
+          // really the banner). Accept both names; fall back if either is
+          // missing so single-image clients still get a banner.
+          thumbnail: thumbnail || banner || null,
+          banner: banner || thumbnail || null,
           fileUrl: filesToCreate[0]?.url ?? null,
           price: parseFloat(price),
           originalPrice: originalPrice ? parseFloat(originalPrice) : null,

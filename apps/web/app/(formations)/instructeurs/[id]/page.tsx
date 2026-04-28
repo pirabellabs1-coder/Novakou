@@ -41,6 +41,7 @@ type Product = {
   title: string;
   description: string | null;
   banner: string | null;
+  thumbnail?: string | null;
   productType: string;
   price: number;
   originalPrice: number | null;
@@ -289,7 +290,7 @@ export default function InstructeurPublicPage() {
                   className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-[#006e2f]/20 transition-all flex flex-col"
                 >
                   <Link href={`/formation/${f.slug}`} className="block">
-                    <div className="aspect-video bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center relative overflow-hidden">
+                    <div className="aspect-square bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center relative overflow-hidden">
                       {f.thumbnail ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
@@ -366,10 +367,10 @@ export default function InstructeurPublicPage() {
                     className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-lg hover:border-violet-500/20 transition-all flex flex-col"
                   >
                     <Link href={`/produit/${p.slug}`} className="block">
-                      <div className="aspect-video bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
-                        {p.banner ? (
+                      <div className="aspect-square bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
+                        {(p.thumbnail || p.banner) ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.banner} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                          <img src={p.thumbnail ?? p.banner ?? ""} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                         ) : (
                           <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>download</span>
                         )}

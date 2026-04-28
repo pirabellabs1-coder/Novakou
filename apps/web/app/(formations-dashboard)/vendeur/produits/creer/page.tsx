@@ -80,7 +80,10 @@ export default function CreerProduitPage() {
   const [category, setCategory] = useDraftField(`${DRAFT_PREFIX}:category`, "");
   const [shortDesc, setShortDesc] = useDraftField(`${DRAFT_PREFIX}:shortDesc`, "");
   const [description, setDescription] = useDraftField(`${DRAFT_PREFIX}:description`, "");
+  // `thumbnail` = vignette carrée affichée sur les cartes marketplace.
+  // `banner`    = bannière large affichée en haut de la page produit.
   const [thumbnail, setThumbnail] = useDraftField(`${DRAFT_PREFIX}:thumbnail`, "");
+  const [banner, setBanner] = useDraftField(`${DRAFT_PREFIX}:banner`, "");
   const [price, setPrice] = useDraftField(`${DRAFT_PREFIX}:price`, 45000);
   const [originalPrice, setOriginalPrice] = useDraftField(`${DRAFT_PREFIX}:originalPrice`, 0);
   const [isFree, setIsFree] = useDraftField(`${DRAFT_PREFIX}:isFree`, false);
@@ -129,6 +132,7 @@ export default function CreerProduitPage() {
           productType: selected?.productType,
           title, shortDesc, description, category,
           thumbnail: thumbnail || null,
+          banner: banner || null,
           price: isFree ? 0 : price,
           originalPrice: originalPrice || null,
           isFree,
@@ -329,15 +333,27 @@ export default function CreerProduitPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Image de couverture</label>
-                      <ImageUploader
-                        value={thumbnail}
-                        onChange={setThumbnail}
-                        folder="portfolio"
-                        aspectClass="aspect-square"
-                        helper="Recommandé : 1280×720px · JPG ou PNG · Max 5 MB"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Vignette du produit</label>
+                        <ImageUploader
+                          value={thumbnail}
+                          onChange={setThumbnail}
+                          folder="portfolio"
+                          aspectClass="aspect-square"
+                          helper="Format conseillé : 600×600 carré · JPG ou PNG · Max 5 MB. Affichée sur les cartes du marketplace et la liste de votre boutique."
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Bannière de couverture</label>
+                        <ImageUploader
+                          value={banner}
+                          onChange={setBanner}
+                          folder="portfolio"
+                          aspectClass="aspect-video"
+                          helper="Format conseillé : 1280×720 (16:9) · JPG ou PNG · Max 5 MB. Affichée en haut de la page détail du produit."
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -586,11 +602,11 @@ export default function CreerProduitPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Aperçu</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Aperçu carte marketplace</label>
                       <div className="aspect-square bg-[#f3f3f4] relative overflow-hidden">
-                        {thumbnail ? (
+                        {(thumbnail || banner) ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={thumbnail} alt="" className="w-full h-full object-cover" />
+                          <img src={thumbnail || banner} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="material-symbols-outlined text-6xl text-zinc-300">image</span>
@@ -598,6 +614,15 @@ export default function CreerProduitPage() {
                         )}
                         <div className="absolute bottom-0 left-0 w-1 bg-[#22c55e] h-full" />
                       </div>
+                      {banner && (
+                        <>
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block pt-3">Aperçu page produit</label>
+                          <div className="aspect-video bg-[#f3f3f4] relative overflow-hidden rounded-lg">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={banner} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <dl className="space-y-6">

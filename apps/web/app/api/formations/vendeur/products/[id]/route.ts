@@ -18,7 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       where: { id, instructeurId: ctx.instructeurId },
       select: {
         id: true, slug: true, title: true, description: true, descriptionFormat: true,
-        productType: true, banner: true, price: true, originalPrice: true,
+        productType: true, thumbnail: true, banner: true, price: true, originalPrice: true,
         rating: true, reviewsCount: true, salesCount: true, viewsCount: true,
         tags: true, status: true, fileUrl: true,
         hiddenFromMarketplace: true,
@@ -92,6 +92,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         title: body.title?.trim() || undefined,
         description: body.description !== undefined ? (body.description?.trim() || null) : undefined,
         descriptionFormat: body.descriptionFormat ?? undefined,
+        thumbnail: body.thumbnail !== undefined ? (body.thumbnail || null) : undefined,
         banner: body.banner !== undefined ? (body.banner || null) : undefined,
         price: body.price !== undefined ? parseFloat(body.price) : undefined,
         originalPrice: body.originalPrice !== undefined ? (body.originalPrice ? parseFloat(body.originalPrice) : null) : undefined,

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
+
+const DRAFT_PREFIX = "affilie:retrait";
 
 type PayoutRecord = {
   id: string;
@@ -32,8 +35,10 @@ const PAYOUT_METHODS = [
 
 export default function RetraitsPage() {
   const qc = useQueryClient();
-  const [selectedMethod, setSelectedMethod] = useState("WAVE");
-  const [amount, setAmount] = useState("");
+  // Persist user input across refreshes so a phone reload doesn't lose the
+  // selected method + amount mid-flow. Step/error stay transient.
+  const [selectedMethod, setSelectedMethod] = useDraftField(`${DRAFT_PREFIX}:method`, "WAVE");
+  const [amount, setAmount] = useDraftField(`${DRAFT_PREFIX}:amount`, "");
   const [step, setStep] = useState<"form" | "confirm" | "success">("form");
   const [error, setError] = useState<string | null>(null);
 
@@ -61,6 +66,10 @@ export default function RetraitsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["affilie-retraits"] });
       qc.invalidateQueries({ queryKey: ["affilie-stats"] });
+      // Withdrawal accepted — drop the saved method/amount so the next visit
+      // starts on a clean form (otherwise the page would resurrect the just-
+      // submitted values).
+      clearDrafts(DRAFT_PREFIX);
       setStep("success");
       setError(null);
     },

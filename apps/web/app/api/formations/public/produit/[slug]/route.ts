@@ -69,6 +69,7 @@ export async function GET(_req: Request, { params }: Params) {
         description: product.description,
         descriptionFormat: product.descriptionFormat,
         productType: product.productType,
+        thumbnail: product.thumbnail,
         banner: product.banner,
         price: product.price,
         originalPrice: product.originalPrice,
