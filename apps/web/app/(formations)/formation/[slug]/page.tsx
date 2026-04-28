@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import FormationPageClient from "./FormationPageClient";
+import TrackPageView from "@/components/tracking/TrackPageView";
 
 export async function generateMetadata({
   params,
@@ -50,7 +51,7 @@ export default async function FormationPage({
   const formation = await prisma.formation
     .findUnique({
       where: { slug },
-      select: { title: true, shortDesc: true, description: true, thumbnail: true, price: true },
+      select: { id: true, title: true, shortDesc: true, description: true, thumbnail: true, price: true },
     })
     .catch(() => null);
 
@@ -83,6 +84,14 @@ export default async function FormationPage({
               },
             }),
           }}
+        />
+      )}
+      {formation && (
+        <TrackPageView
+          type="formation_view"
+          entityType="formation"
+          entityId={formation.id}
+          metadata={{ title: formation.title, price: formation.price }}
         />
       )}
       <FormationPageClient slug={slug} />

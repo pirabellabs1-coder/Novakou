@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { sanitizeRichHtml, stripHtml } from "@/lib/sanitize-html";
+import TrackPageView from "@/components/tracking/TrackPageView";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MentorReview {
@@ -254,6 +255,12 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
 
   return (
     <div className="min-h-screen bg-[#f7f9fb]">
+      <TrackPageView
+        type="mentor_view"
+        entityType="mentor"
+        entityId={mentor.id}
+        metadata={{ name: mentor.name, specialty: mentor.specialty, sessionPrice: mentor.sessionPrice }}
+      />
       {/* Breadcrumb */}
       <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-[#5c647a]">

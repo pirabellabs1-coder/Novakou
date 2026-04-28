@@ -224,13 +224,20 @@ export async function GET() {
         monthlyRevenue,
         recentOrders,
         recentUsers,
-        traffic: {
-          activeSessions: trackingStore.getActiveSessions(),
-          todayPageViews: trackingStore.getStats({ period: "1d" }).totalPageViews,
-          todayUniques: trackingStore.getStats({ period: "1d" }).uniqueVisitors,
-          avgSessionDuration: trackingStore.getStats({ period: "7d" }).avgSessionDuration,
-          topPages: trackingStore.getStats({ period: "1d" }).topPages.slice(0, 5),
-        },
+        traffic: await (async () => {
+          const [activeSessions, today, week] = await Promise.all([
+            trackingStore.getActiveSessions(),
+            trackingStore.getStats({ period: "1d" }),
+            trackingStore.getStats({ period: "7d" }),
+          ]);
+          return {
+            activeSessions,
+            todayPageViews: today.totalPageViews,
+            todayUniques: today.uniqueVisitors,
+            avgSessionDuration: week.avgSessionDuration,
+            topPages: today.topPages.slice(0, 5),
+          };
+        })(),
       });
     }
 
@@ -509,13 +516,20 @@ export async function GET() {
       monthlyRevenue,
       recentOrders,
       recentUsers,
-      traffic: {
-        activeSessions: trackingStore.getActiveSessions(),
-        todayPageViews: trackingStore.getStats({ period: "1d" }).totalPageViews,
-        todayUniques: trackingStore.getStats({ period: "1d" }).uniqueVisitors,
-        avgSessionDuration: trackingStore.getStats({ period: "7d" }).avgSessionDuration,
-        topPages: trackingStore.getStats({ period: "1d" }).topPages.slice(0, 5),
-      },
+      traffic: await (async () => {
+        const [activeSessions, today, week] = await Promise.all([
+          trackingStore.getActiveSessions(),
+          trackingStore.getStats({ period: "1d" }),
+          trackingStore.getStats({ period: "7d" }),
+        ]);
+        return {
+          activeSessions,
+          todayPageViews: today.totalPageViews,
+          todayUniques: today.uniqueVisitors,
+          avgSessionDuration: week.avgSessionDuration,
+          topPages: today.topPages.slice(0, 5),
+        };
+      })(),
     });
   } catch (error) {
     console.error("[API /admin/dashboard GET]", error);

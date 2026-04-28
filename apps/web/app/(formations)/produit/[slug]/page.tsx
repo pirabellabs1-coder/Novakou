@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import ProduitPageClient from "./ProduitPageClient";
+import TrackPageView from "@/components/tracking/TrackPageView";
 
 export async function generateMetadata({
   params,
@@ -53,7 +54,7 @@ export default async function ProduitPage({
   const product = await prisma.digitalProduct
     .findFirst({
       where: { slug },
-      select: { title: true, description: true, banner: true, thumbnail: true, price: true },
+      select: { id: true, title: true, description: true, banner: true, thumbnail: true, price: true },
     })
     .catch(() => null);
 
@@ -84,6 +85,14 @@ export default async function ProduitPage({
               },
             }),
           }}
+        />
+      )}
+      {product && (
+        <TrackPageView
+          type="product_view"
+          entityType="product"
+          entityId={product.id}
+          metadata={{ title: product.title, price: product.price }}
         />
       )}
       <ProduitPageClient slug={slug} />

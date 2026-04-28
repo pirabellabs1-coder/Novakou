@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import BoutiqueView from "@/components/formations/BoutiqueView";
+import TrackPageView from "@/components/tracking/TrackPageView";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -68,7 +69,14 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
 
   const { shop, formations, products } = data;
   return (
-    <BoutiqueView
+    <>
+      <TrackPageView
+        type="shop_view"
+        entityType="shop"
+        entityId={shop.id}
+        metadata={{ name: shop.name, slug: shop.slug }}
+      />
+      <BoutiqueView
       instructeurId={shop.instructeur?.id}
       shopSlug={shop.slug}
       owner={{
@@ -94,5 +102,6 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         count: p.salesCount, reviewsCount: p.reviewsCount,
       }))}
     />
+    </>
   );
 }

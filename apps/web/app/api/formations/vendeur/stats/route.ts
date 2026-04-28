@@ -240,19 +240,27 @@ export async function GET(request: Request) {
 
     // ── Views by country (from tracking store) ──
     const productIds = [...profile.formations.map((f) => f.id), ...profile.digitalProducts.map((p) => p.id)];
-    const allEvents = trackingStore.getEvents({
-      startDate: cutoff ? cutoff.toISOString() : undefined,
-    });
-    const sessions = trackingStore.getSessions();
+    const [allEvents, sessions] = await Promise.all([
+      trackingStore.getEvents({
+        startDate: cutoff ? cutoff.toISOString() : undefined,
+      }),
+      trackingStore.getSessions(),
+    ]);
     const sessionCountryMap = new Map(sessions.map((s) => [s.id, s.country] as const));
 
-    // Views = all page_view/service_viewed/formation_viewed events whose entityId matches our products
-    // OR path contains the product id (fallback). For general views, include all events on /formations paths.
+    // Views = all page_view/service_viewed/formation_viewed/product_view events
+    // whose entityId matches our products OR path contains the product id.
+    // We accept many type names so the same backend serves both old client
+    // tracking (formation_viewed) and the new one (formation_view, product_view).
     const productViewEvents = allEvents.filter(
       (e) =>
-        (e.type === "service_viewed" || e.type === "formation_viewed" || e.type === "page_view") &&
+        (e.type === "service_viewed" ||
+          e.type === "formation_viewed" ||
+          e.type === "formation_view" ||
+          e.type === "product_view" ||
+          e.type === "page_view") &&
         ((e.entityId && productIds.includes(e.entityId)) ||
-          productIds.some((id) => e.path?.includes(id)))
+          productIds.some((id) => e.path?.includes(id))),
     );
 
     const viewsByCountryMap = new Map<string, number>();
