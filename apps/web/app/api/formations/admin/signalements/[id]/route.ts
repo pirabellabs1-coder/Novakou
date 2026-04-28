@@ -20,8 +20,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!session?.user && !IS_DEV) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-    if (session?.user?.role && session.user.role !== "ADMIN" && !IS_DEV) {
-      return NextResponse.json({ error: "Accès admin requis" }, { status: 403 });
+    // Hard admin check: previous version had `session?.user?.role && ...` so
+    // a session without a role string (which can happen with some OAuth
+    // providers before the JWT callback fills it in) would skip the role
+    // gate entirely. We now require BOTH a session AND an admin role
+    // (case-insensitive).
+    if (session?.user) {
+      const role = typeof session.user.role === "string" ? session.user.role.toLowerCase() : "";
+      if (role !== "admin" && !IS_DEV) {
+        return NextResponse.json({ error: "Accès admin requis" }, { status: 403 });
+      }
     }
 
     const { id } = await params;

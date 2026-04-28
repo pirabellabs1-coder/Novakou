@@ -8,6 +8,12 @@ export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    // Hard authorization gate — listing every platform user is admin-only.
+    // Without this check, any authenticated buyer could enumerate every
+    // registered email + role + KYC level on the platform.
+    if (session?.user && typeof session.user.role === "string" && session.user.role.toLowerCase() !== "admin") {
+      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
 
     const { searchParams } = new URL(request.url);
     const filter = searchParams.get("filter") ?? "all"; // all, instructeurs, apprenants
