@@ -17,7 +17,17 @@ function ConnexionInner() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const codeInputRef = useRef<HTMLInputElement | null>(null);
 
-  const callbackUrl = params.get("callbackUrl") || "/apprenant/mes-produits";
+  // Cette page est volontairement un raccourci qui amène TOUJOURS dans
+  // l'espace apprenant — peu importe le rôle marketplace de l'utilisateur,
+  // ses achats vivent dans /apprenant/*. On laisse passer un callbackUrl
+  // seulement s'il pointe déjà vers une sous-route /apprenant/* (ex. magic
+  // link email vers /apprenant/formation/[id]) ; sinon on retombe sur
+  // "Mes produits".
+  const rawCallback = params.get("callbackUrl");
+  const callbackUrl =
+    rawCallback && rawCallback.startsWith("/apprenant/")
+      ? rawCallback
+      : "/apprenant/mes-produits";
 
   useEffect(() => {
     const preEmail = params.get("email");

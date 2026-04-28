@@ -300,7 +300,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
         type: "ORDER",
         title: "Achat confirmé",
         message: `Votre achat est confirmé : ${summary}.`,
-        link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/produits",
+        link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits",
       },
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
   }
@@ -350,7 +350,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     const created = createdPurchases.find((q) => q.title === p.title);
     if (!created) continue;
     const downloadUrl =
-      p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
+      p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/mes-produits`;
     sendDigitalProductDeliveryEmail({
       email: user.email,
       name: fName,

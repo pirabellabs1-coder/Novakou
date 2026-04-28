@@ -79,7 +79,7 @@ function ReturnInner() {
             setMessage(`Achat confirmé : ${[...json.data.enrollments, ...json.data.purchases].length} produit(s)`);
             setRedirectTo(json.data.enrollments?.length > 0
               ? "/apprenant/mes-formations"
-              : "/apprenant/produits");
+              : "/apprenant/mes-produits");
           } else {
             setStatus("failed");
             setMessage(json.error ?? "Échec de la commande");
@@ -129,7 +129,7 @@ function ReturnInner() {
           } else {
             setMessage("Paiement confirmé !");
           }
-          setRedirectTo(enrollmentsCount > 0 ? "/apprenant/mes-formations" : "/apprenant/produits");
+          setRedirectTo(enrollmentsCount > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits");
 
           // Fetch pixels + set amount pour event Purchase
           try {

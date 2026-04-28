@@ -491,7 +491,7 @@ export async function POST(request: Request) {
           type: "ORDER",
           title: "Achat confirmé",
           message: `Votre achat est confirmé : ${summary}.`,
-          link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/produits",
+          link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits",
         },
       }).catch(() => null);
     }
@@ -546,7 +546,7 @@ export async function POST(request: Request) {
         if (!created) continue;
 
         const downloadUrl =
-          p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
+          p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/mes-produits`;
         await sendDigitalProductDeliveryEmail({
           email: user.email,
           name: fName,
