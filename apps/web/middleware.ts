@@ -185,8 +185,8 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const host = req.headers.get("host");
 
-  // Laisser passer les assets statiques et les routes API
-  if (isStaticAsset(pathname) || isApiRoute(pathname)) {
+  // Laisser passer les assets statiques
+  if (isStaticAsset(pathname)) {
     return NextResponse.next();
   }
 
@@ -216,8 +216,17 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── Maintenance mode check (cached ~60s in-memory) ──
-  // Skip maintenance check for: /maintenance itself, /admin/*, /admin-login/*, /api/*
-  const skipMaintenance = pathname === "/maintenance" || pathname.startsWith("/admin") || pathname.startsWith(ADMIN_LOGIN_PREFIX);
+  // Skip maintenance check for: /maintenance itself, /admin/*, /admin-login/*
+  // and a strict allowlist of API paths (status, auth, webhooks, crons, admin).
+  // All other /api/* paths are blocked with a 503 JSON response when maintenance
+  // is active and the caller is not an admin.
+  const apiSkipPaths = ["/api/public/maintenance", "/api/auth", "/api/webhooks", "/api/cron", "/api/admin"];
+  const skipMaintenanceForApi = apiSkipPaths.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  const skipMaintenance =
+    pathname === "/maintenance" ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith(ADMIN_LOGIN_PREFIX) ||
+    skipMaintenanceForApi;
   if (!skipMaintenance) {
     try {
       let maintenanceState = maintenanceModeCache;
@@ -241,6 +250,15 @@ export async function middleware(req: NextRequest) {
         const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
         const userRole = token?.role as string | undefined;
         if (userRole !== "admin") {
+          // For non-admin API calls: return a 503 JSON response so clients can
+          // surface the maintenance message gracefully instead of getting an
+          // HTML redirect they can't render.
+          if (pathname.startsWith("/api/")) {
+            return NextResponse.json(
+              { error: "Maintenance en cours", message: maintenanceState.message },
+              { status: 503 },
+            );
+          }
           const maintenanceUrl = new URL("/maintenance", req.url);
           return NextResponse.redirect(maintenanceUrl);
         }
@@ -248,6 +266,12 @@ export async function middleware(req: NextRequest) {
     } catch {
       // If maintenance check fails, allow access (fail open)
     }
+  }
+
+  // Past maintenance gate — let API routes through (auth/role checks happen in
+  // each route handler, not in middleware).
+  if (isApiRoute(pathname)) {
+    return NextResponse.next();
   }
 
   // --- i18n : set locale cookie from Accept-Language if absent ---

@@ -182,6 +182,7 @@ model User {
 
   // 2FA
   twoFactorEnabled Boolean @default(false)
+  // TODO(security): encrypt at rest with libsodium or @prisma/client-extension-encrypt — see apps/web/SECURITY.md
   twoFactorSecret  String?
 
   // Formations
