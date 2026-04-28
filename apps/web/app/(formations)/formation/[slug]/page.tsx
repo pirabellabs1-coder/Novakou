@@ -8,9 +8,12 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  // The schema field is `shortDesc`, not `shortDescription`. The previous
+  // version selected the non-existent name and the .catch(() => null)
+  // silently swallowed every metadata fetch — pages had no Open Graph.
   const formation = await prisma.formation.findUnique({
     where: { slug },
-    select: { title: true, shortDescription: true, thumbnail: true, price: true },
+    select: { title: true, shortDesc: true, description: true, thumbnail: true, price: true },
   }).catch(() => null);
 
   if (!formation) {
@@ -18,7 +21,8 @@ export async function generateMetadata({
   }
 
   const title = formation.title;
-  const description = formation.shortDescription || `Découvrez la formation "${title}" sur Novakou.`;
+  const longSource = (formation.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const description = formation.shortDesc?.trim() || longSource.slice(0, 160) || `Découvrez la formation "${title}" sur Novakou.`;
   const image = formation.thumbnail || undefined;
 
   return {
@@ -46,9 +50,13 @@ export default async function FormationPage({
   const formation = await prisma.formation
     .findUnique({
       where: { slug },
-      select: { title: true, shortDescription: true, thumbnail: true, price: true },
+      select: { title: true, shortDesc: true, description: true, thumbnail: true, price: true },
     })
     .catch(() => null);
+
+  const ldDescription =
+    formation?.shortDesc?.trim() ||
+    (formation?.description ?? "").replace(/<[^>]+>/g, " ").trim().slice(0, 300);
 
   return (
     <>
@@ -60,7 +68,7 @@ export default async function FormationPage({
               "@context": "https://schema.org",
               "@type": "Course",
               name: formation.title,
-              description: formation.shortDescription || "",
+              description: ldDescription,
               provider: {
                 "@type": "Organization",
                 name: "Novakou",

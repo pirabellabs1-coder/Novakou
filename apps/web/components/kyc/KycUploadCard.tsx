@@ -21,8 +21,8 @@ interface KycUploadCardProps {
 const LEVELS = [
   {
     level: 1,
-    title: "Email verifie",
-    description: "Votre email a ete verifie lors de l'inscription.",
+    title: "Email vérifié",
+    description: "Votre email a été vérifié lors de l'inscription.",
     icon: "email",
     color: "text-blue-400",
     bg: "bg-blue-500/10",
@@ -30,8 +30,8 @@ const LEVELS = [
   },
   {
     level: 3,
-    title: "Piece d'identite",
-    description: "Soumettez une piece d'identite (CNI ou passeport) pour retirer des fonds et publier des services.",
+    title: "Piece d'identité",
+    description: "Soumettez une piece d'identité (CNI ou passeport) pour retirer des fonds et publier des services.",
     icon: "badge",
     color: "text-amber-400",
     bg: "bg-amber-500/10",
@@ -39,7 +39,7 @@ const LEVELS = [
   },
   {
     level: 4,
-    title: "Verification professionnelle",
+    title: "Vérification professionnelle",
     description: "Soumettez un document professionnel (diplome, certificat, SIRET) pour obtenir le badge Elite.",
     icon: "workspace_premium",
     color: "text-purple-400",
@@ -50,7 +50,7 @@ const LEVELS = [
 
 const DOC_TYPES_BY_LEVEL: Record<number, { value: string; label: string }[]> = {
   3: [
-    { value: "cni", label: "Carte nationale d'identite" },
+    { value: "cni", label: "Carte nationale d'identité" },
     { value: "passeport", label: "Passeport" },
     { value: "permis", label: "Permis de conduire" },
   ],
@@ -140,7 +140,7 @@ export function KycUploadCard({ currentLevel, requests, onRefresh }: KycUploadCa
         return;
       }
 
-      setSuccess("Demande soumise avec succes !");
+      setSuccess("Demande soumise avec succès !");
       setExpandedLevel(null);
       setSelectedDocType("");
       setFileName("");
@@ -173,10 +173,10 @@ export function KycUploadCard({ currentLevel, requests, onRefresh }: KycUploadCa
         </div>
         <p className="text-xs text-slate-400 mt-2">
           {currentLevel >= 4
-            ? "Verification complete — vous avez le badge Elite !"
+            ? "Vérification complète — vous avez le badge Elite !"
             : nextLevel
-              ? "Completez la prochaine etape pour debloquer plus de fonctionnalites."
-              : "Verification en cours."}
+              ? "Complétez la prochaine étape pour débloquer plus de fonctionnalités."
+              : "Vérification en cours."}
         </p>
       </div>
 

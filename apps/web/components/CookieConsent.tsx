@@ -65,7 +65,7 @@ export function CookieConsent() {
                 Nous respectons votre vie privee
               </h3>
               <p className="text-slate-400 text-sm mt-1 leading-relaxed">
-                Novakou utilise des cookies pour ameliorer votre experience, analyser le trafic et personnaliser le contenu.
+                Novakou utilise des cookies pour améliorer votre expérience, analyser le trafic et personnaliser le contenu.
               </p>
             </div>
           </div>
@@ -78,21 +78,21 @@ export function CookieConsent() {
                 <div>
                   <span className="text-white font-semibold">Essentiels</span>
                   <span className="text-slate-500 ml-1">(toujours actifs)</span>
-                  <p className="text-slate-400 mt-0.5">Authentification, securite, preferences de langue et de devise. Necessaires au fonctionnement de la plateforme.</p>
+                  <p className="text-slate-400 mt-0.5">Authentification, sécurité, préférences de langue et de devise. Nécessaires au fonctionnement de la plateforme.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0" />
                 <div>
                   <span className="text-white font-semibold">Analytiques</span>
-                  <p className="text-slate-400 mt-0.5">Google Analytics, PostHog. Nous aident a comprendre comment vous utilisez la plateforme pour l&apos;ameliorer.</p>
+                  <p className="text-slate-400 mt-0.5">Google Analytics, PostHog. Nous aident a comprendre comment vous utilisez la plateforme pour l&apos;améliorer.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-primary mt-1.5 flex-shrink-0" />
                 <div>
                   <span className="text-white font-semibold">Marketing</span>
-                  <p className="text-slate-400 mt-0.5">Permettent d&apos;afficher des recommandations personnalisees et de mesurer l&apos;efficacite de nos campagnes.</p>
+                  <p className="text-slate-400 mt-0.5">Permettent d&apos;afficher des recommandations personnalisées et de mesurer l&apos;efficacité de nos campagnes.</p>
                 </div>
               </div>
             </div>
@@ -127,8 +127,8 @@ export function CookieConsent() {
               Politique de cookies
             </Link>{" "}
             et notre{" "}
-            <Link href="/confidentialite" className="text-primary hover:underline">
-              Politique de confidentialite
+            <Link href="/confidentialité" className="text-primary hover:underline">
+              Politique de confidentialité
             </Link>
             .
           </p>

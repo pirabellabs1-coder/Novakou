@@ -39,7 +39,7 @@ export function KycRequiredBanner() {
   // Ne pas afficher pour les roles exempts
   if (!roleRequiresKyc(role)) return null;
 
-  // Deja verifie (niveau 3+)
+  // Déjà vérifié (niveau 3+)
   if (kycLevel >= 3) return null;
 
   const statusInfo = getKycStatusLabel(kycLevel);
@@ -59,10 +59,10 @@ export function KycRequiredBanner() {
       </span>
       <div className="flex-1">
         <p className="text-sm font-semibold text-amber-300">
-          Verification d&apos;identite requise
+          Vérification d&apos;identité requise
         </p>
         <p className="text-xs text-amber-400/80 mt-1">
-          Completez votre verification d&apos;identite pour pouvoir publier des services, creer des formations et recevoir des paiements.
+          Complétez votre verification d&apos;identité pour pouvoir publier des services, creer des formations et recevoir des paiements.
         </p>
         <div className="flex items-center gap-3 mt-3">
           <Link
@@ -70,7 +70,7 @@ export function KycRequiredBanner() {
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 text-black text-xs font-bold rounded-lg hover:bg-amber-400 transition-colors"
           >
             <span className="material-symbols-outlined text-sm">verified_user</span>
-            Verifier mon identite
+            Verifier mon identité
           </Link>
           <span className="text-xs text-amber-500/60">
             Statut actuel : {statusInfo.label}

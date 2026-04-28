@@ -52,7 +52,7 @@ const COUNTRIES = [
 ];
 
 const DOC_TYPES = [
-  { value: "CNI", label: "Carte nationale d'identite" },
+  { value: "CNI", label: "Carte nationale d'identité" },
   { value: "PASSEPORT", label: "Passeport" },
   { value: "PERMIS", label: "Permis de conduire" },
 ];
@@ -181,7 +181,7 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
           <div>
             <h3 className="font-bold text-white">Informations personnelles</h3>
             <p className="text-xs text-slate-400">
-              Renseignez vos informations telles qu&apos;elles apparaissent sur votre document d&apos;identite.
+              Renseignez vos informations telles qu&apos;elles apparaissent sur votre document d&apos;identité.
             </p>
           </div>
         </div>
@@ -302,7 +302,7 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
         </div>
       </div>
 
-      {/* Section 2: Document d'identite */}
+      {/* Section 2: Document d'identité */}
       <div className="bg-neutral-dark rounded-2xl border border-border-dark p-5 sm:p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
@@ -311,9 +311,9 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
             </span>
           </div>
           <div>
-            <h3 className="font-bold text-white">Document d&apos;identite</h3>
+            <h3 className="font-bold text-white">Document d&apos;identité</h3>
             <p className="text-xs text-slate-400">
-              Choisissez le type de document et telechargez les photos recto et verso.
+              Choisissez le type de document et téléchargéz les photos recto et verso.
             </p>
           </div>
         </div>
@@ -376,7 +376,7 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
           <div>
             <h3 className="font-bold text-white">Selfie de verification (camera uniquement)</h3>
             <p className="text-xs text-slate-400">
-              Votre camera frontale s&apos;ouvrira automatiquement. Prenez un selfie en tenant votre document d&apos;identite a cote de votre visage.
+              Votre camera frontale s&apos;ouvrira automatiquement. Prenez un selfie en tenant votre document d&apos;identité a cote de votre visage.
             </p>
           </div>
         </div>
@@ -393,7 +393,7 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
             </li>
             <li className="flex items-center gap-2">
               <span className="material-symbols-outlined text-xs text-emerald-400">check</span>
-              Tenez votre document d&apos;identite ouvert a cote de votre visage
+              Tenez votre document d&apos;identité ouvert a cote de votre visage
             </li>
             <li className="flex items-center gap-2">
               <span className="material-symbols-outlined text-xs text-emerald-400">check</span>

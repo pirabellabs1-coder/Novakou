@@ -13,17 +13,17 @@ interface FormationPurchaseEmailProps {
 
 const t = {
   fr: {
-    subject: (title: string) => `Votre inscription a "${title}" est confirmee !`,
+    subject: (title: string) => `Votre inscription a "${title}" est confirmée !`,
     greeting: (name: string) => `Bonjour ${name},`,
     body: (title: string, instructor: string) =>
-      `Votre achat de la formation <strong>${title}</strong> par <strong>${instructor}</strong> a ete confirme avec succes.`,
+      `Votre achat de la formation <strong>${title}</strong> par <strong>${instructor}</strong> a été confirmé avec succès.`,
     priceLabel: "Montant paye",
     accessLabel: "Acces",
     accessValue: "A vie",
     cta: "Commencer a apprendre",
     footer:
       "Satisfait ou rembourse 30 jours. Contactez le support si vous avez des questions.",
-    team: "L'equipe Novakou",
+    team: "L'équipe Novakou",
   },
   en: {
     subject: (title: string) => `Your enrollment in "${title}" is confirmed!`,
@@ -325,7 +325,7 @@ export function FormationPurchaseEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Pirabel Labs
+            &copy; 2026 Novakou — {locale === "fr" ? "Fondée par" : "Founded by"} Pirabel Labs
           </p>
         </div>
       </div>

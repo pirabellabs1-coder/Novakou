@@ -56,7 +56,7 @@ export default function AdminMarketplaceLoginPage() {
       setVerifying2FA(false);
       return;
     }
-    router.push("/admin");
+    router.push("/admin/dashboard");
     router.refresh();
   }
 

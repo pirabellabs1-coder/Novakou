@@ -77,14 +77,14 @@ export async function GET() {
           const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
           const commissionAgg = await prisma.order.aggregate({
             where: { agencyId: agencyProfile.id, status: "TERMINE", completedAt: { gte: monthStart } },
-            _sum: { platformFee: true },
+            _sum: { commission: true },
           });
 
           return NextResponse.json({
             available: Math.round((wallet?.balance ?? 0) * 100) / 100,
             pending: Math.round((wallet?.pending ?? 0) * 100) / 100,
             totalEarned: Math.round((wallet?.totalEarned ?? 0) * 100) / 100,
-            commissionThisMonth: Math.round(Math.abs(commissionAgg._sum.platformFee ?? 0) * 100) / 100,
+            commissionThisMonth: Math.round(Math.abs(commissionAgg._sum.commission ?? 0) * 100) / 100,
           });
         }
       }
@@ -120,14 +120,14 @@ export async function GET() {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const commissionAgg = await prisma.order.aggregate({
         where: { freelanceId: userId, status: "TERMINE", completedAt: { gte: monthStart } },
-        _sum: { platformFee: true },
+        _sum: { commission: true },
       });
 
       return NextResponse.json({
         available,
         pending,
         totalEarned,
-        commissionThisMonth: Math.round(Math.abs(commissionAgg._sum.platformFee ?? 0) * 100) / 100,
+        commissionThisMonth: Math.round(Math.abs(commissionAgg._sum.commission ?? 0) * 100) / 100,
       });
     }
   } catch (error) {
