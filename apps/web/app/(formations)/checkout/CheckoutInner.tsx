@@ -66,7 +66,8 @@ export default function CheckoutInner() {
   const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountMessage, setDiscountMessage] = useState<string | null>(null);
-  const [termsAccepted, setTermsAccepted] = useState(true);
+  // Both default to FALSE — opt-in required (no auto-consent fraud)
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [withdrawalWaived, setWithdrawalWaived] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
