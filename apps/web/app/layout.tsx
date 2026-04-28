@@ -118,6 +118,63 @@ export default async function RootLayout({
             } catch(e){}
           })();
         `}} />
+        {/* JSON-LD structured data must live inside <head> — placing it as
+            a direct child of <html> (after </body>) triggers a React 19
+            hydration error and a fatal dev overlay. Moved here from the
+            bottom of the file. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              name: "Novakou",
+              legalName: "Novakou SAS",
+              url: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com",
+              logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/icon`,
+              description:
+                "La plateforme des créateurs digitaux en Afrique francophone. Vendez vos formations, e-books, templates et séances de coaching.",
+              founder: { "@type": "Person", name: "Pirabel Labs" },
+              foundingDate: "2026",
+              areaServed: [
+                { "@type": "Country", name: "Sénégal" },
+                { "@type": "Country", name: "Côte d'Ivoire" },
+                { "@type": "Country", name: "Cameroun" },
+                { "@type": "Country", name: "Bénin" },
+                { "@type": "Country", name: "Mali" },
+                { "@type": "Country", name: "Burkina Faso" },
+                { "@type": "Country", name: "France" },
+              ],
+              sameAs: [
+                "https://twitter.com/Novakou",
+                "https://www.linkedin.com/company/novakou",
+                "https://www.facebook.com/novakou",
+              ],
+              contactPoint: {
+                "@type": "ContactPoint",
+                email: "support@novakou.com",
+                contactType: "customer support",
+                availableLanguage: ["French", "English"],
+              },
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "Novakou",
+              url: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer?q={search_term_string}`,
+                "query-input": "required name=search_term_string",
+              },
+            }),
+          }}
+        />
       </head>
       <body suppressHydrationWarning className="bg-white dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
         <FontLoader />
@@ -132,65 +189,8 @@ export default async function RootLayout({
             </TrackingProvider>
           </Providers>
         </NextIntlClientProvider>
+        {gaId && <GoogleAnalytics measurementId={gaId} />}
       </body>
-      {gaId && <GoogleAnalytics measurementId={gaId} />}
-
-      {/* JSON-LD Organization structured data — helps Google + Bing + search snippets */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Organization",
-            name: "Novakou",
-            legalName: "Novakou SAS",
-            url: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com",
-            logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/icon`,
-            description:
-              "La plateforme des créateurs digitaux en Afrique francophone. Vendez vos formations, e-books, templates et séances de coaching.",
-            founder: { "@type": "Person", name: "Pirabel Labs" },
-            foundingDate: "2026",
-            areaServed: [
-              { "@type": "Country", name: "Sénégal" },
-              { "@type": "Country", name: "Côte d'Ivoire" },
-              { "@type": "Country", name: "Cameroun" },
-              { "@type": "Country", name: "Bénin" },
-              { "@type": "Country", name: "Mali" },
-              { "@type": "Country", name: "Burkina Faso" },
-              { "@type": "Country", name: "France" },
-            ],
-            sameAs: [
-              "https://twitter.com/Novakou",
-              "https://www.linkedin.com/company/novakou",
-              "https://www.facebook.com/novakou",
-            ],
-            contactPoint: {
-              "@type": "ContactPoint",
-              email: "support@novakou.com",
-              contactType: "customer support",
-              availableLanguage: ["French", "English"],
-            },
-          }),
-        }}
-      />
-
-      {/* JSON-LD WebSite with SearchAction → enables Google "sitelinks searchbox" */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            name: "Novakou",
-            url: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com",
-            potentialAction: {
-              "@type": "SearchAction",
-              target: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer?q={search_term_string}`,
-              "query-input": "required name=search_term_string",
-            },
-          }),
-        }}
-      />
     </html>
   );
 }
