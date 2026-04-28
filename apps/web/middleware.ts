@@ -79,12 +79,49 @@ const ROLE_DASHBOARD: Record<string, string> = {
   agence: "/vendeur/dashboard",
 };
 
-function getDashboardForRole(role: string | undefined): string {
-  // Last-resort fallback is the apprenant space (always reachable to any
-  // authenticated user), never "/connexion" — that was the root cause of
+function getDashboardForRole(
+  role: string | undefined,
+  formationsRole?: string | undefined,
+  options?: { excludeApprenant?: boolean },
+): string {
+  // Admin always wins.
+  if (role && role.toLowerCase() === "admin") return "/admin/dashboard";
+
+  // formationsRole has priority over the marketplace `role` enum. A vendor
+  // signing up via Google on /connexion ends up with role="client" (default)
+  // but formationsRole="instructeur" — we MUST route them to /vendeur, not
+  // /apprenant. This was the root cause of "I logged into /connexion via
+  // Google and ended up in /apprenant".
+  if (formationsRole) {
+    const fr = formationsRole.toLowerCase();
+    if (fr === "instructeur") return "/vendeur/dashboard";
+    if (fr === "mentor") return "/mentor/dashboard";
+    if (fr === "affilie" || fr === "affiliate") return "/affilie/dashboard";
+    if (fr === "apprenant") {
+      // Seller-portal entry point (/connexion). The buyer space is reachable
+      // ONLY through /acheteur/connexion — never bounce here from /connexion.
+      if (options?.excludeApprenant) return "/acheteur/connexion?wrongPortal=1";
+      return "/apprenant/dashboard";
+    }
+  }
+  // Marketplace role fallback (legacy accounts pre-formationsRole).
+  if (role) {
+    const r = role.toLowerCase();
+    if (r === "freelance" || r === "agence" || r === "vendeur" || r === "instructeur") {
+      return "/vendeur/dashboard";
+    }
+    if (r === "mentor") return "/mentor/dashboard";
+    if (r === "affilie" || r === "affiliate") return "/affilie/dashboard";
+    if (r === "client") {
+      if (options?.excludeApprenant) return "/acheteur/connexion?wrongPortal=1";
+      return "/apprenant/dashboard";
+    }
+  }
+  // No identifying signal. Last-resort fallback is the apprenant space
+  // (always reachable), never "/connexion" — that was the root cause of
   // the redirect loop.
-  if (!role) return "/apprenant/dashboard";
-  return ROLE_DASHBOARD[role.toLowerCase()] ?? "/apprenant/dashboard";
+  if (options?.excludeApprenant) return "/acheteur/connexion?wrongPortal=1";
+  return "/apprenant/dashboard";
 }
 
 function isPublicRoute(pathname: string): boolean {
@@ -245,8 +282,14 @@ export async function middleware(req: NextRequest) {
       const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
       if (token) {
         const role = token.role as string | undefined;
-        const redirectUrl = getDashboardForRole(role);
-        return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
+        const formationsRole = (token as { formationsRole?: string } | null)?.formationsRole;
+        const loginIntent = req.cookies.get("nk_login_intent")?.value;
+        const excludeApprenant = loginIntent === "seller";
+        const redirectUrl = getDashboardForRole(role, formationsRole, { excludeApprenant });
+        const res = NextResponse.redirect(new URL(redirectUrl, req.url));
+        // One-shot cookie — clear after use.
+        if (loginIntent) res.cookies.set("nk_login_intent", "", { path: "/", maxAge: 0 });
+        return withLocaleCookie(res);
       }
     }
     return withLocaleCookie(NextResponse.next());
@@ -256,6 +299,7 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isAuthenticated = !!token;
   const userRole = token?.role as string | undefined;
+  const userFormationsRole = (token as { formationsRole?: string } | null)?.formationsRole;
   const tfaPending = !!(token as { tfaPending?: boolean } | null)?.tfaPending;
 
   // ── Impersonation expiry check ──
@@ -279,8 +323,17 @@ export async function middleware(req: NextRequest) {
       return withLocaleCookie(NextResponse.next());
     }
     if (isAuthenticated && userRole) {
-      const redirectUrl = getDashboardForRole(userRole);
-      return withLocaleCookie(NextResponse.redirect(new URL(redirectUrl, req.url)));
+      // /acheteur/connexion?wrongPortal=1 must remain reachable for the
+      // "wrong portal" hint flow — don't auto-redirect away.
+      if (pathname === "/acheteur/connexion" && req.nextUrl.searchParams.get("wrongPortal") === "1") {
+        return withLocaleCookie(NextResponse.next());
+      }
+      const loginIntent = req.cookies.get("nk_login_intent")?.value;
+      const excludeApprenant = loginIntent === "seller";
+      const redirectUrl = getDashboardForRole(userRole, userFormationsRole, { excludeApprenant });
+      const res = NextResponse.redirect(new URL(redirectUrl, req.url));
+      if (loginIntent) res.cookies.set("nk_login_intent", "", { path: "/", maxAge: 0 });
+      return withLocaleCookie(res);
     }
     return withLocaleCookie(NextResponse.next());
   }
@@ -318,7 +371,7 @@ export async function middleware(req: NextRequest) {
     // Verifier que le role correspond — rediriger vers l'espace du rôle
     // avec parametre ?access_denied=1 pour afficher une notification
     if (userRole !== requiredRole) {
-      const redirectUrl = getDashboardForRole(userRole);
+      const redirectUrl = getDashboardForRole(userRole, userFormationsRole);
       const url = new URL(redirectUrl, req.url);
       url.searchParams.set("access_denied", "1");
       return withLocaleCookie(NextResponse.redirect(url));

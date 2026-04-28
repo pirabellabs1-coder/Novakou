@@ -86,10 +86,25 @@ function ConnexionInner() {
         return;
       }
 
+      // Seller portal: NEVER drop a user into /apprenant — even if their
+      // formationsRole is missing or set to "apprenant". The buyer space is
+      // reachable ONLY through /acheteur/connexion. excludeApprenant=true
+      // routes pure buyers to /acheteur/connexion?wrongPortal=1.
       let target = callbackUrlParam ?? getDashboardForFormationsRole(
         user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
-        user?.role
+        user?.role,
+        { excludeApprenant: true }
       );
+
+      // Hard guarantee : la connexion vendeur (/connexion) ne doit JAMAIS
+      // déposer l'utilisateur dans /apprenant. Si pour une raison quelconque
+      // (callbackUrlParam, nouveau compte sans rôle, etc.) la cible calculée
+      // pointe vers l'espace acheteur, on bascule sur /acheteur/connexion
+      // avec un indice "wrongPortal" — l'utilisateur sera invité à se
+      // reconnecter depuis la page acheteur.
+      if (target.startsWith("/apprenant")) {
+        target = "/acheteur/connexion?wrongPortal=1";
+      }
 
       // Vendeur multi-shop : si 2+ boutiques sans cookie actif, forcer le chooser
       if (target.startsWith("/vendeur") && !callbackUrlParam) {
@@ -118,6 +133,11 @@ function ConnexionInner() {
     setError(null);
     // Set pending formationsRole cookie before OAuth redirect
     document.cookie = "pendingFormationsRole=; path=/; max-age=0";
+    // Tell middleware: this OAuth flow originated from the SELLER portal.
+    // Middleware's "/" handler reads this cookie and refuses to drop the
+    // user into /apprenant/* (the buyer space is reachable only through
+    // /acheteur/connexion). 5-minute TTL is plenty for the OAuth round-trip.
+    document.cookie = "nk_login_intent=seller; path=/; max-age=300; samesite=lax";
     // Don't hardcode /apprenant/dashboard here — that landed every Google-
     // signed-in vendor / mentor / affilié in the buyer space. Sending them
     // to "/" instead lets the middleware's home-page handler route them to
