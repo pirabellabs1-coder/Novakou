@@ -6,16 +6,33 @@ import { IS_DEV } from "@/lib/env";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 
+type Period = "7d" | "30d" | "90d" | "all";
+
 /**
  * GET /api/mentor/dashboard
  * Returns mentor profile + bookings stats + upcoming sessions.
+ *
+ * Query: ?period=7d|30d|90d|all (default: all — preserves legacy behaviour)
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const periodParam = (searchParams.get("period") as Period | null) ?? "all";
+    const period: Period = (["7d", "30d", "90d", "all"] as const).includes(periodParam as Period)
+      ? (periodParam as Period)
+      : "all";
+    let cutoff: Date | null = null;
+    switch (period) {
+      case "7d":  cutoff = new Date(Date.now() - 7  * 86400000); break;
+      case "30d": cutoff = new Date(Date.now() - 30 * 86400000); break;
+      case "90d": cutoff = new Date(Date.now() - 90 * 86400000); break;
+      case "all": cutoff = null; break;
+    }
 
     // Verify user exists before trying to create a mentor profile
     const existingUser = await prisma.user.findUnique({
@@ -94,7 +111,10 @@ export async function GET() {
     // En attente      = sessions HELD (payees mais pas encore liberees)
     // En dispute      = sessions DISPUTED (bloquees par admin)
     const allBookings = await prisma.mentorBooking.findMany({
-      where: { mentorId: profile.id },
+      where: {
+        mentorId: profile.id,
+        ...(cutoff ? { createdAt: { gte: cutoff } } : {}),
+      },
       select: { status: true, paidAmount: true, escrowStatus: true },
     });
     const RATE = VENDOR_NET_RATE;

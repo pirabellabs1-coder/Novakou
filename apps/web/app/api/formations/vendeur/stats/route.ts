@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { trackingStore } from "@/lib/tracking/tracking-store";
+import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
-const PLATFORM_FEE = 0.20;
+// Single source of truth (10% — see lib/formations/constants.ts)
+const PLATFORM_FEE = PLATFORM_COMMISSION_RATE;
 
 type Period = "7d" | "30d" | "90d" | "3m" | "6m" | "12m" | "all";
 
