@@ -3,6 +3,7 @@
  */
 
 import { sendEmail, getAppUrl } from "@/lib/email";
+import { escapeHtml } from "@/lib/email/escape";
 import {
   emailLayoutDark, headingDark, textDark, buttonDark, mutedDark,
   amountDark, tableDark, tableRowDark, errorBoxDark, successBoxDark,
@@ -14,12 +15,12 @@ export async function sendPaymentSuccessEmail(
   data: { amount: number; serviceTitle: string }
 ) {
   const html = emailLayoutDark(`
-    ${headingDark("Paiement recu !")}
-    ${textDark(`Bonjour ${name}, un paiement a ete credite sur votre portefeuille Novakou.`)}
-    ${amountDark(`${data.amount.toFixed(2)} EUR`, data.serviceTitle)}
+    ${headingDark("Paiement reçu !")}
+    ${textDark(`Bonjour ${escapeHtml(name)}, un paiement a été crédité sur votre portefeuille Novakou.`)}
+    ${amountDark(`${data.amount.toFixed(2)} EUR`, escapeHtml(data.serviceTitle))}
     ${buttonDark("Voir mes finances", `${getAppUrl()}/dashboard/finances`, "green")}
   `);
-  return sendEmail({ to: email, subject: `Paiement de ${data.amount.toFixed(2)} EUR recu`, html });
+  return sendEmail({ to: email, subject: `Paiement de ${data.amount.toFixed(2)} EUR reçu`, html });
 }
 
 // ── payment.failed → email client ──
@@ -28,13 +29,13 @@ export async function sendPaymentFailedEmail(
   data: { amount: number; serviceTitle: string; reason?: string }
 ) {
   const html = emailLayoutDark(`
-    ${headingDark("Echec du paiement")}
-    ${textDark(`Bonjour ${name}, votre paiement de <strong style="color:#F1F5F9;">${data.amount.toFixed(2)} EUR</strong> pour "${data.serviceTitle}" n'a pas abouti.`)}
-    ${data.reason ? errorBoxDark("Motif", data.reason) : ""}
-    ${textDark("Veuillez verifier votre methode de paiement et reessayer.")}
-    ${buttonDark("Reessayer", `${getAppUrl()}/client/commandes`, "red")}
+    ${headingDark("Échec du paiement")}
+    ${textDark(`Bonjour ${escapeHtml(name)}, votre paiement de <strong style="color:#F1F5F9;">${data.amount.toFixed(2)} EUR</strong> pour "${escapeHtml(data.serviceTitle)}" n'a pas abouti.`)}
+    ${data.reason ? errorBoxDark("Motif", escapeHtml(data.reason)) : ""}
+    ${textDark("Veuillez vérifier votre méthode de paiement et réessayer.")}
+    ${buttonDark("Réessayer", `${getAppUrl()}/client/commandes`, "red")}
   `);
-  return sendEmail({ to: email, subject: `Echec du paiement — ${data.serviceTitle}`, html });
+  return sendEmail({ to: email, subject: `Échec du paiement — ${data.serviceTitle}`, html });
 }
 
 // ── withdrawal.requested → email freelance ──
@@ -43,13 +44,13 @@ export async function sendWithdrawalRequestedEmail(
   data: { amount: number; method: string }
 ) {
   const html = emailLayoutDark(`
-    ${headingDark("Demande de retrait enregistree")}
-    ${textDark(`Bonjour ${name}, votre demande de retrait a ete prise en compte.`)}
+    ${headingDark("Demande de retrait enregistrée")}
+    ${textDark(`Bonjour ${escapeHtml(name)}, votre demande de retrait a été prise en compte.`)}
     ${tableDark(
       tableRowDark("Montant", `${data.amount.toFixed(2)} EUR`, true) +
-      tableRowDark("Methode", data.method)
+      tableRowDark("Méthode", escapeHtml(data.method))
     )}
-    ${mutedDark("Le traitement prend generalement 1 a 3 jours ouvrables.")}
+    ${mutedDark("Le traitement prend généralement 1 à 3 jours ouvrables.")}
     ${buttonDark("Suivre mon retrait", `${getAppUrl()}/dashboard/finances`)}
   `);
   return sendEmail({ to: email, subject: `Demande de retrait — ${data.amount.toFixed(2)} EUR`, html });
@@ -61,13 +62,13 @@ export async function sendWithdrawalApprovedEmail(
   data: { amount: number; method: string }
 ) {
   const html = emailLayoutDark(`
-    ${headingDark("Retrait approuve !")}
-    ${textDark(`Bonjour ${name}, votre retrait a ete approuve et est en cours de traitement.`)}
-    ${successBoxDark(`${data.amount.toFixed(2)} EUR approuve`)}
-    ${tableDark(tableRowDark("Methode", data.method))}
-    ${mutedDark("Les fonds seront disponibles sous 1 a 3 jours ouvrables selon votre methode de retrait.")}
+    ${headingDark("Retrait approuvé !")}
+    ${textDark(`Bonjour ${escapeHtml(name)}, votre retrait a été approuvé et est en cours de traitement.`)}
+    ${successBoxDark(`${data.amount.toFixed(2)} EUR approuvé`)}
+    ${tableDark(tableRowDark("Méthode", escapeHtml(data.method)))}
+    ${mutedDark("Les fonds seront disponibles sous 1 à 3 jours ouvrables selon votre méthode de retrait.")}
   `);
-  return sendEmail({ to: email, subject: `Retrait approuve — ${data.amount.toFixed(2)} EUR`, html });
+  return sendEmail({ to: email, subject: `Retrait approuvé — ${data.amount.toFixed(2)} EUR`, html });
 }
 
 // ── withdrawal.rejected → email freelance ──
@@ -76,11 +77,11 @@ export async function sendWithdrawalRejectedEmail(
   data: { amount: number; reason?: string }
 ) {
   const html = emailLayoutDark(`
-    ${headingDark("Retrait refuse")}
-    ${textDark(`Bonjour ${name}, votre demande de retrait de <strong style="color:#F1F5F9;">${data.amount.toFixed(2)} EUR</strong> n'a pas pu etre traitee.`)}
-    ${data.reason ? errorBoxDark("Motif du refus", data.reason) : ""}
+    ${headingDark("Retrait refusé")}
+    ${textDark(`Bonjour ${escapeHtml(name)}, votre demande de retrait de <strong style="color:#F1F5F9;">${data.amount.toFixed(2)} EUR</strong> n'a pas pu être traitée.`)}
+    ${data.reason ? errorBoxDark("Motif du refus", escapeHtml(data.reason)) : ""}
     ${textDark("Les fonds restent disponibles sur votre portefeuille.")}
     ${buttonDark("Contacter le support", `${getAppUrl()}/contact`, "red")}
   `);
-  return sendEmail({ to: email, subject: "Retrait refuse — Novakou", html });
+  return sendEmail({ to: email, subject: "Retrait refusé — Novakou", html });
 }

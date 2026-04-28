@@ -3,6 +3,7 @@
  */
 
 import { sendEmail, getAppUrl, type FormationsRole } from "@/lib/email";
+import { escapeHtml } from "@/lib/email/escape";
 import {
   emailLayoutDark, headingDark, textDark, buttonDark, mutedDark,
   errorBoxDark,
@@ -73,7 +74,7 @@ function welcomeContentDarkFor(role: FormationsRole | undefined) {
 export async function sendWelcomeDarkEmail(email: string, name: string, role?: FormationsRole) {
   const c = welcomeContentDarkFor(role);
   const html = emailLayoutDark(`
-    ${headingDark(`Bienvenue sur Novakou, ${name} !`)}
+    ${headingDark(`Bienvenue sur Novakou, ${escapeHtml(name)} !`)}
     ${textDark(c.intro)}
     ${textDark("<strong style='color:#F1F5F9;'>Prochaines étapes :</strong>")}
     <ol style="color:#CBD5E1;line-height:1.8;margin:0 0 24px;padding-left:20px;">
@@ -96,9 +97,9 @@ export async function sendVerificationDarkEmail(email: string, name: string, cod
   }
   const html = emailLayoutDark(`
     ${headingDark("Vérifiez votre adresse email")}
-    ${textDark(`Bonjour ${name}, voici votre code de vérification :`)}
+    ${textDark(`Bonjour ${escapeHtml(name)}, voici votre code de vérification :`)}
     <div style="background:#111827;border:2px solid #22c55e;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#22c55e;">${code}</span>
+      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#22c55e;">${escapeHtml(code)}</span>
     </div>
     ${mutedDark("Ce code expire dans <strong>10 minutes</strong>. Ne le partagez avec personne.")}
   `);
@@ -110,7 +111,7 @@ export async function sendPasswordResetDarkEmail(email: string, name: string, re
   const resetUrl = `${getAppUrl()}/reinitialiser-mot-de-passe?token=${resetToken}`;
   const html = emailLayoutDark(`
     ${headingDark("Réinitialiser votre mot de passe")}
-    ${textDark(`Bonjour ${name}, vous avez demandé la réinitialisation de votre mot de passe.`)}
+    ${textDark(`Bonjour ${escapeHtml(name)}, vous avez demandé la réinitialisation de votre mot de passe.`)}
     ${textDark("Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :")}
     ${buttonDark("Réinitialiser mon mot de passe", resetUrl)}
     ${mutedDark("Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.")}
@@ -122,8 +123,8 @@ export async function sendPasswordResetDarkEmail(email: string, name: string, re
 export async function sendAccountSuspendedDarkEmail(email: string, name: string, reason?: string) {
   const html = emailLayoutDark(`
     ${headingDark("Compte suspendu")}
-    ${textDark(`Bonjour ${name}, votre compte Novakou a été temporairement suspendu.`)}
-    ${reason ? errorBoxDark("Motif", reason) : ""}
+    ${textDark(`Bonjour ${escapeHtml(name)}, votre compte Novakou a été temporairement suspendu.`)}
+    ${reason ? errorBoxDark("Motif", escapeHtml(reason)) : ""}
     ${textDark("Si vous pensez que cette suspension est une erreur, contactez notre équipe de support.")}
     ${buttonDark("Contacter le support", `${getAppUrl()}/contact`, "red")}
   `);
@@ -134,8 +135,8 @@ export async function sendAccountSuspendedDarkEmail(email: string, name: string,
 export async function sendAccountBannedDarkEmail(email: string, name: string, reason?: string) {
   const html = emailLayoutDark(`
     ${headingDark("Compte banni")}
-    ${textDark(`Bonjour ${name}, votre compte Novakou a été définitivement banni.`)}
-    ${reason ? errorBoxDark("Motif", reason) : ""}
+    ${textDark(`Bonjour ${escapeHtml(name)}, votre compte Novakou a été définitivement banni.`)}
+    ${reason ? errorBoxDark("Motif", escapeHtml(reason)) : ""}
     ${buttonDark("Contacter le support", `${getAppUrl()}/contact`, "red")}
   `);
   return sendEmail({ to: email, subject: "Compte banni — Novakou", html });
