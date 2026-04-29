@@ -31,27 +31,45 @@ export function ImageUpload({
     setError("");
     setProgress(10);
 
-    try {
+    const attempt = async (n: number): Promise<void> => {
       const formData = new FormData();
       formData.append("file", file);
-
       setProgress(40);
 
-      const res = await fetch("/api/upload/image", {
-        method: "POST",
-        body: formData,
-      });
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 60_000);
 
+      let res: Response;
+      try {
+        res = await fetch("/api/upload/image", { method: "POST", body: formData, signal: ctrl.signal });
+      } catch (err) {
+        clearTimeout(tid);
+        if (n < 2) { await new Promise((r) => setTimeout(r, 1500 * (n + 1))); return attempt(n + 1); }
+        throw new Error(err instanceof Error && err.name === "AbortError"
+          ? "Le serveur met trop de temps à répondre. Réessayez."
+          : "Connexion impossible. Vérifiez votre internet.");
+      }
+      clearTimeout(tid);
       setProgress(80);
 
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Erreur lors de l'upload");
+      if ((res.status === 502 || res.status === 503 || res.status === 504) && n < 2) {
+        await new Promise((r) => setTimeout(r, 1500 * (n + 1)));
+        return attempt(n + 1);
       }
+      if (res.status === 401) throw new Error("Session expirée. Reconnectez-vous puis réessayez.");
 
-      const data = await res.json();
+      let data: { url?: string; error?: string } | null = null;
+      try { data = await res.json(); } catch {
+        throw new Error(`Réponse invalide (${res.status}). Réessayez.`);
+      }
+      if (!res.ok || !data?.url) throw new Error(data?.error ?? `Upload échoué (${res.status})`);
+
       setProgress(100);
       onUpload(data.url);
+    };
+
+    try {
+      await attempt(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'upload");
     } finally {

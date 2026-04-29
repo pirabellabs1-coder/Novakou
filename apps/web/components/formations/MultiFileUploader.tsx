@@ -78,9 +78,43 @@ export function MultiFileUploader({
     const form = new FormData();
     form.append("file", file);
     form.append("bucket", "order-deliveries");
-    const res = await fetch("/api/upload/file", { method: "POST", body: form });
-    const data = await res.json();
-    if (data.success && data.file?.url) {
+
+    // Retry sur 502/503/504 (cold start Vercel) — 3 tentatives max
+    const attempt = async (n: number): Promise<Response> => {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 90_000);
+      try {
+        const r = await fetch("/api/upload/file", { method: "POST", body: form, signal: ctrl.signal });
+        clearTimeout(tid);
+        if ((r.status === 502 || r.status === 503 || r.status === 504) && n < 2) {
+          await new Promise((res) => setTimeout(res, 1500 * (n + 1)));
+          return attempt(n + 1);
+        }
+        return r;
+      } catch (err) {
+        clearTimeout(tid);
+        if (n < 2) {
+          await new Promise((res) => setTimeout(res, 1500 * (n + 1)));
+          return attempt(n + 1);
+        }
+        throw err;
+      }
+    };
+
+    const res = await attempt(0);
+
+    if (res.status === 401) {
+      setError("Session expirée. Reconnectez-vous puis réessayez.");
+      return null;
+    }
+
+    let data: { success?: boolean; file?: { url?: string }; error?: string } | null = null;
+    try { data = await res.json(); } catch {
+      setError(`Réponse invalide du serveur (${res.status}). Réessayez dans quelques instants.`);
+      return null;
+    }
+
+    if (data?.success && data.file?.url) {
       return {
         name: file.name,
         url: data.file.url,
@@ -88,7 +122,7 @@ export function MultiFileUploader({
         mimeType: file.type || null,
       };
     }
-    setError(data.error ?? "Upload échoué");
+    setError(data?.error ?? `Upload échoué (${res.status})`);
     return null;
   }, []);
 

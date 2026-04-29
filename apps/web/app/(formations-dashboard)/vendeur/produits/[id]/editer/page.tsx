@@ -74,26 +74,49 @@ export default function EditerProduitPage() {
 
   const { data: response, isLoading, error } = useQuery<{ data: Product; error?: string }>({
     queryKey: ["product", id],
-    queryFn: () => fetch(`/api/formations/vendeur/products/${id}`).then((r) => r.json()),
+    queryFn: async () => {
+      const r = await fetch(`/api/formations/vendeur/products/${id}`);
+      // Si le serveur renvoie HTML (502 cold start, etc.), .json() throw.
+      // On veut que react-query traite ca comme une erreur, pas comme {data: undefined}.
+      if (!r.ok) {
+        let msg = `${r.status}`;
+        try { const j = await r.json(); msg = j?.error ?? msg; } catch { /* ignore */ }
+        throw new Error(msg);
+      }
+      return r.json();
+    },
+    enabled: !!id,
     staleTime: 30_000,
+    retry: (failureCount, err) => {
+      // Retry sur 502/503/504 et erreurs reseau, pas sur 401/404
+      const m = err instanceof Error ? err.message : "";
+      if (m.includes("401") || m.includes("404") || m.includes("introuvable") || m.includes("authentifi")) return false;
+      return failureCount < 2;
+    },
+    retryDelay: (attempt) => 1000 * (attempt + 1),
   });
 
   const product = response?.data;
+  const productId = product?.id;
 
   useEffect(() => {
-    if (product) {
-      setTitle(product.title);
-      setDescription(product.description ?? "");
-      setProductType(product.productType);
-      setBanner(product.banner ?? "");
-      setPrice(product.price);
-      setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
-      setTagsInput((product.tags ?? []).join(", "));
-      setFiles(Array.isArray(product.files) ? product.files : []);
-      setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
-      setDirty(false);
-    }
-  }, [product]);
+    if (!product) return;
+    setTitle(product.title ?? "");
+    setDescription(product.description ?? "");
+    setProductType(product.productType ?? "EBOOK");
+    setBanner(product.banner ?? "");
+    setPrice(typeof product.price === "number" ? product.price : 0);
+    setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
+    setTagsInput((product.tags ?? []).join(", "));
+    setFiles(Array.isArray(product.files) ? product.files : []);
+    setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
+    setDirty(false);
+    // On utilise productId comme dep pour garantir un re-init quand le produit
+    // charge initialement OU change (cas rare : navigation rapide entre 2 editions).
+    // Avec [product] seul, react-query peut renvoyer la meme reference apres un
+    // refetch silencieux, et l'effet ne tournait pas comme attendu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId]);
 
   const saveMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) =>

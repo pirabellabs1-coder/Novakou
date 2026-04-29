@@ -27,20 +27,75 @@ export function ImageUploader({
   const handleFile = useCallback(async (file: File) => {
     setError(null);
     setUploading(true);
-    try {
+
+    // Validation client preventive (avant upload reseau)
+    const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!ALLOWED.includes(file.type)) {
+      setError("Format non supporte (JPG, PNG, GIF, WebP)");
+      setUploading(false);
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError(`Trop volumineux (max 5 MB, votre fichier ${(file.size / (1024 * 1024)).toFixed(1)} MB)`);
+      setUploading(false);
+      return;
+    }
+
+    const tryUpload = async (attempt: number): Promise<void> => {
       const form = new FormData();
       form.append("file", file);
       form.append("folder", folder);
-      const res = await fetch("/api/upload/image", { method: "POST", body: form });
-      const data = await res.json();
-      if (data.url) {
-        onChange(data.url);
-      } else {
-        setError(data.error ?? "Upload échoué");
+
+      // Timeout 60s (cold start Vercel + upload Cloudinary)
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 60_000);
+
+      let res: Response;
+      try {
+        res = await fetch("/api/upload/image", { method: "POST", body: form, signal: ctrl.signal });
+      } catch (err) {
+        clearTimeout(tid);
+        // AbortError = timeout, TypeError = vraie erreur reseau (connexion coupee, DNS, etc.)
+        const isAbort = err instanceof Error && err.name === "AbortError";
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+          return tryUpload(attempt + 1);
+        }
+        throw new Error(isAbort ? "Le serveur met trop de temps a repondre. Reessayez." : "Connexion impossible. Verifiez votre internet.");
       }
+      clearTimeout(tid);
+
+      // 502/503/504 = Bad Gateway / cold start / overload — retry avec backoff
+      if ((res.status === 502 || res.status === 503 || res.status === 504) && attempt < 2) {
+        await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+        return tryUpload(attempt + 1);
+      }
+
+      // 401 = session expiree — message clair
+      if (res.status === 401) {
+        throw new Error("Session expiree. Reconnectez-vous puis reessayez.");
+      }
+
+      // Parse JSON safely (le serveur peut renvoyer du HTML en cas de 502)
+      let data: { url?: string; error?: string } | null = null;
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(`Reponse invalide (${res.status}). Reessayez dans quelques instants.`);
+      }
+
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error ?? `Upload echoue (${res.status})`);
+      }
+
+      onChange(data.url);
+    };
+
+    try {
+      await tryUpload(0);
     } catch (err) {
-      console.error(err);
-      setError("Erreur réseau");
+      console.error("[ImageUploader]", err);
+      setError(err instanceof Error ? err.message : "Erreur reseau");
     } finally {
       setUploading(false);
     }

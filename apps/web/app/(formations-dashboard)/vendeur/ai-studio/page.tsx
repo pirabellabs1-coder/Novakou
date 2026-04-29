@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
+import { usePuterReady } from "@/hooks";
 
 // Typage minimal pour Puter.js charge via CDN.
 // Claude renvoie content sous forme d'array (content blocks), OpenAI sous forme de string — on accepte les deux.
@@ -10,18 +11,6 @@ type PuterContentBlock = { type?: string; text?: string };
 type PuterChatResponse = {
   message: { content: string | PuterContentBlock[] };
 };
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (
-          prompt: string,
-          options?: { model?: string; temperature?: number; max_tokens?: number; stream?: boolean },
-        ) => Promise<PuterChatResponse>;
-      };
-    };
-  }
-}
 
 // Extrait le texte quel que soit le shape renvoye par Puter.
 function extractText(res: PuterChatResponse): string {
@@ -79,22 +68,7 @@ export default function AIStudioPage() {
   const [loading, setLoading] = useState(false);
   const [generated, setGenerated] = useState<Generated | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [puterReady, setPuterReady] = useState(false);
-
-  // Check Puter availability
-  useEffect(() => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.puter) {
-        setPuterReady(true);
-        return true;
-      }
-      return false;
-    };
-    if (!check()) {
-      const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
-      return () => clearInterval(interval);
-    }
-  }, []);
+  const { ready: puterReady, failed: puterFailed, retry: puterRetry, retryNonce: puterRetryNonce } = usePuterReady();
 
   const SYSTEM_PROMPT = `Tu es un copywriter expert specialise dans la vente de formations et produits digitaux pour les createurs africains francophones (Senegal, Cote d'Ivoire, Benin, Cameroun, Mali, Togo...).
 
@@ -179,7 +153,7 @@ ${SYSTEM_PROMPT}`;
   return (
     <div className="p-5 md:p-8 max-w-6xl mx-auto">
       {/* Puter.js SDK — Claude Sonnet 4.6 cote navigateur */}
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
+      <Script key={`puter-${puterRetryNonce}`} src="https://js.puter.com/v2/" strategy="afterInteractive" />
 
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-3">
@@ -291,6 +265,11 @@ ${SYSTEM_PROMPT}`;
                   <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
                   Claude travaille (30-60s)…
                 </>
+              ) : puterFailed ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">error</span>
+                  SDK IA inaccessible
+                </>
               ) : !puterReady ? (
                 <>
                   <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
@@ -299,15 +278,31 @@ ${SYSTEM_PROMPT}`;
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
-                  Générer avec l'IA
+                  Générer avec l&apos;IA
                 </>
               )}
             </button>
 
             <div className="flex items-center justify-center gap-1.5 text-[10px] text-[#5c647a]">
-              <span className={`w-1.5 h-1.5 rounded-full ${puterReady ? "bg-emerald-500" : "bg-amber-500 animate-pulse"}`} />
-              <span>{puterReady ? "SDK IA prêt · Claude Sonnet 4.6" : "Chargement du SDK IA…"}</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                puterReady ? "bg-emerald-500" : puterFailed ? "bg-red-500" : "bg-amber-500 animate-pulse"
+              }`} />
+              <span>
+                {puterReady ? "SDK IA prêt · Claude Sonnet 4.6"
+                  : puterFailed ? "SDK IA inaccessible"
+                  : "Chargement du SDK IA…"}
+              </span>
+              {puterFailed && (
+                <button onClick={puterRetry} className="ml-1 px-1.5 py-0.5 rounded-full bg-[#006e2f] text-white text-[9px] font-bold hover:bg-[#22c55e]">
+                  Réessayer
+                </button>
+              )}
             </div>
+            {puterFailed && (
+              <div className="mt-1 rounded-lg border border-amber-200 bg-amber-50 p-2.5 text-[10px] text-amber-900 leading-snug">
+                ⚠️ Impossible de charger l&apos;IA. Vérifiez votre connexion et désactivez bloqueurs/VPN/antivirus pour <code className="font-mono bg-amber-100 px-1 rounded">js.puter.com</code>.
+              </div>
+            )}
             <p className="text-[10px] text-[#5c647a] text-center">
               Propulsé par Anthropic Claude via Puter · compte Puter requis la 1ère fois.
             </p>

@@ -144,6 +144,7 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [puterReady, setPuterReady] = useState(false);
+  const [puterFailed, setPuterFailed] = useState(false);
   const [fallbackName, setFallbackName] = useState("");
   const [fallbackEmail, setFallbackEmail] = useState("");
   const [fallbackMessage, setFallbackMessage] = useState("");
@@ -151,7 +152,7 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
   const [inquiryError, setInquiryError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Check Puter availability
+  // Check Puter availability + timeout 15s pour detecter un blocage du CDN
   useEffect(() => {
     const check = () => {
       if (typeof window !== "undefined" && window.puter) {
@@ -160,10 +161,15 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
       }
       return false;
     };
-    if (!check()) {
-      const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
-      return () => clearInterval(interval);
-    }
+    if (check()) return;
+    const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
+    const timeout = setTimeout(() => {
+      if (typeof window !== "undefined" && !window.puter) {
+        clearInterval(interval);
+        setPuterFailed(true);
+      }
+    }, 15_000);
+    return () => { clearInterval(interval); clearTimeout(timeout); };
   }, []);
 
   // Fetch vendor config
