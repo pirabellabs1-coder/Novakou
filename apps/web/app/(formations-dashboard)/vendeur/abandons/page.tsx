@@ -147,12 +147,31 @@ export default function AbandonsPage() {
           {[1, 2, 3].map((i) => <div key={i} className="h-28 bg-gray-200 rounded-2xl animate-pulse" />)}
         </div>
       ) : attempts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">celebration</span>
-          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun abandon pour l&apos;instant</h3>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Les visiteurs qui ne finalisent pas leurs achats apparaîtront ici.
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <span className="material-symbols-outlined text-5xl text-gray-300">shopping_cart_off</span>
+          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun abandon dans cette catégorie</h3>
+          <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto leading-relaxed">
+            Les abandons apparaissent ici quand un visiteur clique sur <strong>« Payer »</strong> sans
+            finaliser le paiement (timeout après 1h d&apos;inactivité). Les paiements échoués s&apos;affichent
+            immédiatement dans l&apos;onglet « Échecs ».
           </p>
+          <div className="mt-5 inline-flex flex-col sm:flex-row items-center gap-3 text-xs text-[#5c647a]">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700">
+              <span className="material-symbols-outlined text-[14px]">schedule</span>
+              Détection automatique : 1h après l&apos;arrêt
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700">
+              <span className="material-symbols-outlined text-[14px]">info</span>
+              Onglet « Tout » pour voir l&apos;historique complet
+            </span>
+          </div>
+          <button
+            onClick={() => load()}
+            className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#006e2f] hover:bg-emerald-50 rounded-lg transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            Actualiser
+          </button>
         </div>
       ) : (
         <div className="space-y-3">

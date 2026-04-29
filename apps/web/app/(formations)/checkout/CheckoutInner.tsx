@@ -66,9 +66,9 @@ export default function CheckoutInner() {
   const [discountStatus, setDiscountStatus] = useState<"idle" | "validating" | "valid" | "invalid">("idle");
   const [discountAmount, setDiscountAmount] = useState(0);
   const [discountMessage, setDiscountMessage] = useState<string | null>(null);
-  // Both default to FALSE — opt-in required (no auto-consent fraud)
+  // CGV opt-in (default false). La renonciation au droit de rétractation
+  // est implicite via les CGV (clause art. L221-28 13°) — pas de 2e checkbox.
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [withdrawalWaived, setWithdrawalWaived] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -296,7 +296,6 @@ export default function CheckoutInner() {
 
   async function handlePay() {
     if (!termsAccepted) { setError("Veuillez accepter les conditions générales."); return; }
-    if (!withdrawalWaived) { setError("Cochez la renonciation au droit de rétractation pour les contenus numériques."); return; }
     if (!email) { setError("Adresse email requise."); return; }
     // Téléphone non obligatoire ici — Moneroo le demandera si Mobile Money
     if (cartItems.length === 0) { setError("Votre panier est vide."); return; }
@@ -726,8 +725,11 @@ export default function CheckoutInner() {
             )}
           </div>
 
-          {/* Terms */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+          {/* Terms — checkbox CGV unique. La renonciation au droit de
+              rétractation reste juridiquement valable via les CGV (qui
+              contiennent désormais cette clause), pas besoin d'une 2e
+              checkbox qui effraie l'utilisateur non-juriste. */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <label className="flex items-start gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -741,21 +743,6 @@ export default function CheckoutInner() {
                 et la{" "}
                 <a href="/confidentialite" className="text-[#006e2f] hover:underline font-semibold">Politique de confidentialité</a>{" "}
                 de Novakou.
-              </span>
-            </label>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={withdrawalWaived}
-                onChange={(e) => setWithdrawalWaived(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded accent-[#006e2f]"
-              />
-              <span className="text-xs text-[#5c647a] leading-relaxed">
-                <span className="font-semibold text-[#191c1e]">Droit de rétractation — </span>
-                Je demande l&apos;accès immédiat au contenu numérique et reconnais perdre mon
-                droit de rétractation de 14 jours, conformément à l&apos;article L221-28 13°
-                du Code de la consommation. Une politique de remboursement Novakou
-                spécifique reste applicable (voir CGV).
               </span>
             </label>
           </div>
