@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import BoutiqueView from "@/components/formations/BoutiqueView";
@@ -8,6 +9,41 @@ export const revalidate = 600;
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const shop = await prisma.vendorShop.findUnique({
+    where: { slug: slug.toLowerCase() },
+    select: { name: true, description: true, logoUrl: true, coverUrl: true },
+  }).catch(() => null);
+
+  if (!shop) {
+    return { title: "Boutique introuvable" };
+  }
+
+  const title = `${shop.name} · Boutique Novakou`;
+  const description = shop.description?.slice(0, 160) || `Découvrez la boutique de ${shop.name} sur Novakou.`;
+  const image = shop.coverUrl || shop.logoUrl || undefined;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `https://novakou.com/boutique/${slug}`,
+      languages: {
+        "fr-FR": `https://novakou.com/boutique/${slug}`,
+        "x-default": `https://novakou.com/boutique/${slug}`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
+      type: "website",
+    },
+    twitter: { card: "summary_large_image", title, description },
+  };
 }
 
 async function resolve(slugParam: string) {

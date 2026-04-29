@@ -37,6 +37,10 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: `https://novakou.com/produit/${slug}`,
+      languages: {
+        "fr-FR": `https://novakou.com/produit/${slug}`,
+        "x-default": `https://novakou.com/produit/${slug}`,
+      },
     },
     openGraph: {
       title,

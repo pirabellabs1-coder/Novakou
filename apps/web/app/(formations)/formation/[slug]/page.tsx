@@ -36,6 +36,10 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: `https://novakou.com/formation/${slug}`,
+      languages: {
+        "fr-FR": `https://novakou.com/formation/${slug}`,
+        "x-default": `https://novakou.com/formation/${slug}`,
+      },
     },
     openGraph: {
       title,

@@ -74,6 +74,9 @@ export default function AbandonsPage() {
   }
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status]);
 
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [sendResult, setSendResult] = useState<{ id: string; ok: boolean; message: string } | null>(null);
+
   async function markContacted(id: string) {
     await fetch("/api/formations/vendeur/checkout-attempts", {
       method: "PATCH",
@@ -81,6 +84,29 @@ export default function AbandonsPage() {
       body: JSON.stringify({ id, action: "mark_contacted" }),
     });
     load();
+  }
+
+  async function sendRecoveryEmail(id: string) {
+    if (sendingEmailId) return;
+    setSendingEmailId(id);
+    setSendResult(null);
+    try {
+      const res = await fetch(`/api/formations/vendeur/checkout-attempts/${id}/send-email`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setSendResult({ id, ok: false, message: json.error || "Échec d'envoi" });
+      } else {
+        setSendResult({ id, ok: true, message: `Email envoyé à ${json.sentTo}` });
+        load(); // refresh : mark contacted reflected
+      }
+    } catch {
+      setSendResult({ id, ok: false, message: "Erreur réseau" });
+    } finally {
+      setSendingEmailId(null);
+      setTimeout(() => setSendResult(null), 4000);
+    }
   }
 
   const totalLost = (stats.FAILED?.amount ?? 0) + (stats.ABANDONED?.amount ?? 0);
@@ -237,14 +263,24 @@ export default function AbandonsPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {a.visitorEmail && (
-                    <a
-                      href={`mailto:${a.visitorEmail}?subject=${emailSubject}&body=${emailBody}`}
-                      onClick={() => markContacted(a.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold bg-[#006e2f] hover:bg-[#005523]"
+                    <button
+                      onClick={() => sendRecoveryEmail(a.id)}
+                      disabled={sendingEmailId === a.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold bg-[#006e2f] hover:bg-[#005523] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-[14px]">mail</span>
-                      Envoyer un email
-                    </a>
+                      <span className={`material-symbols-outlined text-[14px] ${sendingEmailId === a.id ? "animate-spin" : ""}`}>
+                        {sendingEmailId === a.id ? "progress_activity" : "mail"}
+                      </span>
+                      {sendingEmailId === a.id ? "Envoi…" : "Envoyer un email"}
+                    </button>
+                  )}
+                  {sendResult?.id === a.id && (
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs font-semibold ${sendResult.ok ? "text-[#006e2f]" : "text-red-600"}`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">{sendResult.ok ? "check_circle" : "error"}</span>
+                      {sendResult.message}
+                    </span>
                   )}
                   {a.visitorPhone && (
                     <a
