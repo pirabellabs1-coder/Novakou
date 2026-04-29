@@ -30,11 +30,30 @@ const EVENT_LABELS: Record<string, { label: string; desc: string }> = {
   "subscription.cancelled": { label: "Abonnement annulé", desc: "Un subscriber annule son plan (V2)" },
 };
 
+type TestResult = {
+  ok: boolean;
+  httpStatus?: number;
+  durationMs: number;
+  error?: string;
+};
+
+type TestEcho = {
+  webhook: Webhook;
+  request: {
+    url: string;
+    method: "POST";
+    headers: Record<string, string>;
+    body: unknown;
+  };
+  response: TestResult;
+};
+
 export default function VendorWebhooksPage() {
   const qc = useQueryClient();
   const [showCreate, setShowCreate] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showSecretId, setShowSecretId] = useState<string | null>(null);
+  const [testEcho, setTestEcho] = useState<TestEcho | null>(null);
 
   // Form
   const [url, setUrl] = useState("");
@@ -97,24 +116,54 @@ export default function VendorWebhooksPage() {
   });
 
   const testMut = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/formations/vendeur/webhooks/${id}`, {
+    mutationFn: async (webhook: Webhook) => {
+      const res = await fetch(`/api/formations/vendeur/webhooks/${webhook.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "test" }),
       });
       const j = await res.json();
-      return j;
+      return { result: j?.data as TestResult | undefined, webhook };
     },
-    onSuccess: (data) => {
-      const result = data?.data;
-      if (result?.ok) {
-        setToast(`✓ Test envoyé (HTTP ${result.httpStatus}, ${result.durationMs}ms)`);
-      } else {
-        setToast(`✗ Échec test : ${result?.error || "HTTP " + result?.httpStatus}`);
+    onSuccess: ({ result, webhook }) => {
+      if (!result) {
+        setToast("✗ Réponse invalide du serveur");
+        setTimeout(() => setToast(null), 4000);
+        return;
       }
+
+      // Reconstruit le payload envoyé côté Novakou (cf. fireVendorWebhook)
+      // pour que le vendeur voie exactement ce qui a été POSTé sur son URL.
+      const requestHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        "User-Agent": "Novakou-Webhook/1.0",
+        "X-Novakou-Event": "webhook.test",
+      };
+      if (webhook.secret) {
+        requestHeaders["X-Novakou-Signature"] = "sha256=<hex HMAC-SHA256 du body avec votre secret>";
+      }
+      const requestBody = {
+        event: "webhook.test",
+        data: {
+          message: "Ceci est un événement de test déclenché par le vendeur",
+          timestamp: "<ISO 8601 du moment de l'envoi>",
+        },
+        webhook_id: webhook.id,
+        timestamp: "<ISO 8601 du moment de l'envoi>",
+      };
+
+      setTestEcho({
+        webhook,
+        request: {
+          url: webhook.url,
+          method: "POST",
+          headers: requestHeaders,
+          body: requestBody,
+        },
+        response: result,
+      });
+
       qc.invalidateQueries({ queryKey: ["vendeur-webhooks"] });
-      setTimeout(() => setToast(null), 5000);
     },
   });
 
@@ -231,10 +280,10 @@ export default function VendorWebhooksPage() {
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
                   <button
-                    onClick={() => testMut.mutate(wh.id)}
+                    onClick={() => testMut.mutate(wh)}
                     disabled={testMut.isPending}
                     className="p-2 rounded-lg hover:bg-blue-50 text-[#5c647a] hover:text-blue-600"
-                    title="Envoyer un event de test"
+                    title="Envoyer un event de test (voir payload + réponse)"
                   >
                     <span className="material-symbols-outlined text-[18px]">science</span>
                   </button>
@@ -291,6 +340,11 @@ X-Novakou-Signature: sha256=<hex HMAC-SHA256 du body avec votre secret>
           Votre endpoint doit répondre HTTP 2xx sous 10s. Après 10 échecs consécutifs, le webhook est auto-désactivé.
         </p>
       </div>
+
+      {/* Test echo modal */}
+      {testEcho && (
+        <TestEchoModal echo={testEcho} onClose={() => setTestEcho(null)} />
+      )}
 
       {/* Create modal */}
       {showCreate && (
@@ -383,6 +437,168 @@ X-Novakou-Signature: sha256=<hex HMAC-SHA256 du body avec votre secret>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Modal qui affiche le résultat d'un test webhook : payload envoyé,
+ * status HTTP de la réponse, headers, latence. Sections collapsibles.
+ */
+function TestEchoModal({ echo, onClose }: { echo: TestEcho; onClose: () => void }) {
+  const [reqOpen, setReqOpen] = useState(true);
+  const [resOpen, setResOpen] = useState(true);
+  const { request, response, webhook } = echo;
+  const ok = response.ok;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ok ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-red-50 text-red-600"}`}
+            >
+              <span className="material-symbols-outlined text-[22px]">
+                {ok ? "check_circle" : "error"}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-lg font-extrabold text-[#191c1e]">
+                Test webhook — {ok ? "Succès" : "Échec"}
+              </h2>
+              <p className="text-xs text-[#5c647a] mt-0.5 break-all font-mono">
+                POST {webhook.url}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-gray-100 flex-shrink-0"
+            aria-label="Fermer"
+          >
+            <span className="material-symbols-outlined text-[20px] text-gray-500">close</span>
+          </button>
+        </div>
+
+        {/* Summary chips */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {response.httpStatus !== undefined && (
+            <span
+              className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${ok ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-red-50 text-red-700"}`}
+            >
+              HTTP {response.httpStatus}
+            </span>
+          )}
+          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
+            Latence : {response.durationMs}ms
+          </span>
+          {response.error && (
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-red-50 text-red-700 max-w-full truncate">
+              Erreur : {response.error}
+            </span>
+          )}
+        </div>
+
+        {/* Request */}
+        <div className="rounded-xl border border-gray-200 mb-3 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setReqOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#191c1e]">
+              Requête envoyée
+            </span>
+            <span className="material-symbols-outlined text-[18px] text-[#5c647a]">
+              {reqOpen ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+          {reqOpen && (
+            <div className="p-4 space-y-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a] mb-1">
+                  Headers
+                </p>
+                <pre className="text-[11px] font-mono bg-gray-50 rounded-lg p-3 overflow-x-auto text-[#191c1e]">
+{Object.entries(request.headers).map(([k, v]) => `${k}: ${v}`).join("\n")}
+                </pre>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a] mb-1">
+                  Body (JSON)
+                </p>
+                <pre className="text-[11px] font-mono bg-gray-50 rounded-lg p-3 overflow-x-auto text-[#191c1e]">
+{JSON.stringify(request.body, null, 2)}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Response */}
+        <div className="rounded-xl border border-gray-200 overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setResOpen((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <span className="text-[11px] font-bold uppercase tracking-widest text-[#191c1e]">
+              Réponse de votre endpoint
+            </span>
+            <span className="material-symbols-outlined text-[18px] text-[#5c647a]">
+              {resOpen ? "expand_less" : "expand_more"}
+            </span>
+          </button>
+          {resOpen && (
+            <div className="p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3 text-[11px]">
+                <div>
+                  <p className="font-bold uppercase tracking-widest text-[#5c647a] mb-1">Status</p>
+                  <p
+                    className={`font-mono font-bold ${ok ? "text-[#006e2f]" : "text-red-600"}`}
+                  >
+                    {response.httpStatus !== undefined ? `HTTP ${response.httpStatus}` : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-bold uppercase tracking-widest text-[#5c647a] mb-1">Latence</p>
+                  <p className="font-mono font-bold text-[#191c1e]">{response.durationMs}ms</p>
+                </div>
+              </div>
+              {response.error ? (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a] mb-1">
+                    Erreur
+                  </p>
+                  <pre className="text-[11px] font-mono bg-red-50 text-red-800 rounded-lg p-3 overflow-x-auto">
+{response.error}
+                  </pre>
+                </div>
+              ) : (
+                <p className="text-[11px] text-[#5c647a] italic">
+                  Le détail des headers et du body de réponse n&apos;est pas relayé par le serveur Novakou pour préserver la confidentialité — utilisez un outil comme webhook.site ou inspectez vos logs côté endpoint pour voir le contenu reçu.
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl text-sm font-bold border border-gray-200 text-[#191c1e] hover:bg-gray-50"
+          >
+            Fermer
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

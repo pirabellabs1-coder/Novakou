@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
+import { invalidateRefundConfigCache } from "@/lib/formations/refund-policy";
 
 // Whitelist of allowed config keys to prevent injection of arbitrary settings.
 // Any update to a key not in this set is silently dropped (with a warning log).
@@ -83,6 +84,9 @@ export async function PATCH(request: Request) {
         }),
       ),
     );
+
+    // Bust refund-policy cache so new values are read on next eligibility check
+    invalidateRefundConfigCache();
 
     return NextResponse.json({
       success: true,

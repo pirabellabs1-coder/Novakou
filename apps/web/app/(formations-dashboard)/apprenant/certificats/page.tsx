@@ -71,6 +71,28 @@ export default function CertificatsPage() {
     window.open(`/api/formations/apprenant/certificates/${cert.id}/pdf`, "_blank");
   };
 
+  const handleShareLinkedIn = (cert: Certificate) => {
+    if (typeof window === "undefined") return;
+    const issued = new Date(cert.issuedAt);
+    const certUrl = `${window.location.origin}/certificat/${cert.code}`;
+    // LinkedIn "Add to profile" deep link — voir
+    // https://www.linkedin.com/help/linkedin/answer/a548126
+    const params = new URLSearchParams({
+      startTask: "CERTIFICATION_NAME",
+      name: cert.formation?.title ?? "Formation Novakou",
+      organizationName: "Novakou",
+      issueYear: String(issued.getFullYear()),
+      issueMonth: String(issued.getMonth() + 1),
+      certUrl,
+      certId: cert.code,
+    });
+    window.open(
+      `https://www.linkedin.com/profile/add?${params.toString()}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
+  };
+
   return (
     <div className="p-5 md:p-8 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
@@ -145,7 +167,10 @@ export default function CertificatsPage() {
                 <span className="material-symbols-outlined text-[16px]">download</span>
                 Télécharger PDF
               </button>
-              <button className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors">
+              <button
+                onClick={() => handleShareLinkedIn(selectedCert)}
+                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors"
+              >
                 <span className="material-symbols-outlined text-[16px] text-blue-600">share</span>
                 LinkedIn
               </button>
@@ -167,11 +192,23 @@ export default function CertificatsPage() {
           </div>
           <h3 className="font-bold text-[#191c1e] mb-1">Aucun certificat</h3>
           <p className="text-sm text-[#5c647a] mb-4">Terminez une formation pour obtenir votre premier certificat.</p>
-          <Link href="/apprenant/mes-formations"
-            className="px-5 py-2.5 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-            Mes formations
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/apprenant/mes-formations"
+              className="px-5 py-2.5 rounded-xl text-white text-sm font-bold"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+            >
+              Mes formations
+            </Link>
+            <Link
+              href="/certificat/exemple"
+              target="_blank"
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl border border-[#006e2f]/30 text-[#006e2f] text-sm font-bold hover:bg-[#006e2f]/5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">preview</span>
+              Voir un exemple
+            </Link>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

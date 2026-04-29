@@ -87,7 +87,7 @@ function buildDevResponse(start: Date, end: Date, period: string) {
   for (const o of orders) {
     const order = o as unknown as Record<string, unknown>;
     const amount = Number(order.amount) || 0;
-    const commission = Number(order.platformFee) || Math.round(amount * 0.12 * 100) / 100;
+    const commission = Number(order.commission) || Math.round(amount * 0.12 * 100) / 100;
     const status = ((order.status as string) || "").toLowerCase();
 
     if (status === "remboursee" || status === "refunded") {
@@ -167,7 +167,7 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
     // Commissions from completed orders (TERMINE + LIVRE)
     prisma.order.aggregate({
       where: { createdAt: dateFilter, status: { in: ["TERMINE", "LIVRE"] } },
-      _sum: { platformFee: true },
+      _sum: { commission: true },
     }),
     prisma.order.aggregate({
       where: { createdAt: dateFilter, escrowStatus: "REFUNDED" },
@@ -188,7 +188,7 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
     prisma.order.findMany({
       where: { createdAt: dateFilter },
       select: {
-        id: true, createdAt: true, amount: true, platformFee: true, status: true, escrowStatus: true,
+        id: true, createdAt: true, amount: true, commission: true, status: true, escrowStatus: true,
         client: { select: { name: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -217,7 +217,7 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
   ]);
 
   const revenueServices = Math.round((ordersAgg._sum.amount ?? 0) * 100) / 100;
-  const totalCommissions = Math.round((commissionsAgg._sum.platformFee ?? 0) * 100) / 100;
+  const totalCommissions = Math.round((commissionsAgg._sum.commission ?? 0) * 100) / 100;
   const revenueBoosts = Math.round((boostsAgg._sum.totalCost ?? 0) * 100) / 100;
   const revenueAbonnements = Math.round((abonnementsAgg._sum.amount ?? 0) * 100) / 100;
   const totalRefunds = Math.round((refundsAgg._sum.amount ?? 0) * 100) / 100;
@@ -230,7 +230,7 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
       reference: `FH-${o.id.slice(-8).toUpperCase()}`,
       payer: o.client?.name || "Client",
       amount: o.amount || 0,
-      commission: o.platformFee || 0,
+      commission: o.commission || 0,
       status: o.status === "TERMINE" || o.status === "LIVRE" ? "paye" : o.escrowStatus === "REFUNDED" ? "rembourse" : "en_attente",
     })),
     ...boosts.map((b) => ({

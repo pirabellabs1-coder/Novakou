@@ -74,6 +74,9 @@ export default function AbandonsPage() {
   }
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status]);
 
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [sendResult, setSendResult] = useState<{ id: string; ok: boolean; message: string } | null>(null);
+
   async function markContacted(id: string) {
     await fetch("/api/formations/vendeur/checkout-attempts", {
       method: "PATCH",
@@ -81,6 +84,29 @@ export default function AbandonsPage() {
       body: JSON.stringify({ id, action: "mark_contacted" }),
     });
     load();
+  }
+
+  async function sendRecoveryEmail(id: string) {
+    if (sendingEmailId) return;
+    setSendingEmailId(id);
+    setSendResult(null);
+    try {
+      const res = await fetch(`/api/formations/vendeur/checkout-attempts/${id}/send-email`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setSendResult({ id, ok: false, message: json.error || "Échec d'envoi" });
+      } else {
+        setSendResult({ id, ok: true, message: `Email envoyé à ${json.sentTo}` });
+        load(); // refresh : mark contacted reflected
+      }
+    } catch {
+      setSendResult({ id, ok: false, message: "Erreur réseau" });
+    } finally {
+      setSendingEmailId(null);
+      setTimeout(() => setSendResult(null), 4000);
+    }
   }
 
   const totalLost = (stats.FAILED?.amount ?? 0) + (stats.ABANDONED?.amount ?? 0);
@@ -147,12 +173,31 @@ export default function AbandonsPage() {
           {[1, 2, 3].map((i) => <div key={i} className="h-28 bg-gray-200 rounded-2xl animate-pulse" />)}
         </div>
       ) : attempts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">celebration</span>
-          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun abandon pour l&apos;instant</h3>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Les visiteurs qui ne finalisent pas leurs achats apparaîtront ici.
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+          <span className="material-symbols-outlined text-5xl text-gray-300">shopping_cart_off</span>
+          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun abandon dans cette catégorie</h3>
+          <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto leading-relaxed">
+            Les abandons apparaissent ici quand un visiteur clique sur <strong>« Payer »</strong> sans
+            finaliser le paiement (timeout après 1h d&apos;inactivité). Les paiements échoués s&apos;affichent
+            immédiatement dans l&apos;onglet « Échecs ».
           </p>
+          <div className="mt-5 inline-flex flex-col sm:flex-row items-center gap-3 text-xs text-[#5c647a]">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700">
+              <span className="material-symbols-outlined text-[14px]">schedule</span>
+              Détection automatique : 1h après l&apos;arrêt
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700">
+              <span className="material-symbols-outlined text-[14px]">info</span>
+              Onglet « Tout » pour voir l&apos;historique complet
+            </span>
+          </div>
+          <button
+            onClick={() => load()}
+            className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#006e2f] hover:bg-emerald-50 rounded-lg transition-colors"
+          >
+            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            Actualiser
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -218,14 +263,24 @@ export default function AbandonsPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {a.visitorEmail && (
-                    <a
-                      href={`mailto:${a.visitorEmail}?subject=${emailSubject}&body=${emailBody}`}
-                      onClick={() => markContacted(a.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold bg-[#006e2f] hover:bg-[#005523]"
+                    <button
+                      onClick={() => sendRecoveryEmail(a.id)}
+                      disabled={sendingEmailId === a.id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold bg-[#006e2f] hover:bg-[#005523] disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <span className="material-symbols-outlined text-[14px]">mail</span>
-                      Envoyer un email
-                    </a>
+                      <span className={`material-symbols-outlined text-[14px] ${sendingEmailId === a.id ? "animate-spin" : ""}`}>
+                        {sendingEmailId === a.id ? "progress_activity" : "mail"}
+                      </span>
+                      {sendingEmailId === a.id ? "Envoi…" : "Envoyer un email"}
+                    </button>
+                  )}
+                  {sendResult?.id === a.id && (
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs font-semibold ${sendResult.ok ? "text-[#006e2f]" : "text-red-600"}`}
+                    >
+                      <span className="material-symbols-outlined text-[14px]">{sendResult.ok ? "check_circle" : "error"}</span>
+                      {sendResult.message}
+                    </span>
                   )}
                   {a.visitorPhone && (
                     <a

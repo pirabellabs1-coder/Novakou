@@ -49,6 +49,12 @@ export default function AdminUtilisateursPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-utilisateurs"] }),
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: (id: string) =>
+      fetch(`/api/formations/admin/utilisateurs/${id}`, { method: "DELETE" }).then((r) => r.json()),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-utilisateurs"] }),
+  });
+
   const users = response?.data ?? [];
   const summary = response?.summary;
 
@@ -208,6 +214,23 @@ export default function AdminUtilisateursPage() {
                           </button>
                         </>
                       )}
+                      <button
+                        onClick={async () => {
+                          const ok = await confirmAction({
+                            title: "Supprimer ce compte ?",
+                            message: `Cette action est irréversible. Le compte ${u.email} et toutes ses données associées seront définitivement supprimés.`,
+                            confirmLabel: "Supprimer",
+                            confirmVariant: "danger",
+                            icon: "delete_forever",
+                          });
+                          if (ok) deleteUserMutation.mutate(u.id);
+                        }}
+                        disabled={deleteUserMutation.isPending}
+                        className="px-3 py-2 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                        title="Supprimer définitivement"
+                      >
+                        Supprimer
+                      </button>
                     </div>
                   </div>
                 );

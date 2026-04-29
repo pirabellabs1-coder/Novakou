@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <title>Novakou — Programme affilié 30% commission</title>
+  <defs>
+    <linearGradient id="bg5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="em5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#bg5)"/>
+
+  <!-- Logo -->
+  <rect x="80" y="80" width="80" height="80" rx="20" ry="20" fill="url(#em5)"/>
+  <text x="120" y="120" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="40" font-weight="900" letter-spacing="-1.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">NK</text>
+  <text x="180" y="125" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="800" letter-spacing="-1" fill="#191c1e">Novakou</text>
+
+  <!-- Tag -->
+  <rect x="80" y="240" width="320" height="60" rx="30" ry="30" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="240" y="280" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="0.5"
+        fill="#006e2f" text-anchor="middle">PROGRAMME AFFILIÉ</text>
+
+  <!-- Hero number 30% -->
+  <text x="80" y="640" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="380" font-weight="900" letter-spacing="-20"
+        fill="url(#em5)">30%</text>
+
+  <!-- Headline -->
+  <text x="80" y="780" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="76" font-weight="800" letter-spacing="-2"
+        fill="#191c1e">de commission</text>
+  <text x="80" y="860" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="76" font-weight="800" letter-spacing="-2"
+        fill="#191c1e">par vente.</text>
+
+  <!-- Sub -->
+  <text x="80" y="950" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="34" font-weight="500" letter-spacing="-0.5"
+        fill="#5c647a">Sans rien stocker. Sans risque.</text>
+  <text x="80" y="1000" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="34" font-weight="500" letter-spacing="-0.5"
+        fill="#5c647a">Tu partages, tu gagnes.</text>
+
+  <!-- CTA -->
+  <rect x="80" y="1080" width="540" height="100" rx="22" ry="22" fill="url(#em5)"/>
+  <text x="350" y="1130" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">Devenir affilié →</text>
+
+  <!-- Domain -->
+  <text x="1000" y="1290" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="600"
+        fill="#9ca3af" text-anchor="end">novakou.com/affiliation</text>
+</svg>

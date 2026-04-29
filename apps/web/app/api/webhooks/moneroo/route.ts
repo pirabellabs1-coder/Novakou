@@ -26,12 +26,27 @@ import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
  * Vérifie la signature HMAC Moneroo sur le body brut.
  * Moneroo envoie un header `X-Moneroo-Signature` (ou `X-Hub-Signature-256`
  * selon version) calculé en HMAC-SHA256 du body avec MONEROO_WEBHOOK_SECRET.
- * Si le secret n'est PAS configuré côté server, on skip la vérif (le webhook
- * restera protégé par la re-vérification via retrievePayment).
+ *
+ * SECURITY (production) : si le secret est absent en production, on REFUSE
+ * le webhook (sinon replay attack possible). En dev on accepte (le re-check
+ * via retrievePayment garde un filet de sécurité).
+ *
+ * Replay protection : si le payload contient un `timestamp` (Unix seconds ou
+ * ms), on rejette tout webhook plus vieux que 5 minutes.
  */
+const MONEROO_REPLAY_WINDOW_MS = 5 * 60 * 1000; // 5 min
+
 function verifyMonerooSignature(rawBody: string, headers: Headers): boolean {
   const secret = process.env.MONEROO_WEBHOOK_SECRET;
-  if (!secret) return true; // optional : safe car retrievePayment revérifie
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[Moneroo Webhook] CRITICAL: MONEROO_WEBHOOK_SECRET missing in production — refusing webhook to prevent replay attack",
+      );
+      return false; // refuse webhook in production
+    }
+    return true; // dev only : retrievePayment revérifie de toute façon
+  }
 
   const provided =
     headers.get("x-moneroo-signature") ||
@@ -54,6 +69,54 @@ function verifyMonerooSignature(rawBody: string, headers: Headers): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Anti-replay : si le payload contient un timestamp (Unix sec ou ms), on
+ * rejette tout webhook plus vieux que MONEROO_REPLAY_WINDOW_MS.
+ * Retourne `true` si OK, `false` si trop vieux.
+ */
+function verifyMonerooTimestamp(rawBody: string): boolean {
+  let parsed: any;
+  try {
+    parsed = JSON.parse(rawBody);
+  } catch {
+    return true; // si pas parseable, on laisse la signature trancher
+  }
+  const ts = parsed?.timestamp ?? parsed?.data?.timestamp ?? parsed?.created_at;
+  if (ts === undefined || ts === null || ts === "") return true; // pas de timestamp → skip
+
+  let tsMs: number;
+  if (typeof ts === "number") {
+    // Unix seconds (10 chiffres) vs ms (13 chiffres)
+    tsMs = ts < 1e12 ? ts * 1000 : ts;
+  } else if (typeof ts === "string") {
+    const n = Number(ts);
+    if (Number.isFinite(n)) {
+      tsMs = n < 1e12 ? n * 1000 : n;
+    } else {
+      // ISO string
+      const d = Date.parse(ts);
+      if (!Number.isFinite(d)) return true;
+      tsMs = d;
+    }
+  } else {
+    return true;
+  }
+
+  const now = Date.now();
+  if (now - tsMs > MONEROO_REPLAY_WINDOW_MS) {
+    console.warn(
+      `[moneroo webhook] timestamp trop ancien (${Math.round((now - tsMs) / 1000)}s) — rejeté pour replay protection`,
+    );
+    return false;
+  }
+  // Tolérance future skew : 5 min également
+  if (tsMs - now > MONEROO_REPLAY_WINDOW_MS) {
+    console.warn(`[moneroo webhook] timestamp dans le futur (skew) — rejeté`);
+    return false;
+  }
+  return true;
 }
 
 interface MonerooWebhookPayload {
@@ -79,6 +142,11 @@ export async function POST(req: Request) {
   if (!verifyMonerooSignature(rawBody, req.headers)) {
     console.warn("[moneroo webhook] signature invalide — IP:", req.headers.get("x-forwarded-for") || "?");
     return NextResponse.json({ error: "Signature invalide" }, { status: 401 });
+  }
+
+  // Anti-replay : rejet si le timestamp dépasse 5 min de skew
+  if (!verifyMonerooTimestamp(rawBody)) {
+    return NextResponse.json({ error: "Timestamp hors fenêtre (replay protection)" }, { status: 401 });
   }
 
   let body: MonerooWebhookPayload;
@@ -299,6 +367,16 @@ export async function POST(req: Request) {
         periodEnd.setMonth(periodEnd.getMonth() + 1);
       }
 
+      // Trial period : si le plan a un trialDays > 0 ET c'est une nouvelle
+      // souscription (pas un renewal), créer en status "trialing" avec
+      // trialEndsAt = now + trialDays jours. Le cron subscription-renewal
+      // basculera vers "active" à expiration du trial.
+      const hasTrial = !isRenewal && plan.trialDays && plan.trialDays > 0;
+      const initialStatus = hasTrial ? "trialing" : "active";
+      const trialEndsAt = hasTrial
+        ? new Date(periodStart.getTime() + (plan.trialDays as number) * 24 * 60 * 60 * 1000)
+        : null;
+
       // Creer ou mettre a jour la Subscription
       const sub = await prisma.subscription.upsert({
         where: isRenewal && renewingSubId
@@ -307,12 +385,13 @@ export async function POST(req: Request) {
         create: {
           userId,
           planId,
-          status: "active",
+          status: initialStatus,
           currentPeriodStart: periodStart,
           currentPeriodEnd: periodEnd,
           lastPaymentAt: new Date(),
           totalPaid: plan.price,
           renewalCount: 0,
+          trialEndsAt,
         },
         update: {
           status: "active",
@@ -382,6 +461,9 @@ export async function POST(req: Request) {
   if (type === "bundle_purchase") {
     const userId = String(metadata.userId ?? "");
     const bundleId = String(metadata.bundleId ?? "");
+    const discountCodeId = metadata.discountCodeId ? String(metadata.discountCodeId) : null;
+    const bundleDiscountAmount = Number(metadata.discountAmount ?? 0);
+    const bundleSubTotalMeta = Number(metadata.bundleSubTotal ?? 0);
 
     if (!userId || !bundleId) {
       return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
@@ -404,10 +486,46 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, alreadyProcessed: true });
       }
 
-      // Créer la ProductBundlePurchase
+      // Créer la ProductBundlePurchase (paidAmount = bundle.priceXof - discount)
+      const paidAmount = Math.max(
+        0,
+        Math.round(bundle.priceXof) - (Number.isFinite(bundleDiscountAmount) ? bundleDiscountAmount : 0),
+      );
       const purchase = await prisma.productBundlePurchase.create({
-        data: { bundleId, userId, paidAmount: bundle.priceXof },
+        data: { bundleId, userId, paidAmount },
       });
+
+      // Record DiscountUsage if a discount was applied at checkout init.
+      // Idempotent via @@unique([discountId, userId, orderId]).
+      if (discountCodeId && bundleDiscountAmount > 0) {
+        const subTotal = bundleSubTotalMeta > 0 ? bundleSubTotalMeta : Math.round(bundle.priceXof);
+        await prisma.discountUsage
+          .create({
+            data: {
+              discountId: discountCodeId,
+              userId,
+              orderType: "bundle",
+              orderId: purchase.id,
+              originalAmount: subTotal,
+              discountAmount: bundleDiscountAmount,
+              finalAmount: paidAmount,
+            },
+          })
+          .catch((err) => {
+            if ((err as { code?: string }).code === "P2002") return null;
+            console.warn("[moneroo bundle discountUsage]", (err as { message?: string })?.message ?? err);
+            return null;
+          });
+        await prisma.discountCode
+          .update({
+            where: { id: discountCodeId },
+            data: {
+              totalDiscounted: { increment: bundleDiscountAmount },
+              revenue: { increment: paidAmount },
+            },
+          })
+          .catch((err) => console.warn("[moneroo bundle discountCode update]", err));
+      }
 
       // Auto-enroller chaque item — tag stripeSessionId = "bundle_<id>" pour
       // pouvoir tracer / auditer l'origine.

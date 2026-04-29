@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendReminder1, sendReminder2 } from "@/lib/email/abandon-reminders";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 /**
  * POST /api/cron/send-abandon-reminders
@@ -11,24 +12,14 @@ import { sendReminder1, sendReminder2 } from "@/lib/email/abandon-reminders";
  * - Email #2 : 24h apres reminder1, jamais envoye, toujours pas RECOVERED
  *
  * Protection :
- *  - Appele par Vercel Cron avec Authorization: Bearer CRON_SECRET
- *  - Accepte aussi ?token=<CRON_SECRET> pour tests manuels
+ *  - Appele par Vercel Cron avec Authorization: Bearer CRON_SECRET ou
+ *    le header x-vercel-cron injecte par Vercel.
  *
  * Idempotent : utilise les timestamps reminder1SentAt/reminder2SentAt pour
  * ne jamais envoyer 2x le meme email.
  */
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-function authorize(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const header = request.headers.get("authorization");
-  if (header === `Bearer ${secret}`) return true;
-  const token = new URL(request.url).searchParams.get("token");
-  if (token === secret) return true;
-  return false;
-}
 
 export async function GET(request: NextRequest) {
   return handle(request);
@@ -38,9 +29,8 @@ export async function POST(request: NextRequest) {
 }
 
 async function handle(request: NextRequest) {
-  if (!authorize(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   const now = new Date();
   const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);

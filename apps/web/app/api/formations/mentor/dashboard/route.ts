@@ -6,16 +6,33 @@ import { IS_DEV } from "@/lib/env";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 
+type Period = "7d" | "30d" | "90d" | "all";
+
 /**
  * GET /api/mentor/dashboard
  * Returns mentor profile + bookings stats + upcoming sessions.
+ *
+ * Query: ?period=7d|30d|90d|all (default: all — preserves legacy behaviour)
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     const userId = session?.user?.id ?? (IS_DEV ? "dev-instructeur-001" : null);
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+    const { searchParams } = new URL(request.url);
+    const periodParam = (searchParams.get("period") as Period | null) ?? "all";
+    const period: Period = (["7d", "30d", "90d", "all"] as const).includes(periodParam as Period)
+      ? (periodParam as Period)
+      : "all";
+    let cutoff: Date | null = null;
+    switch (period) {
+      case "7d":  cutoff = new Date(Date.now() - 7  * 86400000); break;
+      case "30d": cutoff = new Date(Date.now() - 30 * 86400000); break;
+      case "90d": cutoff = new Date(Date.now() - 90 * 86400000); break;
+      case "all": cutoff = null; break;
+    }
 
     // Verify user exists before trying to create a mentor profile
     const existingUser = await prisma.user.findUnique({
@@ -94,8 +111,11 @@ export async function GET() {
     // En attente      = sessions HELD (payees mais pas encore liberees)
     // En dispute      = sessions DISPUTED (bloquees par admin)
     const allBookings = await prisma.mentorBooking.findMany({
-      where: { mentorId: profile.id },
-      select: { status: true, paidAmount: true, escrowStatus: true },
+      where: {
+        mentorId: profile.id,
+        ...(cutoff ? { createdAt: { gte: cutoff } } : {}),
+      },
+      select: { status: true, paidAmount: true, escrowStatus: true, studentId: true, studentRating: true },
     });
     const RATE = VENDOR_NET_RATE;
     const releasedBookings = allBookings.filter((b) => b.escrowStatus === "RELEASED");
@@ -111,6 +131,36 @@ export async function GET() {
     const confirmedCount = allBookings.filter((b) => b.status === "CONFIRMED").length;
     const completedCount = allBookings.filter((b) => b.status === "COMPLETED" || b.status === "RELEASED").length;
 
+    // ── Recompute denormalized stats fresh (avoids stale profile fields) ──
+    const completedBookings = allBookings.filter((b) => b.status === "COMPLETED" || b.status === "RELEASED");
+    const computedTotalSessions = completedBookings.length;
+    const computedTotalStudents = new Set(
+      completedBookings.map((b) => b.studentId).filter((id): id is string => Boolean(id)),
+    ).size;
+    const ratedBookings = completedBookings.filter((b) => b.studentRating != null);
+    const computedRating = ratedBookings.length > 0
+      ? ratedBookings.reduce((s, b) => s + (b.studentRating ?? 0), 0) / ratedBookings.length
+      : 0;
+    const computedReviewsCount = ratedBookings.length;
+
+    // Sync back to MentorProfile in background (fire-and-forget)
+    if (
+      computedTotalSessions !== profile.totalSessions ||
+      computedTotalStudents !== profile.totalStudents ||
+      Math.abs(computedRating - profile.rating) > 0.01 ||
+      computedReviewsCount !== profile.reviewsCount
+    ) {
+      prisma.mentorProfile.update({
+        where: { id: profile.id },
+        data: {
+          totalSessions: computedTotalSessions,
+          totalStudents: computedTotalStudents,
+          rating: computedRating,
+          reviewsCount: computedReviewsCount,
+        },
+      }).catch(() => null);
+    }
+
     return NextResponse.json({
       data: {
         profile: {
@@ -125,10 +175,10 @@ export async function GET() {
           badges: profile.badges,
           languages: profile.languages,
           coverImage: profile.coverImage,
-          rating: profile.rating,
-          reviewsCount: profile.reviewsCount,
-          totalSessions: profile.totalSessions,
-          totalStudents: profile.totalStudents,
+          rating: computedRating,
+          reviewsCount: computedReviewsCount,
+          totalSessions: computedTotalSessions,
+          totalStudents: computedTotalStudents,
           timezone: profile.timezone,
           sessionBuffer: profile.sessionBuffer,
           bookingLeadTime: profile.bookingLeadTime,

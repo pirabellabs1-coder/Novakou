@@ -402,9 +402,15 @@ export function verifyPayGeniusSignature(rawBody: string, headers: Headers): {
 } {
   const secret = process.env.PAYGENIUS_WEBHOOK_SECRET;
   if (!secret) {
-    // Si pas de secret côté serveur, on skip (le webhook restera protégé par
-    // la re-vérification via retrievePayment/retrievePayout). Cohérent avec
-    // le comportement de verifyMonerooSignature.
+    // SECURITY (production) : si le secret est absent en production, on
+    // REFUSE le webhook (sinon replay attack possible). En dev on accepte
+    // (le re-check via retrievePayment/retrievePayout garde un filet).
+    if (process.env.NODE_ENV === "production") {
+      console.error(
+        "[PayGenius Webhook] CRITICAL: PAYGENIUS_WEBHOOK_SECRET missing in production — refusing webhook to prevent replay attack",
+      );
+      return { ok: false, reason: "missing-secret-in-prod" };
+    }
     return { ok: true, reason: "no-secret" };
   }
 

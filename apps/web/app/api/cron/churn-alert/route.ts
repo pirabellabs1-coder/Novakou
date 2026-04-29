@@ -6,16 +6,10 @@
  * Appelé par Vercel Cron quotidiennement.
  */
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout, button, getAppUrl } from "@/lib/email";
-
-function isAuthorized(req: Request): boolean {
-  const auth = req.headers.get("authorization") ?? "";
-  const expected = process.env.CRON_SECRET;
-  if (!expected) return true;
-  return auth === `Bearer ${expected}`;
-}
+import { requireCronAuth } from "@/lib/cron/auth";
 
 async function sendChurnEmail(params: {
   email: string;
@@ -48,10 +42,9 @@ async function sendChurnEmail(params: {
   });
 }
 
-export async function GET(req: Request) {
-  if (!isAuthorized(req)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+export async function GET(req: NextRequest) {
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   const cutoff = new Date(Date.now() - 14 * 24 * 3600 * 1000);
   const recentCutoff = new Date(Date.now() - 30 * 24 * 3600 * 1000);

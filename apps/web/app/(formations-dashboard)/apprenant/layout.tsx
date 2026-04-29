@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
-import { RoleGuard } from "@/components/formations/RoleGuard";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 
 const navGroups = [
@@ -14,7 +13,7 @@ const navGroups = [
     items: [
       { icon: "dashboard",         label: "Tableau de bord", href: "/apprenant/dashboard" },
       { icon: "school",            label: "Mes formations",  href: "/apprenant/mes-formations" },
-      { icon: "inventory_2",       label: "Mes produits",    href: "/apprenant/produits" },
+      { icon: "inventory_2",       label: "Mes produits",    href: "/apprenant/mes-produits" },
       { icon: "workspace_premium", label: "Certificats",     href: "/apprenant/certificats" },
     ],
   },
@@ -106,11 +105,13 @@ function getInitials(name?: string | null): string {
 }
 
 export default function ApprenantLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <RoleGuard requiredRole="apprenant">
-      <ApprenantLayoutInner>{children}</ApprenantLayoutInner>
-    </RoleGuard>
-  );
+  // No RoleGuard here on purpose: /apprenant/* is the BUYER space — anyone
+  // who has ever purchased a product can come back here to find it. That
+  // includes vendors, mentors, and affiliates buying from each other. The
+  // middleware already gates this layout behind authentication (it redirects
+  // anonymous users to /acheteur/connexion), so we just need to ensure
+  // they're logged in, not that they're "apprenant" specifically.
+  return <ApprenantLayoutInner>{children}</ApprenantLayoutInner>;
 }
 
 function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {

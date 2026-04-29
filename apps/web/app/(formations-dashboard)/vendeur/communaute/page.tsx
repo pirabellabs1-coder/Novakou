@@ -1,6 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Post = {
   id: string;
@@ -31,10 +32,40 @@ function timeAgo(dateStr: string) {
 }
 
 export default function CommunautePage() {
+  const qc = useQueryClient();
+  const [toast, setToast] = useState<string | null>(null);
+
   const { data: response, isLoading } = useQuery<{ data: { posts: Post[]; stats: Stats | null } }>({
     queryKey: ["vendeur-communaute"],
     queryFn: () => fetch("/api/formations/vendeur/communaute").then((r) => r.json()),
     staleTime: 30_000,
+  });
+
+  const moderateMut = useMutation({
+    mutationFn: async (args: { discussionId: string; action: "pin" | "unpin" | "delete" | "report" }) => {
+      const res = await fetch("/api/formations/vendeur/communaute", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(args),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return { ...j, action: args.action };
+    },
+    onSuccess: (data: { action: string }) => {
+      const msg =
+        data.action === "delete" ? "Post supprime"
+        : data.action === "pin" ? "Post epingle"
+        : data.action === "unpin" ? "Epingle retiree"
+        : "Post signale";
+      setToast(msg);
+      qc.invalidateQueries({ queryKey: ["vendeur-communaute"] });
+      setTimeout(() => setToast(null), 3000);
+    },
+    onError: (e: Error) => {
+      setToast(`Erreur : ${e.message}`);
+      setTimeout(() => setToast(null), 4000);
+    },
   });
 
   const posts = response?.data?.posts ?? [];
@@ -44,6 +75,12 @@ export default function CommunautePage() {
 
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto">
+      {toast && (
+        <div className="fixed top-20 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl rounded-lg">
+          {toast}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
@@ -124,6 +161,13 @@ export default function CommunautePage() {
                         <span>·</span>
                         <span>{p._count.replies} réponse{p._count.replies !== 1 ? "s" : ""}</span>
                       </div>
+                      {p.status === "active" && (
+                        <ModerationActions
+                          post={p}
+                          isPending={moderateMut.isPending}
+                          onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -194,6 +238,13 @@ export default function CommunautePage() {
                           {p._count.replies}
                         </span>
                       </div>
+                      {p.status === "active" && (
+                        <ModerationActions
+                          post={p}
+                          isPending={moderateMut.isPending}
+                          onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -202,6 +253,59 @@ export default function CommunautePage() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Boutons de modération vendeur sous chaque post actif :
+ * Épingler / Désépingler, Supprimer (avec confirm), Reporter.
+ */
+function ModerationActions({
+  post,
+  isPending,
+  onAction,
+}: {
+  post: Post;
+  isPending: boolean;
+  onAction: (action: "pin" | "unpin" | "delete" | "report") => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => onAction(post.isPinned ? "unpin" : "pin")}
+        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-gray-200 text-[#5c647a] hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 disabled:opacity-50 transition-colors"
+        title={post.isPinned ? "Désépingler ce post" : "Épingler ce post en haut"}
+      >
+        <span className="material-symbols-outlined text-[13px]">push_pin</span>
+        {post.isPinned ? "Désépingler" : "Épingler"}
+      </button>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => {
+          if (window.confirm(`Supprimer le post "${post.title}" ? Cette action est irréversible.`)) {
+            onAction("delete");
+          }
+        }}
+        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-gray-200 text-[#5c647a] hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-50 transition-colors"
+        title="Supprimer ce post (soft-delete)"
+      >
+        <span className="material-symbols-outlined text-[13px]">delete</span>
+        Supprimer
+      </button>
+      <button
+        type="button"
+        disabled={isPending}
+        onClick={() => onAction("report")}
+        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-gray-200 text-[#5c647a] hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 disabled:opacity-50 transition-colors"
+        title="Signaler ce post à l'admin Novakou"
+      >
+        <span className="material-symbols-outlined text-[13px]">flag</span>
+        Reporter
+      </button>
     </div>
   );
 }

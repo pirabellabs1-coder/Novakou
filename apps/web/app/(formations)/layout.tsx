@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import { FormationsNavbar } from "@/components/formations/FormationsNavbar";
 import { FormationsFooter } from "@/components/formations/FormationsFooter";
 import { ToastContainer } from "@/components/ui/toast";
-import CookieBanner from "@/components/legal/CookieBanner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -17,6 +16,9 @@ export default function FormationsLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // The cookie consent banner is mounted once at the root layout
+  // (<CookieConsent /> in apps/web/app/layout.tsx) — do not also mount
+  // <CookieBanner /> here, otherwise both render on every formations page.
   return (
     <div
       className={`${inter.variable} formations-root flex min-h-screen flex-col bg-[#f7f9fb]`}
@@ -26,7 +28,6 @@ export default function FormationsLayout({
       <main className="flex-1 pt-16 overflow-x-hidden">{children}</main>
       <FormationsFooter />
       <ToastContainer />
-      <CookieBanner />
     </div>
   );
 }

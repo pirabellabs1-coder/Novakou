@@ -125,8 +125,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Valeur de reduction invalide" }, { status: 400 });
     }
 
-    if (discountType === "PERCENTAGE" && discountValue > 100) {
-      return NextResponse.json({ error: "Le pourcentage ne peut pas depasser 100" }, { status: 400 });
+    // Hard cap : pourcentage max 95% (jamais 100% — empêche les commandes "gratuites" via abus)
+    if (discountType === "PERCENTAGE") {
+      if (discountValue < 0 || discountValue > 95) {
+        return NextResponse.json({ error: "Pourcentage invalide (0-95%)" }, { status: 400 });
+      }
+    } else if (discountType === "FIXED_AMOUNT") {
+      if (discountValue < 0) {
+        return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
+      }
     }
 
     if (!scope || !["ALL", "FORMATIONS", "PRODUCTS", "SPECIFIC"].includes(scope)) {
@@ -212,6 +219,28 @@ export async function PUT(req: NextRequest) {
 
     if (!id) {
       return NextResponse.json({ error: "ID requis" }, { status: 400 });
+    }
+
+    // Hard cap also on update : empêche de passer un code existant à 100%
+    if (discountValue !== undefined) {
+      if (typeof discountValue !== "number") {
+        return NextResponse.json({ error: "Valeur de reduction invalide" }, { status: 400 });
+      }
+      const effectiveType = discountType ?? null;
+      if (effectiveType === "PERCENTAGE") {
+        if (discountValue < 0 || discountValue > 95) {
+          return NextResponse.json({ error: "Pourcentage invalide (0-95%)" }, { status: 400 });
+        }
+      } else if (effectiveType === "FIXED_AMOUNT") {
+        if (discountValue < 0) {
+          return NextResponse.json({ error: "Montant invalide" }, { status: 400 });
+        }
+      } else {
+        // Type non fourni : appliquer la borne percentage par securite
+        if (discountValue < 0 || discountValue > 95) {
+          return NextResponse.json({ error: "Valeur invalide (0-95)" }, { status: 400 });
+        }
+      }
     }
 
     if (DEV_MODE) {

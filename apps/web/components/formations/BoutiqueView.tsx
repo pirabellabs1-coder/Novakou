@@ -294,7 +294,7 @@ export default function BoutiqueView({
                     href={href}
                     className="group block bg-white rounded-2xl border border-slate-200/80 overflow-hidden hover:shadow-2xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all"
                   >
-                    <div className="aspect-video relative bg-gradient-to-br from-slate-100 to-slate-200">
+                    <div className="aspect-square relative bg-gradient-to-br from-slate-100 to-slate-200">
                       {item.image ? (
                         <Image
                           src={item.image}

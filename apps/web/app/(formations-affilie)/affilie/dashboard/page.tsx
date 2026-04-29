@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import { CommunityBanner } from "@/components/formations/CommunityBanner";
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
 function toEur(n: number)      { return Math.round(n / 655.957); }
@@ -78,6 +79,8 @@ export default function AffilieDashboardPage() {
           </div>
         )}
       </div>
+
+      <CommunityBanner tone="affilie" />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

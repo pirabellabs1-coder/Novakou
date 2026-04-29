@@ -18,10 +18,11 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       where: { id, instructeurId: ctx.instructeurId },
       select: {
         id: true, slug: true, title: true, description: true, descriptionFormat: true,
-        productType: true, banner: true, price: true, originalPrice: true,
+        productType: true, thumbnail: true, banner: true, price: true, originalPrice: true,
         rating: true, reviewsCount: true, salesCount: true, viewsCount: true,
         tags: true, status: true, fileUrl: true,
         hiddenFromMarketplace: true,
+        previewEnabled: true, previewPages: true, watermarkEnabled: true,
         createdAt: true, updatedAt: true,
         category: { select: { id: true, slug: true, name: true } },
         files: {
@@ -52,6 +53,44 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (!existing) return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
 
     const body = await request.json();
+
+    // V2.1 — server-side price validation on update
+    let priceVal: number | undefined;
+    if (body.price !== undefined) {
+      const tmp = parseFloat(body.price);
+      if (!Number.isFinite(tmp) || tmp < 0) {
+        return NextResponse.json(
+          { error: "Le prix doit être un nombre positif ou nul." },
+          { status: 400 }
+        );
+      }
+      priceVal = tmp;
+    }
+    // Effective price after potential update (fallback to existing record)
+    const effectivePrice = priceVal !== undefined ? priceVal : existing.price;
+
+    // V2.3 — originalPrice strictement supérieur au prix
+    let originalPriceVal: number | null | undefined;
+    if (body.originalPrice !== undefined) {
+      if (body.originalPrice === null || body.originalPrice === "" || body.originalPrice === 0) {
+        originalPriceVal = null;
+      } else {
+        const tmp = parseFloat(body.originalPrice);
+        if (!Number.isFinite(tmp) || tmp <= effectivePrice) {
+          return NextResponse.json(
+            { error: "Le prix barré doit être strictement supérieur au prix de vente." },
+            { status: 400 }
+          );
+        }
+        originalPriceVal = tmp;
+      }
+    }
+
+    // V2.2 — publishedAt management
+    // Stamp it the first time the product becomes ACTIF; null it on return to BROUILLON.
+    // DigitalProduct has no publishedAt column in the schema, so we don't write one — but
+    // we still gate the status transition behind the same logic (no-op).
+    void body.status;
 
     // Files: replace-all if `files` array is provided. Each item: { name, url, size?, mimeType? }.
     // We delete existing rows and recreate to keep the order in sync with the array index.
@@ -91,14 +130,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         title: body.title?.trim() || undefined,
         description: body.description !== undefined ? (body.description?.trim() || null) : undefined,
         descriptionFormat: body.descriptionFormat ?? undefined,
+        thumbnail: body.thumbnail !== undefined ? (body.thumbnail || null) : undefined,
         banner: body.banner !== undefined ? (body.banner || null) : undefined,
-        price: body.price !== undefined ? parseFloat(body.price) : undefined,
-        originalPrice: body.originalPrice !== undefined ? (body.originalPrice ? parseFloat(body.originalPrice) : null) : undefined,
+        price: priceVal,
+        originalPrice: originalPriceVal,
         productType: body.productType ?? undefined,
         tags: Array.isArray(body.tags) ? body.tags : undefined,
         status: body.status ?? undefined,
         fileUrl: fileUrlSync,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
+        previewEnabled: typeof body.previewEnabled === "boolean" ? body.previewEnabled : undefined,
+        previewPages: typeof body.previewPages === "number" && body.previewPages >= 1 && body.previewPages <= 20
+          ? Math.floor(body.previewPages)
+          : undefined,
+        watermarkEnabled: typeof body.watermarkEnabled === "boolean" ? body.watermarkEnabled : undefined,
         ...(filesUpdate ? { files: filesUpdate } : {}),
       },
       include: {

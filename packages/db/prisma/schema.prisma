@@ -1524,6 +1524,11 @@ model DigitalProduct {
   productType DigitalProductType @default(EBOOK)
 
   // Médias
+  // `thumbnail` = vignette carrée (~600×600) affichée sur les cartes
+  // marketplace. `banner` = bannière large (~1280×720) du haut de la page
+  // produit. Les deux sont optionnels : le rendu se rabat sur l'autre si
+  // un seul est fourni.
+  thumbnail       String?
   banner          String? // URL image bannière/couverture
   fileUrl         String? // URL Supabase Storage
   fileStoragePath String? // chemin dans le bucket

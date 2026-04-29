@@ -93,6 +93,34 @@ export async function POST(request: Request) {
       if (!enrollment) {
         return NextResponse.json({ error: "Vous devez être inscrit à cette formation" }, { status: 403 });
       }
+      // Verified purchase : require >= 50% progress (or completed) before
+      // allowing the user to leave a review. Avoids spam reviews from people
+      // who barely opened the formation.
+      if (!enrollment.completedAt && (enrollment.progress ?? 0) < 50) {
+        return NextResponse.json(
+          {
+            error: "Vous devez avoir consommé au moins 50 % de la formation pour laisser un avis",
+            code: "INSUFFICIENT_PROGRESS",
+            progress: enrollment.progress ?? 0,
+          },
+          { status: 403 },
+        );
+      }
+      // Edit window : if a review already exists and was created > 30 days ago,
+      // refuse the modification (prevents history rewriting).
+      const existing = await prisma.formationReview.findUnique({
+        where: { userId_formationId: { userId, formationId: itemId } },
+        select: { createdAt: true },
+      });
+      if (existing) {
+        const ageMs = Date.now() - existing.createdAt.getTime();
+        if (ageMs > 30 * 24 * 60 * 60 * 1000) {
+          return NextResponse.json(
+            { error: "La fenêtre de modification (30 jours) est dépassée", code: "EDIT_WINDOW_EXPIRED" },
+            { status: 403 },
+          );
+        }
+      }
       // Upsert review (one per user per formation)
       const review = await prisma.formationReview.upsert({
         where: { userId_formationId: { userId, formationId: itemId } },

@@ -149,6 +149,22 @@ export async function POST(request: Request) {
       if (code.maxUses && code.usedCount >= code.maxUses) {
         return NextResponse.json({ error: "Code promo épuisé" }, { status: 400 });
       }
+      // ── Atomic per-user limit ────────────────────────────────────────
+      // Avant toute reservation globale : vérifier que CET utilisateur
+      // n'a pas déjà épuisé son quota personnel sur ce code.
+      // (la vraie atomicité se fait via le @@unique([discountId,userId,orderId])
+      // au moment de la création du DiscountUsage en post-fulfillment)
+      if (code.maxUsesPerUser != null) {
+        const userPriorUses = await prisma.discountUsage.count({
+          where: { discountId: code.id, userId },
+        });
+        if (userPriorUses >= code.maxUsesPerUser) {
+          return NextResponse.json(
+            { error: "Vous avez déjà utilisé ce code le nombre maximum de fois" },
+            { status: 400 },
+          );
+        }
+      }
       // Atomic claim: increment usedCount only if still under maxUses (prevents race condition)
       if (code.maxUses) {
         const claimed = await prisma.discountCode.updateMany({
@@ -318,13 +334,25 @@ export async function POST(request: Request) {
         },
       });
 
+      // Self-referral guard — an affiliate cannot earn commission when:
+      //   1. they ARE the vendor of this item (vendor would steal their own
+      //      margin via their own affiliate code), or
+      //   2. they ARE the buyer (anyone earning commission on their own
+      //      purchase, e.g. by passing their own ?ref=… in a URL bar).
+      const isSelfReferral =
+        !!affiliateProfile && (
+          affiliateProfile.userId === f.instructeur.user.id ||
+          affiliateProfile.userId === userId
+        );
+      const effectiveAffiliate = isSelfReferral ? null : affiliateProfile;
+
       // Répartition vente affiliée :
       //   Plateforme (Novakou) prend toujours 10% du prix final
       //   Affilié prend X% du prix final (configuré par programme du vendeur)
       //   Vendeur reçoit le reste = prix - 10% - X%
       // → l'affilié est payé par le vendeur (sur sa marge), pas par la plateforme
       const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+      const affAmount = effectiveAffiliate ? Math.round(finalPrice * affiliateCommissionRate) : 0;
       const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
       const commissionAmount = platformAmount;
 
@@ -346,7 +374,7 @@ export async function POST(request: Request) {
           commissionRate: PLATFORM_COMMISSION_RATE,
           commissionAmount,
           vendorAmount: vendorNet,
-          affiliateId: affiliateProfile?.id ?? null,
+          affiliateId: effectiveAffiliate?.id ?? null,
           affiliateAmount: affAmount,
           paymentRef: sessionRef,
           currency: "XOF",
@@ -356,10 +384,10 @@ export async function POST(request: Request) {
       });
 
       // Create affiliate commission record
-      if (affiliateProfile && affAmount > 0) {
+      if (effectiveAffiliate && affAmount > 0) {
         await prisma.affiliateCommission.create({
           data: {
-            affiliateId: affiliateProfile.id,
+            affiliateId: effectiveAffiliate.id,
             orderId: enrollment.id,
             orderType: "formation",
             orderAmount: finalPrice,
@@ -369,7 +397,7 @@ export async function POST(request: Request) {
           },
         }).catch((e) => console.warn("[affiliateCommission]", e));
         await prisma.affiliateProfile.update({
-          where: { id: affiliateProfile.id },
+          where: { id: effectiveAffiliate.id },
           data: {
             totalConversions: { increment: 1 },
             pendingEarnings: { increment: affAmount },
@@ -393,10 +421,18 @@ export async function POST(request: Request) {
         },
       });
 
+      // Self-referral guard — same rationale as the formation loop above.
+      const isSelfReferralProd =
+        !!affiliateProfile && (
+          affiliateProfile.userId === p.instructeur.user.id ||
+          affiliateProfile.userId === userId
+        );
+      const effectiveAffiliateProd = isSelfReferralProd ? null : affiliateProfile;
+
       // Répartition vente affiliée (idem formation) :
       //   10% Novakou, X% affilié, reste vendeur
       const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const affAmount = affiliateProfile ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+      const affAmount = effectiveAffiliateProd ? Math.round(finalPrice * affiliateCommissionRate) : 0;
       const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
       const commissionAmount = platformAmount;
 
@@ -417,7 +453,7 @@ export async function POST(request: Request) {
           commissionRate: PLATFORM_COMMISSION_RATE,
           commissionAmount,
           vendorAmount: vendorNet,
-          affiliateId: affiliateProfile?.id ?? null,
+          affiliateId: effectiveAffiliateProd?.id ?? null,
           affiliateAmount: affAmount,
           paymentRef: sessionRef,
           currency: "XOF",
@@ -426,10 +462,10 @@ export async function POST(request: Request) {
         },
       });
 
-      if (affiliateProfile && affAmount > 0) {
+      if (effectiveAffiliateProd && affAmount > 0) {
         await prisma.affiliateCommission.create({
           data: {
-            affiliateId: affiliateProfile.id,
+            affiliateId: effectiveAffiliateProd.id,
             orderId: purchase.id,
             orderType: "product",
             orderAmount: finalPrice,
@@ -439,7 +475,7 @@ export async function POST(request: Request) {
           },
         }).catch((e) => console.warn("[affiliateCommission]", e));
         await prisma.affiliateProfile.update({
-          where: { id: affiliateProfile.id },
+          where: { id: effectiveAffiliateProd.id },
           data: {
             totalConversions: { increment: 1 },
             pendingEarnings: { increment: affAmount },
@@ -462,17 +498,24 @@ export async function POST(request: Request) {
           revenue: { increment: totalAmount },
         },
       });
-      await prisma.discountUsage.create({
-        data: {
-          discountId: appliedCode.id,
-          userId,
-          orderType: createdEnrollments.length > 0 ? "formation" : "product",
-          orderId,
-          originalAmount: subTotal,
-          discountAmount,
-          finalAmount: totalAmount,
-        },
-      }).catch(() => null);
+      await prisma.discountUsage
+        .create({
+          data: {
+            discountId: appliedCode.id,
+            userId,
+            orderType: createdEnrollments.length > 0 ? "formation" : "product",
+            orderId,
+            originalAmount: subTotal,
+            discountAmount,
+            finalAmount: totalAmount,
+          },
+        })
+        .catch((err) => {
+          // P2002 = unique constraint (discountId, userId, orderId) — déjà créé, idempotent
+          if ((err as { code?: string }).code === "P2002") return null;
+          console.warn("[checkout discountUsage]", err);
+          return null;
+        });
     }
 
     if (clearCart && formationIds.length > 0) {
@@ -491,7 +534,7 @@ export async function POST(request: Request) {
           type: "ORDER",
           title: "Achat confirmé",
           message: `Votre achat est confirmé : ${summary}.`,
-          link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/produits",
+          link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits",
         },
       }).catch(() => null);
     }
@@ -546,7 +589,7 @@ export async function POST(request: Request) {
         if (!created) continue;
 
         const downloadUrl =
-          p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/produits`;
+          p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/mes-produits`;
         await sendDigitalProductDeliveryEmail({
           email: user.email,
           name: fName,

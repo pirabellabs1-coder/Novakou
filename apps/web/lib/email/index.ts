@@ -72,13 +72,13 @@ export function emailLayout(content: string): string {
     </div>
     <!-- Footer -->
     <div style="padding:24px 40px;background:#f9fafb;border-top:1px solid #e5e7eb;text-align:center;">
-      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'equipe Novakou</p>
+      <p style="color:#6b7280;font-size:12px;margin:0 0 8px;">L'équipe Novakou</p>
       <p style="color:#9ca3af;font-size:11px;margin:0;">
         <a href="${getAppUrl()}/cgu" style="color:#006e2f;text-decoration:none;">CGU</a> ·
-        <a href="${getAppUrl()}/confidentialite" style="color:#006e2f;text-decoration:none;">Confidentialite</a> ·
+        <a href="${getAppUrl()}/confidentialite" style="color:#006e2f;text-decoration:none;">Confidentialité</a> ·
         <a href="${getAppUrl()}/contact" style="color:#006e2f;text-decoration:none;">Contact</a>
       </p>
-      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Editee par Pirabel Labs</p>
+      <p style="color:#d1d5db;font-size:10px;margin:12px 0 0;">© 2026 Novakou — Éditée par Pirabel Labs</p>
     </div>
   </div>
 </body>
@@ -91,32 +91,87 @@ export function button(text: string, url: string): string {
 
 // ── 1. Email de bienvenue ──
 
-export async function sendWelcomeEmail(email: string, name: string, dashboardUrl?: string) {
-  const profileUrl = dashboardUrl || `${getAppUrl()}/dashboard/profil`;
-  const kycUrl = `${getAppUrl()}/dashboard/kyc`;
+export type FormationsRole = "instructeur" | "apprenant" | "mentor" | "affilie";
+
+function welcomeContentFor(role: FormationsRole | undefined) {
+  const base = getAppUrl();
+  switch (role) {
+    case "instructeur":
+      return {
+        intro: "Votre compte vendeur est activé. Vous pouvez désormais publier vos formations, e-books, templates et services de coaching, et toucher des milliers d'apprenants en Afrique francophone.",
+        steps: [
+          "Complétez votre profil et personnalisez votre boutique",
+          "Publiez votre première formation ou produit numérique",
+          "Configurez votre méthode de retrait (Mobile Money, Wave, virement)",
+        ],
+        primary: { label: "Accéder à mon espace vendeur", url: `${base}/vendeur/dashboard` },
+        secondary: { label: "Compléter mon profil", url: `${base}/vendeur/parametres` },
+      };
+    case "apprenant":
+      return {
+        intro: "Votre compte est activé. Vous avez maintenant accès à des centaines de formations, e-books et produits numériques créés par les meilleurs créateurs d'Afrique francophone.",
+        steps: [
+          "Explorez le catalogue de formations et produits",
+          "Complétez votre profil pour personnaliser vos recommandations",
+          "Sauvegardez vos favoris et reprenez votre apprentissage à tout moment",
+        ],
+        primary: { label: "Explorer le catalogue", url: `${base}/explorer` },
+        secondary: { label: "Mon espace apprenant", url: `${base}/apprenant/dashboard` },
+      };
+    case "mentor":
+      return {
+        intro: "Votre compte mentor est activé. Vous pouvez désormais proposer des sessions de coaching 1-to-1 aux apprenants et monétiser votre expertise.",
+        steps: [
+          "Complétez votre profil mentor (expertise, expérience, tarif)",
+          "Définissez vos disponibilités hebdomadaires",
+          "Recevez vos premières demandes de session",
+        ],
+        primary: { label: "Accéder à mon espace mentor", url: `${base}/mentor/dashboard` },
+        secondary: { label: "Compléter mon profil", url: `${base}/mentor/profil` },
+      };
+    case "affilie":
+      return {
+        intro: "Votre compte affilié est activé. Vous pouvez désormais promouvoir les meilleurs produits de la plateforme et toucher jusqu'à 40 % de commission sur chaque vente.",
+        steps: [
+          "Récupérez votre lien d'affiliation unique",
+          "Choisissez les produits à promouvoir dans le catalogue",
+          "Suivez vos clics, ventes et commissions en temps réel",
+        ],
+        primary: { label: "Accéder à mon espace affilié", url: `${base}/affilie/dashboard` },
+        secondary: { label: "Voir le catalogue à promouvoir", url: `${base}/explorer` },
+      };
+    default:
+      return {
+        intro: "Votre compte a été créé avec succès. Bienvenue sur la plateforme qui réunit les meilleurs créateurs digitaux d'Afrique francophone : formations, e-books, templates, coaching.",
+        steps: [
+          "Complétez votre profil",
+          "Choisissez votre espace : vendeur, apprenant, mentor ou affilié",
+          "Découvrez le catalogue et la communauté",
+        ],
+        primary: { label: "Accéder à mon compte", url: `${base}/apprenant/dashboard` },
+        secondary: { label: "Explorer le catalogue", url: `${base}/explorer` },
+      };
+  }
+}
+
+export async function sendWelcomeEmail(email: string, name: string, role?: FormationsRole) {
+  const c = welcomeContentFor(role);
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Bienvenue sur Novakou, ${name} !</h2>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Votre compte a ete cree avec succes. Vous faites maintenant partie de la plus grande communaute
-      de freelances en Afrique francophone et a l'international.
-    </p>
-    <p style="color:#4b5563;line-height:1.6;margin:0 0 8px;">
-      <strong>Prochaines etapes :</strong>
-    </p>
+    <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">${c.intro}</p>
+    <p style="color:#4b5563;line-height:1.6;margin:0 0 8px;"><strong>Prochaines étapes :</strong></p>
     <ol style="color:#4b5563;line-height:1.8;margin:0 0 24px;padding-left:20px;">
-      <li>Completez votre profil (photo, bio, competences)</li>
-      <li>Verifiez votre identite pour debloquer toutes les fonctionnalites</li>
-      <li>Publiez votre premier service ou explorez les offres</li>
+      ${c.steps.map((s) => `<li>${s}</li>`).join("")}
     </ol>
-    ${button("Completer mon profil", profileUrl)}
+    ${button(c.primary.label, c.primary.url)}
     <div style="margin:16px 0;">
-      ${button("Verifier mon identite", kycUrl)}
+      ${button(c.secondary.label, c.secondary.url)}
     </div>
     <p style="color:#9ca3af;font-size:13px;margin:24px 0 0;">
-      Si vous avez des questions, n'hesitez pas a nous contacter a
+      Une question ? Écrivez-nous à
       <a href="mailto:support@novakou.com" style="color:#006e2f;">support@novakou.com</a>
     </p>
-    <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— L'équipe Pirabel Labs</p>
+    <p style="color:#4b5563;margin:24px 0 0;font-style:italic;">— L'équipe Novakou</p>
   `);
 
   return sendEmail({ to: email, subject: "Bienvenue sur Novakou !", html });
@@ -127,43 +182,43 @@ export async function sendWelcomeEmail(email: string, name: string, dashboardUrl
 export async function sendVerificationEmail(email: string, name: string, code: string) {
   // Always log the code in dev for easy testing
   if (!process.env.RESEND_API_KEY) {
-    console.log(`\n🔑 CODE DE VERIFICATION pour ${email}: ${code}\n`);
+    console.log(`\n🔑 CODE DE VÉRIFICATION pour ${email}: ${code}\n`);
   }
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Verifiez votre adresse email</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Vérifiez votre adresse email</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, voici votre code de verification :
+      Bonjour ${escapeHtml(name)}, voici votre code de vérification :
     </p>
     <div style="background:#ecfdf5;border:2px solid #006e2f;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">
-      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#006e2f;">${code}</span>
+      <span style="font-size:36px;font-weight:800;letter-spacing:8px;color:#006e2f;">${escapeHtml(code)}</span>
     </div>
     <p style="color:#6b7280;font-size:13px;margin:0;">
       Ce code expire dans <strong>10 minutes</strong>. Ne le partagez avec personne.
     </p>
   `);
 
-  return sendEmail({ to: email, subject: `${code} — Code de verification Novakou`, html });
+  return sendEmail({ to: email, subject: `${code} — Code de vérification Novakou`, html });
 }
 
 // ── 3. Mot de passe oublie ──
 
 export async function sendPasswordResetEmail(email: string, name: string, resetToken: string) {
-  const resetUrl = `${getAppUrl()}/reinitialiser-mot-de-passe?token=${resetToken}`;
+  const resetUrl = `${getAppUrl()}/reinitialiser-mot-de-passe?token=${encodeURIComponent(resetToken)}`;
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Reinitialiser votre mot de passe</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Réinitialiser votre mot de passe</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, vous avez demande la reinitialisation de votre mot de passe.
+      Bonjour ${escapeHtml(name)}, vous avez demandé la réinitialisation de votre mot de passe.
     </p>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe :
     </p>
-    ${button("Reinitialiser mon mot de passe", resetUrl)}
+    ${button("Réinitialiser mon mot de passe", resetUrl)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
-      Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demande cette reinitialisation, ignorez cet email.
+      Ce lien expire dans <strong>1 heure</strong>. Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
     </p>
   `);
 
-  return sendEmail({ to: email, subject: "Reinitialiser votre mot de passe — Novakou", html });
+  return sendEmail({ to: email, subject: "Réinitialiser votre mot de passe — Novakou", html });
 }
 
 // ── 4. Confirmation de commande ──
@@ -174,25 +229,25 @@ export async function sendOrderConfirmationEmail(
   order: { id: string; serviceTitle: string; amount: number; deadline: string }
 ) {
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Commande confirmee !</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Commande confirmée !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Bonjour ${name}, votre commande a ete enregistree avec succes.
+      Bonjour ${escapeHtml(name)}, votre commande a été enregistrée avec succès.
     </p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:0 0 24px;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Service</td><td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${order.serviceTitle}</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Service</td><td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${escapeHtml(order.serviceTitle)}</td></tr>
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${order.amount.toFixed(2)} EUR</td></tr>
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Date limite</td><td style="color:#111827;text-align:right;font-size:14px;">${order.deadline}</td></tr>
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Reference</td><td style="color:#111827;text-align:right;font-size:14px;">${order.id}</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Date limite</td><td style="color:#111827;text-align:right;font-size:14px;">${escapeHtml(order.deadline)}</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Référence</td><td style="color:#111827;text-align:right;font-size:14px;">${escapeHtml(order.id)}</td></tr>
       </table>
     </div>
     ${button("Voir ma commande", `${getAppUrl()}/client/commandes`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
-      Les fonds sont securises en escrow jusqu'a la livraison et votre validation.
+      Les fonds sont sécurisés en escrow jusqu'à la livraison et votre validation.
     </p>
   `);
 
-  return sendEmail({ to: email, subject: `Commande confirmee — ${order.serviceTitle}`, html });
+  return sendEmail({ to: email, subject: `Commande confirmée — ${order.serviceTitle}`, html });
 }
 
 // ── 5. Nouveau message ──
@@ -204,15 +259,23 @@ export async function sendNewMessageEmail(
   messagePreview: string,
   conversationUrl: string
 ) {
+  // XSS hardening: senderName + messagePreview are user input. They MUST be
+  // escaped before being interpolated in HTML — otherwise a "name" with
+  // <script> would execute in every recipient inbox that supports JS.
+  const safeSender = escapeHtml(senderName);
+  const safePreview = escapeHtml(messagePreview.slice(0, 200)) + (messagePreview.length > 200 ? "…" : "");
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Nouveau message de ${senderName}</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Nouveau message de ${safeSender}</h2>
     <div style="background:#f9fafb;border-left:4px solid #006e2f;padding:16px 20px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="color:#4b5563;margin:0;font-style:italic;">"${messagePreview.slice(0, 200)}${messagePreview.length > 200 ? "..." : ""}"</p>
+      <p style="color:#4b5563;margin:0;font-style:italic;">«&nbsp;${safePreview}&nbsp;»</p>
     </div>
-    ${button("Repondre", conversationUrl)}
+    ${button("Répondre", conversationUrl)}
   `);
 
-  return sendEmail({ to: email, subject: `Message de ${senderName} — Novakou`, html });
+  // Subject lines are plain text (not HTML); escaping isn't needed there but
+  // we still strip newlines to prevent header injection attempts.
+  const safeSenderSubject = senderName.replace(/[\r\n]/g, " ").slice(0, 60);
+  return sendEmail({ to: email, subject: `Message de ${safeSenderSubject} — Novakou`, html });
 }
 
 // ── 6. Paiement recu (freelance) ──
@@ -223,18 +286,18 @@ export async function sendPaymentReceivedEmail(
   payment: { amount: number; serviceTitle: string; orderId: string }
 ) {
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Paiement recu !</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Paiement reçu !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Bonjour ${name}, un paiement a ete credite sur votre portefeuille Novakou.
+      Bonjour ${escapeHtml(name)}, un paiement a été crédité sur votre portefeuille Novakou.
     </p>
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
       <p style="color:#16a34a;font-size:32px;font-weight:800;margin:0;">+${payment.amount.toFixed(2)} EUR</p>
-      <p style="color:#4ade80;font-size:14px;margin:4px 0 0;">${payment.serviceTitle}</p>
+      <p style="color:#4ade80;font-size:14px;margin:4px 0 0;">${escapeHtml(payment.serviceTitle)}</p>
     </div>
     ${button("Voir mes finances", `${getAppUrl()}/dashboard/finances`)}
   `);
 
-  return sendEmail({ to: email, subject: `Paiement de ${payment.amount.toFixed(2)} EUR recu`, html });
+  return sendEmail({ to: email, subject: `Paiement de ${payment.amount.toFixed(2)} EUR reçu`, html });
 }
 
 // ── 7. Nouvelle commande recue (freelance) ──
@@ -247,13 +310,13 @@ export async function sendNewOrderFreelanceEmail(
   const html = emailLayout(`
     <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Nouvelle commande !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Bonjour ${name}, vous avez recu une nouvelle commande de <strong>${order.clientName}</strong>.
+      Bonjour ${escapeHtml(name)}, vous avez reçu une nouvelle commande de <strong>${escapeHtml(order.clientName)}</strong>.
     </p>
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:20px;margin:0 0 24px;">
       <table style="width:100%;border-collapse:collapse;">
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Service</td><td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${order.serviceTitle}</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Service</td><td style="color:#111827;font-weight:600;text-align:right;font-size:14px;">${escapeHtml(order.serviceTitle)}</td></tr>
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Montant</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:16px;">${order.amount.toFixed(2)} EUR</td></tr>
-        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Client</td><td style="color:#111827;text-align:right;font-size:14px;">${order.clientName}</td></tr>
+        <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Client</td><td style="color:#111827;text-align:right;font-size:14px;">${escapeHtml(order.clientName)}</td></tr>
       </table>
     </div>
     ${button("Voir la commande", `${getAppUrl()}/dashboard/commandes`)}
@@ -266,77 +329,81 @@ export async function sendNewOrderFreelanceEmail(
 
 export async function sendKycApprovedEmail(email: string, name: string, level: number) {
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Verification KYC approuvee !</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Vérification KYC approuvée !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, votre verification de niveau ${level} a ete approuvee avec succes.
+      Bonjour ${escapeHtml(name)}, votre vérification de niveau ${level} a été approuvée avec succès.
     </p>
     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;text-align:center;margin:0 0 24px;">
-      <p style="color:#16a34a;font-size:18px;font-weight:700;margin:0;">Niveau ${level} verifie</p>
+      <p style="color:#16a34a;font-size:18px;font-weight:700;margin:0;">Niveau ${level} vérifié</p>
     </div>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      De nouvelles fonctionnalites sont maintenant disponibles sur votre compte.
+      De nouvelles fonctionnalités sont maintenant disponibles sur votre compte.
     </p>
     ${button("Voir mon profil", `${getAppUrl()}/dashboard/profil`)}
   `);
 
-  return sendEmail({ to: email, subject: `Verification KYC niveau ${level} approuvee`, html });
+  return sendEmail({ to: email, subject: `Vérification KYC niveau ${level} approuvée`, html });
 }
 
 // ── 9. KYC refuse ──
 
 export async function sendKycRejectedEmail(email: string, name: string, level: number, reason: string) {
+  // XSS hardening: `reason` is admin-supplied free text — escape before
+  // interpolating into HTML so a malicious admin (or a copy-paste with
+  // angle brackets) can't ship JS to the recipient.
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Verification KYC refusee</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Vérification KYC refusée</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, votre demande de verification de niveau ${level} n'a pas pu etre approuvee.
+      Bonjour ${escapeHtml(name)}, votre demande de vérification de niveau ${level} n'a pas pu être approuvée.
     </p>
     <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:0 0 24px;">
       <p style="color:#dc2626;font-weight:600;margin:0 0 4px;">Motif du refus :</p>
-      <p style="color:#991b1b;margin:0;">${reason}</p>
+      <p style="color:#991b1b;margin:0;">${escapeHtml(reason)}</p>
     </div>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Vous pouvez soumettre une nouvelle demande apres avoir corrige les elements mentionnes.
+      Vous pouvez soumettre une nouvelle demande après avoir corrigé les éléments mentionnés.
     </p>
-    ${button("Soumettre a nouveau", `${getAppUrl()}/dashboard/kyc`)}
+    ${button("Soumettre à nouveau", `${getAppUrl()}/kyc`)}
   `);
 
-  return sendEmail({ to: email, subject: "Verification KYC refusee — Novakou", html });
+  return sendEmail({ to: email, subject: "Vérification KYC refusée — Novakou", html });
 }
 
 // ── 10. Service approuve ──
 
 export async function sendServiceApprovedEmail(email: string, name: string, serviceTitle: string) {
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Service publie !</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Service publié !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, votre service <strong>"${serviceTitle}"</strong> a ete approuve par notre equipe
+      Bonjour ${escapeHtml(name)}, votre service <strong>«&nbsp;${escapeHtml(serviceTitle)}&nbsp;»</strong> a été approuvé par notre équipe
       et est maintenant visible sur la marketplace.
     </p>
     ${button("Voir mon service", `${getAppUrl()}/dashboard/services`)}
     <p style="color:#9ca3af;font-size:13px;margin:16px 0 0;">
-      Pensez a partager votre service sur les reseaux sociaux pour attirer vos premiers clients !
+      Pensez à partager votre service sur les réseaux sociaux pour attirer vos premiers clients !
     </p>
   `);
 
-  return sendEmail({ to: email, subject: `Service publie — ${serviceTitle}`, html });
+  return sendEmail({ to: email, subject: `Service publié — ${serviceTitle}`, html });
 }
 
 // ── 11. Service refuse ──
 
 export async function sendServiceRejectedEmail(email: string, name: string, serviceTitle: string, reason: string) {
+  // Same XSS hardening rationale as KYC rejection.
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Service non approuve</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Service non approuvé</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 16px;">
-      Bonjour ${name}, votre service <strong>"${serviceTitle}"</strong> n'a pas pu etre publie.
+      Bonjour ${escapeHtml(name)}, votre service <strong>«&nbsp;${escapeHtml(serviceTitle)}&nbsp;»</strong> n'a pas pu être publié.
     </p>
     <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:0 0 24px;">
       <p style="color:#dc2626;font-weight:600;margin:0 0 4px;">Motif :</p>
-      <p style="color:#991b1b;margin:0;">${reason}</p>
+      <p style="color:#991b1b;margin:0;">${escapeHtml(reason)}</p>
     </div>
     ${button("Modifier mon service", `${getAppUrl()}/dashboard/services`)}
   `);
 
-  return sendEmail({ to: email, subject: `Service non approuve — ${serviceTitle}`, html });
+  return sendEmail({ to: email, subject: `Service non approuvé — ${serviceTitle}`, html });
 }
 
 // ── 12. Livraison effectuee (notification client) ──
@@ -347,21 +414,21 @@ export async function sendDeliveryNotificationEmail(
   order: { id: string; serviceTitle: string; freelanceName: string }
 ) {
   const html = emailLayout(`
-    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Livraison effectuee !</h2>
+    <h2 style="color:#111827;font-size:22px;margin:0 0 16px;">Livraison effectuée !</h2>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Bonjour ${name}, <strong>${order.freelanceName}</strong> a livre votre commande
-      pour le service <strong>"${order.serviceTitle}"</strong>.
+      Bonjour ${escapeHtml(name)}, <strong>${escapeHtml(order.freelanceName)}</strong> a livré votre commande
+      pour le service <strong>«&nbsp;${escapeHtml(order.serviceTitle)}&nbsp;»</strong>.
     </p>
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
-      Veuillez verifier la livraison et la valider ou demander une revision.
+      Veuillez vérifier la livraison et la valider ou demander une révision.
     </p>
     ${button("Voir la livraison", `${getAppUrl()}/client/commandes`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
-      Si vous ne validez pas dans les 3 jours, la livraison sera automatiquement acceptee.
+      Si vous ne validez pas dans les 3 jours, la livraison sera automatiquement acceptée.
     </p>
   `);
 
-  return sendEmail({ to: email, subject: `Livraison effectuee — ${order.serviceTitle}`, html });
+  return sendEmail({ to: email, subject: `Livraison effectuée — ${order.serviceTitle}`, html });
 }
 
 // ── Nouvelle connexion — alerte de sécurité ──

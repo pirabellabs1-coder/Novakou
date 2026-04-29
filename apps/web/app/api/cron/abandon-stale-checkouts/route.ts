@@ -18,26 +18,16 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const STALE_AFTER_MS = 60 * 60 * 1000; // 1 heure
 
-function authorize(request: NextRequest): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const header = request.headers.get("authorization");
-  if (header === `Bearer ${secret}`) return true;
-  const token = new URL(request.url).searchParams.get("token");
-  if (token === secret) return true;
-  return false;
-}
-
 async function handle(request: NextRequest) {
-  if (!authorize(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   const cutoff = new Date(Date.now() - STALE_AFTER_MS);
 

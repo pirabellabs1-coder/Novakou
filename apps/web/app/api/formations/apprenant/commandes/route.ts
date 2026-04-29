@@ -54,9 +54,17 @@ export async function GET(req: NextRequest) {
         category: e.formation?.customCategory ?? null,
         amount: e.paidAmount,
         currency: "XOF",
-        status: e.completedAt ? "COMPLETED" : "ACTIVE",
+        status: e.refundedAt
+          ? "REFUNDED"
+          : e.refundRequested
+          ? "REFUND_PENDING"
+          : e.completedAt
+          ? "COMPLETED"
+          : "ACTIVE",
         createdAt: e.createdAt.toISOString(),
         progress: e.progress,
+        refundRequested: e.refundRequested ?? false,
+        refundedAt: e.refundedAt?.toISOString() ?? null,
         instructeurUserId: (e.formation as { instructeur?: { user?: { id?: string } } })?.instructeur?.user?.id ?? null,
       })),
       ...purchaseList.map((p) => ({

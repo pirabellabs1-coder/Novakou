@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CommunityBanner } from "@/components/formations/CommunityBanner";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface MentorProfile {
@@ -409,6 +410,8 @@ export default function MentorDashboardPage() {
             Gérez vos séances, suivez vos revenus et accompagnez vos apprenants.
           </p>
         </div>
+
+        <CommunityBanner tone="mentor" />
 
         {/* ── KYC banner (onboarding) ─────────────────────────────────────────── */}
         {kycState && kycState.level < 2 && (

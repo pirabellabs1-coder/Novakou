@@ -44,6 +44,7 @@ export default function LiensPage() {
   const [catFilter, setCatFilter] = useState("tous");
   const [justAdded, setJustAdded] = useState<string | null>(null);
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [qrLinkOpen, setQrLinkOpen] = useState<string | null>(null);
 
   // Fetch affiliate code
   const { data: affiliateStatus } = useQuery<AffiliateStatus>({
@@ -89,7 +90,19 @@ export default function LiensPage() {
     if (!affiliateCode) return "";
     const origin = typeof window !== "undefined" ? window.location.origin : "https://novakou.com";
     const path = kind === "produit" ? "/produit" : "/formation";
-    return `${origin}${path}/${slug}?ref=${affiliateCode}`;
+    // UTM params : permet de tracker la source dans GA + analytics interne
+    const params = new URLSearchParams({
+      ref: affiliateCode,
+      utm_source: "affiliate",
+      utm_medium: "share",
+      utm_campaign: affiliateCode,
+    });
+    return `${origin}${path}/${slug}?${params.toString()}`;
+  }
+
+  function buildQrUrl(link: string): string {
+    // Service public api.qrserver.com — pas de dep ajoutée
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(link)}`;
   }
 
   function handleCopy(link: string, id: string) {
@@ -264,8 +277,8 @@ export default function LiensPage() {
 
                       {/* Link display */}
                       {affiliateCode ? (
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="flex-1 bg-[#1e3a2f] rounded-lg px-3 py-2.5 flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-2 mb-4 flex-wrap">
+                          <div className="flex-1 min-w-[200px] bg-[#1e3a2f] rounded-lg px-3 py-2.5 flex items-center gap-2 min-w-0">
                             <span className="material-symbols-outlined text-[13px] text-[#5c9e7a] flex-shrink-0">link</span>
                             <span className="text-xs text-[#5c9e7a] truncate font-mono">{link}</span>
                           </div>
@@ -277,6 +290,14 @@ export default function LiensPage() {
                           >
                             <span className="material-symbols-outlined text-[13px]">{isCopied ? "check" : "content_copy"}</span>
                             {isCopied ? "Copié !" : "Copier"}
+                          </button>
+                          <button
+                            onClick={() => setQrLinkOpen(link)}
+                            title="Voir QR code"
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#22c55e]/20 text-[#22c55e] hover:bg-[#22c55e]/30 transition-all"
+                          >
+                            <span className="material-symbols-outlined text-[13px]">qr_code_2</span>
+                            QR
                           </button>
                         </div>
                       ) : (
@@ -447,6 +468,52 @@ export default function LiensPage() {
               })}
             </div>
           )}
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {qrLinkOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setQrLinkOpen(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-extrabold text-[#191c1e]">Code QR de partage</h3>
+              <button
+                onClick={() => setQrLinkOpen(null)}
+                className="p-1 rounded-lg hover:bg-gray-100"
+              >
+                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+              </button>
+            </div>
+            <div className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-center mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={buildQrUrl(qrLinkOpen)}
+                alt="QR code du lien affilié"
+                className="w-48 h-48"
+              />
+            </div>
+            <p className="text-xs text-[#5c647a] mb-4 text-center">
+              Imprimez et collez sur vos flyers, présentations, vitrines.
+              Le scan ouvre directement votre lien affilié sur le téléphone.
+            </p>
+            <a
+              href={buildQrUrl(qrLinkOpen)}
+              download="qr-code-novakou.png"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
+              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+            >
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              Télécharger le QR
+            </a>
+          </div>
         </div>
       )}
     </div>

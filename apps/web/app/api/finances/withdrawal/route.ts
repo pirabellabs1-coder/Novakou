@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
           code: "KYC_REQUIRED",
           requiredLevel: 3,
           currentLevel: session.user.kyc ?? 1,
-          redirectTo: "/dashboard/kyc",
+          redirectTo: "/kyc",
         },
         { status: 403 }
       );

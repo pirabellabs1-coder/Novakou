@@ -64,7 +64,7 @@ export default function UpsellSuggestions({
             href={s.href}
             className="flex-shrink-0 w-48 bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow snap-start"
           >
-            <div className="aspect-video relative bg-slate-100">
+            <div className="aspect-square relative bg-slate-100">
               {s.image ? (
                 <Image src={s.image} alt={s.title} fill sizes="200px" unoptimized className="object-cover" />
               ) : (

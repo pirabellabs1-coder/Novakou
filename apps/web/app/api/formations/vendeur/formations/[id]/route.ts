@@ -61,9 +61,57 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const body = await request.json();
     // Si isFree=true → forcer price=0 (cohérence)
     const incomingIsFree = typeof body.isFree === "boolean" ? body.isFree : undefined;
-    let priceVal: number | undefined =
-      body.price !== undefined ? parseFloat(body.price) : undefined;
+
+    // V2.1 — server-side price validation on update
+    let priceVal: number | undefined;
+    if (body.price !== undefined) {
+      const tmp = parseFloat(body.price);
+      if (!Number.isFinite(tmp) || tmp < 0) {
+        return NextResponse.json(
+          { error: "Le prix doit être un nombre positif ou nul." },
+          { status: 400 }
+        );
+      }
+      priceVal = tmp;
+    }
     if (incomingIsFree === true) priceVal = 0;
+    // Si on bascule vers payant, exiger price > 0
+    const effectiveIsFree =
+      incomingIsFree !== undefined ? incomingIsFree : existing.isFree;
+    const effectivePrice = priceVal !== undefined ? priceVal : existing.price;
+    if (!effectiveIsFree && effectivePrice <= 0) {
+      return NextResponse.json(
+        { error: "Le prix doit être strictement supérieur à 0 pour une formation payante." },
+        { status: 400 }
+      );
+    }
+
+    // V2.3 — originalPrice strictement supérieur au prix
+    let originalPriceVal: number | null | undefined;
+    if (body.originalPrice !== undefined) {
+      if (body.originalPrice === null || body.originalPrice === "" || body.originalPrice === 0) {
+        originalPriceVal = null;
+      } else {
+        const tmp = parseFloat(body.originalPrice);
+        if (!Number.isFinite(tmp) || tmp <= effectivePrice) {
+          return NextResponse.json(
+            { error: "Le prix barré doit être strictement supérieur au prix de vente." },
+            { status: 400 }
+          );
+        }
+        originalPriceVal = tmp;
+      }
+    }
+
+    // V2.2 — publishedAt: stamp lors du passage à ACTIF (si pas déjà set), null sur retour BROUILLON.
+    let publishedAtVal: Date | null | undefined;
+    if (body.status !== undefined && body.status !== existing.status) {
+      if (body.status === "ACTIF") {
+        publishedAtVal = existing.publishedAt ?? new Date();
+      } else if (body.status === "BROUILLON") {
+        publishedAtVal = null;
+      }
+    }
 
     const updated = await prisma.formation.update({
       where: { id },
@@ -73,9 +121,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         description: body.description !== undefined ? body.description?.trim() || null : undefined,
         thumbnail: body.thumbnail !== undefined ? body.thumbnail || null : undefined,
         price: priceVal,
-        originalPrice: body.originalPrice !== undefined ? (body.originalPrice ? parseFloat(body.originalPrice) : null) : undefined,
+        originalPrice: originalPriceVal,
         isFree: incomingIsFree,
         status: body.status ?? undefined,
+        publishedAt: publishedAtVal,
         hiddenFromMarketplace: typeof body.hiddenFromMarketplace === "boolean" ? body.hiddenFromMarketplace : undefined,
       },
     });

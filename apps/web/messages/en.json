@@ -32,7 +32,8 @@
     "tarifs": "Pricing",
     "connexion": "Sign In",
     "inscription": "Sign Up",
-    "devise": "Currency"
+    "devise": "Currency",
+    "formations": "Courses"
   },
   "footer": {
     "description": "The freelance platform that elevates your career to the highest level. Find the best experts for your projects.",
@@ -86,7 +87,8 @@
         "secretariat": "Admin & Secretarial",
         "cybersecurite": "Cybersecurity",
         "finance": "Finance & Accounting",
-        "lifestyle": "Lifestyle & Wellness"
+        "lifestyle": "Lifestyle & Wellness",
+        "formation-coaching": "Course & Coaching"
       }
     },
     "stats": {
@@ -161,6 +163,10 @@
         "lifestyle": {
           "title": "Lifestyle & Wellness",
           "description": "Nutrition, Fitness, Personal Development, Meditation."
+        },
+        "formation-coaching": {
+          "title": "Course & Coaching",
+          "description": "Coaching pro, Mentorat, Création de cours, E-learning."
         }
       }
     },
@@ -654,7 +660,9 @@
     "cat_finance_comptabilite": "Finance & Accounting",
     "cat_finance_comptabilite_desc": "Accounting, tax, invoicing, financial analysis",
     "cat_lifestyle_bien_etre": "Lifestyle & Wellness",
-    "cat_lifestyle_bien_etre_desc": "Nutrition, fitness, personal development, meditation"
+    "cat_lifestyle_bien_etre_desc": "Nutrition, fitness, personal development, meditation",
+    "cat_formation_coaching": "Course & Coaching",
+    "cat_formation_coaching_desc": "Coaching professionnel, mentorat, création de cours en ligne"
   },
   "freelance_profile": {
     "not_found_title": "Freelancer not found",
@@ -744,7 +752,8 @@
       "secretariat-admin": "Admin & Secretarial",
       "cybersecurite": "Cybersecurity",
       "finance-comptabilite": "Finance & Accounting",
-      "lifestyle-bien-etre": "Lifestyle & Wellness"
+      "lifestyle-bien-etre": "Lifestyle & Wellness",
+      "formation-coaching": "Course & Coaching"
     },
     "delivery": {
       "all": "All",
@@ -778,7 +787,9 @@
       "note": "Best rated",
       "recent": "Most recent",
       "populaire": "Popular"
-    }
+    },
+    "apply_filters": "Apply les filters",
+    "all_categories": "All"
   },
   "agency_profile": {
     "not_found_title": "Agency not found",
@@ -805,7 +816,40 @@
     "expertise": "Expertise",
     "agency_services": "Agency services",
     "from": "From",
-    "view_all_agency_services": "View all agency services ({count})"
+    "view_all_agency_services": "View all agency services ({count})",
+    "contact_placeholder": "Decrivez votre projet ou posez votre question...",
+    "send": "Envoyer",
+    "completed_projects": "Projects realises",
+    "average_rating": "Note moyenne",
+    "client_reviews": "Avis clients",
+    "active_services": "Services actifs",
+    "tab_reviews_count": "Avis ({count})",
+    "specialties": "Specialites",
+    "team_members": "Membres d'equipe",
+    "reviews_count": "{count, plural, =1 {1 avis} other {{count} avis}}",
+    "client": "Client",
+    "reply_from": "Reponse de {name}",
+    "no_reviews_yet": "Aucun avis pour le moment",
+    "information": "Incourses",
+    "sector": "Secteur",
+    "location": "Localisation",
+    "team_size": "Taille de l'equipe",
+    "website": "Site web",
+    "in_numbers": "En chiffres",
+    "projects": "Projects",
+    "reviews": "Avis",
+    "members": "Membres",
+    "have_a_project": "Vous avez un projet ?",
+    "contact_cta_description": "Contactez {name} pour discuter de votre projet et recevoir un devis personnalise.",
+    "request_quote": "Demander un devis",
+    "our_services": "Nos services",
+    "from_price": "A partir de {price}",
+    "view_all_services": "Voir all les services ({count})",
+    "our_team": "Notre Equipe",
+    "team_summary": "Equipe de {count} membres",
+    "our_portfolio": "Nos Realisations",
+    "our_process": "Notre Processus",
+    "key_result": "Resultat cle"
   },
   "service_detail": {
     "breadcrumb_marketplace": "Marketplace",
@@ -879,6 +923,114 @@
     "feature_unlimited_revisions": "Unlimited revisions",
     "feature_priority_support": "Priority support",
     "feature_express_delivery": "Express delivery",
-    "feature_strategy_consultation": "Strategy consultation"
+    "feature_strategy_consultation": "Strategy consultation",
+    "breadcrumb_home": "Accueil",
+    "breadcrumb_services": "Explorer",
+    "not_found_title": "Service introuvable",
+    "not_found_description": "Le service que vous recherchez n'existe pas ou a été supprimé.",
+    "back_home": "Retour à l'accueil",
+    "back_to_services": "Retour à l'explorer",
+    "delivery_days": "Livraison en {count} jours",
+    "revisions": "{count} révision(s)",
+    "revisions_included": "Révisions incluses",
+    "no_revision": "Aucune révision",
+    "order_button": "Commander",
+    "order_this_package": "Commander ce forfait",
+    "description": "Description du service",
+    "seller_faq": "Questions fréquentes",
+    "reviews": "Avis",
+    "from": "À partir de"
+  },
+  "projects": {
+    "title": "Offres de Projects",
+    "subtitle": "Explorez les missions publiées par nos clients et trouvez le projet qui correspond à vos compétences. Postulez directement et commencez à collaborer.",
+    "search_placeholder": "Search un projet par titre, compétence, category...",
+    "filters": "Filters",
+    "reset_filters": "Reset",
+    "reset_all_filters": "Reset les filters",
+    "filter_category": "Catégorie",
+    "filter_budget": "Budget (EUR)",
+    "filter_deadline": "Délai",
+    "filter_level": "Niveau requis",
+    "filter_contract_type": "Type de contrat",
+    "filter_urgency": "Urgence",
+    "cat": {
+      "all": "All les categories",
+      "design_ui_ux": "UI/UX Design",
+      "developpement_web": "Development Web",
+      "developpement_web_2": "Development Web",
+      "developpement": "Development",
+      "identite_visuelle": "Identité Visuelle",
+      "application_mobile": "Application Mobile",
+      "marketing_digital": "Marketing Digital",
+      "marketing": "Marketing",
+      "traduction": "Translation",
+      "video_animation": "Vidéo & Animation",
+      "redaction_seo": "Writing & SEO",
+      "redaction": "Writing",
+      "intelligence_artificielle": "Intelligence Artificielle",
+      "cybersecurite": "Cybersecurity"
+    },
+    "level": {
+      "all": "All les levelx",
+      "debutant": "Beginner",
+      "intermediaire": "Intermediate",
+      "expert": "Expert"
+    },
+    "contract": {
+      "tous": "All les types",
+      "ponctuel": "One-off",
+      "long_terme": "Long-term",
+      "recurrent": "Recurring"
+    },
+    "urgency": {
+      "toutes": "All les urgencys",
+      "normale": "Normal",
+      "urgente": "Urgent",
+      "tres_urgente": "Very urgent"
+    },
+    "urgency_badge": {
+      "normale": "Normal",
+      "urgente": "Urgent",
+      "tres_urgente": "Très urgent"
+    },
+    "contract_label": {
+      "ponctuel": "One-off",
+      "long_terme": "Long-term",
+      "recurrent": "Recurring"
+    },
+    "sort": {
+      "recent": "Plus récents",
+      "budget_desc": "Budget décroissant",
+      "budget_asc": "Budget croissant",
+      "deadline": "Deadline proche"
+    },
+    "results_count": "{count, plural, =0 {projects trouvés} =1 {projet trouvé} other {projects trouvés}}",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier",
+    "days_ago": "Il y a {count} jours",
+    "expired": "Expiré",
+    "days_remaining_one": "1 jour restant",
+    "days_remaining": "{count} jours restants",
+    "proposals": "propositions",
+    "apply": "Postuler",
+    "budget": "Budget",
+    "deadline": "Deadline",
+    "detail_title": "Détail du projet",
+    "detail_description": "Description du projet",
+    "detail_skills": "Compétences requises",
+    "detail_time_remaining": "Temps restant",
+    "detail_country": "Pays",
+    "detail_proposals_received": "Propositions reçues",
+    "detail_applications": "candidatures",
+    "detail_posted": "Publié",
+    "submit_proposal": "Soumettre une proposition",
+    "close": "Fermer",
+    "empty_title": "Aucun projet trouvé",
+    "empty_description": "Aucun projet ne correspond à vos critères de recherche. Essayez de modifier vos filters ou effectuez une nouvelle recherche.",
+    "error_title": "Erreur de chargement",
+    "error_description": "Impossible de charger les projects. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "see_results": "Voir les résultats"
   }
 }

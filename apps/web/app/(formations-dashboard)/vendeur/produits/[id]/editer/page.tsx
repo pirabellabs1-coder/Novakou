@@ -8,6 +8,12 @@ import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import { confirmAction } from "@/store/confirm";
+import {
+  useDraftField,
+  useDraftSavedAt,
+  formatSavedAt,
+  clearDrafts,
+} from "@/lib/hooks/use-draft-storage";
 
 interface Product {
   id: string;
@@ -16,6 +22,7 @@ interface Product {
   description: string | null;
   descriptionFormat: string;
   productType: string;
+  thumbnail: string | null;
   banner: string | null;
   price: number;
   originalPrice: number | null;
@@ -29,6 +36,9 @@ interface Product {
   files: ProductFile[];
   downloadable: boolean;
   hiddenFromMarketplace: boolean;
+  previewEnabled?: boolean;
+  previewPages?: number;
+  watermarkEnabled?: boolean;
   category: { id: string; slug: string; name: string } | null;
 }
 
@@ -60,17 +70,30 @@ export default function EditerProduitPage() {
   const router = useRouter();
   const qc = useQueryClient();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [productType, setProductType] = useState("EBOOK");
-  const [banner, setBanner] = useState("");
-  const [price, setPrice] = useState(0);
-  const [originalPrice, setOriginalPrice] = useState<string>("");
-  const [tagsInput, setTagsInput] = useState("");
-  const [files, setFiles] = useState<ProductFile[]>([]);
-  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useState(false);
+  // Auto-save scope: per-product. Each product edit has its own draft slot
+  // so editing two tabs in parallel never bleeds state across them.
+  const draftPrefix = `vendeur:product:edit:${id}`;
+
+  const [title, setTitle] = useDraftField(`${draftPrefix}:title`, "");
+  const [description, setDescription] = useDraftField(`${draftPrefix}:description`, "");
+  const [productType, setProductType] = useDraftField(`${draftPrefix}:productType`, "EBOOK");
+  const [thumbnail, setThumbnail] = useDraftField(`${draftPrefix}:thumbnail`, "");
+  const [banner, setBanner] = useDraftField(`${draftPrefix}:banner`, "");
+  const [price, setPrice] = useDraftField(`${draftPrefix}:price`, 0);
+  const [originalPrice, setOriginalPrice] = useDraftField<string>(`${draftPrefix}:originalPrice`, "");
+  const [tagsInput, setTagsInput] = useDraftField(`${draftPrefix}:tagsInput`, "");
+  const [files, setFiles] = useDraftField<ProductFile[]>(`${draftPrefix}:files`, []);
+  const [hiddenFromMarketplace, setHiddenFromMarketplace] = useDraftField(`${draftPrefix}:hiddenFromMarketplace`, false);
+  const [previewEnabled, setPreviewEnabled] = useDraftField(`${draftPrefix}:previewEnabled`, false);
+  const [previewPages, setPreviewPages] = useDraftField(`${draftPrefix}:previewPages`, 5);
+  const [watermarkEnabled, setWatermarkEnabled] = useDraftField(`${draftPrefix}:watermarkEnabled`, true);
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
+  // Tracks whether we've already pulled the API value into state on first
+  // load — this is what lets drafts win over fresh refetches.
+  const [hasHydrated, setHasHydrated] = useState(false);
+  const draftSavedAtTs = useDraftSavedAt(draftPrefix);
+  const draftLabel = formatSavedAt(draftSavedAtTs);
 
   const { data: response, isLoading, error } = useQuery<{ data: Product; error?: string }>({
     queryKey: ["product", id],
@@ -99,24 +122,57 @@ export default function EditerProduitPage() {
   const product = response?.data;
   const productId = product?.id;
 
-  useEffect(() => {
-    if (!product) return;
-    setTitle(product.title ?? "");
-    setDescription(product.description ?? "");
-    setProductType(product.productType ?? "EBOOK");
-    setBanner(product.banner ?? "");
-    setPrice(typeof product.price === "number" ? product.price : 0);
-    setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
-    setTagsInput((product.tags ?? []).join(", "));
-    setFiles(Array.isArray(product.files) ? product.files : []);
-    setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
-    setDirty(false);
-    // On utilise productId comme dep pour garantir un re-init quand le produit
-    // charge initialement OU change (cas rare : navigation rapide entre 2 editions).
-    // Avec [product] seul, react-query peut renvoyer la meme reference apres un
-    // refetch silencieux, et l'effet ne tournait pas comme attendu.
+    if (!product || hasHydrated) return;
+
+    // Drafts win over a fresh API load — but ONLY if the draft contains
+    // actual user work. A draft with all-empty values (which can happen if
+    // the user opened the form, didn't type, and the debounced auto-save
+    // captured the initial state) would otherwise leave every field blank.
+    const hasMeaningfulDraft = typeof window !== "undefined"
+      ? (() => {
+          const target = `nk-draft:${draftPrefix}:`;
+          for (let i = 0; i < window.localStorage.length; i++) {
+            const k = window.localStorage.key(i);
+            if (!k || !k.startsWith(target)) continue;
+            try {
+              const parsed = JSON.parse(window.localStorage.getItem(k) || "{}") as { value?: unknown };
+              const v = parsed?.value;
+              if (typeof v === "string" && v.trim() !== "") return true;
+              if (typeof v === "number" && v !== 0) return true;
+              if (Array.isArray(v) && v.length > 0) return true;
+              if (v === true) return true;
+            } catch { /* ignore malformed entry */ }
+          }
+          return false;
+        })()
+      : false;
+
+    if (!hasMeaningfulDraft) {
+      setTitle(product.title);
+      setDescription(product.description ?? "");
+      setProductType(product.productType);
+      setThumbnail(product.thumbnail ?? "");
+      setBanner(product.banner ?? "");
+      setPrice(product.price);
+      setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
+      setTagsInput((product.tags ?? []).join(", "));
+      setFiles(Array.isArray(product.files) ? product.files : []);
+      setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
+      setPreviewEnabled(!!product.previewEnabled);
+      setPreviewPages(typeof product.previewPages === "number" ? product.previewPages : 5);
+      setWatermarkEnabled(product.watermarkEnabled !== false);
+      setDirty(false);
+    } else {
+      // Draft restored — show the user the form is pre-populated and they
+      // have unsaved work.
+      setDirty(true);
+    }
+    setHasHydrated(true);
+    // productId in the deps gives a stable trigger on initial load and on the
+    // rare cross-product navigation; avoiding [product] avoids re-runs from
+    // referentially-fresh-but-equivalent objects on background refetches.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId]);
+  }, [productId, hasHydrated, draftPrefix]);
 
   const saveMutation = useMutation({
     mutationFn: (body: Record<string, unknown>) =>
@@ -127,6 +183,9 @@ export default function EditerProduitPage() {
       }).then((r) => r.json()),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["product", id] });
+      // Persisted to backend → drop the local draft so the next visit
+      // re-hydrates from the canonical product, not stale localStorage.
+      clearDrafts(draftPrefix);
       setDirty(false);
       setSavedAt(new Date());
     },
@@ -145,7 +204,10 @@ export default function EditerProduitPage() {
   const deleteMutation = useMutation({
     mutationFn: () =>
       fetch(`/api/formations/vendeur/products/${id}`, { method: "DELETE" }).then((r) => r.json()),
-    onSuccess: () => router.push("/vendeur/produits"),
+    onSuccess: () => {
+      clearDrafts(draftPrefix);
+      router.push("/vendeur/produits");
+    },
   });
 
   function track<T>(setter: (v: T) => void, v: T) {
@@ -158,12 +220,16 @@ export default function EditerProduitPage() {
       title,
       description,
       productType,
+      thumbnail,
       banner,
       price,
       originalPrice: originalPrice ? parseFloat(originalPrice) : null,
       tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean),
       files,
       hiddenFromMarketplace,
+      previewEnabled,
+      previewPages,
+      watermarkEnabled,
     });
   }
 
@@ -229,6 +295,14 @@ export default function EditerProduitPage() {
               <><span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>Sauvegarde…</>
             ) : savedAt ? (
               <><span className="material-symbols-outlined text-[14px] text-green-500">check_circle</span>Sauvegardé</>
+            ) : draftLabel ? (
+              <span
+                title="Vos modifications sont stockées localement à chaque saisie. Vous pouvez fermer l'onglet et revenir, elles seront restaurées."
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700"
+              >
+                <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
+                Brouillon {draftLabel}
+              </span>
             ) : null}
           </div>
           <a href={`/produit/${product.slug}`} target="_blank" rel="noopener noreferrer"
@@ -278,15 +352,35 @@ export default function EditerProduitPage() {
           ))}
         </div>
 
-        {/* Section: Image principale */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-6">
-          <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Image de couverture</h2>
-          <p className="text-xs text-[#5c647a] mb-4">L&apos;image principale visible sur la marketplace et la page produit.</p>
-          <ImageUploader
-            value={banner}
-            onChange={(url) => track(setBanner, url)}
-            aspectClass="aspect-video"
-          />
+        {/* Section: Images — vignette (carte) + bannière (page produit) */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
+          <div>
+            <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Images du produit</h2>
+            <p className="text-xs text-[#5c647a]">
+              La <strong>vignette</strong> apparaît sur les cartes du marketplace.
+              La <strong>bannière</strong> apparaît en haut de la page détail. Vous pouvez n&apos;en mettre qu&apos;une, l&apos;autre la remplacera.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <p className="text-xs font-bold text-[#5c647a] uppercase tracking-wider mb-2">Vignette</p>
+              <ImageUploader
+                value={thumbnail}
+                onChange={(url) => track(setThumbnail, url)}
+                aspectClass="aspect-square"
+                helper="600×600 carré · JPG/PNG · Max 5 MB"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-[#5c647a] uppercase tracking-wider mb-2">Bannière de couverture</p>
+              <ImageUploader
+                value={banner}
+                onChange={(url) => track(setBanner, url)}
+                aspectClass="aspect-video"
+                helper="1280×720 (16:9) · JPG/PNG · Max 5 MB"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Section: Infos */}
@@ -375,6 +469,96 @@ export default function EditerProduitPage() {
             onChange={(next) => track(setFiles, next)}
             productType={(productType as "EBOOK" | "PDF" | "TEMPLATE" | "AUDIO" | "VIDEO" | "LICENCE" | "AUTRE") || "PDF"}
           />
+        </div>
+
+        {/* Section: Aperçu gratuit (PDF only) */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+          <div>
+            <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Aperçu gratuit</h2>
+            <p className="text-xs text-[#5c647a]">
+              Laissez les acheteurs feuilleter les premières pages de votre PDF avant l&apos;achat.
+              Les pages affichées portent un filigrane Novakou pour protéger votre contenu.
+            </p>
+          </div>
+
+          {!files.some((f) => (f.mimeType ?? "").toLowerCase() === "application/pdf") && (
+            <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+              <span className="material-symbols-outlined text-[16px] flex-shrink-0 mt-0.5">info</span>
+              <p>Aucun PDF n&apos;est attaché à ce produit. L&apos;aperçu ne s&apos;affichera que si vous ajoutez un fichier PDF dans la section ci-dessus.</p>
+            </div>
+          )}
+
+          <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/30 cursor-pointer">
+            <div>
+              <p className="text-sm font-bold text-[#191c1e]">Activer l&apos;aperçu gratuit</p>
+              <p className="text-xs text-[#5c647a] mt-0.5">
+                Affiche un onglet « Aperçu » sur la page produit avec les premières pages du PDF.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => track(setPreviewEnabled, !previewEnabled)}
+              className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
+                previewEnabled ? "bg-[#006e2f]" : "bg-gray-200"
+              }`}
+              aria-pressed={previewEnabled}
+            >
+              <span
+                className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
+                  previewEnabled ? "left-6" : "left-0.5"
+                }`}
+              />
+            </button>
+          </label>
+
+          {previewEnabled && (
+            <>
+              <div className="p-4 rounded-xl border border-gray-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-bold text-[#191c1e]">Nombre de pages visibles</p>
+                  <span className="text-base font-extrabold text-[#006e2f] tabular-nums">{previewPages}</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={20}
+                  value={previewPages}
+                  onChange={(e) => track(setPreviewPages, Number(e.target.value))}
+                  className="w-full accent-[#006e2f]"
+                />
+                <div className="flex justify-between text-[10px] text-[#5c647a] font-semibold uppercase tracking-wider">
+                  <span>1 page</span>
+                  <span>20 pages max</span>
+                </div>
+                <p className="text-xs text-[#5c647a]">
+                  Si votre PDF contient moins de pages que cette valeur, toutes seront affichées.
+                </p>
+              </div>
+
+              <label className="flex items-center justify-between gap-4 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/30 cursor-pointer">
+                <div>
+                  <p className="text-sm font-bold text-[#191c1e]">Filigrane Novakou</p>
+                  <p className="text-xs text-[#5c647a] mt-0.5">
+                    Recommandé. Empêche la diffusion de l&apos;aperçu comme s&apos;il s&apos;agissait du fichier complet.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => track(setWatermarkEnabled, !watermarkEnabled)}
+                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${
+                    watermarkEnabled ? "bg-[#006e2f]" : "bg-gray-200"
+                  }`}
+                  aria-pressed={watermarkEnabled}
+                >
+                  <span
+                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all ${
+                      watermarkEnabled ? "left-6" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </label>
+            </>
+          )}
         </div>
 
         {/* Section: Visibilité marketplace */}

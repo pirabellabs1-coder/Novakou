@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useToastStore } from "@/store/toast";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 type Item = {
@@ -97,8 +99,10 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
       href={href}
       className="group block bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 hover:border-[#006e2f]/20 transition-all duration-300 overflow-hidden flex flex-col h-full"
     >
-      {/* HERO IMAGE — aspect 4/3 plus aéré */}
-      <div className={`relative aspect-[4/3] bg-gradient-to-br ${gradient} overflow-hidden`}>
+      {/* HERO IMAGE — carré 1:1 façon Chariow/Gumroad. La vignette dédiée
+          (`thumbnail`) recommandée 600×600 remplit parfaitement ; un `banner`
+          16:9 fait fallback (centré, légèrement rogné gauche/droite). */}
+      <div className={`relative aspect-square bg-gradient-to-br ${gradient} overflow-hidden`}>
         {item.thumbnail ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -355,14 +359,41 @@ function GiftModal({ item, onClose }: { item: Item | null; onClose: () => void }
   );
 }
 
-export default function ExplorerPage() {
-  const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"all" | "formations" | "products">("all");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [minRating, setMinRating] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000000);
-  const [sort, setSort] = useState<"relevance" | "price-asc" | "price-desc" | "rating" | "recent">("relevance");
+function ExplorerInner() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Hydrate filters from URL on mount
+  const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
+  const [activeTab, setActiveTab] = useState<"all" | "formations" | "products">(
+    () => (searchParams.get("tab") as "all" | "formations" | "products") ?? "all",
+  );
+  const [activeCategory, setActiveCategory] = useState<string | null>(
+    () => searchParams.get("category"),
+  );
+  const [minRating, setMinRating] = useState(() => Number(searchParams.get("minRating") ?? "0"));
+  const [maxPrice, setMaxPrice] = useState(() => Number(searchParams.get("maxPrice") ?? "1000000"));
+  const [sort, setSort] = useState<"relevance" | "price-asc" | "price-desc" | "rating" | "recent">(
+    () => (searchParams.get("sort") as "relevance" | "price-asc" | "price-desc" | "rating" | "recent") ?? "relevance",
+  );
   const [giftItem, setGiftItem] = useState<Item | null>(null);
+
+  // Sync state → URL on every change (replace, not push, to avoid history pollution)
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    if (activeTab !== "all") params.set("tab", activeTab);
+    if (activeCategory) params.set("category", activeCategory);
+    if (minRating > 0) params.set("minRating", String(minRating));
+    if (maxPrice < 1000000) params.set("maxPrice", String(maxPrice));
+    if (sort !== "relevance") params.set("sort", sort);
+    const qs = params.toString();
+    const url = qs ? `/explorer?${qs}` : "/explorer";
+    // Avoid history flood : replaceState only when query actually changed
+    if (typeof window !== "undefined" && window.location.pathname + window.location.search !== url) {
+      router.replace(url, { scroll: false });
+    }
+  }, [search, activeTab, activeCategory, minRating, maxPrice, sort, router]);
 
   const { data: response, isLoading } = useQuery<{ data: ExplorerData }>({
     queryKey: ["public-explorer", search, activeCategory, minRating, maxPrice, sort],
@@ -621,5 +652,13 @@ export default function ExplorerPage() {
 
       <GiftModal item={giftItem} onClose={() => setGiftItem(null)} />
     </div>
+  );
+}
+
+export default function ExplorerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f7f9fb]" />}>
+      <ExplorerInner />
+    </Suspense>
   );
 }

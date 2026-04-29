@@ -185,19 +185,19 @@ export default function StatistiquesPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards — show real zeros when API loaded with no data, dash only while loading */}
       <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
         <Kpi
           label="Revenus bruts"
-          value={overview ? `${formatFCFA(overview.revenue)} FCFA` : "—"}
-          sub={overview ? `Net : ${formatFCFA(overview.netRevenue)}` : ""}
+          value={isLoading ? "—" : `${formatFCFA(overview?.revenue ?? 0)} FCFA`}
+          sub={isLoading ? "" : `Net : ${formatFCFA(overview?.netRevenue ?? 0)} FCFA`}
           delta={overview?.deltaRevenue}
           icon="payments"
           tone="brand"
         />
         <Kpi
           label="Commandes"
-          value={overview ? overview.orders.toLocaleString("fr-FR") : "—"}
+          value={isLoading ? "—" : (overview?.orders ?? 0).toLocaleString("fr-FR")}
           sub="Transactions validées"
           delta={overview?.deltaOrders}
           icon="shopping_bag"
@@ -205,14 +205,14 @@ export default function StatistiquesPage() {
         />
         <Kpi
           label="Clients uniques"
-          value={overview ? overview.uniqueCustomers.toLocaleString("fr-FR") : "—"}
+          value={isLoading ? "—" : (overview?.uniqueCustomers ?? 0).toLocaleString("fr-FR")}
           sub="Acheteurs distincts"
           icon="group"
           tone="cyan"
         />
         <Kpi
           label="Panier moyen"
-          value={overview ? `${formatFCFA(overview.avgOrder)} FCFA` : "—"}
+          value={isLoading ? "—" : `${formatFCFA(overview?.avgOrder ?? 0)} FCFA`}
           sub="Par commande"
           icon="receipt_long"
           tone="purple"
@@ -362,8 +362,10 @@ export default function StatistiquesPage() {
         </div>
 
         <ChartCard title="Entonnoir de conversion" subtitle="Visite → Produit → Achat">
-          {isLoading || !funnel ? (
+          {isLoading ? (
             <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+          ) : !funnel || (funnel.views === 0 && funnel.productViews === 0 && funnel.purchases === 0) ? (
+            <EmptyState icon="filter_alt" label="Pas encore de visites tracées" />
           ) : (
             <div className="space-y-4 py-2">
               {[

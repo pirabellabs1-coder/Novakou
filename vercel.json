@@ -5,64 +5,6 @@
   "installCommand": "pnpm install",
   "outputDirectory": "apps/web/.next",
   "regions": ["cdg1"],
-  "crons": [
-    {
-      "path": "/api/cron/cohort-status",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/deadline-reminder",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/mentor-escrow",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/cron/auto-payout",
-      "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/cron/abandoned-cart-check",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/abandoned-cart-email",
-      "schedule": "0 10 * * *"
-    },
-    {
-      "path": "/api/cron/mentor-reminders",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/cron/churn-alert",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/send-abandon-reminders",
-      "schedule": "0 10 * * *"
-    },
-    {
-      "path": "/api/cron/subscription-renewal",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/cron/subscription-expire",
-      "schedule": "30 3 * * *"
-    },
-    {
-      "path": "/api/marketing/sequences/process",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/cron/affiliate-payout",
-      "schedule": "0 5 5 * *"
-    },
-    {
-      "path": "/api/cron/abandon-stale-checkouts",
-      "schedule": "0 11 * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",

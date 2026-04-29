@@ -20,6 +20,7 @@ import {
 } from "recharts";
 import { countryName } from "@/lib/tracking/geo";
 import { Flag } from "@/components/ui/Flag";
+import { CommunityBanner } from "@/components/formations/CommunityBanner";
 
 type Dashboard = {
   kpis: {
@@ -206,6 +207,8 @@ export default function VendeurDashboard() {
             </Link>
           </div>
         </header>
+
+        <CommunityBanner tone="vendeur" />
 
         {/* KYC banner */}
         {needsKyc && (

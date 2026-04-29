@@ -11,21 +11,21 @@ interface CertificateEmailProps {
 
 const t = {
   fr: {
-    subject: (title: string) => `Felicitations ! Votre certificat pour "${title}"`,
-    greeting: (name: string) => `Felicitations ${name} !`,
+    subject: (title: string) => `Félicitations ! Votre certificat pour "${title}"`,
+    greeting: (name: string) => `Félicitations ${name} !`,
     body: (title: string, score: number) =>
-      `Vous avez complete avec succes la formation <strong>${title}</strong> avec un score de <strong>${score}%</strong>. Votre certificat est maintenant disponible.`,
+      `Vous avez complété avec succès la formation <strong>${title}</strong> avec un score de <strong>${score}%</strong>. Votre certificat est maintenant disponible.`,
     certificateTitle: "Certificat d'accomplissement",
     courseLabel: "Formation",
     scoreLabel: "Score obtenu",
     dateLabel: "Date d'obtention",
-    cta: "Telecharger mon certificat",
+    cta: "Télécharger mon certificat",
     linkedIn:
-      "Partagez votre reussite sur LinkedIn pour valoriser votre profil professionnel !",
+      "Partagez votre réussite sur LinkedIn pour valoriser votre profil professionnel !",
     linkedInCta: "Partager sur LinkedIn",
     footer:
-      "Ce certificat est verifie et valide par Novakou. Il peut etre partage avec vos employeurs et clients potentiels.",
-    team: "L'equipe Novakou",
+      "Ce certificat est vérifié et valide par Novakou. Il peut etre partage avec vos employeurs et clients potentiels.",
+    team: "L'équipe Novakou",
   },
   en: {
     subject: (title: string) => `Congratulations! Your certificate for "${title}"`,
@@ -397,7 +397,7 @@ export function CertificateEmail({
           <p
             style={{ color: "#d1d5db", fontSize: "10px", margin: "12px 0 0" }}
           >
-            &copy; 2026 Novakou — {locale === "fr" ? "Fondee par" : "Founded by"} Pirabel Labs
+            &copy; 2026 Novakou — {locale === "fr" ? "Fondée par" : "Founded by"} Pirabel Labs
           </p>
         </div>
       </div>

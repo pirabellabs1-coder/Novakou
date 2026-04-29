@@ -444,7 +444,7 @@ async function handleProductRefund(
         type: "PAYMENT",
         title: "Remboursement confirme",
         message: `Votre achat "${purchase.product.title}" a ete rembourse (${Math.round(refundAmount)} FCFA${isFullRefund ? "" : " - partiel"}).`,
-        link: "/apprenant/produits",
+        link: "/apprenant/mes-produits",
       },
     });
 

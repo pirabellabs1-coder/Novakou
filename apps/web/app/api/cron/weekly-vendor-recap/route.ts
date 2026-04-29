@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
@@ -91,10 +92,8 @@ function recapHtml(params: {
 }
 
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}` && !req.headers.get("x-vercel-cron")) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(req);
+  if (authError) return authError;
 
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 

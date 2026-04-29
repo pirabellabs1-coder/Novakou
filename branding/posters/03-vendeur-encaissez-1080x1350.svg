@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" width="1080" height="1350">
+  <title>Novakou — Encaissez en 24h via Mobile Money</title>
+  <defs>
+    <linearGradient id="bg3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="em3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#bg3)"/>
+
+  <!-- Logo -->
+  <rect x="80" y="80" width="80" height="80" rx="20" ry="20" fill="url(#em3)"/>
+  <text x="120" y="120" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="40" font-weight="900" letter-spacing="-1.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">NK</text>
+  <text x="180" y="125" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="800" letter-spacing="-1" fill="#191c1e">Novakou</text>
+
+  <!-- Hero number -->
+  <text x="80" y="500" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="320" font-weight="900" letter-spacing="-15"
+        fill="url(#em3)">24h</text>
+
+  <!-- Headline -->
+  <text x="80" y="640" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="76" font-weight="800" letter-spacing="-2"
+        fill="#191c1e">Encaissez en 24h.</text>
+
+  <!-- Subtitle -->
+  <text x="80" y="720" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="36" font-weight="500" letter-spacing="-0.5"
+        fill="#5c647a">Mobile Money instantané — Wave, Orange Money, MTN.</text>
+  <text x="80" y="770" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="36" font-weight="500" letter-spacing="-0.5"
+        fill="#5c647a">10 % de commission, zéro abonnement.</text>
+
+  <!-- 3 payment badges -->
+  <g transform="translate(80, 870)">
+    <!-- Wave -->
+    <rect x="0" y="0" width="280" height="100" rx="20" ry="20" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="22" fill="#1259d5"/>
+    <text x="50" y="55" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle">W</text>
+    <text x="90" y="58" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="28" font-weight="700" fill="#191c1e">Wave</text>
+
+    <!-- Orange Money -->
+    <rect x="310" y="0" width="280" height="100" rx="20" ry="20" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+    <circle cx="360" cy="50" r="22" fill="#ff7900"/>
+    <text x="360" y="55" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle">O</text>
+    <text x="400" y="58" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="22" font-weight="700" fill="#191c1e">Orange Money</text>
+
+    <!-- MTN -->
+    <rect x="620" y="0" width="280" height="100" rx="20" ry="20" fill="#ffffff" stroke="#e5e7eb" stroke-width="1.5"/>
+    <circle cx="670" cy="50" r="22" fill="#ffcc00"/>
+    <text x="670" y="55" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="20" font-weight="900" fill="#191c1e" text-anchor="middle">M</text>
+    <text x="710" y="58" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="28" font-weight="700" fill="#191c1e">MTN MoMo</text>
+  </g>
+
+  <!-- CTA -->
+  <rect x="80" y="1080" width="500" height="100" rx="22" ry="22" fill="url(#em3)"/>
+  <text x="330" y="1130" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">Créer ma boutique →</text>
+
+  <!-- Footer -->
+  <text x="1000" y="1290" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="600" letter-spacing="-0.3"
+        fill="#9ca3af" text-anchor="end">novakou.com</text>
+</svg>

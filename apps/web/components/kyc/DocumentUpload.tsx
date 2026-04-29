@@ -44,7 +44,7 @@ export function DocumentUpload({
 
       // Validate size
       if (file.size > maxSizeMB * 1024 * 1024) {
-        setUploadError(`Le fichier depasse ${maxSizeMB} Mo`);
+        setUploadError(`Le fichier dépasse ${maxSizeMB} Mo`);
         return;
       }
 
@@ -61,7 +61,7 @@ export function DocumentUpload({
         );
 
       if (!isAllowed) {
-        setUploadError("Type de fichier non autorise (JPG, PNG ou PDF)");
+        setUploadError("Type de fichier non autorisé (JPG, PNG ou PDF)");
         return;
       }
 
@@ -193,9 +193,9 @@ export function DocumentUpload({
             )}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-emerald-400 truncate">
-                {fileName || "Document telecharge"}
+                {fileName || "Document téléchargé"}
               </p>
-              <p className="text-xs text-slate-500 mt-0.5">Upload reussi</p>
+              <p className="text-xs text-slate-500 mt-0.5">Upload réussi</p>
             </div>
             <button
               type="button"

@@ -1,13 +1,20 @@
 "use client";
 
 import { Suspense, useEffect, useState, useRef } from "react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 function ConnexionInner() {
   const params = useSearchParams();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  // Hint set by /connexion (seller portal) when a non-seller account tried to
+  // log in there. We display a banner inviting the user to continue here, and
+  // — if they already have a session — sign them out first so the OTP flow
+  // can start cleanly.
+  const wrongPortal = params.get("wrongPortal") === "1";
 
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
@@ -17,7 +24,17 @@ function ConnexionInner() {
   const [resendCooldown, setResendCooldown] = useState(0);
   const codeInputRef = useRef<HTMLInputElement | null>(null);
 
-  const callbackUrl = params.get("callbackUrl") || "/apprenant/mes-produits";
+  // Cette page est volontairement un raccourci qui amène TOUJOURS dans
+  // l'espace apprenant — peu importe le rôle marketplace de l'utilisateur,
+  // ses achats vivent dans /apprenant/*. On laisse passer un callbackUrl
+  // seulement s'il pointe déjà vers une sous-route /apprenant/* (ex. magic
+  // link email vers /apprenant/formation/[id]) ; sinon on retombe sur
+  // "Mes produits".
+  const rawCallback = params.get("callbackUrl");
+  const callbackUrl =
+    rawCallback && rawCallback.startsWith("/apprenant/")
+      ? rawCallback
+      : "/apprenant/mes-produits";
 
   useEffect(() => {
     const preEmail = params.get("email");
@@ -159,6 +176,30 @@ function ConnexionInner() {
           <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
             {step === 1 && (
               <>
+                {wrongPortal && (
+                  <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5">
+                    <div className="flex items-start gap-2.5">
+                      <span className="material-symbols-outlined text-amber-600 text-[18px] mt-0.5 flex-shrink-0">info</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-amber-900 mb-1">Mauvaise page de connexion</p>
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          Cet email correspond à un compte acheteur. La connexion vendeur ne peut pas vous diriger vers votre espace d&apos;achats — utilisez plutôt cette page.
+                        </p>
+                        {session && (
+                          <button
+                            type="button"
+                            onClick={() => signOut({ callbackUrl: "/acheteur/connexion" })}
+                            className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 underline hover:no-underline"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">logout</span>
+                            Se déconnecter pour continuer
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="mb-7">
                   <h2 className="text-2xl font-extrabold text-[#191c1e] mb-1.5">Accédez à vos achats 🛍️</h2>
                   <p className="text-sm text-[#5c647a]">Entrez l&apos;adresse email utilisée lors de votre achat</p>

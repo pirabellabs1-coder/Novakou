@@ -150,6 +150,7 @@ export interface SystemEventPayload {
   resetToken?: string;
   dashboardUrl?: string;
   reason?: string;
+  formationsRole?: "instructeur" | "apprenant" | "mentor" | "affilie";
 }
 
 export interface ServiceEventPayload {

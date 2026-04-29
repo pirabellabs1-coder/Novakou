@@ -14,6 +14,7 @@ import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
 import { canManageTeam, getShopRole } from "@/lib/formations/team";
+import { createAuditLog } from "@/lib/admin/audit";
 import type { ShopMemberRole } from "@prisma/client";
 
 type Params = { params: Promise<{ id: string }> };
@@ -85,12 +86,33 @@ export async function DELETE(_req: Request, { params }: Params) {
       return NextResponse.json({ error: "Un manager ne peut pas retirer un autre manager" }, { status: 403 });
     }
     await prisma.shopMember.delete({ where: { id } });
+
+    // Audit log : trace toujours la suppression d'un membre d'équipe
+    await createAuditLog({
+      actorId: ctx.userId,
+      action: "team.member_removed",
+      targetType: "ShopMember",
+      targetId: member.id,
+      targetUserId: member.userId,
+      details: { shopId, removedRole: member.role },
+    });
+
     return NextResponse.json({ data: { deleted: "member" } });
   }
 
   const invitation = await prisma.shopInvitation.findFirst({ where: { id, shopId } });
   if (invitation) {
     await prisma.shopInvitation.delete({ where: { id } });
+
+    // Audit log : trace l'annulation d'une invitation
+    await createAuditLog({
+      actorId: ctx.userId,
+      action: "team.invitation_cancelled",
+      targetType: "ShopInvitation",
+      targetId: invitation.id,
+      details: { shopId, invitedEmail: invitation.email, invitedRole: invitation.role },
+    });
+
     return NextResponse.json({ data: { deleted: "invitation" } });
   }
 

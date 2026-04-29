@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 type OrderType = "formation" | "product" | "mentor";
-type OrderStatus = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PENDING" | "CONFIRMED";
+type OrderStatus = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PENDING" | "CONFIRMED" | "REFUND_PENDING" | "REFUNDED";
 
 type Order = {
   id: string;
@@ -19,6 +19,8 @@ type Order = {
   status: string;
   createdAt: string;
   progress: number;
+  refundRequested?: boolean;
+  refundedAt?: string | null;
   instructeurUserId: string | null;
 };
 
@@ -44,12 +46,14 @@ const typeIcons: Record<OrderType, string> = {
 };
 
 const statusConfig: Record<string, { label: string; className: string; icon: string }> = {
-  COMPLETED: { label: "Terminé",    className: "bg-[#006e2f]/10 text-[#006e2f]", icon: "check_circle" },
-  ACTIVE:    { label: "En cours",   className: "bg-blue-100 text-blue-700",      icon: "schedule" },
-  PENDING:   { label: "En attente", className: "bg-amber-100 text-amber-700",    icon: "hourglass_empty" },
-  CONFIRMED: { label: "Confirmé",   className: "bg-blue-100 text-blue-700",      icon: "check" },
-  CANCELLED: { label: "Annulé",     className: "bg-red-100 text-red-600",        icon: "cancel" },
-  100:       { label: "Terminé",    className: "bg-[#006e2f]/10 text-[#006e2f]", icon: "check_circle" },
+  COMPLETED:       { label: "Terminé",            className: "bg-[#006e2f]/10 text-[#006e2f]", icon: "check_circle" },
+  ACTIVE:          { label: "En cours",           className: "bg-blue-100 text-blue-700",      icon: "schedule" },
+  PENDING:         { label: "En attente",         className: "bg-amber-100 text-amber-700",    icon: "hourglass_empty" },
+  CONFIRMED:       { label: "Confirmé",           className: "bg-blue-100 text-blue-700",      icon: "check" },
+  CANCELLED:       { label: "Annulé",             className: "bg-red-100 text-red-600",        icon: "cancel" },
+  REFUND_PENDING:  { label: "Remboursement demandé", className: "bg-amber-100 text-amber-700", icon: "hourglass_empty" },
+  REFUNDED:        { label: "Remboursé",          className: "bg-red-100 text-red-600",        icon: "money_off" },
+  100:             { label: "Terminé",            className: "bg-[#006e2f]/10 text-[#006e2f]", icon: "check_circle" },
 };
 
 function SkeletonRow() {
@@ -67,10 +71,95 @@ function SkeletonRow() {
   );
 }
 
+type RefundEligibility = {
+  eligible: boolean;
+  reason?: string;
+  details: {
+    purchasedAt?: string;
+    daysSincePurchase?: number;
+    consumedPct?: number;
+    recentRefundsCount?: number;
+  };
+  config: {
+    windowDays: number;
+    maxConsumedPct: number;
+    maxRefundsPerBuyer30d: number;
+  };
+};
+
 export default function CommandesPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const [activeFilter, setActiveFilter] = useState<FilterValue>("all");
   const [contactingId, setContactingId] = useState<string | null>(null);
+
+  // ── Refund modal state ──
+  const [refundOrder, setRefundOrder] = useState<Order | null>(null);
+  const [refundEligibility, setRefundEligibility] = useState<RefundEligibility | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundLoading, setRefundLoading] = useState(false);
+  const [refundError, setRefundError] = useState<string | null>(null);
+  const [refundSuccess, setRefundSuccess] = useState(false);
+
+  async function openRefund(order: Order) {
+    setRefundOrder(order);
+    setRefundEligibility(null);
+    setRefundReason("");
+    setRefundError(null);
+    setRefundSuccess(false);
+    try {
+      const res = await fetch(
+        `/api/formations/apprenant/refund-request?type=${order.type === "formation" ? "enrollment" : order.type}&id=${order.id}`,
+      );
+      const json = await res.json();
+      setRefundEligibility(json.data ?? null);
+    } catch {
+      setRefundError("Impossible de vérifier l'éligibilité.");
+    }
+  }
+
+  function closeRefund() {
+    setRefundOrder(null);
+    setRefundEligibility(null);
+    setRefundReason("");
+    setRefundError(null);
+    setRefundSuccess(false);
+    setRefundLoading(false);
+  }
+
+  async function submitRefund() {
+    if (!refundOrder || !refundEligibility?.eligible) return;
+    if (refundReason.trim().length < 10) {
+      setRefundError("Indiquez un motif d'au moins 10 caractères.");
+      return;
+    }
+    setRefundLoading(true);
+    setRefundError(null);
+    try {
+      const res = await fetch("/api/formations/apprenant/refund-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: refundOrder.type === "formation" ? "enrollment" : refundOrder.type,
+          id: refundOrder.id,
+          reason: refundReason.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setRefundError(json.error || "Demande refusée.");
+        setRefundLoading(false);
+        return;
+      }
+      setRefundSuccess(true);
+      qc.invalidateQueries({ queryKey: ["apprenant-commandes"] });
+      setTimeout(closeRefund, 2500);
+    } catch {
+      setRefundError("Erreur réseau, réessayez.");
+    } finally {
+      setRefundLoading(false);
+    }
+  }
 
   async function handleContact(instructeurUserId: string, orderId: string) {
     setContactingId(orderId);
@@ -225,12 +314,177 @@ export default function CommandesPage() {
                           Contacter l'instructeur
                         </button>
                       )}
+                      {type === "formation" &&
+                        !order.refundedAt &&
+                        !order.refundRequested &&
+                        order.status !== "CANCELLED" && (
+                          <button
+                            onClick={() => openRefund(order)}
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">money_off</span>
+                            Demander un remboursement
+                          </button>
+                        )}
                     </div>
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* ── Refund modal ────────────────────────────────────────────── */}
+      {refundOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          onClick={closeRefund}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-5 border-b border-gray-100 flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                  <span className="material-symbols-outlined text-red-600 text-[20px]">money_off</span>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-[#191c1e] text-base truncate">
+                    Demande de remboursement
+                  </h3>
+                  <p className="text-xs text-[#5c647a] truncate">{refundOrder.title}</p>
+                </div>
+              </div>
+              <button onClick={closeRefund} className="p-1 rounded-lg hover:bg-gray-100 flex-shrink-0">
+                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Eligibility loading */}
+              {!refundEligibility && !refundError && (
+                <div className="flex items-center gap-2 text-sm text-[#5c647a]">
+                  <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                  Vérification de l&apos;éligibilité…
+                </div>
+              )}
+
+              {/* Eligibility result */}
+              {refundEligibility && !refundSuccess && (
+                <div
+                  className={`p-3 rounded-xl border ${
+                    refundEligibility.eligible
+                      ? "bg-[#006e2f]/5 border-[#006e2f]/20"
+                      : "bg-amber-50 border-amber-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <span
+                      className={`material-symbols-outlined text-[18px] mt-0.5 ${
+                        refundEligibility.eligible ? "text-[#006e2f]" : "text-amber-600"
+                      }`}
+                      style={{ fontVariationSettings: "'FILL' 1" }}
+                    >
+                      {refundEligibility.eligible ? "check_circle" : "info"}
+                    </span>
+                    <div className="flex-1 text-xs">
+                      {refundEligibility.eligible ? (
+                        <>
+                          <p className="font-bold text-[#006e2f] mb-1">Demande recevable</p>
+                          <p className="text-[#191c1e]">
+                            Achat il y a{" "}
+                            {refundEligibility.details.daysSincePurchase ?? 0} jour
+                            {(refundEligibility.details.daysSincePurchase ?? 0) > 1 ? "s" : ""} ·
+                            Contenu consommé : {refundEligibility.details.consumedPct ?? 0}%
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-bold text-amber-900 mb-1">Demande non recevable</p>
+                          <p className="text-amber-800">{refundEligibility.reason}</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Reason form (only if eligible) */}
+              {refundEligibility?.eligible && !refundSuccess && (
+                <>
+                  <div>
+                    <label className="block text-xs font-bold text-[#191c1e] mb-1.5 uppercase tracking-wider">
+                      Motif <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={refundReason}
+                      onChange={(e) => setRefundReason(e.target.value)}
+                      rows={4}
+                      placeholder="Expliquez pourquoi vous souhaitez être remboursé (au moins 10 caractères)…"
+                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/20 focus:border-[#006e2f] resize-none"
+                    />
+                    <p className="text-[10px] text-[#5c647a] mt-1">
+                      {refundReason.length} / 10 caractères minimum
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-[#5c647a] leading-relaxed">
+                    Conformément à notre politique :{" "}
+                    {refundEligibility.config.windowDays} jours après l&apos;achat,
+                    contenu consommé ≤ {refundEligibility.config.maxConsumedPct}%, max{" "}
+                    {refundEligibility.config.maxRefundsPerBuyer30d} remboursement
+                    {refundEligibility.config.maxRefundsPerBuyer30d > 1 ? "s" : ""}/30 jours.
+                  </p>
+                </>
+              )}
+
+              {refundError && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
+                  <span className="material-symbols-outlined text-[16px] flex-shrink-0 mt-0.5">error</span>
+                  <span>{refundError}</span>
+                </div>
+              )}
+
+              {refundSuccess && (
+                <div className="p-3 rounded-xl bg-[#006e2f]/5 border border-[#006e2f]/20 text-xs text-[#006e2f]">
+                  <p className="font-bold mb-1">Demande envoyée ✓</p>
+                  <p>
+                    Notre équipe l&apos;examinera sous 48h. Vous recevrez un email
+                    dès la décision prise.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {!refundSuccess && (
+              <div className="p-5 border-t border-gray-100 flex items-center gap-3">
+                <button
+                  onClick={closeRefund}
+                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#5c647a] hover:bg-gray-50 transition-colors"
+                >
+                  Annuler
+                </button>
+                {refundEligibility?.eligible && (
+                  <button
+                    onClick={submitRefund}
+                    disabled={refundLoading || refundReason.trim().length < 10}
+                    className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
+                    style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                  >
+                    {refundLoading ? (
+                      <>
+                        <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                        Envoi…
+                      </>
+                    ) : (
+                      "Envoyer la demande"
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

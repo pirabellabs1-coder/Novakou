@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Novakou — Hero "Vendez vos produits digitaux"</title>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="emerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <linearGradient id="emeraldVert" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#006e2f" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <circle cx="900" cy="200" r="320" fill="url(#emeraldVert)"/>
+
+  <!-- Logo top-left -->
+  <rect x="80" y="80" width="80" height="80" rx="20" ry="20" fill="url(#emerald)"/>
+  <text x="120" y="120" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="40" font-weight="900" letter-spacing="-1.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">NK</text>
+  <text x="180" y="125" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="800" letter-spacing="-1"
+        fill="#191c1e">Novakou</text>
+
+  <!-- Floating dots decoration -->
+  <circle cx="950" cy="150" r="6" fill="#22c55e" opacity="0.6"/>
+  <circle cx="990" cy="220" r="4" fill="#006e2f" opacity="0.4"/>
+  <circle cx="920" cy="260" r="3" fill="#22c55e" opacity="0.5"/>
+
+  <!-- Main headline -->
+  <text x="80" y="430" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="92" font-weight="800" letter-spacing="-3"
+        fill="#191c1e">Vendez vos</text>
+  <text x="80" y="540" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="92" font-weight="800" letter-spacing="-3"
+        fill="#006e2f">produits digitaux</text>
+  <text x="80" y="650" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="92" font-weight="800" letter-spacing="-3"
+        fill="#191c1e">en quelques minutes.</text>
+
+  <!-- Subtitle -->
+  <text x="80" y="740" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="500" letter-spacing="-0.5"
+        fill="#5c647a">Formations, ebooks, coaching, templates.</text>
+  <text x="80" y="785" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="500" letter-spacing="-0.5"
+        fill="#5c647a">10 % de commission, zéro abonnement.</text>
+
+  <!-- CTA button -->
+  <rect x="80" y="850" width="420" height="92" rx="20" ry="20" fill="url(#emerald)"/>
+  <text x="290" y="900" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="700" letter-spacing="-0.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">Lancer ma boutique →</text>
+
+  <!-- Domain bottom-right -->
+  <text x="1000" y="1020" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="600" letter-spacing="-0.3"
+        fill="#9ca3af" text-anchor="end">novakou.com</text>
+</svg>

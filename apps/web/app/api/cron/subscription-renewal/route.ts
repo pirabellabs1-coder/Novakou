@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { sendSubscriptionRenewalEmail } from "@/lib/email/formations";
+import { requireCronAuth } from "@/lib/cron/auth";
 
 /**
  * GET /api/cron/subscription-renewal
@@ -23,11 +24,8 @@ import { sendSubscriptionRenewalEmail } from "@/lib/email/formations";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+  const authError = requireCronAuth(request);
+  if (authError) return authError;
 
   // Au moins un provider doit être configuré
   if (!isMonerooConfigured() && !isPayGeniusConfigured()) {

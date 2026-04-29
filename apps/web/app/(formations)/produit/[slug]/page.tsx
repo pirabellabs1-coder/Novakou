@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import ProduitPageClient from "./ProduitPageClient";
+import TrackPageView from "@/components/tracking/TrackPageView";
+
+// ISR : 5min cache for public product pages
+export const revalidate = 300;
 
 export async function generateMetadata({
   params,
@@ -8,9 +12,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  // Schema fields: `description` + `banner` + (now) `thumbnail`. The original
+  // version selected `shortDescription` and `thumbnail` (alias for what the
+  // model used to call them) — those names never existed on DigitalProduct
+  // and the .catch(() => null) silently swallowed every metadata fetch.
   const product = await prisma.digitalProduct.findFirst({
     where: { slug },
-    select: { title: true, shortDescription: true, thumbnail: true, price: true },
+    select: { title: true, description: true, banner: true, thumbnail: true, price: true },
   }).catch(() => null);
 
   if (!product) {
@@ -18,14 +26,21 @@ export async function generateMetadata({
   }
 
   const title = product.title;
-  const description = product.shortDescription || `Découvrez "${title}" sur Novakou.`;
-  const image = product.thumbnail || undefined;
+  const taglineSource = product.description ?? "";
+  const description = taglineSource
+    ? taglineSource.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
+    : `Découvrez "${title}" sur Novakou.`;
+  const image = product.banner || product.thumbnail || undefined;
 
   return {
     title,
     description,
     alternates: {
       canonical: `https://novakou.com/produit/${slug}`,
+      languages: {
+        "fr-FR": `https://novakou.com/produit/${slug}`,
+        "x-default": `https://novakou.com/produit/${slug}`,
+      },
     },
     openGraph: {
       title,
@@ -46,9 +61,12 @@ export default async function ProduitPage({
   const product = await prisma.digitalProduct
     .findFirst({
       where: { slug },
-      select: { title: true, shortDescription: true, thumbnail: true, price: true },
+      select: { id: true, title: true, description: true, banner: true, thumbnail: true, price: true },
     })
     .catch(() => null);
+
+  const productImage = product?.banner ?? product?.thumbnail ?? null;
+  const productDescription = (product?.description ?? "").replace(/<[^>]+>/g, " ").trim().slice(0, 300);
 
   return (
     <>
@@ -60,12 +78,12 @@ export default async function ProduitPage({
               "@context": "https://schema.org",
               "@type": "Product",
               name: product.title,
-              description: product.shortDescription || "",
+              description: productDescription,
               brand: {
                 "@type": "Organization",
                 name: "Novakou",
               },
-              ...(product.thumbnail ? { image: product.thumbnail } : {}),
+              ...(productImage ? { image: productImage } : {}),
               offers: {
                 "@type": "Offer",
                 price: product.price,
@@ -74,6 +92,14 @@ export default async function ProduitPage({
               },
             }),
           }}
+        />
+      )}
+      {product && (
+        <TrackPageView
+          type="product_view"
+          entityType="product"
+          entityId={product.id}
+          metadata={{ title: product.title, price: product.price }}
         />
       )}
       <ProduitPageClient slug={slug} />

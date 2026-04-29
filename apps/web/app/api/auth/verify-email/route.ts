@@ -98,6 +98,7 @@ export async function PUT(request: Request) {
     // Mark email as verified + send welcome email (only the FIRST time)
     let userIdForWelcome = "";
     let userNameForWelcome = "";
+    let formationsRoleForWelcome: "instructeur" | "apprenant" | "mentor" | "affilie" | undefined;
     let isFirstVerification = false;
 
     if (IS_DEV_MODE) {
@@ -109,17 +110,19 @@ export async function PUT(request: Request) {
         devStore.update(user.id, { emailVerified: new Date().toISOString() } as Record<string, unknown>);
         userIdForWelcome = user.id;
         userNameForWelcome = user.name;
+        formationsRoleForWelcome = userRec.formationsRole as typeof formationsRoleForWelcome;
       }
     } else {
       const { prisma } = await import("@freelancehigh/db");
       const before = await prisma.user.findUnique({
         where: { email },
-        select: { id: true, name: true, emailVerified: true },
+        select: { id: true, name: true, emailVerified: true, formationsRole: true },
       });
       if (before) {
         isFirstVerification = !before.emailVerified;
         userIdForWelcome = before.id;
         userNameForWelcome = before.name ?? email.split("@")[0];
+        formationsRoleForWelcome = (before.formationsRole as typeof formationsRoleForWelcome) ?? undefined;
       }
       await prisma.user.update({
         where: { email },
@@ -133,6 +136,7 @@ export async function PUT(request: Request) {
         userId: userIdForWelcome,
         userName: userNameForWelcome,
         userEmail: email,
+        formationsRole: formationsRoleForWelcome,
       }).catch((err) => console.error("[VERIFY-EMAIL] welcome event error:", err));
     }
 

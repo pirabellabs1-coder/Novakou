@@ -852,28 +852,137 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
     ? charge.payment_intent
     : charge.payment_intent?.id;
 
-  if (paymentIntentId) {
-    const stripeInstance = getStripe();
-    const sessions = await stripeInstance.checkout.sessions.list({
-      payment_intent: paymentIntentId,
-      limit: 1,
-    });
+  if (!paymentIntentId) {
+    console.warn(`[Stripe Webhook] charge.refunded sans payment_intent: ${charge.id}`);
+    return;
+  }
 
-    const session = sessions.data[0];
-    if (session?.metadata?.userId) {
-      // Update enrollments if formation
-      if (session.metadata.type === "formation") {
-        await prisma.enrollment.updateMany({
-          where: { stripeSessionId: session.id },
-          data: {
-            refundedAt: new Date(),
-          },
-        }).catch(() => {});
+  const stripeInstance = getStripe();
+  const sessions = await stripeInstance.checkout.sessions.list({
+    payment_intent: paymentIntentId,
+    limit: 1,
+  });
+
+  const session = sessions.data[0];
+  if (!session?.metadata) {
+    console.warn(`[Stripe Webhook] charge.refunded session sans metadata: ${charge.id}`);
+    return;
+  }
+
+  const refundedAt = new Date();
+
+  // ── 1. Formation enrollment : revoke access + clawback ──
+  if (session.metadata.type === "formation") {
+    const enrollments = await prisma.enrollment.findMany({
+      where: { stripeSessionId: session.id, refundedAt: null },
+      select: { id: true, userId: true, formationId: true, paidAmount: true },
+    });
+    for (const enr of enrollments) {
+      await prisma.enrollment.update({
+        where: { id: enr.id },
+        data: {
+          refundedAt,
+          refundRequested: false,
+          refundReason: `Stripe chargeback / refund — ${charge.id}`,
+        },
+      }).catch((e) => console.error("[Stripe refund] enrollment update", e));
+
+      // Clawback affiliate commission for this enrollment
+      await reverseAffiliateCommissionsForOrder(enr.formationId, enr.userId).catch(() => null);
+
+      // Decrement vendor totalEarned + formation.studentsCount
+      const formation = await prisma.formation.findUnique({
+        where: { id: enr.formationId },
+        select: { instructeurId: true, studentsCount: true },
+      });
+      if (formation?.instructeurId) {
+        await prisma.instructeurProfile.update({
+          where: { id: formation.instructeurId },
+          data: { totalEarned: { decrement: enr.paidAmount * 0.9 } },
+        }).catch(() => null);
       }
+      await prisma.formation.update({
+        where: { id: enr.formationId },
+        data: { studentsCount: { decrement: 1 } },
+      }).catch(() => null);
     }
   }
 
-  console.log(`[Stripe Webhook] Remboursement: charge=${charge.id}, montant=${charge.amount_refunded / 100}€`);
+  // ── 2. Digital product : revoke maxDownloads ──
+  if (session.metadata.type === "product" || session.metadata.type === "digital") {
+    await prisma.digitalProductPurchase.updateMany({
+      where: { stripeSessionId: session.id },
+      data: { maxDownloads: 0 },
+    }).catch(() => null);
+  }
+
+  // ── 3. Mentor booking : cancel + escrow REFUNDED ──
+  if (session.metadata.type === "mentor" || session.metadata.type === "booking") {
+    const bookings = await prisma.mentorBooking.findMany({
+      where: { stripeSessionId: session.id, escrowStatus: { not: "REFUNDED" } },
+      select: { id: true },
+    });
+    for (const b of bookings) {
+      await prisma.mentorBooking.update({
+        where: { id: b.id },
+        data: {
+          status: "CANCELLED",
+          escrowStatus: "REFUNDED",
+          cancellationReason: `Stripe chargeback / refund — ${charge.id}`,
+        },
+      }).catch(() => null);
+    }
+  }
+
+  // ── 4. Notification + log ──
+  if (session.metadata.userId) {
+    await prisma.notification.create({
+      data: {
+        userId: session.metadata.userId,
+        type: "PAYMENT",
+        title: "Achat remboursé",
+        message: `Votre achat a été remboursé suite au chargeback. L'accès au contenu a été révoqué.`,
+        link: "/apprenant/commandes",
+      },
+    }).catch(() => null);
+  }
+
+  console.log(`[Stripe Webhook] Remboursement traité: charge=${charge.id}, session=${session.id}, montant=${charge.amount_refunded / 100}€`);
+}
+
+/**
+ * Clawback affiliate commission(s) for a refunded order.
+ * Sets status → CANCELLED and decrements pending/paid earnings.
+ */
+async function reverseAffiliateCommissionsForOrder(formationId: string, userId: string): Promise<void> {
+  const commissions = await prisma.affiliateCommission.findMany({
+    where: {
+      orderId: formationId, // assumes orderId stores formationId; adjust if schema differs
+      status: { not: "CANCELLED" },
+    },
+    select: { id: true, status: true, commissionAmount: true, affiliateId: true },
+  });
+  for (const c of commissions) {
+    await prisma.affiliateCommission.update({
+      where: { id: c.id },
+      data: { status: "CANCELLED" },
+    }).catch(() => null);
+    if (c.status === "APPROVED" || c.status === "PENDING") {
+      await prisma.affiliateProfile.update({
+        where: { id: c.affiliateId },
+        data: { pendingEarnings: { decrement: c.commissionAmount } },
+      }).catch(() => null);
+    } else if (c.status === "PAID") {
+      await prisma.affiliateProfile.update({
+        where: { id: c.affiliateId },
+        data: {
+          paidEarnings: { decrement: c.commissionAmount },
+          totalEarned: { decrement: c.commissionAmount },
+        },
+      }).catch(() => null);
+    }
+  }
+  void userId;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

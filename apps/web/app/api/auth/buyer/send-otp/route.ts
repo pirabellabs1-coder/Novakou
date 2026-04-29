@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { storeOTP } from "@/lib/auth/otp";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 /**
  * POST /api/auth/buyer/send-otp
@@ -68,6 +69,20 @@ export async function POST(req: Request) {
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Email invalide" }, { status: 400 });
+    }
+
+    // Rate limit : max 3 envois OTP / 15 min par email + par IP. Évite le spam.
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+    const emailLimit = rateLimit(`otp-email:${email}`, 3, 15 * 60_000);
+    const ipLimit = rateLimit(`otp-ip:${ip}`, 5, 15 * 60_000);
+    if (!emailLimit.allowed || !ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives. Réessayez dans quelques minutes." },
+        { status: 429, headers: { "Retry-After": "900" } }
+      );
     }
 
     // Génère + stocke OTP (10 min)

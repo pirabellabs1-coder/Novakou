@@ -7,6 +7,14 @@ import { useMutation } from "@tanstack/react-query";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
+import {
+  useDraftField,
+  useDraftSavedAt,
+  formatSavedAt,
+  clearDrafts,
+} from "@/lib/hooks/use-draft-storage";
+
+const DRAFT_PREFIX = "vendeur:product:create";
 
 type ProductSubType = "cours_video" | "ebook" | "pdf" | "template" | "audio" | null;
 
@@ -64,25 +72,33 @@ function slugify(text: string) {
 
 export default function CreerProduitPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const [selectedType, setSelectedType] = useState<ProductSubType>(null);
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("");
-  const [shortDesc, setShortDesc] = useState("");
-  const [description, setDescription] = useState("");
-  const [thumbnail, setThumbnail] = useState("");
-  const [price, setPrice] = useState(45000);
-  const [originalPrice, setOriginalPrice] = useState(0);
-  const [isFree, setIsFree] = useState(false);
+  // Persisted draft state — survives refresh, tab close, accidental nav. Each
+  // field is debounced into localStorage under `nk-draft:${DRAFT_PREFIX}:*`.
+  const [step, setStep] = useDraftField(`${DRAFT_PREFIX}:step`, 1);
+  const [selectedType, setSelectedType] = useDraftField<ProductSubType>(`${DRAFT_PREFIX}:selectedType`, null);
+  const [title, setTitle] = useDraftField(`${DRAFT_PREFIX}:title`, "");
+  const [category, setCategory] = useDraftField(`${DRAFT_PREFIX}:category`, "");
+  const [shortDesc, setShortDesc] = useDraftField(`${DRAFT_PREFIX}:shortDesc`, "");
+  const [description, setDescription] = useDraftField(`${DRAFT_PREFIX}:description`, "");
+  // `thumbnail` = vignette carrée affichée sur les cartes marketplace.
+  // `banner`    = bannière large affichée en haut de la page produit.
+  const [thumbnail, setThumbnail] = useDraftField(`${DRAFT_PREFIX}:thumbnail`, "");
+  const [banner, setBanner] = useDraftField(`${DRAFT_PREFIX}:banner`, "");
+  const [price, setPrice] = useDraftField(`${DRAFT_PREFIX}:price`, 45000);
+  const [originalPrice, setOriginalPrice] = useDraftField(`${DRAFT_PREFIX}:originalPrice`, 0);
+  const [isFree, setIsFree] = useDraftField(`${DRAFT_PREFIX}:isFree`, false);
   const [error, setError] = useState<string | null>(null);
 
   // Formation-specific
-  const [modules, setModules] = useState<Module[]>([
+  const [modules, setModules] = useDraftField<Module[]>(`${DRAFT_PREFIX}:modules`, [
     { title: "", lessons: [{ title: "", duration: 10, videoUrl: "" }] },
   ]);
 
   // Product-specific
-  const [files, setFiles] = useState<ProductFile[]>([]);
+  const [files, setFiles] = useDraftField<ProductFile[]>(`${DRAFT_PREFIX}:files`, []);
+
+  const draftSavedAt = useDraftSavedAt(DRAFT_PREFIX);
+  const draftLabel = formatSavedAt(draftSavedAt);
 
   const selected = productTypes.find((p) => p.value === selectedType);
   const isFormation = selected?.kind === "formation";
@@ -116,6 +132,7 @@ export default function CreerProduitPage() {
           productType: selected?.productType,
           title, shortDesc, description, category,
           thumbnail: thumbnail || null,
+          banner: banner || null,
           price: isFree ? 0 : price,
           originalPrice: originalPrice || null,
           isFree,
@@ -125,10 +142,36 @@ export default function CreerProduitPage() {
         }),
       }).then((r) => r.json()),
     onSuccess: (res) => {
-      if (res.error) { setError(res.error); return; }
+      if (res.error) {
+        setError(res.error);
+        // V2.5 — proposer la suppression du brouillon si la création a échoué
+        // côté serveur (ex. validation prix). Sans cela, l'utilisateur peut
+        // se retrouver bloqué avec un draft pollué qui ressuscite à chaque visite.
+        if (typeof window !== "undefined") {
+          const keep = window.confirm(
+            "La création a échoué. Conserver le brouillon pour réessayer ?\n\n" +
+            "OK = conserver · Annuler = effacer le brouillon",
+          );
+          if (!keep) clearDrafts(DRAFT_PREFIX);
+        }
+        return;
+      }
+      // Wipe every saved field for this form once the product was created
+      // server-side, otherwise the next visit would resurrect the draft.
+      clearDrafts(DRAFT_PREFIX);
       router.push("/vendeur/produits");
     },
-    onError: () => setError("Erreur serveur — réessayez"),
+    onError: () => {
+      setError("Erreur serveur — réessayez");
+      // V2.5 — même logique en cas d'erreur réseau / fetch failure.
+      if (typeof window !== "undefined") {
+        const keep = window.confirm(
+          "Erreur serveur. Conserver le brouillon pour réessayer ?\n\n" +
+          "OK = conserver · Annuler = effacer le brouillon",
+        );
+        if (!keep) clearDrafts(DRAFT_PREFIX);
+      }
+    },
   });
 
   const canProceed = (() => {
@@ -173,15 +216,28 @@ export default function CreerProduitPage() {
             <span className="material-symbols-outlined text-[14px]">arrow_back</span>
             Retour aux produits
           </Link>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#006e2f] mb-2">Espace Instructeur</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-zinc-900 max-w-3xl leading-[1.05]">
-            Publier un nouveau produit.
-          </h1>
-          {selected && (
-            <p className="text-sm text-zinc-500 mt-3">
-              Type sélectionné : <span className="font-bold text-zinc-900">{selected.label}</span>
-            </p>
-          )}
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#006e2f] mb-2">Espace Instructeur</p>
+              <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter text-zinc-900 max-w-3xl leading-[1.05]">
+                Publier un nouveau produit.
+              </h1>
+              {selected && (
+                <p className="text-sm text-zinc-500 mt-3">
+                  Type sélectionné : <span className="font-bold text-zinc-900">{selected.label}</span>
+                </p>
+              )}
+            </div>
+            {draftLabel && (
+              <span
+                title="Vos saisies sont enregistrées localement à chaque modification. Vous pouvez fermer cet onglet et revenir, vos données vous attendent."
+                className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-bold text-emerald-700"
+              >
+                <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
+                Brouillon sauvegardé {draftLabel}
+              </span>
+            )}
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16">
@@ -300,15 +356,27 @@ export default function CreerProduitPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Image de couverture</label>
-                      <ImageUploader
-                        value={thumbnail}
-                        onChange={setThumbnail}
-                        folder="portfolio"
-                        aspectClass="aspect-square"
-                        helper="Recommandé : 1280×720px · JPG ou PNG · Max 5 MB"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Vignette du produit</label>
+                        <ImageUploader
+                          value={thumbnail}
+                          onChange={setThumbnail}
+                          folder="portfolio"
+                          aspectClass="aspect-square"
+                          helper="Format conseillé : 600×600 carré · JPG ou PNG · Max 5 MB. Affichée sur les cartes du marketplace et la liste de votre boutique."
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Bannière de couverture</label>
+                        <ImageUploader
+                          value={banner}
+                          onChange={setBanner}
+                          folder="portfolio"
+                          aspectClass="aspect-video"
+                          helper="Format conseillé : 1280×720 (16:9) · JPG ou PNG · Max 5 MB. Affichée en haut de la page détail du produit."
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -557,11 +625,11 @@ export default function CreerProduitPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-4">
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Aperçu</label>
+                      <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Aperçu carte marketplace</label>
                       <div className="aspect-square bg-[#f3f3f4] relative overflow-hidden">
-                        {thumbnail ? (
+                        {(thumbnail || banner) ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={thumbnail} alt="" className="w-full h-full object-cover" />
+                          <img src={thumbnail || banner} alt="" className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <span className="material-symbols-outlined text-6xl text-zinc-300">image</span>
@@ -569,6 +637,15 @@ export default function CreerProduitPage() {
                         )}
                         <div className="absolute bottom-0 left-0 w-1 bg-[#22c55e] h-full" />
                       </div>
+                      {banner && (
+                        <>
+                          <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 block pt-3">Aperçu page produit</label>
+                          <div className="aspect-video bg-[#f3f3f4] relative overflow-hidden rounded-lg">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={banner} alt="" className="w-full h-full object-cover" />
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     <dl className="space-y-6">

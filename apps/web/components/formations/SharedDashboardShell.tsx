@@ -58,7 +58,7 @@ const MENTOR_NAV: NavItem[] = [
 const APPRENANT_NAV: NavItem[] = [
   { icon: "dashboard", label: "Tableau de bord", href: "/apprenant/dashboard", section: "Général" },
   { icon: "school", label: "Mes formations", href: "/apprenant/mes-formations", section: "Général" },
-  { icon: "inventory_2", label: "Mes produits", href: "/apprenant/produits", section: "Général" },
+  { icon: "inventory_2", label: "Mes produits", href: "/apprenant/mes-produits", section: "Général" },
   { icon: "workspace_premium", label: "Certificats", href: "/apprenant/certificats", section: "Général" },
   { icon: "shopping_cart", label: "Panier", href: "/apprenant/panier", section: "Achats" },
   { icon: "receipt_long", label: "Commandes", href: "/apprenant/commandes", section: "Achats" },

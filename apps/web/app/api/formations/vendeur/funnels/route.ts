@@ -51,7 +51,63 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ data: funnels });
+    // ── Compute totals on-the-fly from FunnelEvent table ──
+    // The schema stores totalViews/totalConversions/totalRevenue but they are not
+    // incremented at write time, so we aggregate live from events.
+    const funnelIds = funnels.map((f) => f.id);
+    const eventTotals = new Map<
+      string,
+      { totalViews: number; totalConversions: number; totalRevenue: number }
+    >();
+
+    if (funnelIds.length > 0) {
+      const grouped = await prisma.funnelEvent.groupBy({
+        by: ["funnelId", "eventType"],
+        where: { funnelId: { in: funnelIds } },
+        _count: { _all: true },
+      });
+
+      for (const row of grouped) {
+        const cur = eventTotals.get(row.funnelId) ?? {
+          totalViews: 0,
+          totalConversions: 0,
+          totalRevenue: 0,
+        };
+        if (row.eventType === "view") cur.totalViews += row._count._all;
+        if (row.eventType === "purchase") cur.totalConversions += row._count._all;
+        eventTotals.set(row.funnelId, cur);
+      }
+
+      // Sum revenue from purchase events' metadata.amount (Float in metadata JSON)
+      const purchaseEvents = await prisma.funnelEvent.findMany({
+        where: { funnelId: { in: funnelIds }, eventType: "purchase" },
+        select: { funnelId: true, metadata: true },
+      });
+      for (const e of purchaseEvents) {
+        const md = (e.metadata ?? {}) as { amount?: number; revenue?: number };
+        const amt = Number(md.amount ?? md.revenue ?? 0);
+        if (!Number.isFinite(amt) || amt <= 0) continue;
+        const cur = eventTotals.get(e.funnelId) ?? {
+          totalViews: 0,
+          totalConversions: 0,
+          totalRevenue: 0,
+        };
+        cur.totalRevenue += amt;
+        eventTotals.set(e.funnelId, cur);
+      }
+    }
+
+    const enriched = funnels.map((f) => {
+      const t = eventTotals.get(f.id);
+      return {
+        ...f,
+        totalViews: t?.totalViews ?? f.totalViews ?? 0,
+        totalConversions: t?.totalConversions ?? f.totalConversions ?? 0,
+        totalRevenue: t?.totalRevenue ?? f.totalRevenue ?? 0,
+      };
+    });
+
+    return NextResponse.json({ data: enriched });
   } catch (err) {
     console.error("[vendeur/funnels GET]", err);
     return NextResponse.json({ data: [], error: err instanceof Error ? err.message : String(err) });

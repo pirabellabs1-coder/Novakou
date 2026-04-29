@@ -46,7 +46,10 @@ function ConnexionInner() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: email.trim().toLowerCase() }),
           }).catch(() => {});
-          const cb = callbackUrlParam ?? "/apprenant/dashboard";
+          // After OTP verification we want to land on the correct role
+          // dashboard, not always the apprenant one. "/" lets the middleware
+          // resolve the right destination once the session is ready.
+          const cb = callbackUrlParam ?? "/";
           const params = new URLSearchParams({
             email: email.trim().toLowerCase(),
             callbackUrl: cb,
@@ -83,10 +86,25 @@ function ConnexionInner() {
         return;
       }
 
+      // Seller portal: NEVER drop a user into /apprenant — even if their
+      // formationsRole is missing or set to "apprenant". The buyer space is
+      // reachable ONLY through /acheteur/connexion. excludeApprenant=true
+      // routes pure buyers to /acheteur/connexion?wrongPortal=1.
       let target = callbackUrlParam ?? getDashboardForFormationsRole(
         user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
-        user?.role
+        user?.role,
+        { excludeApprenant: true }
       );
+
+      // Hard guarantee : la connexion vendeur (/connexion) ne doit JAMAIS
+      // déposer l'utilisateur dans /apprenant. Si pour une raison quelconque
+      // (callbackUrlParam, nouveau compte sans rôle, etc.) la cible calculée
+      // pointe vers l'espace acheteur, on bascule sur /acheteur/connexion
+      // avec un indice "wrongPortal" — l'utilisateur sera invité à se
+      // reconnecter depuis la page acheteur.
+      if (target.startsWith("/apprenant")) {
+        target = "/acheteur/connexion?wrongPortal=1";
+      }
 
       // Vendeur multi-shop : si 2+ boutiques sans cookie actif, forcer le chooser
       if (target.startsWith("/vendeur") && !callbackUrlParam) {
@@ -115,7 +133,16 @@ function ConnexionInner() {
     setError(null);
     // Set pending formationsRole cookie before OAuth redirect
     document.cookie = "pendingFormationsRole=; path=/; max-age=0";
-    await signIn("google", { callbackUrl: callbackUrlParam ?? "/apprenant/dashboard" });
+    // Tell middleware: this OAuth flow originated from the SELLER portal.
+    // Middleware's "/" handler reads this cookie and refuses to drop the
+    // user into /apprenant/* (the buyer space is reachable only through
+    // /acheteur/connexion). 5-minute TTL is plenty for the OAuth round-trip.
+    document.cookie = "nk_login_intent=seller; path=/; max-age=300; samesite=lax";
+    // Don't hardcode /apprenant/dashboard here — that landed every Google-
+    // signed-in vendor / mentor / affilié in the buyer space. Sending them
+    // to "/" instead lets the middleware's home-page handler route them to
+    // the correct role dashboard once the session is set.
+    await signIn("google", { callbackUrl: callbackUrlParam ?? "/" });
   }
 
   return (
@@ -217,7 +244,7 @@ function ConnexionInner() {
 
             {/* Error */}
             {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
+              <div id="login-error" role="alert" aria-live="polite" className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
                 <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
                 <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
@@ -225,16 +252,20 @@ function ConnexionInner() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
+                <label htmlFor="login-email" className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">mail</span>
                   <input
+                    id="login-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="vous@exemple.com"
                     autoComplete="email"
                     required
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "login-error" : undefined}
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
                   />
                 </div>
@@ -242,7 +273,7 @@ function ConnexionInner() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-[#191c1e]">Mot de passe</label>
+                  <label htmlFor="login-password" className="block text-xs font-semibold text-[#191c1e]">Mot de passe</label>
                   <Link href="/mot-de-passe-oublie" className="text-xs text-[#006e2f] font-semibold hover:underline">
                     Mot de passe oublié ?
                   </Link>
@@ -250,12 +281,16 @@ function ConnexionInner() {
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock</span>
                   <input
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="current-password"
                     required
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "login-error" : undefined}
                     className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a] hover:text-[#191c1e]" aria-label="Afficher le mot de passe">

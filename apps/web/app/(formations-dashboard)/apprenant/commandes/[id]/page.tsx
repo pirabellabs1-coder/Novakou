@@ -196,10 +196,15 @@ export default async function CommandeDetailPage({
           </span>
           Accéder au contenu
         </Link>
-        <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors bg-white">
+        <a
+          href={`/api/formations/apprenant/commandes/${orderId}/invoice`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 sm:flex-none flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors bg-white"
+        >
           <span className="material-symbols-outlined text-[18px] text-[#5c647a]">download</span>
           Télécharger la facture
-        </button>
+        </a>
       </div>
     </div>
   );

@@ -193,6 +193,95 @@ export async function POST(request: Request) {
       }
     }
 
+    // Auto-create mentor profile for formations mentor signups
+    if (formationsRole === "mentor") {
+      await prisma.mentorProfile.create({
+        data: {
+          userId: user.id,
+          bio: "",
+          specialty: "\u00c0 d\u00e9finir",
+          sessionPrice: 0,
+          sessionDuration: 60,
+          isAvailable: false,
+          timezone: "Africa/Abidjan",
+          languages: ["fr"],
+        },
+      }).catch((err: unknown) => console.error("[REGISTER] Auto-create mentor profile error:", err));
+    }
+
+    // Auto-create affiliate profile for formations affilie signups
+    if (formationsRole === "affilie") {
+      try {
+        // Find or create default platform-wide program
+        let defaultProgram = await prisma.affiliateProgram.findFirst({
+          where: { isActive: true, applyToAll: true },
+        });
+        if (!defaultProgram) {
+          const adminInstructeur = await prisma.instructeurProfile.findFirst({
+            orderBy: { createdAt: "asc" },
+            select: { id: true },
+          });
+          if (adminInstructeur) {
+            defaultProgram = await prisma.affiliateProgram.create({
+              data: {
+                instructeurId: adminInstructeur.id,
+                name: "Programme affiliation Novakou",
+                description: "Programme d'affiliation par d\u00e9faut de la plateforme.",
+                commissionPct: 40,
+                cookieDays: 30,
+                isActive: true,
+                autoApprove: true,
+                applyToAll: true,
+              },
+            });
+          }
+        }
+
+        if (defaultProgram) {
+          // Generate strong unique code with collision retry
+          const baseCode = (name || email.split("@")[0])
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z0-9]+/g, "")
+            .slice(0, 6) || "user";
+          const programId = defaultProgram.id;
+          const status = defaultProgram.autoApprove ? "ACTIVE" : "PENDING";
+
+          let created = false;
+          for (let attempt = 0; attempt < 5 && !created; attempt++) {
+            const rand = Math.random().toString(36).slice(2, 8); // 6 chars base36
+            const affiliateCode = `${baseCode}${rand}`.slice(0, 12);
+            try {
+              await prisma.affiliateProfile.create({
+                data: {
+                  userId: user.id,
+                  programId,
+                  affiliateCode,
+                  status,
+                },
+              });
+              created = true;
+            } catch (err) {
+              const errObj = err as { code?: string };
+              if (errObj?.code === "P2002") {
+                // unique collision (affiliateCode) \u2014 retry
+                continue;
+              }
+              throw err;
+            }
+          }
+          if (!created) {
+            console.error("[REGISTER] Auto-create affiliate profile error: failed after 5 attempts (unique collision)");
+          }
+        } else {
+          console.error("[REGISTER] Auto-create affiliate profile error: no instructeur available to seed default program");
+        }
+      } catch (affErr) {
+        console.error("[REGISTER] Auto-create affiliate profile error:", affErr);
+      }
+    }
+
     // Send verification code only — welcome email fires AFTER OTP verification
     try {
       const { storeOTP } = await import("@/lib/auth/otp");

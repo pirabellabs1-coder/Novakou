@@ -330,6 +330,9 @@ export async function POST(req: Request) {
   if (type === "bundle_purchase") {
     const userId = String(metadata.userId ?? "");
     const bundleId = String(metadata.bundleId ?? "");
+    const discountCodeId = metadata.discountCodeId ? String(metadata.discountCodeId) : null;
+    const bundleDiscountAmount = Number(metadata.discountAmount ?? 0);
+    const bundleSubTotalMeta = Number(metadata.bundleSubTotal ?? 0);
 
     if (!userId || !bundleId) {
       return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
@@ -345,9 +348,45 @@ export async function POST(req: Request) {
       const existing = await prisma.productBundlePurchase.findFirst({ where: { bundleId, userId } });
       if (existing) return NextResponse.json({ ok: true, alreadyProcessed: true });
 
+      const paidAmount = Math.max(
+        0,
+        Math.round(bundle.priceXof) - (Number.isFinite(bundleDiscountAmount) ? bundleDiscountAmount : 0),
+      );
       const purchase = await prisma.productBundlePurchase.create({
-        data: { bundleId, userId, paidAmount: bundle.priceXof },
+        data: { bundleId, userId, paidAmount },
       });
+
+      // Record DiscountUsage if a discount was applied at checkout init.
+      // Idempotent via @@unique([discountId, userId, orderId]).
+      if (discountCodeId && bundleDiscountAmount > 0) {
+        const subTotal = bundleSubTotalMeta > 0 ? bundleSubTotalMeta : Math.round(bundle.priceXof);
+        await prisma.discountUsage
+          .create({
+            data: {
+              discountId: discountCodeId,
+              userId,
+              orderType: "bundle",
+              orderId: purchase.id,
+              originalAmount: subTotal,
+              discountAmount: bundleDiscountAmount,
+              finalAmount: paidAmount,
+            },
+          })
+          .catch((err) => {
+            if ((err as { code?: string }).code === "P2002") return null;
+            console.warn("[paygenius bundle discountUsage]", (err as { message?: string })?.message ?? err);
+            return null;
+          });
+        await prisma.discountCode
+          .update({
+            where: { id: discountCodeId },
+            data: {
+              totalDiscounted: { increment: bundleDiscountAmount },
+              revenue: { increment: paidAmount },
+            },
+          })
+          .catch((err) => console.warn("[paygenius bundle discountCode update]", err));
+      }
 
       const tag = `bundle_${purchase.id}`;
       let enrolledFormations = 0;

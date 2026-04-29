@@ -58,6 +58,7 @@ async function fetchBestSellers(): Promise<Item[]> {
           rating: true,
           salesCount: true,
           reviewsCount: true,
+          thumbnail: true,
           banner: true,
           createdAt: true,
         },
@@ -95,7 +96,9 @@ async function fetchBestSellers(): Promise<Item[]> {
       const isBestseller = p.salesCount >= 20;
       return {
         href: `/produit/${p.slug}`,
-        img: p.banner,
+        // Cards prefer the dedicated thumbnail; fall back to banner for
+        // legacy products that only ever uploaded one image.
+        img: p.thumbnail ?? p.banner,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
           ? "bg-[#22c55e] text-[#004b1e]"
@@ -113,9 +116,11 @@ async function fetchBestSellers(): Promise<Item[]> {
       };
     });
 
+    // Homepage spotlight = top 3 best-sellers across formations + products
+    // (kept tight on purpose; the full catalog lives at /explorer).
     return [...formItems, ...prodItems]
       .sort((a, b) => b.salesCount - a.salesCount)
-      .slice(0, 6);
+      .slice(0, 3);
   } catch (err) {
     console.warn("[BestSellers] DB fetch failed:", err);
     return [];
@@ -154,14 +159,14 @@ export async function BestSellers() {
           href={item.href}
           className="bg-white squircle shadow-[0_10px_30px_rgba(0,0,0,0.03)] group hover:-translate-y-2 transition-all duration-300 block"
         >
-          <div className="h-40 md:h-48 overflow-hidden rounded-t-[2rem] relative bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
+          <div className="aspect-square overflow-hidden rounded-t-[2rem] relative bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
             {item.img ? (
               <Image
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 src={item.img}
                 alt={item.title}
-                width={300}
-                height={192}
+                width={400}
+                height={400}
                 unoptimized
               />
             ) : (

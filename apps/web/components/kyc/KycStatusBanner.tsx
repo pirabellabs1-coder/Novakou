@@ -18,7 +18,7 @@ const STEPS = [
 
 const STATUS_CONFIG = {
   not_verified: {
-    label: "Non verifie",
+    label: "Non vérifié",
     color: "text-slate-400",
     bg: "bg-slate-500/10",
     border: "border-slate-500/20",
@@ -129,10 +129,10 @@ export function KycStatusBanner({
               verified_user
             </span>
             {status === "rejected"
-              ? "Resoumettre"
+              ? "Re-soumettre"
               : status === "pending"
                 ? "Voir le statut"
-                : "Verifier mon identite"}
+                : "Verifier mon identité"}
           </Link>
         )}
       </div>

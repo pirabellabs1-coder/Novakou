@@ -375,7 +375,7 @@ export const authOptions: NextAuthOptions = {
 
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
-                sendWelcomeEmail(email, user.name || email.split("@")[0]).catch((err) =>
+                sendWelcomeEmail(email, user.name || email.split("@")[0], pendingFormationsRole as "instructeur" | "apprenant" | "mentor" | "affilie" | undefined).catch((err) =>
                   console.error("[AUTH OAuth] Erreur envoi email bienvenue:", err)
                 );
               });
@@ -473,9 +473,95 @@ export const authOptions: NextAuthOptions = {
                 }
               }
 
+              // Auto-create mentor profile for OAuth mentor signups
+              if (pendingFormationsRole === "mentor") {
+                await prisma.mentorProfile.create({
+                  data: {
+                    userId: dbUser.id,
+                    bio: "",
+                    specialty: "\u00c0 d\u00e9finir",
+                    sessionPrice: 0,
+                    sessionDuration: 60,
+                    isAvailable: false,
+                    timezone: "Africa/Abidjan",
+                    languages: ["fr"],
+                  },
+                }).catch((err: unknown) => console.error("[AUTH OAuth] Auto-create mentor profile error:", err));
+              }
+
+              // Auto-create affiliate profile for OAuth affilie signups
+              if (pendingFormationsRole === "affilie") {
+                try {
+                  // Find or create default platform-wide program
+                  let defaultProgram = await prisma.affiliateProgram.findFirst({
+                    where: { isActive: true, applyToAll: true },
+                  });
+                  if (!defaultProgram) {
+                    const adminInstructeur = await prisma.instructeurProfile.findFirst({
+                      orderBy: { createdAt: "asc" },
+                      select: { id: true },
+                    });
+                    if (adminInstructeur) {
+                      defaultProgram = await prisma.affiliateProgram.create({
+                        data: {
+                          instructeurId: adminInstructeur.id,
+                          name: "Programme affiliation Novakou",
+                          description: "Programme d'affiliation par d\u00e9faut de la plateforme.",
+                          commissionPct: 40,
+                          cookieDays: 30,
+                          isActive: true,
+                          autoApprove: true,
+                          applyToAll: true,
+                        },
+                      });
+                    }
+                  }
+
+                  if (defaultProgram) {
+                    const baseName = user.name || email.split("@")[0];
+                    const baseCode = baseName
+                      .toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/[^a-z0-9]+/g, "")
+                      .slice(0, 6) || "user";
+                    const programId = defaultProgram.id;
+                    const status = defaultProgram.autoApprove ? "ACTIVE" : "PENDING";
+
+                    let created = false;
+                    for (let attempt = 0; attempt < 5 && !created; attempt++) {
+                      const rand = Math.random().toString(36).slice(2, 8);
+                      const affiliateCode = `${baseCode}${rand}`.slice(0, 12);
+                      try {
+                        await prisma.affiliateProfile.create({
+                          data: {
+                            userId: dbUser.id,
+                            programId,
+                            affiliateCode,
+                            status,
+                          },
+                        });
+                        created = true;
+                      } catch (err) {
+                        const errObj = err as { code?: string };
+                        if (errObj?.code === "P2002") continue;
+                        throw err;
+                      }
+                    }
+                    if (!created) {
+                      console.error("[AUTH OAuth] Auto-create affiliate profile error: failed after 5 attempts");
+                    }
+                  } else {
+                    console.error("[AUTH OAuth] Auto-create affiliate profile error: no instructeur available");
+                  }
+                } catch (affErr) {
+                  console.error("[AUTH OAuth] Auto-create affiliate profile error:", affErr);
+                }
+              }
+
               // Send welcome email for new OAuth users
               import("@/lib/email").then(({ sendWelcomeEmail }) => {
-                sendWelcomeEmail(email, user.name || email.split("@")[0]).catch((err) =>
+                sendWelcomeEmail(email, user.name || email.split("@")[0], pendingFormationsRole as "instructeur" | "apprenant" | "mentor" | "affilie" | undefined).catch((err) =>
                   console.error("[AUTH OAuth] Erreur envoi email bienvenue:", err)
                 );
               });

@@ -16,16 +16,43 @@ const DASHBOARDS: Record<string, string> = {
 
 export function getDashboardForFormationsRole(
   role: FormationsRole,
-  userRole?: string
+  userRole?: string,
+  options?: { excludeApprenant?: boolean }
 ): string {
   // Admin overrides everything
   if (userRole === "ADMIN" || userRole === "admin") {
     return "/admin/dashboard";
   }
   if (role && DASHBOARDS[role]) {
+    // Seller-portal entry (/connexion): refuse to drop a user into /apprenant.
+    // The buyer space is reachable ONLY through /acheteur/connexion. If the
+    // user is a pure apprenant, we send them to the buyer login page with a
+    // ?wrongPortal=1 hint — never to /apprenant/*.
+    if (options?.excludeApprenant && DASHBOARDS[role] === "/apprenant/dashboard") {
+      return "/acheteur/connexion?wrongPortal=1";
+    }
     return DASHBOARDS[role];
   }
-  // No role yet → apprenant by default (least privileged)
+  // No formationsRole yet → fall back to the marketplace `userRole`. Old
+  // accounts created before formationsRole existed still have role set, and
+  // a vendor with role="freelance" should land on /vendeur/dashboard, not
+  // be silently dropped into the apprenant space (which was the bug behind
+  // "I logged in via /connexion and ended up in /apprenant").
+  if (typeof userRole === "string") {
+    const r = userRole.toLowerCase();
+    if (r === "freelance" || r === "instructeur" || r === "vendeur") return DASHBOARDS.instructeur;
+    if (r === "mentor") return DASHBOARDS.mentor;
+    if (r === "affilie" || r === "affiliate") return DASHBOARDS.affilie;
+    // Pure buyer (role="client") arriving via the seller portal → bounce.
+    if (options?.excludeApprenant && r === "client") {
+      return "/acheteur/connexion?wrongPortal=1";
+    }
+  }
+  // No identifying signal at all.
+  if (options?.excludeApprenant) {
+    return "/acheteur/connexion?wrongPortal=1";
+  }
+  // Default: apprenant (least privileged).
   return "/apprenant/dashboard";
 }
 

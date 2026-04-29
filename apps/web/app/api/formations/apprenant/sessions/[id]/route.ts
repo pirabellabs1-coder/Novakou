@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { meetingUrlFrom, isJoinableNow } from "@/lib/mentor/jitsi";
+import { loadRefundConfig } from "@/lib/formations/refund-policy";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -64,7 +65,10 @@ export async function GET(_req: Request, { params }: Params) {
           rating: booking.mentor.rating,
         },
         canReview: booking.status === "COMPLETED" && booking.studentRating == null,
-        canCancel: booking.status === "PENDING" || booking.status === "CONFIRMED",
+        canCancel:
+          booking.status === "PENDING" ||
+          booking.status === "PAYMENT_PENDING" ||
+          booking.status === "CONFIRMED",
       },
     });
   } catch (err) {
@@ -106,15 +110,20 @@ export async function PATCH(request: Request, { params }: Params) {
     if (action === "cancel") {
       const { reason } = body as { reason?: string };
 
-      if (booking.status !== "PENDING" && booking.status !== "CONFIRMED") {
+      if (
+        booking.status !== "PENDING" &&
+        booking.status !== "PAYMENT_PENDING" &&
+        booking.status !== "CONFIRMED"
+      ) {
         return NextResponse.json(
           { error: "Cette session ne peut plus être annulée." },
           { status: 400 },
         );
       }
 
-      // ── Case 1: Not yet confirmed by mentor → automatic full refund ──
-      if (booking.status === "PENDING") {
+      // ── Case 1: Not yet confirmed by mentor (or payment not validated) ──
+      // → automatic full refund, no 24h notice required
+      if (booking.status === "PENDING" || booking.status === "PAYMENT_PENDING") {
         const updated = await prisma.mentorBooking.update({
           where: { id },
           data: {
@@ -141,7 +150,23 @@ export async function PATCH(request: Request, { params }: Params) {
         });
       }
 
-      // ── Case 2: Already confirmed → requires reason + admin approval ──
+      // ── Case 2: Already confirmed → check 24h notice + reason + admin approval ──
+      // Enforce minimum cancel notice (default 24h, configurable via FormationsConfig)
+      const config = await loadRefundConfig();
+      const hoursToSession =
+        (booking.scheduledAt.getTime() - Date.now()) / (60 * 60 * 1000);
+      if (hoursToSession < config.mentorCancelHours) {
+        return NextResponse.json(
+          {
+            error: `Préavis insuffisant (${config.mentorCancelHours}h requis avant la séance).`,
+            code: "CANCEL_TOO_LATE",
+            hoursToSession: Math.max(0, Math.round(hoursToSession)),
+            requiredHours: config.mentorCancelHours,
+          },
+          { status: 400 },
+        );
+      }
+
       if (!reason || reason.trim().length < 30) {
         return NextResponse.json(
           { error: "Motif d'annulation requis (30 caractères minimum). L'admin examinera votre demande." },

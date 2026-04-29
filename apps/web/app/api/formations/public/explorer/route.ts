@@ -69,7 +69,8 @@ export async function GET(request: Request) {
         take: 100,
         orderBy,
         select: {
-          id: true, slug: true, title: true, price: true, originalPrice: true, banner: true, productType: true,
+          id: true, slug: true, title: true, price: true, originalPrice: true,
+          thumbnail: true, banner: true, productType: true,
           rating: true, reviewsCount: true, salesCount: true,
           createdAt: true,
           instructeur: {
@@ -113,7 +114,9 @@ export async function GET(request: Request) {
       title: p.title,
       price: p.price,
       originalPrice: p.originalPrice,
-      thumbnail: p.banner,
+      // Marketplace cards prefer the square vignette; fall back to the wide
+      // banner for older products that only have one image.
+      thumbnail: p.thumbnail ?? p.banner,
       rating: p.rating,
       reviewsCount: p.reviewsCount,
       salesCount: p.salesCount,

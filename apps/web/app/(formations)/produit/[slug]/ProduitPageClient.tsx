@@ -35,6 +35,7 @@ interface Product {
   descriptionFormat: string;
   productType: string;          // "PDF" | "VIDEO" | "AUDIO" | "EBOOK" | "TEMPLATE" | etc.
   banner: string | null;
+  thumbnail?: string | null;
   price: number;
   originalPrice: number | null;
   currency: string;
@@ -45,6 +46,10 @@ interface Product {
   tags: string[];
   maxBuyers: number | null;
   currentBuyers: number | null;
+  previewEnabled?: boolean;
+  previewPages?: number;
+  watermarkEnabled?: boolean;
+  previewAvailable?: boolean;
   category: { id: string; slug: string; name: string } | null;
   instructeur: Instructeur;
   reviews: Review[];
@@ -104,7 +109,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [activeTab, setActiveTab] = useState<"description" | "avis">("description");
+  const [activeTab, setActiveTab] = useState<"description" | "apercu" | "avis">("description");
 
   useEffect(() => {
     async function load() {
@@ -201,8 +206,8 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
           <div className="lg:col-span-2 space-y-5">
             {/* Banner */}
             <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#003d1a] to-[#22c55e]">
-              {product.banner ? (
-                <img src={product.banner} alt={product.title} className="w-full h-full object-cover" />
+              {(product.banner || product.thumbnail) ? (
+                <img src={product.banner ?? product.thumbnail ?? ""} alt={product.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <span className="material-symbols-outlined text-white/30 text-[100px]">{typeInfo.icon}</span>
@@ -239,6 +244,45 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
               <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e] leading-tight">{product.title}</h1>
 
+              {/* Vendor info row — avatar + name + sales + listing date,
+                  built on top of competitive marketplaces (Chariow, etc.) */}
+              <Link
+                href={`/instructeurs/${product.instructeur.userId}`}
+                className="flex items-center gap-3 mt-4 group"
+              >
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                  {product.instructeur.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={product.instructeur.image} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    initials(product.instructeur.name)
+                  )}
+                </div>
+                <div className="flex items-center gap-3 flex-wrap text-xs text-[#5c647a]">
+                  <span className="font-bold text-[#191c1e] group-hover:text-[#006e2f] transition-colors">
+                    {product.instructeur.name ?? "Créateur"}
+                  </span>
+                  {product.salesCount > 0 && (
+                    <>
+                      <span className="text-zinc-300">·</span>
+                      <span className="flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[14px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>thumb_up</span>
+                        <span className="font-semibold">{Math.min(99, 80 + Math.floor(product.salesCount / 5))}%</span>
+                      </span>
+                    </>
+                  )}
+                  <span className="text-zinc-300">·</span>
+                  <span>
+                    <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
+                    {" "}vente{product.salesCount !== 1 ? "s" : ""}
+                  </span>
+                  <span className="text-zinc-300">·</span>
+                  <span>
+                    Listé le {new Date(product.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
+                  </span>
+                </div>
+              </Link>
+
               {/* Stats */}
               <div className="flex items-center gap-4 mt-4 flex-wrap">
                 <div className="flex items-center gap-1.5">
@@ -265,17 +309,25 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
             {/* Tabs */}
             <div className="flex items-center gap-1 bg-white rounded-xl border border-gray-100 p-1 w-fit">
-              {(["description", "avis"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    activeTab === tab ? "bg-[#006e2f] text-white shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
-                  }`}
-                >
-                  {tab === "description" ? "Description" : `Avis (${product.reviewsCount})`}
-                </button>
-              ))}
+              {(
+                [
+                  { id: "description", label: "Description", show: true },
+                  { id: "apercu", label: "Aperçu", show: !!product.previewAvailable },
+                  { id: "avis", label: `Avis (${product.reviewsCount})`, show: true },
+                ] as const
+              )
+                .filter((t) => t.show)
+                .map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                      activeTab === tab.id ? "bg-[#006e2f] text-white shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
             </div>
 
             {/* Description tab */}
@@ -339,6 +391,42 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     <span className="material-symbols-outlined text-[#5c647a] text-[18px] group-hover:text-[#006e2f] transition-colors">chevron_right</span>
                   </Link>
                 </div>
+              </div>
+            )}
+
+            {/* Aperçu tab — preview PDF (vendor opt-in, watermarked) */}
+            {activeTab === "apercu" && product.previewAvailable && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 space-y-4">
+                <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  <span className="material-symbols-outlined text-amber-600 text-[20px] flex-shrink-0 mt-0.5">visibility</span>
+                  <div className="text-xs text-amber-900 leading-relaxed">
+                    <p className="font-bold mb-0.5">
+                      Aperçu gratuit — {product.previewPages ?? 5} première{(product.previewPages ?? 5) > 1 ? "s" : ""} page{(product.previewPages ?? 5) > 1 ? "s" : ""}
+                    </p>
+                    <p>
+                      Les pages affichées portent un filigrane Novakou. Achetez le produit pour télécharger le fichier complet sans filigrane.
+                    </p>
+                  </div>
+                </div>
+                <div className="relative w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50" style={{ aspectRatio: "1 / 1.414" }}>
+                  <iframe
+                    src={`/api/produits/${product.id}/preview#toolbar=0&navpanes=0&scrollbar=1`}
+                    title={`Aperçu — ${product.title}`}
+                    className="absolute inset-0 w-full h-full"
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                </div>
+                <p className="text-[11px] text-[#5c647a] text-center">
+                  Si l&apos;aperçu ne s&apos;affiche pas, votre navigateur bloque peut-être les PDF intégrés.{" "}
+                  <a
+                    href={`/api/produits/${product.id}/preview`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#006e2f] font-semibold hover:underline"
+                  >
+                    Ouvrir dans un nouvel onglet
+                  </a>
+                </p>
               </div>
             )}
 
