@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Novakou — Témoignage 1,8M FCFA</title>
+  <defs>
+    <linearGradient id="bg4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="em4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg4)"/>
+
+  <!-- Big quote mark -->
+  <text x="80" y="280" font-family="Playfair Display, Georgia, serif"
+        font-size="280" font-weight="900" letter-spacing="-15"
+        fill="#22c55e" opacity="0.18">&#8220;</text>
+
+  <!-- Quote -->
+  <text x="80" y="450" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="64" font-weight="800" letter-spacing="-2"
+        fill="#191c1e">J'ai dépassé</text>
+  <text x="80" y="530" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="64" font-weight="800" letter-spacing="-2"
+        fill="url(#em4)">1,8 M FCFA</text>
+  <text x="80" y="610" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="64" font-weight="800" letter-spacing="-2"
+        fill="#191c1e">en 90 jours.</text>
+
+  <!-- Author block -->
+  <line x1="80" y1="720" x2="200" y2="720" stroke="#006e2f" stroke-width="3" stroke-linecap="round"/>
+  <text x="80" y="780" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="700" letter-spacing="-0.5"
+        fill="#191c1e">Aminata Diallo</text>
+  <text x="80" y="820" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="26" font-weight="500" letter-spacing="-0.3"
+        fill="#5c647a">Formatrice marketing — Dakar</text>
+
+  <!-- Logo footer -->
+  <rect x="80" y="930" width="64" height="64" rx="16" ry="16" fill="url(#em4)"/>
+  <text x="112" y="965" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="32" font-weight="900" letter-spacing="-1.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">NK</text>
+  <text x="160" y="970" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="26" font-weight="800" letter-spacing="-0.5" fill="#191c1e">Novakou</text>
+
+  <!-- Tag pill -->
+  <rect x="780" y="80" width="220" height="60" rx="30" ry="30" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="890" y="120" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="700" letter-spacing="0.5"
+        fill="#006e2f" text-anchor="middle">★ TÉMOIGNAGE</text>
+
+  <!-- Domain -->
+  <text x="1000" y="1010" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="600"
+        fill="#9ca3af" text-anchor="end">novakou.com</text>
+</svg>

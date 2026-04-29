@@ -1,0 +1,70 @@
+{
+  "novakou": {
+    "version": "1.0",
+    "updatedAt": "2026-04-29",
+    "primary": {
+      "deepEmerald": {
+        "hex": "#006e2f",
+        "rgb": "0, 110, 47",
+        "usage": "Boutons principaux, accents importants, gradients vendeur"
+      },
+      "brightEmerald": {
+        "hex": "#22c55e",
+        "rgb": "34, 197, 94",
+        "usage": "Highlights, success states, gradient end"
+      },
+      "gradientStart": "#006e2f",
+      "gradientEnd": "#22c55e"
+    },
+    "background": {
+      "white": {
+        "hex": "#ffffff",
+        "rgb": "255, 255, 255",
+        "usage": "Fond principal, cartes"
+      },
+      "paleMint": {
+        "hex": "#f0fdf4",
+        "rgb": "240, 253, 244",
+        "usage": "Fond alternatif doux, sections décoratives"
+      },
+      "ecru": {
+        "hex": "#fafaf9",
+        "rgb": "250, 250, 249",
+        "usage": "Fond neutre élégant"
+      }
+    },
+    "text": {
+      "slateDark": {
+        "hex": "#191c1e",
+        "rgb": "25, 28, 30",
+        "usage": "Texte principal, headlines"
+      },
+      "slateMedium": {
+        "hex": "#5c647a",
+        "rgb": "92, 100, 122",
+        "usage": "Sous-titres, texte secondaire"
+      },
+      "slateLight": {
+        "hex": "#9ca3af",
+        "rgb": "156, 163, 175",
+        "usage": "Notes discrètes, métadonnées"
+      }
+    },
+    "semantic": {
+      "success": "#006e2f",
+      "warning": "#f59e0b",
+      "danger": "#dc2626",
+      "info": "#3b82f6"
+    },
+    "borders": {
+      "light": {
+        "hex": "#e5e7eb",
+        "usage": "Séparateurs subtils"
+      },
+      "emeraldTint": {
+        "hex": "rgba(0, 110, 47, 0.15)",
+        "usage": "Hover states, focus rings"
+      }
+    }
+  }
+}

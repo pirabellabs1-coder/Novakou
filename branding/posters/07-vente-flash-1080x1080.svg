@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <title>Novakou — Vente flash -50%</title>
+  <defs>
+    <linearGradient id="bg7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="em7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg7)"/>
+
+  <!-- Logo top-left -->
+  <rect x="80" y="80" width="80" height="80" rx="20" ry="20" fill="url(#em7)"/>
+  <text x="120" y="120" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="40" font-weight="900" letter-spacing="-1.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">NK</text>
+
+  <!-- Flash badge top-right -->
+  <g transform="translate(820, 80) rotate(8 100 50)">
+    <rect x="0" y="0" width="200" height="80" rx="40" ry="40" fill="#dc2626"/>
+    <text x="100" y="50" font-family="Manrope, Inter, system-ui, sans-serif"
+          font-size="22" font-weight="900" letter-spacing="2"
+          fill="#ffffff" text-anchor="middle" dominant-baseline="central">⚡ VENTE FLASH</text>
+  </g>
+
+  <!-- Hero −50% -->
+  <text x="540" y="520" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="540" font-weight="900" letter-spacing="-25"
+        fill="url(#em7)" text-anchor="middle" dominant-baseline="central">−50%</text>
+
+  <!-- Sub -->
+  <text x="540" y="700" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="48" font-weight="800" letter-spacing="-1"
+        fill="#191c1e" text-anchor="middle">sur toutes les formations</text>
+
+  <!-- Countdown -->
+  <rect x="290" y="770" width="500" height="80" rx="20" ry="20" fill="#191c1e"/>
+  <text x="540" y="822" font-family="JetBrains Mono, SF Mono, Menlo, monospace"
+        font-size="40" font-weight="800" letter-spacing="3"
+        fill="#22c55e" text-anchor="middle" dominant-baseline="central">⏰ 47 : 59 : 59</text>
+
+  <!-- CTA -->
+  <rect x="240" y="900" width="600" height="100" rx="22" ry="22" fill="url(#em7)"/>
+  <text x="540" y="950" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="34" font-weight="700" letter-spacing="-0.5"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">J'en profite maintenant →</text>
+
+  <!-- Domain -->
+  <text x="540" y="1040" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="22" font-weight="600"
+        fill="#9ca3af" text-anchor="middle">novakou.com — Jusqu'à dimanche minuit</text>
+</svg>

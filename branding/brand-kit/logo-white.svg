@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="600" height="160">
+  <title>Novakou — Logo blanc (pour fonds sombres ou colorés)</title>
+  <rect x="10" y="10" width="140" height="140" rx="32" ry="32" fill="#ffffff"/>
+  <text x="80" y="80" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="68" font-weight="900" letter-spacing="-2"
+        fill="#006e2f" text-anchor="middle" dominant-baseline="central">NK</text>
+  <text x="180" y="100" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="56" font-weight="800" letter-spacing="-2"
+        fill="#ffffff">Novakou</text>
+</svg>

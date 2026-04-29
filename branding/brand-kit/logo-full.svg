@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 160" width="600" height="160">
+  <title>Novakou — Logo complet</title>
+  <defs>
+    <linearGradient id="nkGradFull" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="140" height="140" rx="32" ry="32" fill="url(#nkGradFull)"/>
+  <text x="80" y="80" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="68" font-weight="900" letter-spacing="-2"
+        fill="#ffffff" text-anchor="middle" dominant-baseline="central">NK</text>
+  <text x="180" y="100" font-family="Manrope, Inter, system-ui, sans-serif"
+        font-size="56" font-weight="800" letter-spacing="-2"
+        fill="#191c1e">Novakou</text>
+</svg>
