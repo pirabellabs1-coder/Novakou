@@ -367,6 +367,16 @@ export async function POST(req: Request) {
         periodEnd.setMonth(periodEnd.getMonth() + 1);
       }
 
+      // Trial period : si le plan a un trialDays > 0 ET c'est une nouvelle
+      // souscription (pas un renewal), créer en status "trialing" avec
+      // trialEndsAt = now + trialDays jours. Le cron subscription-renewal
+      // basculera vers "active" à expiration du trial.
+      const hasTrial = !isRenewal && plan.trialDays && plan.trialDays > 0;
+      const initialStatus = hasTrial ? "trialing" : "active";
+      const trialEndsAt = hasTrial
+        ? new Date(periodStart.getTime() + (plan.trialDays as number) * 24 * 60 * 60 * 1000)
+        : null;
+
       // Creer ou mettre a jour la Subscription
       const sub = await prisma.subscription.upsert({
         where: isRenewal && renewingSubId
@@ -375,12 +385,13 @@ export async function POST(req: Request) {
         create: {
           userId,
           planId,
-          status: "active",
+          status: initialStatus,
           currentPeriodStart: periodStart,
           currentPeriodEnd: periodEnd,
           lastPaymentAt: new Date(),
           totalPaid: plan.price,
           renewalCount: 0,
+          trialEndsAt,
         },
         update: {
           status: "active",

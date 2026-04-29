@@ -21,6 +21,7 @@
     { "path": "/api/cron/monthly-vendor-recap",          "schedule": "0 9 1 * *" },
     { "path": "/api/cron/subscription-renewal",          "schedule": "0 3 * * *" },
     { "path": "/api/cron/subscription-expire",           "schedule": "30 3 * * *" },
+    { "path": "/api/cron/subscription-reminder",         "schedule": "0 9 * * *" },
     { "path": "/api/cron/affiliate-payout",              "schedule": "0 5 5 * *" },
     { "path": "/api/cron/approve-affiliate-commissions", "schedule": "0 3 * * *" },
     { "path": "/api/cron/account-deletion-cooldown",     "schedule": "0 2 * * *" },
