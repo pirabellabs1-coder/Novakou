@@ -16,6 +16,18 @@ interface MentorReview {
   student: { id: string; name: string | null; image: string | null };
 }
 
+interface MentorSessionPackPublic {
+  id: string;
+  title: string;
+  sessionsCount: number;
+  price: number;
+  originalPrice: number;
+  sessionDurationMinutes: number;
+  description: string | null;
+  validityDays: number;
+  savingPct: number;
+}
+
 interface MentorPublic {
   id: string;
   userId: string;
@@ -37,6 +49,7 @@ interface MentorPublic {
   totalStudents: number;
   memberSince: string;
   reviews: MentorReview[];
+  sessionPacks?: MentorSessionPackPublic[];
 }
 
 interface PreviewSlot {
@@ -453,6 +466,61 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
                     )}
                   </div>
                 </div>
+
+                {/* Packs de séances — affichés seulement si dispos */}
+                {mentor.sessionPacks && mentor.sessionPacks.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="material-symbols-outlined text-[20px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>local_offer</span>
+                      <h2 className="text-lg font-extrabold text-[#191c1e]">Packs de séances</h2>
+                    </div>
+                    <p className="text-sm text-[#5c647a] mb-4">
+                      Économisez en réservant plusieurs séances d&apos;avance
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {mentor.sessionPacks.map((pack) => (
+                        <div
+                          key={pack.id}
+                          className="border-2 border-gray-100 hover:border-[#006e2f]/30 rounded-2xl p-5 transition-all flex flex-col"
+                        >
+                          {pack.savingPct > 0 && (
+                            <span className="self-start inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-800 mb-3">
+                              <span className="material-symbols-outlined text-[12px]">savings</span>
+                              -{pack.savingPct}%
+                            </span>
+                          )}
+                          <h3 className="font-bold text-[#191c1e] text-base mb-1">{pack.title}</h3>
+                          <p className="text-xs text-[#5c647a] mb-3">
+                            {pack.sessionsCount} séance{pack.sessionsCount > 1 ? "s" : ""} · {pack.sessionDurationMinutes} min · Validité {pack.validityDays}j
+                          </p>
+                          {pack.description && (
+                            <p className="text-xs text-[#5c647a] mb-4 line-clamp-3">{pack.description}</p>
+                          )}
+                          <div className="mt-auto">
+                            <div className="flex items-baseline gap-2 mb-3">
+                              {pack.savingPct > 0 && (
+                                <span className="text-xs text-[#9ca3af] line-through">
+                                  {new Intl.NumberFormat("fr-FR").format(pack.originalPrice)} FCFA
+                                </span>
+                              )}
+                              <span className="text-xl font-extrabold text-[#191c1e]">
+                                {new Intl.NumberFormat("fr-FR").format(pack.price)} FCFA
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => router.push(`/checkout?pid=${pack.id}&kind=mentor-pack`)}
+                              className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
+                              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                            >
+                              <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                              Acheter
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Disponibilités — mini calendar */}
                 {mentor.isAvailable && (

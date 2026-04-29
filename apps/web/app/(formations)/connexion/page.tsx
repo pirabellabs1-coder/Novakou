@@ -244,7 +244,7 @@ function ConnexionInner() {
 
             {/* Error */}
             {error && (
-              <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
+              <div id="login-error" role="alert" aria-live="polite" className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
                 <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
                 <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
@@ -252,16 +252,20 @@ function ConnexionInner() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
+                <label htmlFor="login-email" className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">mail</span>
                   <input
+                    id="login-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="vous@exemple.com"
                     autoComplete="email"
                     required
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "login-error" : undefined}
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
                   />
                 </div>
@@ -269,7 +273,7 @@ function ConnexionInner() {
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-[#191c1e]">Mot de passe</label>
+                  <label htmlFor="login-password" className="block text-xs font-semibold text-[#191c1e]">Mot de passe</label>
                   <Link href="/mot-de-passe-oublie" className="text-xs text-[#006e2f] font-semibold hover:underline">
                     Mot de passe oublié ?
                   </Link>
@@ -277,12 +281,16 @@ function ConnexionInner() {
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock</span>
                   <input
+                    id="login-password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="current-password"
                     required
+                    aria-required="true"
+                    aria-invalid={!!error}
+                    aria-describedby={error ? "login-error" : undefined}
                     className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a] hover:text-[#191c1e]" aria-label="Afficher le mot de passe">
