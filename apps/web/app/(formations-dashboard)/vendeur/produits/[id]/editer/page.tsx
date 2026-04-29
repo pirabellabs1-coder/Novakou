@@ -122,6 +122,7 @@ export default function EditerProduitPage() {
   const product = response?.data;
   const productId = product?.id;
 
+  useEffect(() => {
     if (!product || hasHydrated) return;
 
     // Drafts win over a fresh API load — but ONLY if the draft contains
