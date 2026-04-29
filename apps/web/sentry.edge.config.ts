@@ -1,10 +1,16 @@
-// Sentry edge config — @sentry/nextjs will be installed in V2
-// For now, this file is a no-op placeholder
+/**
+ * Sentry edge runtime config (middleware + edge route handlers).
+ */
 
-{
-  const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN;
+import * as Sentry from "@sentry/nextjs";
 
-  if (sentryDsn) {
-    console.info("[Sentry] Edge DSN configured but @sentry/nextjs not installed yet");
-  }
+const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
+
+if (dsn) {
+  Sentry.init({
+    dsn,
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.05 : 1.0,
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+    release: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
+  });
 }

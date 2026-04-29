@@ -1,30 +1,33 @@
 /**
- * Sentry server config — placeholder activable.
+ * Sentry server config — route handlers, server components, RSC.
  *
- * Pour activer Sentry server (route handlers, server components, RSC) :
- *   1. pnpm add @sentry/nextjs --filter @freelancehigh/web
- *   2. Décommenter le bloc ci-dessous.
+ * DSN via env Vercel : SENTRY_DSN (ou fallback NEXT_PUBLIC_SENTRY_DSN).
+ * Si DSN absent → no-op safe.
  */
 
-// === ACTIVATION (décommenter après install @sentry/nextjs) ============
-// import * as Sentry from "@sentry/nextjs";
-//
-// Sentry.init({
-//   dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-//   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
-//   environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
-//   release: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
-//   ignoreErrors: [
-//     "ECONNREFUSED",
-//     "ETIMEDOUT",
-//   ],
-// });
+import * as Sentry from "@sentry/nextjs";
 
-// === No-op ===========================================================
-const sentryDsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
-if (sentryDsn && process.env.NODE_ENV === "production") {
-  // eslint-disable-next-line no-console
-  console.info("[Sentry] Server DSN set but @sentry/nextjs not installed — see sentry.server.config.ts");
+const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
+
+if (dsn) {
+  Sentry.init({
+    dsn,
+    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+    release: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7),
+    ignoreErrors: [
+      "ECONNREFUSED",
+      "ETIMEDOUT",
+      "EPIPE",
+    ],
+    beforeSend(event) {
+      // Never log Authorization headers
+      if (event.request?.headers) {
+        const h = event.request.headers as Record<string, unknown>;
+        if (h.authorization) h.authorization = "[redacted]";
+        if (h.cookie) h.cookie = "[redacted]";
+      }
+      return event;
+    },
+  });
 }
-
-export {};
