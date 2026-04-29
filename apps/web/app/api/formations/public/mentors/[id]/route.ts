@@ -26,6 +26,19 @@ export async function GET(_req: Request, { params }: Params) {
             student: { select: { id: true, name: true, image: true } },
           },
         },
+        sessionPacks: {
+          where: { isActive: true },
+          orderBy: { sessionsCount: "asc" },
+          select: {
+            id: true,
+            title: true,
+            sessionsCount: true,
+            priceXof: true,
+            sessionDurationMinutes: true,
+            description: true,
+            validityDays: true,
+          },
+        },
       },
     });
 
@@ -60,6 +73,21 @@ export async function GET(_req: Request, { params }: Params) {
           review: b.studentReview,
           date: b.scheduledAt,
           student: b.student,
+        })),
+        sessionPacks: profile.sessionPacks.map((p) => ({
+          id: p.id,
+          title: p.title,
+          sessionsCount: p.sessionsCount,
+          price: p.priceXof,
+          // Compute "originalPrice" as sessionsCount × sessionPrice (no discount)
+          // for the front to display strikethrough
+          originalPrice: profile.sessionPrice * p.sessionsCount,
+          sessionDurationMinutes: p.sessionDurationMinutes,
+          description: p.description,
+          validityDays: p.validityDays,
+          savingPct: profile.sessionPrice > 0
+            ? Math.max(0, Math.round((1 - p.priceXof / (profile.sessionPrice * p.sessionsCount)) * 100))
+            : 0,
         })),
       },
     });

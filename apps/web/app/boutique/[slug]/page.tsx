@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import BoutiqueView from "@/components/formations/BoutiqueView";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
+// ISR : 10min cache for public shop pages — vendors update infrequently
+export const revalidate = 600;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }

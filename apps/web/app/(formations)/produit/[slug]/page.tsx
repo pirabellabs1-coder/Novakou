@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import ProduitPageClient from "./ProduitPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
+// ISR : 5min cache for public product pages
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {

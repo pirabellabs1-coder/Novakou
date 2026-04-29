@@ -177,12 +177,21 @@ export default async function RootLayout({
         />
       </head>
       <body suppressHydrationWarning className="bg-white dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+        {/* Skip-to-content link — invisible until keyboard focused (a11y) */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[9999] focus:bg-emerald-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:font-bold focus:shadow-lg"
+        >
+          Aller au contenu principal
+        </a>
         <FontLoader />
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <TrackingProvider>
               <ImpersonationBanner />
-              {children}
+              <main id="main-content">
+                {children}
+              </main>
               <CookieConsent />
               <ConfirmDialog />
               <PromptDialog />

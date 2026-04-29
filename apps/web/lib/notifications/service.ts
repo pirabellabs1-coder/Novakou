@@ -86,22 +86,34 @@ export async function createNotifications(inputs: CreateNotificationInput[]): Pr
  * les valeurs de l'enum Prisma apres la migration.
  */
 function mapToNotificationType(type: string): NotificationType {
+  // L'enum Prisma ne contient que 6 valeurs (ADMIN_ACTION, MESSAGE, ORDER,
+  // KYC, SYSTEM, PAYMENT). Les autres types (offer, review, course, product,
+  // service, agency, boost) sont mappés vers SYSTEM ou MESSAGE pour rester
+  // compatibles avec le schema sans coercition silencieuse.
+  const lower = type.toLowerCase();
   const typeMap: Record<string, NotificationType> = {
+    // Native enum values
     order: "ORDER",
     message: "MESSAGE",
     payment: "PAYMENT",
     system: "SYSTEM",
     kyc: "KYC",
     admin_action: "ADMIN_ACTION",
-    offer: "OFFER",
-    review: "REVIEW",
-    agency: "AGENCY",
-    course: "COURSE",
-    product: "PRODUCT",
-    service: "SERVICE",
-    boost: "BOOST",
+    // Aliases mapped to closest valid enum
+    offer: "ORDER",       // offer → order-like flow
+    review: "MESSAGE",    // review → user feedback / message
+    agency: "ADMIN_ACTION", // agency invitation → admin-style action
+    course: "ORDER",      // course purchase → order
+    product: "ORDER",     // product purchase → order
+    service: "ORDER",     // service order → order
+    boost: "PAYMENT",     // boost = paid feature
   };
-  return typeMap[type] || "SYSTEM";
+  const mapped = typeMap[lower];
+  if (!mapped) {
+    console.warn(`[notifications] Unknown type "${type}" — coerced to SYSTEM`);
+    return "SYSTEM";
+  }
+  return mapped;
 }
 
 /**

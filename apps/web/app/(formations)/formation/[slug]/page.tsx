@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import FormationPageClient from "./FormationPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
+// ISR : revalidate every 5 minutes — public formation pages shouldn't hit
+// the DB on every visit. Trade-off : up to 5min stale data on price/title
+// changes. Mutations (vendor edits) can call revalidatePath() to bust.
+export const revalidate = 300;
+
 export async function generateMetadata({
   params,
 }: {
