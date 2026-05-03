@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -146,6 +147,33 @@ export async function POST(request: Request, { params }: Params) {
     }
     const totalAmount = Math.max(0, subTotal - discountAmount);
 
+    // ── Affiliate attribution ─────────────────────────────────────────────
+    // Identique au pattern checkout/route.ts : on lit le cookie fh_ref,
+    // on retrouve le profil affilié, et on propage le tout en metadata
+    // pour que le webhook crée la commission.
+    let affiliateProfileId = "";
+    let affiliateCommissionRate = 0;
+    try {
+      const cookieStore = await cookies();
+      const affCookie =
+        cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
+      if (affCookie) {
+        const prof = await prisma.affiliateProfile.findUnique({
+          where: { affiliateCode: affCookie },
+          select: {
+            id: true, status: true,
+            program: { select: { commissionPct: true, isActive: true } },
+          },
+        });
+        if (prof && prof.status === "ACTIVE" && prof.program.isActive) {
+          affiliateProfileId = prof.id;
+          affiliateCommissionRate = (prof.program.commissionPct ?? 0) / 100;
+        }
+      }
+    } catch (err) {
+      console.warn("[bundle/buy affiliate cookie]", err);
+    }
+
     const sharedMeta = {
       type: "bundle_purchase",
       bundleId: bundle.id,
@@ -156,6 +184,9 @@ export async function POST(request: Request, { params }: Params) {
       discountCodeId: appliedDiscountCodeId ?? "",
       discountAmount: String(discountAmount),
       bundleSubTotal: String(subTotal),
+      // Affiliate
+      affiliateProfileId,
+      affiliateCommissionRate: String(affiliateCommissionRate),
     };
     const description = `Bundle : ${bundle.title}`;
     const returnUrl = `${APP_URL}/payment/return?provider=${provider}`;

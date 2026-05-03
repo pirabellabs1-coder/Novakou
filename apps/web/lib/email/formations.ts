@@ -1048,3 +1048,200 @@ export async function sendSubscriptionRenewalEmail(params: {
   });
 }
 
+// ── 22. Confirmation achat d'un Pack (Bundle) ──
+//
+// Envoyé immédiatement après confirmation Moneroo/PayGenius d'un bundle.
+// Liste les articles inclus + lien vers Mes Formations.
+export async function sendBundlePurchasedEmail(params: {
+  email: string;
+  name: string;
+  bundleTitle: string;
+  totalItems: number;
+  formationCount: number;
+  productCount: number;
+  paidAmount: number;
+  currency?: string;
+  locale?: "fr" | "en";
+}) {
+  const { email, name, bundleTitle, totalItems, formationCount, productCount, paidAmount, currency = "FCFA", locale = "fr" } = params;
+  const isFr = locale === "fr";
+  const fmtPrice = new Intl.NumberFormat(isFr ? "fr-FR" : "en-US").format(Math.round(paidAmount));
+  const myFormationsUrl = buyerMagicLink(email, "/apprenant/mes-formations");
+  const myProductsUrl = buyerMagicLink(email, "/apprenant/mes-produits");
+
+  const html = emailLayout(`
+    <h2 style="color:#111827;font-size:22px;font-weight:800;margin:0 0 14px;letter-spacing:-0.3px;">
+      ${isFr ? `Bonjour ${name},` : `Hello ${name},`}
+    </h2>
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;">
+      ${isFr
+        ? `Merci pour votre achat ! Votre pack <strong style="color:#111827;">« ${bundleTitle} »</strong> est confirmé et tous les articles inclus sont désormais disponibles dans votre espace.`
+        : `Thanks for your purchase! Your pack <strong style="color:#111827;">"${bundleTitle}"</strong> is confirmed and all included items are now in your space.`}
+    </p>
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:22px;margin:0 0 24px;">
+      <p style="color:#15803d;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;">
+        ${isFr ? "Contenu débloqué" : "Unlocked content"}
+      </p>
+      <p style="color:#111827;font-size:15px;font-weight:700;margin:0 0 8px;">${totalItems} ${isFr ? "article(s) ajouté(s) à votre espace" : "item(s) added to your space"}</p>
+      <p style="color:#15803d;font-size:13px;margin:0;">
+        ${formationCount > 0 ? `${formationCount} ${isFr ? "formation(s)" : "course(s)"}` : ""}
+        ${formationCount > 0 && productCount > 0 ? " · " : ""}
+        ${productCount > 0 ? `${productCount} ${isFr ? "produit(s) digital" : "digital product(s)"}` : ""}
+      </p>
+    </div>
+    <div style="text-align:center;margin:0 0 28px;">
+      ${button(isFr ? "Accéder à mes contenus" : "Access my content", formationCount > 0 ? myFormationsUrl : myProductsUrl)}
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:22px;margin:0 0 24px;">
+      <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;">
+        ${isFr ? "Récapitulatif" : "Summary"}
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Pack" : "Pack"}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${bundleTitle}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Articles" : "Items"}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${totalItems}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Montant" : "Amount"}</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:14px;">${fmtPrice} ${currency}</td></tr>
+      </table>
+    </div>
+    <p style="color:#6b7280;line-height:1.6;font-size:13px;margin:0;">
+      ${isFr
+        ? `Vous avez un accès à vie à tous les articles de ce pack. Pour toute question, contactez <a href="mailto:support@novakou.com" style="color:#006e2f;text-decoration:none;font-weight:600;">support@novakou.com</a>.`
+        : `You have lifetime access to all items in this pack. For any questions, contact <a href="mailto:support@novakou.com" style="color:#006e2f;text-decoration:none;font-weight:600;">support@novakou.com</a>.`}
+    </p>
+  `, locale, "celebration");
+
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: isFr ? `Pack confirmé — ${bundleTitle}` : `Pack confirmed — ${bundleTitle}`,
+    html,
+  });
+}
+
+// ── 23. Confirmation souscription initiale à un abonnement ──
+//
+// Envoyé lors de la première souscription à un plan (subscription_initial).
+// Pour les renouvellements, on utilise sendSubscriptionRenewedEmail (24).
+export async function sendSubscriptionConfirmedEmail(params: {
+  email: string;
+  name: string;
+  planName: string;
+  price: number;
+  currency: string;
+  interval: "monthly" | "yearly" | string;
+  currentPeriodEnd: Date | string;
+  trialEndsAt?: Date | string | null;
+  locale?: "fr" | "en";
+}) {
+  const { email, name, planName, price, currency, interval, currentPeriodEnd, trialEndsAt, locale = "fr" } = params;
+  const isFr = locale === "fr";
+  const periodLabel = interval === "yearly" ? (isFr ? "annuel" : "yearly") : (isFr ? "mensuel" : "monthly");
+  const endDateStr = new Date(currentPeriodEnd).toLocaleDateString(isFr ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" });
+  const trialDateStr = trialEndsAt ? new Date(trialEndsAt).toLocaleDateString(isFr ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" }) : null;
+  const fmtPrice = new Intl.NumberFormat(isFr ? "fr-FR" : "en-US").format(Math.round(price));
+  const subscriptionsUrl = buyerMagicLink(email, "/apprenant/abonnements");
+
+  const html = emailLayout(`
+    <h2 style="color:#111827;font-size:22px;font-weight:800;margin:0 0 14px;letter-spacing:-0.3px;">
+      ${isFr ? `Bonjour ${name},` : `Hello ${name},`}
+    </h2>
+    ${trialDateStr
+      ? `<p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;">
+          ${isFr
+            ? `Votre essai gratuit pour <strong style="color:#111827;">« ${planName} »</strong> est démarré ! Vous serez prélevé(e) <strong>${fmtPrice} ${currency}</strong> le <strong>${trialDateStr}</strong> sauf si vous annulez avant.`
+            : `Your free trial for <strong style="color:#111827;">"${planName}"</strong> has started! You'll be charged <strong>${fmtPrice} ${currency}</strong> on <strong>${trialDateStr}</strong> unless you cancel before.`}
+        </p>`
+      : `<p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;">
+          ${isFr
+            ? `Votre abonnement <strong style="color:#111827;">« ${planName} »</strong> est actif jusqu'au <strong>${endDateStr}</strong>. Tous les contenus inclus sont accessibles dans votre espace.`
+            : `Your subscription <strong style="color:#111827;">"${planName}"</strong> is active until <strong>${endDateStr}</strong>. All included content is now accessible in your space.`}
+        </p>`}
+    <div style="text-align:center;margin:0 0 28px;">
+      ${button(isFr ? "Voir mes abonnements" : "View my subscriptions", subscriptionsUrl)}
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:22px;margin:0 0 24px;">
+      <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;">
+        ${isFr ? "Récapitulatif" : "Summary"}
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Plan</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${planName}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Cycle" : "Cycle"}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${periodLabel}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Montant" : "Amount"}</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:14px;">${fmtPrice} ${currency}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${trialDateStr ? (isFr ? "Fin essai" : "Trial ends") : (isFr ? "Échéance" : "Period end")}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${trialDateStr ?? endDateStr}</td></tr>
+      </table>
+    </div>
+    <p style="color:#6b7280;line-height:1.6;font-size:13px;margin:0;">
+      ${isFr
+        ? `Vous pouvez annuler votre abonnement à tout moment depuis votre espace <strong>Mes abonnements</strong>. L'accès reste actif jusqu'à la fin de la période payée.`
+        : `You can cancel your subscription anytime from <strong>My subscriptions</strong>. Access remains active until the end of the paid period.`}
+    </p>
+  `, locale, "celebration");
+
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: isFr
+      ? (trialDateStr ? `Essai démarré — ${planName}` : `Abonnement confirmé — ${planName}`)
+      : (trialDateStr ? `Trial started — ${planName}` : `Subscription confirmed — ${planName}`),
+    html,
+  });
+}
+
+// ── 24. Confirmation de renouvellement payé ──
+//
+// Envoyé après webhook subscription_renewal réussi (paiement de la nouvelle période).
+// Différent de sendSubscriptionRenewalEmail (envoi du lien de paiement avant échéance).
+export async function sendSubscriptionRenewedEmail(params: {
+  email: string;
+  name: string;
+  planName: string;
+  price: number;
+  currency: string;
+  interval: "monthly" | "yearly" | string;
+  newPeriodEnd: Date | string;
+  locale?: "fr" | "en";
+}) {
+  const { email, name, planName, price, currency, interval, newPeriodEnd, locale = "fr" } = params;
+  const isFr = locale === "fr";
+  const periodLabel = interval === "yearly" ? (isFr ? "annuel" : "yearly") : (isFr ? "mensuel" : "monthly");
+  const endDateStr = new Date(newPeriodEnd).toLocaleDateString(isFr ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" });
+  const fmtPrice = new Intl.NumberFormat(isFr ? "fr-FR" : "en-US").format(Math.round(price));
+  const subscriptionsUrl = buyerMagicLink(email, "/apprenant/abonnements");
+
+  const html = emailLayout(`
+    <h2 style="color:#111827;font-size:22px;font-weight:800;margin:0 0 14px;letter-spacing:-0.3px;">
+      ${isFr ? `Merci ${name} 💚` : `Thanks ${name} 💚`}
+    </h2>
+    <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;">
+      ${isFr
+        ? `Votre abonnement <strong style="color:#111827;">« ${planName} »</strong> a été renouvelé avec succès. Votre accès est prolongé jusqu'au <strong>${endDateStr}</strong>.`
+        : `Your subscription <strong style="color:#111827;">"${planName}"</strong> has been renewed successfully. Access extended until <strong>${endDateStr}</strong>.`}
+    </p>
+    <div style="text-align:center;margin:0 0 28px;">
+      ${button(isFr ? "Voir mes abonnements" : "View my subscriptions", subscriptionsUrl)}
+    </div>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:22px;margin:0 0 24px;">
+      <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 14px;">
+        ${isFr ? "Détail du paiement" : "Payment details"}
+      </p>
+      <table style="width:100%;border-collapse:collapse;">
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">Plan</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${planName}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Cycle" : "Cycle"}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${periodLabel}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Prélevé" : "Charged"}</td><td style="color:#006e2f;font-weight:700;text-align:right;font-size:14px;">${fmtPrice} ${currency}</td></tr>
+        <tr><td style="color:#6b7280;padding:5px 0;font-size:13px;">${isFr ? "Prochain renouvellement" : "Next renewal"}</td><td style="color:#111827;font-weight:600;text-align:right;font-size:13px;">${endDateStr}</td></tr>
+      </table>
+    </div>
+    <p style="color:#6b7280;line-height:1.6;font-size:13px;margin:0;">
+      ${isFr
+        ? `Pour annuler à tout moment ou modifier votre méthode de paiement, rendez-vous dans <strong>Mes abonnements</strong>.`
+        : `To cancel anytime or change your payment method, go to <strong>My subscriptions</strong>.`}
+    </p>
+  `, locale);
+
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: isFr ? `Abonnement renouvelé — ${planName}` : `Subscription renewed — ${planName}`,
+    html,
+  });
+}
+

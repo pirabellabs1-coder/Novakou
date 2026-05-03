@@ -31,7 +31,12 @@ import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 import { rateLimit } from "@/lib/api-rate-limit";
-import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
+import {
+  sendDigitalProductDeliveryEmail,
+  sendBundlePurchasedEmail,
+  sendSubscriptionConfirmedEmail,
+  sendSubscriptionRenewedEmail,
+} from "@/lib/email/formations";
 
 interface PayGeniusWebhookPayload {
   id?: string;
@@ -234,6 +239,8 @@ export async function POST(req: Request) {
     const planId = String(metadata.planId ?? "");
     const isRenewal = type === "subscription_renewal";
     const renewingSubId = String(metadata.subscriptionId ?? "");
+    const affiliateProfileId = metadata.affiliateProfileId ? String(metadata.affiliateProfileId) : null;
+    const affiliateCommissionRate = Number(metadata.affiliateCommissionRate ?? 0);
 
     if (!userId || !planId) {
       return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
@@ -329,13 +336,18 @@ export async function POST(req: Request) {
           .catch((e) => console.warn("[paygenius subscription purchase]", pid, e?.message ?? e));
       }
 
-      // Notifications + email + PlatformRevenue — uniquement à l'achat initial,
-      // le renewal se fait silencieusement (parité avec webhook Moneroo).
+      // Notifications + email + PlatformRevenue (parité avec webhook Moneroo)
+      const buyer = await prisma.user.findUnique({
+        where: { id: userId }, select: { email: true, name: true },
+      });
+      const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
+
+      const vendorProfile = await prisma.instructeurProfile.findUnique({
+        where: { id: plan.instructeurId },
+        select: { userId: true },
+      });
+
       if (!isRenewal) {
-        const buyer = await prisma.user.findUnique({
-          where: { id: userId }, select: { email: true, name: true },
-        });
-        const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
         await prisma.notification.create({
           data: {
             userId,
@@ -349,19 +361,19 @@ export async function POST(req: Request) {
         }).catch(() => null);
 
         if (buyer?.email) {
-          sendDigitalProductDeliveryEmail({
+          sendSubscriptionConfirmedEmail({
             email: buyer.email,
             name: buyerName,
-            productTitle: `Abonnement : ${plan.name}`,
-            downloadUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com"}/apprenant/abonnements`,
+            planName: plan.name,
+            price: plan.price,
+            currency: plan.currency,
+            interval: plan.interval,
+            currentPeriodEnd: periodEnd,
+            trialEndsAt,
             locale: "fr",
-          }).catch((e) => console.warn("[paygenius subscription email buyer]", e?.message ?? e));
+          }).catch((e) => console.warn("[paygenius subscription confirmed email]", e?.message ?? e));
         }
 
-        const vendorProfile = await prisma.instructeurProfile.findUnique({
-          where: { id: plan.instructeurId },
-          select: { userId: true },
-        });
         if (vendorProfile?.userId) {
           await prisma.notification.create({
             data: {
@@ -373,32 +385,94 @@ export async function POST(req: Request) {
             },
           }).catch(() => null);
         }
+      } else {
+        // Renouvellement payé : confirmation acheteur + notif vendeur
+        await prisma.notification.create({
+          data: {
+            userId,
+            type: "PAYMENT",
+            title: "Abonnement renouvelé",
+            message: `Votre abonnement « ${plan.name} » a été renouvelé. Accès prolongé jusqu'au ${periodEnd.toLocaleDateString("fr-FR")}.`,
+            link: "/apprenant/abonnements",
+          },
+        }).catch(() => null);
 
-        // PlatformRevenue (commission) — pas sur l'essai gratuit puisque rien n'a été payé.
-        if (!hasTrial) {
-          const PLATFORM_RATE = 0.10;
-          const commissionAmount = Math.round(plan.price * PLATFORM_RATE);
-          const vendorAmount = Math.max(0, plan.price - commissionAmount);
-          await prisma.platformRevenue.create({
+        if (buyer?.email) {
+          sendSubscriptionRenewedEmail({
+            email: buyer.email,
+            name: buyerName,
+            planName: plan.name,
+            price: plan.price,
+            currency: plan.currency,
+            interval: plan.interval,
+            newPeriodEnd: periodEnd,
+            locale: "fr",
+          }).catch((e) => console.warn("[paygenius subscription renewed email]", e?.message ?? e));
+        }
+
+        if (vendorProfile?.userId) {
+          await prisma.notification.create({
             data: {
+              userId: vendorProfile.userId,
+              type: "PAYMENT",
+              title: "Renouvellement encaissé",
+              message: `${buyerName} a renouvelé l'abonnement « ${plan.name} » (+${plan.price} ${plan.currency}).`,
+              link: "/vendeur/dashboard",
+            },
+          }).catch(() => null);
+        }
+      }
+
+      // PlatformRevenue + crédit wallet — appliqué à CHAQUE période payée
+      if (!hasTrial) {
+        const PLATFORM_RATE = 0.10;
+        const commissionAmount = Math.round(plan.price * PLATFORM_RATE);
+        const vendorAmount = Math.max(0, plan.price - commissionAmount);
+        await prisma.platformRevenue.create({
+          data: {
+            orderId: sub.id,
+            orderType: isRenewal ? "subscription_renewal" : "subscription",
+            grossAmount: plan.price,
+            commissionRate: PLATFORM_RATE,
+            commissionAmount,
+            vendorAmount,
+            paymentRef: reference,
+            currency: plan.currency,
+            instructeurId: plan.instructeurId,
+            shopId: plan.shopId ?? null,
+          },
+        }).catch((err) => console.warn("[paygenius subscription platformRevenue]", err?.message ?? err));
+        if (vendorAmount > 0) {
+          await prisma.instructeurProfile.update({
+            where: { id: plan.instructeurId },
+            data: { totalEarned: { increment: vendorAmount } },
+          }).catch(() => null);
+        }
+      }
+
+      // Commission affilié — uniquement à la souscription initiale, jamais
+      // au renouvellement. Et pas sur l'essai gratuit (rien n'a été payé).
+      if (!isRenewal && !hasTrial && affiliateProfileId && affiliateCommissionRate > 0 && plan.price > 0) {
+        const affAmount = Math.round(plan.price * affiliateCommissionRate);
+        if (affAmount > 0) {
+          await prisma.affiliateCommission.create({
+            data: {
+              affiliateId: affiliateProfileId,
               orderId: sub.id,
               orderType: "subscription",
-              grossAmount: plan.price,
-              commissionRate: PLATFORM_RATE,
-              commissionAmount,
-              vendorAmount,
-              paymentRef: reference,
-              currency: plan.currency,
-              instructeurId: plan.instructeurId,
-              shopId: plan.shopId ?? null,
+              orderAmount: plan.price,
+              commissionPct: affiliateCommissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
             },
-          }).catch((err) => console.warn("[paygenius subscription platformRevenue]", err?.message ?? err));
-          if (vendorAmount > 0) {
-            await prisma.instructeurProfile.update({
-              where: { id: plan.instructeurId },
-              data: { totalEarned: { increment: vendorAmount } },
-            }).catch(() => null);
-          }
+          }).catch((e) => console.warn("[paygenius subscription affiliateCommission]", e?.message ?? e));
+          await prisma.affiliateProfile.update({
+            where: { id: affiliateProfileId },
+            data: {
+              totalConversions: { increment: 1 },
+              pendingEarnings: { increment: affAmount },
+            },
+          }).catch((e) => console.warn("[paygenius subscription affiliateProfile update]", e?.message ?? e));
         }
       }
 
@@ -415,6 +489,8 @@ export async function POST(req: Request) {
     const discountCodeId = metadata.discountCodeId ? String(metadata.discountCodeId) : null;
     const bundleDiscountAmount = Number(metadata.discountAmount ?? 0);
     const bundleSubTotalMeta = Number(metadata.bundleSubTotal ?? 0);
+    const affiliateProfileId = metadata.affiliateProfileId ? String(metadata.affiliateProfileId) : null;
+    const affiliateCommissionRate = Number(metadata.affiliateCommissionRate ?? 0);
 
     if (!userId || !bundleId) {
       return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
@@ -501,12 +577,15 @@ export async function POST(req: Request) {
       });
       const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
       if (buyer?.email) {
-        const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
-        sendDigitalProductDeliveryEmail({
+        sendBundlePurchasedEmail({
           email: buyer.email,
           name: buyerName,
-          productTitle: `Bundle : ${bundle.title}`,
-          downloadUrl: `${APP_URL}/apprenant/mes-formations`,
+          bundleTitle: bundle.title,
+          totalItems: enrolledFormations + enrolledProducts,
+          formationCount: enrolledFormations,
+          productCount: enrolledProducts,
+          paidAmount,
+          currency: "FCFA",
           locale: "fr",
         }).catch((e) => console.warn("[paygenius bundle email buyer]", e?.message ?? e));
       }
@@ -561,6 +640,31 @@ export async function POST(req: Request) {
           where: { id: bundle.instructeurId },
           data: { totalEarned: { increment: vendorAmount } },
         }).catch(() => null);
+      }
+
+      // Commission affilié si attribué (cookie fh_ref lu au /buy)
+      if (affiliateProfileId && affiliateCommissionRate > 0 && paidAmount > 0) {
+        const affAmount = Math.round(paidAmount * affiliateCommissionRate);
+        if (affAmount > 0) {
+          await prisma.affiliateCommission.create({
+            data: {
+              affiliateId: affiliateProfileId,
+              orderId: purchase.id,
+              orderType: "bundle",
+              orderAmount: paidAmount,
+              commissionPct: affiliateCommissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
+            },
+          }).catch((e) => console.warn("[paygenius bundle affiliateCommission]", e?.message ?? e));
+          await prisma.affiliateProfile.update({
+            where: { id: affiliateProfileId },
+            data: {
+              totalConversions: { increment: 1 },
+              pendingEarnings: { increment: affAmount },
+            },
+          }).catch((e) => console.warn("[paygenius bundle affiliateProfile update]", e?.message ?? e));
+        }
       }
 
       return NextResponse.json({

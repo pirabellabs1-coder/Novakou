@@ -20,7 +20,12 @@ import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 import { rateLimit } from "@/lib/api-rate-limit";
-import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
+import {
+  sendDigitalProductDeliveryEmail,
+  sendBundlePurchasedEmail,
+  sendSubscriptionConfirmedEmail,
+  sendSubscriptionRenewedEmail,
+} from "@/lib/email/formations";
 
 /**
  * Vérifie la signature HMAC Moneroo sur le body brut.
@@ -348,6 +353,8 @@ export async function POST(req: Request) {
     const planId = String(metadata.planId ?? "");
     const isRenewal = type === "subscription_renewal";
     const renewingSubId = String(metadata.subscriptionId ?? "");
+    const affiliateProfileId = metadata.affiliateProfileId ? String(metadata.affiliateProfileId) : null;
+    const affiliateCommissionRate = Number(metadata.affiliateCommissionRate ?? 0);
 
     if (!userId || !planId) {
       return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
@@ -450,14 +457,20 @@ export async function POST(req: Request) {
         }).catch((e) => console.warn("[moneroo subscription purchase]", pid, e?.message ?? e));
       }
 
-      // ── Notifications + email (sans ça l'abonné et le vendeur ne savent
-      // pas que la souscription est partie). On envoie uniquement à l'achat
-      // initial — le renewal se fait silencieusement.
+      // ── Notifications + email (acheteur + vendeur) ─────────────────
+      // Initial: "Abonnement confirmé" / "Essai démarré" — email celebration
+      // Renewal: "Abonnement renouvelé" — email plus sobre
+      const buyer = await prisma.user.findUnique({
+        where: { id: userId }, select: { email: true, name: true },
+      });
+      const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
+
+      const vendorProfile = await prisma.instructeurProfile.findUnique({
+        where: { id: plan.instructeurId },
+        select: { userId: true },
+      });
+
       if (!isRenewal) {
-        const buyer = await prisma.user.findUnique({
-          where: { id: userId }, select: { email: true, name: true },
-        });
-        const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
         await prisma.notification.create({
           data: {
             userId,
@@ -471,19 +484,19 @@ export async function POST(req: Request) {
         }).catch(() => null);
 
         if (buyer?.email) {
-          sendDigitalProductDeliveryEmail({
+          sendSubscriptionConfirmedEmail({
             email: buyer.email,
             name: buyerName,
-            productTitle: `Abonnement : ${plan.name}`,
-            downloadUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com"}/apprenant/abonnements`,
+            planName: plan.name,
+            price: plan.price,
+            currency: plan.currency,
+            interval: plan.interval,
+            currentPeriodEnd: periodEnd,
+            trialEndsAt,
             locale: "fr",
-          }).catch((e) => console.warn("[moneroo subscription email buyer]", e?.message ?? e));
+          }).catch((e) => console.warn("[moneroo subscription confirmed email]", e?.message ?? e));
         }
 
-        const vendorProfile = await prisma.instructeurProfile.findUnique({
-          where: { id: plan.instructeurId },
-          select: { userId: true },
-        });
         if (vendorProfile?.userId) {
           await prisma.notification.create({
             data: {
@@ -495,33 +508,97 @@ export async function POST(req: Request) {
             },
           }).catch(() => null);
         }
+      } else {
+        // Renouvellement payé : confirmation à l'apprenant + notif vendeur
+        await prisma.notification.create({
+          data: {
+            userId,
+            type: "PAYMENT",
+            title: "Abonnement renouvelé",
+            message: `Votre abonnement « ${plan.name} » a été renouvelé. Accès prolongé jusqu'au ${periodEnd.toLocaleDateString("fr-FR")}.`,
+            link: "/apprenant/abonnements",
+          },
+        }).catch(() => null);
 
-        // PlatformRevenue (commission) sur la première période payée — pas
-        // sur l'essai gratuit puisqu'aucun paiement n'a eu lieu encore.
-        if (!hasTrial) {
-          const PLATFORM_RATE = 0.10;
-          const commissionAmount = Math.round(plan.price * PLATFORM_RATE);
-          const vendorAmount = Math.max(0, plan.price - commissionAmount);
-          await prisma.platformRevenue.create({
+        if (buyer?.email) {
+          sendSubscriptionRenewedEmail({
+            email: buyer.email,
+            name: buyerName,
+            planName: plan.name,
+            price: plan.price,
+            currency: plan.currency,
+            interval: plan.interval,
+            newPeriodEnd: periodEnd,
+            locale: "fr",
+          }).catch((e) => console.warn("[moneroo subscription renewed email]", e?.message ?? e));
+        }
+
+        if (vendorProfile?.userId) {
+          await prisma.notification.create({
             data: {
+              userId: vendorProfile.userId,
+              type: "PAYMENT",
+              title: "Renouvellement encaissé",
+              message: `${buyerName} a renouvelé l'abonnement « ${plan.name} » (+${plan.price} ${plan.currency}).`,
+              link: "/vendeur/dashboard",
+            },
+          }).catch(() => null);
+        }
+      }
+
+      // PlatformRevenue + crédit wallet — appliqué à CHAQUE période payée
+      // (initial sauf trial gratuit, ET renewal). C'était le bug #4 du
+      // punchlist : on ne traçait la commission qu'au premier achat.
+      if (!hasTrial) {
+        const PLATFORM_RATE = 0.10;
+        const commissionAmount = Math.round(plan.price * PLATFORM_RATE);
+        const vendorAmount = Math.max(0, plan.price - commissionAmount);
+        await prisma.platformRevenue.create({
+          data: {
+            orderId: sub.id,
+            orderType: isRenewal ? "subscription_renewal" : "subscription",
+            grossAmount: plan.price,
+            commissionRate: PLATFORM_RATE,
+            commissionAmount,
+            vendorAmount,
+            paymentRef: paymentId,
+            currency: plan.currency,
+            instructeurId: plan.instructeurId,
+            shopId: plan.shopId ?? null,
+          },
+        }).catch((err) => console.warn("[moneroo subscription platformRevenue]", err?.message ?? err));
+        if (vendorAmount > 0) {
+          await prisma.instructeurProfile.update({
+            where: { id: plan.instructeurId },
+            data: { totalEarned: { increment: vendorAmount } },
+          }).catch(() => null);
+        }
+      }
+
+      // Commission affilié — uniquement à la souscription initiale, jamais
+      // au renouvellement (pour éviter de re-créditer l'affilié à chaque
+      // période). Et pas sur l'essai gratuit (rien n'a été payé).
+      if (!isRenewal && !hasTrial && affiliateProfileId && affiliateCommissionRate > 0 && plan.price > 0) {
+        const affAmount = Math.round(plan.price * affiliateCommissionRate);
+        if (affAmount > 0) {
+          await prisma.affiliateCommission.create({
+            data: {
+              affiliateId: affiliateProfileId,
               orderId: sub.id,
               orderType: "subscription",
-              grossAmount: plan.price,
-              commissionRate: PLATFORM_RATE,
-              commissionAmount,
-              vendorAmount,
-              paymentRef: paymentId,
-              currency: plan.currency,
-              instructeurId: plan.instructeurId,
-              shopId: plan.shopId ?? null,
+              orderAmount: plan.price,
+              commissionPct: affiliateCommissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
             },
-          }).catch((err) => console.warn("[moneroo subscription platformRevenue]", err?.message ?? err));
-          if (vendorAmount > 0) {
-            await prisma.instructeurProfile.update({
-              where: { id: plan.instructeurId },
-              data: { totalEarned: { increment: vendorAmount } },
-            }).catch(() => null);
-          }
+          }).catch((e) => console.warn("[moneroo subscription affiliateCommission]", e?.message ?? e));
+          await prisma.affiliateProfile.update({
+            where: { id: affiliateProfileId },
+            data: {
+              totalConversions: { increment: 1 },
+              pendingEarnings: { increment: affAmount },
+            },
+          }).catch((e) => console.warn("[moneroo subscription affiliateProfile update]", e?.message ?? e));
         }
       }
 
@@ -539,6 +616,8 @@ export async function POST(req: Request) {
     const discountCodeId = metadata.discountCodeId ? String(metadata.discountCodeId) : null;
     const bundleDiscountAmount = Number(metadata.discountAmount ?? 0);
     const bundleSubTotalMeta = Number(metadata.bundleSubTotal ?? 0);
+    const affiliateProfileId = metadata.affiliateProfileId ? String(metadata.affiliateProfileId) : null;
+    const affiliateCommissionRate = Number(metadata.affiliateCommissionRate ?? 0);
 
     if (!userId || !bundleId) {
       return NextResponse.json({ ok: true, ignored: true, reason: "missing_metadata" });
@@ -625,18 +704,21 @@ export async function POST(req: Request) {
         }
       }
 
-      // Email de confirmation à l'acheteur
+      // Email de confirmation à l'acheteur — template Pack spécialisé
       const buyer = await prisma.user.findUnique({
         where: { id: userId },
         select: { email: true, name: true },
       });
       if (buyer?.email) {
-        const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
-        sendDigitalProductDeliveryEmail({
+        sendBundlePurchasedEmail({
           email: buyer.email,
           name: buyer.name ?? "Acheteur",
-          productTitle: `Bundle : ${bundle.title}`,
-          downloadUrl: `${APP_URL}/apprenant/mes-formations`,
+          bundleTitle: bundle.title,
+          totalItems: enrolledFormations + enrolledProducts,
+          formationCount: enrolledFormations,
+          productCount: enrolledProducts,
+          paidAmount,
+          currency: "FCFA",
           locale: "fr",
         }).catch((e) => console.warn("[moneroo bundle email buyer]", e?.message ?? e));
       }
@@ -696,6 +778,31 @@ export async function POST(req: Request) {
           where: { id: bundle.instructeurId },
           data: { totalEarned: { increment: vendorAmount } },
         }).catch((err) => console.warn("[moneroo bundle wallet]", err?.message ?? err));
+      }
+
+      // Commission affilié si attribué (cookie fh_ref lu au /buy)
+      if (affiliateProfileId && affiliateCommissionRate > 0 && paidAmount > 0) {
+        const affAmount = Math.round(paidAmount * affiliateCommissionRate);
+        if (affAmount > 0) {
+          await prisma.affiliateCommission.create({
+            data: {
+              affiliateId: affiliateProfileId,
+              orderId: purchase.id,
+              orderType: "bundle",
+              orderAmount: paidAmount,
+              commissionPct: affiliateCommissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
+            },
+          }).catch((e) => console.warn("[moneroo bundle affiliateCommission]", e?.message ?? e));
+          await prisma.affiliateProfile.update({
+            where: { id: affiliateProfileId },
+            data: {
+              totalConversions: { increment: 1 },
+              pendingEarnings: { increment: affAmount },
+            },
+          }).catch((e) => console.warn("[moneroo bundle affiliateProfile update]", e?.message ?? e));
+        }
       }
 
       return NextResponse.json({

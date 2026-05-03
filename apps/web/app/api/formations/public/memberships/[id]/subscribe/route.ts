@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -120,6 +121,30 @@ export async function POST(req: Request, { params }: Params) {
       );
     }
 
+    // ── Affiliate attribution ────────────────────────────────────
+    let affiliateProfileId = "";
+    let affiliateCommissionRate = 0;
+    try {
+      const cookieStore = await cookies();
+      const affCookie =
+        cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
+      if (affCookie) {
+        const prof = await prisma.affiliateProfile.findUnique({
+          where: { affiliateCode: affCookie },
+          select: {
+            id: true, status: true,
+            program: { select: { commissionPct: true, isActive: true } },
+          },
+        });
+        if (prof && prof.status === "ACTIVE" && prof.program.isActive) {
+          affiliateProfileId = prof.id;
+          affiliateCommissionRate = (prof.program.commissionPct ?? 0) / 100;
+        }
+      }
+    } catch (err) {
+      console.warn("[subscribe affiliate cookie]", err);
+    }
+
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
     const sessionRef = `sub:${id}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
     const description = `Abonnement Novakou — ${plan.name}`;
@@ -129,6 +154,8 @@ export async function POST(req: Request, { params }: Params) {
       userId,
       planId: id,
       paymentProvider: provider,
+      affiliateProfileId,
+      affiliateCommissionRate: String(affiliateCommissionRate),
     };
     const returnUrl = `${appUrl}/payment/return?ref=${encodeURIComponent(sessionRef)}&provider=${provider}`;
 

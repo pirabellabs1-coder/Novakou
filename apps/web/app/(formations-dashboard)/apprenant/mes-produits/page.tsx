@@ -81,20 +81,26 @@ export default function ProduitsPage() {
 
   const handleDownload = (p: Purchase) => {
     const files = p.product?.files ?? [];
-    if (files.length > 1) {
-      // Multi-file: open each in a new tab. Browsers may pop-up-block beyond
-      // the first; users can retry from the expanded list rendered below.
-      files.forEach((f) => window.open(f.url, "_blank"));
-      setDownloaded((prev) => new Set([...prev, p.id]));
+    const single = files[0]?.url ?? p.product?.fileUrl;
+
+    if (files.length === 0 && !single) {
+      useToastStore.getState().addToast("error", "Fichier non disponible pour ce produit. Contactez le vendeur.");
       return;
     }
-    const single = files[0]?.url ?? p.product?.fileUrl;
-    if (single) {
+
+    // Open files BEFORE the fetch so we don't lose the user-gesture popup permission.
+    if (files.length > 1) {
+      files.forEach((f) => window.open(f.url, "_blank"));
+    } else if (single) {
       window.open(single, "_blank");
-      setDownloaded((prev) => new Set([...prev, p.id]));
-    } else {
-      useToastStore.getState().addToast("error", "Fichier non disponible pour ce produit. Contactez le vendeur.");
     }
+    setDownloaded((prev) => new Set([...prev, p.id]));
+
+    // Fire-and-forget : incrémente le compteur server-side (downloadCount).
+    // Best-effort — si l'appel échoue, on ne bloque pas l'apprenant.
+    fetch(`/api/formations/apprenant/products/${p.id}/download`, { method: "POST" })
+      .then(() => qc.invalidateQueries({ queryKey: ["apprenant-products"] }))
+      .catch(() => null);
   };
 
   return (
