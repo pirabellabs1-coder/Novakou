@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
+
+type Provider = "moneroo" | "paygenius";
+interface ProviderInfo { id: Provider; label: string; available: boolean; description: string }
 
 interface BundleItem {
   kind: "formation" | "product";
@@ -38,6 +41,24 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
   const [error, setError] = useState<string | null>(null);
   const themeColor = bundle.shop?.themeColor ?? "#006e2f";
 
+  // Liste des providers disponibles (Moneroo / PayGenius). Source de vérité :
+  // /api/formations/payment/providers (vérifie les env vars côté serveur).
+  // Si un seul est dispo on cache le sélecteur — sinon le visiteur choisit.
+  const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [provider, setProvider] = useState<Provider>("moneroo");
+  useEffect(() => {
+    fetch("/api/formations/payment/providers")
+      .then((r) => r.json())
+      .then((j) => {
+        const list = (j.data ?? []) as ProviderInfo[];
+        setProviders(list);
+        const firstAvail = list.find((p) => p.available);
+        if (firstAvail) setProvider(firstAvail.id);
+      })
+      .catch(() => setProviders([]));
+  }, []);
+  const availableProviders = providers.filter((p) => p.available);
+
   async function handleBuy() {
     setLoading(true);
     setError(null);
@@ -45,7 +66,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
       const r = await fetch(`/api/formations/public/bundles/${bundle.slug}/buy`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: "moneroo" }),
+        body: JSON.stringify({ provider }),
       });
       const j = await r.json();
       if (j.code === "AUTH_REQUIRED") {
@@ -180,10 +201,42 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
             )}
             <p className="text-[11px] text-[#5c647a] mt-1">≈ {Math.round(bundle.priceXof / 655.957)} EUR</p>
 
+            {/* Sélecteur de provider de paiement — visible si ≥ 2 dispo */}
+            {availableProviders.length > 1 && (
+              <div className="mt-5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a] mb-2">
+                  Choisissez votre passerelle de paiement
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableProviders.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setProvider(p.id)}
+                      className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-left transition-all ${
+                        provider === p.id
+                          ? "border-[#006e2f] bg-green-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[18px] ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`}
+                      >
+                        {p.id === "paygenius" ? "auto_awesome" : "account_balance_wallet"}
+                      </span>
+                      <span className={`text-xs font-bold ${provider === p.id ? "text-[#006e2f]" : "text-[#191c1e]"}`}>
+                        {p.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleBuy}
               disabled={loading}
-              className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+              className="w-full mt-4 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
               style={{ background: `linear-gradient(to right, ${themeColor}, #22c55e)` }}
             >
               <span className="material-symbols-outlined text-[18px]">

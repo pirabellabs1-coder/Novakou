@@ -250,6 +250,14 @@ export async function POST(req: Request) {
       if (plan.interval === "yearly") periodEnd.setFullYear(periodEnd.getFullYear() + 1);
       else periodEnd.setMonth(periodEnd.getMonth() + 1);
 
+      // Trial period : si le plan a un trialDays > 0 ET c'est une nouvelle
+      // souscription (pas un renewal), créer en status "trialing".
+      const hasTrial = !isRenewal && plan.trialDays && plan.trialDays > 0;
+      const initialStatus = hasTrial ? "trialing" : "active";
+      const trialEndsAt = hasTrial
+        ? new Date(periodStart.getTime() + (plan.trialDays as number) * 24 * 60 * 60 * 1000)
+        : null;
+
       const sub = await prisma.subscription.upsert({
         where: isRenewal && renewingSubId
           ? { id: renewingSubId }
@@ -257,12 +265,13 @@ export async function POST(req: Request) {
         create: {
           userId,
           planId,
-          status: "active",
+          status: initialStatus,
           currentPeriodStart: periodStart,
           currentPeriodEnd: periodEnd,
           lastPaymentAt: new Date(),
           totalPaid: plan.price,
           renewalCount: 0,
+          trialEndsAt,
         },
         update: {
           status: "active",
@@ -318,6 +327,79 @@ export async function POST(req: Request) {
             update: {},
           })
           .catch((e) => console.warn("[paygenius subscription purchase]", pid, e?.message ?? e));
+      }
+
+      // Notifications + email + PlatformRevenue — uniquement à l'achat initial,
+      // le renewal se fait silencieusement (parité avec webhook Moneroo).
+      if (!isRenewal) {
+        const buyer = await prisma.user.findUnique({
+          where: { id: userId }, select: { email: true, name: true },
+        });
+        const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
+        await prisma.notification.create({
+          data: {
+            userId,
+            type: "ORDER",
+            title: hasTrial ? "Essai gratuit démarré" : "Abonnement confirmé",
+            message: hasTrial
+              ? `Votre essai gratuit de ${plan.trialDays} jours pour « ${plan.name} » a démarré. Vous serez prélevé(e) le ${trialEndsAt?.toLocaleDateString("fr-FR")}.`
+              : `Votre abonnement « ${plan.name} » est actif jusqu'au ${periodEnd.toLocaleDateString("fr-FR")}.`,
+            link: "/apprenant/abonnements",
+          },
+        }).catch(() => null);
+
+        if (buyer?.email) {
+          sendDigitalProductDeliveryEmail({
+            email: buyer.email,
+            name: buyerName,
+            productTitle: `Abonnement : ${plan.name}`,
+            downloadUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com"}/apprenant/abonnements`,
+            locale: "fr",
+          }).catch((e) => console.warn("[paygenius subscription email buyer]", e?.message ?? e));
+        }
+
+        const vendorProfile = await prisma.instructeurProfile.findUnique({
+          where: { id: plan.instructeurId },
+          select: { userId: true },
+        });
+        if (vendorProfile?.userId) {
+          await prisma.notification.create({
+            data: {
+              userId: vendorProfile.userId,
+              type: "ORDER",
+              title: "Nouvel abonné !",
+              message: `${buyerName} vient de s'abonner à votre plan « ${plan.name} » (${plan.price} ${plan.currency} / ${plan.interval === "yearly" ? "an" : "mois"}).`,
+              link: "/vendeur/dashboard",
+            },
+          }).catch(() => null);
+        }
+
+        // PlatformRevenue (commission) — pas sur l'essai gratuit puisque rien n'a été payé.
+        if (!hasTrial) {
+          const PLATFORM_RATE = 0.10;
+          const commissionAmount = Math.round(plan.price * PLATFORM_RATE);
+          const vendorAmount = Math.max(0, plan.price - commissionAmount);
+          await prisma.platformRevenue.create({
+            data: {
+              orderId: sub.id,
+              orderType: "subscription",
+              grossAmount: plan.price,
+              commissionRate: PLATFORM_RATE,
+              commissionAmount,
+              vendorAmount,
+              paymentRef: reference,
+              currency: plan.currency,
+              instructeurId: plan.instructeurId,
+              shopId: plan.shopId ?? null,
+            },
+          }).catch((err) => console.warn("[paygenius subscription platformRevenue]", err?.message ?? err));
+          if (vendorAmount > 0) {
+            await prisma.instructeurProfile.update({
+              where: { id: plan.instructeurId },
+              data: { totalEarned: { increment: vendorAmount } },
+            }).catch(() => null);
+          }
+        }
       }
 
       return NextResponse.json({ ok: true, subscription: sub.id, type });
@@ -417,15 +499,68 @@ export async function POST(req: Request) {
         where: { id: userId },
         select: { email: true, name: true },
       });
+      const buyerName = buyer?.name ?? buyer?.email?.split("@")[0] ?? "Apprenant";
       if (buyer?.email) {
         const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
         sendDigitalProductDeliveryEmail({
           email: buyer.email,
-          name: buyer.name ?? "Acheteur",
+          name: buyerName,
           productTitle: `Bundle : ${bundle.title}`,
           downloadUrl: `${APP_URL}/apprenant/mes-formations`,
           locale: "fr",
         }).catch((e) => console.warn("[paygenius bundle email buyer]", e?.message ?? e));
+      }
+
+      // Notifications acheteur + vendeur (parité avec le webhook Moneroo)
+      await prisma.notification.create({
+        data: {
+          userId,
+          type: "ORDER",
+          title: "Achat confirmé",
+          message: `Votre achat du pack « ${bundle.title} » est confirmé. ${enrolledFormations + enrolledProducts} article(s) ajouté(s) à votre espace apprenant.`,
+          link: enrolledFormations > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits",
+        },
+      }).catch(() => null);
+
+      const vendorProfile = await prisma.instructeurProfile.findUnique({
+        where: { id: bundle.instructeurId },
+        select: { userId: true },
+      });
+      if (vendorProfile?.userId) {
+        await prisma.notification.create({
+          data: {
+            userId: vendorProfile.userId,
+            type: "ORDER",
+            title: "Nouvelle vente — Pack !",
+            message: `${buyerName} vient d'acheter votre pack « ${bundle.title} » pour ${paidAmount} FCFA.`,
+            link: "/vendeur/dashboard",
+          },
+        }).catch(() => null);
+      }
+
+      // PlatformRevenue + crédit wallet vendeur
+      const PLATFORM_RATE = 0.10;
+      const commissionAmount = Math.round(paidAmount * PLATFORM_RATE);
+      const vendorAmount = Math.max(0, paidAmount - commissionAmount);
+      await prisma.platformRevenue.create({
+        data: {
+          orderId: purchase.id,
+          orderType: "bundle",
+          grossAmount: paidAmount,
+          commissionRate: PLATFORM_RATE,
+          commissionAmount,
+          vendorAmount,
+          paymentRef: reference,
+          currency: "XOF",
+          instructeurId: bundle.instructeurId,
+          shopId: bundle.shopId ?? null,
+        },
+      }).catch((err) => console.warn("[paygenius bundle platformRevenue]", err?.message ?? err));
+      if (vendorAmount > 0) {
+        await prisma.instructeurProfile.update({
+          where: { id: bundle.instructeurId },
+          data: { totalEarned: { increment: vendorAmount } },
+        }).catch(() => null);
       }
 
       return NextResponse.json({

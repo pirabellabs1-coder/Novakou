@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
+
+type Provider = "moneroo" | "paygenius";
+interface ProviderInfo { id: Provider; label: string; available: boolean; description: string }
 
 interface IncludedItem { id: string; slug: string; title: string; thumbnail?: string | null; banner?: string | null; price: number }
 interface Plan {
@@ -31,6 +34,22 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
   const remaining = plan.maxMembers ? Math.max(0, plan.maxMembers - plan.activeCount) : null;
   const soldOut = plan.maxMembers !== null && remaining === 0;
 
+  // Provider selector — même pattern que la page bundle + le checkout principal.
+  const [providers, setProviders] = useState<ProviderInfo[]>([]);
+  const [provider, setProvider] = useState<Provider>("moneroo");
+  useEffect(() => {
+    fetch("/api/formations/payment/providers")
+      .then((r) => r.json())
+      .then((j) => {
+        const list = (j.data ?? []) as ProviderInfo[];
+        setProviders(list);
+        const firstAvail = list.find((p) => p.available);
+        if (firstAvail) setProvider(firstAvail.id);
+      })
+      .catch(() => setProviders([]));
+  }, []);
+  const availableProviders = providers.filter((p) => p.available);
+
   async function handleSubscribe() {
     if (soldOut) return;
     setLoading(true);
@@ -39,7 +58,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
       const r = await fetch(`/api/formations/public/memberships/${plan.id}/subscribe`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: "moneroo" }),
+        body: JSON.stringify({ provider }),
       });
       const j = await r.json();
       if (j.code === "AUTH_REQUIRED") {
@@ -185,10 +204,41 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
             </div>
             <p className="text-[11px] text-[#5c647a] mt-1">≈ {Math.round(plan.price / 655.957)} EUR / {plan.interval === "yearly" ? "an" : "mois"}</p>
 
+            {availableProviders.length > 1 && !soldOut && (
+              <div className="mt-5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a] mb-2">
+                  Choisissez votre passerelle de paiement
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {availableProviders.map((p) => (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setProvider(p.id)}
+                      className={`flex items-center gap-2 p-2.5 rounded-xl border-2 text-left transition-all ${
+                        provider === p.id
+                          ? "border-purple-500 bg-purple-50"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      }`}
+                    >
+                      <span
+                        className={`material-symbols-outlined text-[18px] ${provider === p.id ? "text-purple-600" : "text-[#5c647a]"}`}
+                      >
+                        {p.id === "paygenius" ? "auto_awesome" : "account_balance_wallet"}
+                      </span>
+                      <span className={`text-xs font-bold ${provider === p.id ? "text-purple-700" : "text-[#191c1e]"}`}>
+                        {p.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleSubscribe}
               disabled={loading || soldOut}
-              className="w-full mt-5 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-4 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 background: soldOut
                   ? "linear-gradient(to right, #94a3b8, #64748b)"
