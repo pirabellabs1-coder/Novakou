@@ -157,7 +157,10 @@ function buildDevResponse(start: Date, end: Date, period: string) {
 async function buildPrismaResponse(start: Date, end: Date, period: string) {
   const dateFilter = { gte: start, lte: end };
 
-  const [ordersAgg, commissionsAgg, refundsAgg, boostsAgg, abonnementsAgg, orders, boosts, abonnements] = await Promise.all([
+  // Boost feature doesn't have a Prisma model yet — skip the boost aggregations
+  // entirely instead of crashing the whole accounting screen. When the Boost
+  // model lands, restore the prisma.boost.aggregate / findMany calls below.
+  const [ordersAgg, commissionsAgg, refundsAgg, abonnementsAgg, orders, abonnements, platformRevenueAgg] = await Promise.all([
     // Total order revenue (all non-cancelled)
     prisma.order.aggregate({
       where: { createdAt: dateFilter, status: { notIn: ["ANNULE"] } },
@@ -172,12 +175,6 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
     prisma.order.aggregate({
       where: { createdAt: dateFilter, escrowStatus: "REFUNDED" },
       _sum: { amount: true },
-    }),
-    // Boost revenue (paid boosts only)
-    prisma.boost.aggregate({
-      where: { paidAt: dateFilter },
-      _sum: { totalCost: true },
-      _count: true,
     }),
     // Subscription revenue
     prisma.payment.aggregate({
@@ -194,16 +191,6 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
       orderBy: { createdAt: "desc" },
       take: 500,
     }),
-    // Individual boosts for operations table
-    prisma.boost.findMany({
-      where: { paidAt: dateFilter },
-      select: {
-        id: true, paidAt: true, startedAt: true, totalCost: true, type: true,
-        user: { select: { name: true } },
-      },
-      orderBy: { paidAt: "desc" },
-      take: 200,
-    }),
     // Individual subscription payments for operations table
     prisma.payment.findMany({
       where: { type: "abonnement", status: "COMPLETE", createdAt: dateFilter },
@@ -214,10 +201,22 @@ async function buildPrismaResponse(start: Date, end: Date, period: string) {
       orderBy: { createdAt: "desc" },
       take: 100,
     }),
+    // Formations / digital products commissions (these flow through PlatformRevenue,
+    // NOT through the Order model — without this, the comptabilite KPI was
+    // missing every single sale of a formation or digital product).
+    prisma.platformRevenue.aggregate({
+      where: { createdAt: dateFilter },
+      _sum: { commissionAmount: true, grossAmount: true },
+    }),
   ]);
+  const boostsAgg = { _sum: { totalCost: 0 }, _count: 0 };
+  const boosts: Array<never> = [];
 
-  const revenueServices = Math.round((ordersAgg._sum.amount ?? 0) * 100) / 100;
-  const totalCommissions = Math.round((commissionsAgg._sum.commission ?? 0) * 100) / 100;
+  const revenueServices = Math.round(((ordersAgg._sum.amount ?? 0) + (platformRevenueAgg._sum.grossAmount ?? 0)) * 100) / 100;
+  // Marketplace orders booked commissions on Order.commission ; formations + digital
+  // products book theirs in PlatformRevenue.commissionAmount. Sum the two so the
+  // KPI reflects every revenue stream the platform actually has today.
+  const totalCommissions = Math.round(((commissionsAgg._sum.commission ?? 0) + (platformRevenueAgg._sum.commissionAmount ?? 0)) * 100) / 100;
   const revenueBoosts = Math.round((boostsAgg._sum.totalCost ?? 0) * 100) / 100;
   const revenueAbonnements = Math.round((abonnementsAgg._sum.amount ?? 0) * 100) / 100;
   const totalRefunds = Math.round((refundsAgg._sum.amount ?? 0) * 100) / 100;
