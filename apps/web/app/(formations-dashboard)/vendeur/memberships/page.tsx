@@ -196,12 +196,16 @@ export default function MembershipsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={() => {
+            if (showCreate) { resetForm(); }
+            setShowCreate((v) => !v);
+            if (!showCreate && typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
-          Nouveau plan
+          <span className="material-symbols-outlined text-[18px]">{showCreate ? "close" : "add"}</span>
+          {showCreate ? "Fermer" : "Nouveau plan"}
         </button>
       </div>
 
@@ -283,21 +287,19 @@ export default function MembershipsPage() {
         </div>
       )}
 
-      {/* Create / Edit modal */}
+      {/* Form INLINE — affiché au-dessus de la liste, scroll naturel sur la
+          page (plus de modal popup tronqué). Mêmes principes que bundles. */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !createMut.isPending && (setShowCreate(false), resetForm())}>
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-7 max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">
-              {editingId ? "Modifier le plan d'abonnement" : "Nouveau plan d'abonnement"}
-            </h2>
-            <p className="text-sm text-[#5c647a] mb-5">
-              Les abonnés paient la première période au moment de s'inscrire, puis un email de renouvellement
-              leur est envoyé à l'échéance pour recharger automatiquement.
-            </p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-4">
+          <h2 className="text-base font-extrabold text-[#191c1e]">
+            {editingId ? "Modifier le plan d'abonnement" : "Nouveau plan d'abonnement"}
+          </h2>
+          <p className="text-sm text-[#5c647a]">
+            Les abonnés paient la première période au moment de s'inscrire, puis un email de renouvellement
+            leur est envoyé à l'échéance pour recharger automatiquement.
+          </p>
 
-            <div className="space-y-4">
+          <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Nom du plan</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)}
@@ -327,7 +329,10 @@ export default function MembershipsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Description (pitch valeur)</label>
+                <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
+                  Description (pitch valeur)
+                  <span className="ml-2 font-normal text-[#5c647a]">(le bouton ✨ IA améliore le texte)</span>
+                </label>
                 <RichTextEditor
                   value={description}
                   onChange={setDescription}
@@ -415,24 +420,23 @@ export default function MembershipsPage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <button onClick={() => { setShowCreate(false); resetForm(); }} disabled={createMut.isPending}
-                  className="flex-1 py-2.5 rounded-xl bg-gray-100 text-[#191c1e] text-sm font-bold">
-                  Annuler
-                </button>
+              <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
                 <button
                   onClick={() => createMut.mutate()}
                   disabled={createMut.isPending || !name || !description || !price ||
                     (selectedFormationIds.length === 0 && selectedProductIds.length === 0)}
-                  className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
                   {createMut.isPending
                     ? (editingId ? "Mise à jour…" : "Création…")
                     : (editingId ? "Mettre à jour" : "Créer le plan")}
                 </button>
+                <button onClick={() => { setShowCreate(false); resetForm(); }} disabled={createMut.isPending}
+                  className="px-5 py-2.5 rounded-xl bg-gray-100 text-[#191c1e] text-sm font-bold">
+                  Annuler
+                </button>
               </div>
             </div>
-          </div>
         </div>
       )}
     </div>
