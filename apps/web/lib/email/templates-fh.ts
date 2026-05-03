@@ -111,7 +111,7 @@ export async function sendPurchaseConfirmationFH(to: string, name: string, data:
     amount: it.price,
     sub: it.kind === "formation" ? "Formation · Accès à vie" : "Produit digital · Téléchargement illimité",
   }));
-  const accessUrl = `${getAppUrl()}/apprenant/${firstItem.kind === "formation" ? "mes-formations" : "produits"}`;
+  const accessUrl = `${getAppUrl()}/apprenant/${firstItem.kind === "formation" ? "mes-formations" : "mes-produits"}`;
 
   const html = emailLayoutFH(`
     ${heading("Merci pour votre achat ! 🎉")}

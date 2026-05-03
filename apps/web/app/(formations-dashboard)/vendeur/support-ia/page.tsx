@@ -88,7 +88,7 @@ export default function SupportAIPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-          <Link href="/vendeur" className="hover:text-[#006e2f] transition-colors">Tableau de bord</Link>
+          <Link href="/vendeur/dashboard" className="hover:text-[#006e2f] transition-colors">Tableau de bord</Link>
           <span className="material-symbols-outlined text-[14px]">chevron_right</span>
           <span className="text-[#191c1e] font-medium">Support client IA</span>
         </div>

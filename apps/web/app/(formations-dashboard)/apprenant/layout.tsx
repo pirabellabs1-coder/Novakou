@@ -14,6 +14,7 @@ const navGroups = [
       { icon: "dashboard",         label: "Tableau de bord", href: "/apprenant/dashboard" },
       { icon: "school",            label: "Mes formations",  href: "/apprenant/mes-formations" },
       { icon: "inventory_2",       label: "Mes produits",    href: "/apprenant/mes-produits" },
+      { icon: "redeem",            label: "Mes packs",       href: "/apprenant/packs" },
       { icon: "card_membership",   label: "Mes abonnements", href: "/apprenant/abonnements" },
       { icon: "workspace_premium", label: "Certificats",     href: "/apprenant/certificats" },
     ],

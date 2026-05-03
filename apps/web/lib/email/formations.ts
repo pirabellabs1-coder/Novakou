@@ -844,7 +844,7 @@ export async function sendCohortEnrollmentEmail(params: {
 }) {
   const { email, name, cohortTitle, formationTitle, startDate, endDate, paidAmount, cohortId, locale = "fr" } = params;
   const isFr = locale === "fr";
-  const cohortUrl = `${APP_URL}/apprenant/cohortes/${cohortId}`;
+  const cohortUrl = `${APP_URL}/apprenant/sessions/${cohortId}`;
   const startStr = startDate.toLocaleDateString(isFr ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" });
   const endStr = endDate.toLocaleDateString(isFr ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" });
 
@@ -910,7 +910,7 @@ export async function sendCohortStartingEmail(params: {
 }) {
   const { email, name, cohortTitle, formationTitle, startDate, cohortId, locale = "fr" } = params;
   const isFr = locale === "fr";
-  const cohortUrl = `${APP_URL}/apprenant/cohortes/${cohortId}`;
+  const cohortUrl = `${APP_URL}/apprenant/sessions/${cohortId}`;
   const startStr = startDate.toLocaleDateString(isFr ? "fr-FR" : "en-US", { day: "numeric", month: "long", year: "numeric" });
 
   const html = emailLayout(

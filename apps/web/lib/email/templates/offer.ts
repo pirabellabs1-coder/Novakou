@@ -21,7 +21,7 @@ export async function sendOfferSentEmail(
       tableRowDark("Montant", `${data.amount.toFixed(2)} EUR`, true) +
       tableRowDark("Delai", data.delay)
     )}
-    ${buttonDark("Voir l'offre", `${getAppUrl()}/client/offres`)}
+    ${buttonDark("Voir l'offre", `${getAppUrl()}/apprenant/dashboard`)}
     ${mutedDark("Vous pouvez accepter, refuser ou negocier cette offre.")}
   `);
   return sendEmail({ to: email, subject: `Offre de ${data.freelanceName} — ${data.title}`, html });
@@ -36,7 +36,7 @@ export async function sendOfferAcceptedEmail(
     ${headingDark("Offre acceptee !")}
     ${textDark(`Bonjour ${freelanceName}, <strong style="color:#F1F5F9;">${data.clientName}</strong> a accepte votre offre.`)}
     ${successBoxDark(`${data.title} — ${data.amount.toFixed(2)} EUR`)}
-    ${buttonDark("Voir la commande", `${getAppUrl()}/dashboard/commandes`, "green")}
+    ${buttonDark("Voir la commande", `${getAppUrl()}/vendeur/commandes`, "green")}
   `);
   return sendEmail({ to: email, subject: `Offre acceptee — ${data.title}`, html });
 }
@@ -51,7 +51,7 @@ export async function sendOfferRejectedEmail(
     ${textDark(`Bonjour ${freelanceName}, <strong style="color:#F1F5F9;">${data.clientName}</strong> a decline votre offre <strong style="color:#F1F5F9;">"${data.title}"</strong>.`)}
     ${errorBoxDark("Statut", "Offre refusee par le client")}
     ${textDark("N'hesitez pas a proposer d'autres offres ou a explorer de nouveaux projets.")}
-    ${buttonDark("Voir les projets", `${getAppUrl()}/dashboard/candidatures`)}
+    ${buttonDark("Voir les projets", `${getAppUrl()}/vendeur/dashboard`)}
   `);
   return sendEmail({ to: email, subject: `Offre declinee — ${data.title}`, html });
 }

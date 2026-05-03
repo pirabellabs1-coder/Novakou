@@ -30,7 +30,7 @@ export function checkKycLevel(
   userKyc: number | undefined,
   requiredLevel: number,
   actionLabel: string,
-  redirectTo = "/dashboard/kyc"
+  redirectTo = "/kyc"
 ): KycCheckResult {
   const currentLevel = userKyc ?? 1;
 

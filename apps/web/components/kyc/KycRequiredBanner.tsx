@@ -18,7 +18,7 @@ export function KycRequiredBanner() {
   useEffect(() => {
     update();
     // Also check KYC level directly from API to avoid JWT cache issues
-    fetch("/api/kyc")
+    fetch("/api/formations/kyc")
       .then((res) => res.ok ? res.json() : null)
       .then((data) => {
         if (data?.currentLevel != null) {
@@ -47,10 +47,10 @@ export function KycRequiredBanner() {
   // Adapter le lien KYC selon l'espace de l'utilisateur
   const kycHref =
     role === "agence"
-      ? "/agence/kyc"
+      ? "/kyc"
       : role === "instructeur"
-        ? "/instructeur/kyc"
-        : "/dashboard/kyc";
+        ? "/kyc"
+        : "/kyc";
 
   return (
     <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">

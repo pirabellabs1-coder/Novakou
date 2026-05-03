@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useToastStore } from "@/store/toast";
+import { ReviewModal } from "@/components/formations/ReviewModal";
 
 type Subscription = {
   id: string;
@@ -53,6 +54,7 @@ export default function AbonnementsPage() {
   const qc = useQueryClient();
   const addToast = useToastStore((s) => s.addToast);
   const [confirmCancel, setConfirmCancel] = useState<string | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<{ planId: string; planName: string } | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["apprenant-subscriptions"],
@@ -132,6 +134,7 @@ export default function AbonnementsPage() {
                     confirmCancel={confirmCancel === sub.id}
                     onConfirmCancel={() => cancelMutation.mutate(sub.id)}
                     onAbortCancel={() => setConfirmCancel(null)}
+                    onReview={(planId, planName) => setReviewTarget({ planId, planName })}
                   />
                 ))}
               </div>
@@ -153,12 +156,24 @@ export default function AbonnementsPage() {
                     confirmCancel={false}
                     onConfirmCancel={() => {}}
                     onAbortCancel={() => {}}
+                    onReview={(planId, planName) => setReviewTarget({ planId, planName })}
                   />
                 ))}
               </div>
             </div>
           )}
         </div>
+      )}
+
+      {reviewTarget && (
+        <ReviewModal
+          open={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          onSuccess={() => qc.invalidateQueries({ queryKey: ["apprenant-subscriptions"] })}
+          kind="subscription"
+          itemId={reviewTarget.planId}
+          itemTitle={reviewTarget.planName}
+        />
       )}
     </div>
   );
@@ -171,6 +186,7 @@ function SubscriptionCard({
   confirmCancel,
   onConfirmCancel,
   onAbortCancel,
+  onReview,
 }: {
   sub: Subscription;
   onAskCancel: () => void;
@@ -178,6 +194,7 @@ function SubscriptionCard({
   confirmCancel: boolean;
   onConfirmCancel: () => void;
   onAbortCancel: () => void;
+  onReview: (planId: string, planName: string) => void;
 }) {
   const status = STATUS_LABELS[sub.status];
   const isActive = sub.status === "active" || sub.status === "trialing";
@@ -341,38 +358,52 @@ function SubscriptionCard({
           </details>
         )}
 
-        {isActive && !sub.cancelAtPeriodEnd && (
-          <div className="flex justify-end">
-            {confirmCancel ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[#5c647a]">
-                  Annuler vraiment ? Accès maintenu jusqu&apos;au {fmtDate(sub.currentPeriodEnd)}.
-                </span>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {/* Bouton Donner mon avis — disponible dès qu'on a une sub
+              (active ou passée) sur ce plan. */}
+          {sub.plan?.id && (
+            <button
+              onClick={() => onReview(sub.plan!.id, sub.plan!.name)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[14px]">rate_review</span>
+              Donner mon avis
+            </button>
+          )}
+
+          {isActive && !sub.cancelAtPeriodEnd && (
+            <div>
+              {confirmCancel ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#5c647a]">
+                    Annuler ? Accès jusqu&apos;au {fmtDate(sub.currentPeriodEnd)}.
+                  </span>
+                  <button
+                    onClick={onAbortCancel}
+                    disabled={canceling}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors"
+                  >
+                    Non
+                  </button>
+                  <button
+                    onClick={onConfirmCancel}
+                    disabled={canceling}
+                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {canceling ? "…" : "Oui, annuler"}
+                  </button>
+                </div>
+              ) : (
                 <button
-                  onClick={onAbortCancel}
-                  disabled={canceling}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors"
+                  onClick={onAskCancel}
+                  className="text-xs font-bold text-[#5c647a] hover:text-red-600 transition-colors"
                 >
-                  Non
+                  Annuler l&apos;abonnement
                 </button>
-                <button
-                  onClick={onConfirmCancel}
-                  disabled={canceling}
-                  className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-50"
-                >
-                  {canceling ? "…" : "Oui, annuler"}
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={onAskCancel}
-                className="text-xs font-bold text-[#5c647a] hover:text-red-600 transition-colors"
-              >
-                Annuler l&apos;abonnement
-              </button>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

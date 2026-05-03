@@ -5,11 +5,11 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 
 /**
- * GET /api/formations/reviews?formationId=xxx OR ?productId=xxx
- * Returns recent reviews for a formation or digital product (public).
+ * GET /api/formations/reviews?formationId=xxx | ?productId=xxx | ?bundleId=xxx | ?planId=xxx
+ * Returns recent reviews for a formation, digital product, bundle, or subscription plan (public).
  *
  * POST /api/formations/reviews
- * Body: { kind: "formation" | "product", itemId, rating, comment }
+ * Body: { kind: "formation" | "product" | "bundle" | "subscription", itemId, rating, comment }
  * Auth required. Buyer-only (must own the item).
  */
 
@@ -18,6 +18,38 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const formationId = searchParams.get("formationId");
     const productId = searchParams.get("productId");
+    const bundleId = searchParams.get("bundleId");
+    const planId = searchParams.get("planId");
+
+    if (bundleId) {
+      const reviews = await prisma.productBundleReview.findMany({
+        where: { bundleId },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id: true, rating: true, comment: true, response: true, respondedAt: true, createdAt: true,
+          user: { select: { id: true, name: true, image: true } },
+        },
+      });
+      const avgRating = reviews.length > 0
+        ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+      return NextResponse.json({ data: reviews, summary: { count: reviews.length, avgRating } });
+    }
+
+    if (planId) {
+      const reviews = await prisma.subscriptionPlanReview.findMany({
+        where: { planId },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id: true, rating: true, comment: true, response: true, respondedAt: true, createdAt: true,
+          user: { select: { id: true, name: true, image: true } },
+        },
+      });
+      const avgRating = reviews.length > 0
+        ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+      return NextResponse.json({ data: reviews, summary: { count: reviews.length, avgRating } });
+    }
 
     if (formationId) {
       const reviews = await prisma.formationReview.findMany({
@@ -57,7 +89,7 @@ export async function GET(request: Request) {
       });
     }
 
-    return NextResponse.json({ error: "formationId ou productId requis" }, { status: 400 });
+    return NextResponse.json({ error: "formationId, productId, bundleId ou planId requis" }, { status: 400 });
   } catch (err) {
     console.error("[reviews GET]", err);
     return NextResponse.json({ data: [], summary: { count: 0, avgRating: 0 } });
@@ -167,6 +199,59 @@ export async function POST(request: Request) {
       });
       const avg = allReviews.reduce((s, x) => s + x.rating, 0) / allReviews.length;
       await prisma.digitalProduct.update({
+        where: { id: itemId },
+        data: { rating: avg, reviewsCount: allReviews.length },
+      });
+      return NextResponse.json({ data: review });
+    }
+
+    if (kind === "bundle") {
+      // Le user doit avoir acheté ce bundle
+      const purchase = await prisma.productBundlePurchase.findFirst({
+        where: { userId, bundleId: itemId },
+      });
+      if (!purchase) {
+        return NextResponse.json({ error: "Vous devez avoir acheté ce pack" }, { status: 403 });
+      }
+      const review = await prisma.productBundleReview.upsert({
+        where: { userId_bundleId: { userId, bundleId: itemId } },
+        create: { userId, bundleId: itemId, rating: r, comment: comment.trim() },
+        update: { rating: r, comment: comment.trim() },
+      });
+      const allReviews = await prisma.productBundleReview.findMany({
+        where: { bundleId: itemId },
+        select: { rating: true },
+      });
+      const avg = allReviews.reduce((s, x) => s + x.rating, 0) / allReviews.length;
+      await prisma.productBundle.update({
+        where: { id: itemId },
+        data: { rating: avg, reviewsCount: allReviews.length },
+      });
+      return NextResponse.json({ data: review });
+    }
+
+    if (kind === "subscription") {
+      // Le user doit avoir une subscription active OU passée sur ce plan
+      const sub = await prisma.subscription.findFirst({
+        where: { userId, planId: itemId },
+      });
+      if (!sub) {
+        return NextResponse.json(
+          { error: "Vous devez être ou avoir été abonné à ce plan" },
+          { status: 403 },
+        );
+      }
+      const review = await prisma.subscriptionPlanReview.upsert({
+        where: { userId_planId: { userId, planId: itemId } },
+        create: { userId, planId: itemId, rating: r, comment: comment.trim() },
+        update: { rating: r, comment: comment.trim() },
+      });
+      const allReviews = await prisma.subscriptionPlanReview.findMany({
+        where: { planId: itemId },
+        select: { rating: true },
+      });
+      const avg = allReviews.reduce((s, x) => s + x.rating, 0) / allReviews.length;
+      await prisma.subscriptionPlan.update({
         where: { id: itemId },
         data: { rating: avg, reviewsCount: allReviews.length },
       });

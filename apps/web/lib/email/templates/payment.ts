@@ -18,7 +18,7 @@ export async function sendPaymentSuccessEmail(
     ${headingDark("Paiement reçu !")}
     ${textDark(`Bonjour ${escapeHtml(name)}, un paiement a été crédité sur votre portefeuille Novakou.`)}
     ${amountDark(`${data.amount.toFixed(2)} EUR`, escapeHtml(data.serviceTitle))}
-    ${buttonDark("Voir mes finances", `${getAppUrl()}/dashboard/finances`, "green")}
+    ${buttonDark("Voir mes finances", `${getAppUrl()}/vendeur/finances`, "green")}
   `);
   return sendEmail({ to: email, subject: `Paiement de ${data.amount.toFixed(2)} EUR reçu`, html });
 }
@@ -33,7 +33,7 @@ export async function sendPaymentFailedEmail(
     ${textDark(`Bonjour ${escapeHtml(name)}, votre paiement de <strong style="color:#F1F5F9;">${data.amount.toFixed(2)} EUR</strong> pour "${escapeHtml(data.serviceTitle)}" n'a pas abouti.`)}
     ${data.reason ? errorBoxDark("Motif", escapeHtml(data.reason)) : ""}
     ${textDark("Veuillez vérifier votre méthode de paiement et réessayer.")}
-    ${buttonDark("Réessayer", `${getAppUrl()}/client/commandes`, "red")}
+    ${buttonDark("Réessayer", `${getAppUrl()}/apprenant/commandes`, "red")}
   `);
   return sendEmail({ to: email, subject: `Échec du paiement — ${data.serviceTitle}`, html });
 }
@@ -51,7 +51,7 @@ export async function sendWithdrawalRequestedEmail(
       tableRowDark("Méthode", escapeHtml(data.method))
     )}
     ${mutedDark("Le traitement prend généralement 1 à 3 jours ouvrables.")}
-    ${buttonDark("Suivre mon retrait", `${getAppUrl()}/dashboard/finances`)}
+    ${buttonDark("Suivre mon retrait", `${getAppUrl()}/vendeur/finances`)}
   `);
   return sendEmail({ to: email, subject: `Demande de retrait — ${data.amount.toFixed(2)} EUR`, html });
 }

@@ -6,7 +6,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  kind: "formation" | "product";
+  kind: "formation" | "product" | "bundle" | "subscription";
   itemId: string;
   itemTitle: string;
   initialRating?: number;

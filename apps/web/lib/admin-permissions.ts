@@ -115,12 +115,12 @@ export function getPermissions(role: AdminRole): AdminPermission[] {
 
 /** Admin sidebar links and their required permissions */
 export const ADMIN_NAV_PERMISSIONS: Record<string, AdminPermission> = {
-  "/admin": "dashboard.view",
+  "/admin/dashboard": "dashboard.view",
   "/admin/utilisateurs": "users.view",
   "/admin/kyc": "kyc.view",
-  "/admin/services": "services.view",
+  "/admin/produits": "services.view",
   "/admin/commandes": "orders.view",
-  "/admin/litiges": "disputes.view",
+  "/admin/mentor-disputes": "disputes.view",
   "/admin/finances": "finances.view",
   "/admin/plans": "plans.view",
   "/admin/blog": "blog.view",

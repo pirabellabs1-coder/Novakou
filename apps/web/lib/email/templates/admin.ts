@@ -14,7 +14,7 @@ export async function sendServiceApprovedDarkEmail(email: string, name: string, 
   const html = emailLayoutDark(`
     ${headingDark("Service publie !")}
     ${textDark(`Bonjour ${name}, votre service <strong style="color:#F1F5F9;">"${serviceTitle}"</strong> a ete approuve par notre equipe et est maintenant visible sur la marketplace.`)}
-    ${buttonDark("Voir mon service", `${getAppUrl()}/dashboard/services`, "green")}
+    ${buttonDark("Voir mon service", `${getAppUrl()}/vendeur/dashboard`, "green")}
     ${textDark(`<span style="color:#64748B;font-size:13px;">Pensez a partager votre service sur les reseaux sociaux pour attirer vos premiers clients !</span>`)}
   `);
   return sendEmail({ to: email, subject: `Service publie — ${serviceTitle}`, html });
@@ -29,7 +29,7 @@ export async function sendServiceRejectedDarkEmail(email: string, name: string, 
       <p style="color:#EF4444;font-weight:600;margin:0 0 4px;">Motif :</p>
       <p style="color:#FCA5A5;margin:0;">${reason}</p>
     </div>
-    ${buttonDark("Modifier mon service", `${getAppUrl()}/dashboard/services`, "amber")}
+    ${buttonDark("Modifier mon service", `${getAppUrl()}/vendeur/dashboard`, "amber")}
   `);
   return sendEmail({ to: email, subject: `Service non approuve — ${serviceTitle}`, html });
 }

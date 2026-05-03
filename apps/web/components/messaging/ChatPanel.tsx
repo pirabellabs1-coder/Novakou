@@ -421,7 +421,7 @@ Retourne UNIQUEMENT le texte de la réponse suggérée, sans guillemets ni expli
 
         <div className="flex items-center gap-0.5 md:gap-1 flex-shrink-0">
           {conversation.orderId && (
-            <a href={`/dashboard/commandes/${conversation.orderId}`} className="hidden sm:flex text-xs text-primary font-bold hover:underline items-center gap-1 mr-2">
+            <a href={`/vendeur/commandes/${conversation.orderId}`} className="hidden sm:flex text-xs text-primary font-bold hover:underline items-center gap-1 mr-2">
               Voir la commande <span className="material-symbols-outlined text-sm">arrow_forward</span>
             </a>
           )}

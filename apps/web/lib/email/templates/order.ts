@@ -29,7 +29,7 @@ export async function sendOrderCreatedClientEmail(email: string, name: string, o
       (order.deadline ? tableRowDark("Date limite", escapeHtml(order.deadline)) : "") +
       tableRowDark("Référence", escapeHtml(order.orderId))
     )}
-    ${buttonDark("Voir ma commande", `${getAppUrl()}/client/commandes`)}
+    ${buttonDark("Voir ma commande", `${getAppUrl()}/apprenant/commandes`)}
     ${mutedDark("Les fonds sont sécurisés en escrow jusqu'à la livraison et votre validation.")}
   `);
   return sendEmail({ to: email, subject: `Commande confirmée — ${order.serviceTitle}`, html });
@@ -45,7 +45,7 @@ export async function sendOrderCreatedFreelanceEmail(email: string, name: string
       tableRowDark("Montant", `${order.amount.toFixed(2)} EUR`, true) +
       tableRowDark("Client", escapeHtml(order.clientName))
     )}
-    ${buttonDark("Voir la commande", `${getAppUrl()}/dashboard/commandes`, "green")}
+    ${buttonDark("Voir la commande", `${getAppUrl()}/vendeur/commandes`, "green")}
   `);
   return sendEmail({ to: email, subject: `Nouvelle commande — ${order.serviceTitle}`, html });
 }
@@ -56,7 +56,7 @@ export async function sendOrderDeliveredEmail(email: string, name: string, order
     ${headingDark("Livraison effectuée !")}
     ${textDark(`Bonjour ${escapeHtml(name)}, <strong style="color:#F1F5F9;">${escapeHtml(order.freelanceName)}</strong> a livré votre commande pour le service <strong style="color:#F1F5F9;">"${escapeHtml(order.serviceTitle)}"</strong>.`)}
     ${textDark("Veuillez vérifier la livraison et la valider ou demander une révision.")}
-    ${buttonDark("Voir la livraison", `${getAppUrl()}/client/commandes`, "green")}
+    ${buttonDark("Voir la livraison", `${getAppUrl()}/apprenant/commandes`, "green")}
     ${mutedDark("Si vous ne validez pas dans les 3 jours, la livraison sera automatiquement acceptée.")}
   `);
   return sendEmail({ to: email, subject: `Livraison effectuée — ${order.serviceTitle}`, html });
@@ -68,7 +68,7 @@ export async function sendOrderCompletedEmail(email: string, name: string, order
     ${headingDark("Commande terminée !")}
     ${textDark(`Bonjour ${escapeHtml(name)}, la commande pour <strong style="color:#F1F5F9;">"${escapeHtml(order.serviceTitle)}"</strong> a été validée par le client.`)}
     ${amountDark(`${order.amount.toFixed(2)} EUR`, "Crédité sur votre portefeuille")}
-    ${buttonDark("Voir mes finances", `${getAppUrl()}/dashboard/finances`, "green")}
+    ${buttonDark("Voir mes finances", `${getAppUrl()}/vendeur/finances`, "green")}
   `);
   return sendEmail({ to: email, subject: `Commande terminée — ${order.serviceTitle}`, html });
 }
@@ -79,7 +79,7 @@ export async function sendOrderCancelledEmail(email: string, name: string, order
     ${headingDark("Commande annulée")}
     ${textDark(`Bonjour ${escapeHtml(name)}, la commande pour <strong style="color:#F1F5F9;">"${escapeHtml(order.serviceTitle)}"</strong> a été annulée.`)}
     ${infoDark(`Référence : ${escapeHtml(order.orderId)}`, "#EF4444")}
-    ${buttonDark("Voir les détails", `${getAppUrl()}/dashboard/commandes`, "red")}
+    ${buttonDark("Voir les détails", `${getAppUrl()}/vendeur/commandes`, "red")}
   `);
   return sendEmail({ to: email, subject: `Commande annulée — ${order.serviceTitle}`, html });
 }
@@ -90,7 +90,7 @@ export async function sendOrderRevisionEmail(email: string, name: string, order:
     ${headingDark("Révision demandée")}
     ${textDark(`Bonjour ${escapeHtml(name)}, le client <strong style="color:#F1F5F9;">${escapeHtml(order.clientName)}</strong> a demandé une révision pour <strong style="color:#F1F5F9;">"${escapeHtml(order.serviceTitle)}"</strong>.`)}
     ${message ? infoDark(`"${escapeHtml(message)}"`, "#F59E0B") : ""}
-    ${buttonDark("Voir la commande", `${getAppUrl()}/dashboard/commandes`, "amber")}
+    ${buttonDark("Voir la commande", `${getAppUrl()}/vendeur/commandes`, "amber")}
   `);
   return sendEmail({ to: email, subject: `Révision demandée — ${order.serviceTitle}`, html });
 }
@@ -104,7 +104,7 @@ export async function sendOrderDeadline24hEmail(email: string, name: string, ord
       tableRowDark("Service", escapeHtml(order.serviceTitle)) +
       (order.deadline ? tableRowDark("Date limite", escapeHtml(order.deadline)) : "")
     )}
-    ${buttonDark("Livrer maintenant", `${getAppUrl()}/dashboard/commandes`, "amber")}
+    ${buttonDark("Livrer maintenant", `${getAppUrl()}/vendeur/commandes`, "amber")}
   `);
   return sendEmail({ to: email, subject: `Rappel : délai dans 24h — ${order.serviceTitle}`, html });
 }
@@ -115,7 +115,7 @@ export async function sendOrderOverdueEmail(email: string, name: string, order: 
     ${headingDark("Commande en retard")}
     ${textDark(`Bonjour ${escapeHtml(name)}, la commande <strong style="color:#F1F5F9;">"${escapeHtml(order.serviceTitle)}"</strong> a dépassé la date limite de livraison.`)}
     ${errorBoxDark("Attention", "Un retard prolongé peut affecter votre taux de complétion et votre classement.")}
-    ${buttonDark("Livrer maintenant", `${getAppUrl()}/dashboard/commandes`, "red")}
+    ${buttonDark("Livrer maintenant", `${getAppUrl()}/vendeur/commandes`, "red")}
   `);
   return sendEmail({ to: email, subject: `Commande en retard — ${order.serviceTitle}`, html });
 }
