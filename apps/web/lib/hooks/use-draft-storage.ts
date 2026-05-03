@@ -117,6 +117,33 @@ export function clearDrafts(prefix: string) {
 }
 
 /**
+ * Returns `true` if a draft exists in localStorage for `<prefix>:<field>`.
+ *
+ * Why this matters for hydration: a form with many fields shouldn't fall back
+ * to "all-or-nothing" between API data and drafts. If the user only typed in
+ * the title field, the title draft should win for THAT field while every
+ * OTHER field should still hydrate from the API. Per-field detection lets the
+ * caller decide field-by-field whether to overwrite the local state with
+ * server data.
+ *
+ * Returns false for missing keys, expired drafts (auto-removed by readStored
+ * on next access), and malformed entries.
+ */
+export function hasStoredDraft(prefix: string, field: string): boolean {
+  if (!isBrowser) return false;
+  try {
+    const raw = window.localStorage.getItem(PREFIX + prefix + ":" + field);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as Partial<Stored<unknown>>;
+    if (parsed.v !== DRAFT_VERSION) return false;
+    if (typeof parsed.savedAt !== "number" || Date.now() - parsed.savedAt > MAX_AGE_MS) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Watches all drafts whose key starts with `prefix` and returns the most
  * recent savedAt timestamp (or null when none exist). Polls at 1.5 s — fast
  * enough for "Brouillon sauvegardé il y a Xs" indicators, light enough to

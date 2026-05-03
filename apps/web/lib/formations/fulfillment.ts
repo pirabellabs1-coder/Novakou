@@ -153,9 +153,17 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       where: { id: f.instructeurId },
       data: { totalEarned: { increment: vendorNet } },
     });
+    // Incrémente DEUX compteurs distincts :
+    //  - studentsCount : compteur cumulatif (analytics, ne décroît pas même
+    //    après remboursement — utilisé pour les stats publiques "X élèves")
+    //  - currentStudents : compteur enforcé par maxStudents (limite de stock).
+    //    Le vendeur peut ajuster manuellement ce compteur (ex: après refund).
     await prisma.formation.update({
       where: { id: f.id },
-      data: { studentsCount: { increment: 1 } },
+      data: {
+        studentsCount: { increment: 1 },
+        currentStudents: { increment: 1 },
+      },
     });
 
     await prisma.platformRevenue.create({
@@ -228,9 +236,13 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       where: { id: p.instructeurId },
       data: { totalEarned: { increment: vendorNet } },
     });
+    // Idem produits : salesCount = analytics, currentBuyers = enforced cap.
     await prisma.digitalProduct.update({
       where: { id: p.id },
-      data: { salesCount: { increment: 1 } },
+      data: {
+        salesCount: { increment: 1 },
+        currentBuyers: { increment: 1 },
+      },
     });
 
     await prisma.platformRevenue.create({

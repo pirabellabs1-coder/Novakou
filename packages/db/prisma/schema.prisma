@@ -1131,6 +1131,8 @@ model Formation {
 
   // Stock limité & Promotions flash
   maxStudents       Int? // null = illimité
+  currentStudents   Int       @default(0) // compteur enforcé par maxStudents (≠ studentsCount qui ne décroît jamais)
+  salesEndAt        DateTime? // null = pas de date limite ; après cette date, plus de nouvelles inscriptions
   discountStartAt   DateTime?
   discountEndAt     DateTime?
   descriptionFormat String    @default("text") // "text" | "tiptap"
@@ -1548,6 +1550,11 @@ model DigitalProduct {
   // Stock limité
   maxBuyers     Int? // null = illimité
   currentBuyers Int  @default(0)
+
+  // Date de fin des ventes — null = pas de date limite.
+  // Quand atteinte, l'API checkout refuse la commande et la page produit
+  // remplace le bouton "Acheter" par un état "Vente terminée".
+  salesEndAt    DateTime?
 
   // Stats
   rating       Float @default(0)

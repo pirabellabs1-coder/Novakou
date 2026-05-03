@@ -87,16 +87,48 @@ export async function POST(request: Request) {
       formationIds.length > 0
         ? prisma.formation.findMany({
             where: { id: { in: formationIds }, status: "ACTIF" },
-            select: { id: true, title: true, price: true, instructeurId: true, shopId: true },
+            select: {
+              id: true, title: true, price: true, instructeurId: true, shopId: true,
+              maxStudents: true, currentStudents: true, salesEndAt: true,
+            },
           })
         : Promise.resolve([]),
       productIds.length > 0
         ? prisma.digitalProduct.findMany({
             where: { id: { in: productIds }, status: "ACTIF" },
-            select: { id: true, title: true, price: true, instructeurId: true, shopId: true },
+            select: {
+              id: true, title: true, price: true, instructeurId: true, shopId: true,
+              maxBuyers: true, currentBuyers: true, salesEndAt: true,
+            },
           })
         : Promise.resolve([]),
     ]);
+
+    // ── Vérification disponibilité (date de fin + stock) ──────────────────
+    // Refuser tôt avec un message clair plutôt que de laisser le checkout
+    // créer un attempt et un appel provider pour rien. Ces deux limites
+    // existent côté schéma : maxBuyers/maxStudents (Int? nullable) et
+    // salesEndAt (DateTime? nullable). Null = pas de limite.
+    const now = new Date();
+    const blocked: string[] = [];
+    for (const f of formations) {
+      if (f.salesEndAt && f.salesEndAt <= now) blocked.push(`${f.title} — vente terminée`);
+      else if (typeof f.maxStudents === "number" && f.maxStudents > 0 && (f.currentStudents ?? 0) >= f.maxStudents) {
+        blocked.push(`${f.title} — places épuisées`);
+      }
+    }
+    for (const p of products) {
+      if (p.salesEndAt && p.salesEndAt <= now) blocked.push(`${p.title} — vente terminée`);
+      else if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && (p.currentBuyers ?? 0) >= p.maxBuyers) {
+        blocked.push(`${p.title} — stock épuisé`);
+      }
+    }
+    if (blocked.length > 0) {
+      return NextResponse.json(
+        { error: `Achat impossible : ${blocked.join(", ")}` },
+        { status: 410 }, // Gone — la ressource n'est plus disponible
+      );
+    }
 
     let subTotal = formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
 

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
+import { SaleAvailability } from "@/components/formations/SaleAvailability";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
@@ -46,6 +47,7 @@ interface Product {
   tags: string[];
   maxBuyers: number | null;
   currentBuyers: number | null;
+  salesEndAt?: string | null;
   previewEnabled?: boolean;
   previewPages?: number;
   watermarkEnabled?: boolean;
@@ -110,6 +112,9 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "apercu" | "avis">("description");
+  // Mis à jour par <SaleAvailability> à chaque tick (deadline ou stock atteint).
+  // Permet de désactiver le bouton "Acheter" en temps réel sans recharger la page.
+  const [canBuy, setCanBuy] = useState(true);
 
   useEffect(() => {
     async function load() {
@@ -498,12 +503,32 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
                 <button
                   onClick={handleBuyNow}
-                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-md"
-                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                  disabled={!canBuy}
+                  className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                  style={{
+                    background: canBuy
+                      ? "linear-gradient(to right, #006e2f, #22c55e)"
+                      : "linear-gradient(to right, #94a3b8, #64748b)",
+                  }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">{isFree ? "download" : "shopping_cart"}</span>
-                  {isFree ? "Télécharger maintenant" : "Acheter maintenant"}
+                  <span className="material-symbols-outlined text-[18px]">
+                    {!canBuy ? "block" : isFree ? "download" : "shopping_cart"}
+                  </span>
+                  {!canBuy
+                    ? "Vente terminée"
+                    : isFree
+                      ? "Télécharger maintenant"
+                      : "Acheter maintenant"}
                 </button>
+
+                {/* Compte à rebours + barre de progression — affichés uniquement
+                    si le vendeur a configuré une deadline ou un stock max. */}
+                <SaleAvailability
+                  salesEndAt={product.salesEndAt}
+                  maxBuyers={product.maxBuyers}
+                  currentBuyers={product.currentBuyers}
+                  onAvailabilityChange={setCanBuy}
+                />
 
                 <div className="mt-3">
                   <InquiryWidget
