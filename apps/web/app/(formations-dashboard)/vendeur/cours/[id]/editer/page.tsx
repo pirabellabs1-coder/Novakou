@@ -779,10 +779,13 @@ function LessonVideoEditorSection({
             {selectedLesson.title}
           </h3>
         </div>
+        {/* Badge "URL valide" neutre — ne dévoile plus le nom du provider
+            (YouTube/Vimeo/MP4) pour rester cohérent avec le côté acheteur où
+            le logo provider est déjà masqué (cf. mention plus bas dans la page). */}
         {provider && valid && (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
             <span className="material-symbols-outlined text-[12px]">check_circle</span>
-            {provider}
+            URL valide
           </span>
         )}
       </div>
