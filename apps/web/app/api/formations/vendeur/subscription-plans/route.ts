@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     });
 
     const body = await request.json();
-    const { name, description, imageUrl, price, interval, linkedFormationIds, linkedProductIds, trialDays, maxMembers } = body;
+    const { name, description, imageUrl, bannerUrl, price, interval, linkedFormationIds, linkedProductIds, trialDays, maxMembers } = body;
 
     if (!name || typeof name !== "string" || name.trim().length < 3) {
       return NextResponse.json({ error: "Nom requis (3 chars min)" }, { status: 400 });
@@ -84,6 +84,7 @@ export async function POST(request: Request) {
         name: name.trim(),
         description: description.trim(),
         imageUrl: imageUrl?.trim() || null,
+        bannerUrl: bannerUrl?.trim() || null,
         price: Number(price),
         interval,
         linkedFormationIds: Array.isArray(linkedFormationIds) ? linkedFormationIds : [],

@@ -7,7 +7,7 @@ import AISupportWidget from "@/components/formations/AISupportWidget";
 import SmartPopupRenderer from "@/components/marketing/SmartPopupRenderer";
 
 interface Item {
-  kind: "formation" | "product";
+  kind: "formation" | "product" | "bundle" | "subscription";
   id: string;
   slug: string;
   title: string;
@@ -15,8 +15,15 @@ interface Item {
   price: number;
   isFree: boolean;
   rating: number;
-  count: number;          // nombre d'apprenants (formation) ou ventes (produit)
-  reviewsCount?: number;  // nombre d'avis laissés
+  count: number;          // apprenants / ventes / acheteurs / abonnés
+  reviewsCount?: number;
+  // Bundle-specific
+  originalPrice?: number | null;
+  itemsCount?: number;
+  // Subscription-specific
+  interval?: "monthly" | "yearly";
+  trialDays?: number | null;
+  description?: string;
 }
 
 interface Owner {
@@ -38,25 +45,34 @@ export default function BoutiqueView({
   owner,
   formations,
   products,
+  bundles = [],
+  subscriptionPlans = [],
   instructeurId,
   shopSlug,
 }: {
   owner: Owner;
   formations: Item[];
   products: Item[];
+  bundles?: Item[];
+  subscriptionPlans?: Item[];
   instructeurId?: string;
   shopSlug?: string;
 }) {
-  const all = useMemo(() => [...formations, ...products], [formations, products]);
+  const all = useMemo(
+    () => [...formations, ...products, ...bundles, ...subscriptionPlans],
+    [formations, products, bundles, subscriptionPlans],
+  );
 
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | "formation" | "product" | "free">("all");
+  const [filter, setFilter] = useState<"all" | "formation" | "product" | "bundle" | "subscription" | "free">("all");
   const [sort, setSort] = useState<"popular" | "price-asc" | "price-desc" | "rating">("popular");
 
   const filtered = useMemo(() => {
     let list = all;
     if (filter === "formation") list = list.filter((i) => i.kind === "formation");
     else if (filter === "product") list = list.filter((i) => i.kind === "product");
+    else if (filter === "bundle") list = list.filter((i) => i.kind === "bundle");
+    else if (filter === "subscription") list = list.filter((i) => i.kind === "subscription");
     else if (filter === "free") list = list.filter((i) => i.isFree || i.price === 0);
 
     const q = query.trim().toLowerCase();
@@ -214,6 +230,8 @@ export default function BoutiqueView({
                   { k: "all", label: "Tout", count: all.length },
                   { k: "formation", label: "Formations", count: formations.length },
                   { k: "product", label: "Produits", count: products.length },
+                  { k: "bundle", label: "Packs", count: bundles.length },
+                  { k: "subscription", label: "Abonnements", count: subscriptionPlans.length },
                   { k: "free", label: "Gratuits", count: all.filter((i) => i.isFree || i.price === 0).length },
                 ] as const
               ).map(({ k, label, count }) => (
@@ -287,7 +305,29 @@ export default function BoutiqueView({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
               {filtered.map((item) => {
                 const href =
-                  item.kind === "formation" ? `/formation/${item.slug}` : `/produit/${item.slug}`;
+                  item.kind === "formation" ? `/formation/${item.slug}` :
+                  item.kind === "product" ? `/produit/${item.slug}` :
+                  item.kind === "bundle" ? `/bundle/${item.slug}` :
+                  /* subscription */ `/abonnement/${item.id}`;
+                const KIND_LABEL = {
+                  formation: "Formation",
+                  product: "Produit",
+                  bundle: "Pack",
+                  subscription: "Abonnement",
+                } as const;
+                const KIND_ICON = {
+                  formation: "school",
+                  product: "inventory_2",
+                  bundle: "redeem",
+                  subscription: "card_membership",
+                } as const;
+                const COUNT_LABEL = {
+                  formation: { single: "apprenant", plural: "apprenants", icon: "group" },
+                  product: { single: "vente", plural: "ventes", icon: "shopping_bag" },
+                  bundle: { single: "achat", plural: "achats", icon: "shopping_bag" },
+                  subscription: { single: "abonné", plural: "abonnés", icon: "person" },
+                } as const;
+                const cl = COUNT_LABEL[item.kind];
                 return (
                   <Link
                     key={`${item.kind}-${item.id}`}
@@ -307,7 +347,7 @@ export default function BoutiqueView({
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
                           <span className="material-symbols-outlined text-5xl text-white/60">
-                            {item.kind === "formation" ? "school" : "inventory_2"}
+                            {KIND_ICON[item.kind]}
                           </span>
                         </div>
                       )}
@@ -315,11 +355,21 @@ export default function BoutiqueView({
                         className="absolute top-3 left-3 text-[10px] font-bold uppercase tracking-wider text-white px-2 py-1 rounded-full backdrop-blur"
                         style={{ background: `${themeColor}e6` }}
                       >
-                        {item.kind === "formation" ? "Formation" : "Produit"}
+                        {KIND_LABEL[item.kind]}
                       </span>
                       {(item.isFree || item.price === 0) && (
                         <span className="absolute top-3 right-3 text-[10px] font-bold uppercase tracking-wider text-emerald-900 bg-emerald-300 px-2 py-1 rounded-full">
                           Gratuit
+                        </span>
+                      )}
+                      {item.kind === "bundle" && item.itemsCount && item.itemsCount > 0 && (
+                        <span className="absolute bottom-3 left-3 text-[10px] font-bold uppercase tracking-wider text-white bg-amber-500 px-2 py-1 rounded-full shadow-sm">
+                          {item.itemsCount} articles inclus
+                        </span>
+                      )}
+                      {item.kind === "subscription" && item.trialDays && item.trialDays > 0 && (
+                        <span className="absolute bottom-3 left-3 text-[10px] font-bold uppercase tracking-wider text-white bg-purple-500 px-2 py-1 rounded-full shadow-sm">
+                          {item.trialDays}j d&apos;essai gratuit
                         </span>
                       )}
                     </div>
@@ -327,7 +377,9 @@ export default function BoutiqueView({
                       <h3 className="text-sm font-extrabold text-slate-900 leading-snug line-clamp-2 group-hover:text-emerald-700 transition-colors min-h-[2.5em]">
                         {item.title}
                       </h3>
-                      {/* Stats — toujours visibles : nb avis + nb ventes (justifiés aux extrémités pour espacement clair) */}
+                      {item.kind === "subscription" && item.description && (
+                        <p className="text-[11px] text-slate-500 mt-1.5 line-clamp-2">{item.description}</p>
+                      )}
                       <div className="flex items-center justify-between flex-wrap gap-y-1 mt-3 text-[11px] text-slate-600 font-medium">
                         <span className="inline-flex items-center gap-1.5">
                           <span className="material-symbols-outlined text-[14px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -339,28 +391,46 @@ export default function BoutiqueView({
                           <span className="text-slate-500">{(item.reviewsCount ?? 0).toLocaleString("fr-FR")} avis</span>
                         </span>
                         <span className="inline-flex items-center gap-1.5 text-slate-500">
-                          <span className="material-symbols-outlined text-[14px]">
-                            {item.kind === "formation" ? "group" : "shopping_bag"}
-                          </span>
-                          <span>{item.count.toLocaleString("fr-FR")} {item.kind === "formation" ? "apprenant" : "vente"}{item.count !== 1 ? "s" : ""}</span>
+                          <span className="material-symbols-outlined text-[14px]">{cl.icon}</span>
+                          <span>{item.count.toLocaleString("fr-FR")} {item.count > 1 ? cl.plural : cl.single}</span>
                         </span>
                       </div>
                       <div className="mt-3 pt-3 border-t border-slate-100">
-                        <div className="flex items-baseline justify-between mb-3">
-                          <span className="text-lg font-extrabold" style={{ color: themeColor }}>
-                            {item.isFree || item.price === 0 ? "Gratuit" : fmtFCFA(item.price)}
-                          </span>
+                        <div className="flex items-baseline justify-between mb-3 gap-2">
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <span className="text-lg font-extrabold" style={{ color: themeColor }}>
+                              {item.isFree || item.price === 0 ? "Gratuit" : fmtFCFA(item.price)}
+                            </span>
+                            {item.kind === "subscription" && (
+                              <span className="text-[10px] font-semibold text-slate-500">
+                                / {item.interval === "yearly" ? "an" : "mois"}
+                              </span>
+                            )}
+                            {item.kind === "bundle" && item.originalPrice && item.originalPrice > item.price && (
+                              <span className="text-[11px] text-slate-400 line-through">
+                                {fmtFCFA(item.originalPrice)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <span
                           className="flex items-center justify-center gap-2 w-full px-3 py-2 rounded-xl text-white text-xs font-bold shadow-sm group-hover:shadow-md transition-shadow"
                           style={{ background: `linear-gradient(135deg, ${themeColor}, #22c55e)` }}
                         >
                           <span className="material-symbols-outlined text-[16px]">
-                            {item.isFree || item.price === 0 ? "play_arrow" : "shopping_cart"}
+                            {item.isFree || item.price === 0
+                              ? "play_arrow"
+                              : item.kind === "subscription"
+                                ? "card_membership"
+                                : "shopping_cart"}
                           </span>
                           {item.isFree || item.price === 0
                             ? (item.kind === "formation" ? "Commencer" : "Télécharger")
-                            : "Acheter"}
+                            : item.kind === "subscription"
+                              ? "S'abonner"
+                              : item.kind === "bundle"
+                                ? "Voir le pack"
+                                : "Acheter"}
                         </span>
                       </div>
                     </div>

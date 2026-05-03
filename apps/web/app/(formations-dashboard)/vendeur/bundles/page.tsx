@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useToastStore } from "@/store/toast";
+import { confirmAction } from "@/store/confirm";
+import { ImageUploader } from "@/components/formations/ImageUploader";
+import { RichTextEditor } from "@/components/formations/RichTextEditor";
 
 interface BundleItem {
   id: string;
@@ -43,12 +47,43 @@ export default function VendorBundlesPage() {
   const [showForm, setShowForm] = useState(false);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
 
-  // Form state
+  // Form state — when `editingId` is set, the form is in EDIT mode (PATCH the
+  // existing bundle) ; null = create mode (POST a new bundle).
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priceXof, setPriceXof] = useState(50_000);
   const [selected, setSelected] = useState<{ kind: "formation" | "digital"; id: string }[]>([]);
+  const [thumbnail, setThumbnail] = useState("");
+  const [banner, setBanner] = useState("");
   const [saving, setSaving] = useState(false);
+
+  function resetForm() {
+    setEditingId(null);
+    setTitle(""); setDescription(""); setPriceXof(50_000);
+    setSelected([]); setThumbnail(""); setBanner("");
+  }
+
+  function openEdit(b: Bundle) {
+    setEditingId(b.id);
+    setTitle(b.title);
+    setDescription(b.description ?? "");
+    setPriceXof(b.priceXof);
+    setThumbnail(b.thumbnail ?? "");
+    setBanner((b as Bundle & { banner?: string | null }).banner ?? "");
+    setSelected(
+      b.items
+        .map((it) => {
+          if (it.itemKind === "formation" && it.formation?.id) return { kind: "formation" as const, id: it.formation.id };
+          if (it.itemKind === "digital" && it.product?.id) return { kind: "digital" as const, id: it.product.id };
+          return null;
+        })
+        .filter((x): x is { kind: "formation" | "digital"; id: string } => !!x),
+    );
+    setShowForm(true);
+    // Scroll to top so the user sees the form
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function load() {
     setLoading(true);
@@ -103,6 +138,57 @@ export default function VendorBundlesPage() {
   const savings = originalPrice > 0 ? originalPrice - priceXof : 0;
   const savingsPct = originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0;
 
+  // Pause / Reprendre — toggle isActive (BROUILLON ↔ ACTIF côté API)
+  async function togglePause(b: Bundle) {
+    const next = !b.isActive;
+    // Optimistic UI
+    setBundles((prev) => prev.map((x) => (x.id === b.id ? { ...x, isActive: next } : x)));
+    try {
+      const res = await fetch(`/api/formations/vendeur/bundles/${b.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next ? "ACTIF" : "BROUILLON" }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        toast("error", j.error || "Impossible de changer le statut");
+        // Rollback
+        setBundles((prev) => prev.map((x) => (x.id === b.id ? { ...x, isActive: b.isActive } : x)));
+        return;
+      }
+      toast("success", next ? "Bundle réactivé ✓" : "Bundle mis en pause");
+    } catch {
+      setBundles((prev) => prev.map((x) => (x.id === b.id ? { ...x, isActive: b.isActive } : x)));
+      toast("error", "Erreur réseau");
+    }
+  }
+
+  async function deleteBundle(b: Bundle) {
+    const ok = await confirmAction({
+      title: `Supprimer le bundle "${b.title}" ?`,
+      message: (b._count?.purchases ?? 0) > 0
+        ? `Ce bundle a ${b._count?.purchases} achat(s) — il sera archivé (les acheteurs gardent leur accès) au lieu d'être supprimé définitivement.`
+        : "Cette action est irréversible.",
+      confirmLabel: "Supprimer",
+      confirmVariant: "danger",
+      icon: "delete_forever",
+    });
+    if (!ok) return;
+    try {
+      const res = await fetch(`/api/formations/vendeur/bundles/${b.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        toast("error", j.error || "Suppression impossible");
+        return;
+      }
+      const j = await res.json();
+      toast("success", j.data?.archived ? "Bundle archivé ✓" : "Bundle supprimé ✓");
+      load();
+    } catch {
+      toast("error", "Erreur réseau");
+    }
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) { toast("warning", "Donnez un titre au bundle."); return; }
@@ -110,20 +196,27 @@ export default function VendorBundlesPage() {
     if (priceXof >= originalPrice) { toast("warning", "Le prix du bundle doit être inférieur au total."); return; }
     setSaving(true);
     try {
-      const res = await fetch("/api/formations/vendeur/bundles", {
-        method: "POST",
+      // Create (POST) ou Edit (PATCH) selon `editingId`
+      const url = editingId
+        ? `/api/formations/vendeur/bundles/${editingId}`
+        : "/api/formations/vendeur/bundles";
+      const method = editingId ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim(),
           priceXof,
+          thumbnail: thumbnail || null,
+          banner: banner || null,
           items: selected.map((s) => ({ kind: s.kind, id: s.id })),
         }),
       });
       const j = await res.json();
-      if (!res.ok) { toast("error", j.error || "Création impossible."); return; }
-      toast("success", "Bundle créé ✓");
-      setTitle(""); setDescription(""); setSelected([]);
+      if (!res.ok) { toast("error", j.error || (editingId ? "Modification impossible." : "Création impossible.")); return; }
+      toast("success", editingId ? "Bundle mis à jour ✓" : "Bundle créé ✓");
+      resetForm();
       setShowForm(false);
       load();
     } finally { setSaving(false); }
@@ -145,7 +238,10 @@ export default function VendorBundlesPage() {
             </p>
           </div>
           <button
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => {
+              if (showForm) { resetForm(); }
+              setShowForm((v) => !v);
+            }}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20"
             style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
           >
@@ -156,7 +252,9 @@ export default function VendorBundlesPage() {
 
         {showForm && (
           <form onSubmit={submit} className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 space-y-4">
-            <h2 className="text-base font-bold text-slate-900">Créer un bundle</h2>
+            <h2 className="text-base font-bold text-slate-900">
+              {editingId ? "Modifier le bundle" : "Créer un bundle"}
+            </h2>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">Titre</label>
               <input
@@ -170,14 +268,36 @@ export default function VendorBundlesPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Description</label>
-              <textarea
-                rows={2}
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                Description
+                <span className="ml-2 font-normal text-slate-500">(le bouton ✨ IA améliore le texte)</span>
+              </label>
+              <RichTextEditor
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={300}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm"
+                onChange={setDescription}
+                placeholder="Présentez la valeur du pack — pourquoi c'est intéressant d'acheter le tout ensemble plutôt que séparément."
               />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Vignette (carte marketplace)</label>
+                <ImageUploader
+                  value={thumbnail}
+                  onChange={setThumbnail}
+                  aspectClass="aspect-square"
+                  helper="600×600 carré · JPG/PNG · Max 5 MB"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Bannière de couverture</label>
+                <ImageUploader
+                  value={banner}
+                  onChange={setBanner}
+                  aspectClass="aspect-video"
+                  helper="1280×720 (16:9) · JPG/PNG · Max 5 MB"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">
@@ -280,9 +400,15 @@ export default function VendorBundlesPage() {
                 className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                 style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
               >
-                {saving ? "Création…" : "Créer le bundle"}
+                {saving
+                  ? (editingId ? "Mise à jour…" : "Création…")
+                  : (editingId ? "Mettre à jour" : "Créer le bundle")}
               </button>
-              <button type="button" onClick={() => setShowForm(false)} className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold">
+              <button
+                type="button"
+                onClick={() => { resetForm(); setShowForm(false); }}
+                className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold"
+              >
                 Annuler
               </button>
             </div>
@@ -338,6 +464,46 @@ export default function VendorBundlesPage() {
                     <p className="text-[10px] text-slate-400 uppercase tracking-wider">Ventes</p>
                     <p className="text-sm font-bold text-slate-900">{b._count?.purchases ?? 0}</p>
                   </div>
+                </div>
+
+                {/* ─── Actions vendeur — Voir / Modifier / Pause / Supprimer ── */}
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                  <Link
+                    href={`/bundle/${b.slug}`}
+                    target="_blank"
+                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors"
+                    aria-label="Voir publique"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => openEdit(b)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">edit</span>
+                    Modifier
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => togglePause(b)}
+                    className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                      b.isActive
+                        ? "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-[14px]">{b.isActive ? "pause" : "play_arrow"}</span>
+                    {b.isActive ? "Pause" : "Reprendre"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteBundle(b)}
+                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-bold transition-colors"
+                    aria-label="Supprimer"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">delete</span>
+                  </button>
                 </div>
               </div>
             ))}

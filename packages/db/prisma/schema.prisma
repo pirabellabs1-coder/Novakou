@@ -1032,6 +1032,7 @@ model VendorShop {
   formations  Formation[]        @relation("ShopFormations")
   products    DigitalProduct[]   @relation("ShopProducts")
   bundles     ProductBundle[]
+  subscriptionPlans SubscriptionPlan[] @relation("ShopSubscriptionPlans")
   members     ShopMember[]       @relation("ShopMemberships")
   invitations ShopInvitation[]   @relation("ShopInvitations")
 
@@ -3065,7 +3066,8 @@ model ProductBundle {
   slug          String   @unique
   title         String
   description   String?
-  thumbnail     String?
+  thumbnail     String?  // vignette carrée (cards marketplace ~600x600)
+  banner        String?  // bannière 16:9 ~1280x720 affichée sur la page détail
   priceXof      Int      // prix total du bundle
   originalPriceXof Int?  // somme des prix individuels (affichage "économie")
   isActive      Boolean  @default(true)
@@ -3394,7 +3396,8 @@ model SubscriptionPlan {
   // Contenu marketing
   name        String  // "Membre Elite", "Mentorat Mensuel", etc.
   description String  @db.Text
-  imageUrl    String?
+  imageUrl    String? // vignette carrée (cards) — alias historique de "thumbnail"
+  bannerUrl   String? // bannière 16:9 affichée sur la page détail abonnement
 
   // Pricing
   price    Float   // Prix par periode (ex: 15000 pour 15k FCFA/mois)
@@ -3418,6 +3421,7 @@ model SubscriptionPlan {
   updatedAt DateTime @updatedAt
 
   instructeur  InstructeurProfile @relation("InstructeurPlans", fields: [instructeurId], references: [id], onDelete: Cascade)
+  shop          VendorShop?       @relation("ShopSubscriptionPlans", fields: [shopId], references: [id], onDelete: SetNull)
   subscriptions Subscription[]
 
   @@index([instructeurId, isActive])

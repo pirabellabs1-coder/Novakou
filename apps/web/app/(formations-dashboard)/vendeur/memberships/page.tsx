@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import { ImageUploader } from "@/components/formations/ImageUploader";
+import { RichTextEditor } from "@/components/formations/RichTextEditor";
 
 type Plan = {
   id: string;
   name: string;
   description: string;
   imageUrl: string | null;
+  bannerUrl: string | null;
   price: number;
   currency: string;
   interval: "monthly" | "yearly";
@@ -37,7 +41,8 @@ export default function MembershipsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Form
+  // Form. `editingId === null` ⇒ création ; sinon ⇒ édition d'un plan existant.
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number>(5000);
@@ -46,6 +51,31 @@ export default function MembershipsPage() {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [trialDays, setTrialDays] = useState<number | "">("");
   const [maxMembers, setMaxMembers] = useState<number | "">("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [bannerUrl, setBannerUrl] = useState("");
+
+  function resetForm() {
+    setEditingId(null);
+    setName(""); setDescription(""); setPrice(5000); setInterval("monthly");
+    setSelectedFormationIds([]); setSelectedProductIds([]);
+    setTrialDays(""); setMaxMembers("");
+    setImageUrl(""); setBannerUrl("");
+  }
+
+  function openEdit(p: Plan) {
+    setEditingId(p.id);
+    setName(p.name);
+    setDescription(p.description);
+    setPrice(p.price);
+    setInterval(p.interval);
+    setSelectedFormationIds(p.linkedFormationIds ?? []);
+    setSelectedProductIds(p.linkedProductIds ?? []);
+    setTrialDays(p.trialDays ?? "");
+    setMaxMembers(p.maxMembers ?? "");
+    setImageUrl(p.imageUrl ?? "");
+    setBannerUrl(p.bannerUrl ?? "");
+    setShowCreate(true);
+  }
 
   const { data: plansResp, isLoading } = useQuery<{ data: Plan[] }>({
     queryKey: ["vendeur-subscription-plans"],
@@ -72,17 +102,25 @@ export default function MembershipsPage() {
   const availableFormations = productsResp?.data?.formations ?? [];
   const availableProducts = productsResp?.data?.digitalProducts ?? [];
 
+  // Create OR Edit selon `editingId`. La même mutation gère les 2 cas pour
+  // garder le code simple — on choisit verbe HTTP + URL au moment du fetch.
   const createMut = useMutation({
     mutationFn: async () => {
       const payload: Record<string, unknown> = {
         name, description, price: Number(price), interval,
         linkedFormationIds: selectedFormationIds,
         linkedProductIds: selectedProductIds,
+        imageUrl: imageUrl || null,
+        bannerUrl: bannerUrl || null,
       };
       if (trialDays !== "") payload.trialDays = Number(trialDays);
       if (maxMembers !== "") payload.maxMembers = Number(maxMembers);
-      const res = await fetch("/api/formations/vendeur/subscription-plans", {
-        method: "POST",
+      const url = editingId
+        ? `/api/formations/vendeur/subscription-plans/${editingId}`
+        : "/api/formations/vendeur/subscription-plans";
+      const method = editingId ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
@@ -91,12 +129,10 @@ export default function MembershipsPage() {
       return j;
     },
     onSuccess: () => {
-      setToast("Plan d'abonnement créé ✓");
+      setToast(editingId ? "Plan mis à jour ✓" : "Plan d'abonnement créé ✓");
       qc.invalidateQueries({ queryKey: ["vendeur-subscription-plans"] });
       setShowCreate(false);
-      setName(""); setDescription(""); setPrice(5000);
-      setSelectedFormationIds([]); setSelectedProductIds([]);
-      setTrialDays(""); setMaxMembers("");
+      resetForm();
       setTimeout(() => setToast(null), 3000);
     },
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
@@ -197,9 +233,24 @@ export default function MembershipsPage() {
                   <p className="text-xs text-[#5c647a] line-clamp-2">{p.description}</p>
                 </div>
                 <div className="flex gap-1 flex-shrink-0">
+                  <Link
+                    href={`/abonnement/${p.id}`}
+                    target="_blank"
+                    className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a]"
+                    title="Voir la page publique"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                  </Link>
+                  <button
+                    onClick={() => openEdit(p)}
+                    className="p-2 rounded-lg hover:bg-blue-50 text-[#5c647a] hover:text-blue-600"
+                    title="Modifier"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                  </button>
                   <button onClick={() => toggleMut.mutate({ id: p.id, isActive: !p.isActive })}
-                    className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a]" title={p.isActive ? "Désactiver" : "Activer"}>
-                    <span className="material-symbols-outlined text-[18px]">{p.isActive ? "toggle_on" : "toggle_off"}</span>
+                    className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a]" title={p.isActive ? "Mettre en pause" : "Réactiver"}>
+                    <span className="material-symbols-outlined text-[18px]">{p.isActive ? "pause" : "play_arrow"}</span>
                   </button>
                   <button onClick={() => handleDelete(p)}
                     className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500" title="Supprimer">
@@ -232,13 +283,15 @@ export default function MembershipsPage() {
         </div>
       )}
 
-      {/* Create modal */}
+      {/* Create / Edit modal */}
       {showCreate && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !createMut.isPending && setShowCreate(false)}>
+          onClick={() => !createMut.isPending && (setShowCreate(false), resetForm())}>
           <div className="bg-white rounded-3xl max-w-2xl w-full p-7 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Nouveau plan d'abonnement</h2>
+            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">
+              {editingId ? "Modifier le plan d'abonnement" : "Nouveau plan d'abonnement"}
+            </h2>
             <p className="text-sm text-[#5c647a] mb-5">
               Les abonnés paient la première période au moment de s'inscrire, puis un email de renouvellement
               leur est envoyé à l'échéance pour recharger automatiquement.
@@ -251,11 +304,35 @@ export default function MembershipsPage() {
                   placeholder="Ex: Membre Elite, Mentorat Mensuel"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm" />
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Vignette (carte marketplace)</label>
+                  <ImageUploader
+                    value={imageUrl}
+                    onChange={setImageUrl}
+                    aspectClass="aspect-square"
+                    helper="600×600 carré · JPG/PNG · Max 5 MB"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Bannière de couverture</label>
+                  <ImageUploader
+                    value={bannerUrl}
+                    onChange={setBannerUrl}
+                    aspectClass="aspect-video"
+                    helper="1280×720 (16:9) · JPG/PNG · Max 5 MB"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Description (pitch valeur)</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
+                <RichTextEditor
+                  value={description}
+                  onChange={setDescription}
                   placeholder="Ex: Accès illimité à toutes mes formations + session live hebdomadaire"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm" />
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -339,7 +416,7 @@ export default function MembershipsPage() {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <button onClick={() => setShowCreate(false)} disabled={createMut.isPending}
+                <button onClick={() => { setShowCreate(false); resetForm(); }} disabled={createMut.isPending}
                   className="flex-1 py-2.5 rounded-xl bg-gray-100 text-[#191c1e] text-sm font-bold">
                   Annuler
                 </button>
@@ -349,7 +426,9 @@ export default function MembershipsPage() {
                     (selectedFormationIds.length === 0 && selectedProductIds.length === 0)}
                   className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                  {createMut.isPending ? "Création…" : "Créer le plan"}
+                  {createMut.isPending
+                    ? (editingId ? "Mise à jour…" : "Création…")
+                    : (editingId ? "Mettre à jour" : "Créer le plan")}
                 </button>
               </div>
             </div>

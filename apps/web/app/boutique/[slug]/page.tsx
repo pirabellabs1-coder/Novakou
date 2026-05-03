@@ -72,7 +72,7 @@ async function resolve(slugParam: string) {
     });
     if (!shop) return null;
 
-    const [formations, products] = await Promise.all([
+    const [formations, products, bundles, subscriptionPlans] = await Promise.all([
       prisma.formation.findMany({
         // Multi-shop : seulement les produits liés à CETTE boutique
         where: { shopId: shop.id, status: "ACTIF" },
@@ -92,9 +92,31 @@ async function resolve(slugParam: string) {
         orderBy: { createdAt: "desc" },
         take: 24,
       }),
+      // Bundles : les "packs" du vendeur (plusieurs items à prix groupé)
+      prisma.productBundle.findMany({
+        where: { shopId: shop.id, isActive: true },
+        select: {
+          id: true, slug: true, title: true, thumbnail: true,
+          priceXof: true, originalPriceXof: true,
+          _count: { select: { items: true, purchases: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 12,
+      }),
+      // Abonnements / memberships : accès récurrent à du contenu groupé
+      prisma.subscriptionPlan.findMany({
+        where: { shopId: shop.id, isActive: true },
+        select: {
+          id: true, name: true, description: true, imageUrl: true,
+          price: true, currency: true, interval: true,
+          activeCount: true, trialDays: true,
+        },
+        orderBy: { price: "asc" },
+        take: 12,
+      }),
     ]);
 
-    return { shop, formations, products };
+    return { shop, formations, products, bundles, subscriptionPlans };
   } catch (err) {
     console.error("[boutique/slug] lookup failed:", err);
     return null;
@@ -106,7 +128,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
   const data = await resolve(slug);
   if (!data) notFound();
 
-  const { shop, formations, products } = data;
+  const { shop, formations, products, bundles, subscriptionPlans } = data;
   return (
     <>
       <TrackPageView
@@ -139,6 +161,23 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         id: p.id, slug: p.slug, title: p.title, image: p.banner,
         price: p.price, isFree: p.isFree, rating: p.rating,
         count: p.salesCount, reviewsCount: p.reviewsCount,
+      }))}
+      bundles={bundles.map((b) => ({
+        kind: "bundle" as const,
+        id: b.id, slug: b.slug, title: b.title, image: b.thumbnail,
+        price: b.priceXof, isFree: b.priceXof === 0, rating: 0,
+        originalPrice: b.originalPriceXof,
+        count: b._count.purchases, reviewsCount: 0,
+        itemsCount: b._count.items,
+      }))}
+      subscriptionPlans={subscriptionPlans.map((p) => ({
+        kind: "subscription" as const,
+        id: p.id, slug: p.id, title: p.name, image: p.imageUrl,
+        price: p.price, isFree: false, rating: 0,
+        count: p.activeCount, reviewsCount: 0,
+        interval: p.interval as "monthly" | "yearly",
+        trialDays: p.trialDays,
+        description: p.description,
       }))}
     />
     </>
