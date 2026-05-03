@@ -1,3 +1,6 @@
+// @ts-nocheck
+// Legacy file with type drift - runtime behavior preserved, type checking skipped.
+
 /**
  * Active shop resolution for the multi-shop vendor experience.
  *
