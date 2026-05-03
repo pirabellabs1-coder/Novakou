@@ -117,17 +117,23 @@ export function clearDrafts(prefix: string) {
 }
 
 /**
- * Returns `true` if a draft exists in localStorage for `<prefix>:<field>`.
+ * Returns `true` if a *meaningful* draft exists in localStorage for `<prefix>:<field>`.
  *
  * Why this matters for hydration: a form with many fields shouldn't fall back
  * to "all-or-nothing" between API data and drafts. If the user only typed in
  * the title field, the title draft should win for THAT field while every
- * OTHER field should still hydrate from the API. Per-field detection lets the
- * caller decide field-by-field whether to overwrite the local state with
- * server data.
+ * OTHER field should still hydrate from the API.
+ *
+ * "Meaningful" = the stored value has actual content. Drafts that contain
+ * empty strings, 0, false, null, undefined, or empty arrays are treated as
+ * non-meaningful — the auto-save captures the initial empty state every time
+ * the user opens a form (even if they don't type anything), so we MUST NOT
+ * let those empty drafts block the API hydration. Otherwise an existing
+ * product with a real description in the DB would render with description=""
+ * because a previous form-open had auto-saved description="" to localStorage.
  *
  * Returns false for missing keys, expired drafts (auto-removed by readStored
- * on next access), and malformed entries.
+ * on next access), malformed entries, AND empty/zero/false values.
  */
 export function hasStoredDraft(prefix: string, field: string): boolean {
   if (!isBrowser) return false;
@@ -137,6 +143,13 @@ export function hasStoredDraft(prefix: string, field: string): boolean {
     const parsed = JSON.parse(raw) as Partial<Stored<unknown>>;
     if (parsed.v !== DRAFT_VERSION) return false;
     if (typeof parsed.savedAt !== "number" || Date.now() - parsed.savedAt > MAX_AGE_MS) return false;
+    const v = parsed.value;
+    // "Empty" values don't count — they let API hydration take over.
+    if (v === undefined || v === null) return false;
+    if (typeof v === "string" && v.trim() === "") return false;
+    if (typeof v === "number" && v === 0) return false;
+    if (typeof v === "boolean" && v === false) return false;
+    if (Array.isArray(v) && v.length === 0) return false;
     return true;
   } catch {
     return false;
