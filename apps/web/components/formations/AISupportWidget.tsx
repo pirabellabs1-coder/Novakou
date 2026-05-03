@@ -1,35 +1,6 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import Script from "next/script";
-
-// ─── Types Puter ───────────────────────────────────────────────
-type PuterContentBlock = { type?: string; text?: string };
-type PuterChatResponse = {
-  message: { content: string | PuterContentBlock[] };
-};
-declare global {
-  interface Window {
-    puter?: {
-      ai: {
-        chat: (
-          prompt: string,
-          options?: { model?: string; temperature?: number; max_tokens?: number; stream?: boolean },
-        ) => Promise<PuterChatResponse>;
-      };
-    };
-  }
-}
-function extractText(res: PuterChatResponse): string {
-  const c = res.message?.content;
-  if (typeof c === "string") return c;
-  if (Array.isArray(c)) {
-    return c
-      .map((b) => (b && typeof b === "object" && typeof b.text === "string" ? b.text : ""))
-      .join("");
-  }
-  return "";
-}
 
 // ─── Mini parser Markdown pour le chat ─────────────────────────
 // Gere : **gras**, *italique*, `code`, [lien](url), listes simples
@@ -137,40 +108,24 @@ type VendorConfig = {
 type Message = { role: "user" | "assistant"; content: string };
 
 // ─── Widget ────────────────────────────────────────────────────
+//
+// IMPORTANT : ce widget appelle un endpoint serveur Novakou
+// (/api/formations/public/support-ai/chat) qui relaie vers OpenAI
+// avec la clé serveur. Le visiteur ne voit AUCUN prompt de
+// connexion à un service tiers (pas de Puter, pas de signup).
+// Coût IA porté par Novakou (gpt-4o-mini, faible coût/token).
 export default function AISupportWidget({ instructeurId, shopSlug, pageContext }: AISupportWidgetProps) {
   const [config, setConfig] = useState<VendorConfig | null>(null);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [puterReady, setPuterReady] = useState(false);
-  const [puterFailed, setPuterFailed] = useState(false);
   const [fallbackName, setFallbackName] = useState("");
   const [fallbackEmail, setFallbackEmail] = useState("");
   const [fallbackMessage, setFallbackMessage] = useState("");
   const [fallbackSent, setFallbackSent] = useState(false);
   const [inquiryError, setInquiryError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Check Puter availability + timeout 15s pour detecter un blocage du CDN
-  useEffect(() => {
-    const check = () => {
-      if (typeof window !== "undefined" && window.puter) {
-        setPuterReady(true);
-        return true;
-      }
-      return false;
-    };
-    if (check()) return;
-    const interval = setInterval(() => { if (check()) clearInterval(interval); }, 300);
-    const timeout = setTimeout(() => {
-      if (typeof window !== "undefined" && !window.puter) {
-        clearInterval(interval);
-        setPuterFailed(true);
-      }
-    }, 15_000);
-    return () => { clearInterval(interval); clearTimeout(timeout); };
-  }, []);
 
   // Fetch vendor config
   useEffect(() => {
@@ -204,60 +159,47 @@ export default function AISupportWidget({ instructeurId, shopSlug, pageContext }
   async function send() {
     if (!input.trim() || sending || !config) return;
 
-    if (!puterReady || !window.puter) {
-      // Fallback: open the inquiry form
-      setInquiryError("L'IA n'est pas disponible. Laissez vos coordonnées et le vendeur vous recontactera.");
-      return;
-    }
-
     const userMessage = input.trim();
     setInput("");
+    // Build the history we'll send (without the welcome message)
+    const historyForApi = messages.filter((_, i) => i > 0); // skip welcome
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setSending(true);
 
-    // Build system prompt
-    const systemPrompt = `Tu es un assistant virtuel amical pour la boutique de ${config.vendorName} sur Novakou (marketplace de formations et produits digitaux pour l'Afrique francophone).
-
-Ton role : aider les visiteurs a prendre des decisions d'achat, repondre a leurs questions sur les produits, les prix, les politiques. Tu es enthousiaste, professionnel et honnete.
-
-Contexte du vendeur :
-${config.context || "Aucun contexte fourni pour l'instant."}
-
-${pageContext ? `\nPage visitee : ${pageContext}\n` : ""}
-
-REGLES STRICTES :
-- Reponds UNIQUEMENT en francais
-- Reponses courtes (2-4 phrases max, sauf question complexe)
-- Si tu ne connais pas la reponse : "Je ne suis pas sur, je vous conseille de contacter directement ${config.vendorName} via le formulaire."
-- Jamais d'invention (pas de prix, pas de delai, pas de promesse qui ne figure pas dans le contexte)
-- Ton africain francophone chaleureux mais professionnel
-- Encourage a acheter quand c'est pertinent, sans pousser
-- Si la question est hors sujet (ex: politique, actualites) : recentre poliment sur la boutique`;
-
-    // Conversation history
-    const conversationForAI = [
-      ...messages.filter((m) => m.role !== "assistant" || messages.indexOf(m) !== 0), // skip welcome msg
-      { role: "user" as const, content: userMessage },
-    ];
-
-    const fullPrompt = `${systemPrompt}\n\nHistorique de la conversation :\n${conversationForAI
-      .map((m) => `${m.role === "user" ? "Visiteur" : "Assistant"}: ${m.content}`)
-      .join("\n")}\n\nAssistant:`;
-
     try {
-      const response = await window.puter.ai.chat(fullPrompt, {
-        model: "claude-sonnet-4-6",
-        temperature: 0.5,
-        max_tokens: 500,
+      const res = await fetch("/api/formations/public/support-ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instructeurId: config.instructeurId,
+          history: historyForApi,
+          userMessage,
+          pageContext: pageContext ?? "",
+        }),
       });
-      const text = extractText(response).trim();
-      setMessages((prev) => [...prev, { role: "assistant", content: text || "Désolé, je n'ai pas compris. Pouvez-vous reformuler ?" }]);
+      const json = await res.json().catch(() => ({} as { reply?: string; error?: string }));
+      if (!res.ok || !json.reply) {
+        // Echec IA → on propose le formulaire de contact en repli
+        setInquiryError(
+          json.error ||
+            "L'IA est momentanément indisponible. Laissez vos coordonnées et le vendeur vous recontactera.",
+        );
+        setMessages((prev) => [...prev, {
+          role: "assistant",
+          content: `Désolé, je rencontre un souci technique. Vous pouvez écrire directement à ${config.vendorName} via le formulaire ci-dessous.`,
+        }]);
+        return;
+      }
+      setMessages((prev) => [...prev, { role: "assistant", content: json.reply }]);
     } catch (e) {
+      console.error("[AISupportWidget]", e);
+      setInquiryError(
+        "Problème réseau. Laissez vos coordonnées et le vendeur vous recontactera.",
+      );
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: `Désolé, je rencontre un problème technique. Vous pouvez contacter directement ${config.vendorName} via le formulaire ci-dessous.`,
+        content: `Désolé, je rencontre un problème de connexion. Vous pouvez contacter directement ${config.vendorName} via le formulaire ci-dessous.`,
       }]);
-      console.error("[AISupportWidget]", e);
     } finally {
       setSending(false);
     }
@@ -292,8 +234,6 @@ REGLES STRICTES :
 
   return (
     <>
-      <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
-
       {/* Bubble button (fermé) */}
       {!open && (
         <button
@@ -370,7 +310,7 @@ REGLES STRICTES :
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Fallback form (si erreur Puter) */}
+          {/* Fallback form (si erreur IA) */}
           {inquiryError && !fallbackSent && (
             <div className="p-3 bg-amber-50 border-t border-amber-200 space-y-2">
               <p className="text-xs text-amber-800 font-semibold">📨 Laissez un message au vendeur</p>
@@ -420,13 +360,13 @@ REGLES STRICTES :
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-                placeholder={puterReady ? "Posez votre question…" : "Chargement de l'IA…"}
-                disabled={!puterReady || sending}
+                placeholder="Posez votre question…"
+                disabled={sending}
                 className="flex-1 px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm disabled:bg-gray-50"
               />
               <button
                 onClick={send}
-                disabled={!input.trim() || sending || !puterReady}
+                disabled={!input.trim() || sending}
                 className="w-10 h-10 rounded-xl text-white flex items-center justify-center disabled:opacity-40"
                 style={{ backgroundColor: config.color }}
               >
