@@ -10,6 +10,7 @@ import { OfferBubble } from "./OfferBubble";
 import { InlineOfferForm } from "./InlineOfferForm";
 import type { UnifiedConversation, MessageContentType } from "@/store/messaging";
 import { useToastStore } from "@/store/toast";
+import { extractPuterText } from "@/lib/puter-ai";
 
 declare global {
   interface Window {
@@ -227,7 +228,10 @@ Retourne UNIQUEMENT le texte de la réponse suggérée, sans guillemets ni expli
         max_tokens: 300,
       });
 
-      const result = typeof res === "string" ? res : res?.message?.content;
+      // Puter returns Anthropic content blocks (message.content[0].text) — the
+      // previous shape `res.message.content` was the array, not the string,
+      // so .trim() threw and the suggestion silently died.
+      const result = extractPuterText(res as never);
       if (result) {
         setInput(result.trim());
       }
