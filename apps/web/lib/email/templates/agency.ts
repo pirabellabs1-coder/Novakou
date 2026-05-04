@@ -17,7 +17,7 @@ export async function sendMemberInvitedEmail(
     ${headingDark("Invitation a rejoindre une agence")}
     ${textDark(`Bonjour ${memberName}, <strong style="color:#F1F5F9;">${data.inviterName}</strong> vous invite a rejoindre l'agence <strong style="color:#F1F5F9;">${data.agencyName}</strong> sur Novakou.`)}
     ${infoDark(`En rejoignant cette agence, vous pourrez collaborer sur des projets collectifs et recevoir des commandes sous la marque de l'agence.`)}
-    ${buttonDark("Accepter l'invitation", `${getAppUrl()}/agence/equipe`)}
+    ${buttonDark("Accepter l'invitation", `${getAppUrl()}/vendeur/dashboard`)}
     ${mutedDark("Si vous n'attendiez pas cette invitation, vous pouvez l'ignorer.")}
   `);
   return sendEmail({ to: email, subject: `Invitation — ${data.agencyName}`, html });
@@ -32,7 +32,7 @@ export async function sendMemberRemovedEmail(
     ${headingDark("Retrait de l'agence")}
     ${textDark(`Bonjour ${memberName}, vous avez ete retire de l'agence <strong style="color:#F1F5F9;">${data.agencyName}</strong>.`)}
     ${textDark("Votre profil individuel reste actif et vous pouvez continuer a proposer vos services en tant que freelance independant.")}
-    ${buttonDark("Mon espace freelance", `${getAppUrl()}/dashboard`)}
+    ${buttonDark("Mon espace freelance", `${getAppUrl()}/vendeur/dashboard`)}
   `);
   return sendEmail({ to: email, subject: `Retrait de l'agence ${data.agencyName}`, html });
 }
@@ -46,7 +46,7 @@ export async function sendAgencyServiceApprovedEmail(
     ${headingDark("Service agence publie !")}
     ${textDark(`Bonjour ${name}, le service <strong style="color:#F1F5F9;">"${data.serviceTitle}"</strong> de l'agence ${data.agencyName} a ete approuve et est maintenant visible sur la marketplace.`)}
     ${successBoxDark("Service publie")}
-    ${buttonDark("Voir le service", `${getAppUrl()}/agence/services`, "green")}
+    ${buttonDark("Voir le service", `${getAppUrl()}/vendeur/dashboard`, "green")}
   `);
   return sendEmail({ to: email, subject: `Service publie — ${data.serviceTitle}`, html });
 }
@@ -60,7 +60,7 @@ export async function sendAgencyServiceRejectedEmail(
     ${headingDark("Service agence non approuve")}
     ${textDark(`Bonjour ${name}, le service <strong style="color:#F1F5F9;">"${data.serviceTitle}"</strong> n'a pas pu etre publie.`)}
     ${data.reason ? errorBoxDark("Motif", data.reason) : ""}
-    ${buttonDark("Modifier le service", `${getAppUrl()}/agence/services`, "amber")}
+    ${buttonDark("Modifier le service", `${getAppUrl()}/vendeur/dashboard`, "amber")}
   `);
   return sendEmail({ to: email, subject: `Service non approuve — ${data.serviceTitle}`, html });
 }

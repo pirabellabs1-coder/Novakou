@@ -410,8 +410,38 @@ export default function StatistiquesPage() {
         <ChartCard title="Top 5 produits" subtitle="Par chiffre d'affaires">
           {isLoading ? (
             <div className="h-[260px] bg-gray-50 animate-pulse rounded-xl" />
-          ) : topProducts.length === 0 ? (
-            <EmptyState icon="storefront" label="Aucun produit vendu" />
+          ) : topProducts.length === 0 || topProducts.every((p) => p.revenue === 0) ? (
+            // Quand tous les produits ont revenue=0 (ex: tous gratuits), recharts
+            // dessine un rectangle plein gris à cause de l'auto-scale du domain
+            // [0, 0] → on affiche un état vide propre. Sinon on bascule sur la
+            // vue "ventes" qui donne au moins une mesure utile au vendeur.
+            topProducts.length === 0 ? (
+              <EmptyState icon="storefront" label="Aucun produit vendu" />
+            ) : (
+              <div className="space-y-3 py-4">
+                <p className="text-xs text-[#5c647a] mb-3">
+                  Tous les produits sont gratuits sur cette période — voici le classement par <strong className="text-[#191c1e]">nombre de ventes</strong>.
+                </p>
+                {topProducts.slice(0, 5).map((p) => {
+                  const max = Math.max(1, ...topProducts.map((x) => x.sales));
+                  const pct = (p.sales / max) * 100;
+                  return (
+                    <div key={p.id} className="flex items-center gap-3">
+                      <p className="text-xs font-semibold text-[#191c1e] truncate w-32">{p.title}</p>
+                      <div className="flex-1 h-6 bg-gray-100 rounded-md overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#006e2f] to-[#22c55e] rounded-md"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="text-xs font-bold text-[#006e2f] w-16 text-right tabular-nums">
+                        {p.sales} {p.sales > 1 ? "ventes" : "vente"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>

@@ -19,6 +19,8 @@ const PUBLIC_ROUTES = [
   "/freelances",
   "/formation",
   "/produit",
+  "/bundle",      // Pages publiques de packs (bundles)
+  "/abonnement",  // Pages publiques de plans d'abonnement vendeur
   "/tarifs",
   "/a-propos",
   "/contact",

@@ -81,6 +81,7 @@ export async function GET(_req: Request, { params }: Params) {
         tags: product.tags,
         maxBuyers: product.maxBuyers,
         currentBuyers: product.currentBuyers,
+        salesEndAt: product.salesEndAt ? product.salesEndAt.toISOString() : null,
         previewEnabled: product.previewEnabled,
         previewPages: product.previewPages,
         watermarkEnabled: product.watermarkEnabled,

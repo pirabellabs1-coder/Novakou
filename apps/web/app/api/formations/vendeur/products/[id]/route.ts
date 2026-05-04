@@ -23,6 +23,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         tags: true, status: true, fileUrl: true,
         hiddenFromMarketplace: true,
         previewEnabled: true, previewPages: true, watermarkEnabled: true,
+        // Limites de vente (pour le formulaire vendeur)
+        maxBuyers: true, currentBuyers: true, salesEndAt: true,
         createdAt: true, updatedAt: true,
         category: { select: { id: true, slug: true, name: true } },
         files: {
@@ -144,6 +146,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           ? Math.floor(body.previewPages)
           : undefined,
         watermarkEnabled: typeof body.watermarkEnabled === "boolean" ? body.watermarkEnabled : undefined,
+        // Limites de vente. body.X === null → on remet null (pas de limite). undefined → on ne touche pas.
+        maxBuyers: body.maxBuyers === null
+          ? null
+          : typeof body.maxBuyers === "number" && body.maxBuyers >= 0
+            ? Math.floor(body.maxBuyers)
+            : undefined,
+        currentBuyers: typeof body.currentBuyers === "number" && body.currentBuyers >= 0
+          ? Math.floor(body.currentBuyers)
+          : undefined,
+        salesEndAt: body.salesEndAt === null
+          ? null
+          : typeof body.salesEndAt === "string" && body.salesEndAt.trim() !== ""
+            ? new Date(body.salesEndAt)
+            : undefined,
         ...(filesUpdate ? { files: filesUpdate } : {}),
       },
       include: {

@@ -45,7 +45,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
           </table>
           <p style="color: #64748b; font-size: 12px; margin: 16px 0 0;">
             La facture PDF est jointe a cet email. Vous pouvez egalement la telecharger depuis votre espace :
-            <a href="${appUrl}/dashboard/factures" style="color: #006e2f;">Mes factures</a>
+            <a href="${appUrl}/vendeur/finances" style="color: #006e2f;">Mes factures</a>
           </p>
         </div>
         <div style="text-align: center; margin-top: 24px;">

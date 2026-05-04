@@ -76,6 +76,7 @@ export async function POST(req: Request) {
   const title = String(body.title ?? "").trim();
   const description = body.description ? String(body.description).trim() : null;
   const thumbnail = body.thumbnail ? String(body.thumbnail).trim() : null;
+  const banner = body.banner ? String(body.banner).trim() : null;
   const priceXof = Number(body.priceXof);
   const rawItems = Array.isArray(body.items) ? (body.items as unknown[]) : [];
 
@@ -167,6 +168,7 @@ export async function POST(req: Request) {
       title,
       description,
       thumbnail,
+      banner,
       priceXof,
       originalPriceXof: originalPrice,
       items: {

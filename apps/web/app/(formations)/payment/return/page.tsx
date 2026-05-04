@@ -91,20 +91,28 @@ function ReturnInner() {
         return;
       }
 
-      // Real Moneroo flow: verify by ID returned in querystring
-      const monerooId = params.get("paymentId") || params.get("id");
-      if (!monerooId) {
+      // Real Moneroo / PayGenius flow: verify by ID returned in querystring.
+      // PayGenius returns ?reference=... ; Moneroo returns ?paymentId=... or ?id=...
+      const paymentId =
+        params.get("paymentId") ||
+        params.get("reference") ||
+        params.get("ref") ||
+        params.get("id");
+      const provider = params.get("provider") || "moneroo";
+      if (!paymentId) {
         setStatus("failed");
         setMessage("Référence de paiement manquante");
         return;
       }
 
       try {
-        // /verify fait maintenant TOUT : vérifie status Moneroo + fulfill (crée
+        // /verify fait maintenant TOUT : vérifie status provider + fulfill (crée
         // enrollments + crédite wallet + emails). Idempotent : si le webhook
         // a déjà fulfill, il skip les existants. Pas besoin d'auth car on trust
-        // Moneroo comme source de vérité via retrievePayment.
-        const verifyRes = await fetch(`/api/formations/payment/verify?id=${monerooId}`);
+        // le provider comme source de vérité via retrievePayment.
+        const verifyRes = await fetch(
+          `/api/formations/payment/verify?id=${encodeURIComponent(paymentId)}&provider=${encodeURIComponent(provider)}`,
+        );
         const verify = await verifyRes.json();
 
         if (!verify.data) {
@@ -114,8 +122,26 @@ function ReturnInner() {
         }
 
         const paymentStatus = verify.data.status;
+        const metaType = String(verify.data.metadata?.type ?? "");
 
         if (paymentStatus === "success") {
+          // Cas spécial — bundle ou abonnement : le webhook a déjà fulfill
+          // (création de Subscription/ProductBundlePurchase + Enrollments).
+          // /verify ne fait pas le travail pour ces types, donc on affiche
+          // un message générique et on redirige vers la bonne destination.
+          if (metaType === "bundle_purchase") {
+            setStatus("success");
+            setMessage("Achat de pack confirmé ! Vos contenus sont disponibles dans votre espace apprenant.");
+            setRedirectTo("/apprenant/mes-formations");
+            return;
+          }
+          if (metaType === "subscription_initial" || metaType === "subscription_renewal") {
+            setStatus("success");
+            setMessage("Abonnement confirmé ! Retrouvez vos accès dans Mes abonnements.");
+            setRedirectTo("/apprenant/abonnements");
+            return;
+          }
+
           // Le verify a déjà fulfill (via fulfillCheckout)
           const result: VerifyResult = verify.data.result || {};
           const enrollmentsCount = result.enrollments?.length ?? 0;

@@ -127,7 +127,7 @@ export function CookieConsent() {
               Politique de cookies
             </Link>{" "}
             et notre{" "}
-            <Link href="/confidentialité" className="text-primary hover:underline">
+            <Link href="/confidentialite" className="text-primary hover:underline">
               Politique de confidentialité
             </Link>
             .

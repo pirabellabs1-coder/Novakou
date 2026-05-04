@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
+import { fulfillCheckout } from "@/lib/formations/fulfillment";
+import { cookies } from "next/headers";
 import crypto from "crypto";
 
 type PaymentProvider = "moneroo" | "paygenius";
@@ -85,16 +87,48 @@ export async function POST(request: Request) {
       formationIds.length > 0
         ? prisma.formation.findMany({
             where: { id: { in: formationIds }, status: "ACTIF" },
-            select: { id: true, title: true, price: true, instructeurId: true, shopId: true },
+            select: {
+              id: true, title: true, price: true, instructeurId: true, shopId: true,
+              maxStudents: true, currentStudents: true, salesEndAt: true,
+            },
           })
         : Promise.resolve([]),
       productIds.length > 0
         ? prisma.digitalProduct.findMany({
             where: { id: { in: productIds }, status: "ACTIF" },
-            select: { id: true, title: true, price: true, instructeurId: true, shopId: true },
+            select: {
+              id: true, title: true, price: true, instructeurId: true, shopId: true,
+              maxBuyers: true, currentBuyers: true, salesEndAt: true,
+            },
           })
         : Promise.resolve([]),
     ]);
+
+    // ── Vérification disponibilité (date de fin + stock) ──────────────────
+    // Refuser tôt avec un message clair plutôt que de laisser le checkout
+    // créer un attempt et un appel provider pour rien. Ces deux limites
+    // existent côté schéma : maxBuyers/maxStudents (Int? nullable) et
+    // salesEndAt (DateTime? nullable). Null = pas de limite.
+    const now = new Date();
+    const blocked: string[] = [];
+    for (const f of formations) {
+      if (f.salesEndAt && f.salesEndAt <= now) blocked.push(`${f.title} — vente terminée`);
+      else if (typeof f.maxStudents === "number" && f.maxStudents > 0 && (f.currentStudents ?? 0) >= f.maxStudents) {
+        blocked.push(`${f.title} — places épuisées`);
+      }
+    }
+    for (const p of products) {
+      if (p.salesEndAt && p.salesEndAt <= now) blocked.push(`${p.title} — vente terminée`);
+      else if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && (p.currentBuyers ?? 0) >= p.maxBuyers) {
+        blocked.push(`${p.title} — stock épuisé`);
+      }
+    }
+    if (blocked.length > 0) {
+      return NextResponse.json(
+        { error: `Achat impossible : ${blocked.join(", ")}` },
+        { status: 410 }, // Gone — la ressource n'est plus disponible
+      );
+    }
 
     let subTotal = formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
 
@@ -116,15 +150,66 @@ export async function POST(request: Request) {
 
     const totalAmount = Math.max(0, subTotal - discountAmount);
 
-    // Free order? Skip Moneroo, complete immediately.
+    // Free order? Skip Moneroo and fulfill the order immediately.
+    // Anciennement on retournait juste une URL "/payment/return?free=1" qui se
+    // contentait d'afficher un toast de succès — sans rien créer en base. Du
+    // coup : pas d'enrollment / DigitalProductPurchase, pas d'email, pas de
+    // notification, rien chez le vendeur ni dans l'admin. Maintenant on appelle
+    // directement fulfillCheckout (la même fonction que le webhook Moneroo
+    // utilise après un paiement réel).
     if (totalAmount === 0) {
-      return NextResponse.json({
-        data: {
-          free: true,
-          checkout_url: `/payment/return?free=1&items=${formationIds.length + productIds.length}`,
-          internalRef: `free:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-        },
-      });
+      const sessionRef = `free:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+
+      // Lecture du cookie d'affiliation pour traquer la conversion (même si la
+      // commission est à 0 sur une commande gratuite, ça compte une conversion).
+      let affiliateProfile: { profileId: string; commissionRate: number } | null = null;
+      try {
+        const cookieStore = await cookies();
+        const affCookie =
+          cookieStore.get("fh_ref")?.value ?? cookieStore.get("fh_aff_code")?.value;
+        if (affCookie) {
+          const prof = await prisma.affiliateProfile.findUnique({
+            where: { affiliateCode: affCookie },
+            select: {
+              id: true, status: true,
+              program: { select: { commissionPct: true, isActive: true } },
+            },
+          });
+          if (prof && prof.status === "ACTIVE" && prof.program.isActive) {
+            affiliateProfile = {
+              profileId: prof.id,
+              commissionRate: (prof.program.commissionPct ?? 0) / 100,
+            };
+          }
+        }
+      } catch (err) {
+        console.warn("[payment/init free affiliate cookie]", err);
+      }
+
+      try {
+        const result = await fulfillCheckout({
+          userId,
+          formationIds,
+          productIds,
+          discountCodeStr: appliedCode ?? null,
+          sessionRef,
+          affiliate: affiliateProfile,
+        });
+        return NextResponse.json({
+          data: {
+            free: true,
+            checkout_url: `/payment/return?free=1&items=${result.enrollments.length + result.purchases.length}`,
+            internalRef: sessionRef,
+            fulfilled: true,
+            enrollments: result.enrollments.length,
+            purchases: result.purchases.length,
+          },
+        });
+      } catch (err) {
+        console.error("[payment/init free fulfill]", err);
+        const message = err instanceof Error ? err.message : "Finalisation échouée";
+        return NextResponse.json({ error: message }, { status: 500 });
+      }
     }
 
     // App URL for return redirects (used in both mock and real flows)

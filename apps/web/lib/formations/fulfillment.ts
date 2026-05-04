@@ -153,9 +153,17 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       where: { id: f.instructeurId },
       data: { totalEarned: { increment: vendorNet } },
     });
+    // Incrémente DEUX compteurs distincts :
+    //  - studentsCount : compteur cumulatif (analytics, ne décroît pas même
+    //    après remboursement — utilisé pour les stats publiques "X élèves")
+    //  - currentStudents : compteur enforcé par maxStudents (limite de stock).
+    //    Le vendeur peut ajuster manuellement ce compteur (ex: après refund).
     await prisma.formation.update({
       where: { id: f.id },
-      data: { studentsCount: { increment: 1 } },
+      data: {
+        studentsCount: { increment: 1 },
+        currentStudents: { increment: 1 },
+      },
     });
 
     await prisma.platformRevenue.create({
@@ -197,11 +205,14 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
 
     createdEnrollments.push({ id: enrollment.id, title: f.title, price: finalPrice });
 
-    // Trigger marketing automation hooks (séquences email, workflows…) — non bloquant
+    // Trigger marketing automation hooks (séquences email, workflows…) — non bloquant.
+    // onFormationPurchase retourne void (gère ses propres erreurs via fireAndForget),
+    // donc PAS de .catch() ici — sinon TypeError sur undefined qui plante tout
+    // le fulfillment APRÈS que les DB inserts soient déjà passés.
     onFormationPurchase(userId, f.id, finalPrice, {
       formationTitle: f.title,
       paymentRef: sessionRef,
-    }).catch((e) => console.warn("[fulfillment hook formation]", e?.message ?? e));
+    });
   }
 
   // ── Produits digitaux ───────────────────────────────────────────────
@@ -225,9 +236,13 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       where: { id: p.instructeurId },
       data: { totalEarned: { increment: vendorNet } },
     });
+    // Idem produits : salesCount = analytics, currentBuyers = enforced cap.
     await prisma.digitalProduct.update({
       where: { id: p.id },
-      data: { salesCount: { increment: 1 } },
+      data: {
+        salesCount: { increment: 1 },
+        currentBuyers: { increment: 1 },
+      },
     });
 
     await prisma.platformRevenue.create({
@@ -268,11 +283,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
 
     createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
 
-    // Trigger marketing automation hooks — non bloquant
+    // Trigger marketing automation hooks — non bloquant.
+    // Idem onFormationPurchase : retourne void, NE PAS chainer .catch().
     onProductPurchase(userId, p.id, finalPrice, {
       productTitle: p.title,
       paymentRef: sessionRef,
-    }).catch((e) => console.warn("[fulfillment hook product]", e?.message ?? e));
+    });
   }
 
   // ── Usage du code promo ─────────────────────────────────────────────

@@ -308,7 +308,11 @@ REGLES STRICTES :
 
       {/* Chat window */}
       {open && (
-        <div className="fixed bottom-5 right-5 z-[9999] w-[calc(100vw-2.5rem)] sm:w-[380px] h-[560px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden">
+        // Mobile: quasi plein-écran (haut → bas) pour ne pas couper l'entête.
+        // Desktop: ancré bottom-right avec max-h-screen pour s'adapter aux
+        // viewports courts (laptops 13" à 720p) où h-[560px] dépasse la
+        // hauteur disponible et coupe la top bar du widget.
+        <div className="fixed inset-x-3 bottom-3 top-3 sm:inset-x-auto sm:top-auto sm:bottom-5 sm:right-5 z-[9999] sm:w-[380px] sm:h-[560px] sm:max-h-[calc(100vh-2.5rem)] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-200 overflow-hidden">
           {/* Header */}
           <div
             className="px-4 py-3 flex items-center justify-between text-white"

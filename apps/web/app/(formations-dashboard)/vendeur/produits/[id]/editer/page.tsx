@@ -13,6 +13,7 @@ import {
   useDraftSavedAt,
   formatSavedAt,
   clearDrafts,
+  hasStoredDraft,
 } from "@/lib/hooks/use-draft-storage";
 
 interface Product {
@@ -39,6 +40,10 @@ interface Product {
   previewEnabled?: boolean;
   previewPages?: number;
   watermarkEnabled?: boolean;
+  // Limites de vente — nullables = pas de limite (rétro-compat avec produits existants)
+  maxBuyers?: number | null;
+  currentBuyers?: number;
+  salesEndAt?: string | null; // ISO datetime
   category: { id: string; slug: string; name: string } | null;
 }
 
@@ -87,6 +92,13 @@ export default function EditerProduitPage() {
   const [previewEnabled, setPreviewEnabled] = useDraftField(`${draftPrefix}:previewEnabled`, false);
   const [previewPages, setPreviewPages] = useDraftField(`${draftPrefix}:previewPages`, 5);
   const [watermarkEnabled, setWatermarkEnabled] = useDraftField(`${draftPrefix}:watermarkEnabled`, true);
+  // Limites de vente. Tous nullable / vides côté UI → pas de limite.
+  // maxBuyers vide = vente illimitée. salesEndAt vide = pas d'échéance.
+  // currentBuyers est rendu éditable pour permettre au vendeur de réinitialiser
+  // ou ajuster manuellement le compteur (ex: après un litige / refund).
+  const [maxBuyersInput, setMaxBuyersInput] = useDraftField<string>(`${draftPrefix}:maxBuyers`, "");
+  const [currentBuyersInput, setCurrentBuyersInput] = useDraftField<string>(`${draftPrefix}:currentBuyers`, "");
+  const [salesEndAtInput, setSalesEndAtInput] = useDraftField<string>(`${draftPrefix}:salesEndAt`, "");
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   // Tracks whether we've already pulled the API value into state on first
@@ -127,47 +139,53 @@ export default function EditerProduitPage() {
 
     // Drafts win over a fresh API load — but ONLY if the draft contains
     // actual user work. A draft with all-empty values (which can happen if
-    // the user opened the form, didn't type, and the debounced auto-save
-    // captured the initial state) would otherwise leave every field blank.
-    const hasMeaningfulDraft = typeof window !== "undefined"
-      ? (() => {
-          const target = `nk-draft:${draftPrefix}:`;
-          for (let i = 0; i < window.localStorage.length; i++) {
-            const k = window.localStorage.key(i);
-            if (!k || !k.startsWith(target)) continue;
-            try {
-              const parsed = JSON.parse(window.localStorage.getItem(k) || "{}") as { value?: unknown };
-              const v = parsed?.value;
-              if (typeof v === "string" && v.trim() !== "") return true;
-              if (typeof v === "number" && v !== 0) return true;
-              if (Array.isArray(v) && v.length > 0) return true;
-              if (v === true) return true;
-            } catch { /* ignore malformed entry */ }
-          }
-          return false;
-        })()
-      : false;
+    // Per-field hydration. Previous logic was all-or-nothing : si UN seul champ
+    // avait un brouillon non vide (ex: titre tapé puis fermé), TOUS les autres
+    // champs restaient à leur valeur initiale ("") au lieu d'être hydratés
+    // depuis l'API. Conséquence visible côté vendeur : ouverture d'un produit
+    // existant → tous les champs paraissaient vides (titre, image, prix, fichiers…).
+    //
+    // Maintenant chaque champ est hydraté indépendamment : si SON brouillon
+    // existe, on garde la valeur locale ; sinon on écrit la valeur du serveur.
+    const has = (field: string) => hasStoredDraft(draftPrefix, field);
+    let anyDraft = false;
 
-    if (!hasMeaningfulDraft) {
-      setTitle(product.title);
-      setDescription(product.description ?? "");
-      setProductType(product.productType);
-      setThumbnail(product.thumbnail ?? "");
-      setBanner(product.banner ?? "");
-      setPrice(product.price);
-      setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
-      setTagsInput((product.tags ?? []).join(", "));
-      setFiles(Array.isArray(product.files) ? product.files : []);
-      setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
-      setPreviewEnabled(!!product.previewEnabled);
-      setPreviewPages(typeof product.previewPages === "number" ? product.previewPages : 5);
-      setWatermarkEnabled(product.watermarkEnabled !== false);
-      setDirty(false);
-    } else {
-      // Draft restored — show the user the form is pre-populated and they
-      // have unsaved work.
-      setDirty(true);
-    }
+    if (!has("title")) setTitle(product.title);
+    else anyDraft = true;
+    if (!has("description")) setDescription(product.description ?? "");
+    else anyDraft = true;
+    if (!has("productType")) setProductType(product.productType);
+    else anyDraft = true;
+    if (!has("thumbnail")) setThumbnail(product.thumbnail ?? "");
+    else anyDraft = true;
+    if (!has("banner")) setBanner(product.banner ?? "");
+    else anyDraft = true;
+    if (!has("price")) setPrice(product.price);
+    else anyDraft = true;
+    if (!has("originalPrice")) setOriginalPrice(product.originalPrice != null ? String(product.originalPrice) : "");
+    else anyDraft = true;
+    if (!has("tagsInput")) setTagsInput((product.tags ?? []).join(", "));
+    else anyDraft = true;
+    if (!has("files")) setFiles(Array.isArray(product.files) ? product.files : []);
+    else anyDraft = true;
+    if (!has("hiddenFromMarketplace")) setHiddenFromMarketplace(!!product.hiddenFromMarketplace);
+    else anyDraft = true;
+    if (!has("previewEnabled")) setPreviewEnabled(!!product.previewEnabled);
+    else anyDraft = true;
+    if (!has("previewPages")) setPreviewPages(typeof product.previewPages === "number" ? product.previewPages : 5);
+    else anyDraft = true;
+    if (!has("watermarkEnabled")) setWatermarkEnabled(product.watermarkEnabled !== false);
+    else anyDraft = true;
+    // Limites de vente — null/undefined côté API → champ vide côté UI
+    if (!has("maxBuyers")) setMaxBuyersInput(product.maxBuyers != null ? String(product.maxBuyers) : "");
+    else anyDraft = true;
+    if (!has("currentBuyers")) setCurrentBuyersInput(typeof product.currentBuyers === "number" ? String(product.currentBuyers) : "0");
+    else anyDraft = true;
+    // datetime-local attend "YYYY-MM-DDTHH:MM" (sans secondes ni TZ)
+    if (!has("salesEndAt")) setSalesEndAtInput(product.salesEndAt ? product.salesEndAt.slice(0, 16) : "");
+    else anyDraft = true;
+
+    setDirty(anyDraft);
     setHasHydrated(true);
     // productId in the deps gives a stable trigger on initial load and on the
     // rare cross-product navigation; avoiding [product] avoids re-runs from
@@ -217,6 +235,11 @@ export default function EditerProduitPage() {
   }
 
   function handleSave() {
+    // Parse les limites : champ vide → null (pas de limite). NaN négatif → on
+    // laisse remonter null aussi pour éviter d'écrire des valeurs absurdes.
+    const maxBuyersParsed = maxBuyersInput.trim() === "" ? null : Math.max(0, Math.floor(Number(maxBuyersInput)));
+    const currentBuyersParsed = currentBuyersInput.trim() === "" ? 0 : Math.max(0, Math.floor(Number(currentBuyersInput)));
+    const salesEndAtParsed = salesEndAtInput.trim() === "" ? null : new Date(salesEndAtInput).toISOString();
     saveMutation.mutate({
       title,
       description,
@@ -231,6 +254,9 @@ export default function EditerProduitPage() {
       previewEnabled,
       previewPages,
       watermarkEnabled,
+      maxBuyers: maxBuyersParsed,
+      currentBuyers: currentBuyersParsed,
+      salesEndAt: salesEndAtParsed,
     });
   }
 
@@ -452,6 +478,109 @@ export default function EditerProduitPage() {
             </div>
           </div>
           {price === 0 && <p className="text-xs text-amber-600">⚠️ Prix à 0 FCFA = produit gratuit</p>}
+        </div>
+
+        {/* Section: Limites de vente */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+          <div>
+            <h2 className="text-base font-extrabold text-[#191c1e] mb-1">Limites de vente</h2>
+            <p className="text-xs text-[#5c647a]">
+              Créez de l&apos;urgence avec une date de fin et/ou un nombre de ventes limité.
+              Une fois la limite atteinte, le bouton &laquo; Acheter &raquo; est remplacé par
+              &laquo; Vente terminée &raquo; et plus aucune commande ne passe.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">
+                Date de fin des ventes (optionnel)
+              </label>
+              <input
+                type="datetime-local"
+                value={salesEndAtInput}
+                onChange={(e) => track(setSalesEndAtInput, e.target.value)}
+                className="w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
+              />
+              <p className="text-[11px] text-[#5c647a] mt-1.5">
+                Laissez vide pour vendre sans limite de temps.
+              </p>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">
+                Nombre maximum de ventes (optionnel)
+              </label>
+              <input
+                type="number"
+                value={maxBuyersInput}
+                onChange={(e) => track(setMaxBuyersInput, e.target.value)}
+                min={0}
+                placeholder="ex: 100"
+                className="w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
+              />
+              <p className="text-[11px] text-[#5c647a] mt-1.5">
+                Laissez vide pour autoriser un nombre illimité de ventes.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-end gap-4">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">
+                Ventes effectuées (compteur ajustable)
+              </label>
+              <input
+                type="number"
+                value={currentBuyersInput}
+                onChange={(e) => track(setCurrentBuyersInput, e.target.value)}
+                min={0}
+                className="w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
+              />
+              <p className="text-[11px] text-[#5c647a] mt-1.5">
+                Vous pouvez ajuster manuellement (ex: après un remboursement).
+                {maxBuyersInput && Number(maxBuyersInput) > 0 && (
+                  <>
+                    {" "}Restant : <strong>{Math.max(0, Number(maxBuyersInput) - Number(currentBuyersInput || 0))}</strong> sur {maxBuyersInput}.
+                  </>
+                )}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => track(setCurrentBuyersInput, "0")}
+              className="px-4 py-3 rounded-xl border border-gray-200 text-xs font-semibold text-[#5c647a] hover:border-[#006e2f]/30 hover:text-[#006e2f] whitespace-nowrap"
+            >
+              Réinitialiser
+            </button>
+          </div>
+
+          {/* Aperçu visuel de la barre de progression telle qu'elle s'affichera côté acheteur */}
+          {maxBuyersInput && Number(maxBuyersInput) > 0 && (
+            <div className="rounded-xl bg-[#f7f9fb] border border-gray-100 p-4">
+              <p className="text-[11px] font-semibold text-[#5c647a] uppercase tracking-wider mb-2">
+                Aperçu côté acheteur
+              </p>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <span className="text-xs font-bold text-[#191c1e]">
+                  {Number(currentBuyersInput || 0)} / {maxBuyersInput} vendus
+                </span>
+                <span className="text-xs font-semibold text-[#006e2f]">
+                  {Math.max(0, Number(maxBuyersInput) - Number(currentBuyersInput || 0))} restants
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-[#006e2f] to-[#22c55e] transition-all"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.max(0, (Number(currentBuyersInput || 0) / Math.max(1, Number(maxBuyersInput))) * 100),
+                    )}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Section: Description */}

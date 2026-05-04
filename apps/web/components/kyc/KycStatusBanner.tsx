@@ -55,7 +55,7 @@ export function KycStatusBanner({
   currentLevel,
   status,
   rejectionReason,
-  kycHref = "/dashboard/kyc",
+  kycHref = "/kyc",
 }: KycStatusBannerProps) {
   const config = STATUS_CONFIG[status];
 

@@ -23,6 +23,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (typeof body.name === "string" && body.name.trim().length >= 3) update.name = body.name.trim();
     if (typeof body.description === "string" && body.description.trim().length >= 10) update.description = body.description.trim();
     if (body.imageUrl !== undefined) update.imageUrl = body.imageUrl ? String(body.imageUrl).trim() : null;
+    if (body.bannerUrl !== undefined) update.bannerUrl = body.bannerUrl ? String(body.bannerUrl).trim() : null;
     if (Number.isFinite(Number(body.price)) && Number(body.price) >= 500) update.price = Number(body.price);
     if (typeof body.isActive === "boolean") update.isActive = body.isActive;
     if (Array.isArray(body.linkedFormationIds)) update.linkedFormationIds = body.linkedFormationIds;

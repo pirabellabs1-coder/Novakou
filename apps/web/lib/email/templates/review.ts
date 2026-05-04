@@ -21,7 +21,7 @@ export async function sendReviewReceivedEmail(
       tableRowDark("Note", `<span style="color:#FBBF24;">${stars}</span> (${data.rating}/5)`)
     )}
     ${data.comment ? infoDark(`"${data.comment}"`, "#FBBF24") : ""}
-    ${buttonDark("Voir et repondre", `${getAppUrl()}/dashboard/avis`)}
+    ${buttonDark("Voir et repondre", `${getAppUrl()}/vendeur/avis`)}
   `);
   return sendEmail({ to: email, subject: `Nouvel avis — ${data.serviceTitle}`, html });
 }

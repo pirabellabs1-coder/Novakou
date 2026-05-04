@@ -241,7 +241,7 @@ export async function sendOrderConfirmationEmail(
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Référence</td><td style="color:#111827;text-align:right;font-size:14px;">${escapeHtml(order.id)}</td></tr>
       </table>
     </div>
-    ${button("Voir ma commande", `${getAppUrl()}/client/commandes`)}
+    ${button("Voir ma commande", `${getAppUrl()}/apprenant/commandes`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
       Les fonds sont sécurisés en escrow jusqu'à la livraison et votre validation.
     </p>
@@ -294,7 +294,7 @@ export async function sendPaymentReceivedEmail(
       <p style="color:#16a34a;font-size:32px;font-weight:800;margin:0;">+${payment.amount.toFixed(2)} EUR</p>
       <p style="color:#4ade80;font-size:14px;margin:4px 0 0;">${escapeHtml(payment.serviceTitle)}</p>
     </div>
-    ${button("Voir mes finances", `${getAppUrl()}/dashboard/finances`)}
+    ${button("Voir mes finances", `${getAppUrl()}/vendeur/finances`)}
   `);
 
   return sendEmail({ to: email, subject: `Paiement de ${payment.amount.toFixed(2)} EUR reçu`, html });
@@ -319,7 +319,7 @@ export async function sendNewOrderFreelanceEmail(
         <tr><td style="color:#6b7280;padding:4px 0;font-size:14px;">Client</td><td style="color:#111827;text-align:right;font-size:14px;">${escapeHtml(order.clientName)}</td></tr>
       </table>
     </div>
-    ${button("Voir la commande", `${getAppUrl()}/dashboard/commandes`)}
+    ${button("Voir la commande", `${getAppUrl()}/vendeur/commandes`)}
   `);
 
   return sendEmail({ to: email, subject: `Nouvelle commande — ${order.serviceTitle}`, html });
@@ -339,7 +339,7 @@ export async function sendKycApprovedEmail(email: string, name: string, level: n
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       De nouvelles fonctionnalités sont maintenant disponibles sur votre compte.
     </p>
-    ${button("Voir mon profil", `${getAppUrl()}/dashboard/profil`)}
+    ${button("Voir mon profil", `${getAppUrl()}/vendeur/profil`)}
   `);
 
   return sendEmail({ to: email, subject: `Vérification KYC niveau ${level} approuvée`, html });
@@ -378,7 +378,7 @@ export async function sendServiceApprovedEmail(email: string, name: string, serv
       Bonjour ${escapeHtml(name)}, votre service <strong>«&nbsp;${escapeHtml(serviceTitle)}&nbsp;»</strong> a été approuvé par notre équipe
       et est maintenant visible sur la marketplace.
     </p>
-    ${button("Voir mon service", `${getAppUrl()}/dashboard/services`)}
+    ${button("Voir mon service", `${getAppUrl()}/vendeur/dashboard`)}
     <p style="color:#9ca3af;font-size:13px;margin:16px 0 0;">
       Pensez à partager votre service sur les réseaux sociaux pour attirer vos premiers clients !
     </p>
@@ -400,7 +400,7 @@ export async function sendServiceRejectedEmail(email: string, name: string, serv
       <p style="color:#dc2626;font-weight:600;margin:0 0 4px;">Motif :</p>
       <p style="color:#991b1b;margin:0;">${escapeHtml(reason)}</p>
     </div>
-    ${button("Modifier mon service", `${getAppUrl()}/dashboard/services`)}
+    ${button("Modifier mon service", `${getAppUrl()}/vendeur/dashboard`)}
   `);
 
   return sendEmail({ to: email, subject: `Service non approuvé — ${serviceTitle}`, html });
@@ -422,7 +422,7 @@ export async function sendDeliveryNotificationEmail(
     <p style="color:#4b5563;line-height:1.6;margin:0 0 24px;">
       Veuillez vérifier la livraison et la valider ou demander une révision.
     </p>
-    ${button("Voir la livraison", `${getAppUrl()}/client/commandes`)}
+    ${button("Voir la livraison", `${getAppUrl()}/apprenant/commandes`)}
     <p style="color:#6b7280;font-size:13px;margin:16px 0 0;">
       Si vous ne validez pas dans les 3 jours, la livraison sera automatiquement acceptée.
     </p>

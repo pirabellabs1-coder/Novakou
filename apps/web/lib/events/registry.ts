@@ -88,14 +88,14 @@ export const EVENT_REGISTRY: {
         title: "Nouvelle commande",
         message: `${p.clientName} a commande "${p.serviceTitle}" pour ${p.amount.toFixed(2)} EUR`,
         type: "order",
-        link: "/dashboard/commandes",
+        link: "/vendeur/commandes",
       },
       {
         userId: p.clientId,
         title: "Commande confirmee",
         message: `Votre commande pour "${p.serviceTitle}" a ete enregistree`,
         type: "order",
-        link: "/client/commandes",
+        link: "/apprenant/commandes",
       },
     ],
     email: async (p: OrderEventPayload) => {
@@ -118,7 +118,7 @@ export const EVENT_REGISTRY: {
       title: "Commande acceptee",
       message: `${p.freelanceName} a accepte votre commande pour "${p.serviceTitle}"`,
       type: "order",
-      link: "/client/commandes",
+      link: "/apprenant/commandes",
     }),
     email: undefined,
   },
@@ -129,7 +129,7 @@ export const EVENT_REGISTRY: {
       title: "Commande en cours",
       message: `${p.freelanceName} a commence a travailler sur "${p.serviceTitle}"`,
       type: "order",
-      link: "/client/commandes",
+      link: "/apprenant/commandes",
     }),
     email: undefined,
   },
@@ -140,7 +140,7 @@ export const EVENT_REGISTRY: {
       title: "Livraison effectuee",
       message: `${p.freelanceName} a livre "${p.serviceTitle}". Verifiez et validez la livraison.`,
       type: "order",
-      link: "/client/commandes",
+      link: "/apprenant/commandes",
     }),
     email: async (p: OrderEventPayload) => {
       await sendOrderDeliveredEmail(p.clientEmail, p.clientName, {
@@ -157,14 +157,14 @@ export const EVENT_REGISTRY: {
         title: "Commande terminee",
         message: `La commande "${p.serviceTitle}" est terminee. ${p.amount.toFixed(2)} EUR credits.`,
         type: "payment",
-        link: "/dashboard/finances",
+        link: "/vendeur/finances",
       },
       {
         userId: p.clientId,
         title: "Commande terminee",
         message: `La commande "${p.serviceTitle}" est terminee avec succes.`,
         type: "order",
-        link: "/client/commandes",
+        link: "/apprenant/commandes",
       },
     ],
     email: async (p: OrderEventPayload) => {
@@ -182,14 +182,14 @@ export const EVENT_REGISTRY: {
         title: "Commande annulee",
         message: `La commande "${p.serviceTitle}" a ete annulee`,
         type: "order",
-        link: "/dashboard/commandes",
+        link: "/vendeur/commandes",
       },
       {
         userId: p.clientId,
         title: "Commande annulee",
         message: `Votre commande "${p.serviceTitle}" a ete annulee`,
         type: "order",
-        link: "/client/commandes",
+        link: "/apprenant/commandes",
       },
     ],
     email: async (p: OrderEventPayload) => {
@@ -212,7 +212,7 @@ export const EVENT_REGISTRY: {
       title: "Revision demandee",
       message: `${p.clientName} demande une revision pour "${p.serviceTitle}"`,
       type: "order",
-      link: "/dashboard/commandes",
+      link: "/vendeur/commandes",
     }),
     email: async (p: OrderEventPayload) => {
       await sendOrderRevisionEmail(p.freelanceEmail, p.freelanceName, {
@@ -228,7 +228,7 @@ export const EVENT_REGISTRY: {
       title: "Delai dans 24h",
       message: `La commande "${p.serviceTitle}" doit etre livree dans les 24 prochaines heures`,
       type: "order",
-      link: "/dashboard/commandes",
+      link: "/vendeur/commandes",
     }),
     email: async (p: OrderEventPayload) => {
       await sendOrderDeadline24hEmail(p.freelanceEmail, p.freelanceName, {
@@ -245,14 +245,14 @@ export const EVENT_REGISTRY: {
         title: "Commande en retard",
         message: `La commande "${p.serviceTitle}" a depasse la date limite`,
         type: "order",
-        link: "/dashboard/commandes",
+        link: "/vendeur/commandes",
       },
       {
         userId: p.clientId,
         title: "Commande en retard",
         message: `La commande "${p.serviceTitle}" n'a pas ete livree a temps`,
         type: "order",
-        link: "/client/commandes",
+        link: "/apprenant/commandes",
       },
     ],
     email: async (p: OrderEventPayload) => {
@@ -273,7 +273,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvelle offre recue",
       message: `${p.freelanceName} vous a envoye une offre : "${p.title}" (${p.amount.toFixed(2)} EUR)`,
       type: "offer",
-      link: "/client/offres",
+      link: "/apprenant/dashboard",
     }),
     email: async (p: OfferEventPayload) => {
       await sendOfferSentEmail(p.clientEmail, p.clientName, {
@@ -288,7 +288,7 @@ export const EVENT_REGISTRY: {
       title: "Offre acceptee",
       message: `${p.clientName} a accepte votre offre "${p.title}"`,
       type: "offer",
-      link: "/dashboard/offres",
+      link: "/vendeur/dashboard",
     }),
     email: async (p: OfferEventPayload) => {
       await sendOfferAcceptedEmail(p.freelanceEmail, p.freelanceName, {
@@ -303,7 +303,7 @@ export const EVENT_REGISTRY: {
       title: "Offre refusee",
       message: `${p.clientName} a decline votre offre "${p.title}"`,
       type: "offer",
-      link: "/dashboard/offres",
+      link: "/vendeur/dashboard",
     }),
     email: async (p: OfferEventPayload) => {
       await sendOfferRejectedEmail(p.freelanceEmail, p.freelanceName, {
@@ -343,7 +343,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvel avis",
       message: `${p.reviewerName} a laisse un avis ${p.rating}/5 sur "${p.serviceTitle}"`,
       type: "review",
-      link: "/dashboard/avis",
+      link: "/vendeur/avis",
     }),
     email: async (p: ReviewEventPayload) => {
       await sendReviewReceivedEmail(p.freelanceEmail, p.freelanceName, {
@@ -363,7 +363,7 @@ export const EVENT_REGISTRY: {
       title: "Invitation agence",
       message: `${p.inviterName || p.agencyName} vous invite a rejoindre l'agence ${p.agencyName}`,
       type: "agency",
-      link: "/agence/equipe",
+      link: "/vendeur/dashboard",
     } : null),
     email: async (p: AgencyEventPayload) => {
       if (p.memberEmail && p.memberName) {
@@ -385,7 +385,7 @@ export const EVENT_REGISTRY: {
       title: "Retrait de l'agence",
       message: `Vous avez ete retire de l'agence ${p.agencyName}`,
       type: "agency",
-      link: "/dashboard",
+      link: "/vendeur/dashboard",
     } : null),
     email: async (p: AgencyEventPayload) => {
       if (p.memberEmail && p.memberName) {
@@ -407,7 +407,7 @@ export const EVENT_REGISTRY: {
       title: "Service agence publie",
       message: `Le service "${p.serviceTitle}" de ${p.agencyName} est maintenant publie`,
       type: "service",
-      link: "/agence/services",
+      link: "/vendeur/dashboard",
     } : null),
     email: async (p: AgencyEventPayload) => {
       if (p.memberEmail && p.memberName && p.serviceTitle) {
@@ -424,7 +424,7 @@ export const EVENT_REGISTRY: {
       title: "Service agence refuse",
       message: `Le service "${p.serviceTitle}" de ${p.agencyName} n'a pas ete approuve`,
       type: "service",
-      link: "/agence/services",
+      link: "/vendeur/dashboard",
     } : null),
     email: async (p: AgencyEventPayload) => {
       if (p.memberEmail && p.memberName && p.serviceTitle) {
@@ -441,7 +441,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvelle commande agence",
       message: `Nouvelle commande pour "${p.serviceTitle}" (${p.amount?.toFixed(2)} EUR)`,
       type: "order",
-      link: "/agence/commandes",
+      link: "/vendeur/commandes",
     } : null),
     email: undefined,
   },
@@ -499,7 +499,7 @@ export const EVENT_REGISTRY: {
       title: "Formation terminee !",
       message: `Felicitations ! Vous avez termine "${p.courseTitle}"`,
       type: "course",
-      link: "/dashboard/certifications",
+      link: "/apprenant/certificats",
     } : null),
     email: async (p: CourseEventPayload) => {
       if (p.studentEmail && p.studentName) {
@@ -516,7 +516,7 @@ export const EVENT_REGISTRY: {
       title: "Certificat genere",
       message: `Votre certificat pour "${p.courseTitle}" est pret`,
       type: "course",
-      link: "/dashboard/certifications",
+      link: "/apprenant/certificats",
     } : null),
     email: async (p: CourseEventPayload) => {
       if (p.studentEmail && p.studentName) {
@@ -573,14 +573,14 @@ export const EVENT_REGISTRY: {
         title: "Achat confirme",
         message: `Vous avez achete "${p.productTitle}"`,
         type: "product",
-        link: "/client/achats",
+        link: "/apprenant/commandes",
       },
       {
         userId: p.sellerId,
         title: "Nouvelle vente",
         message: `${p.buyerName} a achete "${p.productTitle}" (${p.amount.toFixed(2)} EUR)`,
         type: "payment",
-        link: "/dashboard/finances",
+        link: "/vendeur/finances",
       },
     ],
     email: async (p: ProductEventPayload) => {
@@ -601,7 +601,7 @@ export const EVENT_REGISTRY: {
       title: "Produit telecharge",
       message: `${p.buyerName} a telecharge "${p.productTitle}"`,
       type: "product",
-      link: "/dashboard/produits",
+      link: "/vendeur/produits",
     }),
     email: async (p: ProductEventPayload) => {
       await sendProductDownloadedEmail(p.sellerEmail, p.sellerName, {
@@ -620,7 +620,7 @@ export const EVENT_REGISTRY: {
       title: "Demande KYC soumise",
       message: `Votre demande de verification niveau ${p.level} a ete soumise`,
       type: "kyc",
-      link: "/dashboard/kyc",
+      link: "/kyc",
     }),
     email: async (p: KycEventPayload) => {
       await sendKycSubmittedEmail(p.userEmail, p.userName, p.level);
@@ -633,7 +633,7 @@ export const EVENT_REGISTRY: {
       title: "KYC approuve !",
       message: `Votre verification de niveau ${p.level} a ete approuvee`,
       type: "kyc",
-      link: "/dashboard/profil",
+      link: "/vendeur/profil",
     }),
     email: async (p: KycEventPayload) => {
       await sendKycApprovedDarkEmail(p.userEmail, p.userName, p.level);
@@ -646,7 +646,7 @@ export const EVENT_REGISTRY: {
       title: "KYC refuse",
       message: `Votre verification de niveau ${p.level} a ete refusee${p.reason ? ` : ${p.reason}` : ""}`,
       type: "kyc",
-      link: "/dashboard/kyc",
+      link: "/kyc",
     }),
     email: async (p: KycEventPayload) => {
       await sendKycRejectedDarkEmail(p.userEmail, p.userName, p.level, p.reason || "Non conforme");
@@ -663,7 +663,7 @@ export const EVENT_REGISTRY: {
       title: "Paiement recu",
       message: `+${p.amount.toFixed(2)} EUR credits sur votre portefeuille`,
       type: "payment",
-      link: "/dashboard/finances",
+      link: "/vendeur/finances",
     }),
     email: async (p: PaymentEventPayload) => {
       await sendPaymentSuccessEmail(p.userEmail, p.userName, {
@@ -678,7 +678,7 @@ export const EVENT_REGISTRY: {
       title: "Echec du paiement",
       message: `Le paiement de ${p.amount.toFixed(2)} EUR a echoue`,
       type: "payment",
-      link: "/client/commandes",
+      link: "/apprenant/commandes",
     }),
     email: async (p: PaymentEventPayload) => {
       await sendPaymentFailedEmail(p.userEmail, p.userName, {
@@ -694,7 +694,7 @@ export const EVENT_REGISTRY: {
       title: "Retrait demande",
       message: `Demande de retrait de ${p.amount.toFixed(2)} EUR via ${p.method}`,
       type: "payment",
-      link: "/dashboard/finances",
+      link: "/vendeur/finances",
     }),
     email: async (p: WithdrawalEventPayload) => {
       await sendWithdrawalRequestedEmail(p.userEmail, p.userName, {
@@ -709,7 +709,7 @@ export const EVENT_REGISTRY: {
       title: "Retrait approuve",
       message: `Votre retrait de ${p.amount.toFixed(2)} EUR a ete approuve`,
       type: "payment",
-      link: "/dashboard/finances",
+      link: "/vendeur/finances",
     }),
     email: async (p: WithdrawalEventPayload) => {
       await sendWithdrawalApprovedEmail(p.userEmail, p.userName, {
@@ -724,7 +724,7 @@ export const EVENT_REGISTRY: {
       title: "Retrait refuse",
       message: `Votre demande de retrait de ${p.amount.toFixed(2)} EUR a ete refusee`,
       type: "payment",
-      link: "/dashboard/finances",
+      link: "/vendeur/finances",
     }),
     email: async (p: WithdrawalEventPayload) => {
       await sendWithdrawalRejectedEmail(p.userEmail, p.userName, {
@@ -743,7 +743,7 @@ export const EVENT_REGISTRY: {
       title: "Service publie !",
       message: `Votre service "${p.serviceTitle}" est maintenant visible sur la marketplace`,
       type: "service",
-      link: "/dashboard/services",
+      link: "/vendeur/dashboard",
     }),
     email: async (p: ServiceEventPayload) => {
       await sendServiceApprovedDarkEmail(p.userEmail, p.userName, p.serviceTitle);
@@ -756,7 +756,7 @@ export const EVENT_REGISTRY: {
       title: "Service non approuve",
       message: `Votre service "${p.serviceTitle}" n'a pas pu etre publie${p.reason ? ` : ${p.reason}` : ""}`,
       type: "service",
-      link: "/dashboard/services",
+      link: "/vendeur/dashboard",
     }),
     email: async (p: ServiceEventPayload) => {
       await sendServiceRejectedDarkEmail(p.userEmail, p.userName, p.serviceTitle, p.reason || "Non conforme");
@@ -795,7 +795,7 @@ export const EVENT_REGISTRY: {
       title: "Nouvelle formation",
       message: `"${p.courseTitle || "Formation"}" par ${p.userName || "un instructeur"}`,
       type: "system",
-      link: "/admin",
+      link: "/admin/dashboard",
     } : null),
     email: undefined,
   },
@@ -817,7 +817,7 @@ export const EVENT_REGISTRY: {
       title: "Litige resolu",
       message: `Le litige pour la commande a ete resolu${p.verdict ? ` : verdict en faveur du ${p.verdict}` : ""}`,
       type: "system",
-      link: "/dashboard/commandes",
+      link: "/vendeur/commandes",
     } : null),
     email: undefined,
   },

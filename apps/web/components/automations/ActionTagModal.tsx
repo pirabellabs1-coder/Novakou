@@ -84,17 +84,8 @@ export default function ActionTagModal({
   }, [action]);
 
   useEffect(() => {
-    // Fetch existing tag suggestions (best-effort; endpoint optional)
-    fetch("/api/formations/vendeur/marketing/tags")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((j) => {
-        if (j?.data && Array.isArray(j.data)) {
-          setTagSuggestions(j.data.map((t: { name?: string } | string) => (typeof t === "string" ? t : t.name ?? "")).filter(Boolean));
-        }
-      })
-      .catch(() => {
-        /* silent */
-      });
+    // Tag suggestions endpoint not implemented yet — leave empty for now.
+    // (Previously hit /api/formations/vendeur/marketing/tags which doesn't exist.)
   }, []);
 
   useEffect(() => {

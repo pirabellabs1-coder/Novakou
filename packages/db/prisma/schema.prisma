@@ -234,6 +234,8 @@ model User {
   cartItems          CartItem[]               @relation("UserCartItems")
   productPurchases   DigitalProductPurchase[] @relation("UserProductPurchases")
   productReviews     DigitalProductReview[]   @relation("UserProductReviews")
+  bundleReviews      ProductBundleReview[]    @relation("UserBundleReviews")
+  subscriptionReviews SubscriptionPlanReview[] @relation("UserSubscriptionReviews")
   abandonedCarts     AbandonedCart[]          @relation("UserAbandonedCarts")
   checkoutAttempts   CheckoutAttempt[]        @relation("UserCheckoutAttempts")
   marketingEvents    MarketingEvent[]         @relation("UserMarketingEvents")
@@ -1032,6 +1034,7 @@ model VendorShop {
   formations  Formation[]        @relation("ShopFormations")
   products    DigitalProduct[]   @relation("ShopProducts")
   bundles     ProductBundle[]
+  subscriptionPlans SubscriptionPlan[] @relation("ShopSubscriptionPlans")
   members     ShopMember[]       @relation("ShopMemberships")
   invitations ShopInvitation[]   @relation("ShopInvitations")
 
@@ -1131,6 +1134,8 @@ model Formation {
 
   // Stock limité & Promotions flash
   maxStudents       Int? // null = illimité
+  currentStudents   Int       @default(0) // compteur enforcé par maxStudents (≠ studentsCount qui ne décroît jamais)
+  salesEndAt        DateTime? // null = pas de date limite ; après cette date, plus de nouvelles inscriptions
   discountStartAt   DateTime?
   discountEndAt     DateTime?
   descriptionFormat String    @default("text") // "text" | "tiptap"
@@ -1548,6 +1553,11 @@ model DigitalProduct {
   // Stock limité
   maxBuyers     Int? // null = illimité
   currentBuyers Int  @default(0)
+
+  // Date de fin des ventes — null = pas de date limite.
+  // Quand atteinte, l'API checkout refuse la commande et la page produit
+  // remplace le bouton "Acheter" par un état "Vente terminée".
+  salesEndAt    DateTime?
 
   // Stats
   rating       Float @default(0)
@@ -3058,9 +3068,12 @@ model ProductBundle {
   slug          String   @unique
   title         String
   description   String?
-  thumbnail     String?
+  thumbnail     String?  // vignette carrée (cards marketplace ~600x600)
+  banner        String?  // bannière 16:9 ~1280x720 affichée sur la page détail
   priceXof      Int      // prix total du bundle
   originalPriceXof Int?  // somme des prix individuels (affichage "économie")
+  rating        Float    @default(0) // 0-5, recalculée à chaque review
+  reviewsCount  Int      @default(0)
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -3069,6 +3082,7 @@ model ProductBundle {
   shop          VendorShop?        @relation(fields: [shopId], references: [id], onDelete: SetNull)
   items         ProductBundleItem[]
   purchases     ProductBundlePurchase[]
+  reviews       ProductBundleReview[]
 
   @@index([instructeurId, isActive])
   @@index([shopId])
@@ -3087,6 +3101,25 @@ model ProductBundleItem {
   product     DigitalProduct?  @relation(fields: [productId], references: [id])
 
   @@index([bundleId])
+}
+
+model ProductBundleReview {
+  id          String    @id @default(cuid())
+  rating      Int       // 1-5
+  comment     String    @db.Text
+  userId      String
+  bundleId    String
+  response    String?   @db.Text
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user   User          @relation("UserBundleReviews", fields: [userId], references: [id], onDelete: Cascade)
+  bundle ProductBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bundleId])
+  @@index([bundleId])
+  @@index([userId])
 }
 
 model ProductBundlePurchase {
@@ -3387,7 +3420,8 @@ model SubscriptionPlan {
   // Contenu marketing
   name        String  // "Membre Elite", "Mentorat Mensuel", etc.
   description String  @db.Text
-  imageUrl    String?
+  imageUrl    String? // vignette carrée (cards) — alias historique de "thumbnail"
+  bannerUrl   String? // bannière 16:9 affichée sur la page détail abonnement
 
   // Pricing
   price    Float   // Prix par periode (ex: 15000 pour 15k FCFA/mois)
@@ -3405,16 +3439,39 @@ model SubscriptionPlan {
   // Stats
   activeCount Int @default(0) // maintenu par cron/webhook
   totalEarned Float @default(0)
+  rating        Float @default(0) // 0-5, recalculée à chaque review
+  reviewsCount  Int   @default(0)
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   instructeur  InstructeurProfile @relation("InstructeurPlans", fields: [instructeurId], references: [id], onDelete: Cascade)
+  shop          VendorShop?       @relation("ShopSubscriptionPlans", fields: [shopId], references: [id], onDelete: SetNull)
   subscriptions Subscription[]
+  reviews       SubscriptionPlanReview[]
 
   @@index([instructeurId, isActive])
   @@index([shopId])
+}
+
+model SubscriptionPlanReview {
+  id          String    @id @default(cuid())
+  rating      Int       // 1-5
+  comment     String    @db.Text
+  userId      String
+  planId      String
+  response    String?   @db.Text
+  respondedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User             @relation("UserSubscriptionReviews", fields: [userId], references: [id], onDelete: Cascade)
+  plan SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, planId])
+  @@index([planId])
+  @@index([userId])
 }
 
 model Subscription {

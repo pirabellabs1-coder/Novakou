@@ -24,8 +24,8 @@ export async function GET(request: Request) {
     });
     const shopFilter = activeShopId ? { shopId: activeShopId } : {};
 
-    // Fetch enrollments and digital product purchases in parallel
-    const [enrollments, purchases] = await Promise.all([
+    // Fetch enrollments + product purchases + bundle purchases + sub invoices in parallel
+    const [enrollments, purchases, bundlePurchases, subInvoices] = await Promise.all([
       prisma.enrollment.findMany({
         where: { formation: { instructeurId: profile.id, ...shopFilter } },
         orderBy: { createdAt: "desc" },
@@ -52,7 +52,50 @@ export async function GET(request: Request) {
           product: { select: { title: true, productType: true } },
         },
       }),
+      prisma.productBundlePurchase.findMany({
+        where: { bundle: { instructeurId: profile.id, ...shopFilter } },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: {
+          id: true,
+          paidAmount: true,
+          createdAt: true,
+          userId: true,
+          bundle: { select: { title: true } },
+        },
+      }),
+      prisma.subscriptionInvoice.findMany({
+        where: {
+          status: "paid",
+          subscription: {
+            plan: { instructeurId: profile.id, ...shopFilter },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 200,
+        select: {
+          id: true,
+          amount: true,
+          createdAt: true,
+          subscription: {
+            select: {
+              user: { select: { name: true, email: true } },
+              plan: { select: { name: true, interval: true } },
+            },
+          },
+        },
+      }),
     ]);
+
+    // Fetch user names/emails for bundle buyers (no direct relation)
+    const bundleUserIds = Array.from(new Set(bundlePurchases.map((bp) => bp.userId)));
+    const bundleUsers = bundleUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: bundleUserIds } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const bundleUserById = new Map(bundleUsers.map((u) => [u.id, { name: u.name, email: u.email }]));
 
     const txns = [
       ...enrollments.map((e) => ({
@@ -75,6 +118,31 @@ export async function GET(request: Request) {
         productType: p.product?.productType ?? "EBOOK",
         amount: p.paidAmount,
         createdAt: p.createdAt,
+        status: "completed",
+      })),
+      ...bundlePurchases.map((bp) => {
+        const u = bundleUserById.get(bp.userId);
+        return {
+          id: bp.id,
+          type: "bundle",
+          buyerName: u?.name ?? "Acheteur",
+          buyerEmail: u?.email ?? "",
+          productTitle: bp.bundle?.title ?? "Pack",
+          productType: "Pack",
+          amount: bp.paidAmount,
+          createdAt: bp.createdAt,
+          status: "completed",
+        };
+      }),
+      ...subInvoices.map((inv) => ({
+        id: inv.id,
+        type: "subscription",
+        buyerName: inv.subscription.user?.name ?? "Abonné",
+        buyerEmail: inv.subscription.user?.email ?? "",
+        productTitle: inv.subscription.plan?.name ?? "Abonnement",
+        productType: inv.subscription.plan?.interval === "yearly" ? "Abonnement annuel" : "Abonnement mensuel",
+        amount: inv.amount,
+        createdAt: inv.createdAt,
         status: "completed",
       })),
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

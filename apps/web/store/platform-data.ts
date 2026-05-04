@@ -672,7 +672,7 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
       services: s.services.map(sv => sv.freelanceId === id && sv.status === "actif" ? { ...sv, status: "pause" as const } : sv),
     }));
     get().logAudit({ adminId: "admin-1", adminName: "Admin Principal", action: "suspend_user", targetUserId: id, targetUserName: user?.name, details: { reason } });
-    get().addUserNotification({ userId: id, title: "Compte suspendu", message: `Votre compte a ete suspendu. Raison: ${reason}`, type: "admin_action", link: "/dashboard/parametres" });
+    get().addUserNotification({ userId: id, title: "Compte suspendu", message: `Votre compte a ete suspendu. Raison: ${reason}`, type: "admin_action", link: "/vendeur/parametres" });
   },
 
   banUser: (id) => {
@@ -708,7 +708,7 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
       users: s.users.map(u => u.id === id ? { ...u, plan } : u),
     }));
     get().logAudit({ adminId: "admin-1", adminName: "Admin Principal", action: "change_plan", targetUserId: id, targetUserName: user?.name, details: { oldPlan: user?.plan, newPlan: plan } });
-    get().addUserNotification({ userId: id, title: "Plan modifie", message: `Votre plan a ete change vers ${plan}.`, type: "admin_action", link: "/dashboard/abonnement" });
+    get().addUserNotification({ userId: id, title: "Plan modifie", message: `Votre plan a ete change vers ${plan}.`, type: "admin_action", link: "/vendeur/dashboard" });
   },
 
   verifyUserKyc: (id, level) => {
@@ -882,8 +882,8 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
       const verdictLabels: Record<string, string> = { client: "en faveur du client", freelance: "en faveur du freelance", partiel: `partiel (${partialPercent}%)`, annulation: "annulation mutuelle" };
       get().logAudit({ adminId: "admin-1", adminName: "Admin Principal", action: "resolve_dispute", targetUserId: dispute.clientId, targetUserName: dispute.clientName, details: { orderId: dispute.orderId, verdict, note } });
       const verdictStr = verdict ? (verdictLabels[verdict] ?? verdict) : "inconnu";
-      get().addUserNotification({ userId: dispute.clientId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictStr}.`, type: "admin_action", link: "/client/commandes" });
-      get().addUserNotification({ userId: dispute.freelanceId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictStr}.`, type: "admin_action", link: "/dashboard/commandes" });
+      get().addUserNotification({ userId: dispute.clientId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictStr}.`, type: "admin_action", link: "/apprenant/commandes" });
+      get().addUserNotification({ userId: dispute.freelanceId, title: "Litige resolu", message: `Le litige sur la commande ${dispute.orderTitle} a ete resolu: ${verdictStr}.`, type: "admin_action", link: "/vendeur/commandes" });
     }
   },
 
@@ -903,7 +903,7 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
     const req = get().kycRequests.find(k => k.id === id);
     if (req) {
       get().logAudit({ adminId: "admin-1", adminName: "Admin Principal", action: "approve_kyc", targetUserId: req.userId, targetUserName: req.userName, details: { level: req.requestedLevel } });
-      get().addUserNotification({ userId: req.userId, title: "KYC approuve", message: `Votre verification KYC niveau ${req.requestedLevel} a ete approuvee.`, type: "kyc", link: "/dashboard/profil" });
+      get().addUserNotification({ userId: req.userId, title: "KYC approuve", message: `Votre verification KYC niveau ${req.requestedLevel} a ete approuvee.`, type: "kyc", link: "/vendeur/profil" });
     }
   },
 
@@ -914,7 +914,7 @@ export const usePlatformDataStore = create<PlatformDataState>()((set, get) => ({
     const req = get().kycRequests.find(k => k.id === id);
     if (req) {
       get().logAudit({ adminId: "admin-1", adminName: "Admin Principal", action: "refuse_kyc", targetUserId: req.userId, targetUserName: req.userName, details: { reason } });
-      get().addUserNotification({ userId: req.userId, title: "KYC refuse", message: `Votre verification KYC niveau ${req.requestedLevel} a ete refusee. Raison: ${reason}`, type: "kyc", link: "/dashboard/profil" });
+      get().addUserNotification({ userId: req.userId, title: "KYC refuse", message: `Votre verification KYC niveau ${req.requestedLevel} a ete refusee. Raison: ${reason}`, type: "kyc", link: "/vendeur/profil" });
     }
   },
 

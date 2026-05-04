@@ -26,7 +26,7 @@ export async function sendKycApprovedDarkEmail(email: string, name: string, leve
     ${textDark(`Bonjour ${name}, votre verification de niveau ${level} a ete approuvee avec succes.`)}
     ${successBoxDark(`Niveau ${level} verifie`)}
     ${textDark("De nouvelles fonctionnalites sont maintenant disponibles sur votre compte.")}
-    ${buttonDark("Voir mon profil", `${getAppUrl()}/dashboard/profil`, "green")}
+    ${buttonDark("Voir mon profil", `${getAppUrl()}/vendeur/profil`, "green")}
   `);
   return sendEmail({ to: email, subject: `Verification KYC niveau ${level} approuvee`, html });
 }
@@ -38,7 +38,7 @@ export async function sendKycRejectedDarkEmail(email: string, name: string, leve
     ${textDark(`Bonjour ${name}, votre demande de verification de niveau ${level} n'a pas pu etre approuvee.`)}
     ${errorBoxDark("Motif du refus", reason)}
     ${textDark("Vous pouvez soumettre une nouvelle demande apres avoir corrige les elements mentionnes.")}
-    ${buttonDark("Soumettre a nouveau", `${getAppUrl()}/dashboard/kyc`, "amber")}
+    ${buttonDark("Soumettre a nouveau", `${getAppUrl()}/kyc`, "amber")}
   `);
   return sendEmail({ to: email, subject: "Verification KYC refusee — Novakou", html });
 }

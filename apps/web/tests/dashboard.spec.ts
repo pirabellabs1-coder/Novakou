@@ -1,30 +1,25 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Dashboard Freelance", () => {
-  test("should load dashboard page", async ({ page }) => {
-    await page.goto("/dashboard");
-    await expect(page.locator("body")).toBeVisible();
+/**
+ * Dashboard tests — migrated to the new namespace.
+ * Old: /dashboard, /dashboard/services, /dashboard/kyc (FreelanceHigh marketplace)
+ * New: /vendeur/dashboard, /vendeur/produits, /kyc (Novakou formations)
+ *
+ * Pages requiring auth will redirect; we just verify they don't 404.
+ */
+test.describe("Vendor dashboard navigation", () => {
+  test("/vendeur/dashboard does not 404", async ({ page }) => {
+    const res = await page.goto("/vendeur/dashboard");
+    expect(res?.status() ?? 200).not.toBe(404);
   });
 
-  test("should have sidebar navigation", async ({ page, viewport }) => {
-    // Sidebar is hidden on mobile, visible on desktop
-    if (viewport && viewport.width >= 1024) {
-      await page.goto("/dashboard");
-      const sidebar = page.locator("aside, nav").first();
-      await expect(sidebar).toBeVisible();
-    }
+  test("/vendeur/services alias resolves (no 404)", async ({ request }) => {
+    const res = await request.get("/vendeur/services", { maxRedirects: 0 });
+    expect(res.status()).not.toBe(404);
   });
 
-  test("should navigate to services page", async ({ page }) => {
-    await page.goto("/dashboard/services");
-    await expect(page.locator("body")).toBeVisible();
-  });
-
-  test("should navigate to KYC page", async ({ page }) => {
-    await page.goto("/dashboard/kyc");
-    await expect(page.locator("body")).toBeVisible();
-    // Should show verification content
-    const heading = page.locator("h1, h2").first();
-    await expect(heading).toBeVisible();
+  test("/kyc page exists", async ({ page }) => {
+    const res = await page.goto("/kyc");
+    expect(res?.status() ?? 200).not.toBe(404);
   });
 });

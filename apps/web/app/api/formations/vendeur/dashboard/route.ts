@@ -123,7 +123,80 @@ export async function GET() {
         country: pu.user?.country ?? null,
       }))
     );
-    const allTxns = [...allEnrollments, ...allPurchases];
+
+    // Bundle purchases pour ce vendeur (filtrées par boutique active).
+    // Note : ProductBundlePurchase n'a pas de relation `user` — userId est
+    // un simple champ string. On fetch les pays via une requête User séparée.
+    const bundlePurchases = await prisma.productBundlePurchase.findMany({
+      where: {
+        bundle: {
+          instructeurId: profile.id,
+          ...(activeShopId ? { shopId: activeShopId } : {}),
+        },
+      },
+      select: {
+        paidAmount: true,
+        createdAt: true,
+        userId: true,
+        bundle: { select: { id: true, title: true } },
+      },
+    });
+    const bundleUserIds = Array.from(new Set(bundlePurchases.map((bp) => bp.userId)));
+    const bundleUsers = bundleUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: bundleUserIds } },
+          select: { id: true, country: true },
+        })
+      : [];
+    const bundleCountryByUserId = new Map(bundleUsers.map((u) => [u.id, u.country ?? null]));
+    const allBundles = bundlePurchases.map((bp) => ({
+      type: "bundle" as const,
+      productId: bp.bundle.id,
+      productTitle: bp.bundle.title,
+      productType: "Pack" as string,
+      amount: bp.paidAmount,
+      createdAt: bp.createdAt,
+      refunded: false,
+      completed: true,
+      country: bundleCountryByUserId.get(bp.userId) ?? null,
+    }));
+
+    // Subscription invoices pour ce vendeur — uniquement les factures payées
+    // (chaque ligne représente un encaissement réel de période)
+    const subInvoices = await prisma.subscriptionInvoice.findMany({
+      where: {
+        status: "paid",
+        subscription: {
+          plan: {
+            instructeurId: profile.id,
+            ...(activeShopId ? { shopId: activeShopId } : {}),
+          },
+        },
+      },
+      select: {
+        amount: true,
+        createdAt: true,
+        subscription: {
+          select: {
+            plan: { select: { id: true, name: true } },
+            user: { select: { country: true } },
+          },
+        },
+      },
+    });
+    const allSubs = subInvoices.map((inv) => ({
+      type: "subscription" as const,
+      productId: inv.subscription.plan?.id ?? "",
+      productTitle: inv.subscription.plan?.name ?? "Abonnement",
+      productType: "Abonnement" as string,
+      amount: inv.amount,
+      createdAt: inv.createdAt,
+      refunded: false,
+      completed: true,
+      country: inv.subscription.user?.country ?? null,
+    }));
+
+    const allTxns = [...allEnrollments, ...allPurchases, ...allBundles, ...allSubs];
     const completedTxns = allTxns.filter((t) => !t.refunded);
 
     // ── KPIs ──
@@ -154,19 +227,25 @@ export async function GET() {
       students: pctChange(students30, studentsPrev30),
     };
 
-    // ── Revenue split (formations vs digital, last 90d) ──
+    // ── Revenue split (formations / digital / packs / abonnements, last 90d) ──
     const split90 = (() => {
       const cutoff = new Date(Date.now() - 90 * 86400000);
       let formations = 0;
       let digital = 0;
+      let bundles = 0;
+      let subscriptions = 0;
       for (const t of completedTxns) {
         if (new Date(t.createdAt) < cutoff) continue;
         if (t.type === "formation") formations += t.amount;
-        else digital += t.amount;
+        else if (t.type === "product") digital += t.amount;
+        else if (t.type === "bundle") bundles += t.amount;
+        else if (t.type === "subscription") subscriptions += t.amount;
       }
       return [
         { name: "Formations", value: Math.round(formations) },
         { name: "Produits digitaux", value: Math.round(digital) },
+        { name: "Packs", value: Math.round(bundles) },
+        { name: "Abonnements", value: Math.round(subscriptions) },
       ];
     })();
 

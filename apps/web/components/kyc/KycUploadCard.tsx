@@ -123,7 +123,7 @@ export function KycUploadCard({ currentLevel, requests, onRefresh }: KycUploadCa
         return;
       }
 
-      const res = await fetch("/api/kyc", {
+      const res = await fetch("/api/formations/kyc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
