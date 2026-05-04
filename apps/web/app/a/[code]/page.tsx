@@ -110,7 +110,7 @@ export async function generateMetadata({
   return {
     title: `${name} — Boutique partenaire`,
     description: `Découvrez les formations et produits numériques recommandés par ${name} sur Novakou.`,
-    alternates: { canonical: `https://novakou.com/a/${code}` },
+    alternates: { canonical: `/a/${code}` },
     openGraph: {
       title: `${name} — Boutique partenaire`,
       description: `Sélection de formations et produits numériques par ${name}.`,

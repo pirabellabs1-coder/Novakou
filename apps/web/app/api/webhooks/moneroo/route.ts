@@ -130,7 +130,8 @@ interface MonerooWebhookPayload {
 
 export async function POST(req: Request) {
   // Rate limit: 200 webhook calls per minute (protect against replay floods)
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  // FIX: Use x-real-ip (set by Vercel edge, not spoofable) over x-forwarded-for
+  const ip = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
   const rl = rateLimit(`webhook:moneroo:${ip}`, 200, 60_000);
   if (!rl.allowed) {
     return NextResponse.json({ error: "Rate limited" }, { status: 429 });

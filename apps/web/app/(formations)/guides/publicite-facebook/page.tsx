@@ -22,6 +22,9 @@ export const metadata: Metadata = {
       "Comment créer des publicités Facebook rentables pour vendre vos formations en ligne en Afrique francophone. Ciblage, budgets, audiences, pixel Facebook — tout expliqué.",
     type: "article",
   },
+  alternates: {
+    canonical: "/guides/publicite-facebook",
+  },
 };
 
 /* ─── Typography ─── */

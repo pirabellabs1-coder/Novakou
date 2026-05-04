@@ -2,6 +2,8 @@ import { loadRefundConfig } from "@/lib/formations/refund-policy";
 
 export const metadata = {
   title: "Conditions Générales d'Utilisation — Novakou",
+  description:
+    "Consultez les conditions générales d'utilisation de Novakou : droits, obligations, politique de remboursement, propriété intellectuelle et règles de la plateforme.",
 };
 
 export default async function CGUPage() {

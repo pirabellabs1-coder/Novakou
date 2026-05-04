@@ -59,7 +59,7 @@ export async function POST(request: Request) {
             email,
             name: body.guestName?.trim() || email.split("@")[0],
             passwordHash: random, // user must reset to login
-            role: "FREELANCE",
+            role: "APPRENANT",
             status: "ACTIF",
           },
         });
@@ -190,7 +190,7 @@ export async function POST(request: Request) {
     }
 
     const totalAmount = Math.max(0, subTotal - discountAmount);
-    const sessionRef = `${paymentMethod}:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
+    const sessionRef = `${paymentMethod}:${Date.now()}:${crypto.randomUUID().slice(0, 8)}`;
 
     // ── Affiliate attribution ─────────────────────────────────────────────
     // Reads the `fh_aff_code` cookie set when visitor landed via an affiliate link.
@@ -300,8 +300,15 @@ export async function POST(request: Request) {
           },
         });
       } catch (err) {
-        console.error(`[checkout] ${requestedProvider} init failed, fallback to mock:`, err);
-        // Fall through vers le fulfillment immédiat (dev/mock)
+        console.error(`[checkout] ${requestedProvider} init failed:`, err);
+        // CRITICAL FIX: Do NOT fall through to free fulfillment — return error
+        return NextResponse.json(
+          {
+            error: "Erreur lors de l'initialisation du paiement. Veuillez réessayer.",
+            details: IS_DEV ? String(err) : undefined,
+          },
+          { status: 502 },
+        );
       }
     }
     // ─────────────────────────────────────────────────────────────
@@ -312,179 +319,170 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Paiement échoué" }, { status: 402 });
     }
 
-    const createdEnrollments: { id: string; title: string; price: number }[] = [];
-    const createdPurchases: { id: string; title: string; price: number }[] = [];
     const skipped: string[] = [];
 
     // Distribute discount proportionally across items
     const applyDiscount = (price: number) => subTotal > 0 ? Math.round(price * (totalAmount / subTotal)) : price;
 
-    for (const f of formations) {
-      const existing = await prisma.enrollment.findUnique({
-        where: { userId_formationId: { userId, formationId: f.id } },
-      });
-      if (existing) { skipped.push(f.title); continue; }
-      const finalPrice = applyDiscount(f.price);
-      const enrollment = await prisma.enrollment.create({
-        data: {
-          userId,
-          formationId: f.id,
-          paidAmount: finalPrice,
-          stripeSessionId: sessionRef,
-        },
-      });
+    // FIX: Wrap entire fulfillment in a single Prisma transaction to prevent partial writes
+    const { createdEnrollments, createdPurchases } = await prisma.$transaction(async (tx) => {
+      const txEnrollments: { id: string; title: string; price: number }[] = [];
+      const txPurchases: { id: string; title: string; price: number }[] = [];
 
-      // Self-referral guard — an affiliate cannot earn commission when:
-      //   1. they ARE the vendor of this item (vendor would steal their own
-      //      margin via their own affiliate code), or
-      //   2. they ARE the buyer (anyone earning commission on their own
-      //      purchase, e.g. by passing their own ?ref=… in a URL bar).
-      const isSelfReferral =
-        !!affiliateProfile && (
-          affiliateProfile.userId === f.instructeur.user.id ||
-          affiliateProfile.userId === userId
-        );
-      const effectiveAffiliate = isSelfReferral ? null : affiliateProfile;
-
-      // Répartition vente affiliée :
-      //   Plateforme (Novakou) prend toujours 10% du prix final
-      //   Affilié prend X% du prix final (configuré par programme du vendeur)
-      //   Vendeur reçoit le reste = prix - 10% - X%
-      // → l'affilié est payé par le vendeur (sur sa marge), pas par la plateforme
-      const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const affAmount = effectiveAffiliate ? Math.round(finalPrice * affiliateCommissionRate) : 0;
-      const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
-      const commissionAmount = platformAmount;
-
-      await prisma.instructeurProfile.update({
-        where: { id: f.instructeurId },
-        data: { totalEarned: { increment: vendorNet } },
-      });
-      await prisma.formation.update({
-        where: { id: f.id },
-        data: { studentsCount: { increment: 1 } },
-      });
-
-      // Track platform revenue
-      await prisma.platformRevenue.create({
-        data: {
-          orderId: enrollment.id,
-          orderType: "formation",
-          grossAmount: finalPrice,
-          commissionRate: PLATFORM_COMMISSION_RATE,
-          commissionAmount,
-          vendorAmount: vendorNet,
-          affiliateId: effectiveAffiliate?.id ?? null,
-          affiliateAmount: affAmount,
-          paymentRef: sessionRef,
-          currency: "XOF",
-          instructeurId: f.instructeurId,
-          shopId: f.shopId ?? null,
-        },
-      });
-
-      // Create affiliate commission record
-      if (effectiveAffiliate && affAmount > 0) {
-        await prisma.affiliateCommission.create({
+      for (const f of formations) {
+        const existing = await tx.enrollment.findUnique({
+          where: { userId_formationId: { userId, formationId: f.id } },
+        });
+        if (existing) { skipped.push(f.title); continue; }
+        const finalPrice = applyDiscount(f.price);
+        const enrollment = await tx.enrollment.create({
           data: {
-            affiliateId: effectiveAffiliate.id,
+            userId,
+            formationId: f.id,
+            paidAmount: finalPrice,
+            stripeSessionId: sessionRef,
+          },
+        });
+
+        const isSelfReferral =
+          !!affiliateProfile && (
+            affiliateProfile.userId === f.instructeur.user.id ||
+            affiliateProfile.userId === userId
+          );
+        const effectiveAffiliate = isSelfReferral ? null : affiliateProfile;
+
+        const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+        const affAmount = effectiveAffiliate ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+        const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
+        const commissionAmount = platformAmount;
+
+        await tx.instructeurProfile.update({
+          where: { id: f.instructeurId },
+          data: { totalEarned: { increment: vendorNet } },
+        });
+        await tx.formation.update({
+          where: { id: f.id },
+          data: { studentsCount: { increment: 1 } },
+        });
+
+        await tx.platformRevenue.create({
+          data: {
             orderId: enrollment.id,
             orderType: "formation",
-            orderAmount: finalPrice,
-            commissionPct: affiliateCommissionRate * 100,
-            commissionAmount: affAmount,
-            status: "PENDING", // will be approved after refund window
+            grossAmount: finalPrice,
+            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionAmount,
+            vendorAmount: vendorNet,
+            affiliateId: effectiveAffiliate?.id ?? null,
+            affiliateAmount: affAmount,
+            paymentRef: sessionRef,
+            currency: "XOF",
+            instructeurId: f.instructeurId,
+            shopId: f.shopId ?? null,
           },
-        }).catch((e) => console.warn("[affiliateCommission]", e));
-        await prisma.affiliateProfile.update({
-          where: { id: effectiveAffiliate.id },
-          data: {
-            totalConversions: { increment: 1 },
-            pendingEarnings: { increment: affAmount },
-          },
-        }).catch((e) => console.warn("[affiliateProfile update]", e));
+        });
+
+        if (effectiveAffiliate && affAmount > 0) {
+          await tx.affiliateCommission.create({
+            data: {
+              affiliateId: effectiveAffiliate.id,
+              orderId: enrollment.id,
+              orderType: "formation",
+              orderAmount: finalPrice,
+              commissionPct: affiliateCommissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
+            },
+          });
+          await tx.affiliateProfile.update({
+            where: { id: effectiveAffiliate.id },
+            data: {
+              totalConversions: { increment: 1 },
+              pendingEarnings: { increment: affAmount },
+            },
+          });
+        }
+
+        txEnrollments.push({ id: enrollment.id, title: f.title, price: finalPrice });
       }
 
-      createdEnrollments.push({ id: enrollment.id, title: f.title, price: finalPrice });
-    }
-
-    for (const p of products) {
-      const existing = await prisma.digitalProductPurchase.findFirst({ where: { userId, productId: p.id } });
-      if (existing) { skipped.push(p.title); continue; }
-      const finalPrice = applyDiscount(p.price);
-      const purchase = await prisma.digitalProductPurchase.create({
-        data: {
-          userId,
-          productId: p.id,
-          paidAmount: finalPrice,
-          stripeSessionId: sessionRef,
-        },
-      });
-
-      // Self-referral guard — same rationale as the formation loop above.
-      const isSelfReferralProd =
-        !!affiliateProfile && (
-          affiliateProfile.userId === p.instructeur.user.id ||
-          affiliateProfile.userId === userId
-        );
-      const effectiveAffiliateProd = isSelfReferralProd ? null : affiliateProfile;
-
-      // Répartition vente affiliée (idem formation) :
-      //   10% Novakou, X% affilié, reste vendeur
-      const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
-      const affAmount = effectiveAffiliateProd ? Math.round(finalPrice * affiliateCommissionRate) : 0;
-      const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
-      const commissionAmount = platformAmount;
-
-      await prisma.instructeurProfile.update({
-        where: { id: p.instructeurId },
-        data: { totalEarned: { increment: vendorNet } },
-      });
-      await prisma.digitalProduct.update({
-        where: { id: p.id },
-        data: { salesCount: { increment: 1 } },
-      });
-
-      await prisma.platformRevenue.create({
-        data: {
-          orderId: purchase.id,
-          orderType: "product",
-          grossAmount: finalPrice,
-          commissionRate: PLATFORM_COMMISSION_RATE,
-          commissionAmount,
-          vendorAmount: vendorNet,
-          affiliateId: effectiveAffiliateProd?.id ?? null,
-          affiliateAmount: affAmount,
-          paymentRef: sessionRef,
-          currency: "XOF",
-          instructeurId: p.instructeurId,
-          shopId: p.shopId ?? null,
-        },
-      });
-
-      if (effectiveAffiliateProd && affAmount > 0) {
-        await prisma.affiliateCommission.create({
+      for (const p of products) {
+        const existing = await tx.digitalProductPurchase.findFirst({ where: { userId, productId: p.id } });
+        if (existing) { skipped.push(p.title); continue; }
+        const finalPrice = applyDiscount(p.price);
+        const purchase = await tx.digitalProductPurchase.create({
           data: {
-            affiliateId: effectiveAffiliateProd.id,
+            userId,
+            productId: p.id,
+            paidAmount: finalPrice,
+            stripeSessionId: sessionRef,
+          },
+        });
+
+        const isSelfReferralProd =
+          !!affiliateProfile && (
+            affiliateProfile.userId === p.instructeur.user.id ||
+            affiliateProfile.userId === userId
+          );
+        const effectiveAffiliateProd = isSelfReferralProd ? null : affiliateProfile;
+
+        const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+        const affAmount = effectiveAffiliateProd ? Math.round(finalPrice * affiliateCommissionRate) : 0;
+        const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
+        const commissionAmount = platformAmount;
+
+        await tx.instructeurProfile.update({
+          where: { id: p.instructeurId },
+          data: { totalEarned: { increment: vendorNet } },
+        });
+        await tx.digitalProduct.update({
+          where: { id: p.id },
+          data: { salesCount: { increment: 1 } },
+        });
+
+        await tx.platformRevenue.create({
+          data: {
             orderId: purchase.id,
             orderType: "product",
-            orderAmount: finalPrice,
-            commissionPct: affiliateCommissionRate * 100,
-            commissionAmount: affAmount,
-            status: "PENDING",
+            grossAmount: finalPrice,
+            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionAmount,
+            vendorAmount: vendorNet,
+            affiliateId: effectiveAffiliateProd?.id ?? null,
+            affiliateAmount: affAmount,
+            paymentRef: sessionRef,
+            currency: "XOF",
+            instructeurId: p.instructeurId,
+            shopId: p.shopId ?? null,
           },
-        }).catch((e) => console.warn("[affiliateCommission]", e));
-        await prisma.affiliateProfile.update({
-          where: { id: effectiveAffiliateProd.id },
-          data: {
-            totalConversions: { increment: 1 },
-            pendingEarnings: { increment: affAmount },
-          },
-        }).catch((e) => console.warn("[affiliateProfile update]", e));
+        });
+
+        if (effectiveAffiliateProd && affAmount > 0) {
+          await tx.affiliateCommission.create({
+            data: {
+              affiliateId: effectiveAffiliateProd.id,
+              orderId: purchase.id,
+              orderType: "product",
+              orderAmount: finalPrice,
+              commissionPct: affiliateCommissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
+            },
+          });
+          await tx.affiliateProfile.update({
+            where: { id: effectiveAffiliateProd.id },
+            data: {
+              totalConversions: { increment: 1 },
+              pendingEarnings: { increment: affAmount },
+            },
+          });
+        }
+
+        txPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
       }
 
-      createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
-    }
+      return { createdEnrollments: txEnrollments, createdPurchases: txPurchases };
+    });
 
     // Record discount usage
     if (appliedCode && (createdEnrollments.length + createdPurchases.length) > 0) {

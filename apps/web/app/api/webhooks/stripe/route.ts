@@ -9,11 +9,11 @@ import { stripe } from "@/lib/stripe";
 import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 
 function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" });
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2026-02-25.clover" as Stripe.LatestApiVersion });
 }
 
-// Disable automatic body parsing (required for signature verification)
-export const config = { api: { bodyParser: false } };
+// Note: In App Router, body parsing is handled via req.text() below.
+// The old Pages Router `config.api.bodyParser` export has no effect here.
 
 export async function POST(req: NextRequest) {
   const sig = req.headers.get("stripe-signature");
@@ -92,9 +92,14 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
   }
 
   try {
+    // FIX: Verify the order exists and its stored PaymentIntent matches
+    const order = await prisma.order.findUnique({ where: { id: orderId } });
+    if (!order) {
+      console.warn(`[Stripe Webhook] Order ${orderId} not found — ignoring payment_intent.succeeded`);
+      return;
+    }
+
     // Update order status: payment succeeded, escrow funds held
-    // For manual capture intents, 'succeeded' means the capture went through
-    // and funds have been transferred to the connected account
     await prisma.order.update({
       where: { id: orderId },
       data: {
@@ -807,11 +812,18 @@ async function handleChargeDisputed(charge: Stripe.Charge) {
   // Try to find related enrollment and mark refund requested
   if (paymentIntentId) {
     // Find the checkout session linked to this payment intent
-    const stripeInstance = getStripe();
-    const sessions = await stripeInstance.checkout.sessions.list({
-      payment_intent: paymentIntentId,
-      limit: 1,
-    });
+    // FIX: Wrap Stripe API call in try/catch to prevent webhook retries on failure
+    let sessions: Stripe.ApiList<Stripe.Checkout.Session>;
+    try {
+      const stripeInstance = getStripe();
+      sessions = await stripeInstance.checkout.sessions.list({
+        payment_intent: paymentIntentId,
+        limit: 1,
+      });
+    } catch (err) {
+      console.error(`[Stripe Webhook] Failed to retrieve sessions for disputed charge ${charge.id}:`, err);
+      return;
+    }
 
     const session = sessions.data[0];
     if (session?.metadata?.userId) {
@@ -887,8 +899,8 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
         },
       }).catch((e) => console.error("[Stripe refund] enrollment update", e));
 
-      // Clawback affiliate commission for this enrollment
-      await reverseAffiliateCommissionsForOrder(enr.formationId, enr.userId).catch(() => null);
+      // Clawback affiliate commission for this enrollment (orderId = enrollment.id)
+      await reverseAffiliateCommissionsForOrder(enr.id, enr.userId).catch(() => null);
 
       // Decrement vendor totalEarned + formation.studentsCount
       const formation = await prisma.formation.findUnique({
@@ -909,7 +921,7 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
   }
 
   // ── 2. Digital product : revoke maxDownloads ──
-  if (session.metadata.type === "product" || session.metadata.type === "digital") {
+  if (session.metadata.type === "product" || session.metadata.type === "digital" || session.metadata.type === "digital_product") {
     await prisma.digitalProductPurchase.updateMany({
       where: { stripeSessionId: session.id },
       data: { maxDownloads: 0 },
@@ -954,10 +966,10 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
  * Clawback affiliate commission(s) for a refunded order.
  * Sets status → CANCELLED and decrements pending/paid earnings.
  */
-async function reverseAffiliateCommissionsForOrder(formationId: string, userId: string): Promise<void> {
+async function reverseAffiliateCommissionsForOrder(enrollmentId: string, userId: string): Promise<void> {
   const commissions = await prisma.affiliateCommission.findMany({
     where: {
-      orderId: formationId, // assumes orderId stores formationId; adjust if schema differs
+      orderId: enrollmentId, // FIX: orderId stores enrollment.id, not formationId
       status: { not: "CANCELLED" },
     },
     select: { id: true, status: true, commissionAmount: true, affiliateId: true },
@@ -988,14 +1000,18 @@ async function reverseAffiliateCommissionsForOrder(formationId: string, userId: 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function generateLicenseKey(): string {
+  // FIX: Use crypto.getRandomValues instead of Math.random for security
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   const segments = 4;
   const segmentLength = 4;
+  const randomBytes = new Uint8Array(segments * segmentLength);
+  crypto.getRandomValues(randomBytes);
   const parts: string[] = [];
+  let byteIdx = 0;
   for (let i = 0; i < segments; i++) {
     let part = "";
     for (let j = 0; j < segmentLength; j++) {
-      part += chars.charAt(Math.floor(Math.random() * chars.length));
+      part += chars.charAt(randomBytes[byteIdx++] % chars.length);
     }
     parts.push(part);
   }

@@ -185,11 +185,17 @@ export const PaymentService = {
         };
       } catch (error) {
         console.error("[PaymentService] Moneroo createPayment error:", error);
-        const sessionId = `mock_fallback_${uuidv4()}`;
-        mockPayments.set(sessionId, {
-          sessionId, userId, amount, currency: currency || "XOF", status: "paid", type, itemId, metadata: { ...metadata, userId, type, itemId: itemId ?? "" }, createdAt: new Date()
-        });
-        return { success: true, sessionId, checkoutUrl: null, provider: "mock", status: "paid", amount, currency: currency || "XOF", metadata: { ...metadata, userId, type } };
+        // CRITICAL FIX: Never fallback to mock paid status — return failure
+        return {
+          success: false,
+          sessionId: "",
+          checkoutUrl: null,
+          provider: "moneroo",
+          status: "failed" as PaymentStatus,
+          amount,
+          currency: currency || "XOF",
+          metadata: { ...metadata, userId, type },
+        };
       }
     }
 
@@ -197,7 +203,7 @@ export const PaymentService = {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2024-12-18.acacia" as unknown as Stripe.LatestApiVersion,
+        apiVersion: "2026-02-25.clover" as unknown as Stripe.LatestApiVersion,
       });
 
       const session = await stripe.checkout.sessions.create({
@@ -230,26 +236,13 @@ export const PaymentService = {
       };
     } catch (error) {
       console.error("[PaymentService] Stripe createPayment error:", error);
-      // Fallback to mock if Stripe fails
-      const sessionId = `mock_fallback_${uuidv4()}`;
-      mockPayments.set(sessionId, {
-        sessionId,
-        userId,
-        amount,
-        currency,
-        status: "paid",
-        type,
-        itemId,
-        metadata: { ...metadata, userId, type, itemId: itemId ?? "" },
-        createdAt: new Date(),
-      });
-
+      // CRITICAL FIX: Never fallback to mock paid status — return failure
       return {
-        success: true,
-        sessionId,
+        success: false,
+        sessionId: "",
         checkoutUrl: null,
-        provider: "mock",
-        status: "paid",
+        provider: "stripe",
+        status: "failed" as PaymentStatus,
         amount,
         currency,
         metadata: { ...metadata, userId, type },
@@ -277,10 +270,9 @@ export const PaymentService = {
           userId: mock.userId,
         };
       }
-      // If not found in store, still return success for mock/free sessions
-      // (free enrollments are created before reaching verify, so they're valid)
+      // CRITICAL FIX: Unknown mock session — do NOT assume paid
       return {
-        paid: true,
+        paid: false,
         sessionId,
         provider: "mock",
         amount: 0,
@@ -310,11 +302,12 @@ export const PaymentService = {
 
     // Real Stripe verification
     if (!isStripeConfigured()) {
-      // Not configured but received a non-mock session — assume it's valid (dev scenario)
+      // CRITICAL FIX: Stripe not configured — refuse to validate unknown sessions
+      console.error(`[PaymentService] Stripe not configured, cannot verify session: ${sessionId}`);
       return {
-        paid: true,
+        paid: false,
         sessionId,
-        provider: "mock",
+        provider: "unknown",
         amount: 0,
         currency: "EUR",
         metadata: {},
@@ -324,7 +317,7 @@ export const PaymentService = {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2024-12-18.acacia" as unknown as Stripe.LatestApiVersion,
+        apiVersion: "2026-02-25.clover" as unknown as Stripe.LatestApiVersion,
       });
       const session = await stripe.checkout.sessions.retrieve(sessionId);
 
@@ -373,7 +366,7 @@ export const PaymentService = {
     try {
       const Stripe = (await import("stripe")).default;
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2024-12-18.acacia" as unknown as Stripe.LatestApiVersion,
+        apiVersion: "2026-02-25.clover" as unknown as Stripe.LatestApiVersion,
       });
 
       // Get payment intent from session

@@ -5,6 +5,58 @@ import { prisma } from "@/lib/prisma";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
 /**
+ * Attempts to issue a refund via the original payment gateway.
+ * Returns the result — does NOT throw on failure (refund is best-effort
+ * since the DB reversal is the source of truth).
+ */
+async function issueGatewayRefund(
+  sessionRef: string | null,
+  refundAmount: number,
+  reason: string,
+): Promise<{ success: boolean; provider: string; refundId?: string; error?: string }> {
+  if (!sessionRef) {
+    return { success: false, provider: "unknown", error: "Pas de référence de paiement" };
+  }
+
+  // Stripe sessions start with "cs_"
+  if (sessionRef.startsWith("cs_")) {
+    try {
+      const { stripe } = await import("@/lib/stripe");
+      if (!stripe) return { success: false, provider: "stripe", error: "Stripe non configuré" };
+
+      const session = await stripe.checkout.sessions.retrieve(sessionRef);
+      if (!session.payment_intent) {
+        return { success: false, provider: "stripe", error: "Pas de payment_intent" };
+      }
+
+      const refund = await stripe.refunds.create({
+        payment_intent: session.payment_intent as string,
+        amount: Math.round(refundAmount * 100), // Stripe expects cents
+        reason: "requested_by_customer",
+      });
+
+      console.log(`[admin/refund] Stripe refund issued: ${refund.id} for ${refundAmount}`);
+      return { success: true, provider: "stripe", refundId: refund.id };
+    } catch (err) {
+      console.error("[admin/refund] Stripe refund failed:", err);
+      return { success: false, provider: "stripe", error: String(err) };
+    }
+  }
+
+  // For Moneroo/PayGenius payments (sessionRef = "moneroo:timestamp:uuid" or similar)
+  // These gateways typically don't support programmatic refunds —
+  // the admin must process them manually via the provider dashboard.
+  console.log(
+    `[admin/refund] Non-Stripe payment (ref=${sessionRef}) — requires manual refund via provider dashboard`,
+  );
+  return {
+    success: false,
+    provider: "manual",
+    error: "Remboursement Mobile Money nécessite un traitement manuel via le dashboard du provider",
+  };
+}
+
+/**
  * POST /api/formations/admin/refund
  *
  * Admin-only endpoint to process refunds for enrollments, digital product
@@ -281,6 +333,13 @@ async function handleEnrollmentRefund(
     }
   });
 
+  // Attempt actual payment gateway refund
+  const gatewayRefund = await issueGatewayRefund(
+    enrollment.stripeSessionId,
+    refundAmount,
+    reason,
+  );
+
   return NextResponse.json({
     success: true,
     data: {
@@ -295,6 +354,7 @@ async function handleEnrollmentRefund(
       affiliateReversed: !!affiliateCommission,
       buyer: enrollment.user.email,
       formation: enrollment.formation.title,
+      gatewayRefund,
     },
   });
 }
@@ -462,6 +522,13 @@ async function handleProductRefund(
     }
   });
 
+  // Attempt actual payment gateway refund
+  const gatewayRefund = await issueGatewayRefund(
+    purchase.stripeSessionId,
+    refundAmount,
+    reason,
+  );
+
   return NextResponse.json({
     success: true,
     data: {
@@ -476,6 +543,7 @@ async function handleProductRefund(
       affiliateReversed: !!affiliateCommission,
       buyer: purchase.user.email,
       product: purchase.product.title,
+      gatewayRefund,
     },
   });
 }

@@ -1,5 +1,7 @@
 export const metadata = {
   title: "Politique de confidentialité — Novakou",
+  description:
+    "Politique de confidentialité de Novakou : collecte de données, cookies, droits RGPD, sécurité et gestion de vos informations personnelles.",
 };
 
 export default function ConfidentialitePage() {

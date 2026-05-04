@@ -4,15 +4,18 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title:
-    "Comment creer son premier produit digital en 2026 | Guide complet Novakou",
+    "Comment créer son premier produit digital en 2026 | Guide complet Novakou",
   description:
-    "Guide etape par etape pour creer et vendre votre premier produit digital en Afrique francophone. Formations video, ebooks, templates, coaching : decouvrez la methode complete pour lancer votre business en ligne sur Novakou.",
+    "Guide étape par étape pour créer et vendre votre premier produit digital en Afrique francophone. Formations vidéo, ebooks, templates, coaching : découvrez la méthode complète pour lancer votre business en ligne sur Novakou.",
   openGraph: {
     title:
-      "Comment creer son premier produit digital en 2026 | Guide Novakou",
+      "Comment créer son premier produit digital en 2026 | Guide Novakou",
     description:
-      "Le guide complet pour creer, tarifer et vendre votre premier produit digital en Afrique francophone. 6 etapes concretes, checklist incluse.",
+      "Le guide complet pour créer, tarifer et vendre votre premier produit digital en Afrique francophone. 6 étapes concrètes, checklist incluse.",
     type: "article",
+  },
+  alternates: {
+    canonical: "/guides/creer-son-produit",
   },
 };
 
@@ -223,6 +226,23 @@ const TOC = [
 export default function CreerSonProduitPage() {
   return (
     <div style={{ backgroundColor: C.surface, color: C.dark, ...S }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: "Comment créer son premier produit digital en 2026",
+            description: "Guide étape par étape pour créer et vendre votre premier produit digital en Afrique francophone.",
+            author: { "@type": "Organization", name: "Novakou" },
+            publisher: { "@type": "Organization", name: "Novakou", url: "https://novakou.com" },
+            datePublished: "2026-01-15",
+            dateModified: "2026-05-01",
+            mainEntityOfPage: "https://novakou.com/guides/creer-son-produit",
+            inLanguage: "fr",
+          }),
+        }}
+      />
       {/* ───────────────── HERO ───────────────── */}
       <section
         className="pt-8 pb-16"

@@ -3,14 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Le guide complet Novakou : de l'inscription a votre premiere vente | Novakou",
+  title: "Le guide complet Novakou : de l'inscription à votre première vente | Novakou",
   description:
-    "Tutoriel pas-a-pas pour creer votre boutique, publier formations et ebooks, configurer Mobile Money, construire vos tunnels de vente et recevoir vos premiers paiements sur Novakou.",
+    "Tutoriel pas-à-pas pour créer votre boutique, publier formations et ebooks, configurer Mobile Money, construire vos tunnels de vente et recevoir vos premiers paiements sur Novakou.",
   openGraph: {
-    title: "Le guide complet Novakou : de l'inscription a votre premiere vente",
+    title: "Le guide complet Novakou : de l'inscription à votre première vente",
     description:
-      "Tutoriel pas-a-pas pour creer votre boutique, publier formations et ebooks, configurer Mobile Money, construire vos tunnels de vente et recevoir vos premiers paiements sur Novakou.",
+      "Tutoriel pas-à-pas pour créer votre boutique, publier formations et ebooks, configurer Mobile Money, construire vos tunnels de vente et recevoir vos premiers paiements sur Novakou.",
     type: "article",
+  },
+  alternates: {
+    canonical: "/guides/guide-complet-novakou",
   },
 };
 

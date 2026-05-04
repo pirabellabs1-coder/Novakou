@@ -21,6 +21,9 @@ export const metadata: Metadata = {
       "Construisez un tunnel de vente qui convertit pour vendre vos formations et produits digitaux en Afrique francophone.",
     type: "article",
   },
+  alternates: {
+    canonical: "/guides/tunnel-de-vente-novakou",
+  },
 };
 
 /* ─── Typography ─── */

@@ -193,6 +193,17 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // FIX: Validate client-supplied amount against order amount to prevent underpayment
+      if (Math.abs(amount - order.amount) > 1) {
+        console.error(
+          `[CinetPay] Amount mismatch: client=${amount}, order=${order.amount}, orderId=${orderId}`,
+        );
+        return NextResponse.json(
+          { error: "Le montant ne correspond pas à la commande" },
+          { status: 400 },
+        );
+      }
+
       // ── Check CinetPay configuration ──────────────────────────────────
       if (!isCinetPayConfigured()) {
         console.warn("[CinetPay] API not configured — returning dev mode response");

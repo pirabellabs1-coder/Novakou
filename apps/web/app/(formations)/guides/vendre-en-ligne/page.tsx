@@ -5,7 +5,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Comment vendre ses formations en ligne en Afrique | Guide complet 2026 · Novakou",
   description:
-    "Le guide ultime pour vendre vos formations en ligne en Afrique francophone : tunnel de vente, pricing en FCFA, promotion WhatsApp & Facebook, email marketing, affiliation. Avec etude de cas et methodes eprouvees.",
+    "Le guide ultime pour vendre vos formations en ligne en Afrique francophone : tunnel de vente, pricing en FCFA, promotion WhatsApp & Facebook, email marketing, affiliation. Avec étude de cas et méthodes éprouvées.",
   keywords: [
     "vendre formation en ligne afrique",
     "vente formation FCFA",
@@ -17,8 +17,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Comment vendre ses formations en ligne en Afrique — Guide 2026",
     description:
-      "12 chapitres, etude de cas, methodes concrets pour transformer votre savoir en revenus recurrents depuis l Afrique francophone.",
+      "12 chapitres, étude de cas, méthodes concrètes pour transformer votre savoir en revenus récurrents depuis l'Afrique francophone.",
     type: "article",
+  },
+  alternates: {
+    canonical: "/guides/vendre-en-ligne",
   },
 };
 

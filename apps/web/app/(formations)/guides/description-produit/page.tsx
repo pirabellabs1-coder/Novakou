@@ -18,6 +18,9 @@ export const metadata: Metadata = {
       "Structure AIDA, bénéfices vs fonctionnalités, preuve sociale, exemples avant/après : tout pour écrire une page produit qui vend.",
     type: "article",
   },
+  alternates: {
+    canonical: "/guides/description-produit",
+  },
 };
 
 /* ------------------------------------------------------------------ */

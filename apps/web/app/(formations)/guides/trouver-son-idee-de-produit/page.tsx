@@ -22,6 +22,9 @@ export const metadata: Metadata = {
       "Méthode complète pour trouver une idée de formation ou produit digital rentable en Afrique francophone. La méthode des 3 cercles, analyse de niche, validation sans budget.",
     type: "article",
   },
+  alternates: {
+    canonical: "/guides/trouver-son-idee-de-produit",
+  },
 };
 
 /* ─── Typographies Satoshi inline ─────────────────────────── */

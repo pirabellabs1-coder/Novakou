@@ -47,16 +47,23 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "trtxqbelsrfgfedaorkb.supabase.co" }, // Supabase Storage
     ],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 60,
+    minimumCacheTTL: 3600,
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   async headers() {
     if (isDev) return [];
+    const isPreview = process.env.VERCEL_ENV === "preview";
     return [
       {
         source: "/(.*)",
-        headers: securityHeaders,
+        headers: [
+          ...securityHeaders,
+          // Prevent Vercel preview deployments from being indexed by search engines
+          ...(isPreview
+            ? [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]
+            : []),
+        ],
       },
     ];
   },
@@ -71,9 +78,9 @@ const nextConfig: NextConfig = {
       },
       // Common 404 redirects — pages users try to access directly
       { source: "/projets", destination: "/offres-projets", permanent: true },
-      // Blog supprimé — rediriger vers l'accueil
-      { source: "/blog", destination: "/", permanent: true },
-      { source: "/blog/:slug*", destination: "/", permanent: true },
+      // Blog supprimé — rediriger vers les guides pour conserver le link equity
+      { source: "/blog", destination: "/guides", permanent: true },
+      { source: "/blog/:slug*", destination: "/guides", permanent: true },
       // Pages legacy non implémentées — rediriger vers la page la plus proche
       { source: "/faq", destination: "/aide", permanent: true },
       { source: "/categories", destination: "/explorer", permanent: true },

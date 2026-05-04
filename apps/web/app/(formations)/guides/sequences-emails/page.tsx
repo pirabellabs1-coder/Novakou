@@ -18,6 +18,9 @@ export const metadata: Metadata = {
       "23 templates, séquences de bienvenue, relances et lancement : le guide complet de l'email marketing pour formateurs africains.",
     type: "article",
   },
+  alternates: {
+    canonical: "/guides/sequences-emails",
+  },
 };
 
 /* ------------------------------------------------------------------ */

@@ -30,10 +30,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: {
-      canonical: `https://novakou.com/boutique/${slug}`,
+      canonical: `/boutique/${slug}`,
       languages: {
-        "fr-FR": `https://novakou.com/boutique/${slug}`,
-        "x-default": `https://novakou.com/boutique/${slug}`,
+        "fr-FR": `/boutique/${slug}`,
+        "x-default": `/boutique/${slug}`,
       },
     },
     openGraph: {

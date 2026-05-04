@@ -6,6 +6,21 @@ import TrackPageView from "@/components/tracking/TrackPageView";
 // ISR : 5min cache for public product pages
 export const revalidate = 300;
 
+/** Pre-render the top 50 products at build time for fast LCP. */
+export async function generateStaticParams() {
+  try {
+    const products = await prisma.digitalProduct.findMany({
+      where: { status: "ACTIF", hiddenFromMarketplace: false },
+      select: { slug: true },
+      orderBy: { salesCount: "desc" },
+      take: 50,
+    });
+    return products.map((p) => ({ slug: p.slug }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -36,10 +51,10 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://novakou.com/produit/${slug}`,
+      canonical: `/produit/${slug}`,
       languages: {
-        "fr-FR": `https://novakou.com/produit/${slug}`,
-        "x-default": `https://novakou.com/produit/${slug}`,
+        "fr-FR": `/produit/${slug}`,
+        "x-default": `/produit/${slug}`,
       },
     },
     openGraph: {
@@ -61,38 +76,71 @@ export default async function ProduitPage({
   const product = await prisma.digitalProduct
     .findFirst({
       where: { slug },
-      select: { id: true, title: true, description: true, banner: true, thumbnail: true, price: true },
+      select: {
+        id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
+        averageRating: true, reviewCount: true,
+      },
     })
     .catch(() => null);
 
   const productImage = product?.banner ?? product?.thumbnail ?? null;
   const productDescription = (product?.description ?? "").replace(/<[^>]+>/g, " ").trim().slice(0, 300);
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
   return (
     <>
       {product && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Product",
-              name: product.title,
-              description: productDescription,
-              brand: {
-                "@type": "Organization",
-                name: "Novakou",
-              },
-              ...(productImage ? { image: productImage } : {}),
-              offers: {
-                "@type": "Offer",
-                price: product.price,
-                priceCurrency: "XOF",
-                availability: "https://schema.org/InStock",
-              },
-            }),
-          }}
-        />
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Product",
+                name: product.title,
+                description: productDescription,
+                url: `${baseUrl}/produit/${slug}`,
+                brand: {
+                  "@type": "Organization",
+                  name: "Novakou",
+                },
+                ...(productImage ? { image: productImage } : {}),
+                offers: {
+                  "@type": "Offer",
+                  price: product.price,
+                  priceCurrency: "XOF",
+                  availability: "https://schema.org/InStock",
+                  url: `${baseUrl}/produit/${slug}`,
+                },
+                ...((product as Record<string, unknown>).reviewCount && (product as Record<string, unknown>).reviewCount > 0
+                  ? {
+                      aggregateRating: {
+                        "@type": "AggregateRating",
+                        ratingValue: (product as Record<string, unknown>).averageRating ?? 5,
+                        reviewCount: (product as Record<string, unknown>).reviewCount,
+                        bestRating: 5,
+                        worstRating: 1,
+                      },
+                    }
+                  : {}),
+              }),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
+                  { "@type": "ListItem", position: 2, name: "Explorer", item: `${baseUrl}/explorer` },
+                  { "@type": "ListItem", position: 3, name: product.title },
+                ],
+              }),
+            }}
+          />
+        </>
       )}
       {product && (
         <TrackPageView

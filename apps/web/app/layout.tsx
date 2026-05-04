@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
 import { Providers } from "./providers";
@@ -62,6 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary_large_image",
       title: t("default_title"),
       description: t("default_description"),
+      site: "@Novakou",
       creator: "@Novakou",
     },
     robots: {
@@ -95,6 +96,12 @@ export async function generateMetadata(): Promise<Metadata> {
     category: "education",
   };
 }
+
+export const viewport: Viewport = {
+  themeColor: "#006e2f",
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default async function RootLayout({
   children,
@@ -134,7 +141,8 @@ export default async function RootLayout({
               logo: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/icon`,
               description:
                 "La plateforme des créateurs digitaux en Afrique francophone. Vendez vos formations, e-books, templates et séances de coaching.",
-              founder: { "@type": "Person", name: "Pirabel Labs" },
+              founder: { "@type": "Person", name: "Lissanon Gildas" },
+              parentOrganization: { "@type": "Organization", name: "Pirabel Labs" },
               foundingDate: "2026",
               areaServed: [
                 { "@type": "Country", name: "Sénégal" },
@@ -169,7 +177,10 @@ export default async function RootLayout({
               url: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com",
               potentialAction: {
                 "@type": "SearchAction",
-                target: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer?q={search_term_string}`,
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer?q={search_term_string}`,
+                },
                 "query-input": "required name=search_term_string",
               },
             }),

@@ -8,6 +8,21 @@ import TrackPageView from "@/components/tracking/TrackPageView";
 // changes. Mutations (vendor edits) can call revalidatePath() to bust.
 export const revalidate = 300;
 
+/** Pre-render the top 50 formations at build time for fast LCP. */
+export async function generateStaticParams() {
+  try {
+    const formations = await prisma.formation.findMany({
+      where: { status: "ACTIF", hiddenFromMarketplace: false },
+      select: { slug: true },
+      orderBy: { studentsCount: "desc" },
+      take: 50,
+    });
+    return formations.map((f) => ({ slug: f.slug }));
+  } catch {
+    return [];
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -35,10 +50,10 @@ export async function generateMetadata({
     title,
     description,
     alternates: {
-      canonical: `https://novakou.com/formation/${slug}`,
+      canonical: `/formation/${slug}`,
       languages: {
-        "fr-FR": `https://novakou.com/formation/${slug}`,
-        "x-default": `https://novakou.com/formation/${slug}`,
+        "fr-FR": `/formation/${slug}`,
+        "x-default": `/formation/${slug}`,
       },
     },
     openGraph: {
@@ -71,29 +86,47 @@ export default async function FormationPage({
   return (
     <>
       {formation && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Course",
-              name: formation.title,
-              description: ldDescription,
-              provider: {
-                "@type": "Organization",
-                name: "Novakou",
-                url: "https://novakou.com",
-              },
-              ...(formation.thumbnail ? { image: formation.thumbnail } : {}),
-              offers: {
-                "@type": "Offer",
-                price: formation.price,
-                priceCurrency: "XOF",
-                availability: "https://schema.org/InStock",
-              },
-            }),
-          }}
-        />
+        <>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Course",
+                name: formation.title,
+                description: ldDescription,
+                url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/formation/${slug}`,
+                inLanguage: "fr",
+                provider: {
+                  "@type": "Organization",
+                  name: "Novakou",
+                  url: "https://novakou.com",
+                },
+                ...(formation.thumbnail ? { image: formation.thumbnail } : {}),
+                offers: {
+                  "@type": "Offer",
+                  price: formation.price,
+                  priceCurrency: "XOF",
+                  availability: "https://schema.org/InStock",
+                },
+              }),
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Accueil", item: process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com" },
+                  { "@type": "ListItem", position: 2, name: "Explorer", item: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/explorer` },
+                  { "@type": "ListItem", position: 3, name: formation.title },
+                ],
+              }),
+            }}
+          />
+        </>
       )}
       {formation && (
         <TrackPageView

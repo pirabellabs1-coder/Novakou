@@ -22,6 +22,9 @@ export const metadata: Metadata = {
       "Comment automatiser vos ventes de formations sur Novakou pour générer des revenus passifs en Afrique francophone.",
     type: "article",
   },
+  alternates: {
+    canonical: "/guides/automatisations-novakou",
+  },
 };
 
 /* ─── Typography ─── */

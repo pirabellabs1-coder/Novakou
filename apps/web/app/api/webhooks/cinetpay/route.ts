@@ -181,8 +181,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("[CinetPay Webhook] Error:", error);
-    // Return 200 anyway to prevent CinetPay from retrying indefinitely
-    return NextResponse.json({ received: true, error: "Erreur interne" });
+    // CRITICAL FIX: Return 500 so CinetPay retries on transient errors
+    return NextResponse.json(
+      { error: "Erreur interne — sera réessayé" },
+      { status: 500 },
+    );
   }
 }
 
@@ -321,25 +324,6 @@ async function handlePaymentSuccessPrisma(
       return;
     }
 
-    // Idempotency: skip if order is already paid/in progress
-    if (order.status === "EN_COURS" || order.status === "TERMINE" || order.status === "LIVRE") {
-      console.log(
-        `[CinetPay Webhook] Order ${orderId} already processed (status=${order.status}), skipping`
-      );
-      return;
-    }
-
-    // Double-payment prevention: check if a COMPLETE payment already exists (e.g., from Stripe)
-    const existingCompletePayment = await prisma.payment.findFirst({
-      where: { orderId, status: "COMPLETE" },
-    });
-    if (existingCompletePayment) {
-      console.warn(
-        `[CinetPay Webhook] Order ${orderId} already has a COMPLETE payment (id=${existingCompletePayment.id}), skipping`
-      );
-      return;
-    }
-
     // Amount validation: verify webhook amount matches order amount to prevent fraud
     const webhookAmount = parseFloat(amount);
     if (!isNaN(webhookAmount) && Math.abs(webhookAmount - order.amount) > 1) {
@@ -351,7 +335,30 @@ async function handlePaymentSuccessPrisma(
 
     const serviceTitle = order.title || order.service?.title || `Commande ${orderId}`;
 
+    // FIX: Move idempotency checks INSIDE the transaction to prevent race conditions
     await prisma.$transaction(async (tx) => {
+      // Re-read order with FOR UPDATE semantics (serializable inside $transaction)
+      const freshOrder = await tx.order.findUnique({ where: { id: orderId } });
+      if (!freshOrder) return;
+
+      // Idempotency: skip if order is already paid/in progress
+      if (freshOrder.status === "EN_COURS" || freshOrder.status === "TERMINE" || freshOrder.status === "LIVRE") {
+        console.log(
+          `[CinetPay Webhook] Order ${orderId} already processed (status=${freshOrder.status}), skipping`
+        );
+        return;
+      }
+
+      // Double-payment prevention: check if a COMPLETE payment already exists
+      const existingCompletePayment = await tx.payment.findFirst({
+        where: { orderId, status: "COMPLETE" },
+      });
+      if (existingCompletePayment) {
+        console.warn(
+          `[CinetPay Webhook] Order ${orderId} already has a COMPLETE payment (id=${existingCompletePayment.id}), skipping`
+        );
+        return;
+      }
       // Update order status to active and escrow to held (funds confirmed)
       await tx.order.update({
         where: { id: orderId },
