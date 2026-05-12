@@ -4,6 +4,7 @@ import { rateLimit } from "@/lib/api-rate-limit";
 import {
   uploadFile,
   getSignedUrl,
+  STORAGE_BUCKETS,
   type StorageBucket,
 } from "@/lib/supabase-storage";
 import { uploadImage } from "@/lib/cloudinary";
@@ -47,16 +48,8 @@ function validateMagicBytes(buffer: Buffer, extension: string): boolean {
   });
 }
 
-const VALID_BUCKETS: StorageBucket[] = [
-  "kyc-documents",
-  "order-deliveries",
-  "agency-resources",
-  "contracts",
-  "message-attachments",
-];
-
 function isValidBucket(bucket: string): bucket is StorageBucket {
-  return VALID_BUCKETS.includes(bucket as StorageBucket);
+  return STORAGE_BUCKETS.includes(bucket as StorageBucket);
 }
 
 export async function POST(req: NextRequest) {
@@ -98,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (!isValidBucket(bucket)) {
       return NextResponse.json(
         {
-          error: `Bucket invalide. Valeurs acceptees : ${VALID_BUCKETS.join(", ")}`,
+          error: `Bucket invalide. Valeurs acceptees : ${STORAGE_BUCKETS.join(", ")}`,
         },
         { status: 400 }
       );
@@ -148,7 +141,8 @@ export async function POST(req: NextRequest) {
           name: file.name,
           size: file.size,
           type: file.type,
-          url: signedUrl || supabaseResult.url,
+          url: supabaseResult.path,
+          previewUrl: signedUrl || supabaseResult.url,
           path: supabaseResult.path,
           bucket,
           uploadedAt: new Date().toISOString(),

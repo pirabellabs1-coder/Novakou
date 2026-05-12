@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { resolveStorageFileUrl } from "@/lib/supabase-storage";
 
 export async function GET() {
   try {
@@ -40,7 +41,32 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ data: purchases });
+    const data = await Promise.all(
+      purchases.map(async (purchase) => {
+        if (!purchase.product) return purchase;
+
+        const files = await Promise.all(
+          (purchase.product.files ?? []).map(async (file) => ({
+            ...file,
+            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600),
+          })),
+        );
+        const fileUrl = purchase.product.fileUrl
+          ? await resolveStorageFileUrl(purchase.product.fileUrl, "order-deliveries", 3600)
+          : null;
+
+        return {
+          ...purchase,
+          product: {
+            ...purchase.product,
+            fileUrl,
+            files,
+          },
+        };
+      }),
+    );
+
+    return NextResponse.json({ data });
   } catch {
     return NextResponse.json({ data: [] });
   }

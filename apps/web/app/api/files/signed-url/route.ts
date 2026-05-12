@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { getSignedUrl, type StorageBucket } from "@/lib/supabase-storage";
-
-const VALID_BUCKETS: StorageBucket[] = [
-  "kyc-documents",
-  "order-deliveries",
-  "agency-resources",
-  "contracts",
-  "message-attachments",
-];
+import { getSignedUrl, STORAGE_BUCKETS, type StorageBucket } from "@/lib/supabase-storage";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +21,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!VALID_BUCKETS.includes(bucket)) {
+    if (!STORAGE_BUCKETS.includes(bucket)) {
       return NextResponse.json(
         { error: "Bucket invalide" },
         { status: 400 }

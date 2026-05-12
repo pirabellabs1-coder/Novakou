@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { IS_DEV } from "@/lib/env";
+import { resolveStorageFileUrl } from "@/lib/supabase-storage";
 
 /**
  * POST /api/formations/apprenant/products/[id]/download
@@ -30,7 +31,19 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
     // Vérifie que la purchase existe ET appartient à l'apprenant
     const purchase = await prisma.digitalProductPurchase.findFirst({
       where: { id, userId },
-      select: { id: true, downloadCount: true },
+      select: {
+        id: true,
+        downloadCount: true,
+        product: {
+          select: {
+            fileUrl: true,
+            files: {
+              orderBy: { order: "asc" },
+              select: { id: true, name: true, url: true, size: true, mimeType: true },
+            },
+          },
+        },
+      },
     });
     if (!purchase) {
       return NextResponse.json(
@@ -45,7 +58,24 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       select: { downloadCount: true },
     });
 
-    return NextResponse.json({ downloadCount: updated.downloadCount });
+    const files = purchase.product?.files?.length
+      ? await Promise.all(
+          purchase.product.files.map(async (file) => ({
+            ...file,
+            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600),
+          })),
+        )
+      : purchase.product?.fileUrl
+        ? [{
+            id: "legacy-file",
+            name: purchase.product.fileUrl.split("?")[0].split("/").pop() ?? "fichier",
+            url: await resolveStorageFileUrl(purchase.product.fileUrl, "order-deliveries", 3600),
+            size: null,
+            mimeType: null,
+          }]
+        : [];
+
+    return NextResponse.json({ downloadCount: updated.downloadCount, files });
   } catch (err) {
     console.error("[apprenant/products/download POST]", err);
     return NextResponse.json(

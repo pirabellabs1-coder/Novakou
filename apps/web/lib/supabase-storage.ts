@@ -20,6 +20,15 @@ export type StorageBucket =
   | "message-attachments"
   | "certificates";
 
+export const STORAGE_BUCKETS: StorageBucket[] = [
+  "kyc-documents",
+  "order-deliveries",
+  "agency-resources",
+  "contracts",
+  "message-attachments",
+  "certificates",
+];
+
 // ── Dev mode local storage fallback ──
 const DEV_STORAGE_DIR = pathModule.join(process.cwd(), "public", "uploads");
 
@@ -138,6 +147,60 @@ export async function getSignedUrl(
   if (IS_DEV) return devGetUrl(bucket, path);
 
   return null;
+}
+
+function cleanBucketPath(bucket: StorageBucket, value: string): string {
+  return value.replace(/^\/+/, "").replace(new RegExp(`^${bucket}/`), "");
+}
+
+export function getStorageObjectPath(
+  value?: string | null,
+  fallbackBucket: StorageBucket = "order-deliveries"
+): { bucket: StorageBucket; path: string } | null {
+  const raw = value?.trim();
+  if (!raw) return null;
+  if (raw.startsWith("/uploads/")) return null;
+
+  if (!/^https?:\/\//i.test(raw)) {
+    return {
+      bucket: fallbackBucket,
+      path: cleanBucketPath(fallbackBucket, raw),
+    };
+  }
+
+  try {
+    const url = new URL(raw);
+    const marker = "/storage/v1/object/";
+    const markerIndex = url.pathname.indexOf(marker);
+    if (markerIndex === -1) return null;
+
+    const storagePath = url.pathname.slice(markerIndex + marker.length);
+    const parts = storagePath.split("/");
+    const bucketIndex = parts.findIndex((part) =>
+      STORAGE_BUCKETS.includes(part as StorageBucket)
+    );
+    if (bucketIndex === -1) return null;
+
+    const bucket = parts[bucketIndex] as StorageBucket;
+    const path = parts.slice(bucketIndex + 1).join("/");
+    return path ? { bucket, path: cleanBucketPath(bucket, decodeURIComponent(path)) } : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function resolveStorageFileUrl(
+  value?: string | null,
+  fallbackBucket: StorageBucket = "order-deliveries",
+  expiresIn: number = 3600
+): Promise<string> {
+  const raw = value?.trim();
+  if (!raw) return "";
+
+  const object = getStorageObjectPath(raw, fallbackBucket);
+  if (!object) return raw;
+
+  return (await getSignedUrl(object.bucket, object.path, expiresIn)) ?? raw;
 }
 
 // Delete a file from a bucket

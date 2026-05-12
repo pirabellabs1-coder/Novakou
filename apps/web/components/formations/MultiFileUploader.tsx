@@ -108,7 +108,7 @@ export function MultiFileUploader({
       return null;
     }
 
-    let data: { success?: boolean; file?: { url?: string }; error?: string } | null = null;
+    let data: { success?: boolean; file?: { url?: string; path?: string }; error?: string } | null = null;
     try { data = await res.json(); } catch {
       setError(`Réponse invalide du serveur (${res.status}). Réessayez dans quelques instants.`);
       return null;
@@ -117,7 +117,7 @@ export function MultiFileUploader({
     if (data?.success && data.file?.url) {
       return {
         name: file.name,
-        url: data.file.url,
+        url: data.file.path ?? data.file.url,
         size: file.size,
         mimeType: file.type || null,
       };

@@ -79,7 +79,7 @@ export default function ProduitsPage() {
 
   const downloadedCount = purchases.filter((p) => p.downloadCount > 0 || downloaded.has(p.id)).length;
 
-  const handleDownload = (p: Purchase) => {
+  const handleDownload = async (p: Purchase) => {
     const files = p.product?.files ?? [];
     const single = files[0]?.url ?? p.product?.fileUrl;
 
@@ -88,19 +88,36 @@ export default function ProduitsPage() {
       return;
     }
 
-    // Open files BEFORE the fetch so we don't lose the user-gesture popup permission.
-    if (files.length > 1) {
-      files.forEach((f) => window.open(f.url, "_blank"));
-    } else if (single) {
-      window.open(single, "_blank");
-    }
+    const placeholders = (files.length > 1 ? files : [null]).map(() => window.open("", "_blank"));
     setDownloaded((prev) => new Set([...prev, p.id]));
 
-    // Fire-and-forget : incrémente le compteur server-side (downloadCount).
-    // Best-effort — si l'appel échoue, on ne bloque pas l'apprenant.
-    fetch(`/api/formations/apprenant/products/${p.id}/download`, { method: "POST" })
-      .then(() => qc.invalidateQueries({ queryKey: ["apprenant-products"] }))
-      .catch(() => null);
+    try {
+      const res = await fetch(`/api/formations/apprenant/products/${p.id}/download`, { method: "POST" });
+      const data = await res.json().catch(() => null);
+      const freshFiles: ProductFileLite[] = Array.isArray(data?.files) ? data.files : [];
+      const urls = freshFiles.length > 0
+        ? freshFiles.map((f) => f.url).filter(Boolean)
+        : files.length > 1
+          ? files.map((f) => f.url)
+          : single
+            ? [single]
+            : [];
+
+      urls.forEach((url, idx) => {
+        const tab = placeholders[idx] ?? window.open("", "_blank");
+        if (tab) tab.location.href = url;
+        else window.open(url, "_blank");
+      });
+      placeholders.slice(urls.length).forEach((tab) => tab?.close());
+      qc.invalidateQueries({ queryKey: ["apprenant-products"] });
+    } catch {
+      const urls = files.length > 1 ? files.map((f) => f.url) : single ? [single] : [];
+      urls.forEach((url, idx) => {
+        const tab = placeholders[idx] ?? window.open("", "_blank");
+        if (tab) tab.location.href = url;
+        else window.open(url, "_blank");
+      });
+    }
   };
 
   return (

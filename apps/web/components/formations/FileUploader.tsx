@@ -65,8 +65,8 @@ export function FileUploader({ value, onChange, productType = "PDF", accept }: P
       const res = await fetch("/api/upload/file", { method: "POST", body: form });
       const data = await res.json();
       if (data.success && data.file?.url) {
-        onChange(data.file.url);
-        setUploaded({ name: file.name, size: file.size, url: data.file.url });
+        onChange(data.file.path ?? data.file.url);
+        setUploaded({ name: file.name, size: file.size, url: data.file.previewUrl ?? data.file.url });
       } else {
         setError(data.error ?? "Upload échoué");
       }
