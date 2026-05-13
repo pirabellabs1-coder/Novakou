@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Resend } from "resend";
 import { createAuditLog } from "@/lib/admin/audit";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 
 function refundDecisionHtml(firstName: string, formationTitle: string, amount: number, approved: boolean, note: string | null): string {

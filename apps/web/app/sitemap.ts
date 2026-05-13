@@ -156,13 +156,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // ── Catégories de formations (hubs SEO) ──
     try {
       const cats = await prisma.formationCategory.findMany({
-        select: { slug: true, updatedAt: true },
+        select: { slug: true, createdAt: true },
         take: 200,
       });
       for (const c of cats) {
         dynamicRoutes.push({
           url: `${BASE_URL}/explorer?categorie=${c.slug}`,
-          lastModified: c.updatedAt,
+          lastModified: c.createdAt,
           changeFrequency: "weekly",
           priority: 0.6,
         });

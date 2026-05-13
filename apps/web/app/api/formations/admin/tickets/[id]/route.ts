@@ -56,7 +56,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   // Optionally send the admin reply by email
   if (body.sendEmail && body.adminReply && process.env.RESEND_API_KEY) {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
     const html = emailLayout(`
       <h2 style="color:#111827;font-size:22px;margin:0 0 12px;">Bonjour ${escapeHtml(ticket.name)},</h2>
       <p style="color:#6b7280;font-size:13px;margin:0 0 18px;">Votre référence : <span style="font-family:monospace;font-weight:700;color:#006e2f;">${ticket.reference}</span></p>

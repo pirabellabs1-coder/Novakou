@@ -3,7 +3,7 @@
 
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 
@@ -77,6 +77,9 @@ export async function sendAdminCampaignEmail(params: {
 }): Promise<{ ok: boolean; id?: string; error?: string }> {
   const { to, firstName, subject, htmlBody } = params;
   const finalHtml = wrapAdminCampaignHtml(htmlBody, firstName, to);
+  if (!resend) {
+    return { ok: false, error: "RESEND_API_KEY is not configured" };
+  }
   try {
     const r = await resend.emails.send({ from: FROM, to, subject, html: finalHtml });
     if ("error" in r && r.error) {

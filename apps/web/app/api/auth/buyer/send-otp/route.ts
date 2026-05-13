@@ -15,7 +15,7 @@ import { rateLimit } from "@/lib/api-rate-limit";
  * c'est un guest qui vient d'acheter).
  */
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
 

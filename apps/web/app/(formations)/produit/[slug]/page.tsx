@@ -78,7 +78,7 @@ export default async function ProduitPage({
       where: { slug },
       select: {
         id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
-        averageRating: true, reviewCount: true,
+        rating: true, reviewsCount: true,
       },
     })
     .catch(() => null);
@@ -112,12 +112,12 @@ export default async function ProduitPage({
                   availability: "https://schema.org/InStock",
                   url: `${baseUrl}/produit/${slug}`,
                 },
-                ...((product as Record<string, unknown>).reviewCount && (product as Record<string, unknown>).reviewCount > 0
+                ...(product.reviewsCount > 0
                   ? {
                       aggregateRating: {
                         "@type": "AggregateRating",
-                        ratingValue: (product as Record<string, unknown>).averageRating ?? 5,
-                        reviewCount: (product as Record<string, unknown>).reviewCount,
+                        ratingValue: product.rating || 5,
+                        reviewCount: product.reviewsCount,
                         bestRating: 5,
                         worstRating: 1,
                       },
