@@ -45,6 +45,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" }, // Google OAuth avatars
       { protocol: "https", hostname: "trtxqbelsrfgfedaorkb.supabase.co" }, // Supabase Storage
+      { protocol: "https", hostname: "moitlulfuypzxemydqke.supabase.co" }, // Supabase Storage
     ],
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 3600,
@@ -69,13 +70,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // www -> non-www
-      {
-        source: "/:path*",
-        has: [{ type: "host", value: "www.novakou.com" }],
-        destination: "https://novakou.com/:path*",
-        permanent: true,
-      },
       // Common 404 redirects — pages users try to access directly
       { source: "/projets", destination: "/offres-projets", permanent: true },
       // Blog supprimé — rediriger vers les guides pour conserver le link equity
