@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 /** Strip HTML tags for safe display in cards */
@@ -127,8 +128,20 @@ async function fetchBestSellers(): Promise<Item[]> {
   }
 }
 
+// Cache la requête bestsellers 5 min via le data cache de Next.js.
+// Avant : SSR de la home faisait 2 queries Prisma → Supabase Frankfurt
+// (~200-500ms aller-retour depuis Vercel us-east-1) → TTFB ~5s.
+// Après : 1ère requête remplit le cache ; les 1000+ hits suivants dans
+// les 5 min utilisent le cache → TTFB ~50ms. Le tag permet une
+// invalidation manuelle si besoin (revalidateTag("bestsellers")).
+const fetchBestSellersCached = unstable_cache(
+  fetchBestSellers,
+  ["bestsellers"],
+  { revalidate: 300, tags: ["bestsellers"] },
+);
+
 export async function BestSellers() {
-  const items = await fetchBestSellers();
+  const items = await fetchBestSellersCached();
 
   if (items.length === 0) {
     // Fallback empty state when no products yet

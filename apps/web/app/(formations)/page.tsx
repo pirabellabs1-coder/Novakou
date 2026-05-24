@@ -11,6 +11,13 @@ export const metadata: Metadata = {
     "Boutique, paiements Mobile Money, tunnels de vente et assistants IA inclus. Lancez-vous en 3 minutes, 10 % de commission sur vos ventes, zéro abonnement.",
 };
 
+// ISR : la home est rendue UNE FOIS toutes les 5 minutes et mise en cache
+// par Vercel Edge. Avant : rendue à chaque requête (Prisma BestSellers en
+// SSR → TTFB ~5s). Après : 99% des hits sont servis depuis le cache CDN
+// (TTFB ~50ms). La fraîcheur des "bestsellers" à 5 min près est largement
+// acceptable.
+export const revalidate = 300;
+
 /* ─── Typographies Satoshi inline ─────────────────────────── */
 const satoshi = {
   fontFamily: "'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
@@ -66,12 +73,14 @@ export default async function FormationsPage() {
                   "https://lh3.googleusercontent.com/aida-public/AB6AXuD9Rh0ecjM8nGvWfG_C0KbaGYWrSmu8xmHRjCO70WBZ0-5sZv2Q2D-Fabrnx0JT4aLiEkSG11YZCkMwiEefpWTFRezj3cUHsuIsBJvS1JtkK_7oFybZDfAHwmDm-x3XW245JemBnQqaJLvjzqZYEmm5vcb8svccewMahXmGTu_kVEEV9BW2z0WeqRDmHbfwA8bpGilxMYyCmloYq4f1ntMSEdBg3G7z2jFkbA8eyRqogewLAHfdnyJW3V2nvgIKHN4cLsu4rdNAJIec",
                   "https://lh3.googleusercontent.com/aida-public/AB6AXuCWvzWuZ26p82Ka65aS2FRWuFajMaeVjZFTmt2eKbeFM-76x_bYcQq7VTJJPuV5cz-ioD79i1dCmXQ3qMqU-4aLD4VUgTHd-i9NV5iPOaHec279DuNt-RDWnmVDNA8g3upiBszScHtBOVjg7zbx_pugaYRw1GK0SpNDOaVQzM_XwYrvSvAxx8P_uLrdUAUw3_GBisqCKKjiv2-RVRePMSUtMDEUgzmPQxAbgo6mJ329ft5SkMx0mv_meMJKtwORR4npogpFuRKhme5E",
                 ].map((src, i) => (
-                  // PERF : on retire `unoptimized` → Next.js sert une version
-                  // resize 32x32 en webp via /_next/image au lieu de la full
-                  // image originale ~400 Ko de Google Stitch. Économie : ~1.1 Mo
-                  // sur le load initial de la home (PageSpeed l'avait flaggé).
-                  // Loading=eager parce que ces avatars sont above-the-fold
-                  // dans le hero. Sizes=32px car taille fixe (pas responsive).
+                  // PERF (round 2) : on garde optimisation Next/Image mais on
+                  // FORCE lazy loading sur les 3 avatars. Avant : la 1ère avait
+                  // loading=eager, ce qui faisait que Next.js générait un
+                  // <link rel="preload" as="image" imageSrcSet="...">
+                  // avec TOUTES les variantes jusqu'à 3840w → le browser pouvait
+                  // précharger la version 1920w (~800 Ko) au lieu de la 32w
+                  // (~3 Ko). Ces avatars étant purement décoratifs (hero badge
+                  // "créateurs"), lazy est sans impact UX.
                   <Image
                     key={i}
                     className="w-8 h-8 rounded-full object-cover"
@@ -81,7 +90,7 @@ export default async function FormationsPage() {
                     width={32}
                     height={32}
                     sizes="32px"
-                    loading={i === 0 ? "eager" : "lazy"}
+                    loading="lazy"
                   />
                 ))}
               </div>
