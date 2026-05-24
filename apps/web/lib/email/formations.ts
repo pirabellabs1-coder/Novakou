@@ -497,16 +497,24 @@ export async function sendDigitalProductDeliveryEmail(params: {
   email: string;
   name: string;
   productTitle: string;
-  downloadUrl: string;
-  /** Optional list of all attached files. When provided and length >= 2, the
-   *  email shows a list of named download links instead of a single button. */
+  /** Conservé pour compat, mais l'email ne pointe PLUS vers cette URL directe.
+   * On linke toujours vers la dashboard (`mes-produits`) — c'est la seule
+   * destination qui ne risque JAMAIS d'expirer, et qui s'appuie sur la route
+   * proxy `/api/.../file/[idx]` pour générer une signed URL fraîche à chaque
+   * clic. Un email ouvert 6 mois après l'achat fonctionne toujours. */
+  downloadUrl?: string;
+  /** Conservé pour compat (le code legacy passait la liste). Ignoré : on
+   *  redirige sur le dashboard où chaque fichier est listé avec un lien
+   *  proxy frais. */
   files?: Array<{ name: string; url: string }>;
   locale?: "fr" | "en";
 }) {
-  const { email, name, productTitle, downloadUrl, files, locale = "fr" } = params;
+  const { email, name, productTitle, files, locale = "fr" } = params;
   const isFr = locale === "fr";
-  const hasMultipleFiles = Array.isArray(files) && files.length >= 2;
-  // Lien magic : auto-envoi OTP à l'email de l'acheteur + redirect vers ses produits
+  const fileCount = Array.isArray(files) ? files.length : 0;
+  // Lien magic : auto-envoi OTP à l'email de l'acheteur + redirect vers ses produits.
+  // C'est l'UNIQUE point d'entrée pour télécharger — pas de signed URL en dur
+  // dans l'email pour éviter "InvalidJWT exp claim timestamp check failed".
   const myProductsUrl = buyerMagicLink(email, "/apprenant/mes-produits");
 
   const now = new Date();
@@ -521,34 +529,45 @@ export async function sendDigitalProductDeliveryEmail(params: {
 
     <p style="color:#4b5563;line-height:1.7;font-size:15px;margin:0 0 24px;">
       ${isFr
-        ? `Nous vous remercions pour votre achat. Votre produit <strong style="color:#111827;">« ${productTitle} »</strong> est désormais disponible dans votre espace.`
-        : `Thank you for your purchase. Your product <strong style="color:#111827;">"${productTitle}"</strong> is now available in your space.`
+        ? `Nous vous remercions pour votre achat. Votre produit <strong style="color:#111827;">« ${productTitle} »</strong> est désormais disponible dans votre espace.${fileCount > 1 ? ` <strong>${fileCount} fichiers</strong> sont prêts à télécharger.` : ""}`
+        : `Thank you for your purchase. Your product <strong style="color:#111827;">"${productTitle}"</strong> is now available in your space.${fileCount > 1 ? ` <strong>${fileCount} files</strong> are ready to download.` : ""}`
       }
     </p>
 
-    ${hasMultipleFiles
-      ? `<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:18px 22px;margin:0 0 28px;">
-          <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;">
-            ${isFr ? `${files!.length} fichiers à télécharger` : `${files!.length} files to download`}
-          </p>
-          <ul style="list-style:none;padding:0;margin:0;">
-            ${files!
-              .map(
-                (f) =>
-                  `<li style="padding:10px 0;border-top:1px solid #e5e7eb;">
-                    <a href="${f.url}" style="color:#006e2f;font-size:14px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:8px;">
-                      <span style="display:inline-block;width:18px;text-align:center;">📄</span>
-                      <span style="flex:1;">${f.name}</span>
-                      <span style="color:#9ca3af;font-size:12px;font-weight:500;">${isFr ? "Télécharger" : "Download"} →</span>
-                    </a>
-                  </li>`,
-              )
-              .join("")}
-          </ul>
-        </div>`
-      : `<div style="text-align:center;margin:0 0 28px;">
-          ${button(isFr ? "Accéder à mon produit" : "Access my product", downloadUrl)}
-        </div>`
+    <div style="text-align:center;margin:0 0 28px;">
+      ${button(
+        isFr
+          ? (fileCount > 1 ? "Accéder à mes fichiers" : "Accéder à mon produit")
+          : (fileCount > 1 ? "Access my files" : "Access my product"),
+        myProductsUrl,
+      )}
+    </div>
+
+    <p style="color:#9ca3af;font-size:12px;line-height:1.6;margin:0 0 24px;text-align:center;">
+      ${isFr
+        ? `Vous arriverez directement sur votre espace « Mes produits ». Cliquez sur le bouton « Télécharger » à côté de ${productTitle} pour récupérer votre fichier.`
+        : `You'll land directly on your "My products" page. Click the "Download" button next to ${productTitle} to get your file.`
+      }
+    </p>${fileCount > 1
+      ? `
+
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:18px 22px;margin:0 0 28px;">
+      <p style="color:#6b7280;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px;">
+        ${isFr ? `Fichiers inclus (${fileCount})` : `Files included (${fileCount})`}
+      </p>
+      <ul style="list-style:none;padding:0;margin:0;">
+        ${files!
+          .map(
+            (f) =>
+              `<li style="padding:8px 0;border-top:1px solid #e5e7eb;color:#374151;font-size:13px;display:flex;align-items:center;gap:8px;">
+                <span style="display:inline-block;width:18px;text-align:center;">📄</span>
+                <span>${f.name}</span>
+              </li>`,
+          )
+          .join("")}
+      </ul>
+    </div>`
+      : ""
     }
 
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:22px;margin:0 0 24px;">

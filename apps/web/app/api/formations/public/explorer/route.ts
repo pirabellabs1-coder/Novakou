@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolveStorageFields } from "@/lib/storage-resolver";
 
 export async function GET(request: Request) {
   try {
@@ -88,7 +89,15 @@ export async function GET(request: Request) {
       }),
     ]);
 
-    const formationItems = formations.map((f) => ({
+    // Résout les paths stockage (thumbnail, banner, image) en signed URLs
+    // fraîches AVANT le mapping — sinon le frontend rend `<img src="path">`
+    // → relatif à /explorer → 404.
+    const [resolvedFormations, resolvedProducts] = await Promise.all([
+      resolveStorageFields(formations),
+      resolveStorageFields(products),
+    ]);
+
+    const formationItems = resolvedFormations.map((f) => ({
       id: f.id,
       kind: "formation" as const,
       slug: f.slug,
@@ -107,7 +116,7 @@ export async function GET(request: Request) {
       createdAt: f.createdAt,
     }));
 
-    const productItems = products.map((p) => ({
+    const productItems = resolvedProducts.map((p) => ({
       id: p.id,
       kind: "product" as const,
       slug: p.slug,

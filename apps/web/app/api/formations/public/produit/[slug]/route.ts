@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolveStorageFields } from "@/lib/storage-resolver";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -61,56 +62,57 @@ export async function GET(_req: Request, { params }: Params) {
       (typeof product.fileUrl === "string" && product.fileUrl.toLowerCase().endsWith(".pdf"));
     const previewAvailable = product.previewEnabled === true && hasPdfFile;
 
-    return NextResponse.json({
-      data: {
-        id: product.id,
-        slug: product.slug,
-        title: product.title,
-        description: product.description,
-        descriptionFormat: product.descriptionFormat,
-        productType: product.productType,
-        thumbnail: product.thumbnail,
-        banner: product.banner,
-        price: product.price,
-        originalPrice: product.originalPrice,
-        currency: "XOF",
-        rating: product.rating,
-        reviewsCount: product.reviewsCount,
-        salesCount: product.salesCount,
-        viewsCount: product.viewsCount,
-        tags: product.tags,
-        maxBuyers: product.maxBuyers,
-        currentBuyers: product.currentBuyers,
-        salesEndAt: product.salesEndAt ? product.salesEndAt.toISOString() : null,
-        previewEnabled: product.previewEnabled,
-        previewPages: product.previewPages,
-        watermarkEnabled: product.watermarkEnabled,
-        previewAvailable,
-        category: product.category,
-        instructeur: {
-          id: product.instructeur.id,
-          userId: product.instructeur.user.id,
-          name: product.instructeur.user.name,
-          image: product.instructeur.user.image,
-          bio: product.instructeur.bioFr,
-          expertise: product.instructeur.expertise,
-          yearsExp: product.instructeur.yearsExp,
-          marketingPixels: product.instructeur.marketingPixels,
-        },
-        reviews: product.reviews.map((r) => ({
-          id: r.id,
-          rating: r.rating,
-          comment: r.comment,
-          createdAt: r.createdAt,
-          user: {
-            id: r.user.id,
-            name: r.user.name,
-            image: r.user.image,
-          },
-        })),
-        createdAt: product.createdAt,
+    const payload = {
+      id: product.id,
+      slug: product.slug,
+      title: product.title,
+      description: product.description,
+      descriptionFormat: product.descriptionFormat,
+      productType: product.productType,
+      thumbnail: product.thumbnail,
+      banner: product.banner,
+      price: product.price,
+      originalPrice: product.originalPrice,
+      currency: "XOF",
+      rating: product.rating,
+      reviewsCount: product.reviewsCount,
+      salesCount: product.salesCount,
+      viewsCount: product.viewsCount,
+      tags: product.tags,
+      maxBuyers: product.maxBuyers,
+      currentBuyers: product.currentBuyers,
+      salesEndAt: product.salesEndAt ? product.salesEndAt.toISOString() : null,
+      previewEnabled: product.previewEnabled,
+      previewPages: product.previewPages,
+      watermarkEnabled: product.watermarkEnabled,
+      previewAvailable,
+      category: product.category,
+      instructeur: {
+        id: product.instructeur.id,
+        userId: product.instructeur.user.id,
+        name: product.instructeur.user.name,
+        image: product.instructeur.user.image,
+        bio: product.instructeur.bioFr,
+        expertise: product.instructeur.expertise,
+        yearsExp: product.instructeur.yearsExp,
+        marketingPixels: product.instructeur.marketingPixels,
       },
-    });
+      reviews: product.reviews.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        createdAt: r.createdAt,
+        user: {
+          id: r.user.id,
+          name: r.user.name,
+          image: r.user.image,
+        },
+      })),
+      createdAt: product.createdAt,
+    };
+
+    // Résout thumbnail, banner, instructeur.image, reviews[].user.image en signed URLs.
+    return NextResponse.json({ data: await resolveStorageFields(payload) });
   } catch (err) {
     console.error("[public/produit/[slug]]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

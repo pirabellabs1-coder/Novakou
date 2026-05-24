@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
+import { resolveStorageFields } from "@/lib/storage-resolver";
 
 export async function GET() {
   try {
@@ -17,7 +18,7 @@ export async function GET() {
       ? {}
       : { users: { some: { userId } } };
 
-    const dbConversations = await prisma.conversation.findMany({
+    const dbConversationsRaw = await prisma.conversation.findMany({
       where,
       include: {
         messages: {
@@ -36,6 +37,10 @@ export async function GET() {
       },
       orderBy: { updatedAt: "desc" as const },
     });
+
+    // Résout image/avatar (paths Supabase Storage) → signed URLs avant rendering.
+    // Les champs image/avatar sont reconnus automatiquement par resolveStorageFields.
+    const dbConversations = await resolveStorageFields(dbConversationsRaw);
 
     const conversations = await Promise.all(
       dbConversations.map(async (c) => {

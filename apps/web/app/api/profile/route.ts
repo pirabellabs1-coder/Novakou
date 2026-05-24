@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { IS_DEV } from "@/lib/env";
+import { resolveStorageFields } from "@/lib/storage-resolver";
 
 /**
  * Generic user profile endpoint, role-agnostic.
@@ -50,7 +51,8 @@ export async function GET() {
     return NextResponse.json({ error: "Utilisateur introuvable" }, { status: 404 });
   }
 
-  return NextResponse.json({ data: user });
+  // Résout image/avatar (paths Supabase Storage) en signed URLs fraîches.
+  return NextResponse.json({ data: await resolveStorageFields(user) });
 }
 
 export async function PATCH(req: Request) {

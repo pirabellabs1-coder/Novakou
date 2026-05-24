@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolveStorageFields } from "@/lib/storage-resolver";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -71,64 +72,66 @@ export async function GET(_req: Request, { params }: Params) {
       0
     );
 
-    return NextResponse.json({
-      data: {
-        id: formation.id,
-        slug: formation.slug,
-        title: formation.title,
-        shortDesc: formation.shortDesc,
-        description: formation.description,
-        descriptionFormat: formation.descriptionFormat,
-        learnPoints: formation.learnPoints,
-        requirements: formation.requirements,
-        targetAudience: formation.targetAudience,
-        locale: formation.locale,
-        thumbnail: formation.thumbnail,
-        previewVideo: formation.previewVideo,
-        level: formation.level,
-        languages: formation.language,
-        duration: formation.duration,
-        price: formation.price,
-        originalPrice: formation.originalPrice,
-        isFree: formation.isFree,
-        hasCertificate: formation.hasCertificate,
-        maxStudents: formation.maxStudents,
-        rating: formation.rating,
-        reviewsCount: formation.reviewsCount,
-        studentsCount: formation.studentsCount,
-        viewsCount: formation.viewsCount,
-        totalLessons,
-        category: formation.category,
-        instructeur: {
-          id: formation.instructeur.id,
-          userId: formation.instructeur.user.id,
-          name: formation.instructeur.user.name,
-          image: formation.instructeur.user.image,
-          bio: formation.instructeur.bioFr,
-          expertise: formation.instructeur.expertise,
-          yearsExp: formation.instructeur.yearsExp,
-          marketingPixels: formation.instructeur.marketingPixels ?? [],
-        },
-        sections: formation.sections.map((s) => ({
-          id: s.id,
-          title: s.title,
-          order: s.order,
-          lessons: s.lessons,
-          lessonCount: s.lessons.length,
-          duration: s.lessons.reduce((sum: number, l: { duration: number | null }) => sum + (l.duration ?? 0), 0),
-        })),
-        reviews: formation.reviews.map((r) => ({
-          id: r.id,
-          rating: r.rating,
-          comment: r.comment,
-          response: r.response,
-          respondedAt: r.respondedAt,
-          createdAt: r.createdAt,
-          user: r.user,
-        })),
-        createdAt: formation.createdAt,
+    // Construit la payload puis résout tous les paths image (thumbnail,
+    // instructeur.image, reviews[].user.image) en signed URLs.
+    const payload = {
+      id: formation.id,
+      slug: formation.slug,
+      title: formation.title,
+      shortDesc: formation.shortDesc,
+      description: formation.description,
+      descriptionFormat: formation.descriptionFormat,
+      learnPoints: formation.learnPoints,
+      requirements: formation.requirements,
+      targetAudience: formation.targetAudience,
+      locale: formation.locale,
+      thumbnail: formation.thumbnail,
+      previewVideo: formation.previewVideo,
+      level: formation.level,
+      languages: formation.language,
+      duration: formation.duration,
+      price: formation.price,
+      originalPrice: formation.originalPrice,
+      isFree: formation.isFree,
+      hasCertificate: formation.hasCertificate,
+      maxStudents: formation.maxStudents,
+      rating: formation.rating,
+      reviewsCount: formation.reviewsCount,
+      studentsCount: formation.studentsCount,
+      viewsCount: formation.viewsCount,
+      totalLessons,
+      category: formation.category,
+      instructeur: {
+        id: formation.instructeur.id,
+        userId: formation.instructeur.user.id,
+        name: formation.instructeur.user.name,
+        image: formation.instructeur.user.image,
+        bio: formation.instructeur.bioFr,
+        expertise: formation.instructeur.expertise,
+        yearsExp: formation.instructeur.yearsExp,
+        marketingPixels: formation.instructeur.marketingPixels ?? [],
       },
-    });
+      sections: formation.sections.map((s) => ({
+        id: s.id,
+        title: s.title,
+        order: s.order,
+        lessons: s.lessons,
+        lessonCount: s.lessons.length,
+        duration: s.lessons.reduce((sum: number, l: { duration: number | null }) => sum + (l.duration ?? 0), 0),
+      })),
+      reviews: formation.reviews.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        response: r.response,
+        respondedAt: r.respondedAt,
+        createdAt: r.createdAt,
+        user: r.user,
+      })),
+      createdAt: formation.createdAt,
+    };
+
+    return NextResponse.json({ data: await resolveStorageFields(payload) });
   } catch (err) {
     console.error("[public/formation/[slug]]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
