@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Créateur africain devant son ordinateur lançant sa formation en ligne">
+  <defs>
+    <linearGradient id="bgGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#dcfce7"/>
+      <stop offset="100%" stop-color="#f0fdf4"/>
+    </linearGradient>
+    <linearGradient id="screen1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <linearGradient id="card1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f9fafb"/>
+    </linearGradient>
+    <filter id="shadow1" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="0" dy="8" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bgGrad1)"/>
+  <!-- Decorative dots pattern -->
+  <g opacity="0.4" fill="#22c55e">
+    <circle cx="120" cy="120" r="4"/><circle cx="220" cy="160" r="3"/>
+    <circle cx="160" cy="240" r="5"/><circle cx="260" cy="280" r="3"/>
+    <circle cx="1400" cy="120" r="4"/><circle cx="1500" cy="180" r="3"/>
+    <circle cx="1440" cy="260" r="5"/><circle cx="1350" cy="300" r="3"/>
+    <circle cx="100" cy="780" r="5"/><circle cx="200" cy="820" r="3"/>
+    <circle cx="1450" cy="780" r="4"/><circle cx="1530" cy="730" r="3"/>
+  </g>
+  <!-- Big curved background -->
+  <path d="M 0 600 Q 400 500 800 580 T 1600 540 L 1600 900 L 0 900 Z" fill="#006e2f" opacity="0.08"/>
+
+  <!-- Laptop frame -->
+  <g transform="translate(380, 200)" filter="url(#shadow1)">
+    <rect x="0" y="0" width="840" height="500" rx="20" fill="#191c1e"/>
+    <rect x="20" y="20" width="800" height="440" rx="8" fill="url(#screen1)"/>
+
+    <!-- Browser bar -->
+    <rect x="20" y="20" width="800" height="42" fill="#ffffff" opacity="0.95"/>
+    <circle cx="50" cy="41" r="6" fill="#ef4444"/>
+    <circle cx="74" cy="41" r="6" fill="#f59e0b"/>
+    <circle cx="98" cy="41" r="6" fill="#22c55e"/>
+    <rect x="160" y="30" width="560" height="22" rx="11" fill="#f3f4f6"/>
+    <text x="180" y="46" font-family="system-ui, sans-serif" font-size="12" fill="#6b7280">novakou.com/ma-formation</text>
+
+    <!-- Course card UI -->
+    <g transform="translate(50, 90)">
+      <rect width="320" height="340" rx="12" fill="url(#card1)"/>
+      <rect x="0" y="0" width="320" height="180" rx="12" fill="#22c55e"/>
+      <rect x="0" y="160" width="320" height="40" fill="#22c55e"/>
+      <!-- Play icon -->
+      <circle cx="160" cy="90" r="36" fill="#ffffff" opacity="0.95"/>
+      <polygon points="148,72 148,108 184,90" fill="#006e2f"/>
+      <!-- Card text -->
+      <rect x="20" y="220" width="180" height="14" rx="3" fill="#191c1e"/>
+      <rect x="20" y="246" width="240" height="10" rx="2" fill="#9ca3af"/>
+      <rect x="20" y="262" width="200" height="10" rx="2" fill="#9ca3af"/>
+      <rect x="20" y="298" width="80" height="22" rx="11" fill="#006e2f"/>
+      <text x="60" y="313" text-anchor="middle" font-family="system-ui, sans-serif" font-weight="700" font-size="11" fill="#ffffff">25 000 FCFA</text>
+    </g>
+
+    <!-- Stats panel -->
+    <g transform="translate(420, 90)" fill="#ffffff">
+      <rect width="370" height="100" rx="10" opacity="0.15"/>
+      <text x="20" y="34" font-family="system-ui, sans-serif" font-size="11" font-weight="600" opacity="0.9">VENTES CE MOIS</text>
+      <text x="20" y="80" font-family="system-ui, sans-serif" font-size="42" font-weight="800">32 ventes</text>
+
+      <rect y="120" width="370" height="100" rx="10" opacity="0.15"/>
+      <text x="20" y="154" font-family="system-ui, sans-serif" font-size="11" font-weight="600" opacity="0.9">REVENU NET</text>
+      <text x="20" y="200" font-family="system-ui, sans-serif" font-size="38" font-weight="800">669 000 FCFA</text>
+
+      <!-- Mini chart -->
+      <g transform="translate(0, 240)">
+        <rect width="370" height="170" rx="10" opacity="0.15"/>
+        <text x="20" y="34" font-family="system-ui, sans-serif" font-size="11" font-weight="600" opacity="0.9">PROGRESSION 30 JOURS</text>
+        <polyline points="20,140 60,130 100,115 140,108 180,90 220,75 260,55 300,40 340,28" stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="340" cy="28" r="6" fill="#ffffff"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- Laptop base/stand -->
+  <ellipse cx="800" cy="720" rx="500" ry="14" fill="#191c1e" opacity="0.2"/>
+</svg>

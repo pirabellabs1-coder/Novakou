@@ -1,10 +1,11 @@
 // @ts-nocheck
 // Legacy file with type drift - runtime behavior preserved, type checking skipped.
 
-// sitemap.ts — Sitemap dynamique Novakou (formations + produits + mentors + boutiques)
+// sitemap.ts — Sitemap dynamique Novakou (formations + produits + mentors + boutiques + blog)
 // Regénéré toutes les 60 secondes via ISR.
 
 import { MetadataRoute } from "next";
+import { BLOG_ARTICLES } from "@/lib/blog/articles";
 
 export const revalidate = 60;
 
@@ -45,6 +46,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/cookies`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/connexion`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/inscription`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.4 },
+    // Blog index + articles individuels
+    { url: `${BASE_URL}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    ...BLOG_ARTICLES.map((article) => ({
+      url: `${BASE_URL}/blog/${article.slug}`,
+      lastModified: new Date(article.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
   ];
 
   if (IS_DEV) return staticRoutes;

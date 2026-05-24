@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Téléphone affichant des paiements Mobile Money entrant">
+  <defs>
+    <linearGradient id="bgMM" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <linearGradient id="phoneScr" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <filter id="shadowMM" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+      <feOffset dx="0" dy="10" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.18"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bgMM)"/>
+
+  <!-- Floating coins/dots -->
+  <g opacity="0.4">
+    <circle cx="200" cy="200" r="6" fill="#f59e0b"/>
+    <circle cx="280" cy="150" r="4" fill="#22c55e"/>
+    <circle cx="1380" cy="180" r="5" fill="#f59e0b"/>
+    <circle cx="1450" cy="240" r="4" fill="#22c55e"/>
+    <circle cx="120" cy="730" r="6" fill="#22c55e"/>
+    <circle cx="1500" cy="750" r="5" fill="#f59e0b"/>
+  </g>
+
+  <!-- Phone (center) -->
+  <g transform="translate(680, 130)" filter="url(#shadowMM)">
+    <rect x="0" y="0" width="240" height="500" rx="32" fill="#191c1e"/>
+    <rect x="10" y="10" width="220" height="480" rx="24" fill="url(#phoneScr)"/>
+    <!-- Notch -->
+    <rect x="95" y="20" width="50" height="14" rx="7" fill="#191c1e"/>
+    <!-- Top status -->
+    <text x="120" y="68" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" font-weight="600" fill="#ffffff" opacity="0.9">WAVE</text>
+    <!-- Big amount -->
+    <text x="120" y="180" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#ffffff" opacity="0.85">Nouveau paiement</text>
+    <text x="120" y="230" text-anchor="middle" font-family="system-ui, sans-serif" font-size="36" font-weight="800" fill="#ffffff">+25 000</text>
+    <text x="120" y="256" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="500" fill="#ffffff" opacity="0.85">FCFA</text>
+    <!-- Confirm button -->
+    <rect x="40" y="290" width="160" height="42" rx="21" fill="#ffffff"/>
+    <text x="120" y="317" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#006e2f">Reçu sur Novakou ✓</text>
+    <!-- Mini items -->
+    <g transform="translate(20, 360)">
+      <rect width="200" height="44" rx="10" fill="#ffffff" opacity="0.15"/>
+      <text x="14" y="22" font-family="system-ui, sans-serif" font-size="10" font-weight="600" fill="#ffffff" opacity="0.85">FORMATION EXCEL</text>
+      <text x="14" y="38" font-family="system-ui, sans-serif" font-size="9" fill="#ffffff" opacity="0.7">Mobile Money · Wave</text>
+    </g>
+    <g transform="translate(20, 416)">
+      <rect width="200" height="44" rx="10" fill="#ffffff" opacity="0.15"/>
+      <text x="14" y="22" font-family="system-ui, sans-serif" font-size="10" font-weight="600" fill="#ffffff" opacity="0.85">EBOOK STRATÉGIE</text>
+      <text x="14" y="38" font-family="system-ui, sans-serif" font-size="9" fill="#ffffff" opacity="0.7">Mobile Money · Orange</text>
+    </g>
+  </g>
+
+  <!-- Left card: Orange Money -->
+  <g transform="translate(220, 320)" filter="url(#shadowMM)">
+    <rect width="280" height="130" rx="20" fill="#ffffff"/>
+    <circle cx="56" cy="65" r="32" fill="#ff7900"/>
+    <text x="56" y="71" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#ffffff">OM</text>
+    <text x="108" y="55" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">Orange Money</text>
+    <text x="108" y="76" font-family="system-ui, sans-serif" font-size="11" fill="#22c55e" font-weight="600">+15 000 FCFA</text>
+    <text x="108" y="95" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Pack templates Canva</text>
+  </g>
+
+  <!-- Right card: Wave -->
+  <g transform="translate(1080, 250)" filter="url(#shadowMM)">
+    <rect width="280" height="130" rx="20" fill="#ffffff"/>
+    <circle cx="56" cy="65" r="32" fill="#1dc8eb"/>
+    <text x="56" y="71" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="800" fill="#ffffff">W</text>
+    <text x="108" y="55" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">Wave</text>
+    <text x="108" y="76" font-family="system-ui, sans-serif" font-size="11" fill="#22c55e" font-weight="600">+35 000 FCFA</text>
+    <text x="108" y="95" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Formation marketing</text>
+  </g>
+
+  <!-- Bottom-right card: MTN MoMo -->
+  <g transform="translate(1080, 450)" filter="url(#shadowMM)">
+    <rect width="280" height="130" rx="20" fill="#ffffff"/>
+    <circle cx="56" cy="65" r="32" fill="#ffcc00"/>
+    <text x="56" y="71" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="800" fill="#191c1e">MTN</text>
+    <text x="108" y="55" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">MTN MoMo</text>
+    <text x="108" y="76" font-family="system-ui, sans-serif" font-size="11" fill="#22c55e" font-weight="600">+50 000 FCFA</text>
+    <text x="108" y="95" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Coaching individuel</text>
+  </g>
+
+  <!-- Title overlay -->
+  <text x="800" y="800" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="800" fill="#191c1e">Tous les Mobile Money en un seul dashboard</text>
+</svg>

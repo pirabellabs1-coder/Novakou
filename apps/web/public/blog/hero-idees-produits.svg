@@ -1,0 +1,108 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Tableau d'idées et brainstorming créatif">
+  <defs>
+    <linearGradient id="bgIP" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fffbeb"/>
+    </linearGradient>
+    <filter id="shadowIP" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+      <feOffset dx="0" dy="6" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.12"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bgIP)"/>
+
+  <!-- Background grid -->
+  <g opacity="0.15" stroke="#b45309" stroke-width="1">
+    <line x1="0" y1="200" x2="1600" y2="200"/>
+    <line x1="0" y1="400" x2="1600" y2="400"/>
+    <line x1="0" y1="600" x2="1600" y2="600"/>
+    <line x1="400" y1="0" x2="400" y2="900"/>
+    <line x1="800" y1="0" x2="800" y2="900"/>
+    <line x1="1200" y1="0" x2="1200" y2="900"/>
+  </g>
+
+  <!-- Lightbulb central -->
+  <g transform="translate(720, 280)">
+    <circle cx="80" cy="80" r="120" fill="#f59e0b" opacity="0.15"/>
+    <circle cx="80" cy="80" r="80" fill="#f59e0b" opacity="0.3"/>
+    <!-- bulb shape -->
+    <path d="M 80 20 C 110 20 130 45 130 75 C 130 95 120 110 110 120 L 110 140 L 50 140 L 50 120 C 40 110 30 95 30 75 C 30 45 50 20 80 20 Z" fill="#fbbf24" stroke="#b45309" stroke-width="3"/>
+    <rect x="55" y="142" width="50" height="8" rx="2" fill="#b45309"/>
+    <rect x="60" y="152" width="40" height="6" rx="2" fill="#92400e"/>
+    <!-- shine -->
+    <line x1="80" y1="-15" x2="80" y2="5" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="-15" y1="80" x2="5" y2="80" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="160" y1="80" x2="180" y2="80" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="20" y1="20" x2="32" y2="32" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+    <line x1="128" y1="32" x2="140" y2="20" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+  </g>
+
+  <!-- Idea sticky notes around -->
+  <!-- Note 1: Ebook -->
+  <g transform="translate(150, 180) rotate(-6)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#fef08a"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">EBOOK</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Réussir son entretien d'embauche au Sénégal</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">3 500 FCFA</text>
+  </g>
+
+  <!-- Note 2: Formation -->
+  <g transform="translate(380, 130) rotate(3)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#bfdbfe"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">FORMATION</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Maîtriser Excel pour reporting pro</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">25 000 FCFA</text>
+  </g>
+
+  <!-- Note 3: Templates -->
+  <g transform="translate(1080, 150) rotate(-4)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#bbf7d0"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">TEMPLATES</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Pack Canva pour Salon de Coiffure</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">10 000 FCFA</text>
+  </g>
+
+  <!-- Note 4: Audio -->
+  <g transform="translate(1320, 220) rotate(5)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#f9a8d4"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">COACHING</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Lancement business 3 mois</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">150 000 FCFA</text>
+  </g>
+
+  <!-- Note 5: Mini-cours -->
+  <g transform="translate(180, 580) rotate(4)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#ddd6fe"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">MINI-COURS</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Vendre sur Instagram en 5 jours</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">15 000 FCFA</text>
+  </g>
+
+  <!-- Note 6: Mastermind -->
+  <g transform="translate(420, 630) rotate(-3)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#fed7aa"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">MASTERMIND</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Cohorte 10 entrepreneurs</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">500 000 FCFA</text>
+  </g>
+
+  <!-- Note 7: Templates Excel -->
+  <g transform="translate(1080, 600) rotate(2)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#fbcfe8"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">PACK EXCEL</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">10 fichiers comptabilité PME</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">10 000 FCFA</text>
+  </g>
+
+  <!-- Note 8: Anglais -->
+  <g transform="translate(1310, 660) rotate(-5)" filter="url(#shadowIP)">
+    <rect width="180" height="180" fill="#a7f3d0"/>
+    <text x="20" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="700" fill="#191c1e">FORMATION</text>
+    <text x="20" y="80" font-family="system-ui, sans-serif" font-size="12" fill="#374151">Anglais business pour emploi remote</text>
+    <text x="20" y="155" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">50 000 FCFA</text>
+  </g>
+
+  <text x="800" y="820" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" font-weight="800" fill="#191c1e">10 idées de produits digitaux qui se vendent en Afrique</text>
+</svg>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { RevenueSimulator } from "@/components/formations/RevenueSimulator";
 import { CreatorsJoinBadge, HeroBadge } from "@/components/formations/PublicStatsBadge";
 import { BestSellers } from "@/components/formations/BestSellers";
+import { getLatestArticles } from "@/lib/blog/articles";
 
 export const metadata: Metadata = {
   title: "Novakou | Vendez vos formations partout en Afrique francophone",
@@ -956,6 +957,80 @@ export default async function FormationsPage() {
                 style={{ backgroundColor: COLORS.primary, color: "#fff", ...satoshi }}
               >
                 Voir tous les guides
+                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════ */}
+        {/* 11.5 BLOG — 3 derniers articles                              */}
+        {/* ═══════════════════════════════════════════════════════════ */}
+        <section className="w-full py-12 md:py-24 px-4 sm:px-6 bg-white">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-10 md:mb-14">
+              <CategoryPill>Blog Novakou</CategoryPill>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
+                Vendre digital en Afrique, on en parle.
+              </h2>
+              <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
+                Méthodes éprouvées, cas pratiques et stratégies de créateurs qui ont réussi. Mis à jour chaque mois.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+              {getLatestArticles(3).map((article) => (
+                <Link
+                  key={article.slug}
+                  href={`/blog/${article.slug}`}
+                  className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                >
+                  <div className="relative h-48 overflow-hidden bg-gray-50">
+                    <Image
+                      src={article.heroImage}
+                      alt={article.heroAlt}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span
+                        className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                        style={{ backgroundColor: "#dcfce7", color: "#047857" }}
+                      >
+                        {article.category}
+                      </span>
+                      <span className="text-[10px] text-gray-600">
+                        {article.readingMinutes} min
+                      </span>
+                    </div>
+                    <h3
+                      className="text-lg font-extrabold mb-2 group-hover:text-[#006e2f] transition-colors leading-snug"
+                      style={{ ...satoshi, color: COLORS.dark }}
+                    >
+                      {article.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
+                      {article.excerpt}
+                    </p>
+                    <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: COLORS.primary }}>
+                      Lire l'article <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Bouton "Voir plus" → /blog */}
+            <div className="mt-10 text-center">
+              <Link
+                href="/blog"
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-base transition-all hover:shadow-lg hover:-translate-y-0.5"
+                style={{ backgroundColor: COLORS.primary, color: "#fff", ...satoshi }}
+              >
+                Voir tous les articles
                 <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
               </Link>
             </div>

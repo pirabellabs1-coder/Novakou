@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-label="Créatrice africaine célébrant ses premières ventes en ligne">
+  <defs>
+    <linearGradient id="bgAi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fce7f3"/>
+      <stop offset="100%" stop-color="#fdf2f8"/>
+    </linearGradient>
+    <linearGradient id="card2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#fafafa"/>
+    </linearGradient>
+    <linearGradient id="successGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006e2f"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+    <filter id="shadowAi" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="12"/>
+      <feOffset dx="0" dy="8" result="o"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.15"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bgAi)"/>
+
+  <!-- Confetti -->
+  <g opacity="0.5">
+    <rect x="120" y="120" width="8" height="20" rx="2" fill="#22c55e" transform="rotate(15 124 130)"/>
+    <rect x="220" y="80" width="6" height="16" rx="2" fill="#f59e0b" transform="rotate(-25 223 88)"/>
+    <rect x="320" y="160" width="8" height="20" rx="2" fill="#ec4899" transform="rotate(30 324 170)"/>
+    <rect x="180" y="240" width="6" height="14" rx="2" fill="#5b21b6" transform="rotate(-15 183 247)"/>
+    <rect x="1280" y="100" width="8" height="20" rx="2" fill="#22c55e" transform="rotate(-20 1284 110)"/>
+    <rect x="1400" y="60" width="6" height="16" rx="2" fill="#f59e0b" transform="rotate(20 1403 68)"/>
+    <rect x="1340" y="200" width="8" height="20" rx="2" fill="#ec4899" transform="rotate(-35 1344 210)"/>
+    <rect x="1450" y="170" width="6" height="14" rx="2" fill="#5b21b6" transform="rotate(15 1453 177)"/>
+  </g>
+
+  <!-- Big success card center -->
+  <g transform="translate(560, 110)" filter="url(#shadowAi)">
+    <rect width="480" height="640" rx="24" fill="url(#card2)"/>
+
+    <!-- Header gradient -->
+    <rect width="480" height="200" rx="24" fill="url(#successGrad)"/>
+    <rect width="480" height="40" y="180" fill="url(#successGrad)"/>
+
+    <!-- Avatar circle -->
+    <circle cx="240" cy="110" r="60" fill="#ffffff"/>
+    <text x="240" y="125" text-anchor="middle" font-family="system-ui, sans-serif" font-size="48" font-weight="800" fill="#006e2f">A</text>
+
+    <!-- Sub text -->
+    <text x="240" y="220" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#ffffff" opacity="0.95">Aïcha · Dakar, Sénégal</text>
+
+    <!-- KPI -->
+    <g transform="translate(40, 280)">
+      <text x="200" y="0" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700" fill="#9ca3af" letter-spacing="2">REVENU 30 JOURS</text>
+      <text x="200" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="64" font-weight="800" fill="#191c1e">669 000</text>
+      <text x="200" y="116" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="700" fill="#6b7280">FCFA net</text>
+      <text x="200" y="148" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#22c55e">≈ 1 020 € en 1 mois</text>
+    </g>
+
+    <!-- Stats row -->
+    <g transform="translate(40, 470)">
+      <rect width="400" height="80" rx="12" fill="#f0fdf4"/>
+      <g transform="translate(20, 22)">
+        <text font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">VENTES</text>
+        <text y="32" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="#191c1e">32</text>
+      </g>
+      <g transform="translate(140, 22)">
+        <text font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">PRIX MOYEN</text>
+        <text y="32" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="#191c1e">25k</text>
+      </g>
+      <g transform="translate(260, 22)">
+        <text font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#047857">CAPITAL</text>
+        <text y="32" font-family="system-ui, sans-serif" font-size="24" font-weight="800" fill="#191c1e">0 FCFA</text>
+      </g>
+    </g>
+
+    <text x="240" y="600" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">"Formation Excel pour reporting pro"</text>
+  </g>
+
+  <!-- Left small card: timeline -->
+  <g transform="translate(100, 250)" filter="url(#shadowAi)">
+    <rect width="380" height="400" rx="16" fill="#ffffff"/>
+    <text x="24" y="40" font-family="system-ui, sans-serif" font-size="14" font-weight="800" fill="#191c1e">📅 Timeline 30 jours</text>
+
+    <g transform="translate(24, 70)" font-family="system-ui, sans-serif">
+      <g transform="translate(0, 0)">
+        <circle cx="8" cy="8" r="8" fill="#22c55e"/>
+        <text x="28" y="14" font-size="12" font-weight="700" fill="#191c1e">Semaine 1 — Idée + validation</text>
+        <text x="28" y="32" font-size="11" fill="#6b7280">5 messages WhatsApp test</text>
+      </g>
+      <g transform="translate(0, 70)">
+        <circle cx="8" cy="8" r="8" fill="#22c55e"/>
+        <text x="28" y="14" font-size="12" font-weight="700" fill="#191c1e">Semaine 2 — Production</text>
+        <text x="28" y="32" font-size="11" fill="#6b7280">16 vidéos · smartphone + micro 3 500 FCFA</text>
+      </g>
+      <g transform="translate(0, 140)">
+        <circle cx="8" cy="8" r="8" fill="#22c55e"/>
+        <text x="28" y="14" font-size="12" font-weight="700" fill="#191c1e">Semaine 3 — Premières ventes</text>
+        <text x="28" y="32" font-size="11" fill="#6b7280">WhatsApp + LinkedIn organique : 12 ventes</text>
+      </g>
+      <g transform="translate(0, 210)">
+        <circle cx="8" cy="8" r="8" fill="#22c55e"/>
+        <text x="28" y="14" font-size="12" font-weight="700" fill="#191c1e">Semaine 4 — Pub Facebook</text>
+        <text x="28" y="32" font-size="11" fill="#6b7280">5-7k FCFA/j · 20 ventes additionnelles</text>
+      </g>
+      <g transform="translate(0, 290)">
+        <circle cx="8" cy="8" r="9" fill="#006e2f"/>
+        <text x="28" y="14" font-size="12" font-weight="800" fill="#006e2f">Jour 30 : 669k FCFA net 🎉</text>
+        <text x="28" y="32" font-size="11" fill="#6b7280">En parallèle d'un job à temps plein</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right small card: notifications de vente -->
+  <g transform="translate(1120, 220)" filter="url(#shadowAi)">
+    <rect width="380" height="120" rx="14" fill="#ffffff"/>
+    <circle cx="36" cy="60" r="20" fill="#22c55e"/>
+    <text x="36" y="68" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">💰</text>
+    <text x="72" y="48" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">Nouvelle vente</text>
+    <text x="72" y="68" font-family="system-ui, sans-serif" font-size="14" font-weight="800" fill="#22c55e">+25 000 FCFA via Wave</text>
+    <text x="72" y="90" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">il y a 2 min · Dakar</text>
+  </g>
+
+  <g transform="translate(1120, 360)" filter="url(#shadowAi)">
+    <rect width="380" height="120" rx="14" fill="#ffffff"/>
+    <circle cx="36" cy="60" r="20" fill="#22c55e"/>
+    <text x="36" y="68" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">💰</text>
+    <text x="72" y="48" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">Nouvelle vente</text>
+    <text x="72" y="68" font-family="system-ui, sans-serif" font-size="14" font-weight="800" fill="#22c55e">+25 000 FCFA via Orange</text>
+    <text x="72" y="90" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">il y a 14 min · Abidjan</text>
+  </g>
+
+  <g transform="translate(1120, 500)" filter="url(#shadowAi)">
+    <rect width="380" height="120" rx="14" fill="#ffffff"/>
+    <circle cx="36" cy="60" r="20" fill="#22c55e"/>
+    <text x="36" y="68" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20">💰</text>
+    <text x="72" y="48" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#191c1e">Nouvelle vente</text>
+    <text x="72" y="68" font-family="system-ui, sans-serif" font-size="14" font-weight="800" fill="#22c55e">+25 000 FCFA via Wave</text>
+    <text x="72" y="90" font-family="system-ui, sans-serif" font-size="11" fill="#6b7280">il y a 28 min · Saint-Louis</text>
+  </g>
+</svg>
