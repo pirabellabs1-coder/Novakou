@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth/config";
 import { retrievePayment as retrieveMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { retrievePayment as retrievePayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
@@ -11,10 +9,19 @@ import { prisma } from "@/lib/prisma";
  *
  * Vérifie un paiement (Moneroo ou PayGenius) ET finalise la commande
  * (crée enrollments, crédite wallet vendeur, envoie emails) en utilisant
- * la metadata stockée chez le provider — PAS besoin de session utilisateur.
+ * la metadata stockée chez le provider — PAS besoin de session utilisateur
+ * (le user revient de PayGenius/Moneroo et peut ne plus avoir son cookie
+ * NextAuth selon le navigateur et la stratégie de redirect cross-origin).
  *
- * Idempotent : si fulfillCheckout a déjà tourné (via webhook ou retour user),
- * il skip les enrollments déjà existants.
+ * Sécurité :
+ *  - L'ID paiement vient des query params, le provider est la SOURCE DE VÉRITÉ
+ *    (on appelle leur API avec notre secret pour récupérer status + metadata).
+ *  - Un attaquant ne peut PAS forger un paiement réussi : il faudrait qu'il
+ *    devine un paymentId existant déjà payé, et même là le pire scénario est
+ *    qu'il déclenche un fulfillCheckout idempotent (déjà fait par le webhook).
+ *
+ * Idempotent : si fulfillCheckout a déjà tourné (via webhook ou retour user
+ * précédent), il skip les enrollments déjà existants.
  */
 
 type Provider = "moneroo" | "paygenius";
@@ -37,12 +44,6 @@ function parseIdList(raw: unknown): string[] {
 
 export async function GET(request: Request) {
   try {
-    // FIX: Require authentication to prevent unauthorized fulfillment
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
