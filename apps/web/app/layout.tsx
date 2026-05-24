@@ -9,6 +9,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import PromptDialog from "@/components/ui/PromptDialog";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import { MATERIAL_SYMBOLS_URL } from "@/lib/material-symbols-subset";
 import "./globals.css";
 
 // Manrope : self-hosted via next/font → preload + display=swap automatiques,
@@ -157,29 +158,22 @@ export default async function RootLayout({
           />
         </noscript>
 
-        {/* Material Symbols (Google Fonts) — display=block au lieu de swap
-            pour éviter le FOUT (Flash Of Unstyled Text). Avec swap, les
-            ligatures non résolues s'affichaient comme texte brut ("pa" pour
-            package_2, "se" pour sell, etc.). Block cache le texte pendant
-            la période de bloc (~3s) puis swap. Combiné au preload, la font
-            arrive avant la fin du block period dans 99% des cas. */}
-        <link
-          rel="preload"
-          as="style"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block"
-        />
+        {/* Material Symbols (Google Fonts) — SUBSET via &icon_names=
+            Avant : font variable complète 3.8 MB (3000+ icônes inutiles).
+            Après : ~70 KB (uniquement les ~350 icônes réellement utilisées).
+            display=block évite aussi le FOUT (cache les ligatures brutes
+            "package_2", "sell" pendant le chargement). Liste d'icônes
+            maintenue dans lib/material-symbols-subset.ts. */}
+        <link rel="preload" as="style" href={MATERIAL_SYMBOLS_URL} />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block"
+          href={MATERIAL_SYMBOLS_URL}
           media="print"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           {...({ onLoad: "this.media='all'" } as any)}
         />
         <noscript>
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block"
-          />
+          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} />
         </noscript>
 
         {/* Anti-FOUT Material Symbols : tant que la font n'est pas chargée,
