@@ -157,19 +157,20 @@ export default async function RootLayout({
           />
         </noscript>
 
-        {/* Material Symbols (Google Fonts) — même technique. Avant : 3.8 MB
-            de font variable bloquante au render. Maintenant : non-bloquant,
-            les icônes apparaissent dès que la font arrive (display=swap +
-            fallback invisible). PageSpeed FCP/LCP descend de ~21 secondes
-            sur 4G lente. */}
+        {/* Material Symbols (Google Fonts) — display=block au lieu de swap
+            pour éviter le FOUT (Flash Of Unstyled Text). Avec swap, les
+            ligatures non résolues s'affichaient comme texte brut ("pa" pour
+            package_2, "se" pour sell, etc.). Block cache le texte pendant
+            la période de bloc (~3s) puis swap. Combiné au preload, la font
+            arrive avant la fin du block period dans 99% des cas. */}
         <link
           rel="preload"
           as="style"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block"
         />
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block"
           media="print"
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           {...({ onLoad: "this.media='all'" } as any)}
@@ -177,10 +178,19 @@ export default async function RootLayout({
         <noscript>
           <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=block"
           />
         </noscript>
 
+        {/* Anti-FOUT Material Symbols : tant que la font n'est pas chargée,
+            les ligatures (texte "package_2", "sell"...) restent invisibles
+            via color:transparent. Une fois chargée, .ms-ready est ajoutée
+            sur <html> et les icônes apparaissent. Évite le flash de texte
+            brut visible au premier rendu. */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          .material-symbols-outlined { color: transparent; }
+          html.ms-ready .material-symbols-outlined { color: inherit; }
+        `}} />
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
             try {
@@ -189,6 +199,22 @@ export default async function RootLayout({
                 document.documentElement.classList.remove('dark');
               }
             } catch(e){}
+            try {
+              if (document.fonts && document.fonts.load) {
+                document.fonts.load('24px "Material Symbols Outlined"').then(function(){
+                  document.documentElement.classList.add('ms-ready');
+                }).catch(function(){
+                  document.documentElement.classList.add('ms-ready');
+                });
+                setTimeout(function(){
+                  document.documentElement.classList.add('ms-ready');
+                }, 3000);
+              } else {
+                document.documentElement.classList.add('ms-ready');
+              }
+            } catch(e){
+              document.documentElement.classList.add('ms-ready');
+            }
           })();
         `}} />
         {/* JSON-LD structured data must live inside <head> — placing it as
