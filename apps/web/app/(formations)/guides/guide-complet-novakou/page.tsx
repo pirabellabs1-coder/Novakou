@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
 export const metadata: Metadata = {
   title: "Le guide complet Novakou : de l'inscription à votre première vente | Novakou",
@@ -585,6 +586,7 @@ const TOC = [
 export default function GuideCompletNovakou() {
   return (
     <main style={{ backgroundColor: C.white, ...S }}>
+      <OldGuideJsonLd slug="guide-complet-novakou" />
       {/* ======== HERO ======== */}
       <section style={{ backgroundColor: C.surface }}>
         <div className="mx-auto max-w-3xl px-5 py-12 md:py-20">

@@ -72,8 +72,17 @@ const nextConfig: NextConfig = {
     return [
       // Common 404 redirects — pages users try to access directly
       { source: "/projets", destination: "/offres-projets", permanent: true },
-      // Blog supprimé — rediriger vers les guides pour conserver le link equity
+      // Blog supprimé — chaque ex-article redirige vers le guide équivalent
+      // (mapping 1:1 quand possible, sinon vers le guide thématique le plus proche).
+      // Permanent: true → 301 → Google transfère le SEO juice vers la nouvelle URL.
       { source: "/blog", destination: "/guides", permanent: true },
+      { source: "/blog/vendre-formation-en-ligne-afrique-2026", destination: "/guides/lancement-30-jours", permanent: true },
+      { source: "/blog/mobile-money-orange-wave-mtn-guide-paiement", destination: "/guides/mobile-money-encaisser-paiements", permanent: true },
+      { source: "/blog/trouver-idee-produit-digital-rentable", destination: "/guides/trouver-son-idee-de-produit", permanent: true },
+      { source: "/blog/publicite-facebook-instagram-afrique-budget-bas", destination: "/guides/publicite-facebook", permanent: true },
+      { source: "/blog/tunnel-vente-novakou-augmenter-conversions", destination: "/guides/tunnel-de-vente-novakou", permanent: true },
+      { source: "/blog/premier-1000-euros-formation-digitale-cas-pratique", destination: "/guides/lancement-30-jours", permanent: true },
+      // Fallback : tout autre /blog/* (au cas où un nouveau lien externe pointe ici) → /guides
       { source: "/blog/:slug*", destination: "/guides", permanent: true },
       // Pages legacy non implémentées — rediriger vers la page la plus proche
       { source: "/faq", destination: "/aide", permanent: true },

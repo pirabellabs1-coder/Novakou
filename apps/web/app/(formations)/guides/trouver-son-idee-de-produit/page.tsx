@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
 export const metadata: Metadata = {
   title:
@@ -221,6 +222,7 @@ const TOC = [
 export default function TrouverSonIdeePage() {
   return (
     <div style={{ backgroundColor: C.surface, color: C.dark, ...S }}>
+      <OldGuideJsonLd slug="trouver-son-idee-de-produit" />
       {/* ───────────────── HERO ───────────────── */}
       <section
         className="pt-8 pb-16"

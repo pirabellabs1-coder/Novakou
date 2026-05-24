@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
 export const metadata: Metadata = {
   title:
@@ -149,6 +150,7 @@ function FunnelStep({ num, emoji, title, desc, kpi }: { num: number; emoji: stri
 export default function TunnelDeVenteNovakou() {
   return (
     <div style={{ ...S, backgroundColor: C.white, color: C.dark }}>
+      <OldGuideJsonLd slug="tunnel-de-vente-novakou" />
 
       {/* ── Hero ── */}
       <section

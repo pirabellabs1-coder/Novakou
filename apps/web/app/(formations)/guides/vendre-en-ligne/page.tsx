@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
 export const metadata: Metadata = {
   title: "Comment vendre ses formations en ligne en Afrique | Guide complet 2026 · Novakou",
@@ -197,6 +198,7 @@ function SubHeading({ children }: { children: React.ReactNode }) {
 export default function VendreEnLignePage() {
   return (
     <div style={{ ...S, minHeight: "100vh", background: "white" }}>
+      <OldGuideJsonLd slug="vendre-en-ligne" />
       {/* ================================================================ */}
       {/*  HERO                                                            */}
       {/* ================================================================ */}

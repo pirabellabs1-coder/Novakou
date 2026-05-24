@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
 export const metadata: Metadata = {
   title: "Comment rédiger une description de formation irrésistible | Guide Novakou 2026",
@@ -187,6 +188,7 @@ function SubHeading({ children }: { children: React.ReactNode }) {
 export default function DescriptionProduitPage() {
   return (
     <div style={{ ...S, minHeight: "100vh", background: "white" }}>
+      <OldGuideJsonLd slug="description-produit" />
       {/* ================================================================ */}
       {/*  HERO                                                            */}
       {/* ================================================================ */}

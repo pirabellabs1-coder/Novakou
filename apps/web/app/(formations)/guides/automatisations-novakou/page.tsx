@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
 export const metadata: Metadata = {
   title:
@@ -196,6 +197,7 @@ function AutoStep({
 export default function AutomatisationsNovakou() {
   return (
     <div style={{ ...S, backgroundColor: C.white, color: C.dark }}>
+      <OldGuideJsonLd slug="automatisations-novakou" />
       {/* ── Hero ── */}
       <section
         className="relative py-16 px-4 sm:px-6"
