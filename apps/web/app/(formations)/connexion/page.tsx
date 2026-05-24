@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { signIn, getSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { signIn, getSession, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { getDashboardForFormationsRole } from "@/lib/formations/role-routing";
@@ -11,12 +11,32 @@ function ConnexionInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrlParam = searchParams.get("callbackUrl");
+  const { data: existingSession, status } = useSession();
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    const user = existingSession?.user as {
+      role?: string;
+      formationsRole?: string;
+      tfaPending?: boolean;
+    } | undefined;
+    if (user?.tfaPending) {
+      router.replace(`/2fa?callbackUrl=${encodeURIComponent(callbackUrlParam ?? "/")}`);
+      return;
+    }
+    const target = callbackUrlParam ?? getDashboardForFormationsRole(
+      user?.formationsRole as "apprenant" | "instructeur" | "mentor" | "affilie" | undefined,
+      user?.role,
+      { excludeApprenant: true }
+    );
+    router.replace(target.startsWith("/apprenant") ? "/acheteur/connexion?wrongPortal=1" : target);
+  }, [callbackUrlParam, existingSession, router, status]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

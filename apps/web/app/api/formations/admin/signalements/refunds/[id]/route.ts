@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
-import { Resend } from "resend";
+import { resend } from "@/lib/email/resend-client";
 import { createAuditLog } from "@/lib/admin/audit";
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const FROM = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";
 
 function refundDecisionHtml(firstName: string, formationTitle: string, amount: number, approved: boolean, note: string | null): string {

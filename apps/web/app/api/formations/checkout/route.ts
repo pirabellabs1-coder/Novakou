@@ -59,7 +59,8 @@ export async function POST(request: Request) {
             email,
             name: body.guestName?.trim() || email.split("@")[0],
             passwordHash: random, // user must reset to login
-            role: "APPRENANT",
+            // Schema UserRole n'a pas APPRENANT — un acheteur de formation est mappé à CLIENT.
+            role: "CLIENT",
             status: "ACTIF",
           },
         });

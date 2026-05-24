@@ -25,6 +25,12 @@ import {
 import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
 import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
 import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
+import { resolveStorageFileUrl } from "@/lib/supabase-storage";
+
+// Signed URLs Supabase expirent par défaut en 1h. Pour un email transactionnel
+// qui peut rester non-lu plusieurs jours, on prend 7 jours. Au-delà, l'utilisateur
+// utilise le lien magique vers /apprenant/mes-produits qui régénère un URL frais.
+const EMAIL_LINK_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export interface FulfillParams {
   userId: string;
@@ -389,14 +395,32 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   for (const p of products) {
     const created = createdPurchases.find((q) => q.title === p.title);
     if (!created) continue;
+
+    // Les valeurs stockées en DB (p.files[].url, p.fileUrl) peuvent être :
+    //  - un chemin Supabase Storage brut (ex: "user-abc/123.pdf")
+    //  - une signed URL déjà expirée (créée à l'upload, TTL 1h)
+    //  - une URL publique externe (Cloudinary, etc.)
+    // resolveStorageFileUrl() gère les 3 cas et régénère un signed URL frais avec TTL email.
+    const dashboardFallback = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/mes-produits`;
+    const resolvedFiles = Array.isArray(p.files) && p.files.length > 0
+      ? await Promise.all(
+          p.files.map(async (f) => ({
+            name: f.name,
+            url: (await resolveStorageFileUrl(f.url, "order-deliveries", EMAIL_LINK_TTL_SECONDS)) || dashboardFallback,
+          })),
+        )
+      : [];
     const downloadUrl =
-      p.files?.[0]?.url ?? p.fileUrl ?? `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/apprenant/mes-produits`;
+      resolvedFiles[0]?.url
+      ?? (await resolveStorageFileUrl(p.fileUrl, "order-deliveries", EMAIL_LINK_TTL_SECONDS))
+      ?? dashboardFallback;
+
     sendDigitalProductDeliveryEmail({
       email: user.email,
       name: fName,
       productTitle: p.title,
       downloadUrl,
-      files: Array.isArray(p.files) && p.files.length > 0 ? p.files : undefined,
+      files: resolvedFiles.length > 0 ? resolvedFiles : undefined,
       locale: "fr",
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
 

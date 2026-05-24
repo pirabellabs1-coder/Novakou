@@ -79,6 +79,26 @@ export default function ProduitsPage() {
 
   const downloadedCount = purchases.filter((p) => p.downloadCount > 0 || downloaded.has(p.id)).length;
 
+  // Force le download au lieu d'ouvrir le fichier (PDF inline, audio dans
+  // l'onglet, etc.). On crée un `<a download>` invisible et on le click via
+  // JS — combiné au header Content-Disposition: attachment ajouté côté
+  // serveur (cf. /api/formations/apprenant/products/[id]/download/route.ts
+  // qui passe `download: file.name` à Supabase), le navigateur déclenche
+  // la sauvegarde immédiate au lieu d'une navigation.
+  const triggerDownload = (url: string, filename?: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    if (filename) a.download = filename;
+    // `target=_blank` reste utile si l'URL pointe vers un domaine qui
+    // ignore Content-Disposition — l'utilisateur garde au moins une preview
+    // au lieu d'un écran blanc. rel=noopener pour éviter la fuite window.opener.
+    a.rel = "noopener";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   const handleDownload = async (p: Purchase) => {
     const files = p.product?.files ?? [];
     const single = files[0]?.url ?? p.product?.fileUrl;
@@ -88,35 +108,46 @@ export default function ProduitsPage() {
       return;
     }
 
-    const placeholders = (files.length > 1 ? files : [null]).map(() => window.open("", "_blank"));
     setDownloaded((prev) => new Set([...prev, p.id]));
 
     try {
       const res = await fetch(`/api/formations/apprenant/products/${p.id}/download`, { method: "POST" });
       const data = await res.json().catch(() => null);
       const freshFiles: ProductFileLite[] = Array.isArray(data?.files) ? data.files : [];
-      const urls = freshFiles.length > 0
-        ? freshFiles.map((f) => f.url).filter(Boolean)
-        : files.length > 1
-          ? files.map((f) => f.url)
-          : single
-            ? [single]
-            : [];
 
-      urls.forEach((url, idx) => {
-        const tab = placeholders[idx] ?? window.open("", "_blank");
-        if (tab) tab.location.href = url;
-        else window.open(url, "_blank");
-      });
-      placeholders.slice(urls.length).forEach((tab) => tab?.close());
+      // Source de vérité : la réponse du POST (signed URL fraîche + nom).
+      // Fallback sur les URLs en cache local si l'appel a échoué.
+      const items: Array<{ url: string; name?: string }> =
+        freshFiles.length > 0
+          ? freshFiles.filter((f) => !!f.url).map((f) => ({ url: f.url, name: f.name }))
+          : files.length > 1
+            ? files.map((f) => ({ url: f.url, name: f.name }))
+            : single
+              ? [{ url: single, name: files[0]?.name }]
+              : [];
+
+      // Déclenche les downloads en série, avec un mini-délai entre chacun
+      // pour éviter que certains navigateurs (Safari surtout) n'ignorent
+      // les clicks consécutifs trop rapprochés.
+      for (let i = 0; i < items.length; i++) {
+        triggerDownload(items[i].url, items[i].name);
+        if (i < items.length - 1) await new Promise((r) => setTimeout(r, 250));
+      }
       qc.invalidateQueries({ queryKey: ["apprenant-products"] });
     } catch {
-      const urls = files.length > 1 ? files.map((f) => f.url) : single ? [single] : [];
-      urls.forEach((url, idx) => {
-        const tab = placeholders[idx] ?? window.open("", "_blank");
-        if (tab) tab.location.href = url;
-        else window.open(url, "_blank");
-      });
+      // Fallback offline : tente quand même les URLs en cache (peuvent être
+      // expirées, mais c'est mieux que rien — l'erreur s'affichera dans le
+      // navigateur plutôt que dans un toast silencieux).
+      const items = files.length > 1
+        ? files.map((f) => ({ url: f.url, name: f.name }))
+        : single
+          ? [{ url: single, name: files[0]?.name }]
+          : [];
+      for (let i = 0; i < items.length; i++) {
+        triggerDownload(items[i].url, items[i].name);
+        if (i < items.length - 1) await new Promise((r) => setTimeout(r, 250));
+      }
+      useToastStore.getState().addToast("error", "Erreur réseau — si le téléchargement ne démarre pas, réessayez.");
     }
   };
 
@@ -271,7 +302,7 @@ export default function ProduitsPage() {
                         )}
                         <a
                           href={f.url}
-                          target="_blank"
+                          download={f.name || true}
                           rel="noopener noreferrer"
                           className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] hover:underline flex-shrink-0"
                         >

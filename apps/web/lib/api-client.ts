@@ -270,15 +270,15 @@ export const ordersApi = {
 };
 
 // ── Finances ──
-
-export const financesApi = {
-  summary: () => fetchApi<ApiFinanceSummary>("/api/finances/summary"),
-
-  transactions: () => fetchApi<{ transactions: ApiTransaction[] }>("/api/finances/transactions"),
-
-  withdrawal: (data: { amount: number; method: string; details?: string }) =>
-    fetchApi<{ transaction: ApiTransaction }>("/api/finances/withdrawal", { method: "POST", body: JSON.stringify(data) }),
-};
+//
+// SUPPRIMÉ : `financesApi` exposait /api/finances/summary, /transactions et
+// /withdrawal — toutes des routes héritées de FreelanceHigh (modèles
+// WalletAgency / WalletFreelance / WalletTransaction supprimés). Aucun appel
+// frontend n'utilisait cet export ; il est retiré pour éviter qu'un nouveau
+// dev s'y branche par erreur. Pour les flux Novakou actuels :
+//   - vendeur : /api/formations/vendeur/dashboard, /transactions, /withdrawal
+//   - apprenant : /api/formations/apprenant/dashboard, /spending
+//   - affilié : /api/formations/affilie/stats, /retraits
 
 // ── Profile ──
 

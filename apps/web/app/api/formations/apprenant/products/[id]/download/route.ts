@@ -58,18 +58,28 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
       select: { downloadCount: true },
     });
 
+    // On passe `download: file.name` à resolveStorageFileUrl pour que Supabase
+    // ajoute Content-Disposition: attachment sur la réponse. Sinon le PDF
+    // s'ouvre dans le navigateur au lieu d'être téléchargé. Le filename
+    // exposé à l'utilisateur est le nom propre du fichier (saisi par le
+    // vendeur), pas le path obscur du bucket.
     const files = purchase.product?.files?.length
       ? await Promise.all(
           purchase.product.files.map(async (file) => ({
             ...file,
-            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600),
+            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600, file.name || true),
           })),
         )
       : purchase.product?.fileUrl
         ? [{
             id: "legacy-file",
             name: purchase.product.fileUrl.split("?")[0].split("/").pop() ?? "fichier",
-            url: await resolveStorageFileUrl(purchase.product.fileUrl, "order-deliveries", 3600),
+            url: await resolveStorageFileUrl(
+              purchase.product.fileUrl,
+              "order-deliveries",
+              3600,
+              purchase.product.fileUrl.split("?")[0].split("/").pop() || true,
+            ),
             size: null,
             mimeType: null,
           }]

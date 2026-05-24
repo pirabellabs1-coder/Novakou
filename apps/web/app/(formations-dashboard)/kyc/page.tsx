@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastStore } from "@/store/toast";
 
@@ -58,6 +57,7 @@ export default function KycPage() {
   const [targetLevel, setTargetLevel] = useState<2 | 4>(2);
   const [documentType, setDocumentType] = useState("CNI");
   const [documentUrl, setDocumentUrl] = useState("");
+  const [documentPreviewUrl, setDocumentPreviewUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +83,8 @@ export default function KycPage() {
       const res = await fetch("/api/upload/file", { method: "POST", body: form });
       const json = await res.json();
       if (json.success && json.file?.url) {
-        setDocumentUrl(json.file.url);
+        setDocumentUrl(json.file.path ?? json.file.url);
+        setDocumentPreviewUrl(json.file.url);
         setUploadedFileName(file.name);
         useToastStore.getState().addToast("success", "Document uploadé avec succès");
       } else {
@@ -120,6 +121,7 @@ export default function KycPage() {
       useToastStore.getState().addToast("success", "Demande KYC envoyée — en attente de validation admin");
       qc.invalidateQueries({ queryKey: ["kyc-status"] });
       setDocumentUrl("");
+      setDocumentPreviewUrl("");
     },
     onError: (e) => useToastStore.getState().addToast("error", e instanceof Error ? e.message : "Erreur"),
   });
@@ -267,14 +269,14 @@ export default function KycPage() {
                     <span className="material-symbols-outlined text-[24px] text-[#006e2f]">check_circle</span>
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-[#191c1e] truncate">{uploadedFileName ?? "Document uploadé"}</p>
-                      <a href={documentUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#006e2f] hover:underline">
+                      <a href={documentPreviewUrl || documentUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#006e2f] hover:underline">
                         Voir le document
                       </a>
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => { setDocumentUrl(""); setUploadedFileName(null); }}
+                    onClick={() => { setDocumentUrl(""); setDocumentPreviewUrl(""); setUploadedFileName(null); }}
                     className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-600 flex-shrink-0"
                     title="Supprimer"
                   >

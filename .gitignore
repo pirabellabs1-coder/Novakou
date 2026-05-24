@@ -92,3 +92,6 @@ apps/web/public/uploads/*
 ajouter_cle_vercel.js
 ajouter_*.js
 _*.mjs
+
+.vercel
+.env*.local

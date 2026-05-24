@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyApiKey } from "@/lib/api/verify-key";
 import { apiError, apiSuccess } from "@/lib/api/v1-helpers";
-import { SUPPORTED_EVENTS } from "../route";
+import { isSupportedWebhookEvent } from "@/lib/webhooks/supported-events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -80,7 +80,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       events !== undefined
         ? (events as unknown[]).filter(
             (e): e is string =>
-              typeof e === "string" && SUPPORTED_EVENTS.includes(e),
+              typeof e === "string" && isSupportedWebhookEvent(e),
           )
         : undefined;
 

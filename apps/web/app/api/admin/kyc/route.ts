@@ -10,6 +10,7 @@ import { devStore } from "@/lib/dev/dev-store";
 import { kycRequestStore } from "@/lib/dev/data-store";
 import { emitEvent } from "@/lib/events/dispatcher";
 import { createAuditLog } from "@/lib/admin/audit";
+import { resolveKycDocumentUrl } from "@/lib/kyc-documents";
 
 // GET /api/admin/kyc — KYC verification queue
 export async function GET() {
@@ -81,8 +82,14 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     });
 
-    const queue = requests.map((r) => {
+    const queue = await Promise.all(requests.map(async (r) => {
       const meta = (r.metadata as Record<string, unknown>) || {};
+      const documentUrl = await resolveKycDocumentUrl(r.documentUrl);
+      const documentFrontUrl = await resolveKycDocumentUrl((meta.documentFrontUrl as string) || r.documentUrl);
+      const documentBackUrl = await resolveKycDocumentUrl(meta.documentBackUrl as string);
+      const selfieUrl = await resolveKycDocumentUrl(meta.selfieUrl as string);
+      const registrationDocUrl = await resolveKycDocumentUrl(meta.registrationDocUrl as string);
+      const representativeIdUrl = await resolveKycDocumentUrl(meta.representativeIdUrl as string);
       return {
         userId: r.user.id,
         userName: r.user.name,
@@ -96,16 +103,16 @@ export async function GET() {
         createdAt: r.createdAt,
         documentSubmitted: !!r.documentUrl,
         documentType: r.documentType,
-        documentUrl: r.documentUrl || "",
+        documentUrl,
         submissionType: r.submissionType || "legacy",
         submittedAt: r.createdAt,
         requestId: r.id,
         metadata: {
-          documentFrontUrl: (meta.documentFrontUrl as string) || r.documentUrl || "",
-          documentBackUrl: (meta.documentBackUrl as string) || "",
-          selfieUrl: (meta.selfieUrl as string) || "",
-          registrationDocUrl: (meta.registrationDocUrl as string) || "",
-          representativeIdUrl: (meta.representativeIdUrl as string) || "",
+          documentFrontUrl,
+          documentBackUrl,
+          selfieUrl,
+          registrationDocUrl,
+          representativeIdUrl,
           firstName: (meta.firstName as string) || "",
           lastName: (meta.lastName as string) || "",
           country: (meta.country as string) || "",
@@ -114,7 +121,7 @@ export async function GET() {
           siret: (meta.siret as string) || "",
         },
       };
-    });
+    }));
 
     // Summary from all users — use byLevel format expected by the frontend store
     const summary = {

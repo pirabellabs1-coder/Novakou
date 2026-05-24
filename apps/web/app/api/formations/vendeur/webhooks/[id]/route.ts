@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
-import { SUPPORTED_EVENTS } from "../route";
+import { isSupportedWebhookEvent } from "@/lib/webhooks/supported-events";
 import { fireVendorWebhook } from "@/lib/formations/vendor-webhooks";
 
 /**
@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const update: Record<string, unknown> = {};
     if (typeof body.url === "string" && /^https?:\/\//i.test(body.url.trim())) update.url = body.url.trim();
     if (Array.isArray(body.events)) {
-      const filtered = body.events.filter((e: string) => SUPPORTED_EVENTS.includes(e));
+      const filtered = body.events.filter((e: string) => isSupportedWebhookEvent(e));
       if (filtered.length > 0) update.events = filtered;
     }
     if (typeof body.isActive === "boolean") update.isActive = body.isActive;

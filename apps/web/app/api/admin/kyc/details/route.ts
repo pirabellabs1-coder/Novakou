@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth/config";
 import { IS_DEV, USE_PRISMA_FOR_DATA } from "@/lib/env";
 import { kycRequestStore } from "@/lib/dev/data-store";
 import { prisma } from "@/lib/prisma";
+import { resolveKycDocumentUrl } from "@/lib/kyc-documents";
 
 // GET /api/admin/kyc/details — Fetch detailed KYC submissions for all pending requests
 export async function GET() {
@@ -60,12 +61,7 @@ export async function GET() {
             id: true,
             name: true,
             email: true,
-            firstName: true,
-            lastName: true,
             country: true,
-            city: true,
-            address: true,
-            dateOfBirth: true,
             role: true,
           },
         },
@@ -73,9 +69,15 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
     });
 
-    const details = pendingRequests.map((req) => {
+    const details = await Promise.all(pendingRequests.map(async (req) => {
       const meta = (req.metadata as Record<string, string> | null) || {};
       const isAgency = req.submissionType === "agency";
+      const documentUrl = await resolveKycDocumentUrl(req.documentUrl);
+      const documentFrontUrl = await resolveKycDocumentUrl(meta.documentFrontUrl || req.documentUrl);
+      const documentBackUrl = await resolveKycDocumentUrl(meta.documentBackUrl);
+      const selfieUrl = await resolveKycDocumentUrl(meta.selfieUrl);
+      const registrationDocUrl = await resolveKycDocumentUrl(meta.registrationDocUrl);
+      const representativeIdUrl = await resolveKycDocumentUrl(meta.representativeIdUrl);
 
       return {
         userId: req.userId,
@@ -83,32 +85,32 @@ export async function GET() {
         type: req.submissionType || "legacy",
         level: req.requestedLevel,
         documentType: req.documentType,
-        documentUrl: req.documentUrl,
+        documentUrl,
         userName: req.user.name,
         userEmail: req.user.email,
         userRole: req.user.role,
         // Individual fields (from metadata or user record)
-        firstName: meta.firstName || req.user.firstName || "",
-        lastName: meta.lastName || req.user.lastName || "",
-        dateOfBirth: meta.dateOfBirth || (req.user.dateOfBirth ? req.user.dateOfBirth.toISOString().split("T")[0] : ""),
+        firstName: meta.firstName || "",
+        lastName: meta.lastName || "",
+        dateOfBirth: meta.dateOfBirth || "",
         country: meta.country || req.user.country || "",
-        city: meta.city || req.user.city || "",
-        address: meta.address || req.user.address || "",
-        documentFrontUrl: meta.documentFrontUrl || req.documentUrl || "",
-        documentBackUrl: meta.documentBackUrl || "",
-        selfieUrl: meta.selfieUrl || "",
+        city: meta.city || "",
+        address: meta.address || "",
+        documentFrontUrl,
+        documentBackUrl,
+        selfieUrl,
         // Agency fields
         agencyName: isAgency ? meta.agencyName : undefined,
         siretNumber: isAgency ? meta.siret : undefined,
         legalRepName: isAgency ? meta.legalRepName : undefined,
         email: isAgency ? meta.email : undefined,
         phone: isAgency ? meta.phone : undefined,
-        registrationDocUrl: isAgency ? meta.registrationDocUrl : undefined,
-        representativeIdUrl: isAgency ? meta.representativeIdUrl : undefined,
+        registrationDocUrl: isAgency ? registrationDocUrl : undefined,
+        representativeIdUrl: isAgency ? representativeIdUrl : undefined,
         // Meta
         createdAt: req.createdAt,
       };
-    });
+    }));
 
     return NextResponse.json({ details });
   } catch (error) {

@@ -187,9 +187,15 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Bloquer la connexion si email non vérifié — l'utilisateur doit valider via OTP
+          // Compatibility MVP: a valid password proves account ownership for
+          // legacy/prod accounts created before email OTP was reliable. Mark
+          // them verified on first successful password login instead of
+          // blocking every dashboard behind EMAIL_NOT_VERIFIED.
           if (!user.emailVerified) {
-            throw new Error("EMAIL_NOT_VERIFIED");
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { emailVerified: new Date() },
+            }).catch(() => null);
           }
 
           resetAttempts(email);

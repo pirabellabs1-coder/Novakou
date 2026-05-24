@@ -4,16 +4,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { verifyApiKey } from "@/lib/api/verify-key";
 import { apiError, apiSuccess } from "@/lib/api/v1-helpers";
-
-export const SUPPORTED_EVENTS = [
-  "order.paid",
-  "order.refunded",
-  "review.created",
-  "withdrawal.processed",
-  "subscription.created",
-  "subscription.renewed",
-  "subscription.cancelled",
-];
+import { SUPPORTED_EVENTS, isSupportedWebhookEvent } from "@/lib/webhooks/supported-events";
 
 /**
  * GET /api/v1/webhooks
@@ -91,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     const filtered = events.filter(
-      (e): e is string => typeof e === "string" && SUPPORTED_EVENTS.includes(e),
+      (e): e is string => typeof e === "string" && isSupportedWebhookEvent(e),
     );
     if (filtered.length === 0) {
       return apiError(

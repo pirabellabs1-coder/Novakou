@@ -52,7 +52,9 @@ export async function POST(request: Request) {
             email,
             name: body.guestName?.trim() || email.split("@")[0],
             passwordHash: crypto.randomBytes(32).toString("hex"),
-            role: "FREELANCE",
+            // Un acheteur invité est un client (apprenant), pas un freelance.
+            // UserRole n'a pas APPRENANT — CLIENT est le mapping correct pour Novakou.
+            role: "CLIENT",
             status: "ACTIF",
           },
         });

@@ -138,11 +138,9 @@ export async function GET(request: Request) {
           .deleteMany({ where: { userId, formationId: { in: formationIds } } })
           .catch(() => null);
       }
-      if (productIds.length > 0) {
-        await prisma.cartItem
-          .deleteMany({ where: { userId, productId: { in: productIds } } })
-          .catch(() => null);
-      }
+      // Note : CartItem ne supporte que des formations (pas de colonne productId).
+      // Les produits digitaux ne transitent pas par le panier persistant.
+      void productIds;
 
       return NextResponse.json({
         data: {

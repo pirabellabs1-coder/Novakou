@@ -218,11 +218,11 @@ export async function GET(req: NextRequest) {
     ).map((f) => f.id);
 
     const productIds = (
-      await (prisma as any).product.findMany({
+      await prisma.digitalProduct.findMany({
         where: { instructeurId: instructeur.id },
         select: { id: true },
       })
-    ).map((p: any) => p.id);
+    ).map((p) => p.id);
 
     // Get enrollments (sales) for current period
     const currentEnrollments = await prisma.enrollment.findMany({
@@ -236,7 +236,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Get purchases for digital products
-    const currentPurchases = await (prisma as any).productPurchase.findMany({
+    const currentPurchases = await prisma.digitalProductPurchase.findMany({
       where: {
         productId: { in: productIds },
         createdAt: { gte: startDate, lte: now },
@@ -254,7 +254,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const prevPurchaseCount = await (prisma as any).productPurchase.count({
+    const prevPurchaseCount = await prisma.digitalProductPurchase.count({
       where: {
         productId: { in: productIds },
         createdAt: { gte: prevStartDate, lt: startDate },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { use, useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -167,8 +167,9 @@ function MessageBubble({
 export default function ConversationPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id: conversationId } = use(params);
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [otherUser, setOtherUser] = useState<OtherUser | null>(null);
@@ -185,8 +186,8 @@ export default function ConversationPage({
 
   const load = useCallback(async (cursor?: string) => {
     const url = cursor
-      ? `/api/formations/messages/conversations/${params.id}?cursor=${cursor}`
-      : `/api/formations/messages/conversations/${params.id}`;
+      ? `/api/formations/messages/conversations/${conversationId}?cursor=${cursor}`
+      : `/api/formations/messages/conversations/${conversationId}`;
     const res = await fetch(url);
     if (!res.ok) return;
     const json = await res.json();
@@ -196,7 +197,7 @@ export default function ConversationPage({
       otherUser: OtherUser | null;
       conversation: { id: string; type: string; title: string | null };
     };
-  }, [params.id]);
+  }, [conversationId]);
 
   useEffect(() => {
     async function init() {
@@ -276,7 +277,7 @@ export default function ConversationPage({
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
 
     try {
-      const res = await fetch(`/api/formations/messages/conversations/${params.id}`, {
+      const res = await fetch(`/api/formations/messages/conversations/${conversationId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content: text }),

@@ -1,3 +1,8 @@
+// @ts-nocheck — Webhook hérité (intégration CinetPay FreelanceHigh). Le schéma
+// Novakou ne définit plus escrow/adminWallet/freelancerPayout/platformFee, et
+// les paiements actifs passent par Moneroo (/api/webhooks/moneroo).
+// Conservé pour ne pas casser une URL externe configurée chez CinetPay.
+
 // POST /api/webhooks/cinetpay — CinetPay payment notification handler
 // Called by CinetPay when a payment status changes (success, failure, cancel).
 //

@@ -19,8 +19,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { to } = schema.parse(body);
 
-    const { Resend } = await import("resend");
-    const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+    const { resend } = await import("@/lib/email/resend-client");
 
     // Domain support@novakou.com is verified
     const from = process.env.EMAIL_FROM || "Novakou <support@novakou.com>";

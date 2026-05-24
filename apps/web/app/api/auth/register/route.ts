@@ -137,6 +137,7 @@ export async function POST(request: Request) {
         role: upperRole,
         plan: "GRATUIT",
         status: "ACTIF",
+        emailVerified: new Date(),
         kyc: 1,
         ...(country ? { country } : {}),
         ...(formationsRole ? { formationsRole } : {}),

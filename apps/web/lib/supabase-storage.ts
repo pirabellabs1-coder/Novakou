@@ -124,17 +124,27 @@ export async function uploadFile(
   return null;
 }
 
-// Get a signed URL for a private file (expires in 1 hour by default)
+// Get a signed URL for a private file (expires in 1 hour by default).
+//
+// `download` :
+//   - undefined / false → URL standard (le navigateur affiche le PDF inline,
+//     joue l'audio dans l'onglet, etc.)
+//   - true → Supabase ajoute `Content-Disposition: attachment` avec le nom
+//     du fichier dans le bucket (download forcé, nom = basename de `path`)
+//   - "monfichier.pdf" → idem avec un filename personnalisé (utile quand le
+//     path stocké est obscur — `userId/timestamp.pdf` — et qu'on veut
+//     présenter à l'utilisateur le vrai nom du produit)
 export async function getSignedUrl(
   bucket: StorageBucket,
   path: string,
-  expiresIn: number = 3600
+  expiresIn: number = 3600,
+  download?: boolean | string
 ): Promise<string | null> {
   if (supabase) {
     try {
       const { data, error } = await supabase.storage
         .from(bucket)
-        .createSignedUrl(path, expiresIn);
+        .createSignedUrl(path, expiresIn, download ? { download } : undefined);
 
       if (!error && data) return data.signedUrl;
       console.error("[Supabase Storage] Signed URL error:", error);
@@ -192,7 +202,8 @@ export function getStorageObjectPath(
 export async function resolveStorageFileUrl(
   value?: string | null,
   fallbackBucket: StorageBucket = "order-deliveries",
-  expiresIn: number = 3600
+  expiresIn: number = 3600,
+  download?: boolean | string
 ): Promise<string> {
   const raw = value?.trim();
   if (!raw) return "";
@@ -200,7 +211,7 @@ export async function resolveStorageFileUrl(
   const object = getStorageObjectPath(raw, fallbackBucket);
   if (!object) return raw;
 
-  return (await getSignedUrl(object.bucket, object.path, expiresIn)) ?? raw;
+  return (await getSignedUrl(object.bucket, object.path, expiresIn, download)) ?? raw;
 }
 
 // Delete a file from a bucket

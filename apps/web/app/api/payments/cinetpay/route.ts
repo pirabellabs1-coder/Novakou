@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
       // ── Build URLs ────────────────────────────────────────────────────
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
       const transactionId = generateTransactionId(orderId);
-      const serviceTitle = order.title || order.service?.title || `Commande ${orderId}`;
+      const serviceTitle = order.service?.title || `Commande ${orderId}`;
 
       const result = await initPayment({
         amount,

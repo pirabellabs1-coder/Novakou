@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { getActiveShopId } from "@/lib/formations/active-shop";
+import { SUPPORTED_EVENTS, isSupportedWebhookEvent } from "@/lib/webhooks/supported-events";
 import crypto from "crypto";
 
 /**
@@ -23,16 +24,6 @@ import crypto from "crypto";
  *   - subscription.renewed — (V2) renouvellement réussi
  *   - subscription.cancelled — (V2) annulation
  */
-export const SUPPORTED_EVENTS = [
-  "order.paid",
-  "order.refunded",
-  "review.created",
-  "withdrawal.processed",
-  "subscription.created",
-  "subscription.renewed",
-  "subscription.cancelled",
-];
-
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -92,7 +83,7 @@ export async function POST(request: Request) {
     }
 
     // Validation events
-    const filteredEvents = events.filter((e) => SUPPORTED_EVENTS.includes(e));
+    const filteredEvents = events.filter((e: string) => isSupportedWebhookEvent(e));
     if (filteredEvents.length === 0) {
       return NextResponse.json(
         { error: `Au moins un événement requis. Supportés : ${SUPPORTED_EVENTS.join(", ")}` },

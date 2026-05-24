@@ -12,8 +12,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const profile = await prisma.instructeurProfile.findUnique({
     where: { id },
     select: {
-      storeName: true,
-      storeDescription: true,
+      bioFr: true,
+      bioEn: true,
       user: { select: { name: true, image: true } },
     },
   }).catch(() => null);
@@ -22,10 +22,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Instructeur introuvable" };
   }
 
-  const name = profile.storeName || profile.user?.name || "Instructeur";
+  const name = profile.user?.name || "Instructeur";
   const title = `${name} — Formateur sur Novakou`;
-  const description = profile.storeDescription
-    ? profile.storeDescription.slice(0, 160)
+  const bio = profile.bioFr || profile.bioEn;
+  const description = bio
+    ? bio.slice(0, 160)
     : `Découvrez les formations et produits de ${name} sur Novakou.`;
 
   return {

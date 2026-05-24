@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       name: true,
       description: true,
       instructeur: {
-        select: { storeName: true, user: { select: { name: true } } },
+        select: { user: { select: { name: true } } },
       },
     },
   }).catch(() => null);
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Page introuvable" };
   }
 
-  const vendorName = funnel.instructeur?.storeName || funnel.instructeur?.user?.name || "Novakou";
+  const vendorName = funnel.instructeur?.user?.name || "Novakou";
   const title = `${funnel.name} — ${vendorName}`;
   const description = funnel.description
     ? funnel.description.replace(/<[^>]+>/g, " ").trim().slice(0, 160)

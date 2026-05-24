@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { use, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -132,7 +132,8 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
 }
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
-export default function MentorPublicProfilePage({ params }: { params: { id: string } }) {
+export default function MentorPublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: mentorId } = use(params);
   const router = useRouter();
   const { data: session } = useSession();
   const [mentor, setMentor] = useState<MentorPublic | null>(null);
@@ -146,7 +147,7 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/formations/public/mentors/${params.id}`);
+        const res = await fetch(`/api/formations/public/mentors/${mentorId}`);
         if (!res.ok) throw new Error();
         const json = await res.json();
         setMentor(json.data);
@@ -157,7 +158,7 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
       }
     }
     load();
-  }, [params.id]);
+  }, [mentorId]);
 
   useEffect(() => {
     async function loadSlots() {
@@ -166,7 +167,7 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
         // Load current month + next month for the mini calendar
         const to = new Date(calMonth.getFullYear(), calMonth.getMonth() + 2, 0);
         const qs = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() });
-        const res = await fetch(`/api/formations/mentors/${params.id}/slots?${qs.toString()}`);
+        const res = await fetch(`/api/formations/mentors/${mentorId}/slots?${qs.toString()}`);
         if (!res.ok) return;
         const { data } = await res.json();
         setPreviewSlots(data.slots ?? []);
@@ -175,7 +176,7 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
       }
     }
     if (mentor?.isAvailable) loadSlots();
-  }, [params.id, mentor?.isAvailable, calMonth]);
+  }, [mentorId, mentor?.isAvailable, calMonth]);
 
   /** "YYYY-M-D" → list of slots (local-day key) */
   const slotsByDayKey = useMemo(() => {
@@ -203,19 +204,19 @@ export default function MentorPublicProfilePage({ params }: { params: { id: stri
   function handleSlotClick(slot: PreviewSlot) {
     if (!session) {
       router.push(
-        `/connexion?callbackUrl=/formations/mentors/${params.id}/reserver?slot=${encodeURIComponent(slot.start)}`,
+        `/connexion?callbackUrl=/formations/mentors/${mentorId}/reserver?slot=${encodeURIComponent(slot.start)}`,
       );
       return;
     }
-    router.push(`/mentors/${params.id}/reserver?slot=${encodeURIComponent(slot.start)}`);
+    router.push(`/mentors/${mentorId}/reserver?slot=${encodeURIComponent(slot.start)}`);
   }
 
   function handleBookClick() {
     if (!session) {
-      router.push(`/connexion?callbackUrl=/formations/mentors/${params.id}/reserver`);
+      router.push(`/connexion?callbackUrl=/formations/mentors/${mentorId}/reserver`);
       return;
     }
-    router.push(`/mentors/${params.id}/reserver`);
+    router.push(`/mentors/${mentorId}/reserver`);
   }
 
   function handleShare() {

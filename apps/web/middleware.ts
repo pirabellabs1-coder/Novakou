@@ -156,6 +156,17 @@ function isStaticAsset(pathname: string): boolean {
   );
 }
 
+function hasNextAuthSessionCookie(req: NextRequest): boolean {
+  return req.cookies
+    .getAll()
+    .some((cookie) =>
+      cookie.name === "next-auth.session-token" ||
+      cookie.name === "__Secure-next-auth.session-token" ||
+      cookie.name.startsWith("next-auth.session-token.") ||
+      cookie.name.startsWith("__Secure-next-auth.session-token.")
+    );
+}
+
 function getRequiredRole(pathname: string): string | null {
   for (const [role, routes] of Object.entries(ROLE_ROUTES)) {
     if (routes.some((route) => pathname === route || pathname.startsWith(route + "/"))) {
@@ -324,6 +335,7 @@ export async function middleware(req: NextRequest) {
   // Lire le token JWT directement (compatible Edge Runtime)
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const isAuthenticated = !!token;
+  const hasSessionCookie = hasNextAuthSessionCookie(req);
   const userRole = token?.role as string | undefined;
   const userFormationsRole = (token as { formationsRole?: string } | null)?.formationsRole;
   const tfaPending = !!(token as { tfaPending?: boolean } | null)?.tfaPending;
@@ -366,6 +378,9 @@ export async function middleware(req: NextRequest) {
 
   // Toutes les autres routes necessitent une authentification
   if (!isAuthenticated) {
+    if (hasSessionCookie) {
+      return withLocaleCookie(NextResponse.next());
+    }
     const callbackUrl = encodeURIComponent(pathname);
     // Route les acheteurs (espace apprenant) vers leur page de connexion dédiée
     // avec OTP par email, pas vers la page vendeur /connexion (email + password).

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { sendKycSubmittedEmail } from "@/lib/email/kyc";
 import { rateLimit } from "@/lib/api-rate-limit";
+import { normalizeKycDocumentReference, resolveKycDocumentUrl } from "@/lib/kyc-documents";
 
 /**
  * GET /api/formations/kyc
@@ -43,13 +44,19 @@ export async function GET() {
 
     if (!user) return NextResponse.json({ error: "User introuvable" }, { status: 404 });
 
-    const pending = user.kycRequests.find((r) => r.status === "EN_ATTENTE");
+    const history = await Promise.all(
+      user.kycRequests.map(async (request) => ({
+        ...request,
+        documentUrl: await resolveKycDocumentUrl(request.documentUrl),
+      })),
+    );
+    const pending = history.find((r) => r.status === "EN_ATTENTE");
 
     return NextResponse.json({
       data: {
         currentLevel: user.kyc ?? 0,
         pending,
-        history: user.kycRequests,
+        history,
       },
     });
   } catch (err) {
@@ -130,13 +137,15 @@ export async function POST(request: Request) {
       );
     }
 
+    const storedDocumentUrl = normalizeKycDocumentReference(documentUrl);
+
     const req = await prisma.kycRequest.create({
       data: {
         userId: user.id,
         currentLevel: user.kyc ?? 0,
         requestedLevel: level,
         documentType,
-        documentUrl,
+        documentUrl: storedDocumentUrl,
       },
     });
 

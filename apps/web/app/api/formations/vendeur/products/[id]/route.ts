@@ -4,6 +4,15 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { resolveStorageFileUrl, getStorageObjectPath } from "@/lib/supabase-storage";
+
+// Reconvertit une URL Supabase Storage (signée ou non) en chemin brut pour la DB.
+// Pour les URLs externes (Cloudinary, http public), conserve la valeur telle quelle.
+function normalizeStorageUrlForDb(value: string): string {
+  const trimmed = value.trim();
+  const obj = getStorageObjectPath(trimmed, "order-deliveries");
+  return obj ? obj.path : trimmed;
+}
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -35,7 +44,27 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     });
 
     if (!product) return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
-    return NextResponse.json({ data: product });
+
+    // Les colonnes DB peuvent contenir un chemin Supabase, une signed URL expirée
+    // ou une URL publique. On résout à chaque GET pour que les boutons "Aperçu" /
+    // "Ouvrir" du formulaire vendeur fonctionnent (TTL 1h, durée d'une session édition).
+    const [fileUrl, resolvedFiles] = await Promise.all([
+      product.fileUrl ? resolveStorageFileUrl(product.fileUrl, "order-deliveries", 3600) : Promise.resolve(null),
+      Promise.all(
+        product.files.map(async (f) => ({
+          ...f,
+          url: (await resolveStorageFileUrl(f.url, "order-deliveries", 3600)) || f.url,
+        })),
+      ),
+    ]);
+
+    return NextResponse.json({
+      data: {
+        ...product,
+        fileUrl: fileUrl ?? product.fileUrl,
+        files: resolvedFiles,
+      },
+    });
   } catch (err) {
     console.error("[vendeur/products/[id] GET]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -105,7 +134,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         .slice(0, 50)
         .map((f, idx) => ({
           name: typeof f.name === "string" && f.name.trim() ? f.name.trim() : `fichier-${idx + 1}`,
-          url: f.url.trim(),
+          url: normalizeStorageUrlForDb(f.url),
           size: typeof f.size === "number" ? f.size : null,
           mimeType: typeof f.mimeType === "string" ? f.mimeType : null,
           order: idx,
@@ -123,7 +152,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       filesUpdate
         ? (filesUpdate.create[0]?.url ?? null)
         : body.fileUrl !== undefined
-          ? (body.fileUrl || null)
+          ? (body.fileUrl ? normalizeStorageUrlForDb(body.fileUrl) : null)
           : undefined;
 
     const updated = await prisma.digitalProduct.update({
@@ -170,7 +199,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
-    return NextResponse.json({ data: updated });
+    // Résoudre les chemins en signed URLs pour la réponse — sinon le client
+    // récupère des chemins bruts non-cliquables jusqu'au prochain refetch GET.
+    const [respFileUrl, respFiles] = await Promise.all([
+      updated.fileUrl ? resolveStorageFileUrl(updated.fileUrl, "order-deliveries", 3600) : Promise.resolve(null),
+      Promise.all(
+        updated.files.map(async (f) => ({
+          ...f,
+          url: (await resolveStorageFileUrl(f.url, "order-deliveries", 3600)) || f.url,
+        })),
+      ),
+    ]);
+
+    return NextResponse.json({
+      data: { ...updated, fileUrl: respFileUrl ?? updated.fileUrl, files: respFiles },
+    });
   } catch (err) {
     console.error("[vendeur/products/[id] PATCH]", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "Erreur serveur" }, { status: 500 });

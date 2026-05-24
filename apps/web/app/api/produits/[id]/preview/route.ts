@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
+import { resolveStorageFileUrl } from "@/lib/supabase-storage";
 
 // Streamed inline so the iframe can render it. Do NOT cache publicly — the
 // underlying PDF can be unpublished or the vendor can revoke previewEnabled
@@ -66,11 +67,17 @@ export async function GET(
       );
     }
 
-    // Fetch source PDF. Supabase Storage URLs are public for the buckets we
-    // use here; signed URLs would also work since they're already resolved.
-    const upstream = await fetch(pdfFile.url, { cache: "no-store" });
+    // Le champ stocké peut être un chemin Supabase Storage brut, une signed URL
+    // expirée (TTL upload = 1h), ou une URL publique externe. On résout au moment
+    // du fetch pour toujours avoir une URL valide.
+    const fetchableUrl = await resolveStorageFileUrl(pdfFile.url, "order-deliveries", 600);
+    if (!fetchableUrl) {
+      console.error("[produits/preview] cannot resolve URL", pdfFile.url);
+      return NextResponse.json({ error: "Fichier source indisponible" }, { status: 502 });
+    }
+    const upstream = await fetch(fetchableUrl, { cache: "no-store" });
     if (!upstream.ok) {
-      console.error("[produits/preview] upstream fetch failed", upstream.status, pdfFile.url);
+      console.error("[produits/preview] upstream fetch failed", upstream.status, fetchableUrl);
       return NextResponse.json({ error: "Fichier source indisponible" }, { status: 502 });
     }
     const sourceBytes = new Uint8Array(await upstream.arrayBuffer());

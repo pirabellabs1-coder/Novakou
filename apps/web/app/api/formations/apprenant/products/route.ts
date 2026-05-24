@@ -41,6 +41,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
+    // On passe `download: file.name` à resolveStorageFileUrl pour que
+    // l'URL signée renvoyée par Supabase embarque Content-Disposition:
+    // attachment. Combiné à un `<a download href={url}>` côté client, le
+    // navigateur télécharge immédiatement le fichier au lieu de l'ouvrir
+    // dans l'onglet (cf. mes-produits/page.tsx).
     const data = await Promise.all(
       purchases.map(async (purchase) => {
         if (!purchase.product) return purchase;
@@ -48,11 +53,16 @@ export async function GET() {
         const files = await Promise.all(
           (purchase.product.files ?? []).map(async (file) => ({
             ...file,
-            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600),
+            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600, file.name || true),
           })),
         );
         const fileUrl = purchase.product.fileUrl
-          ? await resolveStorageFileUrl(purchase.product.fileUrl, "order-deliveries", 3600)
+          ? await resolveStorageFileUrl(
+              purchase.product.fileUrl,
+              "order-deliveries",
+              3600,
+              purchase.product.fileUrl.split("?")[0].split("/").pop() || true,
+            )
           : null;
 
         return {

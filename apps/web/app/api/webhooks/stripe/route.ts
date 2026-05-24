@@ -109,23 +109,17 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       } as any,
     });
 
-    // Update wallet transaction: mark escrow as released
-    await (prisma as any).walletTransaction.updateMany({
-      where: {
-        orderId,
-        escrowStatus: "held",
-      },
-      data: {
-        escrowStatus: "released",
-        releasedAt: new Date(),
-      },
-    });
-
+    // NOTE Novakou (2026-05) : on n'écrit plus dans `walletTransaction`
+    // (modèle FreelanceHigh supprimé). L'escrow marketplace n'est pas
+    // utilisé sur Novakou — les paiements formations/produits passent par
+    // Moneroo/PayGenius (cf. /api/webhooks/moneroo et /paygenius). Ce
+    // handler reste actif uniquement pour mettre à jour Order.paymentStatus
+    // dans le cas où un PaymentIntent Stripe legacy retomberait ici avec
+    // metadata.platform = "freelancehigh".
     console.log(
-      `[Stripe Webhook] Payment succeeded for order ${orderId} — escrow released (pi=${paymentIntent.id}, amount=${paymentIntent.amount} ${paymentIntent.currency})`
+      `[Stripe Webhook] Payment succeeded for order ${orderId} (pi=${paymentIntent.id}, amount=${paymentIntent.amount} ${paymentIntent.currency})`
     );
   } catch (error) {
-    // If Prisma models don't exist yet (MVP phase), log and continue
     console.error(
       `[Stripe Webhook] Error updating order for payment_intent.succeeded:`,
       error instanceof Error ? error.message : error

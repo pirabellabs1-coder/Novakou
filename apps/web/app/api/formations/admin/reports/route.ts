@@ -1,11 +1,20 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
+// /api/formations/admin/reports
+//
+// GET — liste les rapports archivés (SavedReport)
+// POST — génère un nouveau rapport (financial | users | sales | products) et l'archive
+//
+// Refactor 2026-05 : retrait de @ts-nocheck. L'ancienne version interrogeait
+// les modèles `Transaction` et `VendorWithdrawal` qui n'existent pas dans le
+// schéma Novakou (héritage FreelanceHigh). On utilise désormais les modèles
+// présents : Payment (paiements bruts) + InstructorWithdrawal (retraits
+// vendeurs) + PlatformRevenue (revenus plateforme par commande).
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { Prisma } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,7 +28,7 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(50, parseInt(url.searchParams.get("limit") || "20"));
     const type = url.searchParams.get("type") || undefined;
 
-    const where: Record<string, unknown> = {};
+    const where: Prisma.SavedReportWhereInput = {};
     if (type) where.type = type;
 
     const [reports, total] = await Promise.all([
@@ -73,22 +82,27 @@ export async function POST(req: NextRequest) {
     if (type === "financial") {
       reportTitle = reportTitle || `Rapport financier ${from.toLocaleDateString("fr-FR")} - ${to.toLocaleDateString("fr-FR")}`;
 
-      const [transactions, totalRevenue, withdrawals] = await Promise.all([
-        prisma.transaction.findMany({
+      // Schéma Novakou : Payment (paiements bruts) + InstructorWithdrawal
+      // (retraits vendeurs validés). PlatformRevenue stocke la commission
+      // par commande mais n'est pas réutilisé ici — totalRevenue = somme des
+      // Payment au statut PAYE sur la période.
+      const [payments, totalRevenue, withdrawals] = await Promise.all([
+        prisma.payment.findMany({
           where: { createdAt: { gte: from, lte: to } },
           orderBy: { createdAt: "desc" },
           take: 500,
           select: {
             id: true, amount: true, type: true, status: true, createdAt: true,
-            user: { select: { name: true, email: true } },
+            // Payment.payer = User (le payeur du paiement)
+            payer: { select: { name: true, email: true } },
           },
         }),
-        prisma.transaction.aggregate({
-          where: { createdAt: { gte: from, lte: to }, status: "COMPLETED" },
+        prisma.payment.aggregate({
+          where: { createdAt: { gte: from, lte: to }, status: "COMPLETE" },
           _sum: { amount: true },
           _count: true,
         }),
-        prisma.vendorWithdrawal.aggregate({
+        prisma.instructorWithdrawal.aggregate({
           where: { createdAt: { gte: from, lte: to } },
           _sum: { amount: true },
           _count: true,
@@ -96,11 +110,20 @@ export async function POST(req: NextRequest) {
       ]);
 
       data = {
-        transactions: transactions.length,
-        transactionDetails: transactions,
-        totalRevenue: totalRevenue._sum.amount || 0,
+        transactions: payments.length,
+        // On garde la clé `transactionDetails` pour ne pas casser le frontend
+        // admin/rapports qui consomme déjà ce shape.
+        transactionDetails: payments.map((p) => ({
+          id: p.id,
+          amount: p.amount,
+          type: p.type,
+          status: p.status,
+          createdAt: p.createdAt,
+          user: p.payer,
+        })),
+        totalRevenue: totalRevenue._sum?.amount ?? 0,
         completedCount: totalRevenue._count,
-        totalWithdrawals: withdrawals._sum.amount || 0,
+        totalWithdrawals: withdrawals._sum?.amount ?? 0,
         withdrawalCount: withdrawals._count,
       };
     } else if (type === "users") {
@@ -163,7 +186,12 @@ export async function POST(req: NextRequest) {
           where: { createdAt: { gte: from, lte: to } },
           take: 50,
           orderBy: { createdAt: "desc" },
-          select: { id: true, title: true, price: true, status: true, createdAt: true, vendor: { select: { name: true } } },
+          select: {
+            id: true, title: true, price: true, status: true, createdAt: true,
+            // Schéma Novakou : Formation -> InstructeurProfile -> User
+            // (pas de relation `vendor` directe sur Formation).
+            instructeur: { select: { user: { select: { name: true } } } },
+          },
         }),
       ]);
 
