@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import GuidesFilteredGrid from "./_GuidesFilteredGrid";
 
 export const metadata: Metadata = {
   title: "Guides gratuits pour créateurs africains | Novakou",
@@ -208,89 +209,10 @@ export default function GuidesIndexPage() {
         </div>
       </section>
 
-      {/* ── FILTRES PAR CATÉGORIE ───────────────────────────────── */}
-      <section className="w-full py-6 px-4 sm:px-6 border-b border-gray-100 sticky top-0 z-10 bg-white/95 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-2">
-          {CATEGORIES.map((cat) => (
-            <span
-              key={cat}
-              className="px-4 py-2 rounded-full text-sm font-bold cursor-pointer transition-all hover:shadow-sm"
-              style={
-                cat === "Tous"
-                  ? { backgroundColor: COLORS.primary, color: "#fff" }
-                  : { backgroundColor: "#f3f4f6", color: COLORS.dark }
-              }
-            >
-              {cat}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* ── GRILLE DES GUIDES ───────────────────────────────────── */}
-      <section className="w-full py-12 md:py-20 px-4 sm:px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
-            {GUIDES.map((guide) => (
-              <Link
-                key={guide.href}
-                href={guide.href}
-                className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-              >
-                {/* Bannière */}
-                <div className="h-48 relative overflow-hidden" style={{ background: guide.gradient }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span
-                        className="material-symbols-outlined text-white text-[48px]"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        {guide.icon}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    {guide.time}
-                  </div>
-                  {/* Badge catégorie */}
-                  <div className="absolute bottom-3 left-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    {guide.category}
-                  </div>
-                </div>
-
-                {/* Corps */}
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span
-                      className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                      style={{ backgroundColor: `${guide.levelColor}10`, color: guide.levelColor }}
-                    >
-                      {guide.level}
-                    </span>
-                    <span className="text-[10px] text-gray-600">{guide.chapters}</span>
-                  </div>
-                  <h2
-                    className="text-lg font-extrabold mb-2 transition-colors"
-                    style={{ ...satoshi, color: COLORS.dark }}
-                  >
-                    {guide.title}
-                  </h2>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    {guide.desc}
-                  </p>
-                  <span
-                    className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all"
-                    style={{ color: guide.levelColor }}
-                  >
-                    Lire le guide{" "}
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Filtres + grille : déplacés dans un client component pour pouvoir
+          gérer l'état actif. Le SEO content (cards, links, titres) reste
+          présent dans le HTML server-rendered initial via les props. */}
+      <GuidesFilteredGrid guides={GUIDES} categories={CATEGORIES} />
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section className="w-full py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: COLORS.surface }}>

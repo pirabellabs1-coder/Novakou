@@ -4,7 +4,6 @@ import Link from "next/link";
 import { RevenueSimulator } from "@/components/formations/RevenueSimulator";
 import { CreatorsJoinBadge, HeroBadge } from "@/components/formations/PublicStatsBadge";
 import { BestSellers } from "@/components/formations/BestSellers";
-import { getLatestArticles } from "@/lib/blog/articles";
 
 export const metadata: Metadata = {
   title: "Novakou | Vendez vos formations partout en Afrique francophone",
@@ -679,7 +678,7 @@ export default async function FormationsPage() {
             <div className="text-center mb-10 md:mb-16">
               <CategoryPill>Ressources gratuites</CategoryPill>
               <h2 className="text-3xl sm:text-4xl md:text-6xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
-                9 guides gratuits pour vendre en Afrique.
+                Guides gratuits pour vendre en Afrique.
               </h2>
               <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
                 Créer, vendre, automatiser — nos guides détaillés couvrent tout le parcours du créateur africain, de l&apos;idée à la première vente.
@@ -774,179 +773,9 @@ export default async function FormationsPage() {
                 </div>
               </Link>
 
-              {/* Guide 4 */}
-              <Link href="/guides/trouver-son-idee-de-produit" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #2563eb, #06b6d4)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>lightbulb</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    10 min
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#2563eb10", color: "#2563eb" }}>Débutant</span>
-                    <span className="text-[10px] text-gray-600">9 sections</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#2563eb] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
-                    Comment trouver son idée de produit digital
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    La méthode des 3 cercles, les niches portantes en Afrique, validation gratuite en 48h — de zéro idée à un concept validé.
-                  </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#2563eb" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-
-              {/* Guide 5 */}
-              <Link href="/guides/publicite-facebook" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #1877f2, #0ea5e9)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>campaign</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    18 min
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#1877f215", color: "#1d4ed8" }}>Avancé</span>
-                    <span className="text-[10px] text-gray-600">12 chapitres</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#1877f2] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
-                    Publicité Facebook pour vendre en Afrique
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    Créer des campagnes rentables depuis 2 000 FCFA/jour. Ciblage Afrique francophone, pixel, visuels, optimisation ROAS.
-                  </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#1d4ed8" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-
-              {/* Guide 6 */}
-              <Link href="/guides/automatisations-novakou" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #06b6d4, #6366f1)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    12 min
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#06b6d415", color: "#0e7490" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-600">10 chapitres</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#06b6d4] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
-                    Automatisations Novakou : vendre pendant que vous dormez
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    Séquences de bienvenue, relance panier, certificats automatiques, upsell post-achat — configurez une fois, encaissez toujours.
-                  </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#0e7490" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-
-              {/* Guide 7 */}
-              <Link href="/guides/sequences-emails" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #ec4899, #f59e0b)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>mail</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    15 min
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#ec489915", color: "#be185d" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-600">12 chapitres</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#ec4899] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
-                    Séquences emails qui vendent en automatique
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    Lead magnets, séquence de bienvenue en 5 emails, relances, segmentation. 23 templates email inclus sur Novakou.
-                  </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#be185d" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-
-              {/* Guide 8 */}
-              <Link href="/guides/description-produit" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #10b981, #06b6d4)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>edit_note</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    10 min
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#10b98115", color: "#047857" }}>Débutant</span>
-                    <span className="text-[10px] text-gray-600">10 sections</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#10b981] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
-                    Rédiger une description de produit irrésistible
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    La structure AIDA, transformer vos modules en bénéfices, le titre parfait, la preuve sociale — avec 3 exemples avant/après.
-                  </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#047857" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
-
-              {/* Guide 9 */}
-              <Link href="/guides/tunnel-de-vente-novakou" className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-                <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #7c3aed, #ec4899)` }}>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>account_tree</span>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
-                    15 min
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed15", color: "#5b21b6" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-600">13 chapitres</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#7c3aed] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
-                    Tunnel de vente sur Novakou : guide pas-à-pas
-                  </h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                    Builder drag-and-drop, 30+ blocs, page de capture, page de vente, checkout Mobile Money, upsell, A/B testing.
-                  </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#5b21b6" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </span>
-                </div>
-              </Link>
+              {/* Les 6 autres guides (idée produit, pub Facebook, automatisations,
+                  séquences emails, descriptions, tunnels) sont accessibles via
+                  le bouton "Voir tous les guides" ci-dessous → /guides */}
             </div>
 
             {/* Lien "Voir tous les guides" */}
@@ -963,79 +792,9 @@ export default async function FormationsPage() {
           </div>
         </section>
 
-        {/* ═══════════════════════════════════════════════════════════ */}
-        {/* 11.5 BLOG — 3 derniers articles                              */}
-        {/* ═══════════════════════════════════════════════════════════ */}
-        <section className="w-full py-12 md:py-24 px-4 sm:px-6 bg-white">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-10 md:mb-14">
-              <CategoryPill>Blog Novakou</CategoryPill>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl mb-4" style={{ ...satoshiHeading, color: COLORS.dark, lineHeight: 1.05 }}>
-                Vendre digital en Afrique, on en parle.
-              </h2>
-              <p className="text-base md:text-lg max-w-2xl mx-auto" style={{ color: COLORS.muted }}>
-                Méthodes éprouvées, cas pratiques et stratégies de créateurs qui ont réussi. Mis à jour chaque mois.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-              {getLatestArticles(3).map((article) => (
-                <Link
-                  key={article.slug}
-                  href={`/blog/${article.slug}`}
-                  className="group bg-white rounded-3xl border border-gray-100 overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div className="relative h-48 overflow-hidden bg-gray-50">
-                    <Image
-                      src={article.heroImage}
-                      alt={article.heroAlt}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span
-                        className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
-                        style={{ backgroundColor: "#dcfce7", color: "#047857" }}
-                      >
-                        {article.category}
-                      </span>
-                      <span className="text-[10px] text-gray-600">
-                        {article.readingMinutes} min
-                      </span>
-                    </div>
-                    <h3
-                      className="text-lg font-extrabold mb-2 group-hover:text-[#006e2f] transition-colors leading-snug"
-                      style={{ ...satoshi, color: COLORS.dark }}
-                    >
-                      {article.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
-                      {article.excerpt}
-                    </p>
-                    <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: COLORS.primary }}>
-                      Lire l'article <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            {/* Bouton "Voir plus" → /blog */}
-            <div className="mt-10 text-center">
-              <Link
-                href="/blog"
-                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-base transition-all hover:shadow-lg hover:-translate-y-0.5"
-                style={{ backgroundColor: COLORS.primary, color: "#fff", ...satoshi }}
-              >
-                Voir tous les articles
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-              </Link>
-            </div>
-          </div>
-        </section>
+        {/* Section blog retirée — le user préfère ne garder que les guides
+            sur la home. Le blog reste accessible via /blog (les articles
+            créés y vivent toujours pour le SEO + trafic organique). */}
 
         {/* Section communauté par pays retirée — données réelles à venir */}
 
