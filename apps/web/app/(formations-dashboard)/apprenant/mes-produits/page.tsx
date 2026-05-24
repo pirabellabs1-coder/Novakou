@@ -79,19 +79,18 @@ export default function ProduitsPage() {
 
   const downloadedCount = purchases.filter((p) => p.downloadCount > 0 || downloaded.has(p.id)).length;
 
-  // Force le download au lieu d'ouvrir le fichier (PDF inline, audio dans
-  // l'onglet, etc.). On crée un `<a download>` invisible et on le click via
-  // JS — combiné au header Content-Disposition: attachment ajouté côté
-  // serveur (cf. /api/formations/apprenant/products/[id]/download/route.ts
-  // qui passe `download: file.name` à Supabase), le navigateur déclenche
-  // la sauvegarde immédiate au lieu d'une navigation.
-  const triggerDownload = (url: string, filename?: string) => {
+  // Déclenche le download via notre route proxy `/file/[idx]`. Le proxy
+  // génère une signed URL Supabase FRAÎCHE à chaque clic + force
+  // Content-Disposition: attachment → le navigateur télécharge direct,
+  // jamais d'erreur InvalidJWT même si la page est ouverte depuis des
+  // heures (le cache React Query peut être stale, on s'en fiche).
+  const proxyHref = (purchaseId: string, idx: number) =>
+    `/api/formations/apprenant/products/${purchaseId}/file/${idx}`;
+
+  const triggerProxyDownload = (purchaseId: string, idx: number, filename?: string) => {
     const a = document.createElement("a");
-    a.href = url;
+    a.href = proxyHref(purchaseId, idx);
     if (filename) a.download = filename;
-    // `target=_blank` reste utile si l'URL pointe vers un domaine qui
-    // ignore Content-Disposition — l'utilisateur garde au moins une preview
-    // au lieu d'un écran blanc. rel=noopener pour éviter la fuite window.opener.
     a.rel = "noopener";
     a.style.display = "none";
     document.body.appendChild(a);
@@ -101,54 +100,29 @@ export default function ProduitsPage() {
 
   const handleDownload = async (p: Purchase) => {
     const files = p.product?.files ?? [];
-    const single = files[0]?.url ?? p.product?.fileUrl;
+    const hasFile = files.length > 0 || !!p.product?.fileUrl;
 
-    if (files.length === 0 && !single) {
+    if (!hasFile) {
       useToastStore.getState().addToast("error", "Fichier non disponible pour ce produit. Contactez le vendeur.");
       return;
     }
 
     setDownloaded((prev) => new Set([...prev, p.id]));
 
-    try {
-      const res = await fetch(`/api/formations/apprenant/products/${p.id}/download`, { method: "POST" });
-      const data = await res.json().catch(() => null);
-      const freshFiles: ProductFileLite[] = Array.isArray(data?.files) ? data.files : [];
+    // Combien de fichiers ? Si plusieurs, on en télécharge plusieurs en
+    // cascade ; sinon un seul (fileUrl legacy ou files[0]).
+    const count = files.length > 0 ? files.length : 1;
 
-      // Source de vérité : la réponse du POST (signed URL fraîche + nom).
-      // Fallback sur les URLs en cache local si l'appel a échoué.
-      const items: Array<{ url: string; name?: string }> =
-        freshFiles.length > 0
-          ? freshFiles.filter((f) => !!f.url).map((f) => ({ url: f.url, name: f.name }))
-          : files.length > 1
-            ? files.map((f) => ({ url: f.url, name: f.name }))
-            : single
-              ? [{ url: single, name: files[0]?.name }]
-              : [];
-
-      // Déclenche les downloads en série, avec un mini-délai entre chacun
-      // pour éviter que certains navigateurs (Safari surtout) n'ignorent
-      // les clicks consécutifs trop rapprochés.
-      for (let i = 0; i < items.length; i++) {
-        triggerDownload(items[i].url, items[i].name);
-        if (i < items.length - 1) await new Promise((r) => setTimeout(r, 250));
-      }
-      qc.invalidateQueries({ queryKey: ["apprenant-products"] });
-    } catch {
-      // Fallback offline : tente quand même les URLs en cache (peuvent être
-      // expirées, mais c'est mieux que rien — l'erreur s'affichera dans le
-      // navigateur plutôt que dans un toast silencieux).
-      const items = files.length > 1
-        ? files.map((f) => ({ url: f.url, name: f.name }))
-        : single
-          ? [{ url: single, name: files[0]?.name }]
-          : [];
-      for (let i = 0; i < items.length; i++) {
-        triggerDownload(items[i].url, items[i].name);
-        if (i < items.length - 1) await new Promise((r) => setTimeout(r, 250));
-      }
-      useToastStore.getState().addToast("error", "Erreur réseau — si le téléchargement ne démarre pas, réessayez.");
+    for (let i = 0; i < count; i++) {
+      const name = files[i]?.name;
+      triggerProxyDownload(p.id, i, name);
+      // Petit délai entre chaque pour que Safari/Firefox ne bloquent pas
+      // les clicks consécutifs comme un pop-up spam.
+      if (i < count - 1) await new Promise((r) => setTimeout(r, 350));
     }
+
+    // Refresh la liste pour mettre à jour downloadCount affiché.
+    setTimeout(() => qc.invalidateQueries({ queryKey: ["apprenant-products"] }), 1500);
   };
 
   return (
@@ -285,7 +259,7 @@ export default function ProduitsPage() {
                 </div>
                 {fileCount > 1 && (
                   <ul className="mt-4 pt-4 border-t border-gray-100 space-y-1.5">
-                    {productFiles.map((f) => (
+                    {productFiles.map((f, fIdx) => (
                       <li key={f.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                         <span className="material-symbols-outlined text-[16px] text-[#006e2f] flex-shrink-0">
                           {f.mimeType?.startsWith("audio/") ? "audio_file"
@@ -301,7 +275,8 @@ export default function ProduitsPage() {
                           </span>
                         )}
                         <a
-                          href={f.url}
+                          // Passe par notre proxy → signed URL fraîche à chaque clic + Content-Disposition: attachment
+                          href={proxyHref(p.id, fIdx)}
                           download={f.name || true}
                           rel="noopener noreferrer"
                           className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] hover:underline flex-shrink-0"
