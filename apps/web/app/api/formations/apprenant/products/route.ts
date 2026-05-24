@@ -41,42 +41,31 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    // On passe `download: file.name` à resolveStorageFileUrl pour que
-    // l'URL signée renvoyée par Supabase embarque Content-Disposition:
-    // attachment. Combiné à un `<a download href={url}>` côté client, le
-    // navigateur télécharge immédiatement le fichier au lieu de l'ouvrir
-    // dans l'onglet (cf. mes-produits/page.tsx).
+    // PERF : on ne génère PLUS de signed URLs pour files[].url et fileUrl.
+    // Le frontend (mes-produits/page.tsx) utilise désormais
+    // `/api/formations/apprenant/products/[id]/file/[idx]` (route proxy)
+    // pour les downloads — la signed URL est créée AU MOMENT du clic, pas
+    // au load de la page. Ça élimine N calls Supabase par page load (un
+    // par fichier × par produit), ce qui faisait ramer mes-produits.
+    //
+    // En revanche on garde la résolution sur `banner` (image affichée
+    // dans la carte produit) puisque c'est rendu inline en `<img>`.
     const data = await Promise.all(
       purchases.map(async (purchase) => {
-        if (!purchase.product) return purchase;
-
-        const files = await Promise.all(
-          (purchase.product.files ?? []).map(async (file) => ({
-            ...file,
-            url: await resolveStorageFileUrl(file.url, "order-deliveries", 3600, file.name || true),
-          })),
-        );
-        const fileUrl = purchase.product.fileUrl
-          ? await resolveStorageFileUrl(
-              purchase.product.fileUrl,
-              "order-deliveries",
-              3600,
-              purchase.product.fileUrl.split("?")[0].split("/").pop() || true,
-            )
-          : null;
-
-        return {
-          ...purchase,
-          product: {
-            ...purchase.product,
-            fileUrl,
-            files,
-          },
-        };
+        if (!purchase.product?.banner) return purchase;
+        const banner = await resolveStorageFileUrl(purchase.product.banner, "order-deliveries", 3600);
+        return { ...purchase, product: { ...purchase.product, banner } };
       }),
     );
 
-    return NextResponse.json({ data });
+    // Cache HTTP : la liste des achats change rarement (nouvel achat ou
+    // download counter). 30s de cache privé est un bon compromis : la
+    // page reste responsive sur navigation arrière/onglet, sans servir
+    // une donnée datée à un user qui vient juste d'acheter.
+    return NextResponse.json(
+      { data },
+      { headers: { "Cache-Control": "private, max-age=30, must-revalidate" } },
+    );
   } catch {
     return NextResponse.json({ data: [] });
   }

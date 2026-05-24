@@ -75,17 +75,21 @@ export async function resolveStorageFields<T>(
     if (typeof value !== "object") return value;
     if (value instanceof Date) return value;
 
+    // Lance TOUTES les promesses en parallèle puis assemble le résultat.
+    // Sans ça, un objet avec 5 champs URL → 5 round-trips Supabase en
+    // série = page lente. Avec Promise.all, ils partent en même temps.
     const obj = value as Record<string, unknown>;
-    const out: Record<string, unknown> = {};
-    for (const [key, v] of Object.entries(obj)) {
-      if (URL_FIELDS.has(key) && typeof v === "string" && v.length > 0) {
-        out[key] = await resolveStorageFileUrl(v, fallbackBucket, expiresIn, download);
-      } else if (v && typeof v === "object") {
-        out[key] = await walk(v, depth + 1);
-      } else {
-        out[key] = v;
-      }
-    }
-    return out;
+    const entries = await Promise.all(
+      Object.entries(obj).map(async ([key, v]) => {
+        if (URL_FIELDS.has(key) && typeof v === "string" && v.length > 0) {
+          return [key, await resolveStorageFileUrl(v, fallbackBucket, expiresIn, download)] as const;
+        }
+        if (v && typeof v === "object") {
+          return [key, await walk(v, depth + 1)] as const;
+        }
+        return [key, v] as const;
+      }),
+    );
+    return Object.fromEntries(entries);
   }
 }

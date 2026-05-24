@@ -24,11 +24,49 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { IS_DEV } from "@/lib/env";
-import { resolveStorageFileUrl } from "@/lib/supabase-storage";
+import {
+  resolveStorageFileUrl,
+  getStorageObjectPath,
+  getSignedUrl,
+  type StorageBucket,
+} from "@/lib/supabase-storage";
 
 export const runtime = "nodejs";
 // Pas de cache : chaque clic doit générer une URL fraîche.
 export const dynamic = "force-dynamic";
+
+// Petite page HTML autonome (pas de layout Next, pas de hydration) qui
+// s'affiche quand un fichier est introuvable. Utilisée pour les achats
+// faits avant une migration de DB ou un changement de bucket.
+function fileNotFoundPage(productTitle: string): string {
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fichier indisponible — Novakou</title>
+  <style>
+    body { margin:0;padding:48px 24px;background:#f7f7f5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#191c1e;line-height:1.5; }
+    .card { max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:32px;box-shadow:0 4px 16px rgba(0,0,0,.06);text-align:center; }
+    .icon { width:64px;height:64px;border-radius:50%;background:#fef3c7;color:#b45309;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:32px; }
+    h1 { font-size:20px;font-weight:800;margin:0 0 12px; }
+    p { color:#5c647a;font-size:14px;margin:0 0 16px; }
+    a { display:inline-block;background:#006e2f;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:700;font-size:14px;margin-top:8px; }
+    .small { color:#9ca3af;font-size:12px;margin-top:24px; }
+    code { background:#f3f3f4;padding:2px 6px;border-radius:4px;font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">⚠</div>
+    <h1>Fichier temporairement indisponible</h1>
+    <p>Le fichier du produit <strong>« ${productTitle.replace(/[<>&"']/g, "")}»</strong> n'est plus accessible. Cela arrive parfois sur d'anciens achats lorsque le vendeur a déplacé son contenu.</p>
+    <p>Ton achat reste valide. Écris-nous à <a href="mailto:support@novakou.com" style="background:none;color:#006e2f;text-decoration:underline;padding:0;font-weight:600;">support@novakou.com</a> en précisant le nom du produit — on te le renverra sous 24h.</p>
+    <a href="/apprenant/mes-produits">← Retour à mes produits</a>
+  </div>
+</body>
+</html>`;
+}
 
 export async function GET(
   _req: Request,
@@ -53,6 +91,7 @@ export async function GET(
         id: true,
         product: {
           select: {
+            title: true,
             fileUrl: true,
             files: {
               orderBy: { order: "asc" },
@@ -86,12 +125,40 @@ export async function GET(
       };
     }
 
+    const productTitle = purchase.product.title || "votre produit";
+
     if (!target) {
-      return NextResponse.json({ error: "Aucun fichier disponible" }, { status: 404 });
+      return new NextResponse(fileNotFoundPage(productTitle), {
+        status: 410,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
-    // Génère une URL Supabase fraîche AVEC Content-Disposition: attachment
-    // (via l'option `download` = nom de fichier).
+    // Avant de rediriger, on vérifie que le fichier existe vraiment dans
+    // notre Supabase Storage actuel. Cas concret : un achat fait avant
+    // une migration de base — le path en DB pointe vers un bucket/projet
+    // qui n'existe plus. Sans cette vérif, le user clique "Télécharger"
+    // → Supabase répond "InvalidJWT exp claim timestamp check failed"
+    // (cryptique). Avec la vérif, on lui sert une page claire avec un
+    // lien support.
+    const object = getStorageObjectPath(target.url, "order-deliveries");
+    if (object) {
+      // Test : l'objet existe-t-il vraiment ? On essaie de signer une URL
+      // courte (60s) ; si Supabase rejette parce que le fichier n'est pas
+      // dans le bucket actuel, on tombe dans le catch.
+      const probe = await getSignedUrl(object.bucket as StorageBucket, object.path, 60);
+      if (!probe) {
+        console.warn(
+          `[proxy file] Fichier introuvable côté Supabase pour purchase=${id} bucket=${object.bucket} path=${object.path}`,
+        );
+        return new NextResponse(fileNotFoundPage(productTitle), {
+          status: 410,
+          headers: { "Content-Type": "text/html; charset=utf-8" },
+        });
+      }
+    }
+
+    // Génère l'URL finale avec Content-Disposition: attachment + filename.
     const fresh = await resolveStorageFileUrl(
       target.url,
       "order-deliveries",
@@ -99,11 +166,13 @@ export async function GET(
       target.name || true,
     );
 
-    if (!fresh) {
-      return NextResponse.json(
-        { error: "Impossible de générer le lien de téléchargement" },
-        { status: 500 },
-      );
+    if (!fresh || !/^https?:\/\//i.test(fresh)) {
+      // resolveStorageFileUrl peut retourner le path brut si non-résoluble
+      // — on traite ça comme "fichier introuvable".
+      return new NextResponse(fileNotFoundPage(productTitle), {
+        status: 410,
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
     }
 
     // Incrémente le compteur (best-effort, non bloquant).

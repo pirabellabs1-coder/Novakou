@@ -5,9 +5,13 @@ import { getToken } from "next-auth/jwt";
 // Route admin login secrete — pas de redirection, le token est verifie cote client+API
 const ADMIN_LOGIN_PREFIX = "/admin-login/";
 
-// ── Maintenance mode cache (60s TTL in Edge Runtime) ──
+// ── Maintenance mode cache (5 min TTL in Edge Runtime) ──
+// Avant : 60s → 1 fetch interne par minute par instance Vercel. Sur une
+// plateforme avec auto-scaling, ça pouvait représenter plusieurs hits/min.
+// 5 min est largement suffisant — l'admin peut tolérer 5 min de délai pour
+// que le mode maintenance s'active.
 let maintenanceModeCache: { enabled: boolean; message: string; cachedAt: number } | null = null;
-const MAINTENANCE_CACHE_TTL_MS = 60_000; // 60 seconds
+const MAINTENANCE_CACHE_TTL_MS = 5 * 60_000; // 5 minutes
 
 // Routes publiques — toujours accessibles
 const PUBLIC_ROUTES = [
