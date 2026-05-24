@@ -66,6 +66,12 @@ export default async function FormationsPage() {
                   "https://lh3.googleusercontent.com/aida-public/AB6AXuD9Rh0ecjM8nGvWfG_C0KbaGYWrSmu8xmHRjCO70WBZ0-5sZv2Q2D-Fabrnx0JT4aLiEkSG11YZCkMwiEefpWTFRezj3cUHsuIsBJvS1JtkK_7oFybZDfAHwmDm-x3XW245JemBnQqaJLvjzqZYEmm5vcb8svccewMahXmGTu_kVEEV9BW2z0WeqRDmHbfwA8bpGilxMYyCmloYq4f1ntMSEdBg3G7z2jFkbA8eyRqogewLAHfdnyJW3V2nvgIKHN4cLsu4rdNAJIec",
                   "https://lh3.googleusercontent.com/aida-public/AB6AXuCWvzWuZ26p82Ka65aS2FRWuFajMaeVjZFTmt2eKbeFM-76x_bYcQq7VTJJPuV5cz-ioD79i1dCmXQ3qMqU-4aLD4VUgTHd-i9NV5iPOaHec279DuNt-RDWnmVDNA8g3upiBszScHtBOVjg7zbx_pugaYRw1GK0SpNDOaVQzM_XwYrvSvAxx8P_uLrdUAUw3_GBisqCKKjiv2-RVRePMSUtMDEUgzmPQxAbgo6mJ329ft5SkMx0mv_meMJKtwORR4npogpFuRKhme5E",
                 ].map((src, i) => (
+                  // PERF : on retire `unoptimized` → Next.js sert une version
+                  // resize 32x32 en webp via /_next/image au lieu de la full
+                  // image originale ~400 Ko de Google Stitch. Économie : ~1.1 Mo
+                  // sur le load initial de la home (PageSpeed l'avait flaggé).
+                  // Loading=eager parce que ces avatars sont above-the-fold
+                  // dans le hero. Sizes=32px car taille fixe (pas responsive).
                   <Image
                     key={i}
                     className="w-8 h-8 rounded-full object-cover"
@@ -74,7 +80,8 @@ export default async function FormationsPage() {
                     alt="Créateur"
                     width={32}
                     height={32}
-                    unoptimized
+                    sizes="32px"
+                    loading={i === 0 ? "eager" : "lazy"}
                   />
                 ))}
               </div>

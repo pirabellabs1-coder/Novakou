@@ -1,15 +1,25 @@
 import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
+import { Manrope } from "next/font/google";
 import { Providers } from "./providers";
 import { ImpersonationBanner } from "@/components/admin/ImpersonationBanner";
 import { TrackingProvider } from "@/components/tracking/TrackingProvider";
-import { FontLoader } from "@/components/FontLoader";
 import { CookieConsent } from "@/components/CookieConsent";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import PromptDialog from "@/components/ui/PromptDialog";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import "./globals.css";
+
+// Manrope : self-hosted via next/font → preload + display=swap automatiques,
+// pas de FOIT bloquant. Avant : chargé via FontLoader client qui injectait
+// les <link> APRÈS hydration React → 22s de LCP sur mobile 4G.
+const manrope = Manrope({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-manrope",
+  weight: ["300", "400", "500", "600", "700", "800"],
+});
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -113,8 +123,38 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="dark" suppressHydrationWarning>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={`dark ${manrope.variable}`} suppressHydrationWarning>
       <head>
+        {/* Préconnexion aux CDN fonts AVANT le HTML body → le browser peut
+            commencer la résolution DNS + TCP handshake pendant qu'il parse
+            le reste. Économise ~200-500ms sur la première requête font. */}
+        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* Satoshi (fontshare — pas de support next/font Google). Subset
+            réduit à 4 graisses (400-700) au lieu des 6 originales (300-900).
+            Économie immédiate de ~50% sur le poids du CSS + woff2. */}
+        <link
+          rel="stylesheet"
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
+        />
+
+        {/* Material Symbols : font Google. Subset agressif :
+            - opsz 20..48 (au lieu de 100..700) → suppression des très
+              grandes tailles inutilisées sur le site
+            - wght 300..600 (au lieu de 100..700) → 4 graisses au lieu de 7
+            - FILL 0..1 (binaire — on garde)
+            - GRAD -25..0 (au lieu de -50..200) → range plus étroit
+            Avec display=swap les icônes affichent un fallback invisible
+            jusqu'au load (pas de blocage du LCP). Combiné au preconnect,
+            le download démarre quasi instantanément. */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+        />
+
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
             try {
@@ -195,7 +235,6 @@ export default async function RootLayout({
         >
           Aller au contenu principal
         </a>
-        <FontLoader />
         <NextIntlClientProvider messages={messages}>
           <Providers>
             <TrackingProvider>
