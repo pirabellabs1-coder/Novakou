@@ -267,7 +267,7 @@ export default function GuidesIndexPage() {
                     >
                       {guide.level}
                     </span>
-                    <span className="text-[10px] text-gray-400">{guide.chapters}</span>
+                    <span className="text-[10px] text-gray-600">{guide.chapters}</span>
                   </div>
                   <h2
                     className="text-lg font-extrabold mb-2 transition-colors"

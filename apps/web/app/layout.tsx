@@ -125,35 +125,61 @@ export default async function RootLayout({
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={`dark ${manrope.variable}`} suppressHydrationWarning>
       <head>
-        {/* Préconnexion aux CDN fonts AVANT le HTML body → le browser peut
-            commencer la résolution DNS + TCP handshake pendant qu'il parse
-            le reste. Économise ~200-500ms sur la première requête font. */}
+        {/* Préconnexion aux CDN fonts utilisés. On retire fonts.googleapis.com
+            et fonts.gstatic.com — Manrope passe désormais par next/font (self-
+            hosted) donc plus aucun appel à googleapis depuis le critical path.
+            PageSpeed flagait ces deux preconnect comme inutiles. */}
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Satoshi (fontshare — pas de support next/font Google). Subset
-            réduit à 4 graisses (400-700) au lieu des 6 originales (300-900).
-            Économie immédiate de ~50% sur le poids du CSS + woff2. */}
+        {/* Satoshi (fontshare) — chargé en ASYNC pour ne PAS bloquer le rendu.
+            La technique media="print" puis onload="this.media='all'" est le
+            pattern standard depuis 2020 : le browser fetch le CSS en
+            background, ne l'applique pas (media print), puis l'active dès
+            qu'il arrive. Pendant ce temps display=swap utilise le fallback
+            (sans-serif). Économie : ~750ms de render-blocking time. */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
+        />
         <link
           rel="stylesheet"
           href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
+          media="print"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ onLoad: "this.media='all'" } as any)}
         />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
+          />
+        </noscript>
 
-        {/* Material Symbols : font Google. Subset agressif :
-            - opsz 20..48 (au lieu de 100..700) → suppression des très
-              grandes tailles inutilisées sur le site
-            - wght 300..600 (au lieu de 100..700) → 4 graisses au lieu de 7
-            - FILL 0..1 (binaire — on garde)
-            - GRAD -25..0 (au lieu de -50..200) → range plus étroit
-            Avec display=swap les icônes affichent un fallback invisible
-            jusqu'au load (pas de blocage du LCP). Combiné au preconnect,
-            le download démarre quasi instantanément. */}
+        {/* Material Symbols (Google Fonts) — même technique. Avant : 3.8 MB
+            de font variable bloquante au render. Maintenant : non-bloquant,
+            les icônes apparaissent dès que la font arrive (display=swap +
+            fallback invisible). PageSpeed FCP/LCP descend de ~21 secondes
+            sur 4G lente. */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+        />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+          media="print"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...({ onLoad: "this.media='all'" } as any)}
         />
+        <noscript>
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&display=swap"
+          />
+        </noscript>
 
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){

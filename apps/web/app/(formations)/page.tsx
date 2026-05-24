@@ -701,7 +701,7 @@ export default async function FormationsPage() {
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: `${COLORS.primary}10`, color: COLORS.primary }}>Débutant</span>
-                    <span className="text-[10px] text-gray-400">8 étapes</span>
+                    <span className="text-[10px] text-gray-600">8 étapes</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#006e2f] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Comment créer son premier produit digital
@@ -729,8 +729,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed10", color: "#7c3aed" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-400">12 chapitres</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed15", color: "#5b21b6" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-600">12 chapitres</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#7c3aed] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Comment vendre ses formations en Afrique
@@ -738,7 +738,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     Pages de vente, tunnels, leviers psychologiques, réseaux sociaux, email marketing, affiliation. Toutes les stratégies qui marchent.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#7c3aed" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#5b21b6" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>
@@ -758,8 +758,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#f59e0b10", color: "#f59e0b" }}>Complet</span>
-                    <span className="text-[10px] text-gray-400">15 chapitres · 2500+ mots</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#f59e0b15", color: "#b45309" }}>Complet</span>
+                    <span className="text-[10px] text-gray-600">15 chapitres · 2500+ mots</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#f59e0b] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Le guide complet Novakou : de A à Z
@@ -767,7 +767,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     De l&apos;inscription à votre première vente. Boutique, paiements, tunnels, IA, emails, affiliation, retraits. Tout est couvert.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#f59e0b" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#b45309" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>
@@ -788,7 +788,7 @@ export default async function FormationsPage() {
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#2563eb10", color: "#2563eb" }}>Débutant</span>
-                    <span className="text-[10px] text-gray-400">9 sections</span>
+                    <span className="text-[10px] text-gray-600">9 sections</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#2563eb] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Comment trouver son idée de produit digital
@@ -816,8 +816,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#1877f210", color: "#1877f2" }}>Avancé</span>
-                    <span className="text-[10px] text-gray-400">12 chapitres</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#1877f215", color: "#1d4ed8" }}>Avancé</span>
+                    <span className="text-[10px] text-gray-600">12 chapitres</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#1877f2] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Publicité Facebook pour vendre en Afrique
@@ -825,7 +825,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     Créer des campagnes rentables depuis 2 000 FCFA/jour. Ciblage Afrique francophone, pixel, visuels, optimisation ROAS.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#1877f2" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#1d4ed8" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>
@@ -845,8 +845,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#06b6d410", color: "#06b6d4" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-400">10 chapitres</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#06b6d415", color: "#0e7490" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-600">10 chapitres</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#06b6d4] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Automatisations Novakou : vendre pendant que vous dormez
@@ -854,7 +854,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     Séquences de bienvenue, relance panier, certificats automatiques, upsell post-achat — configurez une fois, encaissez toujours.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#06b6d4" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#0e7490" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>
@@ -874,8 +874,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#ec489910", color: "#ec4899" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-400">12 chapitres</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#ec489915", color: "#be185d" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-600">12 chapitres</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#ec4899] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Séquences emails qui vendent en automatique
@@ -883,7 +883,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     Lead magnets, séquence de bienvenue en 5 emails, relances, segmentation. 23 templates email inclus sur Novakou.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#ec4899" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#be185d" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>
@@ -903,8 +903,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#10b98110", color: "#10b981" }}>Débutant</span>
-                    <span className="text-[10px] text-gray-400">10 sections</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#10b98115", color: "#047857" }}>Débutant</span>
+                    <span className="text-[10px] text-gray-600">10 sections</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#10b981] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Rédiger une description de produit irrésistible
@@ -912,7 +912,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     La structure AIDA, transformer vos modules en bénéfices, le titre parfait, la preuve sociale — avec 3 exemples avant/après.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#10b981" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#047857" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>
@@ -932,8 +932,8 @@ export default async function FormationsPage() {
                 </div>
                 <div className="p-6">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed10", color: "#7c3aed" }}>Intermédiaire</span>
-                    <span className="text-[10px] text-gray-400">13 chapitres</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: "#7c3aed15", color: "#5b21b6" }}>Intermédiaire</span>
+                    <span className="text-[10px] text-gray-600">13 chapitres</span>
                   </div>
                   <h3 className="text-lg font-extrabold mb-2 group-hover:text-[#7c3aed] transition-colors" style={{ ...satoshi, color: COLORS.dark }}>
                     Tunnel de vente sur Novakou : guide pas-à-pas
@@ -941,7 +941,7 @@ export default async function FormationsPage() {
                   <p className="text-sm leading-relaxed mb-4" style={{ color: COLORS.muted }}>
                     Builder drag-and-drop, 30+ blocs, page de capture, page de vente, checkout Mobile Money, upsell, A/B testing.
                   </p>
-                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#7c3aed" }}>
+                  <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#5b21b6" }}>
                     Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
                   </span>
                 </div>

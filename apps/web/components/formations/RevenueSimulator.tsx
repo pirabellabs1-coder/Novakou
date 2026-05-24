@@ -28,34 +28,44 @@ export function RevenueSimulator() {
           <div className="space-y-10">
             {/* Slider 1 — Audience */}
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:justify-between font-bold text-[#191c1e] gap-1">
+              <label htmlFor="sim-audience" className="flex flex-col sm:flex-row sm:justify-between font-bold text-[#191c1e] gap-1 cursor-pointer">
                 <span>Taille de l&apos;audience</span>
                 <span className="text-[#006e2f]">{audience.toLocaleString("fr-FR")} contacts</span>
-              </div>
+              </label>
               <input
+                id="sim-audience"
                 type="range"
                 min={100}
                 max={50000}
                 step={100}
                 value={audience}
                 onChange={(e) => setAudience(Number(e.target.value))}
+                aria-label="Taille de l'audience en nombre de contacts"
+                aria-valuemin={100}
+                aria-valuemax={50000}
+                aria-valuenow={audience}
                 className="w-full h-2 bg-[#eceef0] rounded-lg appearance-none cursor-pointer accent-[#006e2f]"
               />
             </div>
 
             {/* Slider 2 — Price en FCFA */}
             <div className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:justify-between font-bold text-[#191c1e] gap-1">
+              <label htmlFor="sim-price" className="flex flex-col sm:flex-row sm:justify-between font-bold text-[#191c1e] gap-1 cursor-pointer">
                 <span>Prix de votre produit</span>
                 <span className="text-[#006e2f]">{fmtPrice} FCFA</span>
-              </div>
+              </label>
               <input
+                id="sim-price"
                 type="range"
                 min={5000}
                 max={650000}
                 step={1000}
                 value={priceFcfa}
                 onChange={(e) => setPriceFcfa(Number(e.target.value))}
+                aria-label="Prix du produit en FCFA"
+                aria-valuemin={5000}
+                aria-valuemax={650000}
+                aria-valuenow={priceFcfa}
                 className="w-full h-2 bg-[#eceef0] rounded-lg appearance-none cursor-pointer accent-[#006e2f]"
               />
             </div>
@@ -66,7 +76,9 @@ export function RevenueSimulator() {
               <div className="text-2xl sm:text-4xl md:text-5xl font-black text-[#006e2f] text-center leading-tight whitespace-nowrap">
                 {fmtRevenue} FCFA
               </div>
-              <p className="text-sm text-slate-400 mt-2 italic text-center">Basé sur un taux de conversion conservateur de 1%.</p>
+              {/* Contraste : slate-400 (#94a3b8 ~3:1 sur blanc, fail WCAG AA).
+                  slate-600 (#475569 ~7:1, pass AAA) */}
+              <p className="text-sm text-slate-600 mt-2 italic text-center">Basé sur un taux de conversion conservateur de 1%.</p>
             </div>
           </div>
         </div>
