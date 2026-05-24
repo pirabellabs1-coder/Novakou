@@ -30,7 +30,7 @@ async function resolve(hostParam: string) {
     });
     if (!shop) return null;
 
-    const [formations, products] = await Promise.all([
+    const [formations, products, bundles, subscriptionPlans] = await Promise.all([
       prisma.formation.findMany({
         // Multi-shop : seulement les produits de CETTE boutique
         where: { shopId: shop.id, status: "ACTIF" },
@@ -50,9 +50,29 @@ async function resolve(hostParam: string) {
         orderBy: { createdAt: "desc" },
         take: 24,
       }),
+      // Idem que /boutique/[slug] — sans ça, bundles + abonnements
+      // invisibles sur les boutiques avec custom domain.
+      prisma.productBundle.findMany({
+        where: { shopId: shop.id, isActive: true },
+        select: {
+          id: true, slug: true, title: true, thumbnail: true, banner: true,
+          priceXof: true, rating: true, reviewsCount: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 24,
+      }),
+      prisma.subscriptionPlan.findMany({
+        where: { shopId: shop.id, isActive: true },
+        select: {
+          id: true, name: true, description: true, imageUrl: true, bannerUrl: true,
+          price: true, interval: true, rating: true, reviewsCount: true, activeCount: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 24,
+      }),
     ]);
 
-    return { shop, formations, products, normalized };
+    return { shop, formations, products, bundles, subscriptionPlans, normalized };
   } catch (err) {
     console.error("[boutique/by-domain] lookup failed:", err);
     return null;
@@ -64,7 +84,7 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
   const data = await resolve(host);
   if (!data) notFound();
 
-  const { shop, formations, products, normalized } = data;
+  const { shop, formations, products, bundles, subscriptionPlans, normalized } = data;
   return (
     <BoutiqueView
       owner={{
@@ -88,6 +108,23 @@ export default async function BoutiqueByDomainPage({ params }: Props) {
         id: p.id, slug: p.slug, title: p.title, image: p.banner,
         price: p.price, isFree: p.isFree, rating: p.rating,
         count: p.salesCount, reviewsCount: p.reviewsCount,
+      }))}
+      bundles={bundles.map((b) => ({
+        kind: "bundle" as const,
+        id: b.id, slug: b.slug, title: b.title,
+        image: b.thumbnail ?? b.banner,
+        price: b.priceXof, isFree: false,
+        rating: b.rating,
+        count: 0,
+        reviewsCount: b.reviewsCount,
+      }))}
+      subscriptionPlans={subscriptionPlans.map((s) => ({
+        kind: "subscription" as const,
+        id: s.id, slug: s.id, title: s.name, image: s.imageUrl ?? s.bannerUrl,
+        price: s.price, isFree: false,
+        rating: s.rating,
+        count: s.activeCount,
+        reviewsCount: s.reviewsCount,
       }))}
     />
   );

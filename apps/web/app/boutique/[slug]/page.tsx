@@ -72,7 +72,7 @@ async function resolve(slugParam: string) {
     });
     if (!shop) return null;
 
-    const [formations, products] = await Promise.all([
+    const [formations, products, bundles, subscriptionPlans] = await Promise.all([
       prisma.formation.findMany({
         // Multi-shop : seulement les produits liés à CETTE boutique
         where: { shopId: shop.id, status: "ACTIF" },
@@ -92,9 +92,32 @@ async function resolve(slugParam: string) {
         orderBy: { createdAt: "desc" },
         take: 24,
       }),
+      // BUG FIX : avant on ne récupérait QUE formations + products → un
+      // vendeur qui créait un bundle ou un plan d'abonnement le voyait
+      // disparaître de sa boutique (BoutiqueView affichait "0 bundles"
+      // et "0 abonnements", et les clics dans l'onglet correspondant
+      // tombaient sur du vide).
+      prisma.productBundle.findMany({
+        where: { shopId: shop.id, isActive: true },
+        select: {
+          id: true, slug: true, title: true, thumbnail: true, banner: true,
+          priceXof: true, rating: true, reviewsCount: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 24,
+      }),
+      prisma.subscriptionPlan.findMany({
+        where: { shopId: shop.id, isActive: true },
+        select: {
+          id: true, name: true, description: true, imageUrl: true, bannerUrl: true,
+          price: true, interval: true, rating: true, reviewsCount: true, activeCount: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 24,
+      }),
     ]);
 
-    return { shop, formations, products };
+    return { shop, formations, products, bundles, subscriptionPlans };
   } catch (err) {
     console.error("[boutique/slug] lookup failed:", err);
     return null;
@@ -106,7 +129,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
   const data = await resolve(slug);
   if (!data) notFound();
 
-  const { shop, formations, products } = data;
+  const { shop, formations, products, bundles, subscriptionPlans } = data;
   return (
     <>
       <TrackPageView
@@ -139,6 +162,27 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         id: p.id, slug: p.slug, title: p.title, image: p.banner,
         price: p.price, isFree: p.isFree, rating: p.rating,
         count: p.salesCount, reviewsCount: p.reviewsCount,
+      }))}
+      bundles={bundles.map((b) => ({
+        kind: "bundle" as const,
+        id: b.id, slug: b.slug, title: b.title,
+        // Carte = vignette si dispo, sinon bannière
+        image: b.thumbnail ?? b.banner,
+        price: b.priceXof, isFree: false,
+        rating: b.rating,
+        count: 0, // pas de "salesCount" sur ProductBundle, OK pour la card
+        reviewsCount: b.reviewsCount,
+      }))}
+      subscriptionPlans={subscriptionPlans.map((s) => ({
+        // SubscriptionPlan n'a pas de slug → BoutiqueView linke sur
+        // /abonnement/{id} (cf. ligne 311 du composant), donc on passe
+        // l'id comme slug pour fallback éventuel.
+        kind: "subscription" as const,
+        id: s.id, slug: s.id, title: s.name, image: s.imageUrl ?? s.bannerUrl,
+        price: s.price, isFree: false,
+        rating: s.rating,
+        count: s.activeCount,
+        reviewsCount: s.reviewsCount,
       }))}
     />
     </>
