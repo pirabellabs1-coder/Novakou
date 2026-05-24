@@ -5,7 +5,7 @@ import GuidesFilteredGrid from "./_GuidesFilteredGrid";
 export const metadata: Metadata = {
   title: "Guides gratuits pour créateurs africains | Novakou",
   description:
-    "9 guides complets et gratuits pour créer, vendre et automatiser vos formations en ligne en Afrique francophone. De l'idée à la première vente.",
+    "20 guides complets et gratuits pour créer, vendre et automatiser vos formations en ligne en Afrique francophone. De l'idée à la première vente.",
 };
 
 /* ─── Typographies Satoshi inline ─────────────────────────── */
@@ -149,6 +149,139 @@ const GUIDES = [
     desc: "Builder drag-and-drop, 30+ blocs, page de capture, page de vente, checkout Mobile Money, upsell, A/B testing.",
     category: "Technique",
   },
+  // ───────── 11 NOUVEAUX GUIDES (mai 2026) ─────────
+  {
+    href: "/guides/mobile-money-encaisser-paiements",
+    gradient: "linear-gradient(135deg, #f59e0b, #f97316)",
+    icon: "payments",
+    time: "10 min",
+    level: "Débutant",
+    levelColor: "#f59e0b",
+    chapters: "8 sections",
+    title: "Mobile Money : Wave, Orange, MTN, Moov — guide complet",
+    desc: "Recevoir vos paiements Mobile Money en Afrique : frais réels, délais, configuration en 3 minutes sur Novakou, retraits.",
+    category: "Technique",
+  },
+  {
+    href: "/guides/fixer-prix-formation",
+    gradient: "linear-gradient(135deg, #16a34a, #84cc16)",
+    icon: "sell",
+    time: "9 min",
+    level: "Débutant",
+    levelColor: "#16a34a",
+    chapters: "6 sections",
+    title: "Combien faire payer ma formation ? Méthode pricing complète",
+    desc: "Tableaux de prix par type de contenu en FCFA. Comment éviter de sous-vendre, justifier un prix premium, prix d'ancrage et upsell.",
+    category: "Vendre",
+  },
+  {
+    href: "/guides/whatsapp-business-vendre-formations",
+    gradient: "linear-gradient(135deg, #25d366, #22c55e)",
+    icon: "chat",
+    time: "12 min",
+    level: "Débutant",
+    levelColor: "#16a34a",
+    chapters: "10 sections",
+    title: "WhatsApp Business pour vendre vos formations en Afrique",
+    desc: "Status, catalogue, listes diffusion, groupes communauté. Convertir vos contacts WhatsApp en acheteurs sans paraître spam.",
+    category: "Promouvoir",
+  },
+  {
+    href: "/guides/instagram-vendre-formations-afrique",
+    gradient: "linear-gradient(135deg, #ec4899, #f97316)",
+    icon: "photo_camera",
+    time: "13 min",
+    level: "Intermédiaire",
+    levelColor: "#ec4899",
+    chapters: "11 sections",
+    title: "Instagram pour vendre vos formations : stratégie organique",
+    desc: "Bio optimisée, Reels qui convertissent, DM stratégique, hashtags Afrique francophone. 0 budget pub, résultats en 30 jours.",
+    category: "Promouvoir",
+  },
+  {
+    href: "/guides/affiliation-recruter-affilies",
+    gradient: "linear-gradient(135deg, #8b5cf6, #6366f1)",
+    icon: "group_add",
+    time: "11 min",
+    level: "Intermédiaire",
+    levelColor: "#8b5cf6",
+    chapters: "9 sections",
+    title: "Recruter des affiliés pour démultiplier vos ventes",
+    desc: "Construire un programme d'affiliation rentable : commission idéale, recrutement, tracking sur Novakou, gestion des paiements.",
+    category: "Vendre",
+  },
+  {
+    href: "/guides/tiktok-reels-vendre-formations",
+    gradient: "linear-gradient(135deg, #000000, #ec4899)",
+    icon: "video_library",
+    time: "12 min",
+    level: "Intermédiaire",
+    levelColor: "#ec4899",
+    chapters: "9 sections",
+    title: "TikTok & Reels : générer 10 000 vues par vidéo",
+    desc: "Hooks qui marchent, format vertical, hashtags Afrique, transformer une vue en clic. Stratégie virale 0 budget.",
+    category: "Promouvoir",
+  },
+  {
+    href: "/guides/lancement-30-jours",
+    gradient: "linear-gradient(135deg, #ef4444, #f59e0b)",
+    icon: "rocket_launch",
+    time: "16 min",
+    level: "Intermédiaire",
+    levelColor: "#ef4444",
+    chapters: "12 étapes",
+    title: "Lancer sa formation en 30 jours : checklist actionnable",
+    desc: "Planning jour par jour de l'idée à la 1ère vente. Méthode validée par 100+ créateurs Novakou — 0 capital initial requis.",
+    category: "Créer",
+  },
+  {
+    href: "/guides/email-marketing-5-emails-vendent",
+    gradient: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
+    icon: "mark_email_read",
+    time: "12 min",
+    level: "Intermédiaire",
+    levelColor: "#0ea5e9",
+    chapters: "8 sections",
+    title: "Les 5 emails indispensables qui font vendre",
+    desc: "Welcome, valeur, autorité, objection, dernier appel — la séquence éprouvée + 5 templates emails complets prêts à copier.",
+    category: "Automatiser",
+  },
+  {
+    href: "/guides/linkedin-personal-branding-expert",
+    gradient: "linear-gradient(135deg, #0077b5, #0ea5e9)",
+    icon: "person",
+    time: "14 min",
+    level: "Intermédiaire",
+    levelColor: "#0077b5",
+    chapters: "10 sections",
+    title: "Personal branding LinkedIn pour expert africain",
+    desc: "Profil optimisé, 3 posts par semaine qui marchent, DM commercial sans paraître spammy, convertir followers en acheteurs.",
+    category: "Promouvoir",
+  },
+  {
+    href: "/guides/vendre-diaspora-africaine",
+    gradient: "linear-gradient(135deg, #14b8a6, #06b6d4)",
+    icon: "public",
+    time: "11 min",
+    level: "Avancé",
+    levelColor: "#14b8a6",
+    chapters: "9 sections",
+    title: "Vendre à la diaspora : encaisser en euros depuis l'Afrique",
+    desc: "Activer paiement carte international, ciblage Facebook France/Belgique/Canada, communauté diaspora, prix multi-devises.",
+    category: "Vendre",
+  },
+  {
+    href: "/guides/scaler-catalogue-produits",
+    gradient: "linear-gradient(135deg, #d946ef, #ec4899)",
+    icon: "inventory_2",
+    time: "13 min",
+    level: "Avancé",
+    levelColor: "#d946ef",
+    chapters: "10 sections",
+    title: "Passer de 1 formation à un catalogue complet (10x revenu)",
+    desc: "Bundles, abonnements, formations complémentaires, ladder de prix. Multiplier le panier moyen et la lifetime value client.",
+    category: "Vendre",
+  },
 ];
 
 const CATEGORIES = ["Tous", "Créer", "Vendre", "Promouvoir", "Automatiser", "Technique"];
@@ -190,12 +323,12 @@ export default function GuidesIndexPage() {
             Tous nos guides gratuits
           </h1>
           <p className="text-base md:text-lg mb-8 max-w-2xl mx-auto leading-relaxed" style={{ color: COLORS.muted }}>
-            9 guides complets pour créer, vendre et automatiser vos formations en ligne depuis l&apos;Afrique francophone. Aucune inscription requise — lisez, appliquez, vendez.
+            20 guides complets pour créer, vendre et automatiser vos formations en ligne depuis l&apos;Afrique francophone. Aucune inscription requise — lisez, appliquez, vendez.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.primary }}>
               <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-              9 guides
+              20 guides
             </div>
             <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.primary }}>
               <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
