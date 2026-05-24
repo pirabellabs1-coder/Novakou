@@ -12,9 +12,13 @@ export async function GET(req: NextRequest) {
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
     const { searchParams } = req.nextUrl;
-    const typeFilter = searchParams.get("type"); // "formation" | "product"
+    const typeFilter = searchParams.get("type"); // "formation" | "product" | "bundle" | "subscription"
 
-    const [enrollments, purchases] = await Promise.allSettled([
+    // FIX : avant on ne listait QUE Enrollment + DigitalProductPurchase.
+    // Un user qui achetait un Bundle ou s'abonnait à un SubscriptionPlan
+    // ne voyait jamais l'achat dans ses commandes. Maintenant on inclut
+    // les 4 types dans la timeline unifiée.
+    const [enrollments, purchases, bundlePurchases, subscriptions] = await Promise.allSettled([
       prisma.enrollment.findMany({
         where: { userId },
         include: {
@@ -39,12 +43,38 @@ export async function GET(req: NextRequest) {
         },
         orderBy: { createdAt: "desc" },
       }),
+      prisma.productBundlePurchase.findMany({
+        where: { userId },
+        include: {
+          bundle: {
+            select: {
+              id: true, slug: true, title: true, thumbnail: true, banner: true,
+              instructeurId: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.subscription.findMany({
+        where: { userId },
+        include: {
+          plan: {
+            select: {
+              id: true, name: true, imageUrl: true, bannerUrl: true, interval: true,
+              instructeurId: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
     const enrollmentList = enrollments.status === "fulfilled" ? enrollments.value : [];
     const purchaseList   = purchases.status   === "fulfilled" ? purchases.value   : [];
+    const bundleList     = bundlePurchases.status === "fulfilled" ? bundlePurchases.value : [];
+    const subList        = subscriptions.status === "fulfilled" ? subscriptions.value : [];
 
-    // Merge into unified timeline
+    // Merge into unified timeline (4 types maintenant)
     const orders = [
       ...enrollmentList.map((e) => ({
         id: e.id,
@@ -80,12 +110,46 @@ export async function GET(req: NextRequest) {
         progress: 100,
         instructeurUserId: (p.product as { instructeur?: { user?: { id?: string } } })?.instructeur?.user?.id ?? null,
       })),
+      ...bundleList.map((b) => ({
+        id: b.id,
+        type: "bundle" as const,
+        title: b.bundle?.title ?? "Pack",
+        thumbnail: b.bundle?.thumbnail ?? b.bundle?.banner ?? null,
+        category: "Pack",
+        amount: b.paidAmount,
+        currency: "XOF",
+        status: "COMPLETED" as const,
+        createdAt: b.createdAt.toISOString(),
+        progress: 100,
+        instructeurUserId: null,
+      })),
+      ...subList.map((s) => ({
+        id: s.id,
+        type: "subscription" as const,
+        title: s.plan?.name ?? "Abonnement",
+        thumbnail: s.plan?.imageUrl ?? s.plan?.bannerUrl ?? null,
+        category: s.plan?.interval === "yearly" ? "Annuel" : "Mensuel",
+        amount: s.totalPaid,
+        currency: "XOF",
+        // Map Subscription status → status standardisé
+        status: s.status === "active" || s.status === "trialing"
+          ? "ACTIVE"
+          : s.status === "cancelled"
+          ? "CANCELLED"
+          : s.status === "expired"
+          ? "EXPIRED"
+          : "ACTIVE",
+        createdAt: s.createdAt.toISOString(),
+        progress: 100,
+        instructeurUserId: null,
+      })),
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const filtered = typeFilter ? orders.filter((o) => o.type === typeFilter) : orders;
 
     return NextResponse.json({ data: filtered });
-  } catch {
+  } catch (err) {
+    console.error("[apprenant/commandes]", err);
     return NextResponse.json({ data: [] });
   }
 }

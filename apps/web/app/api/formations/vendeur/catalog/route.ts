@@ -27,7 +27,10 @@ export async function GET() {
     });
     const shopFilter = activeShopId ? { shopId: activeShopId } : {};
 
-    const [formations, products] = await Promise.all([
+    // FIX : avant on ne renvoyait QUE formations + products. Le catalog
+    // sert au funnel product picker → un vendeur ne pouvait pas ajouter
+    // ses bundles ou plans d'abonnement dans un funnel.
+    const [formations, products, bundles, subscriptionPlans] = await Promise.all([
       prisma.formation.findMany({
         where: { instructeurId: ctx.instructeurId, ...shopFilter },
         select: {
@@ -58,6 +61,35 @@ export async function GET() {
         },
         orderBy: { createdAt: "desc" },
       }),
+      prisma.productBundle.findMany({
+        where: { instructeurId: ctx.instructeurId, ...shopFilter },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          thumbnail: true,
+          banner: true,
+          priceXof: true,
+          rating: true,
+          isActive: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.subscriptionPlan.findMany({
+        where: { instructeurId: ctx.instructeurId, ...shopFilter },
+        select: {
+          id: true,
+          name: true,
+          imageUrl: true,
+          bannerUrl: true,
+          price: true,
+          interval: true,
+          rating: true,
+          activeCount: true,
+          isActive: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
     const items = [
@@ -84,6 +116,31 @@ export async function GET() {
         rating: p.rating,
         count: p.salesCount,
         status: p.status,
+      })),
+      ...bundles.map((b) => ({
+        kind: "bundle" as const,
+        id: b.id,
+        slug: b.slug,
+        title: b.title,
+        image: b.thumbnail ?? b.banner,
+        price: b.priceXof,
+        isFree: false,
+        rating: b.rating,
+        count: 0,
+        status: b.isActive ? "ACTIF" : "BROUILLON",
+      })),
+      ...subscriptionPlans.map((s) => ({
+        kind: "subscription" as const,
+        id: s.id,
+        // Pas de slug sur SubscriptionPlan → fallback id pour matcher le shape
+        slug: s.id,
+        title: s.name,
+        image: s.imageUrl ?? s.bannerUrl,
+        price: s.price,
+        isFree: false,
+        rating: s.rating,
+        count: s.activeCount,
+        status: s.isActive ? "ACTIF" : "BROUILLON",
       })),
     ];
 
