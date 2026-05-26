@@ -165,6 +165,74 @@ export default function AdminRetraitsVendeursPage() {
   const withdrawals = response?.data ?? [];
   const summary = response?.summary;
 
+  // Bulk selection (session bureau — pattern signalements/tickets)
+  const [bulkIds, setBulkIds] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+  function toggleBulk(id: string) {
+    setBulkIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  // Filtre la sélection sur les seuls EN_ATTENTE éligibles à l'approbation
+  const pendingIds = withdrawals.filter((w) => w.status === "EN_ATTENTE").map((w) => w.id);
+  const selectedPendingCount = [...bulkIds].filter((id) => pendingIds.includes(id)).length;
+
+  async function bulkApprove(mode: "moneroo" | "paygenius" | "manual") {
+    const ids = [...bulkIds].filter((id) => pendingIds.includes(id));
+    if (ids.length === 0) return;
+    if (!confirm(`Approuver ${ids.length} retrait(s) via ${mode === "manual" ? "transfert manuel" : mode === "paygenius" ? "PayGenius" : "Moneroo"} ?\n\nLe paiement sera déclenché immédiatement pour chacun.`)) return;
+    setBulkRunning(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) =>
+          fetch(`/api/formations/admin/withdrawals/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "approve", mode }),
+          }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))),
+        ),
+      );
+      const ok = results.filter((r) => r.status === "fulfilled").length;
+      const ko = results.length - ok;
+      setToast(ko === 0 ? `${ok} retrait(s) approuvé(s) via ${mode}` : `${ok} ok, ${ko} échec(s) — voir les détails`);
+      setBulkIds(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
+    } finally {
+      setBulkRunning(false);
+      setTimeout(() => setToast(null), 5000);
+    }
+  }
+
+  async function bulkReject() {
+    const ids = [...bulkIds].filter((id) => pendingIds.includes(id));
+    if (ids.length === 0) return;
+    const reason = window.prompt(`Refuser ${ids.length} retrait(s). Motif (visible par les vendeurs) :`, "Demande non conforme — vérifiez vos coordonnées de réception.");
+    if (!reason || !reason.trim()) return;
+    setBulkRunning(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) =>
+          fetch(`/api/formations/admin/withdrawals/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "reject", refusedReason: reason.trim() }),
+          }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))),
+        ),
+      );
+      const ok = results.filter((r) => r.status === "fulfilled").length;
+      const ko = results.length - ok;
+      setToast(ko === 0 ? `${ok} retrait(s) refusé(s)` : `${ok} ok, ${ko} échec(s)`);
+      setBulkIds(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
+    } finally {
+      setBulkRunning(false);
+      setTimeout(() => setToast(null), 5000);
+    }
+  }
+
   const approveMut = useMutation({
     mutationFn: async (args: { id: string; mode: "moneroo" | "paygenius" | "manual" }) => {
       const res = await fetch(`/api/formations/admin/withdrawals/${args.id}`, {
@@ -552,11 +620,83 @@ export default function AdminRetraitsVendeursPage() {
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Barre bulk — visible quand >= 1 EN_ATTENTE sélectionné.
+                Permet d'approuver via Moneroo/PayGenius/manuel ou refuser en masse. */}
+            {selectedPendingCount > 0 && (
+              <div className="sticky top-2 z-20 bg-zinc-900 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-2xl rounded-md">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                    {selectedPendingCount} retrait{selectedPendingCount > 1 ? "s" : ""} EN ATTENTE sélectionné{selectedPendingCount > 1 ? "s" : ""}
+                  </span>
+                  <button
+                    onClick={() => setBulkIds(new Set())}
+                    className="text-[10px] font-semibold text-zinc-300 hover:text-white underline"
+                  >
+                    Désélectionner
+                  </button>
+                  <button
+                    onClick={() => setBulkIds(new Set(pendingIds))}
+                    className="text-[10px] font-semibold text-zinc-300 hover:text-white underline"
+                  >
+                    Tout sélectionner ({pendingIds.length})
+                  </button>
+                </div>
+                <div className="flex gap-0 flex-wrap">
+                  <button
+                    onClick={() => bulkApprove("paygenius")}
+                    disabled={bulkRunning}
+                    className="px-3 py-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50"
+                    title="Payer la sélection via PayGenius"
+                  >
+                    {bulkRunning ? "…" : "Payer PayGenius"}
+                  </button>
+                  <button
+                    onClick={() => bulkApprove("moneroo")}
+                    disabled={bulkRunning}
+                    className="px-3 py-2 bg-[#006e2f] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#005a26] disabled:opacity-50"
+                    title="Payer la sélection via Moneroo"
+                  >
+                    {bulkRunning ? "…" : "Payer Moneroo"}
+                  </button>
+                  <button
+                    onClick={() => bulkApprove("manual")}
+                    disabled={bulkRunning}
+                    className="px-3 py-2 bg-zinc-700 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-600 disabled:opacity-50"
+                    title="Marquer comme déjà payés (transfert hors plateforme)"
+                  >
+                    Manuel
+                  </button>
+                  <button
+                    onClick={bulkReject}
+                    disabled={bulkRunning}
+                    className="px-3 py-2 bg-[#ba1a1a] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#93000a] disabled:opacity-50"
+                  >
+                    Refuser
+                  </button>
+                </div>
+              </div>
+            )}
             {withdrawals.map((w) => {
               const sc = STATUS_CONFIG[w.status];
+              const isPending = w.status === "EN_ATTENTE";
+              const isSelected = bulkIds.has(w.id);
               return (
-                <div key={w.id} className="bg-white p-6 border border-zinc-100">
+                <div
+                  key={w.id}
+                  className={`bg-white p-6 border ${isSelected ? "border-[#006e2f] ring-2 ring-[#006e2f]/20" : "border-zinc-100"}`}
+                >
                   <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                    {isPending && (
+                      <label className="flex items-center pt-1 cursor-pointer flex-shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleBulk(w.id)}
+                          className="w-4 h-4 accent-[#006e2f] cursor-pointer"
+                          aria-label="Sélectionner ce retrait"
+                        />
+                      </label>
+                    )}
                     <div className="flex items-center gap-4 min-w-0 flex-1">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {(w.user.name ?? w.user.email).charAt(0).toUpperCase()}
