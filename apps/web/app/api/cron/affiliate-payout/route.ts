@@ -29,6 +29,19 @@ export async function GET(request: NextRequest) {
   const authError = requireCronAuth(request);
   if (authError) return authError;
 
+  // Bureau session 4 (P0 Karim) — protection critique : ce cron flippait
+  // `AffiliateCommission.status = PAID` SANS jamais créer de virement
+  // réel (Moneroo / PayGenius / virement). Les affiliés voyaient "payé"
+  // côté plateforme sans recevoir un centime.
+  //
+  // Tant que l'init de payout n'est pas wirée (vote bureau à venir),
+  // ce cron tourne en DRY-RUN par défaut : il identifie les commissions
+  // payables, les log, mais NE FLIPPE PAS le status.
+  //
+  // Pour activer une fois la procédure de payout affilié wirée :
+  //   AFFILIATE_PAYOUT_ENABLED=true en env var Vercel.
+  const isLive = process.env.AFFILIATE_PAYOUT_ENABLED === "true";
+
   // Pull every APPROVED commission grouped by affiliate
   const approved = await prisma.affiliateCommission.findMany({
     where: { status: "APPROVED" },
@@ -77,6 +90,17 @@ export async function GET(request: NextRequest) {
     const payoutRef = `affpayout_${affiliateId}_${Date.now().toString(36)}`;
     const now = new Date();
 
+    if (!isLive) {
+      // Dry-run : on ne touche pas la DB. On log et on reporte.
+      console.warn(
+        `[affiliate-payout DRY-RUN] affiliate=${affiliateId} amount=${bucket.total} FCFA ` +
+          `commissions=${bucket.ids.length} — ` +
+          `Aucune mise à jour DB. Active AFFILIATE_PAYOUT_ENABLED=true après avoir wiré l'init Moneroo/PayGenius affilié.`,
+      );
+      results.push({ affiliateId, paidCount: bucket.ids.length, amount: bucket.total, status: "paid" });
+      continue;
+    }
+
     await prisma.$transaction([
       prisma.affiliateCommission.updateMany({
         where: { id: { in: bucket.ids } },
@@ -96,6 +120,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     runAt: new Date().toISOString(),
+    mode: isLive ? "live" : "dry-run",
     affiliatesProcessed: byAffiliate.size,
     paidCount: results.filter((r) => r.status === "paid").length,
     skippedBelowMin: results.filter((r) => r.status === "skipped_below_minimum").length,

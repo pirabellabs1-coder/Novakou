@@ -237,6 +237,15 @@ export type MonerooPayoutInitParams = {
    */
   recipient: Record<string, string>;
   metadata?: Record<string, unknown>;
+  /**
+   * Idempotence (bureau session 4 — P1 Karim) : Moneroo dédoublonne les payouts
+   * via le header `Idempotency-Key`. Si on POST 2× avec le même key,
+   * la 2e requête retourne le payout original au lieu d'en créer un 2e.
+   *
+   * Côté caller : passer `wd_<withdrawalId>` (l'id Prisma du InstructorWithdrawal)
+   * pour garantir qu'un double-click admin ne crée qu'un seul virement.
+   */
+  idempotencyKey?: string;
 };
 
 export type MonerooPayoutStatus = "pending" | "processing" | "success" | "failed" | "cancelled";
@@ -277,13 +286,19 @@ export async function initPayout(params: MonerooPayoutInitParams): Promise<Moner
     metadata: sanitizeMetadata(params.metadata),
   };
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+  };
+  if (params.idempotencyKey) {
+    // Header standard Moneroo (REST best-practice). Empêche le double-encaissement
+    // si l'admin double-clique sur "Payer Moneroo" ou si le réseau retry.
+    headers["Idempotency-Key"] = params.idempotencyKey;
+  }
   const res = await fetch(`${MONEROO_API_BASE}/payouts/initialize`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-      Accept: "application/json",
-    },
+    headers,
     body: JSON.stringify(payload),
   });
   const json = (await res.json()) as MonerooPayoutResponse | { message?: string; error?: string; errors?: Record<string, string[]> };

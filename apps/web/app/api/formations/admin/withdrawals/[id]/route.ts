@@ -434,6 +434,10 @@ export async function PATCH(request: Request, { params }: Params) {
           method: resolvedMethod,
           recipient,
           metadata: sharedMetadata,
+          // Bureau session 4 (P1 Karim) — empêche le double-payout sur
+          // double-click admin ou retry réseau. `wd_<id>` est unique par
+          // demande de retrait : un re-POST renverra le même payoutId.
+          idempotencyKey: `wd_${w.id}`,
         });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);

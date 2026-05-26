@@ -48,8 +48,25 @@ export async function GET(request: Request) {
     if (sort === "rating") orderBy = { rating: "desc" };
     if (sort === "recent") orderBy = { createdAt: "desc" };
 
-    const [formations, products, categories] = await Promise.all([
-      kind === "products" ? [] : prisma.formation.findMany({
+    // Bundles : on applique les mêmes filtres search/maxPrice/minRating
+    // que les formations/produits. Pas de `category` (les bundles n'en ont pas).
+    const bundleWhere: Record<string, unknown> = { isActive: true };
+    if (search) {
+      bundleWhere.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    if (maxPrice !== null) bundleWhere.priceXof = { lte: Math.round(maxPrice) };
+    if (minRating > 0) bundleWhere.rating = { gte: minRating };
+
+    let bundleOrderBy: Record<string, string> = { createdAt: "desc" };
+    if (sort === "price-asc") bundleOrderBy = { priceXof: "asc" };
+    if (sort === "price-desc") bundleOrderBy = { priceXof: "desc" };
+    if (sort === "rating") bundleOrderBy = { rating: "desc" };
+
+    const [formations, products, bundles, categories] = await Promise.all([
+      kind === "products" || kind === "bundles" ? [] : prisma.formation.findMany({
         where: formationWhere,
         take: 100,
         orderBy,
@@ -65,7 +82,7 @@ export async function GET(request: Request) {
           },
         },
       }),
-      kind === "formations" ? [] : prisma.digitalProduct.findMany({
+      kind === "formations" || kind === "bundles" ? [] : prisma.digitalProduct.findMany({
         where: productWhere,
         take: 100,
         orderBy,
@@ -74,6 +91,27 @@ export async function GET(request: Request) {
           thumbnail: true, banner: true, productType: true,
           rating: true, reviewsCount: true, salesCount: true,
           createdAt: true,
+          instructeur: {
+            select: {
+              user: { select: { name: true, image: true } },
+            },
+          },
+        },
+      }),
+      // Bureau session 4 (P1 Marcus) — bundles découvrables dans l'explorer.
+      // Avant : invisibles hors boutique vendeur. Désormais : indexés et triés
+      // au même titre que formations/produits.
+      kind === "formations" || kind === "products" ? [] : prisma.productBundle.findMany({
+        where: bundleWhere,
+        take: 100,
+        orderBy: bundleOrderBy,
+        select: {
+          id: true, slug: true, title: true, description: true,
+          priceXof: true, originalPriceXof: true,
+          thumbnail: true, banner: true,
+          rating: true, reviewsCount: true,
+          createdAt: true,
+          _count: { select: { purchases: true } },
           instructeur: {
             select: {
               user: { select: { name: true, image: true } },
@@ -92,9 +130,10 @@ export async function GET(request: Request) {
     // Résout les paths stockage (thumbnail, banner, image) en signed URLs
     // fraîches AVANT le mapping — sinon le frontend rend `<img src="path">`
     // → relatif à /explorer → 404.
-    const [resolvedFormations, resolvedProducts] = await Promise.all([
+    const [resolvedFormations, resolvedProducts, resolvedBundles] = await Promise.all([
       resolveStorageFields(formations),
       resolveStorageFields(products),
+      resolveStorageFields(bundles),
     ]);
 
     const formationItems = resolvedFormations.map((f) => ({
@@ -137,21 +176,55 @@ export async function GET(request: Request) {
       createdAt: p.createdAt,
     }));
 
+    const bundleItems = resolvedBundles.map((b) => ({
+      id: b.id,
+      kind: "bundle" as const,
+      slug: b.slug,
+      title: b.title,
+      // On expose `price` (alias de priceXof) pour rester homogène
+      // avec formations/produits côté frontend.
+      price: b.priceXof,
+      originalPrice: b.originalPriceXof,
+      thumbnail: b.thumbnail ?? b.banner,
+      rating: b.rating,
+      reviewsCount: b.reviewsCount,
+      salesCount: b._count.purchases,
+      category: null,
+      shortDesc: b.description ? b.description.slice(0, 120) : null,
+      type: "Pack",
+      seller: b.instructeur.user.name ?? "—",
+      sellerAvatar: b.instructeur.user.image,
+      createdAt: b.createdAt,
+    }));
+
     const totalFormations = formationItems.length;
     const totalProducts = productItems.length;
+    const totalBundles = bundleItems.length;
 
     return NextResponse.json({
       data: {
         formations: formationItems,
         products: productItems,
+        bundles: bundleItems,
         categories: categories.map((c) => c.customCategory).filter(Boolean),
-        stats: { totalFormations, totalProducts, total: totalFormations + totalProducts },
+        stats: {
+          totalFormations,
+          totalProducts,
+          totalBundles,
+          total: totalFormations + totalProducts + totalBundles,
+        },
       },
     });
   } catch (err) {
     console.error("[public/explorer]", err);
     return NextResponse.json({
-      data: { formations: [], products: [], categories: [], stats: { totalFormations: 0, totalProducts: 0, total: 0 } },
+      data: {
+        formations: [],
+        products: [],
+        bundles: [],
+        categories: [],
+        stats: { totalFormations: 0, totalProducts: 0, totalBundles: 0, total: 0 },
+      },
     });
   }
 }

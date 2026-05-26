@@ -106,9 +106,9 @@ export async function POST(request: Request) {
       partial?: number;
     };
 
-    if (!type || !["enrollment", "product", "booking"].includes(type)) {
+    if (!type || !["enrollment", "product", "booking", "bundle"].includes(type)) {
       return NextResponse.json(
-        { error: "Le champ 'type' est requis (enrollment | product | booking)." },
+        { error: "Le champ 'type' est requis (enrollment | product | booking | bundle)." },
         { status: 400 },
       );
     }
@@ -142,6 +142,9 @@ export async function POST(request: Request) {
     }
     if (type === "booking") {
       return handleBookingRefund(id, trimmedReason, partial, adminId);
+    }
+    if (type === "bundle") {
+      return handleBundleRefund(id, trimmedReason, partial, adminId);
     }
 
     return NextResponse.json({ error: "Type inconnu." }, { status: 400 });
@@ -710,6 +713,191 @@ async function handleBookingRefund(
       reversedVendorAmount,
       buyer: booking.student.email,
       mentorUserId: booking.mentor.userId,
+    },
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BUNDLE REFUND — Bureau session 4 (P0 Marcus)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Avant cette session, refunder un bundle était impossible : le webhook créait
+// `ProductBundlePurchase` + Enrollment/DigitalProductPurchase tagged
+// `bundle_<purchaseId>` mais aucun handler ne savait les révoquer ni reverser
+// la commission. L'acheteur gardait l'accès gratuit à vie après remboursement.
+//
+// Ce handler :
+//   1. Vérifie idempotence (negative PlatformRevenue déjà créée)
+//   2. Crée la negative PlatformRevenue (reverse commission)
+//   3. Décrémente totalEarned vendeur
+//   4. Cancel les AffiliateCommission liées
+//   5. Révoque enrollments + product purchases taggés `bundle_<id>` :
+//      - Pour les enrollments : flag `refundedAt`, decrement currentStudents
+//      - Pour les products : flag `maxDownloads=0` + decrement currentBuyers
+//   6. Notifie l'acheteur + le vendeur
+async function handleBundleRefund(
+  purchaseId: string,
+  reason: string,
+  partialAmount: number | undefined,
+  adminId: string,
+) {
+  // Note schema : ProductBundlePurchase a une relation `bundle` mais pas
+  // `user` (juste un scalaire `userId`). On fetch user séparément.
+  const purchase = await prisma.productBundlePurchase.findUnique({
+    where: { id: purchaseId },
+    include: {
+      bundle: {
+        select: {
+          id: true,
+          title: true,
+          instructeurId: true,
+          instructeur: { select: { id: true, userId: true } },
+        },
+      },
+    },
+  });
+
+  if (!purchase) {
+    return NextResponse.json({ error: "Achat bundle introuvable." }, { status: 404 });
+  }
+
+  const buyer = await prisma.user.findUnique({
+    where: { id: purchase.userId },
+    select: { id: true, name: true, email: true },
+  });
+  if (!buyer) {
+    return NextResponse.json({ error: "Acheteur introuvable." }, { status: 404 });
+  }
+
+  // Idempotence : si une PlatformRevenue négative existe déjà pour ce purchase,
+  // on a déjà remboursé. On refuse au lieu de doubler.
+  const existingReverse = await prisma.platformRevenue.findFirst({
+    where: { orderId: purchaseId, orderType: "bundle", grossAmount: { lt: 0 } },
+    select: { id: true },
+  });
+  if (existingReverse) {
+    return NextResponse.json(
+      { error: "Cet achat a déjà été remboursé." },
+      { status: 409 },
+    );
+  }
+
+  const refundAmount =
+    partialAmount !== undefined && partialAmount > 0 && partialAmount < purchase.paidAmount
+      ? partialAmount
+      : purchase.paidAmount;
+  const isFullRefund = refundAmount === purchase.paidAmount;
+  const reversedCommission = Math.round(refundAmount * PLATFORM_COMMISSION_RATE);
+  const reversedVendorAmount = refundAmount - reversedCommission;
+  const tag = `bundle_${purchaseId}`;
+
+  await prisma.$transaction(async (tx) => {
+    // 1. Negative PlatformRevenue (audit + comptabilité plateforme)
+    await tx.platformRevenue.create({
+      data: {
+        orderId: purchaseId,
+        orderType: "bundle",
+        grossAmount: -refundAmount,
+        commissionRate: PLATFORM_COMMISSION_RATE,
+        commissionAmount: -reversedCommission,
+        vendorAmount: -reversedVendorAmount,
+        paymentRef: `refund_${purchaseId}`,
+        currency: "XOF",
+        instructeurId: purchase.bundle.instructeurId,
+      },
+    });
+
+    // 2. Décrémente totalEarned vendeur
+    await tx.instructeurProfile.update({
+      where: { id: purchase.bundle.instructeurId },
+      data: { totalEarned: { decrement: reversedVendorAmount } },
+    });
+
+    // 3. Cancel affiliate commissions on this bundle order
+    await tx.affiliateCommission.updateMany({
+      where: { orderId: purchaseId, orderType: "bundle", status: { not: "CANCELLED" } },
+      data: { status: "CANCELLED" },
+    });
+
+    if (isFullRefund) {
+      // 4. Révoque les Enrollments du bundle : flag refundedAt + clamp
+      //    currentStudents. Le tag `bundle_<id>` est posé sur stripeSessionId
+      //    lors du fulfillment (cf. webhooks Moneroo/PayGenius).
+      const bundleEnrollments = await tx.enrollment.findMany({
+        where: { stripeSessionId: tag, refundedAt: null },
+        select: { id: true, formationId: true },
+      });
+      for (const enr of bundleEnrollments) {
+        await tx.enrollment.update({
+          where: { id: enr.id },
+          data: { refundedAt: new Date(), refundReason: reason },
+        });
+        await tx.formation.updateMany({
+          where: { id: enr.formationId, currentStudents: { gt: 0 } },
+          data: { currentStudents: { decrement: 1 } },
+        });
+      }
+
+      // 5. Révoque les DigitalProductPurchase du bundle : maxDownloads = 0
+      //    + clamp currentBuyers.
+      const bundlePurchases = await tx.digitalProductPurchase.findMany({
+        where: { stripeSessionId: tag, maxDownloads: { gt: 0 } },
+        select: { id: true, productId: true },
+      });
+      for (const pp of bundlePurchases) {
+        await tx.digitalProductPurchase.update({
+          where: { id: pp.id },
+          data: { maxDownloads: 0 },
+        });
+        await tx.digitalProduct.updateMany({
+          where: { id: pp.productId, currentBuyers: { gt: 0 } },
+          data: { currentBuyers: { decrement: 1 } },
+        });
+      }
+    }
+  });
+
+  // 6. Notifications hors transaction (best-effort)
+  await prisma.notification
+    .create({
+      data: {
+        userId: buyer.id,
+        type: "PAYMENT",
+        title: isFullRefund ? "Remboursement bundle effectué" : "Remboursement partiel effectué",
+        message: `Votre ${isFullRefund ? "achat" : "achat partiel"} du pack « ${purchase.bundle.title} » a été remboursé (${Math.round(refundAmount)} FCFA). ${isFullRefund ? "Les accès liés ont été révoqués." : ""} Motif : ${reason}`,
+        link: "/apprenant/commandes",
+      },
+    })
+    .catch(() => null);
+
+  if (purchase.bundle.instructeur.userId) {
+    await prisma.notification
+      .create({
+        data: {
+          userId: purchase.bundle.instructeur.userId,
+          type: "PAYMENT",
+          title: "Remboursement client",
+          message: `${buyer.name ?? buyer.email} a été remboursé pour le pack « ${purchase.bundle.title} » (-${Math.round(reversedVendorAmount)} FCFA nets sur votre wallet).`,
+          link: "/vendeur/transactions",
+        },
+      })
+      .catch(() => null);
+  }
+
+  console.log(
+    `[admin/refund] BUNDLE ${purchaseId} refunded by admin ${adminId} for ${refundAmount} FCFA (full=${isFullRefund})`,
+  );
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      id: purchaseId,
+      type: "bundle",
+      refundAmount,
+      isFullRefund,
+      reversedCommission,
+      reversedVendorAmount,
+      buyer: buyer.email,
     },
   });
 }

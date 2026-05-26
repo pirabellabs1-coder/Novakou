@@ -10,7 +10,7 @@ import { trackEvents, debounce } from "@/lib/tracking/events";
 
 type Item = {
   id: string;
-  kind: "formation" | "product";
+  kind: "formation" | "product" | "bundle";
   slug: string;
   title: string;
   price: number;
@@ -30,8 +30,9 @@ type Item = {
 type ExplorerData = {
   formations: Item[];
   products: Item[];
+  bundles: Item[];
   categories: string[];
-  stats: { totalFormations: number; totalProducts: number; total: number };
+  stats: { totalFormations: number; totalProducts: number; totalBundles: number; total: number };
 };
 
 function formatFCFA(n: number) {
@@ -71,7 +72,10 @@ function StarRating({ rating }: { rating: number }) {
 
 function ProductCard({ item, idx }: { item: Item; idx: number }) {
   const gradient = GRADIENTS[idx % GRADIENTS.length];
-  const href = item.kind === "formation" ? `/formation/${item.slug}` : `/produit/${item.slug}`;
+  const href =
+    item.kind === "formation" ? `/formation/${item.slug}` :
+    item.kind === "bundle" ? `/bundle/${item.slug}` :
+    `/produit/${item.slug}`;
   const discountPct = item.originalPrice && item.originalPrice > item.price
     ? Math.round((1 - item.price / item.originalPrice) * 100)
     : null;
@@ -92,6 +96,13 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
       trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
       // Redirige vers notre page /checkout personnalisée (contact + méthode + résumé sur UNE page)
       // au lieu d'appeler directement Moneroo (qui afficherait son propre formulaire 2 étapes).
+      // Pour bundle : on envoie sur la page détail du bundle qui a son propre
+      // flux d'achat (init paiement spécifique). Pour formations/produits :
+      // checkout direct avec fids/pids.
+      if (item.kind === "bundle") {
+        window.location.href = `/bundle/${item.slug}`;
+        return;
+      }
       const qs = item.kind === "formation" ? `fids=${item.id}` : `pids=${item.id}`;
       window.location.href = `/checkout?${qs}`;
       return;
@@ -372,8 +383,8 @@ function ExplorerInner() {
 
   // Hydrate filters from URL on mount
   const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
-  const [activeTab, setActiveTab] = useState<"all" | "formations" | "products">(
-    () => (searchParams.get("tab") as "all" | "formations" | "products") ?? "all",
+  const [activeTab, setActiveTab] = useState<"all" | "formations" | "products" | "bundles">(
+    () => (searchParams.get("tab") as "all" | "formations" | "products" | "bundles") ?? "all",
   );
   const [activeCategory, setActiveCategory] = useState<string | null>(
     () => searchParams.get("category"),
@@ -442,14 +453,16 @@ function ExplorerInner() {
     });
   }, [search, activeTab, activeCategory, minRating, maxPrice, sort, formations.length, products.length]);
 
+  const bundles = data?.bundles ?? [];
   const displayedItems = useMemo(() => {
     if (activeTab === "formations") return formations;
     if (activeTab === "products") return products;
-    // "all" — interleave formations and products
-    return [...formations, ...products].sort((a, b) =>
+    if (activeTab === "bundles") return bundles;
+    // "all" — interleave formations, products et bundles
+    return [...formations, ...products, ...bundles].sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [activeTab, formations, products]);
+  }, [activeTab, formations, products, bundles]);
 
   // ── Pagination Précédent/Suivant — bureau 2026-05-26, addendum #3 sur
   // remontée Lissanon : un vrai navigateur de pages, pas un load-more.
@@ -560,6 +573,7 @@ function ExplorerInner() {
               { value: "all", label: "Tout", count: stats?.total ?? 0, icon: "apps" },
               { value: "formations", label: "Formations", count: stats?.totalFormations ?? 0, icon: "school" },
               { value: "products", label: "Produits", count: stats?.totalProducts ?? 0, icon: "shopping_bag" },
+              { value: "bundles", label: "Packs", count: stats?.totalBundles ?? 0, icon: "inventory_2" },
             ] as const).map((tab) => (
               <button
                 key={tab.value}
