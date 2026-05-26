@@ -3,9 +3,10 @@
 import { useToastStore } from "@/store/toast";
 
 import Link from "next/link";
-import { useState, useMemo, useEffect, useCallback, Suspense } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { trackEvents, debounce } from "@/lib/tracking/events";
 
 type Item = {
   id: string;
@@ -83,6 +84,12 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
     if (added || adding) return;
     setAdding(true);
     try {
+      // Tracking : CTA click + add_to_cart (l'utilisateur saute le panier pour aller direct au checkout)
+      trackEvents.ctaClick(
+        { id: item.id, kind: item.kind, price: item.price, title: item.title },
+        "explorer_card",
+      );
+      trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
       // Redirige vers notre page /checkout personnalisée (contact + méthode + résumé sur UNE page)
       // au lieu d'appeler directement Moneroo (qui afficherait son propre formulaire 2 étapes).
       const qs = item.kind === "formation" ? `fids=${item.id}` : `pids=${item.id}`;
@@ -415,6 +422,26 @@ function ExplorerInner() {
   const categories = data?.categories ?? [];
   const stats = data?.stats;
 
+  // ── Tracking : recherche acheteur (debounced) ─────────────────────────
+  const trackSearchRef = useRef(
+    debounce((q: string, ctx: { resultsCount: number; filters: Record<string, unknown> }) => {
+      trackEvents.search(q, { resultsCount: ctx.resultsCount, filters: ctx.filters });
+    }, 700),
+  );
+  useEffect(() => {
+    if (!search || search.trim().length < 2) return;
+    trackSearchRef.current(search, {
+      resultsCount: (formations.length + products.length) | 0,
+      filters: {
+        tab: activeTab,
+        category: activeCategory ?? undefined,
+        minRating: minRating || undefined,
+        maxPrice: maxPrice < 1000000 ? maxPrice : undefined,
+        sort: sort !== "relevance" ? sort : undefined,
+      },
+    });
+  }, [search, activeTab, activeCategory, minRating, maxPrice, sort, formations.length, products.length]);
+
   const displayedItems = useMemo(() => {
     if (activeTab === "formations") return formations;
     if (activeTab === "products") return products;
@@ -423,6 +450,48 @@ function ExplorerInner() {
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
   }, [activeTab, formations, products]);
+
+  // ── Pagination Précédent/Suivant — bureau 2026-05-26, addendum #3 sur
+  // remontée Lissanon : un vrai navigateur de pages, pas un load-more.
+  const PAGE_SIZE = 12;
+  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => {
+    // Reset à la page 1 quand les filtres changent : sinon on peut être
+    // bloqué sur une page vide (ex : page 5 alors qu'il ne reste que 2 résultats).
+    setCurrentPage(1);
+  }, [search, activeTab, activeCategory, minRating, maxPrice, sort]);
+  const totalPages = Math.max(1, Math.ceil(displayedItems.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIdx = (safePage - 1) * PAGE_SIZE;
+  const visibleItems = useMemo(
+    () => displayedItems.slice(startIdx, startIdx + PAGE_SIZE),
+    [displayedItems, startIdx],
+  );
+
+  function goToPage(p: number) {
+    const next = Math.min(Math.max(1, p), totalPages);
+    setCurrentPage(next);
+    // Remonte au sommet de la grille à chaque navigation pour éviter d'être
+    // perdu en bas du footer (mobile surtout).
+    if (typeof window !== "undefined") {
+      const grid = document.getElementById("explorer-grid");
+      if (grid) grid.scrollIntoView({ behavior: "smooth", block: "start" });
+      else window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  // Numéros de pages affichés : on borne à 7 visibles avec ellipses (…) au milieu.
+  function getPageNumbers(): (number | "…")[] {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pages: (number | "…")[] = [1];
+    const start = Math.max(2, safePage - 1);
+    const end = Math.min(totalPages - 1, safePage + 1);
+    if (start > 2) pages.push("…");
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (end < totalPages - 1) pages.push("…");
+    pages.push(totalPages);
+    return pages;
+  }
 
   const resetFilters = () => {
     setSearch("");
@@ -591,7 +660,11 @@ function ExplorerInner() {
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#006e2f]/5">
               <span className="material-symbols-outlined text-[14px] text-[#006e2f]">filter_alt</span>
               <span className="text-xs text-[#5c647a]">
-                <span className="font-extrabold text-[#191c1e]">{displayedItems.length}</span> résultat{displayedItems.length > 1 ? "s" : ""}
+                <span className="font-extrabold text-[#191c1e]">{displayedItems.length}</span>
+                {" "}résultat{displayedItems.length > 1 ? "s" : ""}
+                {totalPages > 1 && (
+                  <> · page <span className="font-extrabold text-[#191c1e]">{safePage}</span> / {totalPages}</>
+                )}
               </span>
             </div>
           </div>
@@ -642,11 +715,70 @@ function ExplorerInner() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {displayedItems.map((item, idx) => (
-              <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
-            ))}
-          </div>
+          <>
+            <div id="explorer-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 scroll-mt-24">
+              {visibleItems.map((item, idx) => (
+                <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
+              ))}
+            </div>
+
+            {/* Pagination : ← Précédent · 1 2 3 … · Suivant → */}
+            {totalPages > 1 && (
+              <nav
+                aria-label="Pagination"
+                className="mt-10 flex flex-col items-center gap-3"
+              >
+                <div className="flex items-center gap-1 flex-wrap justify-center">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(safePage - 1)}
+                    disabled={safePage === 1}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[#191c1e] text-sm font-semibold hover:bg-gray-50 hover:border-[#006e2f]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    aria-label="Page précédente"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    Précédent
+                  </button>
+
+                  <div className="hidden sm:flex items-center gap-1 mx-2">
+                    {getPageNumbers().map((p, i) =>
+                      p === "…" ? (
+                        <span key={`gap-${i}`} className="px-2 text-[#5c647a] select-none">…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => goToPage(p)}
+                          aria-current={p === safePage ? "page" : undefined}
+                          className={`min-w-[40px] h-10 px-3 rounded-lg text-sm font-bold transition-colors ${
+                            p === safePage
+                              ? "bg-[#006e2f] text-white shadow-sm"
+                              : "bg-white border border-gray-200 text-[#191c1e] hover:bg-gray-50 hover:border-[#006e2f]/40"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ),
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => goToPage(safePage + 1)}
+                    disabled={safePage === totalPages}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[#191c1e] text-sm font-semibold hover:bg-gray-50 hover:border-[#006e2f]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    aria-label="Page suivante"
+                  >
+                    Suivant
+                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                </div>
+                <p className="text-[11px] text-[#5c647a] tabular-nums">
+                  Affichage {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, displayedItems.length)} sur {displayedItems.length}
+                </p>
+              </nav>
+            )}
+          </>
         )}
       </div>
 

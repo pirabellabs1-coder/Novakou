@@ -295,13 +295,26 @@ export default function FormationPageClient({ slug }: { slug: string }) {
         pageContext={`Le visiteur consulte la formation "${formation.title}" à ${formation.price} F CFA.`}
       />
 
-      {/* Breadcrumb minimal — no hero cover */}
-      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6">
-        <Link
-          href="/explorer"
+      {/* Breadcrumb minimal + back button — no hero cover */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 pt-6 flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          onClick={() => {
+            // Retour à la page précédente si on a un historique interne,
+            // sinon fallback vers le catalogue (cas d'arrivée directe depuis Google).
+            if (typeof window !== "undefined" && window.history.length > 1) router.back();
+            else router.push("/explorer");
+          }}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-[#5c647a] text-xs font-semibold hover:bg-gray-50 hover:text-[#191c1e] transition-colors"
         >
           <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          Retour
+        </button>
+        <Link
+          href="/explorer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[#5c647a] text-xs font-semibold hover:text-[#006e2f] transition-colors"
+        >
+          <span className="material-symbols-outlined text-[14px]">grid_view</span>
           Catalogue
         </Link>
         {/* Mobile title */}

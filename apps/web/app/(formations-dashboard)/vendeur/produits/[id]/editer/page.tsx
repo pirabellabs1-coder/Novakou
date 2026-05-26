@@ -527,7 +527,7 @@ export default function EditerProduitPage() {
           <div className="flex items-end gap-4">
             <div className="flex-1">
               <label className="block text-xs font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">
-                Ventes effectuées (compteur ajustable)
+                Compteur de ventes affiché (auto + ajustement)
               </label>
               <input
                 type="number"
@@ -537,7 +537,9 @@ export default function EditerProduitPage() {
                 className="w-full text-sm text-[#191c1e] bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/20"
               />
               <p className="text-[11px] text-[#5c647a] mt-1.5">
-                Vous pouvez ajuster manuellement (ex: après un remboursement).
+                <strong className="text-[#006e2f]">Auto-incrémenté à chaque vente.</strong> Vous pouvez le pré-remplir
+                (ex : ventes hors plateforme) ou l&apos;ajuster après un remboursement. Le compteur réel
+                des transactions reste visible dans votre dashboard.
                 {maxBuyersInput && Number(maxBuyersInput) > 0 && (
                   <>
                     {" "}Restant : <strong>{Math.max(0, Number(maxBuyersInput) - Number(currentBuyersInput || 0))}</strong> sur {maxBuyersInput}.

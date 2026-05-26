@@ -1,3 +1,4 @@
+// Audit paiement 2026-05-26 — Karim Benali (bureau réunions 12-16, votes 18-26)
 // POST /api/webhooks/stripe — Stripe webhook handler
 // Handles: formations, digital products, marketing, AND marketplace events (Connect, escrow)
 
@@ -284,6 +285,23 @@ async function handleFormationCheckout(session: Stripe.Checkout.Session) {
   if (promoId) {
     const promo = await prisma.promoCode.findUnique({ where: { id: promoId } });
     if (promo?.isActive) discountPct = promo.discountPct;
+  }
+
+  // ── Audit paiement 2026-05-26 — vote 20 : validation montant ────────
+  // Recalcule le total attendu (en cents) et compare à session.amount_total.
+  // Tolérance ±1 cent. Si écart : on log et on return early sans fulfill.
+  // Stripe acceptera notre 200, on ne refulfillera pas.
+  const expectedAmountCents = Math.round(
+    formations.reduce((s, f) => s + f.price * (1 - discountPct / 100), 0) * 100,
+  );
+  const receivedAmountCents = session.amount_total ?? 0;
+  if (receivedAmountCents < expectedAmountCents - 1) {
+    console.error("[stripe.webhook] amount mismatch", {
+      sessionId: session.id,
+      expected: expectedAmountCents,
+      received: receivedAmountCents,
+    });
+    return;
   }
 
   // Créer les enrollments et mettre à jour les stats en transaction
@@ -601,6 +619,20 @@ async function handleDigitalProductCheckout(session: Stripe.Checkout.Session) {
     return;
   }
 
+  // ── Audit paiement 2026-05-26 — vote 20 : validation montant ────────
+  // Compare product.price (EUR) × 100 à session.amount_total (cents).
+  // Tolérance ±1 cent. Pas de fulfill si écart.
+  const expectedProductAmountCents = Math.round(product.price * 100);
+  const receivedProductAmountCents = session.amount_total ?? 0;
+  if (receivedProductAmountCents < expectedProductAmountCents - 1) {
+    console.error("[stripe.webhook] amount mismatch", {
+      sessionId: session.id,
+      expected: expectedProductAmountCents,
+      received: receivedProductAmountCents,
+    });
+    return;
+  }
+
   const paidAmount = (session.amount_total ?? 0) / 100;
 
   // Generate license key for LICENCE type products
@@ -907,9 +939,14 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
           data: { totalEarned: { decrement: enr.paidAmount * 0.9 } },
         }).catch(() => null);
       }
-      await prisma.formation.update({
-        where: { id: enr.formationId },
+      // Clamp >= 0 (vote 26) : pas de compteur négatif après refund.
+      await prisma.formation.updateMany({
+        where: { id: enr.formationId, studentsCount: { gt: 0 } },
         data: { studentsCount: { decrement: 1 } },
+      }).catch(() => null);
+      await prisma.formation.updateMany({
+        where: { id: enr.formationId, currentStudents: { gt: 0 } },
+        data: { currentStudents: { decrement: 1 } },
       }).catch(() => null);
     }
   }
@@ -1105,9 +1142,9 @@ async function handleFunnelCheckout(session: Stripe.Checkout.Session) {
             });
           }
 
-          // Trigger marketing hooks
+          // Trigger marketing hooks — fix vote 26 : args (userId, itemId, amount)
           try {
-            await onFormationPurchase(formation.id, userId, totalAmount / itemIds.length);
+            await onFormationPurchase(userId, formation.id, totalAmount / itemIds.length);
           } catch { /* non-blocking */ }
 
           continue;
@@ -1120,7 +1157,7 @@ async function handleFunnelCheckout(session: Stripe.Checkout.Session) {
             select: { id: true },
           });
           if (product) {
-            await onProductPurchase(product.id, userId, totalAmount / itemIds.length);
+            await onProductPurchase(userId, product.id, totalAmount / itemIds.length);
           }
         } catch { /* non-blocking */ }
       }

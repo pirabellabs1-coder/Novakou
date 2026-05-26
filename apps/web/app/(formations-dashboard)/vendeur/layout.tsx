@@ -1,13 +1,31 @@
+// Refonte par Augustin Mékongo + Fatou Diallo — bureau 2026-05-26 (votes 7, 8, 13)
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSession, signOut } from "next-auth/react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
 import { ShopProvider, useActiveShop } from "@/components/formations/ShopProvider";
 import ShopSwitcher from "@/components/formations/ShopSwitcher";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
+
+/**
+ * Vote 13 — badges "à traiter" sur la sidebar vendeur.
+ * Mapping route → clé compteur de l'endpoint /api/formations/vendeur/sidebar-counts :
+ *   /vendeur/abandons  → abandons (CheckoutAttempt ABANDONED/FAILED non récupérés)
+ *   /vendeur/inquiries → inquiries (ProductInquiry status="pending")
+ *   /wallet            → retraits  (InstructorWithdrawal status="EN_ATTENTE")
+ * Si le count = 0 ou indisponible → aucun badge rendu (on ne pollue pas la nav).
+ */
+const COUNT_KEY_BY_HREF: Record<string, "abandons" | "inquiries" | "retraits"> = {
+  "/vendeur/abandons": "abandons",
+  "/vendeur/inquiries": "inquiries",
+  "/wallet": "retraits",
+};
+
+type SidebarCounts = { abandons: number; inquiries: number; retraits: number };
 
 type NavItem = {
   icon: string;
@@ -80,6 +98,16 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const { data: session } = useSession();
   const { activeShop } = useActiveShop();
+
+  // Vote 13 — badges compteur sur la sidebar (poll léger 60s, partagé via cache TanStack).
+  // L'endpoint renvoie 0 partout en cas d'erreur → pas de crash, juste pas de badge.
+  const { data: countsResp } = useQuery<{ data: SidebarCounts }>({
+    queryKey: ["vendeur-sidebar-counts"],
+    queryFn: () => fetch("/api/formations/vendeur/sidebar-counts").then((r) => r.json()),
+    staleTime: 60_000,
+    refetchInterval: 60_000,
+  });
+  const counts: SidebarCounts = countsResp?.data ?? { abandons: 0, inquiries: 0, retraits: 0 };
 
   useEffect(() => {
     try {
@@ -264,6 +292,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                 <ul className="space-y-0.5">
                   {items.map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                    // Vote 13 — count rouge si la route a un compteur "à traiter" et qu'il est > 0.
+                    const countKey = COUNT_KEY_BY_HREF[item.href];
+                    const count = countKey ? counts[countKey] : 0;
+                    const showCountBadge = count > 0;
                     return (
                       <li key={item.href}>
                         <Link
@@ -300,14 +332,28 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                           {(!collapsed || mobileOpen) && (
                             <>
                               <span className="truncate">{item.label}</span>
-                              {item.badge && (
+                              {/* Badge count rose (vote 13) prioritaire sur le badge texte "IA"/"Pro" */}
+                              {showCountBadge ? (
+                                <span
+                                  aria-label={`${count} à traiter`}
+                                  className="bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5 ml-auto min-w-[18px] text-center leading-[18px] h-[18px]"
+                                >
+                                  {count > 99 ? "99+" : count}
+                                </span>
+                              ) : item.badge ? (
                                 <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
                                   {item.badge}
                                 </span>
-                              )}
+                              ) : null}
                             </>
                           )}
-                          {collapsed && !mobileOpen && item.badge && (
+                          {collapsed && !mobileOpen && showCountBadge && (
+                            <span
+                              aria-hidden
+                              className="absolute ml-8 -mt-5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white"
+                            />
+                          )}
+                          {collapsed && !mobileOpen && !showCountBadge && item.badge && (
                             <span className="absolute ml-8 -mt-5 text-[8px] font-bold w-3 h-3 rounded-full bg-amber-400" />
                           )}
                         </Link>

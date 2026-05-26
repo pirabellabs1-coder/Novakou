@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { trackEvents } from "@/lib/tracking/events";
 
 type Status = "loading" | "success" | "failed" | "pending";
 
@@ -161,6 +162,21 @@ function ReturnInner() {
           try {
             const formationIds = (result.enrollments ?? []).map((e) => e.id).filter(Boolean);
             const productIds = (result.purchases ?? []).map((p) => p.id).filter(Boolean);
+            const total = Number(result.totalAmount ?? result.subTotal ?? verify.data.amount ?? 0);
+
+            // Source de vérité Novakou — émis AVANT les pixels tiers (vote 4).
+            trackEvents.purchase({
+              orderId: paymentId,
+              total,
+              itemCount: formationIds.length + productIds.length,
+              currency: "XOF",
+              paymentMethod: provider,
+              items: [
+                ...formationIds.map((id) => ({ id, kind: "formation" as const })),
+                ...productIds.map((id) => ({ id, kind: "product" as const })),
+              ],
+            });
+
             if (formationIds.length > 0 || productIds.length > 0) {
               const qs = new URLSearchParams();
               if (formationIds.length > 0) qs.set("formationIds", formationIds.join(","));
@@ -168,7 +184,6 @@ function ReturnInner() {
               const px = await fetch(`/api/formations/public/pixels?${qs.toString()}`).then((r) => r.json());
               setPurchasePixels(px.data ?? []);
             }
-            const total = Number(result.totalAmount ?? result.subTotal ?? verify.data.amount ?? 0);
             setPurchaseAmount(total);
           } catch { /* pixels optionnels */ }
         } else if (paymentStatus === "pending" || paymentStatus === "initiated") {

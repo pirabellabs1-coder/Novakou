@@ -1,3 +1,4 @@
+// Refonte par Augustin Mékongo + Fatou Diallo — bureau 2026-05-26 (votes 7, 8, 13)
 "use client";
 
 import Link from "next/link";
@@ -21,6 +22,14 @@ import {
 import { countryName } from "@/lib/tracking/geo";
 import { Flag } from "@/components/ui/Flag";
 import { CommunityBanner } from "@/components/formations/CommunityBanner";
+
+// Bloc KPI comparable côté API (vote 7) — même shape pour `current` et `previous`
+type PeriodKpis = {
+  revenue: number;
+  sales: number;
+  students: number;
+  aov: number;
+};
 
 type Dashboard = {
   kpis: {
@@ -56,6 +65,8 @@ type Dashboard = {
   deltas?: { revenue: number; sales: number; students: number };
   split90?: { name: string; value: number }[];
   spark14?: { date: string; amount: number }[];
+  current?: PeriodKpis;
+  previous?: PeriodKpis;
 };
 
 function formatFCFA(n: number) {
@@ -91,6 +102,112 @@ function DeltaBadge({ value, suffix = "%" }: { value?: number; suffix?: string }
   );
 }
 
+/**
+ * Ligne delta sous le chiffre principal d'une card KPI.
+ * Vote 7 — format strict : "↑ 12,3 % vs 30 jours précédents" (vert) ou "↓ 4,1 % …" (rouge).
+ * Quand `previous = 0` → on affiche "—" pour ne pas calculer Infinity/NaN.
+ */
+function DeltaLine({
+  current,
+  previous,
+}: {
+  current?: number;
+  previous?: number;
+}) {
+  if (current === undefined || previous === undefined) {
+    return (
+      <p className="text-[10px] text-slate-400 mt-1 leading-tight">
+        — vs 30 jours précédents
+      </p>
+    );
+  }
+  if (previous === 0) {
+    return (
+      <p className="text-[10px] text-slate-400 mt-1 leading-tight">
+        — vs 30 jours précédents
+      </p>
+    );
+  }
+  const pct = ((current - previous) / previous) * 100;
+  const positive = pct >= 0;
+  // Format français avec virgule + 1 décimale
+  const formatted = Math.abs(pct).toLocaleString("fr-FR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return (
+    <p
+      className={`text-[10px] mt-1 leading-tight font-semibold ${
+        positive ? "text-emerald-700" : "text-rose-700"
+      }`}
+    >
+      <span aria-hidden>{positive ? "↑" : "↓"}</span>{" "}
+      {formatted}&nbsp;%{" "}
+      <span className="font-normal text-slate-400">vs 30 jours précédents</span>
+    </p>
+  );
+}
+
+/**
+ * Sparkline SVG maison (poly-line) — pas de dépendance Recharts pour les 14j de la card revenue.
+ * Vote 8 : ≤ 60 lignes, dégradé sous la courbe pour cohérence visuelle avec les autres cards.
+ * Si la série est absente / vide → on ne rend rien (composant skippé sans crasher).
+ */
+function SvgSparkline({
+  data,
+  color = "#006e2f",
+  height = 40,
+}: {
+  data?: { date: string; amount: number }[];
+  color?: string;
+  height?: number;
+}) {
+  if (!data || data.length === 0) return null;
+  const values = data.map((d) => d.amount);
+  const max = Math.max(...values, 1);
+  const min = Math.min(...values, 0);
+  const range = max - min || 1;
+  const width = 100; // viewBox unitless, le SVG se stretch en 100 %
+  const stepX = data.length > 1 ? width / (data.length - 1) : 0;
+  const points = values.map((v, i) => {
+    const x = i * stepX;
+    // marge top/bottom de 10 % pour ne pas coller au bord
+    const y = height - 4 - ((v - min) / range) * (height - 8);
+    return { x, y };
+  });
+  const linePath = points
+    .map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`))
+    .join(" ");
+  const areaPath = `${linePath} L${points[points.length - 1].x},${height} L${points[0].x},${height} Z`;
+  const gradId = `spark-svg-${color.replace(/[^a-z0-9]/gi, "")}`;
+  return (
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      preserveAspectRatio="none"
+      className="w-full block"
+      style={{ height: `${height}px` }}
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+          <stop offset="100%" stopColor={color} stopOpacity={0} />
+        </linearGradient>
+      </defs>
+      <path d={areaPath} fill={`url(#${gradId})`} />
+      <path
+        d={linePath}
+        fill="none"
+        stroke={color}
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 function MiniSpark({ data, color = "#22c55e" }: { data: { date: string; amount: number }[]; color?: string }) {
   if (!data || data.length === 0) return <div className="h-10" />;
   const id = `spark-${color.replace(/[^a-z0-9]/gi, "")}-${Math.random().toString(36).slice(2, 7)}`;
@@ -116,7 +233,11 @@ function KpiCard({
   value,
   unit,
   delta,
+  current,
+  previous,
+  showDeltaLine,
   spark,
+  svgSpark,
   accent,
   icon,
 }: {
@@ -124,7 +245,15 @@ function KpiCard({
   value: string;
   unit?: string;
   delta?: number;
+  /** Valeur courante (J-30 → J) du KPI — utilisée par la ligne "vs 30 jours précédents". */
+  current?: number;
+  /** Valeur précédente (J-60 → J-30) du KPI. Si 0 → on affiche "—" au lieu de Infinity. */
+  previous?: number;
+  /** Active la ligne delta sous le chiffre (uniquement KPI principaux : revenue, ventes, étudiants). */
+  showDeltaLine?: boolean;
   spark?: { date: string; amount: number }[];
+  /** Si true, on rend un SVG maison à la place de MiniSpark (Recharts). Vote 8 : revenue card. */
+  svgSpark?: boolean;
   accent: string;
   icon: string;
 }) {
@@ -146,7 +275,16 @@ function KpiCard({
         <span className="text-lg md:text-xl font-extrabold text-slate-900 tabular-nums tracking-tight break-all">{value}</span>
         {unit && <span className="text-xs font-bold text-slate-400">{unit}</span>}
       </div>
-      {spark && spark.length > 0 && <MiniSpark data={spark} color={accent} />}
+      {showDeltaLine && <DeltaLine current={current} previous={previous} />}
+      {spark && spark.length > 0 && (
+        svgSpark ? (
+          <div className="mt-2 -mx-1">
+            <SvgSparkline data={spark} color={accent} />
+          </div>
+        ) : (
+          <MiniSpark data={spark} color={accent} />
+        )
+      )}
     </div>
   );
 }
@@ -210,6 +348,48 @@ export default function VendeurDashboard() {
 
         <CommunityBanner tone="vendeur" />
 
+        {/* Alerte "ventes en chute" — bureau 2026-05-26 (suivi rapport final) */}
+        {(() => {
+          const curRev = d?.current?.revenue;
+          const prevRev = d?.previous?.revenue;
+          if (curRev == null || prevRev == null || prevRev <= 0) return null;
+          const drop = (curRev - prevRev) / prevRev; // négatif si baisse
+          if (drop > -0.3) return null; // seuil : baisse > 30%
+          const dropPct = Math.round(Math.abs(drop) * 100);
+          return (
+            <div className="mb-6 rounded-2xl p-5 flex items-start gap-4 border bg-rose-50 border-rose-200">
+              <div className="w-11 h-11 rounded-xl bg-rose-500 flex items-center justify-center flex-shrink-0">
+                <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>trending_down</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-sm font-bold text-slate-900">
+                  Vos ventes ont chuté de {dropPct} % vs la période précédente
+                </h3>
+                <p className="text-xs text-slate-600 mt-1">
+                  Revenu courant : <strong>{formatFCFA(curRev)} FCFA</strong> contre <strong>{formatFCFA(prevRev)} FCFA</strong> sur la période d&apos;avant.
+                  Pensez à relancer une campagne marketing, à booster une formation ou à activer une séquence email vers vos paniers abandonnés.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <Link
+                    href="/vendeur/marketing"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-100 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">campaign</span>
+                    Lancer une campagne
+                  </Link>
+                  <Link
+                    href="/vendeur/abandons"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-rose-200 text-rose-700 text-xs font-bold hover:bg-rose-100 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">restore</span>
+                    Voir les paniers abandonnés
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* KYC banner */}
         {needsKyc && (
           <div className={`mb-8 rounded-2xl p-5 flex items-start gap-4 border ${kycPending ? "bg-amber-50 border-amber-200" : "bg-rose-50 border-rose-200"}`}>
@@ -265,21 +445,28 @@ export default function VendeurDashboard() {
           </div>
         )}
 
-        {/* KPI grid */}
+        {/* KPI grid — vote 7 : delta line "↑ 12,3 % vs 30 jours précédents" sous les 3 KPI principaux.
+            Source de vérité : d.current (J-30→J) vs d.previous (J-60→J-30). Si previous=0 → "—".
+            Vote 8 : svgSpark activé uniquement sur la card revenue (SVG maison, pas Recharts). */}
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
           <KpiCard
             label="Revenus nets"
             value={isLoading ? "…" : formatFCFA(d?.kpis.netRevenue ?? 0)}
             unit="FCFA"
-            delta={d?.deltas?.revenue}
+            current={d?.current?.revenue}
+            previous={d?.previous?.revenue}
+            showDeltaLine
             spark={d?.spark14}
+            svgSpark
             accent="#006e2f"
             icon="payments"
           />
           <KpiCard
             label="Ventes (30j)"
-            value={isLoading ? "…" : (d?.recentSales?.length ?? 0).toLocaleString("fr-FR")}
-            delta={d?.deltas?.sales}
+            value={isLoading ? "…" : (d?.current?.sales ?? d?.recentSales?.length ?? 0).toLocaleString("fr-FR")}
+            current={d?.current?.sales}
+            previous={d?.previous?.sales}
+            showDeltaLine
             spark={d?.spark14}
             accent="#0ea5e9"
             icon="shopping_bag"
@@ -287,7 +474,9 @@ export default function VendeurDashboard() {
           <KpiCard
             label="Apprenants actifs"
             value={isLoading ? "…" : (d?.kpis.totalStudents ?? 0).toLocaleString("fr-FR")}
-            delta={d?.deltas?.students}
+            current={d?.current?.students}
+            previous={d?.previous?.students}
+            showDeltaLine
             accent="#a855f7"
             icon="group"
           />

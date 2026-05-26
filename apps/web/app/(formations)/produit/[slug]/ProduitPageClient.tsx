@@ -176,8 +176,15 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
   const discount = product.originalPrice && product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
-  const remaining = product.maxBuyers != null && product.currentBuyers != null
-    ? Math.max(0, product.maxBuyers - product.currentBuyers)
+  // Réunion d'urgence du 2026-05-26 (audit Karim+Fatou+Amélie) :
+  // `currentBuyers` est un seed manuel saisi par le vendeur ; `salesCount` est le
+  // compteur incrémenté par chaque achat réel. La jauge publique DOIT refléter
+  // les vraies ventes — on prend le max pour que les ventes réelles dépassent
+  // tout seed inflationniste et restent la source de vérité dès qu'elles
+  // dépassent le boost initial.
+  const displayedSold = Math.max(product.currentBuyers ?? 0, product.salesCount ?? 0);
+  const remaining = product.maxBuyers != null
+    ? Math.max(0, product.maxBuyers - displayedSold)
     : null;
 
   return (
@@ -194,9 +201,21 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
         pageContext={`Le visiteur consulte le produit "${product.title}" à ${product.price} F CFA.`}
       />
 
-      {/* Breadcrumb */}
+      {/* Breadcrumb + bouton retour */}
       <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-[#5c647a]">
+        <div className="max-w-7xl mx-auto flex items-center gap-3 flex-wrap text-xs text-[#5c647a]">
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) router.back();
+              else router.push("/explorer");
+            }}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:text-[#191c1e] font-semibold transition-colors"
+          >
+            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            Retour
+          </button>
+          <span className="text-gray-300">·</span>
           <Link href="/" className="hover:text-[#006e2f] transition-colors">Accueil</Link>
           <span className="material-symbols-outlined text-[12px]">chevron_right</span>
           <Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link>
@@ -526,7 +545,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 <SaleAvailability
                   salesEndAt={product.salesEndAt}
                   maxBuyers={product.maxBuyers}
-                  currentBuyers={product.currentBuyers}
+                  currentBuyers={displayedSold}
                   onAvailabilityChange={setCanBuy}
                 />
 

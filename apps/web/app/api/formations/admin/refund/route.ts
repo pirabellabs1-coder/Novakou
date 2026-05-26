@@ -458,10 +458,17 @@ async function handleProductRefund(
     });
 
     // 3. Decrement salesCount on full refund
+    // Audit 2026-05-26 : décrémenter AUSSI currentBuyers pour rester aligné
+    // avec checkout/gift/Stripe webhook qui incrémentent maintenant les deux.
+    // Session 2 (vote 26) : clamp >= 0 pour ne jamais tomber négatif.
     if (isFullRefund) {
-      await tx.digitalProduct.update({
-        where: { id: purchase.product.id },
+      await tx.digitalProduct.updateMany({
+        where: { id: purchase.product.id, salesCount: { gt: 0 } },
         data: { salesCount: { decrement: 1 } },
+      });
+      await tx.digitalProduct.updateMany({
+        where: { id: purchase.product.id, currentBuyers: { gt: 0 } },
+        data: { currentBuyers: { decrement: 1 } },
       });
     }
 

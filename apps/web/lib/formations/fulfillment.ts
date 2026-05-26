@@ -43,6 +43,22 @@ export interface FulfillParams {
     profileId: string;
     commissionRate: number; // 0..1
   } | null;
+  /**
+   * Montant effectivement reçu du provider (session 2 bureau — vote 19).
+   * Si fourni, fulfillment refuse si reçu < total recalculé - tolérance.
+   * Empêche un attaquant d'injecter des items supplémentaires en metadata.
+   */
+  expectedAmountReceived?: number;
+  /** Tolérance d'arrondi (défaut 1 unité — vote 20). */
+  amountTolerance?: number;
+}
+
+/** Levée quand le montant reçu ne correspond pas au prix recalculé serveur. */
+export class AmountMismatchError extends Error {
+  constructor(public expected: number, public received: number) {
+    super(`Amount mismatch: expected >= ${expected - 1}, received ${received}`);
+    this.name = "AmountMismatchError";
+  }
 }
 
 export interface FulfillResult {
@@ -71,6 +87,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           select: {
             id: true, slug: true, title: true, price: true,
             instructeurId: true, shopId: true,
+            // Stock gate (vote 23) : re-vérifiée au moment du fulfillment.
+            maxStudents: true, currentStudents: true,
             instructeur: { select: { user: { select: { id: true, email: true, name: true } } } },
           },
         })
@@ -81,6 +99,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           select: {
             id: true, slug: true, title: true, price: true, productType: true, fileUrl: true,
             instructeurId: true, shopId: true,
+            // Stock gate (vote 23).
+            maxBuyers: true, currentBuyers: true, salesCount: true,
             instructeur: { select: { user: { select: { id: true, email: true, name: true } } } },
             files: {
               orderBy: { order: "asc" },
@@ -134,80 +154,114 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   const totalAmount = Math.max(0, subTotal - discountAmount);
   const applyDiscount = (price: number) => (subTotal > 0 ? Math.round(price * (totalAmount / subTotal)) : price);
 
+  // ── Validation montant payé (votes 19 & 20) ──────────────────────────
+  // Si le webhook a transmis le montant reçu, on refuse si l'écart dépasse
+  // la tolérance. Empêche un attaquant d'ajouter des items en metadata
+  // sans payer la différence. La tolérance par défaut absorbe les arrondis.
+  if (p.expectedAmountReceived != null) {
+    const tolerance = p.amountTolerance ?? 1;
+    if (p.expectedAmountReceived < totalAmount - tolerance) {
+      console.error("[fulfillment] AMOUNT MISMATCH", {
+        sessionRef,
+        expected: totalAmount,
+        received: p.expectedAmountReceived,
+        formationIds,
+        productIds,
+      });
+      throw new AmountMismatchError(totalAmount, p.expectedAmountReceived);
+    }
+  }
+
   const createdEnrollments: { id: string; title: string; price: number }[] = [];
   const createdPurchases: { id: string; title: string; price: number }[] = [];
   const skipped: string[] = [];
 
   // ── Formations ──────────────────────────────────────────────────────
   for (const f of formations) {
-    const existing = await prisma.enrollment.findUnique({
-      where: { userId_formationId: { userId, formationId: f.id } },
-    });
-    if (existing) { skipped.push(f.title); continue; }
+    // Stock re-check (vote 23) : on refuse de fulfill un item dont le stock
+    // a été épuisé entre l'init et le webhook. Skip sans planter pour ne
+    // pas bloquer les autres items du même paiement.
+    if (typeof f.maxStudents === "number" && f.maxStudents > 0 && (f.currentStudents ?? 0) >= f.maxStudents) {
+      console.warn(`[fulfillment] formation ${f.id} stock épuisé au fulfillment — skip`);
+      skipped.push(`${f.title} (stock épuisé)`);
+      continue;
+    }
 
     const finalPrice = applyDiscount(f.price);
-    const enrollment = await prisma.enrollment.create({
-      data: { userId, formationId: f.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
-    });
-
     const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
     const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
     const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
 
-    await prisma.instructeurProfile.update({
-      where: { id: f.instructeurId },
-      data: { totalEarned: { increment: vendorNet } },
-    });
-    // Incrémente DEUX compteurs distincts :
-    //  - studentsCount : compteur cumulatif (analytics, ne décroît pas même
-    //    après remboursement — utilisé pour les stats publiques "X élèves")
-    //  - currentStudents : compteur enforcé par maxStudents (limite de stock).
-    //    Le vendeur peut ajuster manuellement ce compteur (ex: après refund).
-    await prisma.formation.update({
-      where: { id: f.id },
-      data: {
-        studentsCount: { increment: 1 },
-        currentStudents: { increment: 1 },
-      },
-    });
+    // Atomicité (vote 21) : tous les writes d'un item dans UNE transaction.
+    // L'unique constraint `@@unique([userId, formationId])` sur Enrollment
+    // garantit qu'une race entre webhook + verify cassera la 2e tx via P2002,
+    // sans laisser de PlatformRevenue/totalEarned orphelin.
+    let enrollment: { id: string } | null = null;
+    try {
+      enrollment = await prisma.$transaction(async (tx) => {
+        const existing = await tx.enrollment.findUnique({
+          where: { userId_formationId: { userId, formationId: f.id } },
+        });
+        if (existing) return null;
 
-    await prisma.platformRevenue.create({
-      data: {
-        orderId: enrollment.id,
-        orderType: "formation",
-        grossAmount: finalPrice,
-        commissionRate: PLATFORM_COMMISSION_RATE,
-        commissionAmount: platformAmount,
-        vendorAmount: vendorNet,
-        affiliateId: affiliate?.profileId ?? null,
-        affiliateAmount: affAmount,
-        paymentRef: sessionRef,
-        currency: "XOF",
-        instructeurId: f.instructeurId,
-        shopId: f.shopId ?? null,
-      },
-    });
+        const created = await tx.enrollment.create({
+          data: { userId, formationId: f.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
+        });
 
-    if (affiliate && affAmount > 0) {
-      // Commission stays PENDING for 14 days (refund window).
-      // pendingEarnings is NOT credited now — a cron job will approve after the hold period.
-      await prisma.affiliateCommission.create({
-        data: {
-          affiliateId: affiliate.profileId,
-          orderId: enrollment.id,
-          orderType: "formation",
-          orderAmount: finalPrice,
-          commissionPct: affiliate.commissionRate * 100,
-          commissionAmount: affAmount,
-          status: "PENDING",
-        },
-      }).catch((e) => console.warn("[fulfillment affiliateCommission]", e));
-      await prisma.affiliateProfile.update({
-        where: { id: affiliate.profileId },
-        data: { totalConversions: { increment: 1 } },
-      }).catch((e) => console.warn("[fulfillment affiliateProfile]", e));
+        await tx.instructeurProfile.update({
+          where: { id: f.instructeurId },
+          data: { totalEarned: { increment: vendorNet } },
+        });
+        await tx.formation.update({
+          where: { id: f.id },
+          data: { studentsCount: { increment: 1 }, currentStudents: { increment: 1 } },
+        });
+        await tx.platformRevenue.create({
+          data: {
+            orderId: created.id,
+            orderType: "formation",
+            grossAmount: finalPrice,
+            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionAmount: platformAmount,
+            vendorAmount: vendorNet,
+            affiliateId: affiliate?.profileId ?? null,
+            affiliateAmount: affAmount,
+            paymentRef: sessionRef,
+            currency: "XOF",
+            instructeurId: f.instructeurId,
+            shopId: f.shopId ?? null,
+          },
+        });
+        if (affiliate && affAmount > 0) {
+          await tx.affiliateCommission.create({
+            data: {
+              affiliateId: affiliate.profileId,
+              orderId: created.id,
+              orderType: "formation",
+              orderAmount: finalPrice,
+              commissionPct: affiliate.commissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
+            },
+          });
+          await tx.affiliateProfile.update({
+            where: { id: affiliate.profileId },
+            data: { totalConversions: { increment: 1 } },
+          });
+        }
+        return created;
+      });
+    } catch (e) {
+      // P2002 = unique violation sur enrollment → la 2e tx d'une race perd,
+      // c'est exactement le comportement voulu. On skip et on continue.
+      if ((e as { code?: string }).code === "P2002") {
+        skipped.push(f.title);
+        continue;
+      }
+      throw e;
     }
+    if (!enrollment) { skipped.push(f.title); continue; }
 
     createdEnrollments.push({ id: enrollment.id, title: f.title, price: finalPrice });
 
@@ -223,69 +277,86 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
 
   // ── Produits digitaux ───────────────────────────────────────────────
   for (const p of products) {
-    const existing = await prisma.digitalProductPurchase.findFirst({
-      where: { userId, productId: p.id },
-    });
-    if (existing) { skipped.push(p.title); continue; }
+    // Stock re-check (vote 23) — utilise max(currentBuyers, salesCount) cf. fix d'intégrité comptable du 2026-05-26.
+    const soldNow = Math.max(p.currentBuyers ?? 0, p.salesCount ?? 0);
+    if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && soldNow >= p.maxBuyers) {
+      console.warn(`[fulfillment] product ${p.id} stock épuisé au fulfillment — skip`);
+      skipped.push(`${p.title} (stock épuisé)`);
+      continue;
+    }
 
     const finalPrice = applyDiscount(p.price);
-    const purchase = await prisma.digitalProductPurchase.create({
-      data: { userId, productId: p.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
-    });
-
     const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
     const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
     const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
 
-    await prisma.instructeurProfile.update({
-      where: { id: p.instructeurId },
-      data: { totalEarned: { increment: vendorNet } },
-    });
-    // Idem produits : salesCount = analytics, currentBuyers = enforced cap.
-    await prisma.digitalProduct.update({
-      where: { id: p.id },
-      data: {
-        salesCount: { increment: 1 },
-        currentBuyers: { increment: 1 },
-      },
-    });
+    // Atomicité (vote 21) — l'absence d'unique constraint native sur
+    // DigitalProductPurchase nous oblige à un findFirst + create dans la
+    // même tx ; en cas de race, l'une des deux verra l'autre et skippera.
+    let purchase: { id: string } | null = null;
+    try {
+      purchase = await prisma.$transaction(async (tx) => {
+        const existing = await tx.digitalProductPurchase.findFirst({
+          where: { userId, productId: p.id },
+        });
+        if (existing) return null;
 
-    await prisma.platformRevenue.create({
-      data: {
-        orderId: purchase.id,
-        orderType: "product",
-        grossAmount: finalPrice,
-        commissionRate: PLATFORM_COMMISSION_RATE,
-        commissionAmount: platformAmount,
-        vendorAmount: vendorNet,
-        affiliateId: affiliate?.profileId ?? null,
-        affiliateAmount: affAmount,
-        paymentRef: sessionRef,
-        currency: "XOF",
-        instructeurId: p.instructeurId,
-        shopId: p.shopId ?? null,
-      },
-    });
+        const created = await tx.digitalProductPurchase.create({
+          data: { userId, productId: p.id, paidAmount: finalPrice, stripeSessionId: sessionRef },
+        });
 
-    if (affiliate && affAmount > 0) {
-      // Commission stays PENDING for 14 days (refund window). No pendingEarnings credit yet.
-      await prisma.affiliateCommission.create({
-        data: {
-          affiliateId: affiliate.profileId,
-          orderId: purchase.id,
-          orderType: "product",
-          orderAmount: finalPrice,
-          commissionPct: affiliate.commissionRate * 100,
-          commissionAmount: affAmount,
-          status: "PENDING",
-        },
-      }).catch((e) => console.error("[fulfillment affiliateCommission product]", e?.message ?? e));
-      await prisma.affiliateProfile.update({
-        where: { id: affiliate.profileId },
-        data: { totalConversions: { increment: 1 } },
-      }).catch((e) => console.error("[fulfillment affiliateProfile product]", e?.message ?? e));
+        await tx.instructeurProfile.update({
+          where: { id: p.instructeurId },
+          data: { totalEarned: { increment: vendorNet } },
+        });
+        await tx.digitalProduct.update({
+          where: { id: p.id },
+          data: { salesCount: { increment: 1 }, currentBuyers: { increment: 1 } },
+        });
+        await tx.platformRevenue.create({
+          data: {
+            orderId: created.id,
+            orderType: "product",
+            grossAmount: finalPrice,
+            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionAmount: platformAmount,
+            vendorAmount: vendorNet,
+            affiliateId: affiliate?.profileId ?? null,
+            affiliateAmount: affAmount,
+            paymentRef: sessionRef,
+            currency: "XOF",
+            instructeurId: p.instructeurId,
+            shopId: p.shopId ?? null,
+          },
+        });
+        if (affiliate && affAmount > 0) {
+          await tx.affiliateCommission.create({
+            data: {
+              affiliateId: affiliate.profileId,
+              orderId: created.id,
+              orderType: "product",
+              orderAmount: finalPrice,
+              commissionPct: affiliate.commissionRate * 100,
+              commissionAmount: affAmount,
+              status: "PENDING",
+            },
+          });
+          await tx.affiliateProfile.update({
+            where: { id: affiliate.profileId },
+            data: { totalConversions: { increment: 1 } },
+          });
+        }
+        return created;
+      });
+    } catch (e) {
+      if ((e as { code?: string }).code === "P2002") {
+        skipped.push(p.title);
+        continue;
+      }
+      throw e;
     }
+    if (!purchase) { skipped.push(p.title); continue; }
 
     createdPurchases.push({ id: purchase.id, title: p.title, price: finalPrice });
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useToastStore } from "@/store/toast";
+import { trackEvents } from "@/lib/tracking/events";
 
 interface CartItem {
   id: string;
@@ -62,6 +63,11 @@ export default function PanierPage() {
         toast("error", j.error || "Erreur");
         return;
       }
+      trackEvents.removeFromCart({
+        id: item.formationId,
+        kind: "formation",
+        price: item.formation.price,
+      });
       window.dispatchEvent(new CustomEvent("nk:cart-change"));
       load();
     } finally { setRemoving(null); }

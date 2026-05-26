@@ -1,9 +1,11 @@
+// Refonte par Sophie Tremblay + Léa Moreau — réunion bureau 2026-05-26 (votes 5 & 6)
 "use client";
 
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 type Status = "NEW" | "AUTO_REPLIED" | "HUMAN_REPLIED" | "CLOSED";
+type Period = "all" | "7d" | "30d" | "90d" | "custom";
 
 type TicketSummary = {
   id: string;
@@ -38,12 +40,51 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function csvEscape(value: string | number | null | undefined) {
+  if (value === null || value === undefined) return "";
+  const s = String(value);
+  if (/[",\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function periodCutoff(period: Period, customSince: string): number {
+  if (period === "all") return -Infinity;
+  if (period === "custom") {
+    if (!customSince) return -Infinity;
+    const t = new Date(customSince).getTime();
+    return Number.isFinite(t) ? t : -Infinity;
+  }
+  const map: Record<Exclude<Period, "all" | "custom">, number> = {
+    "7d": 7 * 86400_000,
+    "30d": 30 * 86400_000,
+    "90d": 90 * 86400_000,
+  };
+  return Date.now() - map[period];
+}
+
 export default function AdminTicketsPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Status | "all">("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Filtres bureau 2026-05-26
+  const [period, setPeriod] = useState<Period>("all");
+  const [customSince, setCustomSince] = useState("");
+
+  // Bulk selection (extension bulk actions — addendum #3)
+  const [bulkIds, setBulkIds] = useState<Set<string>>(new Set());
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [bulkToast, setBulkToast] = useState<string | null>(null);
+  function toggleBulk(id: string) {
+    setBulkIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   const list = useQuery<{ data: { items: TicketSummary[]; total: number; statusCounts: Record<string, number> } }>({
     queryKey: ["admin-tickets", tab, search, page],
@@ -63,8 +104,16 @@ export default function AdminTicketsPage() {
     enabled: !!selectedId,
   });
 
-  const items = list.data?.data.items ?? [];
+  const rawItems = list.data?.data.items ?? [];
   const counts = list.data?.data.statusCounts ?? {};
+
+  const cutoff = useMemo(() => periodCutoff(period, customSince), [period, customSince]);
+
+  // Filtrage client-side période (la recherche & le statut sont déjà appliqués côté serveur)
+  const items = useMemo(
+    () => rawItems.filter((t) => new Date(t.createdAt).getTime() >= cutoff),
+    [rawItems, cutoff]
+  );
 
   const tabs: { id: Status | "all"; label: string }[] = useMemo(() => [
     { id: "all", label: "Tous" },
@@ -74,6 +123,69 @@ export default function AdminTicketsPage() {
     { id: "CLOSED", label: `Fermé (${counts.CLOSED ?? 0})` },
   ], [counts]);
 
+  function resetFilters() {
+    setSearch("");
+    setTab("all");
+    setPeriod("all");
+    setCustomSince("");
+    setPage(1);
+  }
+
+  async function bulkCloseSelected() {
+    const ids = [...bulkIds];
+    if (ids.length === 0) return;
+    setBulkRunning(true);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) =>
+          fetch(`/api/formations/admin/tickets/${id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "CLOSED" }),
+          }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))),
+        ),
+      );
+      const ok = results.filter((r) => r.status === "fulfilled").length;
+      const ko = results.length - ok;
+      setBulkToast(ko === 0 ? `${ok} ticket(s) fermé(s)` : `${ok} fermés, ${ko} échec(s)`);
+      setBulkIds(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-tickets"] });
+    } finally {
+      setBulkRunning(false);
+      setTimeout(() => setBulkToast(null), 4000);
+    }
+  }
+
+  function exportCSV() {
+    if (items.length === 0) return;
+    const headers = ["Référence", "Date", "Nom", "Email", "Sujet", "Message", "Statut", "IA modèle", "IA envoyée", "Admin répondu"];
+    const rows = items.map((t) => [
+      t.reference,
+      new Date(t.createdAt).toISOString(),
+      t.name,
+      t.email,
+      t.subject ?? "",
+      t.message,
+      STATUS_LABEL[t.status].label,
+      t.aiReplyModel ?? "",
+      t.aiReplySentAt ?? "",
+      t.adminReplyAt ?? "",
+    ]);
+    const csv = [headers.map(csvEscape).join(","), ...rows.map((r) => r.map(csvEscape).join(","))].join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date().toISOString().slice(0, 10);
+    link.href = url;
+    link.download = `novakou-tickets-${today}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  const filtersActive = search.trim() !== "" || tab !== "all" || period !== "all" || customSince !== "";
+
   return (
     <div className="p-5 md:p-8">
       <div className="mb-6">
@@ -81,16 +193,21 @@ export default function AdminTicketsPage() {
         <p className="text-sm text-[#5c647a] mt-1">Tous les messages reçus via le formulaire de contact, avec auto-réponse IA.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-3 mb-5">
-        <input
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-          placeholder="Rechercher par email, nom, référence ou contenu…"
-          className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:border-[#006e2f]"
-        />
+      {/* Search */}
+      <div className="flex flex-col md:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-gray-400">search</span>
+          <input
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            placeholder="Rechercher par email, nom, référence ou contenu…"
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 text-sm bg-white focus:outline-none focus:border-[#006e2f]"
+          />
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl mb-5 w-fit">
+      {/* Status tabs */}
+      <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl mb-4 w-fit">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -102,38 +219,143 @@ export default function AdminTicketsPage() {
         ))}
       </div>
 
+      {/* Period + custom date + export */}
+      <div className="flex flex-col md:flex-row gap-3 mb-5 items-start md:items-center justify-between">
+        <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl">
+          {([
+            { v: "all", l: "Tout" },
+            { v: "7d", l: "7 j" },
+            { v: "30d", l: "30 j" },
+            { v: "90d", l: "90 j" },
+          ] as const).map((p) => (
+            <button
+              key={p.v}
+              onClick={() => { setPeriod(p.v); setCustomSince(""); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${period === p.v ? "bg-white shadow-sm text-[#191c1e]" : "text-[#5c647a] hover:text-[#191c1e]"}`}
+            >
+              {p.l}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <label className="flex items-center gap-2 bg-white border border-gray-200 px-3 py-2 rounded-xl">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a]">Depuis</span>
+            <input
+              type="date"
+              value={customSince}
+              onChange={(e) => { setCustomSince(e.target.value); setPeriod(e.target.value ? "custom" : "all"); }}
+              className="text-xs text-[#191c1e] outline-none bg-transparent"
+            />
+          </label>
+          <button
+            onClick={exportCSV}
+            disabled={items.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006e2f] text-white text-xs font-bold hover:bg-[#005a26] transition-colors disabled:opacity-50"
+          >
+            <span className="material-symbols-outlined text-[16px]">download</span>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-5">
         {/* List */}
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           {list.isLoading ? (
             <div className="p-6 text-sm text-[#5c647a]">Chargement…</div>
           ) : items.length === 0 ? (
-            <div className="p-12 text-center">
-              <span className="material-symbols-outlined text-5xl text-gray-300">inbox</span>
-              <p className="text-sm text-[#5c647a] mt-3">Aucun ticket dans cette catégorie</p>
+            <div className="p-12 text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-3xl text-gray-400">
+                  {filtersActive ? "filter_alt_off" : "inbox"}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-[#191c1e] mb-1">
+                {filtersActive ? "Aucun résultat" : "Aucun ticket"}
+              </p>
+              <p className="text-sm text-[#5c647a] max-w-xs">
+                {filtersActive ? "Aucun ticket ne correspond à vos filtres." : "Aucun message dans cette catégorie."}
+              </p>
+              {filtersActive && (
+                <button
+                  onClick={resetFilters}
+                  className="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006e2f] text-white text-xs font-bold hover:bg-[#005a26] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                  Réinitialiser les filtres
+                </button>
+              )}
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100">
-              {items.map((t) => (
-                <li key={t.id}>
+            <>
+              {/* Bulk toolbar — visible quand sélection ≥ 1 */}
+              {bulkIds.size > 0 && (
+                <div className="sticky top-0 z-10 bg-zinc-900 text-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      {bulkIds.size} sélectionné{bulkIds.size > 1 ? "s" : ""}
+                    </span>
+                    <button
+                      onClick={() => setBulkIds(new Set())}
+                      className="text-[10px] font-semibold text-zinc-300 hover:text-white underline"
+                    >
+                      Désélectionner
+                    </button>
+                    <button
+                      onClick={() => setBulkIds(new Set(items.map((t) => t.id)))}
+                      className="text-[10px] font-semibold text-zinc-300 hover:text-white underline"
+                    >
+                      Tout sélectionner ({items.length})
+                    </button>
+                  </div>
                   <button
-                    onClick={() => setSelectedId(t.id)}
-                    className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${selectedId === t.id ? "bg-[#006e2f]/5" : ""}`}
+                    onClick={bulkCloseSelected}
+                    disabled={bulkRunning}
+                    className="px-4 py-2 bg-[#006e2f] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#005a26] transition-colors disabled:opacity-50"
                   >
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <p className="text-sm font-bold text-[#191c1e] truncate flex-1">{t.name}</p>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_LABEL[t.status].tint}`}>
-                        {STATUS_LABEL[t.status].label}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-[#5c647a] font-mono mb-1">{t.reference} · {t.email}</p>
-                    <p className="text-xs text-[#191c1e] font-semibold mb-1 truncate">{t.subject || "—"}</p>
-                    <p className="text-xs text-[#5c647a] line-clamp-2">{t.message}</p>
-                    <p className="text-[10px] text-[#9ca3af] mt-2">{fmtDate(t.createdAt)}</p>
+                    {bulkRunning ? "Fermeture…" : `Fermer ${bulkIds.size} ticket${bulkIds.size > 1 ? "s" : ""}`}
                   </button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              )}
+              {bulkToast && (
+                <div className="bg-emerald-50 border-b border-emerald-200 text-emerald-900 text-xs font-semibold px-4 py-2">
+                  {bulkToast}
+                </div>
+              )}
+              <ul className="divide-y divide-gray-100">
+                {items.map((t) => (
+                  <li
+                    key={t.id}
+                    className={`flex items-stretch ${selectedId === t.id ? "bg-[#006e2f]/5" : ""} ${bulkIds.has(t.id) ? "bg-[#006e2f]/8" : ""}`}
+                  >
+                    <label className="flex items-start pt-5 pl-4 pr-2 cursor-pointer flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={bulkIds.has(t.id)}
+                        onChange={() => toggleBulk(t.id)}
+                        className="w-4 h-4 accent-[#006e2f] cursor-pointer"
+                        aria-label="Sélectionner ce ticket"
+                      />
+                    </label>
+                    <button
+                      onClick={() => setSelectedId(t.id)}
+                      className="flex-1 text-left p-4 pl-2 hover:bg-gray-50/60 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3 mb-1">
+                        <p className="text-sm font-bold text-[#191c1e] truncate flex-1">{t.name}</p>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_LABEL[t.status].tint}`}>
+                          {STATUS_LABEL[t.status].label}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#5c647a] font-mono mb-1">{t.reference} · {t.email}</p>
+                      <p className="text-xs text-[#191c1e] font-semibold mb-1 truncate">{t.subject || "—"}</p>
+                      <p className="text-xs text-[#5c647a] line-clamp-2">{t.message}</p>
+                      <p className="text-[10px] text-[#9ca3af] mt-2">{fmtDate(t.createdAt)}</p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
 

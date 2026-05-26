@@ -100,7 +100,7 @@ export async function POST(request: Request) {
             where: { id: { in: productIds }, status: "ACTIF" },
             select: {
               id: true, title: true, price: true, instructeurId: true, shopId: true,
-              maxBuyers: true, currentBuyers: true, salesEndAt: true,
+              maxBuyers: true, currentBuyers: true, salesCount: true, salesEndAt: true,
             },
           })
         : Promise.resolve([]),
@@ -120,8 +120,14 @@ export async function POST(request: Request) {
       }
     }
     for (const p of products) {
+      // Audit 2026-05-26 : la gate doit reposer sur la donnée la plus fiable.
+      // currentBuyers peut avoir été seedé manuellement par le vendeur ;
+      // salesCount est incrémenté par chaque achat réel. On prend le max
+      // pour empêcher tout dépassement réel ET respecter un éventuel cap
+      // anticipé par le vendeur.
+      const sold = Math.max(p.currentBuyers ?? 0, p.salesCount ?? 0);
       if (p.salesEndAt && p.salesEndAt <= now) blocked.push(`${p.title} — vente terminée`);
-      else if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && (p.currentBuyers ?? 0) >= p.maxBuyers) {
+      else if (typeof p.maxBuyers === "number" && p.maxBuyers > 0 && sold >= p.maxBuyers) {
         blocked.push(`${p.title} — stock épuisé`);
       }
     }

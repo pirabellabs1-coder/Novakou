@@ -131,6 +131,9 @@ export async function GET(request: Request) {
         affiliate: affiliateProfileId
           ? { profileId: affiliateProfileId, commissionRate: affiliateCommissionRate }
           : null,
+        // Defense-in-depth (vote 19) : on passe le montant vérifié par le
+        // provider pour que fulfillment refuse en cas de tampering metadata.
+        expectedAmountReceived: typeof payment.amount === "number" ? payment.amount : undefined,
       });
 
       // Clean le panier de l'utilisateur (items achetés)

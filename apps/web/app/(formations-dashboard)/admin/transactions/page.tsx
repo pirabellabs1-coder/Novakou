@@ -1,7 +1,10 @@
+// Refonte par Sophie Tremblay + Léa Moreau — réunion bureau 2026-05-26 (votes 5 & 6)
 "use client";
 
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+
+type Period = "all" | "7d" | "30d" | "90d" | "custom";
 
 type Txn = {
   id: string;
@@ -41,7 +44,8 @@ const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }>
 export default function AdminTransactionsPage() {
   const [status, setStatus] = useState<string>("all");
   const [type, setType] = useState<"all" | "formation" | "product">("all");
-  const [period, setPeriod] = useState<"all" | "7d" | "30d" | "90d">("all");
+  const [period, setPeriod] = useState<Period>("all");
+  const [customSince, setCustomSince] = useState("");
   const [search, setSearch] = useState("");
 
   const { data: response, isLoading } = useQuery<{ data: Txn[]; summary: Summary | null }>({
@@ -53,24 +57,47 @@ export default function AdminTransactionsPage() {
   const all = response?.data ?? [];
   const summary = response?.summary;
 
-  const filtered = useMemo(() => {
-    const now = Date.now();
-    const periodMs: Record<typeof period, number> = {
-      all: Infinity,
+  const cutoff = useMemo(() => {
+    if (period === "all") return -Infinity;
+    if (period === "custom") {
+      if (!customSince) return -Infinity;
+      const t = new Date(customSince).getTime();
+      return Number.isFinite(t) ? t : -Infinity;
+    }
+    const map: Record<Exclude<Period, "all" | "custom">, number> = {
       "7d": 7 * 86400_000,
       "30d": 30 * 86400_000,
       "90d": 90 * 86400_000,
     };
+    return Date.now() - map[period];
+  }, [period, customSince]);
+
+  const filtered = useMemo(() => {
     return all.filter((t) => {
       const matchStatus = status === "all" || t.status === status;
       const matchType = type === "all" || t.type === type;
-      const age = now - new Date(t.createdAt).getTime();
-      const matchPeriod = age <= periodMs[period];
-      const q = search.toLowerCase();
-      const matchSearch = !q || t.buyerName.toLowerCase().includes(q) || t.sellerName.toLowerCase().includes(q) || t.productTitle.toLowerCase().includes(q);
+      const ts = new Date(t.createdAt).getTime();
+      const matchPeriod = ts >= cutoff;
+      const q = search.trim().toLowerCase();
+      const matchSearch = !q
+        || t.buyerName.toLowerCase().includes(q)
+        || t.buyerEmail.toLowerCase().includes(q)
+        || t.sellerName.toLowerCase().includes(q)
+        || t.productTitle.toLowerCase().includes(q)
+        || t.productType.toLowerCase().includes(q);
       return matchStatus && matchType && matchPeriod && matchSearch;
     });
-  }, [all, status, type, period, search]);
+  }, [all, status, type, cutoff, search]);
+
+  const filtersActive = search.trim() !== "" || status !== "all" || type !== "all" || period !== "all" || customSince !== "";
+
+  function resetFilters() {
+    setSearch("");
+    setStatus("all");
+    setType("all");
+    setPeriod("all");
+    setCustomSince("");
+  }
 
   const tabs = [
     { value: "all", label: "Toutes", count: summary?.total ?? 0 },
@@ -192,17 +219,17 @@ export default function AdminTransactionsPage() {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="flex flex-wrap gap-0 border border-zinc-100 bg-white">
               {([
                 { v: "all", l: "Tout" },
-                { v: "90d", l: "90 j" },
-                { v: "30d", l: "30 j" },
                 { v: "7d", l: "7 j" },
+                { v: "30d", l: "30 j" },
+                { v: "90d", l: "90 j" },
               ] as const).map((p) => (
                 <button
                   key={p.v}
-                  onClick={() => setPeriod(p.v)}
+                  onClick={() => { setPeriod(p.v); setCustomSince(""); }}
                   className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
                     period === p.v ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
                   }`}
@@ -211,6 +238,15 @@ export default function AdminTransactionsPage() {
                 </button>
               ))}
             </div>
+            <label className="flex items-center gap-2 bg-white border border-zinc-100 px-3 py-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Depuis</span>
+              <input
+                type="date"
+                value={customSince}
+                onChange={(e) => { setCustomSince(e.target.value); setPeriod(e.target.value ? "custom" : "all"); }}
+                className="text-xs text-zinc-900 outline-none bg-transparent"
+              />
+            </label>
             <button
               onClick={exportCSV}
               disabled={filtered.length === 0}
@@ -235,9 +271,29 @@ export default function AdminTransactionsPage() {
               {[0, 1, 2, 3].map((i) => <div key={i} className="h-16 bg-[#f3f3f4] animate-pulse" />)}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-24 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Aucune transaction</p>
-              <p className="text-sm text-zinc-500">Aucune transaction ne correspond aux filtres.</p>
+            <div className="py-24 text-center flex flex-col items-center">
+              <div className="w-14 h-14 rounded-full bg-zinc-100 flex items-center justify-center mb-4">
+                <span className="material-symbols-outlined text-3xl text-zinc-400">
+                  {filtersActive && all.length > 0 ? "filter_alt_off" : "receipt_long"}
+                </span>
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+                {filtersActive && all.length > 0 ? "Aucun résultat" : "Aucune transaction"}
+              </p>
+              <p className="text-sm text-zinc-500 max-w-md">
+                {filtersActive && all.length > 0
+                  ? "Aucune transaction ne correspond à vos filtres."
+                  : "Aucune transaction enregistrée pour le moment."}
+              </p>
+              {filtersActive && all.length > 0 && (
+                <button
+                  onClick={resetFilters}
+                  className="mt-5 inline-flex items-center gap-2 px-4 py-2.5 bg-[#006e2f] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#005a26] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                  Réinitialiser les filtres
+                </button>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-zinc-100">

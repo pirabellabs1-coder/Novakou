@@ -1,3 +1,4 @@
+// Audit paiement 2026-05-26 — Karim Benali (bureau réunions 12-16, votes 18-26)
 /**
  * POST /api/webhooks/moneroo
  *
@@ -243,6 +244,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, status, ignored: true });
   }
 
+  // ── Audit paiement 2026-05-26 — vote 20 : validation montant ────────
+  // Compare le montant vérifié auprès du provider à la somme calculée DB.
+  // Tolérance ±1 FCFA. Si écart → on REFUSE le fulfillment mais on
+  // renvoie 200 pour éviter que Moneroo retente indéfiniment.
+  const amountCheck = await assertAmountMatches(paymentId, verified.amount ?? 0, metadata);
+  if (!amountCheck.ok) {
+    return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
+  }
+
   // Router selon le type de commande stockée dans la métadonnée
   if (type === "formations_checkout") {
     const userId = String(metadata.userId ?? "");
@@ -267,9 +277,18 @@ export async function POST(req: Request) {
         affiliate: affiliateProfileId
           ? { profileId: affiliateProfileId, commissionRate: affiliateCommissionRate }
           : null,
+        // Defense-in-depth (vote 19) : fulfillment refait le check montant
+        // côté serveur. Double rempart en plus de assertAmountMatches.
+        expectedAmountReceived: verified.amount ?? undefined,
       });
       return NextResponse.json({ ok: true, fulfilled: true, result });
     } catch (err) {
+      // AmountMismatchError → on retourne 200 pour ne pas faire re-trigger
+      // Moneroo (le check sera idempotent côté DB ; ré-essayer ne change rien).
+      if (err instanceof Error && err.name === "AmountMismatchError") {
+        console.error("[moneroo webhook] amount mismatch — fulfillment refusé", err.message);
+        return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
+      }
       console.error("[moneroo webhook] fulfillCheckout failed:", err);
       return NextResponse.json({ error: "Fulfillment échoué" }, { status: 500 });
     }
@@ -596,6 +615,115 @@ function parseIdList(raw: unknown): string[] {
     return raw.split(",").map((s) => s.trim()).filter(Boolean);
   }
   return [];
+}
+
+/**
+ * Audit paiement 2026-05-26 — vote 20 : tolérance ±1 FCFA.
+ *
+ * Recharge depuis la DB les formations / products / bundles déclarés dans la
+ * metadata et recalcule le total attendu. Si le montant payé est inférieur
+ * (au-delà de la tolérance), on REJETTE le fulfillment et on marque la
+ * CheckoutAttempt en REJECTED_AMOUNT_MISMATCH. On renvoie OK 200 quand même
+ * pour ne pas faire retrigger le webhook (Moneroo retenterait sinon).
+ *
+ * Aucune PII dans les logs : seuls le paymentId + montants.
+ */
+async function assertAmountMatches(
+  paymentId: string,
+  verifiedAmount: number,
+  metadata: Record<string, unknown>,
+): Promise<{ ok: true } | { ok: false }> {
+  const type = String(metadata.type ?? "");
+  const tolerance = 1; // ±1 FCFA (vote 20)
+
+  let expectedTotal = 0;
+
+  try {
+    if (type === "formations_checkout") {
+      const formationIds = parseIdList(metadata.formationIds);
+      const productIds = parseIdList(metadata.productIds);
+      const [formations, products] = await Promise.all([
+        formationIds.length > 0
+          ? prisma.formation.findMany({
+              where: { id: { in: formationIds }, status: "ACTIF" },
+              select: { id: true, price: true },
+            })
+          : Promise.resolve([] as { id: string; price: number }[]),
+        productIds.length > 0
+          ? prisma.digitalProduct.findMany({
+              where: { id: { in: productIds }, status: "ACTIF" },
+              select: { id: true, price: true },
+            })
+          : Promise.resolve([] as { id: string; price: number }[]),
+      ]);
+      const subTotal =
+        formations.reduce((s, f) => s + f.price, 0) +
+        products.reduce((s, p) => s + p.price, 0);
+
+      // Si un code promo est appliqué, le webhook ne connaît pas forcément le
+      // discountAmount exact — on lit metadata.totalAmount si dispo, sinon on
+      // applique le sub-total brut.
+      const declaredTotal = Number(metadata.totalAmount ?? NaN);
+      expectedTotal = Number.isFinite(declaredTotal) && declaredTotal > 0 ? declaredTotal : subTotal;
+    } else if (type === "bundle_purchase") {
+      const bundleId = String(metadata.bundleId ?? "");
+      if (!bundleId) return { ok: true };
+      const bundle = await prisma.productBundle.findUnique({
+        where: { id: bundleId },
+        select: { priceXof: true },
+      });
+      if (!bundle) return { ok: true };
+      const discount = Number(metadata.discountAmount ?? 0);
+      expectedTotal = Math.max(
+        0,
+        Math.round(bundle.priceXof) - (Number.isFinite(discount) ? discount : 0),
+      );
+    } else if (type === "subscription_initial" || type === "subscription_renewal") {
+      const planId = String(metadata.planId ?? "");
+      if (!planId) return { ok: true };
+      const plan = await prisma.subscriptionPlan.findUnique({
+        where: { id: planId },
+        select: { price: true },
+      });
+      if (!plan) return { ok: true };
+      expectedTotal = plan.price;
+    } else {
+      // Type inconnu / mentor_booking / marketplace_order → on saute le check
+      // (ces flows ont leur propre logique de validation amont).
+      return { ok: true };
+    }
+  } catch (err) {
+    console.warn("[moneroo.webhook] assertAmountMatches lookup failed", { paymentId, err: err instanceof Error ? err.message : String(err) });
+    return { ok: true }; // fail-open : ne pas bloquer si lookup DB échoue
+  }
+
+  if (verifiedAmount < expectedTotal - tolerance) {
+    console.error("[moneroo.webhook] amount mismatch", {
+      paymentId,
+      expected: expectedTotal,
+      received: verifiedAmount,
+    });
+    // Tag CheckoutAttempt si on a un attemptId
+    const attemptId = metadata.attemptId ? String(metadata.attemptId) : null;
+    if (attemptId) {
+      // L'enum CheckoutAttemptStatus n'a pas de valeur dédiée — on utilise
+      // FAILED + failureCode "AMOUNT_MISMATCH" pour discriminer côté admin.
+      await prisma.checkoutAttempt
+        .update({
+          where: { id: attemptId },
+          data: {
+            status: "FAILED",
+            failureReason: `Amount mismatch: expected ${expectedTotal}, received ${verifiedAmount}`,
+            failureCode: "AMOUNT_MISMATCH",
+            providerRef: paymentId,
+          },
+        })
+        .catch(() => null);
+    }
+    return { ok: false };
+  }
+
+  return { ok: true };
 }
 
 /**

@@ -1,15 +1,13 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
-
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { COUNTRIES as ALL_COUNTRIES } from "@/lib/countries";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
+import { trackEvents } from "@/lib/tracking/events";
 
 const CHECKOUT_DRAFT_PREFIX = "checkout:contact";
 
@@ -226,6 +224,21 @@ export default function CheckoutInner() {
     }
     load();
   }, [searchParams]);
+
+  // ── Tracking funnel : checkout_started fired ONCE when cart is loaded ──
+  const checkoutTrackedRef = useRef(false);
+  useEffect(() => {
+    if (checkoutTrackedRef.current) return;
+    if (cartLoading) return;
+    if (cartItems.length === 0) return;
+    checkoutTrackedRef.current = true;
+    const total = cartItems.reduce((s, i) => s + (i.price || 0), 0);
+    trackEvents.checkoutStarted({
+      itemCount: cartItems.length,
+      total,
+      currency: "XOF",
+    });
+  }, [cartLoading, cartItems]);
 
   // ── Fetch Order Bumps + Pixels applicables au cart ─────────────────────
   useEffect(() => {
@@ -595,7 +608,14 @@ export default function CheckoutInner() {
                             onClick={() => { setCountryCode(c.code); setCountryOpen(false); }}
                             className={`w-full flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-green-50 text-left ${countryCode === c.code ? "bg-green-50 text-[#006e2f] font-semibold" : "text-[#191c1e]"}`}
                           >
-                            <span className="text-base">{c.flag}</span>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={`https://flagcdn.com/24x18/${c.iso.toLowerCase()}.png`}
+                              alt=""
+                              width={24}
+                              height={18}
+                              className="flex-shrink-0 rounded-sm"
+                            />
                             <span className="flex-1">{c.label}</span>
                             <span className="text-[#5c647a] tabular-nums text-xs">{c.code}</span>
                           </button>

@@ -122,11 +122,46 @@ export default async function FormationsPage() {
             </Link>
             <Link
               href="/explorer"
-              className="w-full sm:w-auto bg-transparent text-lg py-4 px-8 rounded-lg font-medium border-2 transition-colors flex items-center justify-center hover:bg-white"
+              className="w-full sm:w-auto bg-transparent text-lg py-4 px-8 rounded-lg font-medium border-2 transition-colors flex items-center justify-center gap-2 hover:bg-white"
               style={{ ...satoshi, color: COLORS.dark, borderColor: COLORS.outlineVariant }}
             >
-              Voir la démo
+              <span className="material-symbols-outlined text-[20px]">search</span>
+              Explorer les formations
             </Link>
+          </div>
+
+          {/* Pont acheteur : un visiteur Instagram cherchant à apprendre
+              voit immédiatement que la marketplace s'adresse aussi à lui.
+              Bureau session 3 — blocker Jessica Park #3. */}
+          <div className="mt-8 text-center">
+            <p className="text-sm" style={{ color: COLORS.muted }}>
+              Vous êtes ici pour apprendre ?{" "}
+              <Link
+                href="/explorer"
+                className="font-semibold underline underline-offset-4 hover:opacity-80"
+                style={{ color: COLORS.primary }}
+              >
+                Découvrez les formations populaires →
+              </Link>
+            </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {[
+                { label: "Marketing digital", cat: "marketing" },
+                { label: "Développement", cat: "developpement" },
+                { label: "Coaching & business", cat: "coaching" },
+                { label: "Design", cat: "design" },
+                { label: "Tous les thèmes", cat: "" },
+              ].map((c) => (
+                <Link
+                  key={c.label}
+                  href={c.cat ? `/explorer?category=${c.cat}` : "/explorer"}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-full border bg-white hover:bg-[#f7f9fb] transition-colors"
+                  style={{ color: COLORS.dark, borderColor: COLORS.outlineVariant + "66" }}
+                >
+                  {c.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -195,13 +230,14 @@ export default async function FormationsPage() {
                   </button>
                 </div>
 
-                {/* KPI Cards */}
+                {/* KPI Cards — valeurs illustratives anonymisées (preview marketing
+                    de l'interface, pas des chiffres réels d'un compte client) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
-                    { label: "Revenus (7j)", value: "— F", trend: "", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Ventes (7j)", value: "—", trend: "", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Visiteurs", value: "—", trend: "", trendColor: "#6f7a6e", icon: "trending_flat" },
-                    { label: "Taux de conv.", value: "—", trend: "", trendColor: "#ba1a1a", icon: "trending_down" },
+                    { label: "Revenus (7j)", value: "412 000 F", trend: "+18 %", trendColor: COLORS.primary, icon: "trending_up" },
+                    { label: "Ventes (7j)", value: "37", trend: "+12 %", trendColor: COLORS.primary, icon: "trending_up" },
+                    { label: "Visiteurs", value: "1 248", trend: "+5 %", trendColor: COLORS.primary, icon: "trending_up" },
+                    { label: "Taux de conv.", value: "2,9 %", trend: "−0,3 pt", trendColor: "#ba1a1a", icon: "trending_down" },
                   ].map((k) => (
                     <div key={k.label} className="p-5 rounded-xl border" style={{ backgroundColor: COLORS.surfaceLow, borderColor: COLORS.outlineVariant + "33" }}>
                       <div className="text-sm mb-2" style={{ color: COLORS.muted }}>{k.label}</div>
@@ -242,9 +278,9 @@ export default async function FormationsPage() {
                     <div className="text-sm mb-4" style={{ color: COLORS.muted }}>Ventes récentes</div>
                     <div className="space-y-4 overflow-y-auto pr-2">
                       {[
-                        { name: "Client A.", initials: "CA", time: "Récemment", amount: "+ — F" },
-                        { name: "Client B.", initials: "CB", time: "Récemment", amount: "+ — F" },
-                        { name: "Client C.", initials: "CC", time: "Récemment", amount: "+ — F" },
+                        { name: "Mariam D.", initials: "MD", time: "Il y a 12 min", amount: "+ 15 000 F" },
+                        { name: "Ousmane T.", initials: "OT", time: "Il y a 1 h", amount: "+ 9 500 F" },
+                        { name: "Awa S.", initials: "AS", time: "Il y a 3 h", amount: "+ 25 000 F" },
                       ].map((s, i) => (
                         <div key={i} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">

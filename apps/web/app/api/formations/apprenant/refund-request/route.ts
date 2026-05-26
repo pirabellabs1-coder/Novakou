@@ -126,6 +126,25 @@ export async function POST(req: Request) {
     );
   }
 
+  // Anti-spam (vote 26) : refuse si l'utilisateur a déjà une demande PENDING
+  // ou APPROVED sur cet enrollment. Évite que l'apprenant clique 10 fois et
+  // crée 10 RefundRequest.
+  const dupe = await prisma.refundRequest.findFirst({
+    where: { userId, enrollmentId: enrollmentId!, status: { in: ["PENDING", "APPROVED"] } },
+    select: { id: true, status: true },
+  });
+  if (dupe) {
+    return NextResponse.json(
+      {
+        error: dupe.status === "APPROVED"
+          ? "Votre demande a déjà été approuvée. Le remboursement est en cours de traitement."
+          : "Vous avez déjà une demande de remboursement en cours pour cette formation.",
+        existingRequestId: dupe.id,
+      },
+      { status: 409 }, // Conflict
+    );
+  }
+
   // Note sur "auto-approve" : toutes les demandes passent par PENDING. Quand
   // auto_approve_refunds=true, l'UI admin /signalements peut afficher un
   // badge "✓ pré-validée" (toutes conditions remplies) pour accélérer la

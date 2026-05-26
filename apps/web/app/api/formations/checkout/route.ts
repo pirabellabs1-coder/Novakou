@@ -438,7 +438,11 @@ export async function POST(request: Request) {
         });
         await tx.digitalProduct.update({
           where: { id: p.id },
-          data: { salesCount: { increment: 1 } },
+          // Audit 2026-05-26 : on incrémente AUSSI currentBuyers pour
+          // que la jauge publique (qui prend max(currentBuyers, salesCount))
+          // reste cohérente avec la réalité des ventes — alignement sur le
+          // comportement du webhook Stripe qui faisait déjà les deux.
+          data: { salesCount: { increment: 1 }, currentBuyers: { increment: 1 } },
         });
 
         await tx.platformRevenue.create({

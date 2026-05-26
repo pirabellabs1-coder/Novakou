@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { withSentryConfig } from "@sentry/nextjs";
 import path from "path";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
@@ -105,4 +106,31 @@ const nextConfig: NextConfig = {
   compress: true,
 };
 
-export default withNextIntl(nextConfig);
+// Bureau session 3 — blocker Henrik #3 : upload sourcemaps Sentry au build.
+// withSentryConfig wrap par-dessus next-intl. Tous les options Sentry sont
+// no-op si SENTRY_AUTH_TOKEN n'est pas défini en env → safe en dev local
+// sans casser le build, et actif dès que Vercel a l'env var en prod.
+export default withSentryConfig(withNextIntl(nextConfig), {
+  // Identifiants org/project Sentry — à définir en env Vercel.
+  // Si absents, Sentry skip silencieusement l'upload mais le build passe.
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Build silent sauf en CI (logs CI utiles pour diagnostic).
+  silent: !process.env.CI,
+
+  // Upload aussi les sourcemaps des chunks client (sinon stack traces
+  // browser minifiées illisibles).
+  widenClientFileUpload: true,
+
+  // Cache les sourcemaps en prod après upload (sécurité — empêche un
+  // visiteur web de récupérer le code source via DevTools).
+  hideSourceMaps: true,
+
+  // Coupe le SDK logger en prod pour réduire bundle.
+  disableLogger: true,
+
+  // Auto-instrumente les route handlers Next pour breadcrumbs HTTP.
+  automaticVercelMonitors: true,
+});

@@ -1,3 +1,4 @@
+// Audit paiement 2026-05-26 — Karim Benali (bureau réunions 12-16, votes 18-26)
 /**
  * POST /api/webhooks/paygenius
  *
@@ -154,6 +155,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, status, ignored: true });
   }
 
+  // ── Audit paiement 2026-05-26 — vote 20 : validation montant ────────
+  // Tolérance ±1 FCFA. Si écart, on renvoie 200 pour ne pas faire
+  // retrigger le webhook mais on n'effectue PAS le fulfillment.
+  const amountCheck = await assertAmountMatches(reference, verified.amount ?? 0, metadata);
+  if (!amountCheck.ok) {
+    return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
+  }
+
   // ─── Routing par metadata.type (identique à Moneroo) ──────────────────
   if (type === "formations_checkout") {
     const userId = String(metadata.userId ?? "");
@@ -178,9 +187,15 @@ export async function POST(req: Request) {
         affiliate: affiliateProfileId
           ? { profileId: affiliateProfileId, commissionRate: affiliateCommissionRate }
           : null,
+        // Defense-in-depth (vote 19).
+        expectedAmountReceived: verified.amount ?? undefined,
       });
       return NextResponse.json({ ok: true, fulfilled: true, result });
     } catch (err) {
+      if (err instanceof Error && err.name === "AmountMismatchError") {
+        console.error("[paygenius webhook] amount mismatch — fulfillment refusé", err.message);
+        return NextResponse.json({ ok: true, rejected: "amount_mismatch" });
+      }
       console.error("[paygenius webhook] fulfillCheckout failed:", err);
       return NextResponse.json({ error: "Fulfillment échoué" }, { status: 500 });
     }
@@ -458,6 +473,105 @@ function parseIdList(raw: unknown): string[] {
     return raw.split(",").map((s) => s.trim()).filter(Boolean);
   }
   return [];
+}
+
+/**
+ * Audit paiement 2026-05-26 — vote 20 : tolérance ±1 FCFA.
+ * Symétrique de la fonction Moneroo. Voir le commentaire dans
+ * apps/web/app/api/webhooks/moneroo/route.ts pour la logique détaillée.
+ */
+async function assertAmountMatches(
+  paymentId: string,
+  verifiedAmount: number,
+  metadata: Record<string, unknown>,
+): Promise<{ ok: true } | { ok: false }> {
+  const type = String(metadata.type ?? "");
+  const tolerance = 1; // ±1 FCFA (vote 20)
+
+  let expectedTotal = 0;
+
+  try {
+    if (type === "formations_checkout") {
+      const formationIds = parseIdList(metadata.formationIds);
+      const productIds = parseIdList(metadata.productIds);
+      const [formations, products] = await Promise.all([
+        formationIds.length > 0
+          ? prisma.formation.findMany({
+              where: { id: { in: formationIds }, status: "ACTIF" },
+              select: { id: true, price: true },
+            })
+          : Promise.resolve([] as { id: string; price: number }[]),
+        productIds.length > 0
+          ? prisma.digitalProduct.findMany({
+              where: { id: { in: productIds }, status: "ACTIF" },
+              select: { id: true, price: true },
+            })
+          : Promise.resolve([] as { id: string; price: number }[]),
+      ]);
+      const subTotal =
+        formations.reduce((s, f) => s + f.price, 0) +
+        products.reduce((s, p) => s + p.price, 0);
+      const declaredTotal = Number(metadata.totalAmount ?? NaN);
+      expectedTotal = Number.isFinite(declaredTotal) && declaredTotal > 0 ? declaredTotal : subTotal;
+    } else if (type === "bundle_purchase") {
+      const bundleId = String(metadata.bundleId ?? "");
+      if (!bundleId) return { ok: true };
+      const bundle = await prisma.productBundle.findUnique({
+        where: { id: bundleId },
+        select: { priceXof: true },
+      });
+      if (!bundle) return { ok: true };
+      const discount = Number(metadata.discountAmount ?? 0);
+      expectedTotal = Math.max(
+        0,
+        Math.round(bundle.priceXof) - (Number.isFinite(discount) ? discount : 0),
+      );
+    } else if (type === "subscription_initial" || type === "subscription_renewal") {
+      const planId = String(metadata.planId ?? "");
+      if (!planId) return { ok: true };
+      const plan = await prisma.subscriptionPlan.findUnique({
+        where: { id: planId },
+        select: { price: true },
+      });
+      if (!plan) return { ok: true };
+      expectedTotal = plan.price;
+    } else {
+      return { ok: true };
+    }
+  } catch (err) {
+    console.warn("[paygenius.webhook] assertAmountMatches lookup failed", {
+      paymentId,
+      err: err instanceof Error ? err.message : String(err),
+    });
+    return { ok: true };
+  }
+
+  if (verifiedAmount < expectedTotal - tolerance) {
+    console.error("[paygenius.webhook] amount mismatch", {
+      paymentId,
+      expected: expectedTotal,
+      received: verifiedAmount,
+    });
+    const attemptId = metadata.attemptId ? String(metadata.attemptId) : null;
+    if (attemptId) {
+      // L'enum CheckoutAttemptStatus n'a pas de valeur dédiée — on utilise
+      // FAILED + failureCode "AMOUNT_MISMATCH" pour discriminer côté admin.
+      await prisma.checkoutAttempt
+        .update({
+          where: { id: attemptId },
+          data: {
+            status: "FAILED",
+            failureReason: `Amount mismatch: expected ${expectedTotal}, received ${verifiedAmount}`,
+            failureCode: "AMOUNT_MISMATCH",
+            providerRef: paymentId,
+          },
+        })
+        .catch(() => null);
+    }
+    return { ok: false };
+  }
+
+  return { ok: true };
 }
 
 /**

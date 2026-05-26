@@ -1,3 +1,4 @@
+// Refonte par Augustin Mékongo + Fatou Diallo — bureau 2026-05-26 (votes 7, 8, 13)
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
@@ -54,6 +55,7 @@ export async function GET() {
                 createdAt: true,
                 refundedAt: true,
                 completedAt: true,
+                userId: true,
                 user: { select: { country: true } },
               },
             },
@@ -75,6 +77,7 @@ export async function GET() {
               select: {
                 paidAmount: true,
                 createdAt: true,
+                userId: true,
                 user: { select: { country: true } },
               },
             },
@@ -84,6 +87,7 @@ export async function GET() {
     });
 
     if (!profile) {
+      const emptyKpis = { revenue: 0, sales: 0, students: 0, aov: 0 };
       return NextResponse.json({
         data: {
           kpis: { totalRevenue: 0, netRevenue: 0, totalStudents: 0, totalProducts: 0, avgRating: 0, totalReviews: 0 },
@@ -92,6 +96,8 @@ export async function GET() {
           topProducts: [],
           sparkline7d: [],
           topCountries: [],
+          current: emptyKpis,
+          previous: emptyKpis,
         },
       });
     }
@@ -108,6 +114,7 @@ export async function GET() {
         refunded: e.refundedAt !== null,
         completed: e.completedAt !== null,
         country: e.user?.country ?? null,
+        userId: e.userId ?? null,
       }))
     );
     const allPurchases = profile.digitalProducts.flatMap((p) =>
@@ -121,6 +128,7 @@ export async function GET() {
         refunded: false,
         completed: true,
         country: pu.user?.country ?? null,
+        userId: pu.userId ?? null,
       }))
     );
 
@@ -159,6 +167,7 @@ export async function GET() {
       refunded: false,
       completed: true,
       country: bundleCountryByUserId.get(bp.userId) ?? null,
+      userId: bp.userId,
     }));
 
     // Subscription invoices pour ce vendeur — uniquement les factures payées
@@ -178,6 +187,7 @@ export async function GET() {
         createdAt: true,
         subscription: {
           select: {
+            userId: true,
             plan: { select: { id: true, name: true } },
             user: { select: { country: true } },
           },
@@ -194,6 +204,7 @@ export async function GET() {
       refunded: false,
       completed: true,
       country: inv.subscription.user?.country ?? null,
+      userId: inv.subscription.userId ?? null,
     }));
 
     const allTxns = [...allEnrollments, ...allPurchases, ...allBundles, ...allSubs];
@@ -205,7 +216,10 @@ export async function GET() {
     const totalStudents = profile.formations.reduce((s, f) => s + f.studentsCount, 0);
     const totalProducts = profile.formations.length + profile.digitalProducts.length;
 
-    // ── Period deltas (last 30d vs previous 30d) ──
+    // ── Period KPIs : current (J-30 → J) vs previous (J-60 → J-30) ──
+    // Source de vérité pour les deltas affichés sur les cards vendeur.
+    // Bureau 2026-05-26 (vote 7) : ajouter `current` + `previous` côte à côte,
+    // rétrocompatibilité garantie (les clés existantes restent au top-level).
     const now30Ago = new Date(Date.now() - 30 * 86400000);
     const now60Ago = new Date(Date.now() - 60 * 86400000);
     const last30 = completedTxns.filter((t) => new Date(t.createdAt) >= now30Ago);
@@ -213,18 +227,39 @@ export async function GET() {
       const d = new Date(t.createdAt);
       return d >= now60Ago && d < now30Ago;
     });
-    const rev30 = last30.reduce((s, t) => s + t.amount, 0);
-    const revPrev30 = prev30.reduce((s, t) => s + t.amount, 0);
-    const sales30 = last30.length;
-    const salesPrev30 = prev30.length;
-    const students30 = new Set(last30.map((t) => `${t.productId}-${t.amount}-${t.createdAt}`)).size;
-    const studentsPrev30 = new Set(prev30.map((t) => `${t.productId}-${t.amount}-${t.createdAt}`)).size;
+
+    type PeriodKpis = {
+      revenue: number;
+      sales: number;
+      students: number;
+      aov: number;
+    };
+    const computePeriodKpis = (txns: typeof completedTxns): PeriodKpis => {
+      const revenue = txns.reduce((s, t) => s + t.amount, 0);
+      const sales = txns.length;
+      const uniqUserIds = new Set<string>();
+      for (const t of txns) {
+        if (t.userId) uniqUserIds.add(t.userId);
+      }
+      const students = uniqUserIds.size;
+      const aov = sales > 0 ? revenue / sales : 0;
+      return {
+        revenue: Math.round(revenue),
+        sales,
+        students,
+        aov: Math.round(aov),
+      };
+    };
+    const current: PeriodKpis = computePeriodKpis(last30);
+    const previous: PeriodKpis = computePeriodKpis(prev30);
+
     const pctChange = (cur: number, prev: number) =>
       prev === 0 ? (cur > 0 ? 100 : 0) : Math.round(((cur - prev) / prev) * 100);
+    // `deltas` conservé pour rétro-compat (consommé par l'ancien DeltaBadge)
     const deltas = {
-      revenue: pctChange(rev30, revPrev30),
-      sales: pctChange(sales30, salesPrev30),
-      students: pctChange(students30, studentsPrev30),
+      revenue: pctChange(current.revenue, previous.revenue),
+      sales: pctChange(current.sales, previous.sales),
+      students: pctChange(current.students, previous.students),
     };
 
     // ── Revenue split (formations / digital / packs / abonnements, last 90d) ──
@@ -415,6 +450,10 @@ export async function GET() {
         deltas,
         split90,
         spark14,
+        // Vote 7 — KPIs comparables côte à côte (J-30 vs J-60→J-30).
+        // Format rétro-compatible : on AJOUTE ces blocs, on n'enlève rien.
+        current,
+        previous,
       },
     });
   } catch (err) {

@@ -114,8 +114,11 @@ export const PaymentService = {
       cancelUrl,
     } = params;
 
-    // Use mock if Stripe not configured or explicitly forced
-    if (isMockMode() || forceMock || amount === 0) {
+    // Vote 26 : refus du forceMock en production — la porte dérobée
+    // ne doit jamais être ouverte par un client en prod.
+    const safeForceMock = forceMock && process.env.NODE_ENV !== "production";
+    // Use mock if Stripe not configured or explicitly forced (dev/test only)
+    if (isMockMode() || safeForceMock || amount === 0) {
       const sessionId = `mock_${uuidv4()}`;
 
       mockPayments.set(sessionId, {

@@ -25,6 +25,7 @@ const navItems = [
   { icon: "support_agent", label: "Tickets support", href: "/admin/tickets" },
   { icon: "history", label: "Journal d'audit", href: "/admin/audit" },
   { icon: "assessment", label: "Rapports", href: "/admin/rapports" },
+  { icon: "filter_alt", label: "Funnel acheteur", href: "/admin/analytics-funnel" },
   { icon: "settings", label: "Configuration", href: "/admin/configuration" },
 ];
 

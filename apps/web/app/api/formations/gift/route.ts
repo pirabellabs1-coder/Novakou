@@ -142,7 +142,8 @@ export async function POST(request: Request) {
 
       await prisma.digitalProduct.update({
         where: { id: product.id },
-        data: { salesCount: { increment: 1 } },
+        // Audit 2026-05-26 : sync salesCount + currentBuyers (cf. checkout).
+        data: { salesCount: { increment: 1 }, currentBuyers: { increment: 1 } },
       });
 
       return NextResponse.json({
