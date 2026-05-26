@@ -3127,12 +3127,22 @@ model ProductBundlePurchase {
   bundleId   String
   userId     String
   paidAmount Int
-  createdAt  DateTime @default(now())
+  // Migration 2026052701 — bureau session 4 (P1 Marcus/Karim).
+  // paymentRef : ref provider (paymentId Moneroo / reference PayGenius),
+  //   unique partial (NULL accepté multiples fois — backfill possible plus tard).
+  // provider   : "moneroo" | "paygenius" | "stripe" | "gift" | "mock"
+  // status     : "PAID" | "REFUNDED" | "CANCELLED"
+  paymentRef String?   @unique
+  provider   String?
+  status     String    @default("PAID")
+  refundedAt DateTime?
+  createdAt  DateTime  @default(now())
 
   bundle     ProductBundle @relation(fields: [bundleId], references: [id])
 
   @@index([bundleId, createdAt])
   @@index([userId])
+  @@index([paymentRef])
 }
 
 // (AbandonedCart model already defined above at line ~1526)

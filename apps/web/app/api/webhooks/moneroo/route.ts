@@ -529,12 +529,16 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Bundle introuvable" }, { status: 400 });
       }
 
-      // Idempotence : si la purchase existe déjà pour ce paymentRef, ne pas dupliquer
-      const existing = await prisma.productBundlePurchase.findFirst({
-        where: { bundleId, userId },
+      // Idempotence robuste (migration 2026052701) : on dédoublonne sur
+      // `paymentRef`. Si le webhook re-fire avec le même paymentId Moneroo,
+      // la 2e tentative findUnique trouve la purchase et skip. Fini les
+      // faux positifs (rachat post-refund bloqué) de l'ancien
+      // findFirst({bundleId, userId}).
+      const existingByRef = await prisma.productBundlePurchase.findUnique({
+        where: { paymentRef: paymentId },
       });
-      if (existing) {
-        return NextResponse.json({ ok: true, alreadyProcessed: true });
+      if (existingByRef) {
+        return NextResponse.json({ ok: true, alreadyProcessed: true, via: "paymentRef" });
       }
 
       // Créer la ProductBundlePurchase (paidAmount = bundle.priceXof - discount)
@@ -543,7 +547,14 @@ export async function POST(req: Request) {
         Math.round(bundle.priceXof) - (Number.isFinite(bundleDiscountAmount) ? bundleDiscountAmount : 0),
       );
       const purchase = await prisma.productBundlePurchase.create({
-        data: { bundleId, userId, paidAmount },
+        data: {
+          bundleId,
+          userId,
+          paidAmount,
+          paymentRef: paymentId,
+          provider: "moneroo",
+          status: "PAID",
+        },
       });
 
       // Bureau session 4 (P0 Karim/Marcus) — comptabilité bundle.
@@ -611,11 +622,42 @@ export async function POST(req: Request) {
 
       // Auto-enroller chaque item — tag stripeSessionId = "bundle_<id>" pour
       // pouvoir tracer / auditer l'origine.
+      // Bureau session 4 (P1 Marcus) : on vérifie le STATUS de chaque item
+      // au moment du fulfillment. Si le vendeur a supprimé/archivé une
+      // formation/produit entre l'achat et le webhook, on skip cet item
+      // avec un log (et on ne plante pas le fulfillment des autres items).
       const tag = `bundle_${purchase.id}`;
+      const formationIdsInBundle = bundle.items
+        .filter((i) => i.itemKind === "formation" && i.formationId)
+        .map((i) => i.formationId!) as string[];
+      const productIdsInBundle = bundle.items
+        .filter((i) => i.itemKind === "digital" && i.productId)
+        .map((i) => i.productId!) as string[];
+      const [activeFormations, activeProducts] = await Promise.all([
+        formationIdsInBundle.length > 0
+          ? prisma.formation.findMany({
+              where: { id: { in: formationIdsInBundle }, status: "ACTIF" },
+              select: { id: true },
+            })
+          : Promise.resolve([] as { id: string }[]),
+        productIdsInBundle.length > 0
+          ? prisma.digitalProduct.findMany({
+              where: { id: { in: productIdsInBundle }, status: "ACTIF" },
+              select: { id: true },
+            })
+          : Promise.resolve([] as { id: string }[]),
+      ]);
+      const activeFormationIds = new Set(activeFormations.map((f) => f.id));
+      const activeProductIds = new Set(activeProducts.map((p) => p.id));
       let enrolledFormations = 0;
       let enrolledProducts = 0;
+      const skippedItems: string[] = [];
       for (const item of bundle.items) {
         if (item.itemKind === "formation" && item.formationId) {
+          if (!activeFormationIds.has(item.formationId)) {
+            skippedItems.push(`formation:${item.formationId}`);
+            continue;
+          }
           await prisma.enrollment.upsert({
             where: { userId_formationId: { userId, formationId: item.formationId } },
             create: { userId, formationId: item.formationId, paidAmount: 0, stripeSessionId: tag },
@@ -623,6 +665,10 @@ export async function POST(req: Request) {
           }).catch((e) => console.warn("[moneroo bundle enroll]", item.formationId, e?.message ?? e));
           enrolledFormations++;
         } else if (item.itemKind === "digital" && item.productId) {
+          if (!activeProductIds.has(item.productId)) {
+            skippedItems.push(`product:${item.productId}`);
+            continue;
+          }
           await prisma.digitalProductPurchase.upsert({
             where: { userId_productId: { userId, productId: item.productId } },
             create: { userId, productId: item.productId, paidAmount: 0, stripeSessionId: tag },
@@ -630,6 +676,9 @@ export async function POST(req: Request) {
           }).catch((e) => console.warn("[moneroo bundle purchase]", item.productId, e?.message ?? e));
           enrolledProducts++;
         }
+      }
+      if (skippedItems.length > 0) {
+        console.warn(`[moneroo bundle] purchase=${purchase.id} skipped ${skippedItems.length} inactive items:`, skippedItems);
       }
 
       // Email de confirmation à l'acheteur

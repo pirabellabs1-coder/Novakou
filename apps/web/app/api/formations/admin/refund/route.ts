@@ -769,8 +769,17 @@ async function handleBundleRefund(
     return NextResponse.json({ error: "Acheteur introuvable." }, { status: 404 });
   }
 
-  // Idempotence : si une PlatformRevenue négative existe déjà pour ce purchase,
-  // on a déjà remboursé. On refuse au lieu de doubler.
+  // Idempotence (migration 2026052701) : la purchase a maintenant un champ
+  // `status` ("PAID" / "REFUNDED" / "CANCELLED"). Plus besoin de fouiller
+  // PlatformRevenue — un simple check sur status suffit.
+  if (purchase.status === "REFUNDED" || purchase.status === "CANCELLED") {
+    return NextResponse.json(
+      { error: "Cet achat a déjà été remboursé ou annulé." },
+      { status: 409 },
+    );
+  }
+  // Garde-fou double : si une negative PlatformRevenue existe sans status mis
+  // à jour (cas legacy avant migration), on bloque quand même.
   const existingReverse = await prisma.platformRevenue.findFirst({
     where: { orderId: purchaseId, orderType: "bundle", grossAmount: { lt: 0 } },
     select: { id: true },
@@ -792,6 +801,15 @@ async function handleBundleRefund(
   const tag = `bundle_${purchaseId}`;
 
   await prisma.$transaction(async (tx) => {
+    // 0. Mark purchase as REFUNDED / partially refunded (migration 2026052701)
+    await tx.productBundlePurchase.update({
+      where: { id: purchaseId },
+      data: {
+        status: isFullRefund ? "REFUNDED" : "PAID",
+        refundedAt: isFullRefund ? new Date() : null,
+      },
+    });
+
     // 1. Negative PlatformRevenue (audit + comptabilité plateforme)
     await tx.platformRevenue.create({
       data: {

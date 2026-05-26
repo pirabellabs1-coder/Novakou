@@ -392,15 +392,26 @@ export async function POST(req: Request) {
       });
       if (!bundle) return NextResponse.json({ error: "Bundle introuvable" }, { status: 400 });
 
-      const existing = await prisma.productBundlePurchase.findFirst({ where: { bundleId, userId } });
-      if (existing) return NextResponse.json({ ok: true, alreadyProcessed: true });
+      // Idempotence par paymentRef (migration 2026052701) — voir Moneroo
+      // webhook pour le détail. Un rachat post-refund n'est plus bloqué.
+      const existingByRef = await prisma.productBundlePurchase.findUnique({
+        where: { paymentRef: reference },
+      });
+      if (existingByRef) return NextResponse.json({ ok: true, alreadyProcessed: true, via: "paymentRef" });
 
       const paidAmount = Math.max(
         0,
         Math.round(bundle.priceXof) - (Number.isFinite(bundleDiscountAmount) ? bundleDiscountAmount : 0),
       );
       const purchase = await prisma.productBundlePurchase.create({
-        data: { bundleId, userId, paidAmount },
+        data: {
+          bundleId,
+          userId,
+          paidAmount,
+          paymentRef: reference,
+          provider: "paygenius",
+          status: "PAID",
+        },
       });
 
       // Bureau session 4 (P0 Karim/Marcus) — comptabilité bundle PayGenius.
@@ -465,10 +476,38 @@ export async function POST(req: Request) {
       }
 
       const tag = `bundle_${purchase.id}`;
+      // Stock check (P1 Marcus) — voir webhook Moneroo pour le détail.
+      const formationIdsInBundle = bundle.items
+        .filter((i) => i.itemKind === "formation" && i.formationId)
+        .map((i) => i.formationId!) as string[];
+      const productIdsInBundle = bundle.items
+        .filter((i) => i.itemKind === "digital" && i.productId)
+        .map((i) => i.productId!) as string[];
+      const [activeFormations, activeProducts] = await Promise.all([
+        formationIdsInBundle.length > 0
+          ? prisma.formation.findMany({
+              where: { id: { in: formationIdsInBundle }, status: "ACTIF" },
+              select: { id: true },
+            })
+          : Promise.resolve([] as { id: string }[]),
+        productIdsInBundle.length > 0
+          ? prisma.digitalProduct.findMany({
+              where: { id: { in: productIdsInBundle }, status: "ACTIF" },
+              select: { id: true },
+            })
+          : Promise.resolve([] as { id: string }[]),
+      ]);
+      const activeFormationIds = new Set(activeFormations.map((f) => f.id));
+      const activeProductIds = new Set(activeProducts.map((p) => p.id));
       let enrolledFormations = 0;
       let enrolledProducts = 0;
+      const skippedItems: string[] = [];
       for (const item of bundle.items) {
         if (item.itemKind === "formation" && item.formationId) {
+          if (!activeFormationIds.has(item.formationId)) {
+            skippedItems.push(`formation:${item.formationId}`);
+            continue;
+          }
           await prisma.enrollment
             .upsert({
               where: { userId_formationId: { userId, formationId: item.formationId } },
@@ -478,6 +517,10 @@ export async function POST(req: Request) {
             .catch((e) => console.warn("[paygenius bundle enroll]", item.formationId, e?.message ?? e));
           enrolledFormations++;
         } else if (item.itemKind === "digital" && item.productId) {
+          if (!activeProductIds.has(item.productId)) {
+            skippedItems.push(`product:${item.productId}`);
+            continue;
+          }
           await prisma.digitalProductPurchase
             .upsert({
               where: { userId_productId: { userId, productId: item.productId } },
@@ -487,6 +530,9 @@ export async function POST(req: Request) {
             .catch((e) => console.warn("[paygenius bundle purchase]", item.productId, e?.message ?? e));
           enrolledProducts++;
         }
+      }
+      if (skippedItems.length > 0) {
+        console.warn(`[paygenius bundle] purchase=${purchase.id} skipped ${skippedItems.length} inactive items:`, skippedItems);
       }
 
       const buyer = await prisma.user.findUnique({
