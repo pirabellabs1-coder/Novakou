@@ -168,14 +168,44 @@ export async function initPayment(params: PayGeniusInitParams): Promise<{
     headers: authHeaders(),
     body: JSON.stringify(payload),
   });
-  const json = (await res.json()) as PayGeniusInitResponse | { success: false; error?: { code: string; message: string }; message?: string };
 
-  if (!res.ok || !("data" in json) || !json.data) {
-    const errMsg =
-      ("error" in json && (json as any).error?.message) ||
-      ("message" in json && (json as any).message) ||
-      `PayGenius init failed (HTTP ${res.status})`;
-    throw new Error(String(errMsg));
+  // Lecture safe : la réponse peut ne pas être du JSON (5xx HTML, body vide).
+  const rawBody = await res.text();
+  let json: PayGeniusInitResponse | { success: false; error?: { code: string; message: string }; message?: string } | null = null;
+  try {
+    json = rawBody ? JSON.parse(rawBody) : null;
+  } catch {
+    json = null;
+  }
+
+  if (!res.ok || !json || !("data" in json) || !json.data) {
+    // Log complet côté serveur pour permettre à l'admin de diagnostiquer
+    // une 5xx provider — visible uniquement dans les logs Vercel/Sentry,
+    // jamais renvoyé au client (pas de fuite d'info technique).
+    console.error("[paygenius.initPayment] failed", {
+      status: res.status,
+      statusText: res.statusText,
+      bodyPreview: rawBody.slice(0, 500),
+      amountSent: payload.amount,
+      currencySent: payload.currency,
+    });
+
+    // Message court et actionnable côté utilisateur.
+    const providerMsg =
+      (json && "error" in json && (json as { error?: { message?: string } }).error?.message) ||
+      (json && "message" in json && (json as { message?: string }).message) ||
+      null;
+
+    // 5xx → message générique "indisponible" car probablement transient.
+    // 4xx avec message → on remonte le message provider (validation, etc.).
+    if (res.status >= 500) {
+      throw new Error(
+        providerMsg
+          ? `Provider temporairement indisponible (${providerMsg}). Essayez Moneroo ou réessayez dans 1 minute.`
+          : `Provider temporairement indisponible (HTTP ${res.status}). Essayez Moneroo ou réessayez dans 1 minute.`,
+      );
+    }
+    throw new Error(providerMsg || `PayGenius init failed (HTTP ${res.status})`);
   }
 
   const url = json.data.checkout_url || json.data.payment_url;

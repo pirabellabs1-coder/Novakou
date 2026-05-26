@@ -770,11 +770,49 @@ export default function CheckoutInner() {
             </label>
           </div>
 
-          {/* Error */}
+          {/* Error — avec fallback automatique vers l'autre provider si
+              le provider courant est indisponible. Décidé en post-mortem
+              PayGenius "Server Error" du 2026-05-26. */}
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-              <span className="material-symbols-outlined text-red-500 text-[20px]">error</span>
-              <p className="text-sm text-red-700 font-medium">{error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-start gap-3">
+                <span className="material-symbols-outlined text-red-500 text-[20px] mt-0.5">error</span>
+                <div className="flex-1">
+                  <p className="text-sm text-red-700 font-medium">{error}</p>
+                  {/* Si le message évoque une indisponibilité provider, propose
+                      de basculer sur l'autre provider configuré */}
+                  {/indisponible|Server Error|HTTP 5\d\d|Timeout/i.test(error) && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {availableProviders
+                        .filter((p) => p.id !== provider && p.available)
+                        .map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => {
+                              setProvider(p.id);
+                              setError(null);
+                              // Re-tente automatiquement avec le nouveau provider
+                              setTimeout(() => { void handlePay(); }, 50);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
+                            Essayer avec {p.label}
+                          </button>
+                        ))}
+                      <button
+                        type="button"
+                        onClick={() => { setError(null); void handlePay(); }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">refresh</span>
+                        Réessayer
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
