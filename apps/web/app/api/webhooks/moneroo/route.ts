@@ -22,6 +22,7 @@ import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
+import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
 
 /**
  * Vérifie la signature HMAC Moneroo sur le body brut.
@@ -425,7 +426,7 @@ export async function POST(req: Request) {
       });
 
       // Invoice
-      await prisma.subscriptionInvoice.create({
+      const invoice = await prisma.subscriptionInvoice.create({
         data: {
           subscriptionId: sub.id,
           userId,
@@ -448,6 +449,36 @@ export async function POST(req: Request) {
           ...(isRenewal ? {} : { activeCount: { increment: 1 } }),
         },
       }).catch(() => null);
+
+      // Bureau session 4 (P0 Karim/Amélie) — comptabilité subscription Moneroo.
+      // Identique à PayGenius : sans PlatformRevenue, wallet vendeur reste à 0
+      // sur les revenus d'abonnement.
+      const subPlatform = Math.round(plan.price * PLATFORM_COMMISSION_RATE);
+      const subVendorNet = Math.max(0, plan.price - subPlatform);
+      await prisma.platformRevenue
+        .create({
+          data: {
+            orderId: invoice.id,
+            orderType: "subscription",
+            grossAmount: plan.price,
+            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionAmount: subPlatform,
+            vendorAmount: subVendorNet,
+            affiliateId: null,
+            affiliateAmount: 0,
+            paymentRef: paymentId,
+            currency: "XOF",
+            instructeurId: plan.instructeurId,
+            shopId: plan.shopId ?? null,
+          },
+        })
+        .catch((e) => console.error("[moneroo sub platformRevenue]", e?.message ?? e));
+      await prisma.instructeurProfile
+        .update({
+          where: { id: plan.instructeurId },
+          data: { totalEarned: { increment: subVendorNet } },
+        })
+        .catch((e) => console.error("[moneroo sub totalEarned]", e?.message ?? e));
 
       // Grant access — auto-create Enrollment / DigitalProductPurchase rows
       // for every linked formation/product so the buyer can access content
@@ -514,6 +545,37 @@ export async function POST(req: Request) {
       const purchase = await prisma.productBundlePurchase.create({
         data: { bundleId, userId, paidAmount },
       });
+
+      // Bureau session 4 (P0 Karim/Marcus) — comptabilité bundle.
+      // Sans ça, le vendeur ne touche RIEN sur ses ventes de bundle :
+      // pas de PlatformRevenue, pas d'incrément `totalEarned`,
+      // jauge wallet à 0 même après 100 ventes.
+      const bundlePlatform = Math.round(paidAmount * PLATFORM_COMMISSION_RATE);
+      const bundleVendorNet = Math.max(0, paidAmount - bundlePlatform);
+      await prisma.platformRevenue
+        .create({
+          data: {
+            orderId: purchase.id,
+            orderType: "bundle",
+            grossAmount: paidAmount,
+            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionAmount: bundlePlatform,
+            vendorAmount: bundleVendorNet,
+            affiliateId: null,
+            affiliateAmount: 0,
+            paymentRef: paymentId,
+            currency: "XOF",
+            instructeurId: bundle.instructeurId,
+            shopId: bundle.shopId ?? null,
+          },
+        })
+        .catch((e) => console.error("[moneroo bundle platformRevenue]", e?.message ?? e));
+      await prisma.instructeurProfile
+        .update({
+          where: { id: bundle.instructeurId },
+          data: { totalEarned: { increment: bundleVendorNet } },
+        })
+        .catch((e) => console.error("[moneroo bundle totalEarned]", e?.message ?? e));
 
       // Record DiscountUsage if a discount was applied at checkout init.
       // Idempotent via @@unique([discountId, userId, orderId]).

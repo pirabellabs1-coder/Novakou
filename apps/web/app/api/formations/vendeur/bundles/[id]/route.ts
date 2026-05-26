@@ -94,8 +94,13 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (body.banner !== undefined) {
     data.banner = body.banner ? String(body.banner).trim() : null;
   }
+  // Bureau session 4 — bug P0 Marcus : ProductBundle a un champ `isActive`
+  // (boolean) PAS un `status` enum. PATCH écrivait `data.status` → Prisma
+  // throw runtime "Unknown field". On mappe vers le bon champ.
   if (body.status !== undefined && ["ACTIF", "BROUILLON", "ARCHIVE"].includes(String(body.status))) {
-    data.status = body.status;
+    data.isActive = body.status === "ACTIF";
+  } else if (typeof body.isActive === "boolean") {
+    data.isActive = body.isActive;
   }
 
   // Items replace-all : if `items` is provided we re-validate ownership and
@@ -225,11 +230,12 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   const existing = await requireOwnedBundle(id, ctx.instructeurId);
   if (!existing) return NextResponse.json({ error: "Bundle introuvable" }, { status: 404 });
 
-  // Soft-delete if there are purchases — otherwise hard-delete is fine
+  // Soft-delete if there are purchases — otherwise hard-delete is fine.
+  // Bureau session 4 : `status: "ARCHIVE"` → `isActive: false` (bon champ).
   if (existing._count.purchases > 0) {
     await prisma.productBundle.update({
       where: { id },
-      data: { status: "ARCHIVE" },
+      data: { isActive: false },
     });
     return NextResponse.json({ data: { id, archived: true } });
   }

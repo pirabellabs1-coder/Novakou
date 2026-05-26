@@ -546,15 +546,26 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     }
   } catch { /* ne jamais bloquer sur webhook */ }
 
-  // Mark abandoned carts as converted now that purchase completed
+  // Mark abandoned carts as converted now that purchase completed.
+  // Bureau session 4 (P0 Fatou) : on matche AUSSI sur visitorEmail/email
+  // pour ne plus rater les invités qui reviennent finir leur achat via
+  // un lien de relance. Sans ça, la stat "RÉCUPÉRÉ" sous-évaluait
+  // systématiquement le revenu reconverti.
   if (createdEnrollments.length + createdPurchases.length > 0) {
+    const buyerEmail = user.email?.toLowerCase() ?? null;
+    const buyerMatch = buyerEmail
+      ? { OR: [{ userId }, { email: buyerEmail }] }
+      : { userId };
     await prisma.abandonedCart.updateMany({
-      where: { userId, status: { in: ["DETECTE", "RELANCE_1", "RELANCE_2", "RELANCE_3"] } },
+      where: { ...buyerMatch, status: { in: ["DETECTE", "RELANCE_1", "RELANCE_2", "RELANCE_3"] } },
       data: { status: "CONVERTI" },
     }).catch(() => null);
-    // Mark checkout attempts as recovered
+    // Mark checkout attempts as recovered (loggés OU invités via visitorEmail).
+    const attemptMatch = buyerEmail
+      ? { OR: [{ userId }, { visitorEmail: buyerEmail }] }
+      : { userId };
     await prisma.checkoutAttempt.updateMany({
-      where: { userId, status: { in: ["FAILED", "ABANDONED"] } },
+      where: { ...attemptMatch, status: { in: ["FAILED", "ABANDONED"] } },
       data: { status: "RECOVERED", recoveredAt: new Date() },
     }).catch(() => null);
   }

@@ -457,10 +457,13 @@ export async function POST(request: Request) {
       }
 
       // Lecture sur PlatformRevenue (vendorAmount = exact, déjà - 10% - affilié)
+      // Bureau session 4 — bug P0 Karim/Marcus : on inclut maintenant bundle
+      // et subscription dans le calcul du solde. Sans ça, un vendeur qui
+      // vendait UNIQUEMENT des bundles/abonnements voyait disponible = 0.
       const revenueRows = await prisma.platformRevenue.findMany({
         where: {
           instructeurId: inst.id,
-          orderType: { in: ["formation", "product"] },
+          orderType: { in: ["formation", "product", "bundle", "subscription"] },
           ...(activeShopId ? { shopId: activeShopId } : {}),
         },
         select: { vendorAmount: true, createdAt: true },
