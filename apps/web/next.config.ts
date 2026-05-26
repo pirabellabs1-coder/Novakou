@@ -23,7 +23,7 @@ const securityHeaders = isDev
           "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com https://js.puter.com https://*.puter.com",
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://api.fontshare.com",
           "font-src 'self' https://fonts.gstatic.com https://cdn.fontshare.com",
-          "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.supabase.co https://*.puter.com",
+          "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://*.supabase.co https://*.puter.com https://flagcdn.com",
           "connect-src 'self' ws: wss: https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.puter.com https://*.puter.com",
           "frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://www.loom.com https://puter.com https://*.puter.com",
           "media-src 'self' blob: data: https://res.cloudinary.com https://*.supabase.co",

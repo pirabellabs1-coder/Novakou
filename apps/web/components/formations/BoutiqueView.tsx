@@ -126,19 +126,33 @@ export default function BoutiqueView({
           </>
         ) : (
           <>
-            {/* Fallback : gradient décoratif basé sur themeColor */}
+            {/* Backdrop premium : mesh gradient subtil + halos diffus.
+                Refonte 2026-05-26 — version "joli a voir". */}
             <div
               className="absolute inset-0"
-              style={{ background: themeGradient, opacity: 0.08 }}
+              style={{
+                background: `radial-gradient(at 12% 15%, ${themeColor}1f 0px, transparent 50%), radial-gradient(at 82% 0%, ${themeColor}26 0px, transparent 45%), radial-gradient(at 50% 100%, ${themeColor}14 0px, transparent 55%), linear-gradient(180deg, #ffffff, #f8fafc)`,
+              }}
             />
+            {/* Grille décorative très discrète */}
             <div
               aria-hidden
-              className="absolute -top-32 -right-20 w-[400px] h-[400px] rounded-full blur-3xl opacity-20"
+              className="absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
+                backgroundSize: "32px 32px",
+              }}
+            />
+            {/* Halos lumineux */}
+            <div
+              aria-hidden
+              className="absolute -top-40 -right-24 w-[480px] h-[480px] rounded-full blur-3xl opacity-25"
               style={{ background: themeColor }}
             />
             <div
               aria-hidden
-              className="absolute -bottom-32 -left-10 w-[300px] h-[300px] rounded-full blur-3xl opacity-15"
+              className="absolute -bottom-40 -left-16 w-[360px] h-[360px] rounded-full blur-3xl opacity-15"
               style={{ background: themeColor }}
             />
           </>
@@ -147,23 +161,29 @@ export default function BoutiqueView({
         <div className="relative max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-14">
           <div className="flex flex-col md:flex-row md:items-end gap-6 md:gap-8">
             <div className="flex items-center gap-4 md:gap-5">
-              {owner.image ? (
-                <Image
-                  src={owner.image}
-                  alt={owner.name}
-                  width={112}
-                  height={112}
-                  className="w-20 h-20 md:w-28 md:h-28 rounded-2xl object-cover border-4 border-white shadow-xl flex-shrink-0"
-                  unoptimized
-                />
-              ) : (
-                <div
-                  className="w-20 h-20 md:w-28 md:h-28 rounded-2xl flex items-center justify-center text-white font-extrabold text-3xl md:text-5xl border-4 border-white shadow-xl flex-shrink-0"
-                  style={{ background: themeGradient }}
-                >
-                  {owner.name[0]?.toUpperCase() ?? "N"}
-                </div>
-              )}
+              {/* Wrap avec un anneau dégradé pour effet "premium" */}
+              <div
+                className="relative rounded-[1.25rem] p-[3px] flex-shrink-0 shadow-2xl"
+                style={{ background: `conic-gradient(from 180deg at 50% 50%, ${themeColor}, #22c55e, ${themeColor})` }}
+              >
+                {owner.image ? (
+                  <Image
+                    src={owner.image}
+                    alt={owner.name}
+                    width={112}
+                    height={112}
+                    className="w-20 h-20 md:w-28 md:h-28 rounded-2xl object-cover bg-white"
+                    unoptimized
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 md:w-28 md:h-28 rounded-2xl flex items-center justify-center text-white font-extrabold text-3xl md:text-5xl"
+                    style={{ background: themeGradient }}
+                  >
+                    {owner.name[0]?.toUpperCase() ?? "N"}
+                  </div>
+                )}
+              </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span
@@ -186,16 +206,24 @@ export default function BoutiqueView({
               </div>
             </div>
 
-            <div className="md:ml-auto flex items-center gap-3 flex-shrink-0 md:mt-0 mt-4">
-              <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-center shadow-sm">
-                <p className="text-xl font-extrabold text-slate-900 tabular-nums">{all.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Produits</p>
+            <div className="md:ml-auto grid grid-cols-3 gap-2 flex-shrink-0 md:mt-0 mt-4">
+              <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-center shadow-lg shadow-slate-200/40 hover:-translate-y-0.5 transition-transform">
+                <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>{all.length}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Produits</p>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-center shadow-sm">
-                <p className="text-xl font-extrabold text-slate-900 tabular-nums">
+              <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-center shadow-lg shadow-slate-200/40 hover:-translate-y-0.5 transition-transform">
+                <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
                   {all.reduce((s, i) => s + i.count, 0)}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Clients</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Clients</p>
+              </div>
+              <div className="bg-white/80 backdrop-blur-md border border-white/60 rounded-2xl px-4 py-3 text-center shadow-lg shadow-slate-200/40 hover:-translate-y-0.5 transition-transform">
+                <p className="text-xl font-extrabold tabular-nums" style={{ color: themeColor }}>
+                  {all.length > 0
+                    ? (all.reduce((s, i) => s + (i.rating || 0), 0) / all.filter((i) => i.rating > 0).length || 0).toFixed(1)
+                    : "—"}
+                </p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-0.5">Note</p>
               </div>
             </div>
           </div>
@@ -266,19 +294,103 @@ export default function BoutiqueView({
       {/* ─── Catalogue ────────────────────────────────────────────────────── */}
       <main className="max-w-6xl mx-auto px-5 md:px-8 py-10 md:py-14">
         {!hasAny ? (
-          <div className="text-center py-20 max-w-md mx-auto">
+          <div className="relative max-w-2xl mx-auto py-10">
+            {/* Halos colorés derrière la carte */}
             <div
-              className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4"
-              style={{ background: `${themeColor}15` }}
-            >
-              <span className="material-symbols-outlined text-4xl" style={{ color: themeColor }}>
-                storefront
+              aria-hidden
+              className="absolute -top-10 left-1/2 -translate-x-1/2 w-[420px] h-[200px] rounded-full blur-3xl opacity-40 pointer-events-none"
+              style={{ background: themeColor }}
+            />
+            <div className="relative bg-white border border-slate-200/80 rounded-3xl p-8 md:p-12 text-center shadow-xl shadow-slate-200/40 overflow-hidden">
+              {/* Décoration : petites pastilles flottantes */}
+              <div
+                aria-hidden
+                className="absolute top-6 left-8 w-10 h-10 rounded-2xl rotate-12 opacity-30"
+                style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}80)` }}
+              />
+              <div
+                aria-hidden
+                className="absolute top-12 right-10 w-6 h-6 rounded-xl -rotate-12 opacity-40"
+                style={{ background: themeColor }}
+              />
+              <div
+                aria-hidden
+                className="absolute bottom-10 left-12 w-8 h-8 rounded-2xl rotate-45 opacity-25"
+                style={{ background: themeColor }}
+              />
+              {/* Icône principale */}
+              <div
+                className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-5 shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${themeColor}, ${themeColor}cc)` }}
+              >
+                <span className="material-symbols-outlined text-white text-[44px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  storefront
+                </span>
+              </div>
+
+              <span className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: themeColor }}>
+                Bientôt en ligne
               </span>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                Boutique en construction
+              </h2>
+              <p className="text-sm md:text-base text-slate-600 mt-3 max-w-md mx-auto leading-relaxed">
+                {owner.name} prépare ses premiers contenus avec soin. Revenez très bientôt pour découvrir formations, ebooks et coaching de qualité.
+              </p>
+
+              {/* Pills d'anticipation : ce que le visiteur va trouver ici */}
+              <div className="flex flex-wrap justify-center gap-2 mt-6">
+                {[
+                  { icon: "play_circle", label: "Formations vidéo" },
+                  { icon: "menu_book", label: "Ebooks & guides" },
+                  { icon: "psychology", label: "Coaching 1-1" },
+                  { icon: "groups", label: "Communauté" },
+                ].map((p) => (
+                  <span
+                    key={p.label}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700"
+                  >
+                    <span className="material-symbols-outlined text-[14px]" style={{ color: themeColor }}>
+                      {p.icon}
+                    </span>
+                    {p.label}
+                  </span>
+                ))}
+              </div>
+
+              {/* CTAs : explorer + partager */}
+              <div className="flex flex-wrap justify-center gap-3 mt-8">
+                <Link
+                  href="/explorer"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity"
+                  style={{ background: themeGradient, boxShadow: `0 10px 30px ${themeColor}33` }}
+                >
+                  <span className="material-symbols-outlined text-[18px]">explore</span>
+                  Explorer Novakou
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof window === "undefined") return;
+                    const url = window.location.href;
+                    const nav = window.navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+                    if (typeof nav.share === "function") {
+                      nav.share({ title: owner.name, url }).catch(() => null);
+                    } else if (nav.clipboard?.writeText) {
+                      nav.clipboard.writeText(url).catch(() => null);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">share</span>
+                  Partager la boutique
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-400 mt-6">
+                Vous voulez être averti à l&apos;ouverture ? Suivez {owner.name} sur ses réseaux ou revenez dans quelques jours.
+              </p>
             </div>
-            <p className="text-xl font-bold text-slate-900">Boutique en construction</p>
-            <p className="text-sm text-slate-500 mt-2">
-              {owner.name} prépare ses premiers contenus. Revenez bientôt pour les découvrir.
-            </p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">

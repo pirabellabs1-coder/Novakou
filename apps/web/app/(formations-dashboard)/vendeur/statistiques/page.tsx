@@ -19,8 +19,38 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { countryToFlag, countryName } from "@/lib/tracking/geo";
+import { countryName } from "@/lib/tracking/geo";
 import { Flag } from "@/components/ui/Flag";
+
+/**
+ * Tick custom Recharts pour YAxis : affiche un vrai drapeau PNG (via SVG
+ * `<image>`) + le code pays. Remplace l'emoji unicode qui ne s'affichait
+ * pas sur Windows. Bureau Novakou 2026-05-26.
+ */
+function CountryFlagTick(props: { x?: number; y?: number; payload?: { value?: string } }) {
+  const { x = 0, y = 0, payload } = props;
+  const code = (payload?.value ?? "").toString().toLowerCase();
+  if (!code || code.length !== 2) {
+    return (
+      <text x={x} y={y} dy={4} fontSize={11} textAnchor="end" fill="#64748b">
+        {payload?.value ?? ""}
+      </text>
+    );
+  }
+  return (
+    <g transform={`translate(${x - 56},${y - 8})`}>
+      <image
+        href={`https://flagcdn.com/h20/${code}.png`}
+        width={20}
+        height={15}
+        preserveAspectRatio="xMidYMid slice"
+      />
+      <text x={26} y={11} fontSize={11} fill="#191c1e" fontWeight={600}>
+        {code.toUpperCase()}
+      </text>
+    </g>
+  );
+}
 
 type Period = "7d" | "30d" | "90d" | "12m" | "all";
 
@@ -305,10 +335,10 @@ export default function StatistiquesPage() {
                       type="category"
                       dataKey="country"
                       fontSize={11}
-                      width={60}
+                      width={80}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(c: string) => `${countryToFlag(c)} ${c}`}
+                      tick={<CountryFlagTick />}
                     />
                     <Tooltip
                       contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
@@ -318,7 +348,7 @@ export default function StatistiquesPage() {
                         if (name === "revenue") return [`${formatFCFA(v)} FCFA`, "Revenus"];
                         return [v, name];
                       }}
-                      labelFormatter={(c: string) => `${countryToFlag(c)} ${countryName(c)}`}
+                      labelFormatter={(c: string) => countryName(c)}
                     />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="views" fill={CYAN} radius={[0, 6, 6, 0]} />
