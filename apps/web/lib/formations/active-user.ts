@@ -1,6 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
-
 // Resolves the active user + creates instructeurProfile in one bulletproof
 // atomic flow. Uses upsert so it never fails on race conditions or stale sessions.
 
@@ -44,9 +41,11 @@ export async function resolveVendorContext(
         // registration. Defensive code for edge cases.
         const created = await prisma.user.create({
           data: {
-            email,
-            name,
-            image,
+            email, // narrowed to string par le if (email) ci-dessus
+            // `name` est required dans le schema (User.name: String). Fallback
+            // sur la partie locale de l'email si la session n'a pas de nom.
+            name: name ?? email.split("@")[0],
+            image: image ?? null,
             passwordHash: "", // placeholder — real password set via register flow
             role: "FREELANCE",
             status: "ACTIF",

@@ -79,13 +79,16 @@ function verifyMonerooSignature(rawBody: string, headers: Headers): boolean {
  * Retourne `true` si OK, `false` si trop vieux.
  */
 function verifyMonerooTimestamp(rawBody: string): boolean {
-  let parsed: any;
+  let parsed: Record<string, unknown> | unknown[] | null = null;
   try {
     parsed = JSON.parse(rawBody);
   } catch {
     return true; // si pas parseable, on laisse la signature trancher
   }
-  const ts = parsed?.timestamp ?? parsed?.data?.timestamp ?? parsed?.created_at;
+  if (!parsed || typeof parsed !== "object") return true;
+  // Lecture défensive — l'objet n'est pas typé strictement (payload provider externe).
+  const obj = parsed as { timestamp?: unknown; created_at?: unknown; data?: { timestamp?: unknown } };
+  const ts: unknown = obj.timestamp ?? obj.data?.timestamp ?? obj.created_at;
   if (ts === undefined || ts === null || ts === "") return true; // pas de timestamp → skip
 
   let tsMs: number;

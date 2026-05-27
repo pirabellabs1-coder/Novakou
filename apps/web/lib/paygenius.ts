@@ -258,9 +258,11 @@ export async function retrievePayment(reference: string): Promise<{
   });
   const json = (await res.json()) as PayGeniusRetrieveResponse | { success: false; error?: { message: string }; message?: string };
   if (!res.ok || !("data" in json) || !json.data) {
+    const errObj = (json as { error?: { message?: string } }).error;
+    const msgField = (json as { message?: string }).message;
     const msg =
-      ("error" in json && (json as any).error?.message) ||
-      ("message" in json && (json as any).message) ||
+      ("error" in json && errObj?.message) ||
+      ("message" in json && msgField) ||
       `PayGenius retrieve failed (HTTP ${res.status})`;
     throw new Error(String(msg));
   }
@@ -368,14 +370,18 @@ export async function initPayout(params: PayGeniusPayoutInitParams): Promise<{
     body: JSON.stringify(payload),
   });
   const json = (await res.json()) as PayGeniusPayoutResponse | { success: false; error?: { code: string; message: string }; message?: string };
-  if (!res.ok || !("data" in json) || !(json as any).data?.payout?.id) {
+  // Type guard : on extrait `data.payout` proprement quand il existe.
+  const payoutData = (json as PayGeniusPayoutResponse).data?.payout;
+  if (!res.ok || !("data" in json) || !payoutData?.id) {
+    const errObj = (json as { error?: { message?: string } }).error;
+    const msgField = (json as { message?: string }).message;
     const msg =
-      ("error" in json && (json as any).error?.message) ||
-      ("message" in json && (json as any).message) ||
+      ("error" in json && errObj?.message) ||
+      ("message" in json && msgField) ||
       `PayGenius payout init failed (HTTP ${res.status})`;
     throw new Error(String(msg));
   }
-  const p = json.data.payout;
+  const p = payoutData;
   return {
     id: String(p.id),
     reference: p.reference,
@@ -398,10 +404,13 @@ export async function retrievePayout(reference: string): Promise<{
     headers: authHeaders(),
   });
   const json = (await res.json()) as PayGeniusPayoutResponse | { success: false; error?: { message: string }; message?: string };
-  if (!res.ok || !("data" in json) || !(json as any).data?.payout) {
+  const payoutData = (json as PayGeniusPayoutResponse).data?.payout;
+  if (!res.ok || !("data" in json) || !payoutData) {
+    const errObj = (json as { error?: { message?: string } }).error;
+    const msgField = (json as { message?: string }).message;
     const msg =
-      ("error" in json && (json as any).error?.message) ||
-      ("message" in json && (json as any).message) ||
+      ("error" in json && errObj?.message) ||
+      ("message" in json && msgField) ||
       `PayGenius payout retrieve failed (HTTP ${res.status})`;
     throw new Error(String(msg));
   }
