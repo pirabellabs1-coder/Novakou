@@ -245,21 +245,27 @@ export default function AdminRetraitsVendeursPage() {
       return j;
     },
     onSuccess: (data) => {
+      // Bureau session 4 (post-mortem payouts) : avant on lisait
+      // `data.data.monerooStatus` qui n'était JAMAIS retourné par le backend
+      // → toast trompeur "traitement en cours" même si l'init avait
+      // réussi. Maintenant on remonte explicitement `status` + `payoutId`.
       const mode = data?.data?.mode;
-      const monerooStatus = data?.data?.monerooStatus;
-      if (mode === "moneroo") {
+      const status = data?.data?.status; // "initiated" | "completed" | "manual" | "pending"
+      const ref = data?.data?.paymentRef ?? data?.data?.payoutId;
+      if (mode === "manual") {
+        setToast("Retrait marqué comme traité manuellement ✅");
+      } else if (status === "completed" || status === "success") {
+        setToast(`Retrait versé via ${mode === "paygenius" ? "PayGenius" : "Moneroo"} ✅`);
+      } else if (mode === "moneroo" || mode === "paygenius") {
+        const provider = mode === "paygenius" ? "PayGenius" : "Moneroo";
         setToast(
-          monerooStatus === "success"
-            ? "Retrait versé via Moneroo ✅"
-            : "Retrait envoyé à Moneroo — traitement en cours"
+          `Payout envoyé à ${provider} (ref ${ref ?? "—"}) — Le statut passera à TRAITE dès réception du webhook confirmation provider. Si après 15 min toujours EN_ATTENTE, cliquer "Réconcilier".`
         );
-      } else if (mode === "paygenius") {
-        setToast("Retrait envoyé à PayGenius — traitement en cours");
       } else {
-        setToast("Retrait marqué comme traité");
+        setToast("Retrait traité — vérifiez le statut dans la liste");
       }
       qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
-      setTimeout(() => setToast(null), 4000);
+      setTimeout(() => setToast(null), 8000);
     },
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
   });
@@ -320,6 +326,41 @@ export default function AdminRetraitsVendeursPage() {
     },
     onError: (e: Error) => setToast(`Erreur : ${e.message}`),
   });
+
+  // Bureau session 4 — bouton Réconcilier (post-mortem payouts)
+  // Appelle manuellement le cron de réconciliation pour 1 retrait.
+  // Pratique quand le webhook provider rate ou tarde.
+  const reconcileMut = useMutation({
+    mutationFn: async (args: { id: string }) => {
+      const res = await fetch(`/api/cron/payout-reconcile`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: args.id }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Erreur");
+      return j;
+    },
+    onSuccess: (data) => {
+      const after = data?.data?.after ?? "EN_ATTENTE";
+      const message = data?.data?.message;
+      if (after === "TRAITE") setToast("✅ Confirmation provider reçue — retrait passé TRAITE");
+      else if (after === "REFUSE") setToast(`Provider a rejeté : ${message ?? "—"}`);
+      else setToast(`Toujours en attente côté provider (status=${message ?? "pending"}). Reéssayez dans quelques minutes.`);
+      qc.invalidateQueries({ queryKey: ["admin-vendor-withdrawals"] });
+      setTimeout(() => setToast(null), 6000);
+    },
+    onError: (e: Error) => setToast(`Erreur réconciliation : ${e.message}`),
+  });
+
+  async function handleReconcile(w: Withdrawal) {
+    if (!w.paymentRef) {
+      setToast("Pas de paymentRef — rien à réconcilier (le payout n'a pas démarré)");
+      setTimeout(() => setToast(null), 4000);
+      return;
+    }
+    reconcileMut.mutate({ id: w.id });
+  }
 
   async function handleApproveMoneroo(w: Withdrawal) {
     const ok = await confirmAction({
@@ -819,6 +860,32 @@ export default function AdminRetraitsVendeursPage() {
                     <div className="mt-4 border-l-4 border-amber-200 pl-4 py-2 bg-amber-50">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-1">Dernière tentative</p>
                       <p className="text-sm text-amber-900">{w.errorMessage}</p>
+                    </div>
+                  )}
+
+                  {/* Bureau session 4 — bouton Réconcilier pour les payouts coincés
+                      en EN_ATTENTE après init provider (paymentRef présent). */}
+                  {w.status === "EN_ATTENTE" && w.paymentRef && w.paymentProvider && (
+                    <div className="mt-4 flex items-center justify-between gap-3 flex-wrap p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <div className="text-xs text-blue-900 flex-1 min-w-0">
+                        <p className="font-bold uppercase tracking-widest text-[10px] mb-1 text-blue-700">
+                          Payout initié — en attente confirmation provider
+                        </p>
+                        <p className="font-mono text-[11px] truncate">
+                          {w.paymentProvider}:{w.paymentRef}
+                        </p>
+                        <p className="text-[11px] mt-1 opacity-80">
+                          Le statut TRAITE/REFUSE arrive via webhook provider. Si rien après 15 min, cliquez "Réconcilier".
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleReconcile(w)}
+                        disabled={reconcileMut.isPending}
+                        className="px-3 py-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 inline-flex items-center gap-1 rounded-md"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">sync</span>
+                        {reconcileMut.isPending ? "Vérification…" : "Réconcilier"}
+                      </button>
                     </div>
                   )}
 
