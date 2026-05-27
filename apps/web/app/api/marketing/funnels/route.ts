@@ -58,7 +58,7 @@ interface MockFunnel {
 
 const MOCK_FUNNELS: MockFunnel[] = [];
 
-let devFunnels = [...MOCK_FUNNELS];
+const devFunnels = [...MOCK_FUNNELS];
 
 // -- Helper: generate slug ---------------------------------------------------
 

@@ -28,7 +28,7 @@ interface MockFlashOffer {
 
 const MOCK_FLASH_OFFERS: MockFlashOffer[] = [];
 
-let devFlashOffers = [...MOCK_FLASH_OFFERS];
+const devFlashOffers = [...MOCK_FLASH_OFFERS];
 
 // ── GET ──────────────────────────────────────────────────────────────────────
 

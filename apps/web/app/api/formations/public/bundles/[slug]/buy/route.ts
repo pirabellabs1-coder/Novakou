@@ -93,7 +93,7 @@ export async function POST(request: Request, { params }: Params) {
     // ── Discount code (optional) ────────────────────────────────────────
     // Valide et applique un code promo sur le prix bundle. Le rabais est
     // calculé ici ; le webhook créera le DiscountUsage post-fulfillment.
-    let subTotal = Math.round(bundle.priceXof);
+    const subTotal = Math.round(bundle.priceXof);
     let discountAmount = 0;
     let appliedDiscountCodeId: string | null = null;
     if (discountCodeStr) {

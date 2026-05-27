@@ -82,7 +82,7 @@ function buildDevResponse(start: Date, end: Date, period: string) {
   const operations: AccountingOperation[] = [];
   let revenueServices = 0;
   let revenueBoosts = 0;
-  let revenueAbonnements = 0;
+  const revenueAbonnements = 0;
   let totalRefunds = 0;
   let totalCommissions = 0;
 

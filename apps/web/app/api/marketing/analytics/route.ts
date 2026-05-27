@@ -262,8 +262,14 @@ export async function GET(req: NextRequest) {
     });
 
     // Calculate overview metrics
-    const formationRevenue = currentEnrollments.reduce((sum: number, e: any) => sum + (e.formation?.price || 0), 0);
-    const productRevenue = currentPurchases.reduce((sum: number, p: any) => sum + (p.product?.price || 0), 0);
+    const formationRevenue = currentEnrollments.reduce(
+      (sum: number, e: { formation?: { price?: number } }) => sum + (e.formation?.price ?? 0),
+      0,
+    );
+    const productRevenue = currentPurchases.reduce(
+      (sum: number, p: { product?: { price?: number } }) => sum + (p.product?.price ?? 0),
+      0,
+    );
     const totalRevenue = formationRevenue + productRevenue;
     const totalSales = currentEnrollments.length + currentPurchases.length;
     const prevTotalSales = prevEnrollmentCount + prevPurchaseCount;

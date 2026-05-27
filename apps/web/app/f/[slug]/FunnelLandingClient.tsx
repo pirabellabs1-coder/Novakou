@@ -138,7 +138,7 @@ function ButtonBlock({ data, theme, onDefault }: { data: Record<string, unknown>
   const justify = align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center";
 
   let btnStyle: React.CSSProperties = {};
-  let btnClass = "font-bold rounded-xl inline-flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-lg";
+  const btnClass = "font-bold rounded-xl inline-flex items-center gap-2 transition-all hover:-translate-y-0.5 hover:shadow-lg";
 
   if (style === "outline") {
     btnStyle = { color: textColor || theme.primaryColor, border: `2px solid ${bgColor || theme.primaryColor}`, background: "transparent" };

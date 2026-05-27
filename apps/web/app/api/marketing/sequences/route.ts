@@ -49,7 +49,7 @@ interface MockStep {
 
 const MOCK_SEQUENCES: MockSequence[] = [];
 
-let devSequences = [...MOCK_SEQUENCES];
+const devSequences = [...MOCK_SEQUENCES];
 
 // ── GET ──────────────────────────────────────────────────────────────────────
 

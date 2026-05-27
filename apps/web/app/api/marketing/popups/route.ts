@@ -56,7 +56,7 @@ interface MockPopup {
 
 const MOCK_POPUPS: MockPopup[] = [];
 
-let devPopups = [...MOCK_POPUPS];
+const devPopups = [...MOCK_POPUPS];
 
 // ── GET ──────────────────────────────────────────────────────────────────────
 

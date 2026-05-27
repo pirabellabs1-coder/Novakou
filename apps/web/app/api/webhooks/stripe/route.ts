@@ -92,40 +92,16 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
     return;
   }
 
-  try {
-    // FIX: Verify the order exists and its stored PaymentIntent matches
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!order) {
-      console.warn(`[Stripe Webhook] Order ${orderId} not found — ignoring payment_intent.succeeded`);
-      return;
-    }
-
-    // Update order status: payment succeeded, escrow funds held
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        paymentStatus: "PAID",
-        stripePaymentIntentId: paymentIntent.id,
-        paidAt: new Date(),
-      } as any,
-    });
-
-    // NOTE Novakou (2026-05) : on n'écrit plus dans `walletTransaction`
-    // (modèle FreelanceHigh supprimé). L'escrow marketplace n'est pas
-    // utilisé sur Novakou — les paiements formations/produits passent par
-    // Moneroo/PayGenius (cf. /api/webhooks/moneroo et /paygenius). Ce
-    // handler reste actif uniquement pour mettre à jour Order.paymentStatus
-    // dans le cas où un PaymentIntent Stripe legacy retomberait ici avec
-    // metadata.platform = "freelancehigh".
-    console.log(
-      `[Stripe Webhook] Payment succeeded for order ${orderId} (pi=${paymentIntent.id}, amount=${paymentIntent.amount} ${paymentIntent.currency})`
-    );
-  } catch (error) {
-    console.error(
-      `[Stripe Webhook] Error updating order for payment_intent.succeeded:`,
-      error instanceof Error ? error.message : error
-    );
-  }
+  // Bureau session 4 cleanup : legacy FreelanceHigh marketplace.
+  // Les champs `Order.paymentStatus` / `Order.stripePaymentIntentId` /
+  // `Order.paidAt` n'existent plus au schéma (Order a juste `status` et
+  // `escrowStatus` aujourd'hui). On no-op avec log pour ne pas crasher si
+  // un PI legacy retombe ici. Novakou utilise Moneroo/PayGenius — Stripe
+  // n'est plus surface checkout.
+  console.warn(
+    "[Stripe Webhook] payment_intent.succeeded (freelancehigh legacy) — handler désactivé",
+    { paymentIntentId: paymentIntent.id, orderId },
+  );
 }
 
 // ── account.updated (Stripe Connect account status) ─────────────────────────
@@ -152,32 +128,20 @@ async function handleAccountUpdated(account: Stripe.Account) {
   const pastDue = account.requirements?.past_due ?? [];
   const hasOutstandingRequirements = currentlyDue.length > 0 || pastDue.length > 0;
 
-  try {
-    // Update the freelance profile with Stripe account status
-    await prisma.user.updateMany({
-      where: { stripeAccountId: accountId } as any,
-      data: {
-        stripeAccountStatus: verificationStatus,
-        stripeChargesEnabled: chargesEnabled,
-        stripePayoutsEnabled: payoutsEnabled,
-        stripeDetailsSubmitted: detailsSubmitted ?? false,
-      } as any,
-    });
-
-    console.log(
-      `[Stripe Webhook] Account updated: ${accountId} — status=${verificationStatus}, charges=${chargesEnabled}, payouts=${payoutsEnabled}${
-        hasOutstandingRequirements
-          ? `, outstanding_requirements=[${[...currentlyDue, ...pastDue].join(", ")}]`
-          : ""
-      }`
-    );
-  } catch (error) {
-    // If Prisma models don't have these fields yet, log and continue
-    console.error(
-      `[Stripe Webhook] Error updating user for account.updated:`,
-      error instanceof Error ? error.message : error
-    );
-  }
+  // Bureau session 4 cleanup : Stripe Connect non utilisé sur Novakou.
+  // Les champs `User.stripeAccountId` / `stripeAccountStatus` /
+  // `stripeChargesEnabled` / `stripePayoutsEnabled` / `stripeDetailsSubmitted`
+  // n'existent pas au schéma actuel. No-op + log.
+  console.warn(
+    "[Stripe Webhook] account.updated (Connect legacy) — handler désactivé",
+    {
+      accountId,
+      verificationStatus,
+      chargesEnabled,
+      payoutsEnabled,
+      hasOutstandingRequirements,
+    },
+  );
 }
 
 // ── checkout.session.completed ──────────────────────────────────────────────
@@ -209,26 +173,14 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session) {
     return;
   }
 
-  try {
-    // Update user subscription tier
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        subscriptionTier: planId.toUpperCase(),
-        stripeCustomerId: typeof session.customer === "string" ? session.customer : session.customer?.id,
-        subscriptionUpdatedAt: new Date(),
-      } as any,
-    });
-
-    console.log(
-      `[Stripe Webhook] Subscription activated: userId=${userId}, plan=${planId}, session=${session.id}`
-    );
-  } catch (error) {
-    console.error(
-      `[Stripe Webhook] Error updating subscription:`,
-      error instanceof Error ? error.message : error
-    );
-  }
+  // Bureau session 4 cleanup : `User.subscriptionTier` / `stripeCustomerId`
+  // / `subscriptionUpdatedAt` ne sont pas au schéma. Pour les abonnements
+  // Novakou (creator/apprenant) utiliser le modèle `Subscription` géré par
+  // Moneroo/PayGenius via `subscription_initial` / `subscription_renewal`.
+  console.warn(
+    "[Stripe Webhook] subscription checkout legacy — handler désactivé",
+    { userId, planId, sessionId: session.id },
+  );
 }
 
 // ── Formation checkout (existing) ───────────────────────────────────────────
@@ -784,26 +736,14 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   const failureMessage = paymentIntent.last_payment_error?.message || "Erreur inconnue";
   const failureCode = paymentIntent.last_payment_error?.code || "unknown";
 
-  // Handle marketplace order payment failure
+  // Bureau session 4 cleanup : legacy FreelanceHigh marketplace.
+  // `Order.paymentStatus` et `Order.paymentFailureReason` n'existent pas
+  // au schéma Novakou. On no-op + log.
   if (orderId && paymentIntent.metadata?.platform === "freelancehigh") {
-    try {
-      await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          paymentStatus: "FAILED",
-          paymentFailureReason: failureMessage,
-        } as any,
-      });
-
-      console.log(
-        `[Stripe Webhook] Marketplace payment failed for order ${orderId}: ${failureCode} — ${failureMessage}`
-      );
-    } catch (error) {
-      console.error(
-        `[Stripe Webhook] Error updating order for payment failure:`,
-        error instanceof Error ? error.message : error
-      );
-    }
+    console.warn(
+      "[Stripe Webhook] payment_intent.payment_failed (freelancehigh legacy) — handler désactivé",
+      { orderId, failureCode, failureMessage },
+    );
   }
 
   // Create MarketingEvent (for formations/products tracking)

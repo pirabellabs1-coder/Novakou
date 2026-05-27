@@ -138,7 +138,7 @@ export async function POST(request: Request) {
       );
     }
 
-    let subTotal = formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
+    const subTotal = formations.reduce((s, f) => s + f.price, 0) + products.reduce((s, p) => s + p.price, 0);
 
     // Apply discount code
     let discountAmount = 0;

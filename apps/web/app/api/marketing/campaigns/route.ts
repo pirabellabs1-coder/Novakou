@@ -32,7 +32,7 @@ interface MockCampaign {
 
 const MOCK_CAMPAIGNS: MockCampaign[] = [];
 
-let devCampaigns = [...MOCK_CAMPAIGNS];
+const devCampaigns = [...MOCK_CAMPAIGNS];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

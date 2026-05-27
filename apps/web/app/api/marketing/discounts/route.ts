@@ -33,7 +33,7 @@ interface MockDiscountCode {
 
 const MOCK_DISCOUNTS: MockDiscountCode[] = [];
 
-let devDiscounts = [...MOCK_DISCOUNTS];
+const devDiscounts = [...MOCK_DISCOUNTS];
 
 // ── GET ──────────────────────────────────────────────────────────────────────
 
