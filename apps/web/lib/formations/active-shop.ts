@@ -1,6 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
-
 /**
  * Active shop resolution for the multi-shop vendor experience.
  *
@@ -17,7 +14,7 @@ import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { ensurePrimaryShop } from "@/lib/formations/ensure-primary-shop";
-import type { getServerSession } from "next-auth";
+import type { Session } from "next-auth";
 
 export const ACTIVE_SHOP_COOKIE = "nk_active_shop";
 
@@ -42,7 +39,7 @@ export interface ActiveShopContext {
  * Returns null when the user must pick a shop (i.e. has 2+ shops and no valid cookie).
  */
 export async function resolveActiveShop(
-  session: Awaited<ReturnType<typeof getServerSession>>,
+  session: Session | null,
   opts: { devFallback?: string } = {},
 ): Promise<ActiveShopContext | null> {
   const ctx = await resolveVendorContext(session, opts);
@@ -104,7 +101,7 @@ export async function resolveActiveShop(
 
 /** Lightweight: just resolve the active shop id (returns null if chooser is needed). */
 export async function getActiveShopId(
-  session: Awaited<ReturnType<typeof getServerSession>>,
+  session: Session | null,
   opts: { devFallback?: string } = {},
 ): Promise<string | null> {
   const ctx = await resolveActiveShop(session, opts);

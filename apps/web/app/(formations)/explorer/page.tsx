@@ -428,8 +428,12 @@ function ExplorerInner() {
   });
 
   const data = response?.data;
-  const formations = data?.formations ?? [];
-  const products = data?.products ?? [];
+  // Memoize les listes pour stabiliser les références entre les renders.
+  // Sans ça, `formations = data?.formations ?? []` crée un nouveau tableau
+  // à chaque render → useMemo dépendant re-déclenche pour rien
+  // (warning react-hooks/exhaustive-deps).
+  const formations = useMemo(() => data?.formations ?? [], [data?.formations]);
+  const products = useMemo(() => data?.products ?? [], [data?.products]);
   const categories = data?.categories ?? [];
   const stats = data?.stats;
 
@@ -453,7 +457,7 @@ function ExplorerInner() {
     });
   }, [search, activeTab, activeCategory, minRating, maxPrice, sort, formations.length, products.length]);
 
-  const bundles = data?.bundles ?? [];
+  const bundles = useMemo(() => data?.bundles ?? [], [data?.bundles]);
   const displayedItems = useMemo(() => {
     if (activeTab === "formations") return formations;
     if (activeTab === "products") return products;

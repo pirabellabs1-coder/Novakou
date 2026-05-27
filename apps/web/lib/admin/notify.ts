@@ -1,6 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
-
 /**
  * Admin notification helper
  * Broadcasts notifications to all admin users
@@ -25,13 +22,18 @@ interface AdminNotification {
 export async function notifyAdmins(notification: AdminNotification): Promise<void> {
   try {
     if (IS_DEV && !USE_PRISMA_FOR_DATA) {
-      const admins = devStore.getAll().filter((u) => u.role === "admin");
+      // devStore est structuré par entité : `devStore.users.getAll()`.
+      // notificationStore est créé via createStore<any>() → expose `create`,
+      // pas `add` (legacy nom). On utilise `create` partout.
+      const admins = devStore.users
+        .getAll()
+        .filter((u: { role?: string }) => u.role === "admin");
       for (const admin of admins) {
-        notificationStore.add({
+        notificationStore.create({
           userId: admin.id,
           title: notification.title,
           message: notification.message,
-          type: (notification.type || "system") as "order" | "message" | "payment" | "system" | "service" | "boost" | "offer" | "review" | "agency" | "course" | "product",
+          type: notification.type || "system",
           read: false,
           link: notification.link,
         });

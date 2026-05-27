@@ -1,6 +1,3 @@
-// @ts-nocheck
-// Legacy file with type drift - runtime behavior preserved, type checking skipped.
-
 // sitemap.ts — Sitemap dynamique Novakou (formations + produits + mentors + boutiques)
 // Regénéré toutes les 60 secondes via ISR.
 // Le blog a été supprimé — les URLs /blog/* sont redirigées en 301 vers
