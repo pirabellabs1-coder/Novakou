@@ -222,28 +222,16 @@ export async function POST(req: Request) {
   }
 
   if (type === "marketplace_order") {
+    // Bureau session 4 cleanup : branche héritée de l'ancien produit Novakou
+    // (marketplace de services freelance). Les champs ciblés (paymentStatus,
+    // paidAt, WalletTransaction.escrowStatus) n'existent pas au schéma —
+    // Prisma rejetait à runtime. No-op explicite pour éviter la 500.
     const orderId = String(metadata.itemId ?? metadata.order_id ?? "");
-    if (orderId) {
-      await prisma.order
-        .update({
-          where: { id: orderId },
-          data: {
-            paymentStatus: "PAID",
-            paidAt: new Date(),
-          } as any,
-        })
-        .catch((err) => console.warn("[paygenius webhook marketplace order]", err));
-
-      try {
-        await (prisma as any).walletTransaction.updateMany({
-          where: { orderId, escrowStatus: "held" },
-          data: { escrowStatus: "released", releasedAt: new Date() },
-        });
-      } catch {
-        /* ignore */
-      }
-    }
-    return NextResponse.json({ ok: true, type: "marketplace_order" });
+    console.warn(
+      "[paygenius webhook] marketplace_order received — branche désactivée (champs non présents au schéma)",
+      { reference, orderId },
+    );
+    return NextResponse.json({ ok: true, type: "marketplace_order", handled: false });
   }
 
   if (type === "subscription_initial" || type === "subscription_renewal") {

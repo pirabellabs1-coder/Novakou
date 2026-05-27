@@ -322,48 +322,33 @@ export async function POST(req: Request) {
   if (type === "marketplace_order") {
     const orderId = String(metadata.itemId ?? metadata.order_id ?? "");
     if (orderId) {
-      await prisma.order
-        .update({
-          where: { id: orderId },
-          data: {
-            paymentStatus: "PAID",
-            paidAt: new Date(),
-          } as any,
-        })
-        .catch((err) => console.warn("[moneroo webhook marketplace order]", err));
-
-      // Update wallet transaction: mark escrow as released (if model exists)
-      try {
-        await (prisma as any).walletTransaction.updateMany({
-          where: {
-            orderId,
-            escrowStatus: "held",
-          },
-          data: {
-            escrowStatus: "released",
-            releasedAt: new Date(),
-          },
-        });
-      } catch {
-        // Ignore if model or field does not exist
-      }
+      // Bureau session 4 cleanup : ces branches `marketplace_order` et
+      // `subscription` (vs `subscription_initial` plus haut) ont été
+      // héritées d'un ancien produit Novakou (marketplace de services
+      // freelance). Les champs ciblés (`Order.paymentStatus`, `Order.paidAt`,
+      // `WalletTransaction.escrowStatus="held"|"released"`,
+      // `User.subscriptionTier/subscriptionUpdatedAt`) n'existent PAS dans
+      // le schéma actuel — Prisma rejettait à runtime.
+      // On garde la branche pour ne pas répondre 500 si un webhook arrive,
+      // mais on log et on no-op pour éviter le crash.
+      console.warn(
+        "[moneroo webhook] marketplace_order received — branche désactivée (champs non présents au schéma)",
+        { paymentId, orderId },
+      );
     }
-    return NextResponse.json({ ok: true, type: "marketplace_order" });
+    return NextResponse.json({ ok: true, type: "marketplace_order", handled: false });
   }
 
   if (type === "subscription") {
-    const userId = String(metadata.userId ?? "");
-    const planId = String(metadata.itemId ?? metadata.plan_id ?? "");
-    if (userId && planId) {
-      await prisma.user.update({
-        where: { id: userId },
-        data: {
-          subscriptionTier: planId.toUpperCase(),
-          subscriptionUpdatedAt: new Date(),
-        } as any,
-      }).catch((err) => console.warn("[moneroo webhook subscription]", err));
-    }
-    return NextResponse.json({ ok: true, type: "subscription" });
+    // Idem : ancien produit Novakou (subscription plan plateforme). Pour
+    // les abonnements creator/apprenant utiliser `subscription_initial` /
+    // `subscription_renewal` qui sont gérés plus haut avec le modèle
+    // `Subscription` correct.
+    console.warn(
+      "[moneroo webhook] generic subscription received — utiliser subscription_initial à la place",
+      { paymentId },
+    );
+    return NextResponse.json({ ok: true, type: "subscription", handled: false });
   }
 
   // Nouveau : abonnement initial via SubscriptionPlan (Memberships vendeurs)
