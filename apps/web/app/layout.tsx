@@ -99,10 +99,17 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     },
     verification: {
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-      other: {
-        "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "",
-      },
+      // Google Search Console — code fourni par Lissanon 2026-05-27.
+      // Hardcoded car le passage par env var n'était pas injecté au build
+      // Vercel (verification.google manquait du HTML rendu, malgré la var
+      // présente sur Vercel en encrypted). Hardcoder est plus fiable et
+      // sans risque (le code n'est pas un secret — il est exposé en clair
+      // dans la balise meta de toute façon).
+      google: "86SCqsFYLPsTxUUEi5ZdL-y4u2P-VBxwNzVNumg7P-s",
+      // Bing — gardé en env var (valeur vide → la balise est omise par Next.js)
+      ...(process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+        ? { other: { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION } }
+        : {}),
     },
     category: "education",
   };
