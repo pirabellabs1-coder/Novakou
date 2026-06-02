@@ -7,8 +7,10 @@ import { IS_DEV } from "@/lib/env";
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    // Bureau session 4 (P0 Amélie) — check rôle ADMIN strict (cartographie admin sinon)
+    const role = (session?.user as { role?: string } | undefined)?.role?.toUpperCase();
+    if ((!session?.user || role !== "ADMIN") && !IS_DEV) {
+      return NextResponse.json({ error: "Accès refusé — admin requis" }, { status: 403 });
     }
 
     const url = new URL(req.url);

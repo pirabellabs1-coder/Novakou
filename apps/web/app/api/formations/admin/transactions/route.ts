@@ -8,7 +8,11 @@ import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/cons
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user && !IS_DEV) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    // Bureau session 4 (P0 Amélie) — check rôle ADMIN strict (fuite PII massive sinon)
+    const role = (session?.user as { role?: string } | undefined)?.role?.toUpperCase();
+    if ((!session?.user || role !== "ADMIN") && !IS_DEV) {
+      return NextResponse.json({ error: "Accès refusé — admin requis" }, { status: 403 });
+    }
 
     const [enrollments, purchases] = await Promise.all([
       prisma.enrollment.findMany({

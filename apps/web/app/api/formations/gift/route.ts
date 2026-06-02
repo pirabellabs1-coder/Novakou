@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { VENDOR_NET_RATE } from "@/lib/formations/constants";
 import crypto from "crypto";
 
 /**
@@ -68,6 +67,24 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Formation introuvable ou indisponible" }, { status: 404 });
       }
 
+      // Bureau session 4 (P0 Karim/Amélie) — fraud fix.
+      // Avant : N'IMPORTE QUEL user authentifié pouvait offrir n'importe
+      // quelle formation, ce qui créditait le wallet du vendeur sans
+      // qu'aucun paiement réel ne soit fait → fraude directe.
+      // Maintenant : seul l'INSTRUCTEUR du produit peut l'offrir (gift de
+      // sa propre formation), et dans ce cas paidAmount=0 + pas de crédit
+      // wallet (un cadeau qu'on offre soi-même ne génère pas de revenu).
+      const gifterProfile = await prisma.instructeurProfile.findUnique({
+        where: { userId: gifterId },
+        select: { id: true },
+      });
+      if (!gifterProfile || gifterProfile.id !== formation.instructeurId) {
+        return NextResponse.json(
+          { error: "Vous ne pouvez offrir que vos propres formations. Pour offrir une formation tierce, payez-la d'abord puis transférez l'accès via support." },
+          { status: 403 },
+        );
+      }
+
       // Check if already enrolled
       const existing = await prisma.enrollment.findUnique({
         where: { userId_formationId: { userId: recipient.id, formationId: formation.id } },
@@ -80,18 +97,12 @@ export async function POST(request: Request) {
         data: {
           userId: recipient.id,
           formationId: formation.id,
-          paidAmount: formation.price,
+          paidAmount: 0, // cadeau du vendeur → aucun revenu généré
           stripeSessionId: `gift:${gifterId}${message ? `:msg:${message.slice(0, 200)}` : ""}`,
         },
       });
 
-      // Update instructor's earned amount
-      await prisma.instructeurProfile.update({
-        where: { id: formation.instructeurId },
-        data: { totalEarned: { increment: formation.price * VENDOR_NET_RATE } },
-      });
-
-      // Increment students count
+      // Increment students count (stat publique uniquement, pas de revenu)
       await prisma.formation.update({
         where: { id: formation.id },
         data: { studentsCount: { increment: 1 } },
@@ -118,6 +129,18 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Produit introuvable ou indisponible" }, { status: 404 });
       }
 
+      // Même garde anti-fraude que pour formation (cf. ci-dessus)
+      const gifterProfile = await prisma.instructeurProfile.findUnique({
+        where: { userId: gifterId },
+        select: { id: true },
+      });
+      if (!gifterProfile || gifterProfile.id !== product.instructeurId) {
+        return NextResponse.json(
+          { error: "Vous ne pouvez offrir que vos propres produits. Pour offrir un produit tiers, payez-le d'abord puis transférez l'accès via support." },
+          { status: 403 },
+        );
+      }
+
       // Check existing purchase
       const existing = await prisma.digitalProductPurchase.findFirst({
         where: { userId: recipient.id, productId: product.id },
@@ -130,14 +153,9 @@ export async function POST(request: Request) {
         data: {
           userId: recipient.id,
           productId: product.id,
-          paidAmount: product.price,
+          paidAmount: 0, // cadeau du vendeur → aucun revenu généré
           stripeSessionId: `gift:${gifterId}${message ? `:msg:${message.slice(0, 200)}` : ""}`,
         },
-      });
-
-      await prisma.instructeurProfile.update({
-        where: { id: product.instructeurId },
-        data: { totalEarned: { increment: product.price * VENDOR_NET_RATE } },
       });
 
       await prisma.digitalProduct.update({

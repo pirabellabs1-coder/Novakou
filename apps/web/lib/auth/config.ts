@@ -73,11 +73,29 @@ declare module "next-auth/jwt" {
 const IS_DEV_MODE = process.env.DEV_MODE === "true";
 const BUILD_SAFE_AUTH_SECRET = "build-time-placeholder-secret-set-nextauth-secret-in-runtime";
 
-// Securite : le secret DOIT etre defini en production
+// Securite : le secret DOIT etre defini en production.
+// Bureau session 4 (P0 Amélie) — avant : fallback sur un placeholder
+// connu en clair dans le repo → tout attaquant pouvait forger des JWT
+// admin. Maintenant : fail-closed strict en runtime production.
 function getAuthSecret(): string {
   const secret = process.env.NEXTAUTH_SECRET;
+  const isProdRuntime =
+    process.env.NODE_ENV === "production" &&
+    // Vercel injecte NEXT_PHASE === "phase-production-build" pendant le
+    // build. À ce moment on autorise le placeholder pour ne pas casser le
+    // build. À runtime (NEXT_PHASE undefined ou "phase-production-server"),
+    // on fail-closed.
+    process.env.NEXT_PHASE !== "phase-production-build";
+  if (!secret && isProdRuntime) {
+    throw new Error(
+      "[AUTH] NEXTAUTH_SECRET manquant en runtime production — configurez-le dans Vercel Env",
+    );
+  }
   if (!secret && process.env.NODE_ENV === "production") {
-    console.warn("[AUTH] NEXTAUTH_SECRET non defini pendant le build/runtime production. Configurez NEXTAUTH_SECRET dans l'environnement de deploiement.");
+    // Build-time uniquement : on accepte le placeholder le temps que
+    // Next.js statique les pages, mais ce code ne tournera jamais en
+    // requête HTTP réelle.
+    console.warn("[AUTH] NEXTAUTH_SECRET non defini au build — placeholder utilisé (build uniquement)");
     return BUILD_SAFE_AUTH_SECRET;
   }
   if (!secret) {
