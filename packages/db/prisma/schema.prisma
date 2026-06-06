@@ -949,7 +949,7 @@ model InstructeurProfile {
   motivation  String?           @db.Text
   yearsExp    Int               @default(0)
   totalEarned Float             @default(0)
-  status      InstructeurStatus @default(EN_ATTENTE)
+  status      InstructeurStatus @default(APPROUVE) // Pas d'approbation manuelle : vendeur actif des l'inscription. SUSPENDU = desactivation admin.
 
   // Boutique publique (custom domain)
   shopSlug             String?   @unique

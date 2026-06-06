@@ -173,7 +173,11 @@ export async function POST(request: Request) {
         const instProfile = await prisma.instructeurProfile.upsert({
           where: { userId: user.id },
           update: {},
-          create: { userId: user.id, status: "EN_ATTENTE" },
+          // Pas d'approbation manuelle des vendeurs sur Novakou : tout compte
+          // instructeur peut vendre immediatement. On cree donc APPROUVE
+          // (idem getOrCreateInstructeur / active-user). SUSPENDU reste le
+          // seul etat "desactive", pose manuellement par l'admin si besoin.
+          create: { userId: user.id, status: "APPROUVE" },
         });
         // Primary blank shop on first signup
         const baseSlug = (name || email.split("@")[0])

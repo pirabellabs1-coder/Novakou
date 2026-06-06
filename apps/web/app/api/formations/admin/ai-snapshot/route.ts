@@ -47,7 +47,7 @@ export async function GET() {
       newUsersYesterday,
       newUsers7d,
       activeInstructeurs,
-      pendingInstructeurs,
+      suspendedInstructeurs,
       totalFormations,
       activeFormations,
       pendingFormations,
@@ -72,7 +72,7 @@ export async function GET() {
       prisma.user.count({ where: { createdAt: { gte: startOfYesterday, lt: startOfToday } } }),
       prisma.user.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
       prisma.instructeurProfile.count({ where: { status: "APPROUVE" } }),
-      prisma.instructeurProfile.count({ where: { status: "EN_ATTENTE" } }),
+      prisma.instructeurProfile.count({ where: { status: "SUSPENDU" } }),
       prisma.formation.count(),
       prisma.formation.count({ where: { status: "ACTIF" } }),
       prisma.formation.count({ where: { status: "EN_ATTENTE" } }),
@@ -151,8 +151,10 @@ export async function GET() {
       },
 
       vendors: {
-        approved: activeInstructeurs,
-        pendingApproval: pendingInstructeurs,
+        // Pas d'approbation manuelle sur Novakou : un vendeur est actif des
+        // l'inscription. "suspended" = comptes desactives par l'admin.
+        active: activeInstructeurs,
+        suspended: suspendedInstructeurs,
       },
 
       catalog: {

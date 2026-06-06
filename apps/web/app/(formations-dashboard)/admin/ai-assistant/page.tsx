@@ -268,7 +268,7 @@ Format Markdown attendu :
 ### 👥 Croissance
 - Nouveaux utilisateurs aujourd'hui
 - Nouveaux produits crees
-- Vendeurs en attente d'approbation
+- Vendeurs actifs (NB : Novakou n'a PAS d'approbation manuelle des vendeurs — ne JAMAIS suggerer d'"approuver des vendeurs en attente". Un vendeur "suspended" est un compte desactive par l'admin, pas une demande a traiter.)
 
 ### ⚠️ Points d'attention
 - Retraits en attente (nombre + montant)
