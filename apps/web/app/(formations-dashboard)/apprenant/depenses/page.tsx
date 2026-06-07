@@ -1,11 +1,27 @@
+// Refonte style KAZA — apprenant depenses — 2026-06-07
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  KazaHero,
+  KazaKpiCard,
+  KazaCard,
+  KazaButton,
+} from "@/components/kaza";
+import {
+  TrendingUp,
+  Wallet,
+  ShoppingBag,
+  PlayCircle,
+  Package,
+  Headset,
+  ArrowRight,
+} from "lucide-react";
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number)      { return Math.round(n / 655.957); }
+function toEur(n: number) { return Math.round(n / 655.957); }
 
 type MonthlyPoint = { month: string; totalXof: number };
 type ByType = { formation: number; product: number; mentor: number };
@@ -19,7 +35,7 @@ type SpendingData = {
 };
 
 function SkeletonBlock({ className }: { className?: string }) {
-  return <div className={`animate-pulse bg-gray-100 rounded-xl ${className ?? ""}`} />;
+  return <div className={`animate-pulse bg-slate-100 rounded-xl ${className ?? ""}`} />;
 }
 
 export default function DepensesPage() {
@@ -27,7 +43,7 @@ export default function DepensesPage() {
 
   const { data, isLoading } = useQuery<SpendingData>({
     queryKey: ["apprenant-spending"],
-    queryFn:  () => fetch("/api/formations/apprenant/spending").then((r) => r.json()),
+    queryFn: () => fetch("/api/formations/apprenant/spending").then((r) => r.json()),
     staleTime: 60_000,
   });
 
@@ -37,170 +53,194 @@ export default function DepensesPage() {
   const totalXof = data?.totalXof ?? 0;
   const totalPurchases = data?.totalPurchases ?? 0;
 
-  // Derive breakdown percentages
   const totalForBreakdown = byType.formation + byType.product + byType.mentor || 1;
   const breakdownData = [
-    { label: "Formations vidéo", type: "formation", count: 0, fcfa: byType.formation, color: "bg-blue-500",   pct: Math.round((byType.formation / totalForBreakdown) * 100) },
-    { label: "Coaching mentor",  type: "mentor",    count: 0, fcfa: byType.mentor,    color: "bg-purple-500", pct: Math.round((byType.mentor / totalForBreakdown) * 100) },
-    { label: "Produits",         type: "product",   count: 0, fcfa: byType.product,   color: "bg-amber-500",  pct: Math.round((byType.product / totalForBreakdown) * 100) },
+    { label: "Formations vidéo", type: "formation", fcfa: byType.formation, color: "bg-blue-500", pct: Math.round((byType.formation / totalForBreakdown) * 100) },
+    { label: "Coaching mentor", type: "mentor", fcfa: byType.mentor, color: "bg-violet-500", pct: Math.round((byType.mentor / totalForBreakdown) * 100) },
+    { label: "Produits", type: "product", fcfa: byType.product, color: "bg-amber-500", pct: Math.round((byType.product / totalForBreakdown) * 100) },
   ].filter((b) => b.fcfa > 0);
 
-  // Best month
-  const bestMonth = monthly.reduce((best, m) => m.totalXof > best.totalXof ? m : best, { month: "—", totalXof: 0 });
+  const bestMonth = monthly.reduce((best, m) => (m.totalXof > best.totalXof ? m : best), { month: "—", totalXof: 0 });
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-[#191c1e]">Mes dépenses</h1>
-          <p className="text-sm text-[#5c647a] mt-0.5">Suivi de vos investissements en formation</p>
-        </div>
-      </div>
+    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
+      <KazaHero
+        badge="Apprenant"
+        badgeColor="blue"
+        icon={TrendingUp}
+        title="Mes dépenses"
+        subtitle="Suivi de vos investissements en formation, produits et accompagnement"
+        actions={
+          <KazaButton variant="secondary" href="/apprenant/commandes" iconRight={ArrowRight}>
+            Historique commandes
+          </KazaButton>
+        }
+      />
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
-        {isLoading ? (
-          [0,1,2,3].map((i) => <SkeletonBlock key={i} className="h-28" />)
-        ) : [
-          { icon: "payments",     iconColor: "text-[#006e2f]",   bg: "bg-[#006e2f]/10", label: "Total dépensé",     value: formatFcfa(totalXof),              sub: `≈ ${toEur(totalXof)} €` },
-          { icon: "shopping_bag", iconColor: "text-blue-600",    bg: "bg-blue-50",      label: "Achats effectués",  value: String(totalPurchases),            sub: "produits & formations" },
-          { icon: "play_circle",  iconColor: "text-purple-600",  bg: "bg-purple-50",    label: "Formations",        value: String(byType.formation > 0 ? 1 : 0), sub: "achetées" },
-          { icon: "trending_up",  iconColor: "text-amber-600",   bg: "bg-amber-50",     label: "Mois le plus actif", value: bestMonth.month.charAt(0).toUpperCase() + bestMonth.month.slice(1), sub: formatFcfa(bestMonth.totalXof) },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${stat.bg}`}>
-              <span className={`material-symbols-outlined text-[20px] ${stat.iconColor}`} style={{ fontVariationSettings: "'FILL' 1" }}>{stat.icon}</span>
-            </div>
-            <p className="text-lg font-extrabold text-[#191c1e] leading-tight">{stat.value}</p>
-            <p className="text-xs font-semibold text-[#191c1e] mt-0.5">{stat.label}</p>
-            <p className="text-[10px] text-[#5c647a]">{stat.sub}</p>
-          </div>
-        ))}
-      </div>
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KazaKpiCard
+          label="Total dépensé"
+          value={isLoading ? "…" : formatFcfa(totalXof)}
+          delta={isLoading ? undefined : `≈ ${toEur(totalXof)} €`}
+          icon={Wallet}
+          iconColor="emerald"
+        />
+        <KazaKpiCard
+          label="Achats effectués"
+          value={isLoading ? "…" : totalPurchases}
+          icon={ShoppingBag}
+          iconColor="sky"
+        />
+        <KazaKpiCard
+          label="Formations achetées"
+          value={isLoading ? "…" : byType.formation > 0 ? 1 : 0}
+          icon={PlayCircle}
+          iconColor="violet"
+        />
+        <KazaKpiCard
+          label="Mois le plus actif"
+          value={isLoading ? "…" : bestMonth.month.charAt(0).toUpperCase() + bestMonth.month.slice(1)}
+          delta={isLoading ? undefined : formatFcfa(bestMonth.totalXof)}
+          icon={TrendingUp}
+          iconColor="orange"
+        />
+      </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Monthly chart */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-bold text-[#191c1e] text-sm">Dépenses par mois</h2>
-            <span className="text-xs text-[#5c647a]">6 derniers mois</span>
-          </div>
+        <KazaCard
+          title="Dépenses par mois"
+          subtitle="6 derniers mois"
+          className="lg:col-span-2"
+        >
           {isLoading ? (
-            <SkeletonBlock className="h-32" />
+            <SkeletonBlock className="h-40" />
           ) : monthly.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-[#5c647a] text-sm">Aucune dépense enregistrée</div>
+            <div className="flex items-center justify-center h-40 text-slate-500 text-sm">
+              Aucune dépense enregistrée
+            </div>
           ) : (
             <div className="flex items-end gap-3 h-40">
               {monthly.map((m) => {
                 const pct = maxSpending > 0 ? (m.totalXof / maxSpending) * 100 : 0;
                 return (
                   <div key={m.month} className="flex-1 flex flex-col items-center gap-2">
-                    <span className="text-[9px] font-semibold text-[#5c647a]">
+                    <span className="text-[9px] font-semibold text-slate-500">
                       {m.totalXof > 0 ? `${Math.round(m.totalXof / 1000)}k` : ""}
                     </span>
                     <div className="w-full flex items-end justify-center" style={{ height: "100px" }}>
-                      <div className="w-full rounded-t-lg transition-all duration-500"
+                      <div
+                        className="w-full rounded-t-lg transition-all duration-500"
                         style={{
                           height: `${Math.max(pct, m.totalXof > 0 ? 4 : 0)}%`,
-                          background: m.totalXof > 0 ? "linear-gradient(to top, #006e2f, #22c55e)" : "#f3f4f6",
+                          background: m.totalXof > 0 ? "linear-gradient(to top, #0b2540, #10b981)" : "#f3f4f6",
                           minHeight: m.totalXof > 0 ? "4px" : "2px",
-                        }} />
+                        }}
+                      />
                     </div>
-                    <span className="text-[10px] font-medium text-[#5c647a]">{m.month}</span>
+                    <span className="text-[10px] font-medium text-slate-500">{m.month}</span>
                   </div>
                 );
               })}
             </div>
           )}
-        </div>
+        </KazaCard>
 
         {/* Breakdown */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="font-bold text-[#191c1e] text-sm mb-5">Répartition</h2>
+        <KazaCard title="Répartition">
           {isLoading ? (
-            <div className="space-y-4">{[0,1,2].map((i) => <SkeletonBlock key={i} className="h-12" />)}</div>
+            <div className="space-y-4">{[0, 1, 2].map((i) => <SkeletonBlock key={i} className="h-12" />)}</div>
           ) : breakdownData.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-[#5c647a] text-sm text-center">Aucune dépense</div>
+            <div className="flex items-center justify-center h-32 text-slate-500 text-sm">
+              Aucune dépense
+            </div>
           ) : (
             <div className="space-y-4">
               {breakdownData.map((cat) => (
                 <div key={cat.label}>
                   <div className="flex justify-between items-center mb-1.5">
-                    <span className="text-xs text-[#5c647a]">{cat.label}</span>
-                    <span className="text-xs font-bold text-[#191c1e]">{cat.pct}%</span>
+                    <span className="text-xs text-slate-600">{cat.label}</span>
+                    <span className="text-xs font-bold text-[#0b2540]">{cat.pct}%</span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full ${cat.color} transition-all duration-500`} style={{ width: `${cat.pct}%` }} />
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-[10px] text-[#5c647a]">{cat.label}</span>
-                    <span className="text-[10px] text-[#5c647a]">{formatFcfa(cat.fcfa)}</span>
+                    <span className="text-[10px] text-slate-500">{cat.label}</span>
+                    <span className="text-[10px] text-slate-500">{formatFcfa(cat.fcfa)}</span>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </KazaCard>
       </div>
 
-      {/* Summary info */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-bold text-[#191c1e] text-sm">Résumé par catégorie</h2>
+      {/* Summary by category */}
+      <KazaCard
+        title="Résumé par catégorie"
+        action={
           <div className="flex items-center gap-1 flex-wrap">
             {["tous", "formation", "product", "mentor"].map((type) => (
-              <button key={type} onClick={() => setFilterType(type)}
-                className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
-                  filterType === type ? "bg-[#006e2f] text-white" : "bg-gray-100 text-[#5c647a] hover:text-[#191c1e]"
-                }`}>
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  filterType === type ? "bg-[#0b2540] text-white" : "bg-slate-100 text-slate-600 hover:text-[#0b2540]"
+                }`}
+              >
                 {type === "tous" ? "Tous" : type === "formation" ? "Formations" : type === "product" ? "Produits" : "Mentors"}
               </button>
             ))}
           </div>
-        </div>
+        }
+      >
         {isLoading ? (
-          <div className="space-y-3">{[0,1,2].map((i) => <SkeletonBlock key={i} className="h-14" />)}</div>
+          <div className="space-y-3">{[0, 1, 2].map((i) => <SkeletonBlock key={i} className="h-14" />)}</div>
         ) : (
           <div className="space-y-3">
             {[
-              { type: "formation", label: "Formations vidéo", icon: "play_circle", color: "text-blue-600", bg: "bg-blue-50", value: byType.formation },
-              { type: "product",   label: "Produits numériques", icon: "inventory_2", color: "text-amber-600", bg: "bg-amber-50", value: byType.product },
-              { type: "mentor",    label: "Sessions mentor",  icon: "support_agent", color: "text-purple-600", bg: "bg-purple-50", value: byType.mentor },
+              { type: "formation", label: "Formations vidéo", icon: PlayCircle, iconColor: "text-blue-600", bg: "bg-blue-50", value: byType.formation },
+              { type: "product", label: "Produits numériques", icon: Package, iconColor: "text-amber-600", bg: "bg-amber-50", value: byType.product },
+              { type: "mentor", label: "Sessions mentor", icon: Headset, iconColor: "text-violet-600", bg: "bg-violet-50", value: byType.mentor },
             ]
-            .filter((row) => filterType === "tous" || row.type === filterType)
-            .map((row) => (
-              <div key={row.type} className="flex items-center gap-4 p-3 rounded-xl bg-[#f7f9fb]">
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${row.bg}`}>
-                  <span className={`material-symbols-outlined text-[18px] ${row.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{row.icon}</span>
-                </div>
-                <span className="flex-1 text-sm text-[#5c647a]">{row.label}</span>
-                <div className="text-right">
-                  <p className="text-sm font-extrabold text-[#006e2f]">{formatFcfa(row.value)}</p>
-                  <p className="text-[10px] text-[#5c647a]">≈ {toEur(row.value)} €</p>
-                </div>
-              </div>
-            ))}
+              .filter((row) => filterType === "tous" || row.type === filterType)
+              .map((row) => {
+                const Icon = row.icon;
+                return (
+                  <div key={row.type} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${row.bg}`}>
+                      <Icon className={`w-5 h-5 ${row.iconColor}`} />
+                    </div>
+                    <span className="flex-1 text-sm text-slate-600">{row.label}</span>
+                    <div className="text-right">
+                      <p className="text-sm font-extrabold text-emerald-600">{formatFcfa(row.value)}</p>
+                      <p className="text-[10px] text-slate-500">≈ {toEur(row.value)} €</p>
+                    </div>
+                  </div>
+                );
+              })}
             {filterType !== "tous" && byType[filterType as keyof ByType] === 0 && (
-              <p className="text-center text-sm text-[#5c647a] py-4">Aucune dépense dans cette catégorie.</p>
+              <p className="text-center text-sm text-slate-500 py-4">Aucune dépense dans cette catégorie.</p>
             )}
           </div>
         )}
 
-        <div className="border-t border-gray-100 mt-5 pt-4 flex items-center justify-between">
-          <span className="font-bold text-[#191c1e]">Total global</span>
+        <div className="border-t border-slate-100 mt-5 pt-4 flex items-center justify-between">
+          <span className="font-bold text-[#0b2540]">Total global</span>
           <div className="text-right">
-            <p className="font-extrabold text-[#006e2f]">{isLoading ? "…" : formatFcfa(totalXof)}</p>
-            <p className="text-[10px] text-[#5c647a]">≈ {isLoading ? "…" : toEur(totalXof)} €</p>
+            <p className="font-extrabold text-emerald-600">{isLoading ? "…" : formatFcfa(totalXof)}</p>
+            <p className="text-[10px] text-slate-500">≈ {isLoading ? "…" : toEur(totalXof)} €</p>
           </div>
         </div>
 
         <div className="mt-4 text-center">
-          <Link href="/apprenant/commandes"
-            className="text-xs text-[#006e2f] font-semibold hover:underline">
-            Voir l&apos;historique des commandes →
+          <Link href="/apprenant/commandes" className="text-xs text-emerald-600 font-semibold hover:underline">
+            Voir l&apos;historique des commandes
           </Link>
         </div>
-      </div>
+      </KazaCard>
     </div>
   );
 }

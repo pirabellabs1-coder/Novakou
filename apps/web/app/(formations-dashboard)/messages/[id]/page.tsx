@@ -1,10 +1,21 @@
+// Refonte style KAZA — messages chat — 2026-06-07
 "use client";
 
 import { use, useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import {
+  ArrowLeft,
+  Send,
+  Paperclip,
+  Download,
+  Loader2,
+  MessagesSquare,
+  Check,
+  CheckCheck,
+} from "lucide-react";
+import { KAZA_GRADIENT } from "@/components/kaza";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Sender {
   id: string;
   name: string | null;
@@ -30,19 +41,6 @@ interface OtherUser {
   name: string | null;
   email: string | null;
   image: string | null;
-}
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function fmtTime(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000);
-  if (diffDays === 0)
-    return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  if (diffDays === 1) return "Hier";
-  if (diffDays < 7)
-    return d.toLocaleDateString("fr-FR", { weekday: "short" });
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
 function fmtFull(iso: string) {
@@ -80,7 +78,6 @@ function fmtBytes(bytes: number) {
   return `${(bytes / 1048576).toFixed(1)} MB`;
 }
 
-// ─── Message bubble ───────────────────────────────────────────────────────────
 function MessageBubble({
   message,
   isMe,
@@ -94,11 +91,14 @@ function MessageBubble({
 
   return (
     <div className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
-      {/* Avatar */}
       <div className="w-7 h-7 flex-shrink-0">
         {!isMe && showAvatar ? (
-          <div className="w-7 h-7 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-[10px] font-bold">
+          <div
+            className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white text-[10px] font-bold"
+            style={{ background: KAZA_GRADIENT }}
+          >
             {message.sender.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={message.sender.image} alt="" className="w-full h-full object-cover" />
             ) : (
               initials(message.sender.name)
@@ -107,11 +107,7 @@ function MessageBubble({
         ) : null}
       </div>
 
-      {/* Bubble */}
-      <div
-        className={`max-w-[70%] cursor-pointer`}
-        onClick={() => setShowTimestamp(!showTimestamp)}
-      >
+      <div className="max-w-[70%] cursor-pointer" onClick={() => setShowTimestamp(!showTimestamp)}>
         {message.type === "FILE" ? (
           <a
             href={message.fileUrl ?? "#"}
@@ -119,27 +115,27 @@ function MessageBubble({
             rel="noopener noreferrer"
             className={`flex items-center gap-2 px-3 py-2 rounded-2xl border ${
               isMe
-                ? "bg-[#006e2f] text-white border-transparent"
-                : "bg-white text-[#191c1e] border-gray-200"
+                ? "bg-emerald-500 text-white border-transparent"
+                : "bg-slate-100 text-[#0b2540] border-slate-200"
             }`}
           >
-            <span className="material-symbols-outlined text-[20px]">attach_file</span>
+            <Paperclip className="w-5 h-5" />
             <div className="min-w-0">
               <p className="text-xs font-semibold truncate max-w-40">{message.fileName ?? "Fichier"}</p>
               {message.fileSizeBytes && (
-                <p className={`text-[10px] ${isMe ? "text-white/70" : "text-[#5c647a]"}`}>
+                <p className={`text-[10px] ${isMe ? "text-white/70" : "text-slate-500"}`}>
                   {fmtBytes(message.fileSizeBytes)}
                 </p>
               )}
             </div>
-            <span className="material-symbols-outlined text-[16px] ml-1">download</span>
+            <Download className="w-4 h-4 ml-1" />
           </a>
         ) : (
           <div
             className={`px-4 py-2.5 rounded-2xl ${
               isMe
-                ? "bg-[#006e2f] text-white rounded-br-md"
-                : "bg-white text-[#191c1e] rounded-bl-md border border-gray-200"
+                ? "bg-emerald-500 text-white rounded-br-md shadow-sm"
+                : "bg-slate-100 text-[#0b2540] rounded-bl-md"
             }`}
           >
             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
@@ -147,14 +143,10 @@ function MessageBubble({
         )}
 
         {showTimestamp && (
-          <p
-            className={`text-[10px] text-[#5c647a] mt-1 ${isMe ? "text-right" : "text-left"}`}
-          >
+          <p className={`text-[10px] text-slate-500 mt-1 flex items-center gap-1 ${isMe ? "justify-end" : "justify-start"}`}>
             {fmtFull(message.createdAt)}
             {isMe && (
-              <span className="ml-1">
-                {message.read ? "✓✓" : "✓"}
-              </span>
+              message.read ? <CheckCheck className="w-3 h-3 text-emerald-600" /> : <Check className="w-3 h-3" />
             )}
           </p>
         )}
@@ -163,7 +155,6 @@ function MessageBubble({
   );
 }
 
-// ─── Main ──────────────────────────────────────────────────────────────────────
 export default function ConversationPage({
   params,
 }: {
@@ -212,14 +203,12 @@ export default function ConversationPage({
     init();
   }, [load]);
 
-  // Scroll to bottom on first load
   useEffect(() => {
     if (!loading) {
       bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [loading]);
 
-  // Polling for new messages every 5s
   useEffect(() => {
     pollingRef.current = setInterval(async () => {
       const data = await load();
@@ -259,7 +248,6 @@ export default function ConversationPage({
     setSending(true);
     setInput("");
 
-    // Optimistic update
     const optimistic: Message = {
       id: `opt-${Date.now()}`,
       content: text,
@@ -303,16 +291,19 @@ export default function ConversationPage({
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-[#f7f9fb]">
-        <div className="bg-white border-b border-gray-100 h-14 flex items-center px-4 gap-3 animate-pulse">
-          <div className="w-9 h-9 bg-gray-200 rounded-full" />
-          <div className="h-4 w-40 bg-gray-200 rounded-xl" />
+      <div className="flex flex-col h-screen bg-slate-50">
+        <div
+          className="rounded-b-3xl px-5 py-4 flex items-center gap-3 animate-pulse"
+          style={{ background: KAZA_GRADIENT }}
+        >
+          <div className="w-9 h-9 bg-white/20 rounded-full" />
+          <div className="h-4 w-40 bg-white/20 rounded-xl" />
         </div>
         <div className="flex-1 p-4 space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className={`flex ${i % 2 === 0 ? "flex-row-reverse" : ""} gap-2 items-end`}>
-              <div className="w-7 h-7 bg-gray-200 rounded-full" />
-              <div className={`h-10 bg-gray-200 rounded-2xl ${i % 2 === 0 ? "w-48" : "w-64"}`} />
+              <div className="w-7 h-7 bg-slate-200 rounded-full" />
+              <div className={`h-10 bg-slate-200 rounded-2xl ${i % 2 === 0 ? "w-48" : "w-64"}`} />
             </div>
           ))}
         </div>
@@ -321,17 +312,23 @@ export default function ConversationPage({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#f7f9fb]">
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="h-14 flex items-center gap-3 px-4">
-          <Link href="/messages" className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+    <div className="flex flex-col h-screen bg-slate-50">
+      {/* ── Header navy verre dépoli ──────────────────────────────────────── */}
+      <div
+        className="rounded-b-3xl shadow-lg text-white sticky top-0 z-10"
+        style={{ background: KAZA_GRADIENT }}
+      >
+        <div className="px-5 py-4 flex items-center gap-3">
+          <Link
+            href="/messages"
+            className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors flex-shrink-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
           </Link>
 
-          {/* Avatar */}
-          <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-sm font-extrabold flex-shrink-0 overflow-hidden">
             {otherUser?.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img src={otherUser.image} alt="" className="w-full h-full object-cover" />
             ) : (
               initials(otherUser?.name ?? null)
@@ -339,10 +336,10 @@ export default function ConversationPage({
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-[#191c1e] truncate">
+            <p className="text-base font-extrabold truncate tracking-tight">
               {otherUser?.name ?? otherUser?.email ?? "Conversation"}
             </p>
-            <p className="text-[10px] text-[#5c647a]">
+            <p className="text-[11px] text-slate-300 truncate">
               {otherUser?.email}
             </p>
           </div>
@@ -351,19 +348,18 @@ export default function ConversationPage({
 
       {/* ── Messages list ────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
-        {/* Load more */}
         {hasMore && (
           <div className="text-center pb-2">
             <button
               onClick={loadMore}
               disabled={loadingMore}
-              className="text-xs text-[#006e2f] font-semibold hover:underline disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-semibold hover:underline disabled:opacity-50"
             >
               {loadingMore ? (
-                <span className="flex items-center gap-1 justify-center">
-                  <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   Chargement…
-                </span>
+                </>
               ) : (
                 "Charger les messages précédents"
               )}
@@ -372,10 +368,14 @@ export default function ConversationPage({
         )}
 
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center">
-            <span className="material-symbols-outlined text-gray-300 text-5xl">forum</span>
-            <p className="text-sm text-[#5c647a] font-medium mt-3">Aucun message pour l'instant</p>
-            <p className="text-xs text-gray-400 mt-1">Envoyez le premier message pour démarrer la conversation.</p>
+          <div className="flex flex-col items-center justify-center h-64 text-center px-6">
+            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
+              <MessagesSquare className="w-7 h-7 text-slate-400" />
+            </div>
+            <p className="text-sm text-[#0b2540] font-bold">Aucun message pour l&apos;instant</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-xs">
+              Envoyez le premier message pour démarrer la conversation.
+            </p>
           </div>
         ) : (
           messages.map((msg, i) => {
@@ -390,11 +390,11 @@ export default function ConversationPage({
               <div key={msg.id}>
                 {showDaySep && (
                   <div className="flex items-center gap-3 my-4">
-                    <div className="flex-1 h-px bg-gray-200" />
-                    <span className="text-[10px] text-[#5c647a] font-medium px-2">
+                    <div className="flex-1 h-px bg-slate-200" />
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider px-2">
                       {fmtDaySep(msg.createdAt)}
                     </span>
-                    <div className="flex-1 h-px bg-gray-200" />
+                    <div className="flex-1 h-px bg-slate-200" />
                   </div>
                 )}
                 <MessageBubble message={msg} isMe={isMe} showAvatar={showAvatar} />
@@ -406,7 +406,7 @@ export default function ConversationPage({
       </div>
 
       {/* ── Input ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-t border-gray-100 px-4 py-3">
+      <div className="bg-white border-t border-slate-100 px-4 py-3">
         <form onSubmit={handleSend} className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -416,7 +416,7 @@ export default function ConversationPage({
               onKeyDown={handleKeyDown}
               placeholder="Écrivez un message… (Entrée pour envoyer)"
               rows={1}
-              className="w-full px-4 py-2.5 rounded-2xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] resize-none transition-all"
+              className="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 text-sm text-[#0b2540] placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 resize-none transition-all"
               style={{
                 minHeight: "44px",
                 maxHeight: "120px",
@@ -432,29 +432,20 @@ export default function ConversationPage({
           <button
             type="submit"
             disabled={!input.trim() || sending}
-            className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40"
-            style={{
-              background: input.trim()
-                ? "linear-gradient(135deg, #006e2f, #22c55e)"
-                : "#e5e7eb",
-            }}
+            className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 shadow-md ${
+              input.trim() ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "bg-slate-200"
+            }`}
+            aria-label="Envoyer"
           >
             {sending ? (
-              <span className="material-symbols-outlined text-[20px] text-white animate-spin">
-                progress_activity
-              </span>
+              <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : (
-              <span
-                className="material-symbols-outlined text-[20px]"
-                style={{ color: input.trim() ? "white" : "#9ca3af" }}
-              >
-                send
-              </span>
+              <Send className={`w-5 h-5 ${input.trim() ? "text-white" : "text-slate-400"}`} />
             )}
           </button>
         </form>
-        <p className="text-[10px] text-gray-400 mt-1 text-center">
-          Shift+Entrée pour nouvelle ligne
+        <p className="text-[10px] text-slate-400 mt-1.5 text-center">
+          Shift + Entrée pour nouvelle ligne
         </p>
       </div>
     </div>

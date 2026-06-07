@@ -1,9 +1,25 @@
+// Refonte style KAZA — apprenant packs — 2026-06-07
 "use client";
 
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReviewModal } from "@/components/formations/ReviewModal";
+import {
+  KazaHero,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
+import {
+  Gift,
+  Search,
+  GraduationCap,
+  Package,
+  ExternalLink,
+  Star,
+  Sparkles,
+} from "lucide-react";
 
 type BundlePurchase = {
   id: string;
@@ -45,37 +61,37 @@ export default function MesPacksPage() {
   const purchases: BundlePurchase[] = data?.data ?? [];
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mes packs</h1>
-        <p className="text-sm text-[#5c647a] mt-1">
-          {isLoading ? "Chargement…" : `${purchases.length} pack${purchases.length > 1 ? "s" : ""} acheté${purchases.length > 1 ? "s" : ""}`}
-        </p>
-      </div>
+    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
+      <KazaHero
+        badge="Apprenant"
+        badgeColor="blue"
+        icon={Gift}
+        title="Mes packs"
+        subtitle={
+          isLoading
+            ? "Chargement…"
+            : `${purchases.length} pack${purchases.length > 1 ? "s" : ""} acheté${purchases.length > 1 ? "s" : ""}`
+        }
+        actions={
+          <KazaButton variant="primary" href="/explorer" icon={Search}>
+            Explorer le catalogue
+          </KazaButton>
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-4">
           {[0, 1].map((i) => (
-            <div key={i} className="h-32 bg-white rounded-2xl border border-gray-100 animate-pulse" />
+            <div key={i} className="h-32 bg-white rounded-2xl border border-slate-100 animate-pulse" />
           ))}
         </div>
       ) : purchases.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[32px] text-[#5c647a]">redeem</span>
-          </div>
-          <h3 className="font-bold text-[#191c1e] mb-1">Aucun pack acheté</h3>
-          <p className="text-sm text-[#5c647a] mb-4">
-            Les packs regroupent plusieurs formations et produits à prix avantageux.
-          </p>
-          <Link
-            href="/explorer"
-            className="inline-block px-5 py-2.5 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            Explorer le catalogue
-          </Link>
-        </div>
+        <KazaEmpty
+          icon={Gift}
+          title="Aucun pack acheté"
+          description="Les packs regroupent plusieurs formations et produits à prix avantageux. Découvrez les offres bundle des créateurs."
+          action={{ label: "Explorer le catalogue", href: "/explorer" }}
+        />
       ) : (
         <div className="space-y-4">
           {purchases.map((p) => {
@@ -84,8 +100,9 @@ export default function MesPacksPage() {
             const formationCount = b.items.filter((i) => i.itemKind === "formation").length;
             const productCount = b.items.filter((i) => i.itemKind === "digital").length;
             const existingReview = b.reviews[0];
+
             return (
-              <div key={p.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+              <div key={p.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
                 <div className="flex flex-col md:flex-row">
                   <div className="md:w-48 h-32 md:h-auto relative bg-gradient-to-br from-amber-400 to-rose-500 flex-shrink-0">
                     {b.thumbnail || b.banner ? (
@@ -97,72 +114,64 @@ export default function MesPacksPage() {
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-white/60 text-[48px]">redeem</span>
+                        <Gift className="w-12 h-12 text-white/70" />
                       </div>
                     )}
                   </div>
 
                   <div className="flex-1 p-5">
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                      <div className="min-w-0">
+                        <KazaBadge variant="orange" size="sm">
                           PACK · {b.items.length} articles
-                        </span>
-                        <h3 className="text-base md:text-lg font-extrabold text-[#191c1e] mt-1.5 leading-tight">
+                        </KazaBadge>
+                        <h3 className="text-base md:text-lg font-extrabold text-[#0b2540] mt-1.5 leading-tight">
                           {b.title}
                         </h3>
                         {b.shop && (
-                          <p className="text-xs text-[#5c647a] mt-0.5">par {b.shop.name}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">par {b.shop.name}</p>
                         )}
                       </div>
-                      <p className="text-sm font-extrabold text-[#006e2f] flex-shrink-0">
+                      <p className="text-sm font-extrabold text-emerald-600 flex-shrink-0">
                         {fmtFcfa(p.paidAmount)}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-[#5c647a]">
+                    <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-slate-500">
                       {formationCount > 0 && (
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">school</span>
+                          <GraduationCap className="w-3.5 h-3.5" />
                           {formationCount} formation{formationCount > 1 ? "s" : ""}
                         </span>
                       )}
                       {productCount > 0 && (
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+                          <Package className="w-3.5 h-3.5" />
                           {productCount} produit{productCount > 1 ? "s" : ""}
                         </span>
                       )}
-                      <span className="text-zinc-300">·</span>
+                      <span className="text-slate-300">·</span>
                       <span>Acheté le {new Date(p.createdAt).toLocaleDateString("fr-FR")}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {formationCount > 0 && (
-                        <Link
-                          href="/apprenant/mes-formations"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#006e2f]/10 text-[#006e2f] hover:bg-[#006e2f]/20 transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">school</span>
+                        <KazaButton variant="ghost" size="sm" href="/apprenant/mes-formations" icon={GraduationCap}>
                           Voir les formations
-                        </Link>
+                        </KazaButton>
                       )}
                       {productCount > 0 && (
-                        <Link
-                          href="/apprenant/mes-produits"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">inventory_2</span>
+                        <KazaButton variant="ghost" size="sm" href="/apprenant/mes-produits" icon={Package}>
                           Voir les produits
-                        </Link>
+                        </KazaButton>
                       )}
                       <Link
                         href={`/bundle/${b.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-[#5c647a] hover:bg-gray-200 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
                         Page publique
                       </Link>
                       <button
@@ -175,16 +184,13 @@ export default function MesPacksPage() {
                               : undefined,
                           })
                         }
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
                       >
-                        <span
-                          className="material-symbols-outlined text-[14px]"
-                          style={{
-                            fontVariationSettings: existingReview ? "'FILL' 1" : "'FILL' 0",
-                          }}
-                        >
-                          {existingReview ? "star" : "rate_review"}
-                        </span>
+                        {existingReview ? (
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5" />
+                        )}
                         {existingReview
                           ? `${existingReview.rating}/5 · Modifier mon avis`
                           : "Donner mon avis"}
