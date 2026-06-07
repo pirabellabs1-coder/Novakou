@@ -235,19 +235,26 @@ export default function WalletPage() {
 
   const totalAvailable = (data.vendor?.available ?? 0) + (data.mentor?.available ?? 0);
 
+  // Calculs pour la carte hero KAZA
+  // MentorWallet utilise `gross`/`netEarned` au lieu de `totalEarned`,
+  // et `withdrawnPending`+`withdrawnTreated` au lieu de `withdrawn`.
+  const totalEntrees = (data.vendor?.netEarned ?? data.vendor?.totalEarned ?? 0) +
+    (data.mentor?.netEarned ?? data.mentor?.gross ?? 0) +
+    (data.affiliate?.totalEarned ?? 0);
+  const totalSorties = (data.vendor?.withdrawn ?? 0) +
+    ((data.mentor?.withdrawnTreated ?? 0) + (data.mentor?.withdrawnPending ?? 0));
+  const isActif = totalEntrees > 0 || totalAvailable > 0;
+
   return (
-    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 mb-2">
-          <button onClick={() => router.back()} className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-          </button>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mes revenus & retraits</h1>
+    <div className="min-h-screen bg-slate-50 p-5 md:p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      <div className="max-w-6xl mx-auto">
+        {/* ── Header style KAZA ── */}
+        <div className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Mon portefeuille</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Gérez votre solde Novakou, recharges et historique de transactions.
+          </p>
         </div>
-        <p className="text-sm text-[#5c647a] mb-5">
-          Suivez vos gains et demandez vos retraits vers Mobile Money, virement bancaire ou PayPal.
-        </p>
 
         {/* ── 24h escrow info banner ──────────────────────────────────────── */}
         {((data.vendor?.pendingHold ?? 0) > 0 || (data.mentor?.pendingHold ?? 0) > 0) && (
@@ -261,23 +268,78 @@ export default function WalletPage() {
           </div>
         )}
 
-        {/* ── Hero card with total available ──────────────────────────────── */}
+        {/* ── Carte hero portefeuille style KAZA — navy gradient + ACTIF badge + boutons droits ── */}
         <div
-          className="rounded-3xl p-7 md:p-10 mb-6 text-white relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #22c55e 100%)" }}
+          className="relative overflow-hidden rounded-3xl mb-6 p-7 md:p-10 text-white"
+          style={{
+            background: "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)",
+          }}
         >
-          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/5" />
-          <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full bg-white/5" />
-          <div className="relative z-10">
-            <p className="text-xs font-semibold text-white/70 uppercase tracking-widest mb-2">
-              Total disponible au retrait
-            </p>
-            <p className="text-4xl md:text-5xl font-extrabold mb-2">
-              {fmt(totalAvailable)} <span className="text-2xl font-bold opacity-80">FCFA</span>
-            </p>
-            <p className="text-sm text-white/80">
-              ≈ {Math.round(totalAvailable / 655.957)} EUR · Tous espaces confondus
-            </p>
+          {/* Halos décoratifs */}
+          <div
+            aria-hidden
+            className="absolute -top-20 -right-16 w-[360px] h-[360px] rounded-full blur-3xl opacity-25"
+            style={{ background: "radial-gradient(circle, #22c55e 0%, transparent 70%)" }}
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-24 -left-10 w-[280px] h-[280px] rounded-full blur-3xl opacity-15"
+            style={{ background: "radial-gradient(circle, #006e2f 0%, transparent 70%)" }}
+          />
+
+          <div className="relative flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-white/70">
+                  <span className="material-symbols-outlined text-[14px]">account_balance_wallet</span>
+                  Solde disponible
+                </span>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                  isActif ? "bg-emerald-500/20 text-emerald-300 border border-emerald-400/40" : "bg-slate-500/30 text-slate-300"
+                }`}>
+                  {isActif ? "Actif" : "En attente"}
+                </span>
+              </div>
+              <p className="text-4xl md:text-5xl font-extrabold tracking-tight">
+                {fmt(totalAvailable)} <span className="text-2xl font-bold opacity-70">FCFA</span>
+              </p>
+              <div className="mt-4 flex items-center gap-4 flex-wrap text-xs text-white/80">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-emerald-300">south_west</span>
+                  Entrées : <strong className="text-white tabular-nums">{fmt(totalEntrees)} FCFA</strong>
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[16px] text-orange-300">north_east</span>
+                  Sorties : <strong className="text-white tabular-nums">{fmt(totalSorties)} FCFA</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+              <Link
+                href="/explorer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity"
+                style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+              >
+                <span className="material-symbols-outlined text-[18px]">add</span>
+                Recharger
+              </Link>
+              <button
+                onClick={() => openWithdrawDialog("vendor")}
+                disabled={!data.vendor || data.vendor.available < 1000}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-bold hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">north_east</span>
+                Demander un retrait
+              </button>
+              <Link
+                href="/vendeur/parametres#paiement"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-bold hover:bg-white/20 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">edit</span>
+                Modifier RIB / Mobile Money
+              </Link>
+            </div>
           </div>
         </div>
 
