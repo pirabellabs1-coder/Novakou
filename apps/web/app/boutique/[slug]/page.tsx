@@ -24,7 +24,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = `${shop.name} · Boutique Novakou`;
   const description = shop.description?.slice(0, 160) || `Découvrez la boutique de ${shop.name} sur Novakou.`;
-  const image = shop.coverUrl || shop.logoUrl || undefined;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+  // Fallback OG image générée par /api/og si la boutique n'a ni cover
+  // ni logo personnalisé. Garantit un visuel sur les partages sociaux.
+  const image = shop.coverUrl || shop.logoUrl ||
+    `${baseUrl}/api/og?type=boutique&title=${encodeURIComponent(shop.name)}&subtitle=${encodeURIComponent(description.slice(0, 100))}`;
 
   return {
     title,
@@ -39,10 +43,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
+      images: [{ url: image, width: 1200, height: 630, alt: shop.name }],
       type: "website",
+      url: `${baseUrl}/boutique/${slug}`,
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
 
@@ -130,6 +135,7 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
   if (!data) notFound();
 
   const { shop, formations, products, bundles, subscriptionPlans } = data;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
   return (
     <>
       <TrackPageView
@@ -137,6 +143,41 @@ export default async function BoutiqueBySlugPage({ params }: Props) {
         entityType="shop"
         entityId={shop.id}
         metadata={{ name: shop.name, slug: shop.slug }}
+      />
+      {/* JSON-LD Store + BreadcrumbList — éligibilité rich results Google
+          "Local Business" / "Online Store" + fil d'Ariane visuel. */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Store",
+            name: shop.name,
+            description: shop.description || `Boutique de ${shop.name} sur Novakou`,
+            url: `${baseUrl}/boutique/${shop.slug}`,
+            ...(shop.logoUrl ? { logo: shop.logoUrl } : {}),
+            ...(shop.coverUrl ? { image: shop.coverUrl } : {}),
+            parentOrganization: { "@type": "Organization", name: "Novakou", url: baseUrl },
+            ...(shop.instructeur?.user?.name
+              ? { founder: { "@type": "Person", name: shop.instructeur.user.name } }
+              : {}),
+            numberOfItems: formations.length + products.length + bundles.length,
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Accueil", item: baseUrl },
+              { "@type": "ListItem", position: 2, name: "Boutiques", item: `${baseUrl}/explorer?type=boutique` },
+              { "@type": "ListItem", position: 3, name: shop.name },
+            ],
+          }),
+        }}
       />
       <BoutiqueView
       instructeurId={shop.instructeur?.id}

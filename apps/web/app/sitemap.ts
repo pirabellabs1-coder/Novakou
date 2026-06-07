@@ -54,8 +54,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/cgu`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/confidentialite`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
     { url: `${BASE_URL}/cookies`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE_URL}/connexion`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE_URL}/inscription`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.4 },
+    // /connexion + /inscription RETIRÉS du sitemap : Google n'a aucune
+    // raison d'indexer les pages d'authentification (mauvais signal qualité,
+    // gaspille du crawl budget, et ces pages sont déjà disallow dans
+    // robots.txt). Si un user veut s'inscrire il passe par la landing.
   ];
 
   if (IS_DEV) return staticRoutes;

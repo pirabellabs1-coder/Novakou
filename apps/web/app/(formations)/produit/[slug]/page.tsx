@@ -45,7 +45,10 @@ export async function generateMetadata({
   const description = taglineSource
     ? taglineSource.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 160)
     : `Découvrez "${title}" sur Novakou.`;
-  const image = product.banner || product.thumbnail || undefined;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+  // Fallback OG image via /api/og pour les produits sans banner ni thumbnail.
+  const image = product.banner || product.thumbnail ||
+    `${baseUrl}/api/og?type=produit&title=${encodeURIComponent(title)}&subtitle=${encodeURIComponent(description.slice(0, 110))}`;
 
   return {
     title,
@@ -60,10 +63,11 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
       type: "website",
+      url: `${baseUrl}/produit/${slug}`,
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
 

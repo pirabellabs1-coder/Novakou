@@ -44,7 +44,11 @@ export async function generateMetadata({
   const title = formation.title;
   const longSource = (formation.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
   const description = formation.shortDesc?.trim() || longSource.slice(0, 160) || `Découvrez la formation "${title}" sur Novakou.`;
-  const image = formation.thumbnail || undefined;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+  // Fallback OG image générée par /api/og si la formation n'a pas de
+  // thumbnail. Sinon les partages sur WhatsApp/X seraient vides.
+  const image = formation.thumbnail ||
+    `${baseUrl}/api/og?type=formation&title=${encodeURIComponent(title)}&subtitle=${encodeURIComponent(description.slice(0, 110))}`;
 
   return {
     title,
@@ -59,10 +63,11 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      ...(image ? { images: [{ url: image, width: 1200, height: 630 }] } : {}),
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
       type: "website",
+      url: `${baseUrl}/formation/${slug}`,
     },
-    twitter: { card: "summary_large_image", title, description },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
   };
 }
 

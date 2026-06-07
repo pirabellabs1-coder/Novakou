@@ -68,6 +68,16 @@ export async function generateMetadata(): Promise<Metadata> {
       url: baseUrl,
       title: t("default_title"),
       description: t("default_description"),
+      // OG image par défaut générée dynamiquement par /api/og.
+      // Avant : aucune image → preview WhatsApp/X/LinkedIn vide → -40% CTR.
+      images: [
+        {
+          url: `${baseUrl}/api/og`,
+          width: 1200,
+          height: 630,
+          alt: "Novakou — Marketplace produits digitaux Afrique francophone",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -75,6 +85,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: t("default_description"),
       site: "@Novakou",
       creator: "@Novakou",
+      images: [`${baseUrl}/api/og`],
     },
     robots: {
       index: true,
@@ -89,12 +100,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     alternates: {
       canonical: baseUrl,
+      // Hreflang : on n'a qu'une seule version FR à ce stade. Les variantes
+      // ?lang=fr-sn/fr-ci/... pointaient vers la MÊME URL avec un param
+      // ignoré → Google les marquait comme duplicate content. À ré-activer
+      // quand on aura de vraies routes localisées (V2 i18n).
       languages: {
         "fr-FR": baseUrl,
-        "fr-SN": `${baseUrl}?lang=fr-sn`,
-        "fr-CI": `${baseUrl}?lang=fr-ci`,
-        "fr-BJ": `${baseUrl}?lang=fr-bj`,
-        "fr-CM": `${baseUrl}?lang=fr-cm`,
         "x-default": baseUrl,
       },
     },
