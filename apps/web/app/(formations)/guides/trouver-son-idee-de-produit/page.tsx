@@ -3,11 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Trouver son idée de produit digital",
+)}&subtitle=${encodeURIComponent(
+  "Méthode 3 cercles, niches Afrique, validation 48h — sans budget",
+)}`;
+
 export const metadata: Metadata = {
-  title:
-    "Comment trouver son idée de produit digital en Afrique | Guide 2026 · Novakou",
+  title: "Trouver une idée de produit digital qui vend",
   description:
-    "Méthode complète pour trouver une idée de formation ou produit digital rentable en Afrique francophone. La méthode des 3 cercles, analyse de niche, validation sans budget.",
+    "Méthode complète pour trouver une idée de formation ou produit digital rentable en Afrique : méthode des 3 cercles, niches qui marchent, validation 48h.",
   keywords: [
     "idée produit digital Afrique",
     "niche formations en ligne Afrique",
@@ -16,15 +22,24 @@ export const metadata: Metadata = {
     "niches portantes Afrique 2026",
     "méthode 3 cercles produit digital",
   ],
-  openGraph: {
-    title:
-      "Comment trouver son idée de produit digital en Afrique | Guide 2026 · Novakou",
-    description:
-      "Méthode complète pour trouver une idée de formation ou produit digital rentable en Afrique francophone. La méthode des 3 cercles, analyse de niche, validation sans budget.",
-    type: "article",
-  },
   alternates: {
     canonical: "/guides/trouver-son-idee-de-produit",
+  },
+  openGraph: {
+    title: "Trouver une idée de produit digital qui vend | Novakou",
+    description:
+      "La méthode des 3 cercles, analyse de niche, validation sans budget : trouvez une idée rentable en 48h.",
+    type: "article",
+    url: `${APP_URL}/guides/trouver-son-idee-de-produit`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Trouver une idée de produit digital qui vend | Novakou",
+    description:
+      "Méthode 3 cercles + niches Afrique + validation 48h pour démarrer sans budget.",
+    images: [OG_IMAGE],
   },
 };
 

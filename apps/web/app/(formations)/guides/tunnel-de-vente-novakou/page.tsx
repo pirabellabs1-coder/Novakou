@@ -3,11 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Tunnel de vente Afrique formation",
+)}&subtitle=${encodeURIComponent(
+  "Capture, vente, checkout Mobile Money, upsell : le guide complet",
+)}`;
+
 export const metadata: Metadata = {
-  title:
-    "Tunnel de vente sur Novakou : guide complet étape par étape 2026",
+  title: "Tunnel de vente Afrique formation 2026",
   description:
-    "Construisez un tunnel de vente performant sur Novakou pour vendre vos formations et produits digitaux en Afrique francophone. Pages d'atterrissage, emails, paiement, upsell — tout est expliqué.",
+    "Construisez un tunnel de vente performant sur Novakou pour vendre vos formations en Afrique : capture, vente, checkout Mobile Money, upsell.",
   keywords: [
     "tunnel de vente Novakou",
     "funnel vente formation en ligne Afrique",
@@ -16,14 +22,24 @@ export const metadata: Metadata = {
     "entonnoir conversion Novakou",
     "vendre formations en ligne Sénégal",
   ],
+  alternates: {
+    canonical: "/guides/tunnel-de-vente-novakou",
+  },
   openGraph: {
-    title: "Tunnel de vente sur Novakou : guide complet 2026",
+    title: "Tunnel de vente Afrique formation 2026 | Novakou",
     description:
       "Construisez un tunnel de vente qui convertit pour vendre vos formations et produits digitaux en Afrique francophone.",
     type: "article",
+    url: `${APP_URL}/guides/tunnel-de-vente-novakou`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: {
-    canonical: "/guides/tunnel-de-vente-novakou",
+  twitter: {
+    card: "summary_large_image",
+    title: "Tunnel de vente Afrique formation 2026 | Novakou",
+    description:
+      "Le guide complet pour construire un tunnel de vente qui convertit en Afrique francophone.",
+    images: [OG_IMAGE],
   },
 };
 

@@ -156,15 +156,19 @@ export function OldGuideJsonLd({ slug }: { slug: string }) {
   if (!meta) return null;
 
   const url = `${APP_URL}/guides/${slug}`;
+  const ogImage = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+    meta.title,
+  )}&subtitle=${encodeURIComponent(meta.description)}`;
 
   const articleJsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: meta.title,
     description: meta.description,
+    image: [ogImage],
     datePublished: meta.datePublished,
     dateModified: meta.dateModified,
-    author: { "@type": "Organization", name: "Novakou", url: APP_URL },
+    author: { "@type": "Person", name: "Équipe Novakou", url: APP_URL },
     publisher: {
       "@type": "Organization",
       name: "Novakou",

@@ -39,9 +39,18 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
+const SEO_TITLE = "Encaisser Mobile Money Wave Orange MTN";
+const SEO_DESCRIPTION =
+  "Encaissez Wave, Orange Money, MTN MoMo, Moov pour vos formations en Afrique francophone. Frais réels, délais, configuration Novakou 3 min, retraits perso.";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Encaisser Mobile Money en Afrique",
+)}&subtitle=${encodeURIComponent(
+  "Wave, Orange Money, MTN, Moov : frais, délais, configuration",
+)}`;
+
 export const metadata: Metadata = {
-  title: `${meta.title} | Guides Novakou`,
-  description: meta.subtitle,
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {
     canonical: `${APP_URL}/guides/${meta.slug}`,
@@ -56,12 +65,19 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    title: meta.title,
-    description: meta.subtitle,
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     url: `${APP_URL}/guides/${meta.slug}`,
     siteName: "Novakou",
     publishedTime: meta.publishedAt,
     modifiedTime: meta.updatedAt,
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 

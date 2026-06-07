@@ -3,18 +3,35 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Guide complet Novakou",
+)}&subtitle=${encodeURIComponent(
+  "De l'inscription à votre première vente : tout savoir sur Novakou",
+)}`;
+
 export const metadata: Metadata = {
-  title: "Le guide complet Novakou : de l'inscription à votre première vente | Novakou",
+  title: "Guide complet Novakou : vendre formation",
   description:
-    "Tutoriel pas-à-pas pour créer votre boutique, publier formations et ebooks, configurer Mobile Money, construire vos tunnels de vente et recevoir vos premiers paiements sur Novakou.",
-  openGraph: {
-    title: "Le guide complet Novakou : de l'inscription à votre première vente",
-    description:
-      "Tutoriel pas-à-pas pour créer votre boutique, publier formations et ebooks, configurer Mobile Money, construire vos tunnels de vente et recevoir vos premiers paiements sur Novakou.",
-    type: "article",
-  },
+    "Tutoriel pas-à-pas pour créer votre boutique, publier formations et ebooks, configurer Mobile Money, et recevoir vos premiers paiements sur Novakou.",
   alternates: {
     canonical: "/guides/guide-complet-novakou",
+  },
+  openGraph: {
+    title: "Guide complet Novakou : vendre formation | Novakou",
+    description:
+      "Tutoriel pas-à-pas : boutique, formations, Mobile Money, tunnels de vente. Tout pour démarrer sur Novakou.",
+    type: "article",
+    url: `${APP_URL}/guides/guide-complet-novakou`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Guide complet Novakou : vendre formation | Novakou",
+    description:
+      "Tutoriel pas-à-pas : boutique, formations, Mobile Money, tunnels de vente. Tout pour démarrer sur Novakou.",
+    images: [OG_IMAGE],
   },
 };
 

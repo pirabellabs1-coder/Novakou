@@ -39,9 +39,18 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
+const SEO_TITLE = "LinkedIn personal branding expert africain";
+const SEO_DESCRIPTION =
+  "Personal branding LinkedIn pour expert africain : profil optimisé, 3 posts/semaine qui marchent, DM commercial. Convertir followers en acheteurs de formations.";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Personal branding LinkedIn expert",
+)}&subtitle=${encodeURIComponent(
+  "Profil, posts, DM commercial : transformer followers en clients",
+)}`;
+
 export const metadata: Metadata = {
-  title: `${meta.title} | Guides Novakou`,
-  description: meta.subtitle,
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {
     canonical: `${APP_URL}/guides/${meta.slug}`,
@@ -54,12 +63,19 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    title: meta.title,
-    description: meta.subtitle,
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     url: `${APP_URL}/guides/${meta.slug}`,
     siteName: "Novakou",
     publishedTime: meta.publishedAt,
     modifiedTime: meta.updatedAt,
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 

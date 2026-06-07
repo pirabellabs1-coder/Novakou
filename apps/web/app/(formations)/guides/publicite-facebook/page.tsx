@@ -3,11 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Publicité Facebook en Afrique",
+)}&subtitle=${encodeURIComponent(
+  "Ciblage, budgets FCFA, pixel, audiences : campagnes rentables 2026",
+)}`;
+
 export const metadata: Metadata = {
-  title:
-    "Publicité Facebook pour vendre ses formations en Afrique | Guide complet 2026 · Novakou",
+  title: "Publicité Facebook Afrique : vendre formation",
   description:
-    "Comment créer des publicités Facebook rentables pour vendre vos formations en ligne en Afrique francophone. Ciblage, budgets, audiences, pixel Facebook — tout expliqué.",
+    "Créer des publicités Facebook rentables pour vendre vos formations en Afrique francophone. Ciblage, budgets FCFA, pixel, audiences — tout expliqué.",
   keywords: [
     "publicité Facebook Afrique",
     "Facebook Ads formations en ligne",
@@ -16,15 +22,24 @@ export const metadata: Metadata = {
     "vendre formations Facebook",
     "budget Facebook Ads FCFA",
   ],
-  openGraph: {
-    title:
-      "Publicité Facebook pour vendre ses formations en Afrique | Guide complet 2026 · Novakou",
-    description:
-      "Comment créer des publicités Facebook rentables pour vendre vos formations en ligne en Afrique francophone. Ciblage, budgets, audiences, pixel Facebook — tout expliqué.",
-    type: "article",
-  },
   alternates: {
     canonical: "/guides/publicite-facebook",
+  },
+  openGraph: {
+    title: "Publicité Facebook Afrique : vendre formation | Novakou",
+    description:
+      "Ciblage, budgets FCFA, pixel, audiences : créez des campagnes Facebook qui vendent vos formations en Afrique francophone.",
+    type: "article",
+    url: `${APP_URL}/guides/publicite-facebook`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Publicité Facebook Afrique : vendre formation | Novakou",
+    description:
+      "Ciblage, budgets FCFA, pixel, audiences : créez des Facebook Ads rentables en Afrique.",
+    images: [OG_IMAGE],
   },
 };
 

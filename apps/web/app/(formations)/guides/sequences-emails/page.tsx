@@ -3,24 +3,41 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Séquence email qui vend formation",
+)}&subtitle=${encodeURIComponent(
+  "23 templates Novakou : bienvenue, relances, lancement, lead magnets",
+)}`;
+
 export const metadata: Metadata = {
-  title: "Séquences emails pour vendre ses formations en Afrique | Guide 2026 · Novakou",
+  title: "Séquence email vente formation 2026",
   description:
-    "Comment créer des séquences d'emails automatiques qui vendent vos formations en pilote automatique. Lead magnets, séquences de bienvenue, relances — 23 templates inclus sur Novakou.",
+    "Créez des séquences d'emails qui vendent vos formations en pilote automatique : lead magnets, bienvenue, relances. 23 templates Novakou inclus.",
   keywords: [
     "séquence email formation afrique",
     "email marketing formation en ligne",
     "automatisation email novakou",
     "vendre formation email afrique",
   ],
+  alternates: {
+    canonical: "/guides/sequences-emails",
+  },
   openGraph: {
-    title: "Séquences emails pour vendre ses formations en Afrique — Guide 2026",
+    title: "Séquence email vente formation 2026 | Novakou",
     description:
       "23 templates, séquences de bienvenue, relances et lancement : le guide complet de l'email marketing pour formateurs africains.",
     type: "article",
+    url: `${APP_URL}/guides/sequences-emails`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: {
-    canonical: "/guides/sequences-emails",
+  twitter: {
+    card: "summary_large_image",
+    title: "Séquence email vente formation 2026 | Novakou",
+    description:
+      "23 templates email pour vendre vos formations en pilote automatique en Afrique francophone.",
+    images: [OG_IMAGE],
   },
 };
 

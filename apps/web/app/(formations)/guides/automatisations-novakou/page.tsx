@@ -3,11 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Automatiser sa vente de formation",
+)}&subtitle=${encodeURIComponent(
+  "Tunnels, emails, accès, paiements : vendre pendant que vous dormez",
+)}`;
+
 export const metadata: Metadata = {
-  title:
-    "Automatisations Novakou : vendre sans être connecté H24 | Guide 2026",
+  title: "Automatiser vente formation : tunnel Novakou",
   description:
-    "Découvrez comment automatiser vos ventes sur Novakou : emails de bienvenue, séquences de relance, accès automatique aux formations, paiements mobiles. Vendez pendant que vous dormez.",
+    "Automatisez vos ventes de formations sur Novakou : emails de bienvenue, relances panier, accès automatique, Mobile Money. Vendez pendant que vous dormez.",
   keywords: [
     "automatisation vente formation en ligne",
     "automatiser son business Novakou",
@@ -16,15 +22,24 @@ export const metadata: Metadata = {
     "workflow automatisation créateur contenu",
     "Novakou automatisation paiement",
   ],
-  openGraph: {
-    title:
-      "Automatisations Novakou : vendre sans être connecté H24 | Guide 2026",
-    description:
-      "Comment automatiser vos ventes de formations sur Novakou pour générer des revenus passifs en Afrique francophone.",
-    type: "article",
-  },
   alternates: {
     canonical: "/guides/automatisations-novakou",
+  },
+  openGraph: {
+    title: "Automatiser vente formation : tunnel Novakou | Novakou",
+    description:
+      "Tunnels, emails, accès, paiements Mobile Money : configurez une fois, encaissez en automatique.",
+    type: "article",
+    url: `${APP_URL}/guides/automatisations-novakou`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Automatiser vente formation : tunnel Novakou | Novakou",
+    description:
+      "Configurez vos tunnels Novakou une fois, encaissez Mobile Money en automatique.",
+    images: [OG_IMAGE],
   },
 };
 

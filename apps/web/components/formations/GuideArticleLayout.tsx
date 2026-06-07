@@ -62,6 +62,9 @@ export interface Props {
 
 export function GuideArticleLayout({ meta, sections }: Props) {
   const url = `${APP_URL}/guides/${meta.slug}`;
+  const ogImage = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+    meta.title,
+  )}&subtitle=${encodeURIComponent(meta.subtitle)}`;
 
   // JSON-LD Article — richest possible pour Google SERP
   const articleJsonLd = {
@@ -69,11 +72,12 @@ export function GuideArticleLayout({ meta, sections }: Props) {
     "@type": "Article",
     headline: meta.title,
     description: meta.subtitle,
+    image: [ogImage],
     datePublished: meta.publishedAt,
     dateModified: meta.updatedAt,
     author: {
-      "@type": "Organization",
-      name: "Novakou",
+      "@type": "Person",
+      name: "Équipe Novakou",
       url: APP_URL,
     },
     publisher: {

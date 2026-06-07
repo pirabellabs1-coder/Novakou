@@ -39,9 +39,18 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
+const SEO_TITLE = "Instagram vendre formation Afrique 2026";
+const SEO_DESCRIPTION =
+  "Vendez vos formations sur Instagram en Afrique sans budget pub : bio optimisée, Reels qui convertissent, DM stratégique. Résultats mesurables en 30 jours.";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Instagram pour vendre vos formations",
+)}&subtitle=${encodeURIComponent(
+  "Bio, Reels, DM stratégique, hashtags : organique 0 budget pub",
+)}`;
+
 export const metadata: Metadata = {
-  title: `${meta.title} | Guides Novakou`,
-  description: meta.subtitle,
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {
     canonical: `${APP_URL}/guides/${meta.slug}`,
@@ -54,12 +63,19 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    title: meta.title,
-    description: meta.subtitle,
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     url: `${APP_URL}/guides/${meta.slug}`,
     siteName: "Novakou",
     publishedTime: meta.publishedAt,
     modifiedTime: meta.updatedAt,
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 

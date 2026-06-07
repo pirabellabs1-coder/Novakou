@@ -3,24 +3,41 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Rédiger une description produit qui vend",
+)}&subtitle=${encodeURIComponent(
+  "Structure AIDA, bénéfices, preuve sociale : la page qui convertit",
+)}`;
+
 export const metadata: Metadata = {
-  title: "Comment rédiger une description de formation irrésistible | Guide Novakou 2026",
+  title: "Rédiger description produit qui vend 2026",
   description:
-    "Guide complet pour écrire des descriptions de formations et produits digitaux qui vendent. Structure AIDA, bénéfices vs fonctionnalités, preuve sociale, CTA — avec exemples concrets.",
+    "Guide pour écrire des descriptions de formations et produits digitaux qui vendent : structure AIDA, bénéfices, preuve sociale, exemples avant/après.",
   keywords: [
     "description formation en ligne",
     "page de vente formation afrique",
     "rédiger description produit digital",
     "copywriting formation novakou",
   ],
-  openGraph: {
-    title: "Comment rédiger une description de formation irrésistible — Guide Novakou 2026",
-    description:
-      "Structure AIDA, bénéfices vs fonctionnalités, preuve sociale, exemples avant/après : tout pour écrire une page produit qui vend.",
-    type: "article",
-  },
   alternates: {
     canonical: "/guides/description-produit",
+  },
+  openGraph: {
+    title: "Rédiger description produit qui vend 2026 | Novakou",
+    description:
+      "Structure AIDA, bénéfices vs fonctionnalités, preuve sociale : tout pour écrire une page produit qui vend.",
+    type: "article",
+    url: `${APP_URL}/guides/description-produit`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rédiger description produit qui vend 2026 | Novakou",
+    description:
+      "Structure AIDA, bénéfices, preuve sociale : écrivez une page produit qui convertit.",
+    images: [OG_IMAGE],
   },
 };
 

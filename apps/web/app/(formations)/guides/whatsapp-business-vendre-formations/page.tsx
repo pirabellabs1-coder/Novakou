@@ -39,9 +39,18 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
+const SEO_TITLE = "WhatsApp Business : vendre formation Afrique";
+const SEO_DESCRIPTION =
+  "Vendez vos formations avec WhatsApp Business en Afrique : Status, catalogue, listes diffusion, groupes. Convertir vos contacts sans paraître spam.";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "WhatsApp Business pour vendre formation",
+)}&subtitle=${encodeURIComponent(
+  "Status, catalogue, listes diffusion, groupes : la méthode 2026",
+)}`;
+
 export const metadata: Metadata = {
-  title: `${meta.title} | Guides Novakou`,
-  description: meta.subtitle,
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {
     canonical: `${APP_URL}/guides/${meta.slug}`,
@@ -54,12 +63,19 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    title: meta.title,
-    description: meta.subtitle,
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     url: `${APP_URL}/guides/${meta.slug}`,
     siteName: "Novakou",
     publishedTime: meta.publishedAt,
     modifiedTime: meta.updatedAt,
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 

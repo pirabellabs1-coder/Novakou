@@ -2,20 +2,35 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Créer son premier produit digital",
+)}&subtitle=${encodeURIComponent(
+  "De l'idée à la vente : la méthode pas-à-pas pour l'Afrique francophone",
+)}`;
+
 export const metadata: Metadata = {
-  title:
-    "Comment créer son premier produit digital en 2026 | Guide complet Novakou",
+  title: "Créer son premier produit digital en 2026",
   description:
-    "Guide étape par étape pour créer et vendre votre premier produit digital en Afrique francophone. Formations vidéo, ebooks, templates, coaching : découvrez la méthode complète pour lancer votre business en ligne sur Novakou.",
+    "Guide complet pour créer et vendre votre premier produit digital en Afrique francophone : formation vidéo, ebook, template. Méthode étape par étape.",
+  alternates: {
+    canonical: "/guides/creer-son-produit",
+  },
   openGraph: {
-    title:
-      "Comment créer son premier produit digital en 2026 | Guide Novakou",
+    title: "Créer son premier produit digital en 2026 | Novakou",
     description:
       "Le guide complet pour créer, tarifer et vendre votre premier produit digital en Afrique francophone. 6 étapes concrètes, checklist incluse.",
     type: "article",
+    url: `${APP_URL}/guides/creer-son-produit`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: {
-    canonical: "/guides/creer-son-produit",
+  twitter: {
+    card: "summary_large_image",
+    title: "Créer son premier produit digital en 2026 | Novakou",
+    description:
+      "Le guide complet pour créer et vendre votre premier produit digital en Afrique francophone.",
+    images: [OG_IMAGE],
   },
 };
 
@@ -58,7 +73,7 @@ function Breadcrumb() {
       </Link>
       <span>/</span>
       <Link
-        href="/guides/guide-complet-novakou"
+        href="/guides"
         className="hover:underline"
         style={{ color: C.primary }}
       >
@@ -232,14 +247,43 @@ export default function CreerSonProduitPage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Article",
-            headline: "Comment créer son premier produit digital en 2026",
-            description: "Guide étape par étape pour créer et vendre votre premier produit digital en Afrique francophone.",
-            author: { "@type": "Organization", name: "Novakou" },
-            publisher: { "@type": "Organization", name: "Novakou", url: "https://novakou.com" },
+            headline: "Créer son premier produit digital en 2026",
+            description:
+              "Guide étape par étape pour créer et vendre votre premier produit digital en Afrique francophone.",
+            image: [OG_IMAGE],
+            author: { "@type": "Person", name: "Équipe Novakou", url: APP_URL },
+            publisher: {
+              "@type": "Organization",
+              name: "Novakou",
+              url: APP_URL,
+              logo: { "@type": "ImageObject", url: `${APP_URL}/icon` },
+            },
             datePublished: "2026-01-15",
             dateModified: "2026-05-01",
-            mainEntityOfPage: "https://novakou.com/guides/creer-son-produit",
+            mainEntityOfPage: {
+              "@type": "WebPage",
+              "@id": `${APP_URL}/guides/creer-son-produit`,
+            },
             inLanguage: "fr",
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Accueil", item: APP_URL },
+              { "@type": "ListItem", position: 2, name: "Guides", item: `${APP_URL}/guides` },
+              {
+                "@type": "ListItem",
+                position: 3,
+                name: "Créer son premier produit digital",
+                item: `${APP_URL}/guides/creer-son-produit`,
+              },
+            ],
           }),
         }}
       />

@@ -3,10 +3,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { OldGuideJsonLd } from "@/components/formations/OldGuideJsonLd";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Vendre en ligne en Afrique francophone",
+)}&subtitle=${encodeURIComponent(
+  "Tunnel de vente, pricing FCFA, WhatsApp, email : le guide 2026",
+)}`;
+
 export const metadata: Metadata = {
-  title: "Comment vendre ses formations en ligne en Afrique | Guide complet 2026 · Novakou",
+  title: "Vendre en ligne en Afrique francophone 2026",
   description:
-    "Le guide ultime pour vendre vos formations en ligne en Afrique francophone : tunnel de vente, pricing en FCFA, promotion WhatsApp & Facebook, email marketing, affiliation. Avec étude de cas et méthodes éprouvées.",
+    "Le guide complet pour vendre vos formations en ligne en Afrique : tunnel de vente, pricing FCFA, WhatsApp, Facebook, email marketing, affiliation.",
   keywords: [
     "vendre formation en ligne afrique",
     "vente formation FCFA",
@@ -15,14 +22,24 @@ export const metadata: Metadata = {
     "monetiser savoir afrique",
     "novakou guide vente",
   ],
+  alternates: {
+    canonical: "/guides/vendre-en-ligne",
+  },
   openGraph: {
-    title: "Comment vendre ses formations en ligne en Afrique — Guide 2026",
+    title: "Vendre en ligne en Afrique francophone 2026 | Novakou",
     description:
       "12 chapitres, étude de cas, méthodes concrètes pour transformer votre savoir en revenus récurrents depuis l'Afrique francophone.",
     type: "article",
+    url: `${APP_URL}/guides/vendre-en-ligne`,
+    siteName: "Novakou",
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
   },
-  alternates: {
-    canonical: "/guides/vendre-en-ligne",
+  twitter: {
+    card: "summary_large_image",
+    title: "Vendre en ligne en Afrique francophone 2026 | Novakou",
+    description:
+      "Le guide complet pour vendre vos formations en ligne en Afrique francophone.",
+    images: [OG_IMAGE],
   },
 };
 

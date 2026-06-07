@@ -39,9 +39,18 @@ const meta: GuideMeta = {
 
 export const revalidate = 86400;
 
+const SEO_TITLE = "Fixer prix formation en ligne Afrique 2026";
+const SEO_DESCRIPTION =
+  "Combien faire payer votre formation en ligne en Afrique ? Tableaux prix FCFA, ancrage, upsell : méthode complète pour ne plus sous-vendre.";
+const OG_IMAGE = `${APP_URL}/api/og?type=guide&title=${encodeURIComponent(
+  "Fixer le prix de sa formation",
+)}&subtitle=${encodeURIComponent(
+  "Tableaux FCFA, prix d'ancrage, upsell : la méthode pricing 2026",
+)}`;
+
 export const metadata: Metadata = {
-  title: `${meta.title} | Guides Novakou`,
-  description: meta.subtitle,
+  title: SEO_TITLE,
+  description: SEO_DESCRIPTION,
   keywords: meta.keywords,
   alternates: {
     canonical: `${APP_URL}/guides/${meta.slug}`,
@@ -55,12 +64,19 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "article",
-    title: meta.title,
-    description: meta.subtitle,
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
     url: `${APP_URL}/guides/${meta.slug}`,
     siteName: "Novakou",
     publishedTime: meta.publishedAt,
     modifiedTime: meta.updatedAt,
+    images: [{ url: OG_IMAGE, width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SEO_TITLE,
+    description: SEO_DESCRIPTION,
+    images: [OG_IMAGE],
   },
 };
 
