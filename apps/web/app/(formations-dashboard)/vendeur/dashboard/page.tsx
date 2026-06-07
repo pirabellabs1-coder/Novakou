@@ -1,7 +1,9 @@
 // Refonte par Augustin Mékongo + Fatou Diallo — bureau 2026-05-26 (votes 7, 8, 13)
+// Refonte hero/KPI style KAZA — Sophie Tremblay + Léa Moreau, 2026-06-07
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ResponsiveContainer,
@@ -257,32 +259,39 @@ function KpiCard({
   accent: string;
   icon: string;
 }) {
+  // Refonte style KAZA : icône en boîte claire ronde, label discret en haut,
+  // grand nombre proéminent, delta + sparkline en bas. Carte plus blanche,
+  // hover plus subtil, padding plus généreux.
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-5 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300 group">
-      <div className="flex items-start justify-between mb-3">
-        <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center"
-          style={{ background: `${accent}15`, color: accent }}
-        >
-          <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-            {icon}
-          </span>
+    <div className="bg-white rounded-2xl border border-slate-200/60 p-6 hover:shadow-xl hover:shadow-slate-200/40 hover:-translate-y-0.5 transition-all duration-300 group">
+      <div
+        className="w-11 h-11 rounded-2xl flex items-center justify-center mb-4"
+        style={{ background: `${accent}12`, color: accent }}
+      >
+        <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+          {icon}
+        </span>
+      </div>
+      <p className="text-xs font-semibold text-slate-500 mb-1.5">{label}</p>
+      <div className="flex items-baseline gap-1.5">
+        <span className="text-2xl md:text-3xl font-extrabold text-slate-900 tabular-nums tracking-tight break-all">{value}</span>
+        {unit && <span className="text-sm font-bold text-slate-400">{unit}</span>}
+      </div>
+      {(showDeltaLine || delta !== undefined) && (
+        <div className="mt-3 flex items-center gap-2">
+          {delta !== undefined && <DeltaBadge value={delta} />}
+          {showDeltaLine && <DeltaLine current={current} previous={previous} />}
         </div>
-        {delta !== undefined && <DeltaBadge value={delta} />}
-      </div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</p>
-      <div className="flex items-baseline gap-1 mt-1">
-        <span className="text-lg md:text-xl font-extrabold text-slate-900 tabular-nums tracking-tight break-all">{value}</span>
-        {unit && <span className="text-xs font-bold text-slate-400">{unit}</span>}
-      </div>
-      {showDeltaLine && <DeltaLine current={current} previous={previous} />}
+      )}
       {spark && spark.length > 0 && (
         svgSpark ? (
-          <div className="mt-2 -mx-1">
+          <div className="mt-3 -mx-1">
             <SvgSparkline data={spark} color={accent} />
           </div>
         ) : (
-          <MiniSpark data={spark} color={accent} />
+          <div className="mt-3">
+            <MiniSpark data={spark} color={accent} />
+          </div>
         )
       )}
     </div>
@@ -292,6 +301,15 @@ function KpiCard({
 const PIE_COLORS = ["#006e2f", "#22c55e", "#86efac", "#bbf7d0"];
 
 export default function VendeurDashboard() {
+  const { data: sessionData } = useSession();
+  const vendorName = sessionData?.user?.name ?? "Créateur";
+  const vendorInitials = vendorName
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "CR";
   const { data: response, isLoading } = useQuery<{ data: Dashboard | null }>({
     queryKey: ["vendeur-dashboard"],
     queryFn: () => fetch("/api/formations/vendeur/dashboard").then((r) => r.json()),
@@ -316,33 +334,62 @@ export default function VendeurDashboard() {
   return (
     <div className="min-h-screen bg-slate-50/50" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1400px] mx-auto">
-        {/* Header */}
-        <header className="mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-          <div>
-            <span className="text-[#006e2f] font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block">
-              Tableau de bord vendeur
-            </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
-              Bienvenue 👋
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">Vue d&apos;ensemble de votre activité</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/vendeur/produits/creer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 transition-shadow"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              <span className="material-symbols-outlined text-[18px]">add_circle</span>
-              Nouveau produit
-            </Link>
-            <Link
-              href="/vendeur/statistiques"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-sm font-bold hover:bg-slate-50 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">bar_chart</span>
-              Statistiques
-            </Link>
+        {/* ── Hero style KAZA Pro — gradient navy + badge Pro + actions premium ── */}
+        <header
+          className="relative overflow-hidden rounded-3xl mb-8 p-7 md:p-10 text-white"
+          style={{
+            background:
+              "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)",
+          }}
+        >
+          {/* Halos décoratifs subtils */}
+          <div
+            aria-hidden
+            className="absolute -top-24 -right-24 w-[420px] h-[420px] rounded-full blur-3xl opacity-30"
+            style={{ background: "radial-gradient(circle, #22c55e 0%, transparent 70%)" }}
+          />
+          <div
+            aria-hidden
+            className="absolute -bottom-32 -left-12 w-[360px] h-[360px] rounded-full blur-3xl opacity-20"
+            style={{ background: "radial-gradient(circle, #006e2f 0%, transparent 70%)" }}
+          />
+
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="min-w-0 flex items-center gap-4 md:gap-5">
+              {/* Avatar avec initiales */}
+              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center font-extrabold text-lg md:text-xl flex-shrink-0 shadow-lg">
+                {vendorInitials}
+              </div>
+              <div className="min-w-0">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 mb-2 rounded-full text-[10px] font-bold uppercase tracking-widest bg-orange-500 text-white shadow-md">
+                  Pro
+                </span>
+                <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight truncate">
+                  {vendorName}
+                </h1>
+                <p className="text-xs md:text-sm text-white/70 mt-1">
+                  {(d?.kpis?.totalProducts ?? 0)} produit{(d?.kpis?.totalProducts ?? 0) > 1 ? "s" : ""} actif{(d?.kpis?.totalProducts ?? 0) > 1 ? "s" : ""} · Espace Novakou Pro
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+              <Link
+                href="/vendeur/produits/creer"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 text-white text-sm font-bold hover:bg-white/20 transition-colors"
+              >
+                <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                Nouveau produit
+              </Link>
+              <Link
+                href="/vendeur/statistiques"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-lg hover:opacity-90 transition-opacity"
+                style={{ background: "linear-gradient(135deg, #f97316, #f59e0b)" }}
+              >
+                <span className="material-symbols-outlined text-[18px]">bar_chart</span>
+                Analytics complètes
+              </Link>
+            </div>
           </div>
         </header>
 
