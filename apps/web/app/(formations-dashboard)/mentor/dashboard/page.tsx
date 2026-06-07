@@ -1,11 +1,39 @@
+// Refonte style KAZA — mentor dashboard — 2026-06-07
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CommunityBanner } from "@/components/formations/CommunityBanner";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+  KazaSection,
+  KazaEmpty,
+} from "@/components/kaza";
+import {
+  Wallet,
+  Hourglass,
+  Calendar,
+  Star,
+  CheckCircle2,
+  Video,
+  MessageSquare,
+  Gavel,
+  CircleAlert,
+  ShieldCheck,
+  XCircle,
+  Headphones,
+  CalendarPlus,
+  Edit3,
+  ArrowRight,
+  Timer,
+  User,
+} from "lucide-react";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface MentorProfile {
   id: string;
   specialty: string;
@@ -37,8 +65,8 @@ interface UpcomingBooking {
   durationMinutes: number;
   paidAmount: number;
   status: "PENDING" | "CONFIRMED";
-  meetingLink?: string | null; // legacy
-  meetingUrl?: string | null;  // new: auto-generated Jitsi URL
+  meetingLink?: string | null;
+  meetingUrl?: string | null;
   student: BookingStudent;
 }
 
@@ -52,11 +80,11 @@ interface PastSession {
 }
 
 interface Stats {
-  totalRevenue: number;         // net acquis (sessions RELEASED)
-  grossRevenue: number;         // brut acquis
-  pendingRevenue: number;       // net en escrow HELD
+  totalRevenue: number;
+  grossRevenue: number;
+  pendingRevenue: number;
   pendingGross: number;
-  pendingCount: number;         // nombre de sessions HELD
+  pendingCount: number;
   disputedCount: number;
   completedSessions: number;
   pendingBookings: number;
@@ -71,7 +99,6 @@ interface DashboardData {
   pastSessions: PastSession[];
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function fmt(n: number) {
   return new Intl.NumberFormat("fr-FR").format(n);
 }
@@ -94,64 +121,28 @@ function fmtTime(iso: string) {
 
 function initials(name: string | null) {
   if (!name) return "?";
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
-// ─── Status badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    PENDING: { label: "En attente", cls: "bg-amber-50 text-amber-700 border-amber-200" },
-    CONFIRMED: { label: "Confirmé", cls: "bg-green-50 text-green-700 border-green-200" },
-    COMPLETED: { label: "Terminé", cls: "bg-blue-50 text-blue-700 border-blue-200" },
-    CANCELLED: { label: "Annulé", cls: "bg-red-50 text-red-700 border-red-200" },
-    NO_SHOW: { label: "Absent", cls: "bg-gray-100 text-gray-500 border-gray-200" },
+  const map: Record<
+    string,
+    { label: string; variant: "orange" | "green" | "blue" | "rose" | "slate" }
+  > = {
+    PENDING: { label: "En attente", variant: "orange" },
+    CONFIRMED: { label: "Confirmé", variant: "green" },
+    COMPLETED: { label: "Terminé", variant: "blue" },
+    CANCELLED: { label: "Annulé", variant: "rose" },
+    NO_SHOW: { label: "Absent", variant: "slate" },
   };
-  const s = map[status] ?? { label: status, cls: "bg-gray-100 text-gray-600 border-gray-200" };
+  const s = map[status] ?? { label: status, variant: "slate" as const };
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${s.cls}`}>
+    <KazaBadge variant={s.variant} size="sm">
       {s.label}
-    </span>
+    </KazaBadge>
   );
 }
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({
-  icon,
-  label,
-  value,
-  sub,
-  color,
-  href,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-  sub?: string;
-  color: string;
-  href?: string;
-}) {
-  const inner = (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-start gap-4 hover:border-[#006e2f]/30 hover:shadow-sm transition-all h-full">
-      <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
-        <span className="material-symbols-outlined text-[22px] text-white">{icon}</span>
-      </div>
-      <div className="min-w-0">
-        <p className="text-xs text-[#5c647a] font-medium mb-0.5 truncate">{label}</p>
-        <p className="text-2xl font-extrabold text-[#191c1e]">{value}</p>
-        {sub && <p className="text-xs text-[#5c647a] mt-0.5 truncate">{sub}</p>}
-      </div>
-    </div>
-  );
-  if (href) return <Link href={href}>{inner}</Link>;
-  return inner;
-}
-
-// ─── Booking Action Buttons ────────────────────────────────────────────────────
 function BookingActions({
   booking,
   onRefresh,
@@ -180,27 +171,27 @@ function BookingActions({
   return (
     <div className="flex flex-wrap items-center gap-2 mt-3">
       {booking.status === "PENDING" && (
-        <button
+        <KazaButton
+          variant="primary"
+          size="sm"
+          icon={CheckCircle2}
           onClick={() => patchBooking({ action: "confirm" })}
           disabled={!!loading}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#006e2f] text-white hover:bg-[#005a26] disabled:opacity-50 transition-colors"
         >
-          <span className="material-symbols-outlined text-[14px]">check_circle</span>
           Confirmer
-        </button>
+        </KazaButton>
       )}
 
       {booking.meetingUrl && (
-        <Link
-          href={`/sessions/${booking.id}/salle`}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
-        >
-          <span className="material-symbols-outlined text-[14px]">videocam</span>
+        <KazaButton variant="ghost" size="sm" icon={Video} href={`/sessions/${booking.id}/salle`}>
           Rejoindre la salle
-        </Link>
+        </KazaButton>
       )}
 
-      <button
+      <KazaButton
+        variant="ghost"
+        size="sm"
+        icon={MessageSquare}
         onClick={async () => {
           try {
             const res = await fetch("/api/formations/messages/conversations", {
@@ -212,34 +203,41 @@ function BookingActions({
             if (json.data?.id) {
               window.location.href = `/messages/${json.data.id}`;
             }
-          } catch { /* ignore */ }
+          } catch {
+            /* ignore */
+          }
         }}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors"
       >
-        <span className="material-symbols-outlined text-[14px]">chat_bubble</span>
         Message
-      </button>
+      </KazaButton>
 
-      {/* J'ai assisté — disponible à partir de scheduled - 30 min */}
       {booking.status === "CONFIRMED" &&
         (new Date(booking.scheduledAt).getTime() - Date.now()) / 60000 < 30 && (
-          <button
+          <KazaButton
+            variant="primary"
+            size="sm"
+            icon={CheckCircle2}
             onClick={async () => {
-              const res = await fetch(`/api/formations/mentor-bookings/${booking.id}/attendance`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ attended: true }),
-              });
+              const res = await fetch(
+                `/api/formations/mentor-bookings/${booking.id}/attendance`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ attended: true }),
+                },
+              );
               if (res.ok) onRefresh();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#006e2f] text-white hover:bg-[#005a26]"
           >
-            <span className="material-symbols-outlined text-[14px]">how_to_reg</span>
             J&apos;ai assisté
-          </button>
+          </KazaButton>
         )}
 
-      <button
+      <KazaButton
+        variant="danger"
+        size="sm"
+        icon={Gavel}
+        disabled={!!loading}
         onClick={async () => {
           const reason = window.prompt(
             "Motif d'annulation (obligatoire, 30 caractères minimum). L'admin examinera votre demande. L'apprenant sera remboursé si validé.",
@@ -251,18 +249,13 @@ function BookingActions({
           }
           await patchBooking({ action: "cancel", reason: reason.trim() });
         }}
-        disabled={!!loading}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
       >
-        <span className="material-symbols-outlined text-[14px]">gavel</span>
         Annuler
-      </button>
-
+      </KazaButton>
     </div>
   );
 }
 
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function MentorDashboardPage() {
   const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -317,32 +310,29 @@ export default function MentorDashboardPage() {
     }
   }
 
-  // ── Loading skeleton ──
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7f9fb] p-6">
-        <div className="max-w-6xl mx-auto space-y-6 animate-pulse">
-          <div className="h-8 w-64 bg-gray-200 rounded-xl" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded-2xl" />
-            ))}
-          </div>
-          <div className="h-96 bg-gray-200 rounded-2xl" />
+      <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6 animate-pulse">
+        <div className="h-40 bg-slate-200 rounded-3xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-slate-200 rounded-2xl" />
+          ))}
         </div>
+        <div className="h-96 bg-slate-200 rounded-2xl" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center">
-        <div className="bg-white rounded-2xl border border-red-200 p-8 text-center max-w-sm">
-          <span className="material-symbols-outlined text-red-500 text-5xl">error</span>
-          <p className="text-red-700 font-semibold mt-3">{error}</p>
-          <button onClick={load} className="mt-4 px-4 py-2 bg-[#006e2f] text-white rounded-xl text-sm font-semibold">
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl border border-rose-200 p-8 text-center max-w-sm shadow-sm">
+          <XCircle className="w-12 h-12 text-rose-500 mx-auto" />
+          <p className="text-rose-700 font-semibold mt-3">{error}</p>
+          <KazaButton variant="primary" onClick={load} className="mt-4">
             Réessayer
-          </button>
+          </KazaButton>
         </div>
       </div>
     );
@@ -355,212 +345,182 @@ export default function MentorDashboardPage() {
     profile.specialty && profile.bio && profile.sessionPrice > 0 && profile.languages.length > 0;
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
-      {/* ── Top bar ─────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-[#5c647a] hover:text-[#191c1e] transition-colors">
-              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-            </Link>
-            <span className="text-sm font-bold text-[#191c1e]">Espace Mentor</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {/* Availability toggle */}
+    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
+      <KazaHero
+        badge="Mentor"
+        badgeColor="white"
+        icon={Headphones}
+        title="Dashboard Mentor"
+        subtitle="Gérez vos séances, suivez vos revenus et accompagnez vos apprenants."
+        actions={
+          <>
             <button
               onClick={toggleAvailability}
               disabled={togglingAvail}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all ${
                 availability
-                  ? "bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                  : "bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200"
+                  ? "bg-emerald-500/20 text-white border-emerald-400/50 hover:bg-emerald-500/30"
+                  : "bg-white/10 text-white border-white/20 hover:bg-white/20"
               } disabled:opacity-50`}
             >
               <span
-                className={`w-2 h-2 rounded-full flex-shrink-0 ${availability ? "bg-green-500 animate-pulse" : "bg-gray-400"}`}
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  availability ? "bg-emerald-300 animate-pulse" : "bg-slate-300"
+                }`}
               />
               {availability ? "Disponible" : "Indisponible"}
             </button>
-
-            <Link
-              href="/mentor/profil"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[14px]">edit</span>
+            <KazaButton variant="secondary" href="/mentor/profil" icon={Edit3}>
               Mon profil
-            </Link>
-
-            <Link
-              href="/mentor/rendez-vous"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-white hover:opacity-90 transition-opacity"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-            >
-              <span className="material-symbols-outlined text-[14px]">calendar_month</span>
+            </KazaButton>
+            <KazaButton variant="primary" href="/mentor/rendez-vous" icon={Calendar}>
               Rendez-vous
-            </Link>
+            </KazaButton>
+          </>
+        }
+      />
+
+      <CommunityBanner tone="mentor" />
+
+      {/* KYC banner */}
+      {kycState && kycState.level < 2 && (
+        <div
+          className={`rounded-2xl p-5 flex items-start gap-4 border ${
+            kycState.pending ? "bg-amber-50 border-amber-200" : "bg-rose-50 border-rose-200"
+          }`}
+        >
+          <div
+            className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-white ${
+              kycState.pending ? "bg-amber-500" : "bg-rose-500"
+            }`}
+          >
+            {kycState.pending ? <Hourglass className="w-5 h-5" /> : <CircleAlert className="w-5 h-5" />}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-base font-bold text-[#0b2540]">
+              {kycState.pending
+                ? "Vérification d'identité en cours"
+                : "Vérification d'identité requise"}
+            </h3>
+            <p className="text-sm text-slate-600 mt-1">
+              {kycState.pending
+                ? "Notre équipe examine votre demande (24-48h). Vous serez notifié dès validation."
+                : "Sans vérification, vous ne pourrez pas retirer les gains de vos séances."}
+            </p>
+            {!kycState.pending && (
+              <KazaButton variant="primary" size="sm" href="/kyc" icon={ShieldCheck} className="mt-3">
+                Commencer la vérification
+              </KazaButton>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* ── Welcome ─────────────────────────────────────────────────────────── */}
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#191c1e]">Dashboard Mentor</h1>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Gérez vos séances, suivez vos revenus et accompagnez vos apprenants.
-          </p>
+      {/* Profile incomplete */}
+      {!profileComplete && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-start gap-3">
+          <CircleAlert className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-amber-800">Profil incomplet</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              Complétez votre profil (spécialité, bio, prix, langues) pour apparaître dans la liste
+              des mentors.
+            </p>
+          </div>
+          <KazaButton variant="ghost" size="sm" href="/mentor/profil">
+            Compléter
+          </KazaButton>
         </div>
+      )}
 
-        <CommunityBanner tone="mentor" />
+      {/* KPIs */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KazaKpiCard
+          label="Revenus nets acquis"
+          value={`${fmt(stats.totalRevenue)} F`}
+          delta={`${fmt(stats.grossRevenue)} bruts`}
+          deltaTrend="up"
+          icon={Wallet}
+          iconColor="emerald"
+        />
+        <KazaKpiCard
+          label="En attente (escrow)"
+          value={`${fmt(stats.pendingRevenue)} F`}
+          delta={`${stats.pendingCount} session(s)`}
+          icon={Hourglass}
+          iconColor="orange"
+        />
+        <KazaKpiCard
+          label="À confirmer"
+          value={stats.pendingBookings}
+          delta={`${stats.confirmedBookings} confirmés`}
+          icon={Calendar}
+          iconColor="sky"
+        />
+        <KazaKpiCard
+          label="Note moyenne"
+          value={profile.rating > 0 ? profile.rating.toFixed(1) : "—"}
+          delta={profile.reviewsCount > 0 ? `${profile.reviewsCount} avis` : undefined}
+          icon={Star}
+          iconColor="violet"
+        />
+      </section>
 
-        {/* ── KYC banner (onboarding) ─────────────────────────────────────────── */}
-        {kycState && kycState.level < 2 && (
-          <div className={`rounded-2xl p-5 flex items-start gap-4 border ${kycState.pending ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"}`}>
-            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${kycState.pending ? "bg-amber-500" : "bg-red-500"}`}>
-              <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                {kycState.pending ? "hourglass_top" : "warning"}
-              </span>
+      {/* Calendar CTA */}
+      {profileComplete && (
+        <Link
+          href="/mentor/calendrier"
+          className="block bg-gradient-to-r from-sky-50 to-violet-50 border border-sky-200 rounded-2xl px-5 py-4 hover:border-sky-400 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-sky-500 flex items-center justify-center flex-shrink-0 text-white">
+              <CalendarPlus className="w-5 h-5" />
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-bold text-[#191c1e]">
-                {kycState.pending ? "Vérification d'identité en cours" : "Vérification d'identité requise"}
-              </h3>
-              <p className="text-sm text-[#5c647a] mt-1">
-                {kycState.pending
-                  ? "Notre équipe examine votre demande (24-48h). Vous serez notifié dès validation."
-                  : "Sans vérification, vous ne pourrez pas retirer les gains de vos séances. Soumettez une pièce d'identité maintenant."}
-              </p>
-              {!kycState.pending && (
-                <Link
-                  href="/kyc"
-                  className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-xl text-white text-xs font-bold"
-                  style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-                >
-                  <span className="material-symbols-outlined text-[16px]">verified_user</span>
-                  Commencer la vérification
-                </Link>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ── Profile incomplete banner ───────────────────────────────────────── */}
-        {!profileComplete && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-start gap-3">
-            <span className="material-symbols-outlined text-amber-500 text-[22px] flex-shrink-0 mt-0.5">warning</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-amber-800">Profil incomplet</p>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Complétez votre profil (spécialité, bio, prix, langues) pour apparaître dans la liste des mentors.
+              <p className="text-sm font-bold text-[#0b2540]">Configurez vos disponibilités</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Définissez vos créneaux hebdomadaires pour recevoir des réservations automatiquement.
               </p>
             </div>
-            <Link
-              href="/mentor/profil"
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors flex-shrink-0"
-            >
-              Compléter
-            </Link>
+            <ArrowRight className="w-5 h-5 text-sky-600" />
           </div>
-        )}
+        </Link>
+      )}
 
-        {/* ── KPI Grid ─────────────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-          <KpiCard
-            icon="payments"
-            label="Revenus nets acquis"
-            value={`${fmt(stats.totalRevenue)} F`}
-            sub={`${fmt(stats.grossRevenue)} bruts · Voir finances →`}
-            color="bg-[#006e2f]"
-            href="/mentor/finances"
-          />
-          <KpiCard
-            icon="hourglass_top"
-            label="En attente (escrow)"
-            value={`${fmt(stats.pendingRevenue)} F`}
-            sub={`${stats.pendingCount} session${stats.pendingCount > 1 ? "s" : ""} · libéré 24h après`}
-            color="bg-amber-500"
-            href="/mentor/finances"
-          />
-          <KpiCard
-            icon="schedule"
-            label="À confirmer"
-            value={String(stats.pendingBookings)}
-            sub={`${stats.confirmedBookings} confirmés`}
-            color="bg-blue-500"
-            href="/mentor/rendez-vous"
-          />
-          <KpiCard
-            icon="star"
-            label="Note moyenne"
-            value={profile.rating > 0 ? profile.rating.toFixed(1) : "—"}
-            sub={profile.reviewsCount > 0 ? `${profile.reviewsCount} avis` : "Pas encore d'avis"}
-            color="bg-purple-500"
-          />
-        </div>
-
-        {/* ── Calendar CTA if schedule empty ───────────────────────────────── */}
-        {profileComplete && (
-          <Link
-            href="/mentor/calendrier"
-            className="block bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl px-5 py-4 hover:border-blue-400 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-blue-500 flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-white text-[22px]">event</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-bold text-[#191c1e]">Configurez vos disponibilités</p>
-                <p className="text-xs text-[#5c647a] mt-0.5">
-                  Définissez vos créneaux hebdomadaires pour recevoir des réservations automatiquement.
-                </p>
-              </div>
-              <span className="material-symbols-outlined text-blue-600">arrow_forward</span>
-            </div>
-          </Link>
-        )}
-
-        {/* ── Main content grid ─────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ── Upcoming sessions ──────────────────────────────────────────────── */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-[#191c1e]">Prochaines séances</h2>
-              <Link
-                href="/mentor/rendez-vous"
-                className="text-xs text-[#006e2f] font-semibold hover:underline flex items-center gap-1"
-              >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Upcoming sessions */}
+        <div className="lg:col-span-2 space-y-4">
+          <KazaSection
+            label="Mentorat"
+            title="Prochaines séances"
+            action={
+              <KazaButton variant="ghost" size="sm" href="/mentor/rendez-vous" iconRight={ArrowRight}>
                 Voir tout
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-              </Link>
-            </div>
-
+              </KazaButton>
+            }
+          >
             {upcoming.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                <span className="material-symbols-outlined text-gray-300 text-5xl">event_available</span>
-                <p className="text-sm text-[#5c647a] font-medium mt-3">Aucune séance à venir</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Partagez votre profil pour recevoir des demandes de réservation.
-                </p>
-                <Link
-                  href="/mentors"
-                  className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-xl text-xs font-semibold bg-[#006e2f] text-white hover:opacity-90 transition-opacity"
-                >
-                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
-                  Voir mon profil public
-                </Link>
-              </div>
+              <KazaEmpty
+                icon={Calendar}
+                title="Aucune séance à venir"
+                description="Partagez votre profil pour recevoir des demandes de réservation."
+                action={{ label: "Voir mon profil public", href: "/mentors" }}
+              />
             ) : (
               <div className="space-y-3">
                 {upcoming.map((b) => (
                   <div
                     key={b.id}
-                    className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#006e2f]/20 transition-colors"
+                    className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 hover:border-emerald-200 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        {/* Avatar */}
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden"
+                          style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
+                        >
                           {b.student.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={b.student.image}
                               alt={b.student.name ?? ""}
@@ -571,40 +531,37 @@ export default function MentorDashboardPage() {
                           )}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-[#191c1e]">
+                          <p className="text-sm font-bold text-[#0b2540]">
                             {b.student.name ?? b.student.email ?? "Apprenant"}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
                               {fmtDate(b.scheduledAt)}
                             </span>
-                            <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[13px]">schedule</span>
-                              {fmtTime(b.scheduledAt)}
-                            </span>
-                            <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[13px]">timer</span>
-                              {b.durationMinutes} min
+                            <span className="text-xs text-slate-500 flex items-center gap-1">
+                              <Timer className="w-3 h-3" />
+                              {fmtTime(b.scheduledAt)} · {b.durationMinutes} min
                             </span>
                           </div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                         <StatusBadge status={b.status} />
-                        <p className="text-sm font-bold text-[#006e2f]">{fmt(b.paidAmount)} FCFA</p>
+                        <p className="text-sm font-bold text-emerald-600 tabular-nums">
+                          {fmt(b.paidAmount)} F
+                        </p>
                       </div>
                     </div>
 
-                    {/* Meeting link display */}
                     {b.meetingLink && (
                       <a
                         href={b.meetingLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-3 flex items-center gap-1.5 text-xs text-blue-600 hover:underline"
+                        className="mt-3 flex items-center gap-1.5 text-xs text-sky-600 hover:underline"
                       >
-                        <span className="material-symbols-outlined text-[14px]">videocam</span>
+                        <Video className="w-3.5 h-3.5" />
                         {b.meetingLink}
                       </a>
                     )}
@@ -614,185 +571,172 @@ export default function MentorDashboardPage() {
                 ))}
               </div>
             )}
-          </div>
+          </KazaSection>
+        </div>
 
-          {/* ── Right column ─────────────────────────────────────────────────── */}
-          <div className="space-y-4">
-            {/* Profile card — image dominante en haut (style produit) */}
-            <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col">
-              {/* Image (en haut) — aspect 4/3 */}
-              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#003d1a] via-[#006e2f] to-[#22c55e] overflow-hidden">
-                {profile.coverImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profile.coverImage}
-                    alt={profile.specialty || "Profil mentor"}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span
-                      className="material-symbols-outlined text-white text-[64px] opacity-60"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      support_agent
-                    </span>
-                  </div>
-                )}
-
-                {/* Top-left: dispo */}
-                <span
-                  className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur shadow-sm ${
-                    profile.isAvailable ? "bg-green-500/95 text-white" : "bg-gray-600/95 text-gray-100"
-                  }`}
-                >
-                  <span className={`w-1 h-1 rounded-full ${profile.isAvailable ? "bg-white animate-pulse" : "bg-gray-300"}`} />
-                  {profile.isAvailable ? "Disponible" : "Indisponible"}
-                </span>
-
-                {/* Top-right: verified */}
-                {profile.isVerified && (
-                  <span className="absolute top-2 right-2 inline-flex items-center gap-1 bg-white/95 backdrop-blur text-[#006e2f] text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                    <span
-                      className="material-symbols-outlined text-blue-500 text-[11px]"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      verified
-                    </span>
-                    Vérifié
-                  </span>
-                )}
-
-                {/* Avatar superposé */}
-                <div className="absolute bottom-2 left-2 w-12 h-12 rounded-full ring-2 ring-white shadow-lg overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold">
-                  <span className="material-symbols-outlined text-[22px]">person</span>
-                </div>
-
-                {/* Bottom-right: rating si dispo */}
-                {profile.rating > 0 && (
-                  <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-white/95 backdrop-blur text-[#191c1e] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                    <span
-                      className="material-symbols-outlined text-amber-400 text-[11px]"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      star
-                    </span>
-                    {profile.rating.toFixed(1)}
-                  </span>
-                )}
-              </div>
-
-              {/* Body */}
-              <div className="p-4 flex flex-col gap-2">
-                <div>
-                  <p className="text-sm font-bold text-[#191c1e] line-clamp-1">
-                    {profile.specialty || "Spécialité non définie"}
-                  </p>
-                  {profile.domain && (
-                    <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">
-                      {profile.domain}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-[#5c647a] line-clamp-3 leading-relaxed">
-                  {profile.bio ||
-                    "Aucune bio renseignée. Ajoutez une description pour attirer des apprenants."}
-                </p>
-                <div className="flex items-center justify-between mt-1 pt-2 border-t border-gray-50">
-                  <div>
-                    <p className="text-sm font-extrabold text-[#006e2f] leading-tight">
-                      {fmt(profile.sessionPrice)}{" "}
-                      <span className="text-[10px] font-bold text-[#5c647a]">FCFA</span>
-                    </p>
-                    <p className="text-[10px] text-[#5c647a]">
-                      {profile.sessionDuration} min
-                    </p>
-                  </div>
-                  <Link
-                    href="/mentor/profil"
-                    className="text-xs text-[#006e2f] font-semibold hover:underline flex items-center gap-1"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">edit</span>
-                    Modifier
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Past sessions */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-4">
-              <h3 className="text-sm font-bold text-[#191c1e] mb-3">Séances passées</h3>
-              {pastSessions.length === 0 ? (
-                <p className="text-xs text-[#5c647a] text-center py-4">Aucune séance terminée pour l&apos;instant.</p>
+        {/* Right column */}
+        <div className="space-y-4">
+          {/* Profile card */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
+            <div
+              className="relative aspect-[4/3] overflow-hidden"
+              style={{ background: "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)" }}
+            >
+              {profile.coverImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={profile.coverImage}
+                  alt={profile.specialty || "Profil mentor"}
+                  className="w-full h-full object-cover"
+                />
               ) : (
-                <div className="space-y-3">
-                  {pastSessions.map((s) => (
-                    <div key={s.id} className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-[10px] font-bold flex-shrink-0">
-                          {initials(s.student.name)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-[#191c1e] truncate">
-                            {s.student.name ?? "Apprenant"}
-                          </p>
-                          <p className="text-[10px] text-[#5c647a]">{fmtDate(s.scheduledAt)}</p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end flex-shrink-0">
-                        <p className="text-xs font-bold text-[#006e2f]">{fmt(s.paidAmount)} F</p>
-                        {s.rating ? (
-                          <div className="flex items-center gap-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <span
-                                key={star}
-                                className="material-symbols-outlined text-[10px]"
-                                style={{
-                                  color: star <= s.rating! ? "#f59e0b" : "#d1d5db",
-                                  fontVariationSettings: "'FILL' 1",
-                                }}
-                              >
-                                star
-                              </span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-[10px] text-gray-400">Non noté</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div className="w-full h-full flex items-center justify-center">
+                  <Headphones className="w-16 h-16 text-white/30" />
                 </div>
+              )}
+
+              <span
+                className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur shadow-sm ${
+                  profile.isAvailable ? "bg-emerald-500/95 text-white" : "bg-slate-600/95 text-slate-100"
+                }`}
+              >
+                <span
+                  className={`w-1 h-1 rounded-full ${profile.isAvailable ? "bg-white animate-pulse" : "bg-slate-300"}`}
+                />
+                {profile.isAvailable ? "Disponible" : "Indisponible"}
+              </span>
+
+              {profile.isVerified && (
+                <span className="absolute top-2 right-2 inline-flex items-center gap-1 bg-white/95 backdrop-blur text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  <ShieldCheck className="w-3 h-3 text-sky-500" />
+                  Vérifié
+                </span>
+              )}
+
+              <div
+                className="absolute bottom-2 left-2 w-12 h-12 rounded-full ring-2 ring-white shadow-lg overflow-hidden flex items-center justify-center text-white"
+                style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
+              >
+                <User className="w-5 h-5" />
+              </div>
+
+              {profile.rating > 0 && (
+                <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-white/95 backdrop-blur text-[#0b2540] text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  <Star className="w-3 h-3 text-amber-400" fill="currentColor" />
+                  {profile.rating.toFixed(1)}
+                </span>
               )}
             </div>
 
-            {/* Quick stats */}
-            <div className="bg-gradient-to-br from-[#003d1a] to-[#006e2f] rounded-2xl p-4 text-white">
-              <p className="text-xs font-semibold text-white/70 mb-3">Statistiques globales</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/80">Séances totales</span>
-                  <span className="text-sm font-bold">{profile.totalSessions}</span>
+            <div className="p-4 flex flex-col gap-2">
+              <div>
+                <p className="text-sm font-bold text-[#0b2540] line-clamp-1">
+                  {profile.specialty || "Spécialité non définie"}
+                </p>
+                {profile.domain && (
+                  <KazaBadge variant="slate" size="sm">
+                    {profile.domain}
+                  </KazaBadge>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">
+                {profile.bio ||
+                  "Aucune bio renseignée. Ajoutez une description pour attirer des apprenants."}
+              </p>
+              <div className="flex items-center justify-between mt-1 pt-2 border-t border-slate-100">
+                <div>
+                  <p className="text-sm font-extrabold text-emerald-600 leading-tight tabular-nums">
+                    {fmt(profile.sessionPrice)}{" "}
+                    <span className="text-[10px] font-bold text-slate-500">FCFA</span>
+                  </p>
+                  <p className="text-[10px] text-slate-500">{profile.sessionDuration} min</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/80">Apprenants</span>
-                  <span className="text-sm font-bold">{profile.totalStudents}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/80">Note / 5</span>
-                  <span className="text-sm font-bold">
-                    {profile.rating > 0 ? (
-                      <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-amber-300 text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                        {profile.rating.toFixed(1)}
-                      </span>
-                    ) : "—"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/80">Avis reçus</span>
-                  <span className="text-sm font-bold">{profile.reviewsCount}</span>
-                </div>
+                <KazaButton variant="ghost" size="sm" href="/mentor/profil" icon={Edit3}>
+                  Modifier
+                </KazaButton>
+              </div>
+            </div>
+          </div>
+
+          {/* Past sessions */}
+          <KazaCard title="Séances passées">
+            {pastSessions.length === 0 ? (
+              <p className="text-xs text-slate-500 text-center py-4">
+                Aucune séance terminée pour l&apos;instant.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {pastSessions.map((s) => (
+                  <div key={s.id} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 text-[10px] font-bold flex-shrink-0">
+                        {initials(s.student.name)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-[#0b2540] truncate">
+                          {s.student.name ?? "Apprenant"}
+                        </p>
+                        <p className="text-[10px] text-slate-500">{fmtDate(s.scheduledAt)}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end flex-shrink-0">
+                      <p className="text-xs font-bold text-emerald-600 tabular-nums">
+                        {fmt(s.paidAmount)} F
+                      </p>
+                      {s.rating ? (
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className="w-2.5 h-2.5"
+                              fill={star <= s.rating! ? "#f59e0b" : "transparent"}
+                              stroke={star <= s.rating! ? "#f59e0b" : "#d1d5db"}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[10px] text-slate-400">Non noté</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </KazaCard>
+
+          {/* Quick stats */}
+          <div
+            className="rounded-2xl p-4 text-white shadow-md"
+            style={{ background: "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)" }}
+          >
+            <p className="text-xs font-semibold text-white/70 mb-3 uppercase tracking-wider">
+              Statistiques globales
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/80">Séances totales</span>
+                <span className="text-sm font-bold">{profile.totalSessions}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/80">Apprenants</span>
+                <span className="text-sm font-bold">{profile.totalStudents}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/80">Note / 5</span>
+                <span className="text-sm font-bold">
+                  {profile.rating > 0 ? (
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3 h-3 text-amber-300" fill="currentColor" />
+                      {profile.rating.toFixed(1)}
+                    </span>
+                  ) : (
+                    "—"
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/80">Avis reçus</span>
+                <span className="text-sm font-bold">{profile.reviewsCount}</span>
               </div>
             </div>
           </div>

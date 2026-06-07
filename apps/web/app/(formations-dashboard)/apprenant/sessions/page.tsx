@@ -1,9 +1,35 @@
+// Refonte style KAZA — apprenant sessions — 2026-06-07
 "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { confirmAction } from "@/store/confirm";
 import { useToastStore } from "@/store/toast";
+import {
+  KazaHero,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+  KazaSection,
+} from "@/components/kaza";
+import {
+  Calendar,
+  CalendarCheck,
+  Plus,
+  Search,
+  Video,
+  MessageSquare,
+  XCircle,
+  CheckCircle2,
+  Hourglass,
+  Timer,
+  Star,
+  ArrowRight,
+  X,
+  Info,
+  UserPlus,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type BookingStatus =
@@ -81,16 +107,19 @@ function isJoinableNow(scheduledAt: string, durationMinutes: number): boolean {
   return m <= 15 && m >= -(durationMinutes + 60);
 }
 
-const STATUS_CONFIG: Record<BookingStatus, { label: string; icon: string; cls: string }> = {
-  PAYMENT_PENDING:                 { label: "Paiement en cours",  icon: "hourglass_top",  cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  PENDING:                         { label: "En attente mentor",  icon: "hourglass_top",  cls: "bg-amber-50 text-amber-700 border-amber-200" },
-  CONFIRMED:                       { label: "Confirmée",          icon: "check_circle",   cls: "bg-green-50 text-green-700 border-green-200" },
-  CANCELLATION_REQUESTED_STUDENT:  { label: "Annul. en attente admin", icon: "gavel",     cls: "bg-orange-50 text-orange-700 border-orange-200" },
-  CANCELLATION_REQUESTED_MENTOR:   { label: "Mentor a annulé · admin examine", icon: "gavel", cls: "bg-orange-50 text-orange-700 border-orange-200" },
-  COMPLETED:                       { label: "Terminée",           icon: "task_alt",       cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  RELEASED:                        { label: "Terminée (fonds libérés)", icon: "task_alt", cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  CANCELLED:                       { label: "Annulée",            icon: "cancel",         cls: "bg-red-50 text-red-600 border-red-200" },
-  NO_SHOW:                         { label: "Absent",             icon: "person_off",     cls: "bg-gray-100 text-gray-500 border-gray-200" },
+const STATUS_VARIANT: Record<
+  BookingStatus,
+  { label: string; variant: "orange" | "green" | "blue" | "rose" | "slate" | "violet" }
+> = {
+  PAYMENT_PENDING: { label: "Paiement en cours", variant: "orange" },
+  PENDING: { label: "En attente mentor", variant: "orange" },
+  CONFIRMED: { label: "Confirmée", variant: "green" },
+  CANCELLATION_REQUESTED_STUDENT: { label: "Annul. en attente admin", variant: "orange" },
+  CANCELLATION_REQUESTED_MENTOR: { label: "Mentor a annulé · admin examine", variant: "orange" },
+  COMPLETED: { label: "Terminée", variant: "blue" },
+  RELEASED: { label: "Terminée (fonds libérés)", variant: "blue" },
+  CANCELLED: { label: "Annulée", variant: "rose" },
+  NO_SHOW: { label: "Absent", variant: "slate" },
 };
 
 // ─── Review modal ─────────────────────────────────────────────────────────────
@@ -132,15 +161,17 @@ function ReviewModal({
       <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"
         >
-          <span className="material-symbols-outlined text-[18px]">close</span>
+          <X className="w-4 h-4" />
         </button>
-        <h2 className="text-lg font-extrabold text-[#191c1e]">Évaluer la séance</h2>
-        <p className="text-xs text-[#5c647a] mt-1">Votre avis aide {session.mentor.name ?? "le mentor"} et les futurs apprenants.</p>
+        <h2 className="text-lg font-extrabold text-[#0b2540]">Évaluer la séance</h2>
+        <p className="text-xs text-slate-500 mt-1">
+          Votre avis aide {session.mentor.name ?? "le mentor"} et les futurs apprenants.
+        </p>
 
         <div className="mt-5">
-          <p className="text-xs font-semibold text-[#191c1e] mb-2">Votre note</p>
+          <p className="text-xs font-semibold text-[#0b2540] mb-2">Votre note</p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((s) => (
               <button
@@ -149,40 +180,38 @@ function ReviewModal({
                 onClick={() => setRating(s)}
                 className="p-1 hover:scale-110 transition-transform"
               >
-                <span
-                  className="material-symbols-outlined text-[28px]"
-                  style={{
-                    color: s <= rating ? "#f59e0b" : "#d1d5db",
-                    fontVariationSettings: "'FILL' 1",
-                  }}
-                >star</span>
+                <Star
+                  className="w-7 h-7"
+                  fill={s <= rating ? "#f59e0b" : "transparent"}
+                  stroke={s <= rating ? "#f59e0b" : "#d1d5db"}
+                />
               </button>
             ))}
           </div>
         </div>
 
         <div className="mt-4">
-          <p className="text-xs font-semibold text-[#191c1e] mb-1.5">Commentaire (optionnel)</p>
+          <p className="text-xs font-semibold text-[#0b2540] mb-1.5">Commentaire (optionnel)</p>
           <textarea
             value={review}
             onChange={(e) => setReview(e.target.value)}
             rows={4}
             maxLength={2000}
             placeholder="Qu'avez-vous appris ? Qu'avez-vous apprécié ?"
-            className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] resize-none"
+            className="w-full text-sm border-2 border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 resize-none"
           />
         </div>
 
-        {err && <p className="text-xs text-red-600 mt-3">{err}</p>}
+        {err && <p className="text-xs text-rose-600 mt-3">{err}</p>}
 
-        <button
+        <KazaButton
+          variant="primary"
           onClick={submit}
           disabled={submitting}
-          className="w-full mt-5 py-3 rounded-xl text-white font-bold text-sm disabled:opacity-50"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+          className="w-full mt-5"
         >
           {submitting ? "Envoi…" : "Publier mon avis"}
-        </button>
+        </KazaButton>
       </div>
     </div>
   );
@@ -218,11 +247,11 @@ export default function ApprenantSessionsPage() {
   }, []);
 
   async function cancelSession(id: string, currentStatus: BookingStatus) {
-    // PENDING (mentor pas encore confirmé) = remboursement automatique, pas de motif requis
     if (currentStatus === "PENDING") {
       const ok = await confirmAction({
         title: "Annuler cette session ?",
-        message: "Le mentor n'a pas encore confirmé. Vous serez remboursé intégralement et automatiquement.",
+        message:
+          "Le mentor n'a pas encore confirmé. Vous serez remboursé intégralement et automatiquement.",
         confirmLabel: "Annuler + remboursement",
         cancelLabel: "Revenir",
         confirmVariant: "danger",
@@ -244,7 +273,6 @@ export default function ApprenantSessionsPage() {
       return;
     }
 
-    // CONFIRMED = motif obligatoire + validation admin
     const reason = window.prompt(
       "La session est déjà confirmée par le mentor. Vous devez indiquer un motif (30 caractères minimum). L'admin examinera votre demande et décidera du remboursement.",
       "",
@@ -280,169 +308,190 @@ export default function ApprenantSessionsPage() {
 
   if (loading) {
     return (
-      <div className="p-6 space-y-4 animate-pulse">
-        <div className="h-8 w-48 bg-gray-200 rounded-xl" />
-        <div className="h-32 bg-gray-200 rounded-2xl" />
-        <div className="h-64 bg-gray-200 rounded-2xl" />
+      <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6 animate-pulse">
+        <div className="h-32 bg-slate-200 rounded-3xl" />
+        <div className="grid grid-cols-4 gap-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-24 bg-slate-200 rounded-2xl" />
+          ))}
+        </div>
+        <div className="h-64 bg-slate-200 rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-extrabold text-[#191c1e]">Mes sessions de mentorat</h1>
-        <p className="text-sm text-[#5c647a] mt-1">
-          Suivez vos séances réservées, rejoignez les salles Jitsi et laissez vos avis.
-        </p>
-      </div>
+    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
+      <KazaHero
+        badge="Apprenant"
+        badgeColor="blue"
+        icon={CalendarCheck}
+        title="Mes sessions de mentorat"
+        subtitle="Suivez vos séances réservées, rejoignez les salles Jitsi et laissez vos avis."
+        actions={
+          <>
+            <KazaButton variant="secondary" href="/mentors" icon={Search}>
+              Trouver un mentor
+            </KazaButton>
+            <KazaButton variant="primary" href="/apprenant/mentors" icon={UserPlus}>
+              Mes mentors
+            </KazaButton>
+          </>
+        }
+      />
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-center gap-2">
+          <XCircle className="w-5 h-5 text-rose-500" />
+          <p className="text-sm text-rose-700">{error}</p>
         </div>
       )}
 
-      {/* Stats */}
+      {/* KPIs */}
       {stats && (
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-[11px] text-[#5c647a] font-medium">À venir</p>
-            <p className="text-2xl font-extrabold text-[#006e2f] mt-1">{stats.upcoming}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-[11px] text-[#5c647a] font-medium">Confirmées</p>
-            <p className="text-2xl font-extrabold text-green-600 mt-1">{stats.confirmed}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-[11px] text-[#5c647a] font-medium">En attente</p>
-            <p className="text-2xl font-extrabold text-amber-600 mt-1">{stats.pending}</p>
-          </div>
-          <div className="hidden md:block bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-[11px] text-[#5c647a] font-medium">Terminées</p>
-            <p className="text-2xl font-extrabold text-blue-600 mt-1">{stats.completed}</p>
-          </div>
-        </div>
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <KazaKpiCard label="À venir" value={stats.upcoming} icon={Calendar} iconColor="emerald" />
+          <KazaKpiCard
+            label="Confirmées"
+            value={stats.confirmed}
+            icon={CheckCircle2}
+            iconColor="emerald"
+          />
+          <KazaKpiCard
+            label="En attente"
+            value={stats.pending}
+            icon={Hourglass}
+            iconColor="orange"
+          />
+          <KazaKpiCard label="Terminées" value={stats.completed} icon={Star} iconColor="sky" />
+        </section>
       )}
 
       {/* Upcoming */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-[#191c1e]">Prochaines sessions</h2>
-          <Link
-            href="/mentors"
-            className="text-xs text-[#006e2f] font-semibold hover:underline flex items-center gap-1"
-          >
-            <span className="material-symbols-outlined text-[14px]">add</span>
+      <KazaSection
+        label="À venir"
+        title="Prochaines sessions"
+        action={
+          <KazaButton variant="ghost" size="sm" href="/mentors" icon={Plus}>
             Nouvelle session
-          </Link>
-        </div>
-
+          </KazaButton>
+        }
+      >
         {upcoming.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-            <span className="material-symbols-outlined text-gray-300 text-5xl">event_available</span>
-            <p className="text-sm text-[#5c647a] font-medium mt-3">Aucune session à venir</p>
-            <p className="text-xs text-gray-400 mt-1">Trouvez un mentor qui correspond à vos objectifs.</p>
-            <Link
-              href="/mentors"
-              className="inline-flex items-center gap-1.5 mt-4 px-4 py-2 rounded-xl text-xs font-bold text-white hover:opacity-90"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-            >
-              <span className="material-symbols-outlined text-[14px]">search</span>
-              Découvrir les mentors
-            </Link>
-          </div>
+          <KazaEmpty
+            icon={Calendar}
+            title="Aucune session à venir"
+            description="Trouvez un mentor qui correspond à vos objectifs."
+            action={{ label: "Découvrir les mentors", href: "/mentors" }}
+          />
         ) : (
           <div className="space-y-3">
             {upcoming.map((s) => {
-              const cfg = STATUS_CONFIG[s.status];
+              const cfg = STATUS_VARIANT[s.status];
               const joinable = isJoinableNow(s.scheduledAt, s.durationMinutes);
               return (
-                <div key={s.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 border-b border-gray-100">
-                    <span className="text-xs font-semibold text-[#5c647a] capitalize">
+                <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-slate-100">
+                    <span className="text-xs font-semibold text-slate-500 capitalize">
                       {fmtDate(s.scheduledAt)} · {fmtTime(s.scheduledAt)}
                     </span>
-                    <span className={`ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${cfg.cls}`}>
-                      <span className="material-symbols-outlined text-[11px]">{cfg.icon}</span>
-                      {cfg.label}
-                    </span>
+                    <div className="ml-auto">
+                      <KazaBadge variant={cfg.variant} size="sm">
+                        {cfg.label}
+                      </KazaBadge>
+                    </div>
                   </div>
 
                   <div className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] text-white font-bold flex items-center justify-center overflow-hidden flex-shrink-0">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0"
+                        style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
+                      >
                         {s.mentor.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={s.mentor.image} alt={s.mentor.name ?? ""} className="w-full h-full object-cover" />
-                        ) : initials(s.mentor.name)}
+                          <img
+                            src={s.mentor.image}
+                            alt={s.mentor.name ?? ""}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          initials(s.mentor.name)
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <Link
                           href={`/mentors/${s.mentor.id}`}
-                          className="text-sm font-bold text-[#191c1e] hover:underline"
+                          className="text-sm font-bold text-[#0b2540] hover:underline"
                         >
                           {s.mentor.name ?? "Mentor"}
                         </Link>
-                        <p className="text-xs text-[#5c647a]">{s.mentor.specialty}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-[11px] text-[#5c647a]">
+                        <p className="text-xs text-slate-500">{s.mentor.specialty}</p>
+                        <div className="flex flex-wrap gap-2 mt-1 text-[11px] text-slate-500">
                           <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[13px]">timer</span>
+                            <Timer className="w-3 h-3" />
                             {s.durationMinutes} min
                           </span>
                           <span>·</span>
-                          <span className="font-semibold text-[#006e2f]">{fmt(s.paidAmount)} F</span>
+                          <span className="font-semibold text-emerald-600 tabular-nums">
+                            {fmt(s.paidAmount)} F
+                          </span>
                         </div>
                       </div>
                     </div>
 
                     {s.studentGoals && (
-                      <div className="mt-3 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2">
-                        <p className="text-[10px] font-bold text-blue-800 uppercase mb-0.5">Vos objectifs</p>
-                        <p className="text-xs text-blue-900 whitespace-pre-wrap line-clamp-2">{s.studentGoals}</p>
+                      <div className="mt-3 bg-sky-50 border border-sky-200 rounded-xl px-3 py-2">
+                        <p className="text-[10px] font-bold text-sky-800 uppercase mb-0.5">
+                          Vos objectifs
+                        </p>
+                        <p className="text-xs text-sky-900 whitespace-pre-wrap line-clamp-2">
+                          {s.studentGoals}
+                        </p>
                       </div>
                     )}
 
-                    <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-gray-100">
-                      <Link
+                    <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100">
+                      <KazaButton
+                        variant="ghost"
+                        size="sm"
                         href={`/apprenant/sessions/${s.id}`}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200"
+                        icon={Info}
                       >
-                        <span className="material-symbols-outlined text-[14px]">info</span>
                         Détails
-                      </Link>
+                      </KazaButton>
 
                       {s.status === "CONFIRMED" && (
-                        <Link
+                        <KazaButton
+                          variant={joinable ? "primary" : "ghost"}
+                          size="sm"
                           href={`/sessions/${s.id}/salle`}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                            joinable
-                              ? "bg-blue-600 text-white hover:bg-blue-700"
-                              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
-                          }`}
+                          icon={Video}
                         >
-                          <span className="material-symbols-outlined text-[14px]">videocam</span>
                           {joinable ? "Rejoindre la salle" : "Ouvrir la salle"}
-                        </Link>
+                        </KazaButton>
                       )}
 
-                      {/* Présence — disponible si session démarrée (>= scheduled - 30 min) */}
                       {s.status === "CONFIRMED" && minutesUntil(s.scheduledAt) < 30 && (
                         <>
                           {s.studentAttended === true ? (
-                            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#006e2f]/10 text-[#006e2f]">
-                              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                            <KazaBadge variant="green" size="md" icon={CheckCircle2}>
                               Présence confirmée
-                            </span>
+                            </KazaBadge>
                           ) : (
-                            <button
+                            <KazaButton
+                              variant="primary"
+                              size="sm"
+                              icon={CheckCircle2}
                               onClick={async () => {
-                                const res = await fetch(`/api/formations/mentor-bookings/${s.id}/attendance`, {
-                                  method: "POST",
-                                  headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({ attended: true }),
-                                });
+                                const res = await fetch(
+                                  `/api/formations/mentor-bookings/${s.id}/attendance`,
+                                  {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ attended: true }),
+                                  },
+                                );
                                 if (res.ok) {
                                   useToastStore.getState().addToast("success", "Présence enregistrée");
                                   await load();
@@ -451,16 +500,17 @@ export default function ApprenantSessionsPage() {
                                   useToastStore.getState().addToast("error", j.error ?? "Erreur");
                                 }
                               }}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#006e2f] text-white hover:bg-[#005a26]"
                             >
-                              <span className="material-symbols-outlined text-[14px]">how_to_reg</span>
                               J&apos;ai assisté
-                            </button>
+                            </KazaButton>
                           )}
                         </>
                       )}
 
-                      <button
+                      <KazaButton
+                        variant="ghost"
+                        size="sm"
+                        icon={MessageSquare}
                         onClick={async () => {
                           try {
                             const res = await fetch("/api/formations/messages/conversations", {
@@ -475,21 +525,23 @@ export default function ApprenantSessionsPage() {
                               useToastStore.getState().addToast("error", json.error ?? "Erreur");
                             }
                           } catch (e) {
-                            useToastStore.getState().addToast("error", e instanceof Error ? e.message : "Erreur");
+                            useToastStore
+                              .getState()
+                              .addToast("error", e instanceof Error ? e.message : "Erreur");
                           }
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 ml-auto"
+                        className="ml-auto"
                       >
-                        <span className="material-symbols-outlined text-[14px]">chat_bubble</span>
                         Message
-                      </button>
-                      <button
+                      </KazaButton>
+                      <KazaButton
+                        variant="danger"
+                        size="sm"
+                        icon={XCircle}
                         onClick={() => cancelSession(s.id, s.status)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100"
                       >
-                        <span className="material-symbols-outlined text-[14px]">cancel</span>
                         Annuler
-                      </button>
+                      </KazaButton>
                     </div>
                   </div>
                 </div>
@@ -497,70 +549,78 @@ export default function ApprenantSessionsPage() {
             })}
           </div>
         )}
-      </div>
+      </KazaSection>
 
       {/* Past */}
       {past.length > 0 && (
-        <div>
-          <h2 className="text-base font-bold text-[#191c1e] mb-3">Sessions passées</h2>
+        <KazaSection label="Historique" title="Sessions passées">
           <div className="space-y-2">
             {past.map((s) => {
-              const cfg = STATUS_CONFIG[s.status];
+              const cfg = STATUS_VARIANT[s.status];
               return (
                 <div
                   key={s.id}
-                  className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-3 hover:border-[#006e2f]/20 transition-colors"
+                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3 hover:border-emerald-200 transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold overflow-hidden">
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden"
+                    style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
+                  >
                     {s.mentor.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.mentor.image} alt={s.mentor.name ?? ""} className="w-full h-full object-cover" />
-                    ) : initials(s.mentor.name)}
+                      <img
+                        src={s.mentor.image}
+                        alt={s.mentor.name ?? ""}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      initials(s.mentor.name)
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#191c1e] truncate">{s.mentor.name ?? "Mentor"}</p>
-                    <p className="text-[11px] text-[#5c647a]">
+                    <p className="text-sm font-bold text-[#0b2540] truncate">
+                      {s.mentor.name ?? "Mentor"}
+                    </p>
+                    <p className="text-[11px] text-slate-500">
                       {fmtDate(s.scheduledAt)} · {fmtTime(s.scheduledAt)} · {fmt(s.paidAmount)} F
                     </p>
                   </div>
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${cfg.cls}`}>
-                    <span className="material-symbols-outlined text-[11px]">{cfg.icon}</span>
+                  <KazaBadge variant={cfg.variant} size="sm">
                     {cfg.label}
-                  </span>
+                  </KazaBadge>
                   {s.canReview && (
-                    <button
+                    <KazaButton
+                      variant="ghost"
+                      size="sm"
+                      icon={Star}
                       onClick={() => setReviewTarget(s)}
-                      className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100"
                     >
-                      <span className="material-symbols-outlined text-[12px]">rate_review</span>
                       Noter
-                    </button>
+                    </KazaButton>
                   )}
                   {s.studentRating && (
-                    <span className="flex items-center gap-0.5 text-amber-500">
-                      {[1,2,3,4,5].map(st => (
-                        <span
+                    <span className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((st) => (
+                        <Star
                           key={st}
-                          className="material-symbols-outlined text-[12px]"
-                          style={{
-                            color: st <= s.studentRating! ? "#f59e0b" : "#d1d5db",
-                            fontVariationSettings: "'FILL' 1",
-                          }}
-                        >star</span>
+                          className="w-3 h-3"
+                          fill={st <= s.studentRating! ? "#f59e0b" : "transparent"}
+                          stroke={st <= s.studentRating! ? "#f59e0b" : "#d1d5db"}
+                        />
                       ))}
                     </span>
                   )}
                   <Link
                     href={`/apprenant/sessions/${s.id}`}
-                    className="text-[#5c647a] hover:text-[#191c1e]"
+                    className="text-slate-500 hover:text-[#0b2540]"
                   >
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               );
             })}
           </div>
-        </div>
+        </KazaSection>
       )}
 
       {reviewTarget && (

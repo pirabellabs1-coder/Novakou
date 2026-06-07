@@ -1,12 +1,27 @@
+// Refonte style KAZA — apprenant commandes — 2026-06-07
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { KazaHero, KazaButton, KazaBadge, KazaEmpty } from "@/components/kaza";
+import {
+  ShoppingBag,
+  Search,
+  Play,
+  Package,
+  Headphones,
+  Calendar,
+  Receipt,
+  MessageSquare,
+  HandCoins,
+  Loader2,
+  X,
+  CheckCircle2,
+  CircleAlert,
+} from "lucide-react";
 
 type OrderType = "formation" | "product" | "mentor";
-type OrderStatus = "ACTIVE" | "COMPLETED" | "CANCELLED" | "PENDING" | "CONFIRMED" | "REFUND_PENDING" | "REFUNDED";
 
 type Order = {
   id: string;
@@ -26,45 +41,51 @@ type Order = {
 
 type FilterValue = "all" | OrderType;
 
-function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number)      { return Math.round(n / 655.957); }
+function formatFcfa(n: number) {
+  return n.toLocaleString("fr-FR") + " FCFA";
+}
+function toEur(n: number) {
+  return Math.round(n / 655.957);
+}
 
-const typeColors: Record<OrderType, string> = {
-  formation: "bg-blue-100 text-blue-700",
-  product:   "bg-amber-100 text-amber-700",
-  mentor:    "bg-purple-100 text-purple-700",
+const typeBadgeVariant: Record<OrderType, "blue" | "orange" | "violet"> = {
+  formation: "blue",
+  product: "orange",
+  mentor: "violet",
 };
 const typeLabels: Record<OrderType, string> = {
   formation: "Formation vidéo",
-  product:   "Produit numérique",
-  mentor:    "Session mentor",
+  product: "Produit numérique",
+  mentor: "Session mentor",
 };
-const typeIcons: Record<OrderType, string> = {
-  formation: "play_circle",
-  product:   "inventory_2",
-  mentor:    "support_agent",
+const typeIconMap: Record<OrderType, typeof Play> = {
+  formation: Play,
+  product: Package,
+  mentor: Headphones,
 };
 
-const statusConfig: Record<string, { label: string; className: string; icon: string }> = {
-  COMPLETED:       { label: "Terminé",            className: "bg-[#006e2f]/10 text-[#006e2f]", icon: "check_circle" },
-  ACTIVE:          { label: "En cours",           className: "bg-blue-100 text-blue-700",      icon: "schedule" },
-  PENDING:         { label: "En attente",         className: "bg-amber-100 text-amber-700",    icon: "hourglass_empty" },
-  CONFIRMED:       { label: "Confirmé",           className: "bg-blue-100 text-blue-700",      icon: "check" },
-  CANCELLED:       { label: "Annulé",             className: "bg-red-100 text-red-600",        icon: "cancel" },
-  REFUND_PENDING:  { label: "Remboursement demandé", className: "bg-amber-100 text-amber-700", icon: "hourglass_empty" },
-  REFUNDED:        { label: "Remboursé",          className: "bg-red-100 text-red-600",        icon: "money_off" },
-  100:             { label: "Terminé",            className: "bg-[#006e2f]/10 text-[#006e2f]", icon: "check_circle" },
+const statusConfig: Record<
+  string,
+  { label: string; variant: "green" | "blue" | "orange" | "rose" | "slate" }
+> = {
+  COMPLETED: { label: "Terminé", variant: "green" },
+  ACTIVE: { label: "En cours", variant: "blue" },
+  PENDING: { label: "En attente", variant: "orange" },
+  CONFIRMED: { label: "Confirmé", variant: "blue" },
+  CANCELLED: { label: "Annulé", variant: "rose" },
+  REFUND_PENDING: { label: "Remboursement demandé", variant: "orange" },
+  REFUNDED: { label: "Remboursé", variant: "rose" },
 };
 
 function SkeletonRow() {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm animate-pulse">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm animate-pulse">
       <div className="flex items-start gap-4 p-4 md:p-5">
-        <div className="w-16 h-16 rounded-xl bg-gray-100 flex-shrink-0" />
+        <div className="w-16 h-16 rounded-xl bg-slate-100 flex-shrink-0" />
         <div className="flex-1 space-y-2 py-1">
-          <div className="h-4 bg-gray-100 rounded w-3/4" />
-          <div className="h-3 bg-gray-100 rounded w-1/2" />
-          <div className="h-3 bg-gray-100 rounded w-2/3" />
+          <div className="h-4 bg-slate-100 rounded w-3/4" />
+          <div className="h-3 bg-slate-100 rounded w-1/2" />
+          <div className="h-3 bg-slate-100 rounded w-2/3" />
         </div>
       </div>
     </div>
@@ -182,9 +203,10 @@ export default function CommandesPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["apprenant-commandes", activeFilter],
     queryFn: () => {
-      const url = activeFilter === "all"
-        ? "/api/formations/apprenant/commandes"
-        : `/api/formations/apprenant/commandes?type=${activeFilter}`;
+      const url =
+        activeFilter === "all"
+          ? "/api/formations/apprenant/commandes"
+          : `/api/formations/apprenant/commandes?type=${activeFilter}`;
       return fetch(url).then((r) => r.json());
     },
     staleTime: 30_000,
@@ -193,83 +215,116 @@ export default function CommandesPage() {
   const orders: Order[] = data?.data ?? [];
 
   const filters: { label: string; value: FilterValue }[] = [
-    { label: "Tout",       value: "all" },
+    { label: "Tout", value: "all" },
     { label: "Formations", value: "formation" },
-    { label: "Produits",   value: "product" },
-    { label: "Mentors",    value: "mentor" },
+    { label: "Produits", value: "product" },
+    { label: "Mentors", value: "mentor" },
   ];
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mes Commandes</h1>
-          <p className="text-sm text-[#5c647a] mt-1">
-            {isLoading ? "Chargement…" : `${orders.length} commande${orders.length > 1 ? "s" : ""} au total`}
-          </p>
-        </div>
-      </div>
+    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
+      <KazaHero
+        badge="Apprenant"
+        badgeColor="blue"
+        icon={ShoppingBag}
+        title="Mes commandes"
+        subtitle={
+          isLoading
+            ? "Chargement…"
+            : `${orders.length} commande${orders.length > 1 ? "s" : ""} au total`
+        }
+        actions={
+          <>
+            <KazaButton variant="secondary" href="/apprenant/dashboard" icon={Receipt}>
+              Tableau de bord
+            </KazaButton>
+            <KazaButton variant="primary" href="/explorer" icon={Search}>
+              Explorer le catalogue
+            </KazaButton>
+          </>
+        }
+      />
 
       {/* Filter pills */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {filters.map((f) => (
-          <button key={f.value} onClick={() => setActiveFilter(f.value)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 ${
-              activeFilter === f.value ? "text-white shadow-sm" : "bg-white border border-gray-200 text-[#5c647a] hover:border-[#006e2f]/30 hover:text-[#006e2f]"
-            }`}
-            style={activeFilter === f.value ? { background: "linear-gradient(to right, #006e2f, #22c55e)" } : {}}>
-            {f.label}
-          </button>
-        ))}
+      <div className="flex gap-2 flex-wrap">
+        {filters.map((f) => {
+          const isActive = activeFilter === f.value;
+          return (
+            <button
+              key={f.value}
+              onClick={() => setActiveFilter(f.value)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                isActive
+                  ? "bg-[#0b2540] text-white shadow-md"
+                  : "bg-white border border-slate-200 text-slate-600 hover:border-[#0b2540]/30 hover:text-[#0b2540]"
+              }`}
+            >
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* List */}
       {isLoading ? (
-        <div className="space-y-3">{[0,1,2,3].map((i) => <SkeletonRow key={i} />)}</div>
-      ) : orders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-            <span className="material-symbols-outlined text-[32px] text-[#5c647a]">receipt_long</span>
-          </div>
-          <h3 className="font-bold text-[#191c1e] mb-1">Aucune commande</h3>
-          <p className="text-sm text-[#5c647a] mb-4">
-            {activeFilter === "all" ? "Vous n'avez pas encore effectué de commande." : "Aucune commande dans cette catégorie."}
-          </p>
-          <Link href="/explorer"
-            className="px-5 py-2.5 rounded-xl text-white text-sm font-bold"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-            Explorer le catalogue
-          </Link>
+        <div className="space-y-3">
+          {[0, 1, 2, 3].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
         </div>
+      ) : orders.length === 0 ? (
+        <KazaEmpty
+          icon={Receipt}
+          title="Aucune commande"
+          description={
+            activeFilter === "all"
+              ? "Vous n'avez pas encore effectué de commande."
+              : "Aucune commande dans cette catégorie."
+          }
+          action={{ label: "Explorer le catalogue", href: "/explorer" }}
+        />
       ) : (
         <div className="space-y-3">
           {orders.map((order) => {
             const type = order.type as OrderType;
-            const statusKey = order.status === "COMPLETED" || order.progress >= 100 ? "COMPLETED" : order.status;
-            const status = statusConfig[statusKey] ?? { label: order.status, className: "bg-gray-100 text-gray-700", icon: "info" };
-            const icon = typeIcons[type] ?? "shopping_bag";
-            const date = new Date(order.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+            const statusKey =
+              order.status === "COMPLETED" || order.progress >= 100 ? "COMPLETED" : order.status;
+            const status = statusConfig[statusKey] ?? { label: order.status, variant: "slate" };
+            const TypeIcon = typeIconMap[type] ?? ShoppingBag;
+            const date = new Date(order.createdAt).toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            });
 
             return (
-              <div key={order.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+              <div
+                key={order.id}
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+              >
                 <div className="flex items-start gap-4 p-4 md:p-5">
-                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden"
-                    style={{ background: "linear-gradient(135deg, #006e2f 0%, #22c55e 100%)" }}>
-                    <span className="material-symbols-outlined text-white text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                  <div
+                    className="w-14 h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
+                    style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
+                  >
+                    <TypeIcon className="w-6 h-6" strokeWidth={2.2} />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-[10px] text-[#5c647a] font-medium mb-1 tabular-nums">#{order.id.slice(0, 12).toUpperCase()}</p>
-                        <h3 className="font-bold text-[#191c1e] text-sm leading-snug line-clamp-2 mb-1">{order.title}</h3>
-                        <div className="flex flex-wrap items-center gap-2 text-xs text-[#5c647a]">
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${typeColors[type] ?? "bg-gray-100 text-gray-700"}`}>
+                        <p className="text-[10px] text-slate-500 font-medium mb-1 tabular-nums">
+                          #{order.id.slice(0, 12).toUpperCase()}
+                        </p>
+                        <h3 className="font-bold text-[#0b2540] text-sm leading-snug line-clamp-2 mb-2">
+                          {order.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                          <KazaBadge variant={typeBadgeVariant[type] ?? "slate"} size="sm">
                             {typeLabels[type] ?? type}
-                          </span>
+                          </KazaBadge>
                           <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">calendar_today</span>
+                            <Calendar className="w-3 h-3" />
                             {date}
                           </span>
                         </div>
@@ -277,54 +332,59 @@ export default function CommandesPage() {
 
                       <div className="flex sm:flex-col items-center sm:items-end gap-2 flex-wrap">
                         <div className="text-right">
-                          <p className="font-extrabold text-[#191c1e] text-sm whitespace-nowrap">{formatFcfa(order.amount)}</p>
-                          <p className="text-[10px] text-[#5c647a]">≈ {toEur(order.amount)} €</p>
+                          <p className="font-extrabold text-[#0b2540] text-sm whitespace-nowrap tabular-nums">
+                            {formatFcfa(order.amount)}
+                          </p>
+                          <p className="text-[10px] text-slate-500">≈ {toEur(order.amount)} €</p>
                         </div>
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full flex-shrink-0 ${status.className}`}>
-                          <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>{status.icon}</span>
+                        <KazaBadge variant={status.variant} size="sm">
                           {status.label}
-                        </span>
+                        </KazaBadge>
                       </div>
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <Link href={`/apprenant/commandes/${order.id}`}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors">
-                        <span className="material-symbols-outlined text-[14px] text-[#5c647a]">receipt_long</span>
+                      <KazaButton
+                        variant="ghost"
+                        size="sm"
+                        href={`/apprenant/commandes/${order.id}`}
+                        icon={Receipt}
+                      >
                         Voir détails
-                      </Link>
+                      </KazaButton>
                       {type === "formation" && (
-                        <Link href={`/apprenant/formation/${order.id}`}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
-                          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                          <span className="material-symbols-outlined text-[14px]">play_arrow</span>
+                        <KazaButton
+                          variant="primary"
+                          size="sm"
+                          href={`/apprenant/formation/${order.id}`}
+                          icon={Play}
+                        >
                           Accéder
-                        </Link>
+                        </KazaButton>
                       )}
                       {order.instructeurUserId && (
-                        <button
+                        <KazaButton
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleContact(order.instructeurUserId!, order.id)}
                           disabled={contactingId === order.id}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-[#006e2f]/30 text-xs font-semibold text-[#006e2f] hover:bg-[#006e2f]/5 transition-colors disabled:opacity-50">
-                          {contactingId === order.id ? (
-                            <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
-                          ) : (
-                            <span className="material-symbols-outlined text-[14px]">forum</span>
-                          )}
-                          Contacter l'instructeur
-                        </button>
+                          icon={contactingId === order.id ? Loader2 : MessageSquare}
+                        >
+                          Contacter l&apos;instructeur
+                        </KazaButton>
                       )}
                       {type === "formation" &&
                         !order.refundedAt &&
                         !order.refundRequested &&
                         order.status !== "CANCELLED" && (
-                          <button
+                          <KazaButton
+                            variant="danger"
+                            size="sm"
                             onClick={() => openRefund(order)}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-red-200 text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                            icon={HandCoins}
                           >
-                            <span className="material-symbols-outlined text-[14px]">money_off</span>
-                            Demander un remboursement
-                          </button>
+                            Remboursement
+                          </KazaButton>
                         )}
                     </div>
                   </div>
@@ -345,57 +405,54 @@ export default function CommandesPage() {
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b border-gray-100 flex items-start justify-between gap-4">
+            <div className="p-5 border-b border-slate-100 flex items-start justify-between gap-4">
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-red-600 text-[20px]">money_off</span>
+                <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center flex-shrink-0">
+                  <HandCoins className="w-5 h-5 text-rose-600" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-bold text-[#191c1e] text-base truncate">
+                  <h3 className="font-bold text-[#0b2540] text-base truncate">
                     Demande de remboursement
                   </h3>
-                  <p className="text-xs text-[#5c647a] truncate">{refundOrder.title}</p>
+                  <p className="text-xs text-slate-500 truncate">{refundOrder.title}</p>
                 </div>
               </div>
-              <button onClick={closeRefund} className="p-1 rounded-lg hover:bg-gray-100 flex-shrink-0">
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+              <button
+                onClick={closeRefund}
+                className="p-1 rounded-lg hover:bg-slate-100 flex-shrink-0"
+              >
+                <X className="w-5 h-5 text-slate-500" />
               </button>
             </div>
 
             <div className="p-5 space-y-4">
-              {/* Eligibility loading */}
               {!refundEligibility && !refundError && (
-                <div className="flex items-center gap-2 text-sm text-[#5c647a]">
-                  <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Vérification de l&apos;éligibilité…
                 </div>
               )}
 
-              {/* Eligibility result */}
               {refundEligibility && !refundSuccess && (
                 <div
                   className={`p-3 rounded-xl border ${
                     refundEligibility.eligible
-                      ? "bg-[#006e2f]/5 border-[#006e2f]/20"
+                      ? "bg-emerald-50 border-emerald-200"
                       : "bg-amber-50 border-amber-200"
                   }`}
                 >
                   <div className="flex items-start gap-2">
-                    <span
-                      className={`material-symbols-outlined text-[18px] mt-0.5 ${
-                        refundEligibility.eligible ? "text-[#006e2f]" : "text-amber-600"
-                      }`}
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      {refundEligibility.eligible ? "check_circle" : "info"}
-                    </span>
+                    {refundEligibility.eligible ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <CircleAlert className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                    )}
                     <div className="flex-1 text-xs">
                       {refundEligibility.eligible ? (
                         <>
-                          <p className="font-bold text-[#006e2f] mb-1">Demande recevable</p>
-                          <p className="text-[#191c1e]">
-                            Achat il y a{" "}
-                            {refundEligibility.details.daysSincePurchase ?? 0} jour
+                          <p className="font-bold text-emerald-700 mb-1">Demande recevable</p>
+                          <p className="text-slate-700">
+                            Achat il y a {refundEligibility.details.daysSincePurchase ?? 0} jour
                             {(refundEligibility.details.daysSincePurchase ?? 0) > 1 ? "s" : ""} ·
                             Contenu consommé : {refundEligibility.details.consumedPct ?? 0}%
                           </p>
@@ -411,76 +468,65 @@ export default function CommandesPage() {
                 </div>
               )}
 
-              {/* Reason form (only if eligible) */}
               {refundEligibility?.eligible && !refundSuccess && (
                 <>
                   <div>
-                    <label className="block text-xs font-bold text-[#191c1e] mb-1.5 uppercase tracking-wider">
-                      Motif <span className="text-red-500">*</span>
+                    <label className="block text-xs font-bold text-[#0b2540] mb-1.5 uppercase tracking-wider">
+                      Motif <span className="text-rose-500">*</span>
                     </label>
                     <textarea
                       value={refundReason}
                       onChange={(e) => setRefundReason(e.target.value)}
                       rows={4}
                       placeholder="Expliquez pourquoi vous souhaitez être remboursé (au moins 10 caractères)…"
-                      className="w-full px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#006e2f]/20 focus:border-[#006e2f] resize-none"
+                      className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 resize-none"
                     />
-                    <p className="text-[10px] text-[#5c647a] mt-1">
+                    <p className="text-[10px] text-slate-500 mt-1">
                       {refundReason.length} / 10 caractères minimum
                     </p>
                   </div>
-                  <p className="text-[11px] text-[#5c647a] leading-relaxed">
-                    Conformément à notre politique :{" "}
-                    {refundEligibility.config.windowDays} jours après l&apos;achat,
-                    contenu consommé ≤ {refundEligibility.config.maxConsumedPct}%, max{" "}
-                    {refundEligibility.config.maxRefundsPerBuyer30d} remboursement
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Conformément à notre politique : {refundEligibility.config.windowDays} jours
+                    après l&apos;achat, contenu consommé ≤ {refundEligibility.config.maxConsumedPct}%,
+                    max {refundEligibility.config.maxRefundsPerBuyer30d} remboursement
                     {refundEligibility.config.maxRefundsPerBuyer30d > 1 ? "s" : ""}/30 jours.
                   </p>
                 </>
               )}
 
               {refundError && (
-                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-                  <span className="material-symbols-outlined text-[16px] flex-shrink-0 mt-0.5">error</span>
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2">
+                  <CircleAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{refundError}</span>
                 </div>
               )}
 
               {refundSuccess && (
-                <div className="p-3 rounded-xl bg-[#006e2f]/5 border border-[#006e2f]/20 text-xs text-[#006e2f]">
-                  <p className="font-bold mb-1">Demande envoyée ✓</p>
+                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-700">
+                  <p className="font-bold mb-1">Demande envoyée</p>
                   <p>
-                    Notre équipe l&apos;examinera sous 48h. Vous recevrez un email
-                    dès la décision prise.
+                    Notre équipe l&apos;examinera sous 48h. Vous recevrez un email dès la décision
+                    prise.
                   </p>
                 </div>
               )}
             </div>
 
             {!refundSuccess && (
-              <div className="p-5 border-t border-gray-100 flex items-center gap-3">
-                <button
-                  onClick={closeRefund}
-                  className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#5c647a] hover:bg-gray-50 transition-colors"
-                >
+              <div className="p-5 border-t border-slate-100 flex items-center gap-3">
+                <KazaButton variant="ghost" onClick={closeRefund} className="flex-1">
                   Annuler
-                </button>
+                </KazaButton>
                 {refundEligibility?.eligible && (
-                  <button
+                  <KazaButton
+                    variant="primary"
                     onClick={submitRefund}
                     disabled={refundLoading || refundReason.trim().length < 10}
-                    className="flex-1 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-                    style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                    icon={refundLoading ? Loader2 : undefined}
+                    className="flex-1"
                   >
-                    {refundLoading ? (
-                      <>
-                        <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
-                        Envoi…
-                      </>
-                    ) : (
-                      "Envoyer la demande"
-                    )}
-                  </button>
+                    {refundLoading ? "Envoi…" : "Envoyer la demande"}
+                  </KazaButton>
                 )}
               </div>
             )}

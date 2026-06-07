@@ -1,9 +1,30 @@
+// Refonte style KAZA — apprenant certificats — 2026-06-07
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
+import {
+  Award,
+  Search,
+  Download,
+  Share2,
+  X,
+  Eye,
+  Sparkles,
+  CheckCircle2,
+  ShieldCheck,
+  Clock,
+  GraduationCap,
+} from "lucide-react";
 
 type Certificate = {
   id: string;
@@ -21,31 +42,31 @@ type Certificate = {
 };
 
 const GRADIENTS: [string, string][] = [
-  ["#006e2f", "#22c55e"],
-  ["#0f3460", "#16213e"],
+  ["#0b2540", "#1a4a7d"],
+  ["#103057", "#22c55e"],
   ["#7c3aed", "#4f46e5"],
   ["#b45309", "#d97706"],
   ["#0e7490", "#164e63"],
   ["#be185d", "#db2777"],
 ];
 
-const levelColors: Record<string, string> = {
-  DEBUTANT: "bg-green-100 text-green-700",
-  INTERMEDIAIRE: "bg-blue-100 text-blue-700",
-  AVANCE: "bg-purple-100 text-purple-700",
+const levelVariant: Record<string, "green" | "blue" | "violet" | "slate"> = {
+  DEBUTANT: "green",
+  INTERMEDIAIRE: "blue",
+  AVANCE: "violet",
 };
 
 function SkeletonRow() {
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-pulse">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-pulse">
       <div className="flex">
-        <div className="w-2 bg-gray-100 flex-shrink-0" />
+        <div className="w-2 bg-slate-100 flex-shrink-0" />
         <div className="flex items-start gap-4 p-5 flex-1">
-          <div className="w-14 h-14 rounded-xl bg-gray-100 flex-shrink-0" />
+          <div className="w-14 h-14 rounded-xl bg-slate-100 flex-shrink-0" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-gray-100 rounded w-2/3" />
-            <div className="h-3 bg-gray-100 rounded w-1/3" />
-            <div className="h-3 bg-gray-100 rounded w-1/2" />
+            <div className="h-4 bg-slate-100 rounded w-2/3" />
+            <div className="h-3 bg-slate-100 rounded w-1/3" />
+            <div className="h-3 bg-slate-100 rounded w-1/2" />
           </div>
         </div>
       </div>
@@ -75,8 +96,6 @@ export default function CertificatsPage() {
     if (typeof window === "undefined") return;
     const issued = new Date(cert.issuedAt);
     const certUrl = `${window.location.origin}/certificat/${cert.code}`;
-    // LinkedIn "Add to profile" deep link — voir
-    // https://www.linkedin.com/help/linkedin/answer/a548126
     const params = new URLSearchParams({
       startTask: "CERTIFICATION_NAME",
       name: cert.formation?.title ?? "Formation Novakou",
@@ -94,51 +113,83 @@ export default function CertificatsPage() {
   };
 
   return (
-    <div className="p-5 md:p-8 max-w-4xl mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-[#191c1e]">Mes certificats</h1>
-          <p className="text-sm text-[#5c647a] mt-0.5">
-            {isLoading ? "Chargement…" : `${certs.length} certificat${certs.length > 1 ? "s" : ""} obtenu${certs.length > 1 ? "s" : ""} · Valides 5 ans`}
-          </p>
-        </div>
-      </div>
+    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
+      <KazaHero
+        badge="Apprenant"
+        badgeColor="blue"
+        icon={Award}
+        title="Mes certificats"
+        subtitle={
+          isLoading
+            ? "Chargement…"
+            : `${certs.length} certificat${certs.length > 1 ? "s" : ""} obtenu${certs.length > 1 ? "s" : ""} · Valides 5 ans`
+        }
+        actions={
+          <>
+            <KazaButton variant="secondary" href="/apprenant/mes-formations" icon={GraduationCap}>
+              Mes formations
+            </KazaButton>
+            <KazaButton variant="primary" href="/explorer" icon={Search}>
+              Explorer
+            </KazaButton>
+          </>
+        }
+      />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        {[
-          { icon: "workspace_premium", bg: "bg-purple-50",        color: "text-purple-600",    label: "Certificats obtenus",   value: isLoading ? "…" : String(certs.length) },
-          { icon: "verified",          bg: "bg-[#006e2f]/10",     color: "text-[#006e2f]",     label: "Certifications valides", value: isLoading ? "…" : String(certs.length) },
-          { icon: "share",             bg: "bg-blue-50",          color: "text-blue-600",      label: "Téléchargeables",        value: isLoading ? "…" : String(certs.length) },
-        ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${s.bg}`}>
-              <span className={`material-symbols-outlined text-[18px] ${s.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
-            </div>
-            <p className="text-xl font-extrabold text-[#191c1e]">{s.value}</p>
-            <p className="text-[10px] text-[#5c647a]">{s.label}</p>
-          </div>
-        ))}
-      </div>
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <KazaKpiCard
+          label="Certificats obtenus"
+          value={isLoading ? "…" : certs.length}
+          icon={Award}
+          iconColor="violet"
+        />
+        <KazaKpiCard
+          label="Certifications valides"
+          value={isLoading ? "…" : certs.length}
+          icon={ShieldCheck}
+          iconColor="emerald"
+        />
+        <KazaKpiCard
+          label="Téléchargeables"
+          value={isLoading ? "…" : certs.length}
+          icon={Download}
+          iconColor="sky"
+        />
+      </section>
 
       {/* Certificate modal */}
       {selectedCert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40" onClick={() => setSelected(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
             {(() => {
               const idx = certs.findIndex((c) => c.id === selectedCert.id);
               const [gFrom, gTo] = GRADIENTS[idx % GRADIENTS.length];
-              const issuedDate = new Date(selectedCert.issuedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-              const validDate = null; // validUntil not available in current schema
+              const issuedDate = new Date(selectedCert.issuedAt).toLocaleDateString("fr-FR", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              });
               return (
-                <div className="relative p-10 text-center" style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}>
+                <div
+                  className="relative p-10 text-center"
+                  style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}
+                >
                   <div className="absolute inset-3 rounded-xl border-2 border-white/20 pointer-events-none" />
                   <div className="absolute inset-4 rounded-xl border border-white/10 pointer-events-none" />
                   <div className="relative">
                     <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mx-auto mb-4 backdrop-blur-sm">
                       <span className="text-white font-black text-lg">NK</span>
                     </div>
-                    <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-3">Certificat de réussite</p>
+                    <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-3">
+                      Certificat de réussite
+                    </p>
                     <p className="text-white font-bold text-sm mb-1">Décerné à</p>
                     <p className="text-white font-black text-2xl mb-4">{displayName}</p>
                     <p className="text-white/80 text-xs mb-2">Pour avoir complété avec succès</p>
@@ -161,21 +212,26 @@ export default function CertificatsPage() {
               );
             })()}
             <div className="p-5 flex items-center gap-3 flex-wrap">
-              <button onClick={() => handleDownloadPDF(selectedCert)}
-                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                <span className="material-symbols-outlined text-[16px]">download</span>
-                Télécharger PDF
-              </button>
-              <button
-                onClick={() => handleShareLinkedIn(selectedCert)}
-                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors"
+              <KazaButton
+                variant="primary"
+                onClick={() => handleDownloadPDF(selectedCert)}
+                icon={Download}
+                className="flex-1"
               >
-                <span className="material-symbols-outlined text-[16px] text-blue-600">share</span>
+                Télécharger PDF
+              </KazaButton>
+              <KazaButton
+                variant="ghost"
+                onClick={() => handleShareLinkedIn(selectedCert)}
+                icon={Share2}
+              >
                 LinkedIn
-              </button>
-              <button onClick={() => setSelected(null)} className="p-2.5 rounded-xl border border-gray-200 text-[#5c647a] hover:bg-gray-50 transition-colors">
-                <span className="material-symbols-outlined text-[18px]">close</span>
+              </KazaButton>
+              <button
+                onClick={() => setSelected(null)}
+                className="p-2.5 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -184,95 +240,96 @@ export default function CertificatsPage() {
 
       {/* List */}
       {isLoading ? (
-        <div className="space-y-4">{[0,1,2].map((i) => <SkeletonRow key={i} />)}</div>
-      ) : certs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-            <span className="material-symbols-outlined text-[32px] text-[#5c647a]">workspace_premium</span>
-          </div>
-          <h3 className="font-bold text-[#191c1e] mb-1">Aucun certificat</h3>
-          <p className="text-sm text-[#5c647a] mb-4">Terminez une formation pour obtenir votre premier certificat.</p>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Link
-              href="/apprenant/mes-formations"
-              className="px-5 py-2.5 rounded-xl text-white text-sm font-bold"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-            >
-              Mes formations
-            </Link>
-            <Link
-              href="/certificat/exemple"
-              target="_blank"
-              className="inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl border border-[#006e2f]/30 text-[#006e2f] text-sm font-bold hover:bg-[#006e2f]/5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[16px]">preview</span>
-              Voir un exemple
-            </Link>
-          </div>
+        <div className="space-y-4">
+          {[0, 1, 2].map((i) => (
+            <SkeletonRow key={i} />
+          ))}
         </div>
+      ) : certs.length === 0 ? (
+        <KazaEmpty
+          icon={Award}
+          title="Aucun certificat"
+          description="Terminez une formation pour obtenir votre premier certificat reconnu par les recruteurs."
+          action={{ label: "Voir mes formations", href: "/apprenant/mes-formations" }}
+        />
       ) : (
         <div className="space-y-4">
           {certs.map((cert, idx) => {
             const [gFrom, gTo] = GRADIENTS[idx % GRADIENTS.length];
             const level = cert.formation?.level?.toUpperCase() ?? "";
-            const issuedDate = new Date(cert.issuedAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-            const validDate = null; // validUntil not available in current schema
+            const issuedDate = new Date(cert.issuedAt).toLocaleDateString("fr-FR", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            });
 
             return (
-              <div key={cert.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+              <div
+                key={cert.id}
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+              >
                 <div className="flex">
-                  <div className="w-2 flex-shrink-0" style={{ background: `linear-gradient(to bottom, ${gFrom}, ${gTo})` }} />
+                  <div
+                    className="w-2 flex-shrink-0"
+                    style={{ background: `linear-gradient(to bottom, ${gFrom}, ${gTo})` }}
+                  />
                   <div className="flex items-start gap-4 p-5 flex-1 min-w-0">
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}>
-                      <span className="material-symbols-outlined text-white text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
+                    <div
+                      className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
+                      style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}
+                    >
+                      <Award className="w-7 h-7" fill="currentColor" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
                         {cert.formation?.customCategory && (
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
+                          <KazaBadge variant="green" size="sm">
                             {cert.formation.customCategory}
-                          </span>
+                          </KazaBadge>
                         )}
                         {level && (
-                          <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${levelColors[level] ?? "bg-gray-100 text-gray-700"}`}>
-                            {level === "DEBUTANT" ? "Débutant" : level === "INTERMEDIAIRE" ? "Intermédiaire" : "Avancé"}
-                          </span>
+                          <KazaBadge variant={levelVariant[level] ?? "slate"} size="sm">
+                            {level === "DEBUTANT"
+                              ? "Débutant"
+                              : level === "INTERMEDIAIRE"
+                                ? "Intermédiaire"
+                                : "Avancé"}
+                          </KazaBadge>
                         )}
                       </div>
-                      <h3 className="font-bold text-[#191c1e] text-sm leading-snug mb-2">
+                      <h3 className="font-bold text-[#0b2540] text-sm leading-snug mb-2">
                         {cert.formation?.title ?? "Formation Novakou"}
                       </h3>
-                      <div className="flex items-center gap-3 text-[10px] text-[#5c647a] flex-wrap">
+                      <div className="flex items-center gap-3 text-[10px] text-slate-500 flex-wrap">
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[11px]">verified</span>
+                          <ShieldCheck className="w-3 h-3" />
                           Obtenu le {issuedDate}
                         </span>
-                        {validDate && (
-                          <span className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[11px]">schedule</span>
-                            Valide jusqu&apos;au {validDate}
-                          </span>
-                        )}
                       </div>
                       {cert.score > 0 && (
-                        <span className="mt-2 inline-flex items-center gap-1 text-[9px] font-semibold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
+                        <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                          <CheckCircle2 className="w-3 h-3" />
                           Score : {cert.score}%
                         </span>
                       )}
                     </div>
                     <div className="flex flex-col gap-2 flex-shrink-0">
-                      <button onClick={() => setSelected(cert.id)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-white text-xs font-bold hover:opacity-90 transition-opacity"
-                        style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                        <span className="material-symbols-outlined text-[14px]">visibility</span>
+                      <KazaButton
+                        variant="primary"
+                        size="sm"
+                        onClick={() => setSelected(cert.id)}
+                        icon={Eye}
+                      >
                         Voir
-                      </button>
-                      <button onClick={() => handleDownloadPDF(cert)}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-xs font-semibold text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-50 transition-colors">
-                        <span className="material-symbols-outlined text-[14px]">download</span>
+                      </KazaButton>
+                      <KazaButton
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDownloadPDF(cert)}
+                        icon={Download}
+                      >
                         PDF
-                      </button>
+                      </KazaButton>
                     </div>
                   </div>
                 </div>
@@ -282,17 +339,20 @@ export default function CertificatsPage() {
         </div>
       )}
 
-      <div className="mt-8 bg-gradient-to-br from-[#006e2f]/5 to-[#22c55e]/5 rounded-2xl border border-[#006e2f]/10 p-6 text-center">
-        <span className="material-symbols-outlined text-[32px] text-[#006e2f] mb-3 block" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-        <h3 className="font-bold text-[#191c1e] mb-1">Obtenez plus de certificats</h3>
-        <p className="text-xs text-[#5c647a] mb-4">Chaque formation complétée vous donne un certificat reconnu par les recruteurs et clients.</p>
-        <Link href="/explorer"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
-          style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-          <span className="material-symbols-outlined text-[16px]">explore</span>
-          Explorer les formations
-        </Link>
-      </div>
+      <KazaCard variant="highlighted">
+        <div className="text-center py-2">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center mx-auto mb-3 text-white">
+            <Award className="w-6 h-6" fill="currentColor" />
+          </div>
+          <h3 className="font-bold text-[#0b2540] mb-1">Obtenez plus de certificats</h3>
+          <p className="text-xs text-slate-500 mb-4 max-w-md mx-auto">
+            Chaque formation complétée vous donne un certificat reconnu par les recruteurs et clients.
+          </p>
+          <KazaButton variant="primary" href="/explorer" icon={Sparkles}>
+            Explorer les formations
+          </KazaButton>
+        </div>
+      </KazaCard>
     </div>
   );
 }
