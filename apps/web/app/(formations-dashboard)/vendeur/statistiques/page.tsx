@@ -19,13 +19,34 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import {
+  BarChart3,
+  Wallet,
+  ShoppingBag,
+  Users,
+  Receipt,
+  TrendingUp,
+  Eye,
+  Package,
+  ShoppingCart,
+  Globe,
+  Filter,
+  Store,
+  LineChart as LineChartIcon,
+} from "lucide-react";
 import { countryName } from "@/lib/tracking/geo";
 import { Flag } from "@/components/ui/Flag";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaSection,
+  KazaEmpty,
+} from "@/components/kaza";
 
 /**
  * Tick custom Recharts pour YAxis : affiche un vrai drapeau PNG (via SVG
- * `<image>`) + le code pays. Remplace l'emoji unicode qui ne s'affichait
- * pas sur Windows. Bureau Novakou 2026-05-26.
+ * `<image>`) + le code pays.
  */
 function CountryFlagTick(props: { x?: number; y?: number; payload?: { value?: string } }) {
   const { x = 0, y = 0, payload } = props;
@@ -45,7 +66,7 @@ function CountryFlagTick(props: { x?: number; y?: number; payload?: { value?: st
         height={15}
         preserveAspectRatio="xMidYMid slice"
       />
-      <text x={26} y={11} fontSize={11} fill="#191c1e" fontWeight={600}>
+      <text x={26} y={11} fontSize={11} fill="#0b2540" fontWeight={600}>
         {code.toUpperCase()}
       </text>
     </g>
@@ -74,7 +95,7 @@ type StatsData = {
   revenueByType: { type: string; value: number }[];
 };
 
-const BRAND = "#006e2f";
+const BRAND = "#10b981";
 const ACCENT = "#22c55e";
 const CYAN = "#22d3ee";
 const AMBER = "#f59e0b";
@@ -83,70 +104,6 @@ const DONUT_COLORS = [BRAND, ACCENT, CYAN, AMBER, PURPLE, "#ef4444", "#3b82f6"];
 
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
-}
-
-function Kpi({
-  label,
-  value,
-  sub,
-  delta,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  delta?: number;
-  icon: string;
-  tone: "brand" | "accent" | "cyan" | "purple";
-}) {
-  const toneMap = {
-    brand: { bg: `bg-[${BRAND}]/10`, fg: `text-[${BRAND}]` },
-    accent: { bg: "bg-green-50", fg: "text-green-600" },
-    cyan: { bg: "bg-cyan-50", fg: "text-cyan-600" },
-    purple: { bg: "bg-purple-50", fg: "text-purple-600" },
-  }[tone];
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${toneMap.bg}`}>
-          <span
-            className={`material-symbols-outlined text-[22px] ${toneMap.fg}`}
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            {icon}
-          </span>
-        </div>
-        {typeof delta === "number" && (
-          <span
-            className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-              delta >= 0 ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-            }`}
-          >
-            {delta >= 0 ? "▲" : "▼"} {Math.abs(delta).toFixed(1)}%
-          </span>
-        )}
-      </div>
-      <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-xl md:text-2xl font-extrabold text-[#191c1e] leading-snug">{value}</p>
-      {sub && <p className="text-[11px] text-[#5c647a] mt-1">{sub}</p>}
-    </div>
-  );
-}
-
-function ChartCard({ title, subtitle, children, right }: { title: string; subtitle?: string; children: React.ReactNode; right?: React.ReactNode }) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6">
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div>
-          <h2 className="font-bold text-[#191c1e] text-base">{title}</h2>
-          {subtitle && <p className="text-xs text-[#5c647a] mt-0.5">{subtitle}</p>}
-        </div>
-        {right}
-      </div>
-      {children}
-    </div>
-  );
 }
 
 export default function StatistiquesPage() {
@@ -168,7 +125,6 @@ export default function StatistiquesPage() {
   const monthlyTrend = d?.monthlyTrend ?? [];
   const revenueByType = d?.revenueByType ?? [];
 
-  // Merge views + sales by country for the combined table
   const countryMap = new Map<string, { country: string; views: number; sales: number; revenue: number }>();
   for (const v of viewsByCountry) {
     countryMap.set(v.country, { country: v.country, views: v.count, sales: 0, revenue: 0 });
@@ -185,81 +141,92 @@ export default function StatistiquesPage() {
 
   const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
 
-  return (
-    <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Statistiques</h1>
-          <p className="text-sm text-[#5c647a] mt-1">Analyse détaillée de vos performances et audience</p>
-        </div>
-        {/* Period selector */}
-        <div className="flex bg-gray-100 rounded-xl p-1 self-start sm:self-auto">
-          {([
-            { key: "7d", label: "7j" },
-            { key: "30d", label: "30j" },
-            { key: "90d", label: "90j" },
-            { key: "12m", label: "1 an" },
-            { key: "all", label: "Tout" },
-          ] as { key: Period; label: string }[]).map((p) => (
-            <button
-              key={p.key}
-              onClick={() => setPeriod(p.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
-                period === p.key ? "bg-white text-[#191c1e] shadow-sm" : "text-[#5c647a] hover:text-[#191c1e]"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+  const periodLabels: Record<Period, string> = {
+    "7d": "7j",
+    "30d": "30j",
+    "90d": "90j",
+    "12m": "1 an",
+    "all": "Tout",
+  };
 
-      {/* KPI Cards — show real zeros when API loaded with no data, dash only while loading */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
-        <Kpi
+  const periodSubtitle =
+    period === "all"
+      ? "Depuis le début"
+      : `Sur les ${period === "7d" ? "7 derniers jours" : period === "30d" ? "30 derniers jours" : period === "90d" ? "90 derniers jours" : "12 derniers mois"}`;
+
+  return (
+    <div className="p-5 md:p-8 max-w-7xl mx-auto space-y-6" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      <KazaHero
+        badge="Pro"
+        badgeColor="orange"
+        title="Statistiques"
+        subtitle="Analyse détaillée de vos performances et de votre audience"
+        icon={BarChart3}
+        actions={
+          <div className="flex bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-1">
+            {(Object.keys(periodLabels) as Period[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  period === p ? "bg-white text-[#0b2540] shadow-sm" : "text-white/80 hover:text-white"
+                }`}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
+        }
+      />
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KazaKpiCard
           label="Revenus bruts"
           value={isLoading ? "—" : `${formatFCFA(overview?.revenue ?? 0)} FCFA`}
-          sub={isLoading ? "" : `Net : ${formatFCFA(overview?.netRevenue ?? 0)} FCFA`}
-          delta={overview?.deltaRevenue}
-          icon="payments"
-          tone="brand"
+          delta={
+            overview?.deltaRevenue !== undefined
+              ? `${overview.deltaRevenue >= 0 ? "+" : ""}${overview.deltaRevenue.toFixed(1)}%`
+              : undefined
+          }
+          deltaTrend={overview?.deltaRevenue !== undefined ? (overview.deltaRevenue >= 0 ? "up" : "down") : "neutral"}
+          icon={Wallet}
+          iconColor="emerald"
         />
-        <Kpi
+        <KazaKpiCard
           label="Commandes"
           value={isLoading ? "—" : (overview?.orders ?? 0).toLocaleString("fr-FR")}
-          sub="Transactions validées"
-          delta={overview?.deltaOrders}
-          icon="shopping_bag"
-          tone="accent"
+          delta={
+            overview?.deltaOrders !== undefined
+              ? `${overview.deltaOrders >= 0 ? "+" : ""}${overview.deltaOrders.toFixed(1)}%`
+              : undefined
+          }
+          deltaTrend={overview?.deltaOrders !== undefined ? (overview.deltaOrders >= 0 ? "up" : "down") : "neutral"}
+          icon={ShoppingBag}
+          iconColor="sky"
         />
-        <Kpi
+        <KazaKpiCard
           label="Clients uniques"
           value={isLoading ? "—" : (overview?.uniqueCustomers ?? 0).toLocaleString("fr-FR")}
-          sub="Acheteurs distincts"
-          icon="group"
-          tone="cyan"
+          icon={Users}
+          iconColor="violet"
         />
-        <Kpi
+        <KazaKpiCard
           label="Panier moyen"
           value={isLoading ? "—" : `${formatFCFA(overview?.avgOrder ?? 0)} FCFA`}
-          sub="Par commande"
-          icon="receipt_long"
-          tone="purple"
+          icon={Receipt}
+          iconColor="orange"
         />
       </div>
 
       {/* Revenue over time + Revenue by type */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
-          <ChartCard
-            title="Évolution du chiffre d'affaires"
-            subtitle={period === "all" ? "Depuis le début" : `Sur les ${period === "7d" ? "7 derniers jours" : period === "30d" ? "30 derniers jours" : period === "90d" ? "90 derniers jours" : "12 derniers mois"}`}
-          >
+          <KazaCard title="Évolution du chiffre d'affaires" subtitle={periodSubtitle}>
             {isLoading ? (
-              <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+              <div className="h-[280px] bg-slate-50 animate-pulse rounded-xl" />
             ) : revenueOverTime.length === 0 && monthlyTrend.every((m) => m.revenue === 0) ? (
-              <EmptyState icon="show_chart" label="Aucune donnée pour cette période" />
+              <EmptyChart icon={LineChartIcon} label="Aucune donnée pour cette période" />
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <AreaChart data={revenueOverTime.length > 0 ? revenueOverTime : monthlyTrend.map((m) => ({ date: m.month, amount: m.revenue, orders: m.orders }))}>
@@ -280,14 +247,14 @@ export default function StatistiquesPage() {
                 </AreaChart>
               </ResponsiveContainer>
             )}
-          </ChartCard>
+          </KazaCard>
         </div>
 
-        <ChartCard title="Répartition revenus" subtitle="Par type de produit">
+        <KazaCard title="Répartition revenus" subtitle="Par type de produit">
           {isLoading ? (
-            <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+            <div className="h-[280px] bg-slate-50 animate-pulse rounded-xl" />
           ) : revenueByType.length === 0 ? (
-            <EmptyState icon="donut_large" label="Aucune vente" />
+            <EmptyChart icon={Package} label="Aucune vente" />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -311,20 +278,17 @@ export default function StatistiquesPage() {
               </PieChart>
             </ResponsiveContainer>
           )}
-        </ChartCard>
+        </KazaCard>
       </div>
 
       {/* Countries + Funnel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2">
-          <ChartCard
-            title="Performance par pays"
-            subtitle="Vues (visiteurs) + achats sur la période"
-          >
+          <KazaCard title="Performance par pays" subtitle="Vues (visiteurs) + achats sur la période">
             {isLoading ? (
-              <div className="h-[320px] bg-gray-50 animate-pulse rounded-xl" />
+              <div className="h-[320px] bg-slate-50 animate-pulse rounded-xl" />
             ) : countryRows.length === 0 ? (
-              <EmptyState icon="public" label="Pas encore de données géolocalisées" />
+              <EmptyChart icon={Globe} label="Pas encore de données géolocalisées" />
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={Math.max(180, countryRows.length * 28)}>
@@ -356,11 +320,10 @@ export default function StatistiquesPage() {
                   </BarChart>
                 </ResponsiveContainer>
 
-                {/* Detail table */}
                 <div className="mt-4 overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
-                      <tr className="text-[#5c647a] uppercase tracking-wider text-[10px]">
+                      <tr className="text-slate-500 uppercase tracking-wider text-[10px]">
                         <th className="text-left py-2 font-semibold">Pays</th>
                         <th className="text-right py-2 font-semibold">Vues</th>
                         <th className="text-right py-2 font-semibold">Ventes</th>
@@ -369,16 +332,16 @@ export default function StatistiquesPage() {
                     </thead>
                     <tbody>
                       {countryRows.map((row) => (
-                        <tr key={row.country} className="border-t border-gray-100">
-                          <td className="py-2 font-semibold text-[#191c1e]">
+                        <tr key={row.country} className="border-t border-slate-100">
+                          <td className="py-2 font-semibold text-slate-900">
                             <span className="inline-flex items-center gap-1.5">
                               <Flag code={row.country} size="sm" />
                               {countryName(row.country)}
                             </span>
                           </td>
-                          <td className="py-2 text-right text-[#191c1e]">{row.views.toLocaleString("fr-FR")}</td>
-                          <td className="py-2 text-right text-[#191c1e]">{row.sales.toLocaleString("fr-FR")}</td>
-                          <td className="py-2 text-right font-bold text-[#006e2f]">
+                          <td className="py-2 text-right text-slate-900">{row.views.toLocaleString("fr-FR")}</td>
+                          <td className="py-2 text-right text-slate-900">{row.sales.toLocaleString("fr-FR")}</td>
+                          <td className="py-2 text-right font-bold text-emerald-600">
                             {row.revenue > 0 ? `${formatFCFA(row.revenue)} FCFA` : "—"}
                           </td>
                         </tr>
@@ -388,34 +351,33 @@ export default function StatistiquesPage() {
                 </div>
               </>
             )}
-          </ChartCard>
+          </KazaCard>
         </div>
 
-        <ChartCard title="Entonnoir de conversion" subtitle="Visite → Produit → Achat">
+        <KazaCard title="Entonnoir de conversion" subtitle="Visite → Produit → Achat">
           {isLoading ? (
-            <div className="h-[280px] bg-gray-50 animate-pulse rounded-xl" />
+            <div className="h-[280px] bg-slate-50 animate-pulse rounded-xl" />
           ) : !funnel || (funnel.views === 0 && funnel.productViews === 0 && funnel.purchases === 0) ? (
-            <EmptyState icon="filter_alt" label="Pas encore de visites tracées" />
+            <EmptyChart icon={Filter} label="Pas encore de visites tracées" />
           ) : (
             <div className="space-y-4 py-2">
               {[
-                { label: "Visites totales", value: funnel.views, color: CYAN, icon: "visibility" },
-                { label: "Vues produits", value: funnel.productViews, color: ACCENT, icon: "inventory_2" },
-                { label: "Achats", value: funnel.purchases, color: BRAND, icon: "shopping_cart_checkout" },
+                { label: "Visites totales", value: funnel.views, color: CYAN, icon: Eye },
+                { label: "Vues produits", value: funnel.productViews, color: ACCENT, icon: Package },
+                { label: "Achats", value: funnel.purchases, color: BRAND, icon: ShoppingCart },
               ].map((step, idx) => {
                 const width = (step.value / funnelMax) * 100;
+                const StepIcon = step.icon;
                 return (
                   <div key={idx}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[18px]" style={{ color: step.color }}>
-                          {step.icon}
-                        </span>
-                        <span className="text-xs font-semibold text-[#191c1e]">{step.label}</span>
+                        <StepIcon size={18} style={{ color: step.color }} />
+                        <span className="text-xs font-semibold text-slate-900">{step.label}</span>
                       </div>
-                      <span className="text-sm font-extrabold text-[#191c1e]">{step.value.toLocaleString("fr-FR")}</span>
+                      <span className="text-sm font-extrabold text-slate-900">{step.value.toLocaleString("fr-FR")}</span>
                     </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${Math.max(width, 4)}%`, background: step.color }}
@@ -424,47 +386,43 @@ export default function StatistiquesPage() {
                   </div>
                 );
               })}
-              <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                <span className="text-xs text-[#5c647a]">Taux de conversion</span>
-                <span className="text-base font-extrabold" style={{ color: BRAND }}>
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs text-slate-500">Taux de conversion</span>
+                <span className="text-base font-extrabold text-emerald-600">
                   {funnel.conversionRate}%
                 </span>
               </div>
             </div>
           )}
-        </ChartCard>
+        </KazaCard>
       </div>
 
       {/* Top products + Monthly trend */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-        <ChartCard title="Top 5 produits" subtitle="Par chiffre d'affaires">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <KazaCard title="Top 5 produits" subtitle="Par chiffre d'affaires">
           {isLoading ? (
-            <div className="h-[260px] bg-gray-50 animate-pulse rounded-xl" />
+            <div className="h-[260px] bg-slate-50 animate-pulse rounded-xl" />
           ) : topProducts.length === 0 || topProducts.every((p) => p.revenue === 0) ? (
-            // Quand tous les produits ont revenue=0 (ex: tous gratuits), recharts
-            // dessine un rectangle plein gris à cause de l'auto-scale du domain
-            // [0, 0] → on affiche un état vide propre. Sinon on bascule sur la
-            // vue "ventes" qui donne au moins une mesure utile au vendeur.
             topProducts.length === 0 ? (
-              <EmptyState icon="storefront" label="Aucun produit vendu" />
+              <EmptyChart icon={Store} label="Aucun produit vendu" />
             ) : (
               <div className="space-y-3 py-4">
-                <p className="text-xs text-[#5c647a] mb-3">
-                  Tous les produits sont gratuits sur cette période — voici le classement par <strong className="text-[#191c1e]">nombre de ventes</strong>.
+                <p className="text-xs text-slate-500 mb-3">
+                  Tous les produits sont gratuits sur cette période — voici le classement par <strong className="text-slate-900">nombre de ventes</strong>.
                 </p>
                 {topProducts.slice(0, 5).map((p) => {
                   const max = Math.max(1, ...topProducts.map((x) => x.sales));
                   const pct = (p.sales / max) * 100;
                   return (
                     <div key={p.id} className="flex items-center gap-3">
-                      <p className="text-xs font-semibold text-[#191c1e] truncate w-32">{p.title}</p>
-                      <div className="flex-1 h-6 bg-gray-100 rounded-md overflow-hidden">
+                      <p className="text-xs font-semibold text-slate-900 truncate w-32">{p.title}</p>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-md overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#006e2f] to-[#22c55e] rounded-md"
+                          className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-md"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
-                      <p className="text-xs font-bold text-[#006e2f] w-16 text-right tabular-nums">
+                      <p className="text-xs font-bold text-emerald-600 w-16 text-right tabular-nums">
                         {p.sales} {p.sales > 1 ? "ventes" : "vente"}
                       </p>
                     </div>
@@ -494,13 +452,13 @@ export default function StatistiquesPage() {
               </BarChart>
             </ResponsiveContainer>
           )}
-        </ChartCard>
+        </KazaCard>
 
-        <ChartCard title="Tendance mensuelle" subtitle="12 derniers mois">
+        <KazaCard title="Tendance mensuelle" subtitle="12 derniers mois">
           {isLoading ? (
-            <div className="h-[260px] bg-gray-50 animate-pulse rounded-xl" />
+            <div className="h-[260px] bg-slate-50 animate-pulse rounded-xl" />
           ) : monthlyTrend.every((m) => m.revenue === 0) ? (
-            <EmptyState icon="trending_up" label="Pas encore de tendance" />
+            <EmptyChart icon={TrendingUp} label="Pas encore de tendance" />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={monthlyTrend}>
@@ -517,17 +475,17 @@ export default function StatistiquesPage() {
               </LineChart>
             </ResponsiveContainer>
           )}
-        </ChartCard>
+        </KazaCard>
       </div>
     </div>
   );
 }
 
-function EmptyState({ icon, label }: { icon: string; label: string }) {
+function EmptyChart({ icon: Icon, label }: { icon: typeof Eye; label: string }) {
   return (
     <div className="h-[260px] flex flex-col items-center justify-center text-center">
-      <span className="material-symbols-outlined text-[36px] text-gray-300 mb-2">{icon}</span>
-      <p className="text-sm text-[#5c647a]">{label}</p>
+      <Icon size={36} className="text-slate-300 mb-2" />
+      <p className="text-sm text-slate-500">{label}</p>
     </div>
   );
 }

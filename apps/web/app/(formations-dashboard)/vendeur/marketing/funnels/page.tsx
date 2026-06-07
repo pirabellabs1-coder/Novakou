@@ -3,6 +3,23 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Network,
+  Sparkles,
+  Plus,
+  ArrowRight,
+  Loader2,
+  PlusCircle,
+  Info,
+  AlertCircle,
+} from "lucide-react";
+import {
+  KazaHero,
+  KazaCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
 
 interface FunnelStep {
   id: string;
@@ -81,82 +98,38 @@ export default function FunnelsListPage() {
   }
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
-      <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-            <Link href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">
-              Marketing
-            </Link>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span className="text-[#191c1e] font-medium">Funnels de vente</span>
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mes funnels de vente</h1>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Créez des tunnels de vente complets : landing, checkout, upsell, page de remerciement.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/vendeur/marketing/funnels/nouveau-ai"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-sm hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(135deg, #7c3aed, #ec4899)" }}
-          >
-            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-            Générer avec l&apos;IA
-          </Link>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-[#191c1e] font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[18px]">add</span>
-            Nouveau funnel
-          </button>
-        </div>
-      </div>
+    <div className="p-5 md:p-8 max-w-5xl mx-auto space-y-6">
+      <KazaHero
+        badge="Pro"
+        badgeColor="orange"
+        title="Mes funnels de vente"
+        subtitle="Tunnels complets : landing, checkout, upsell et page de remerciement"
+        icon={Network}
+        actions={
+          <>
+            <KazaButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>
+              Générer avec l&apos;IA
+            </KazaButton>
+            <KazaButton variant="primary" onClick={() => setShowCreate(true)} icon={Plus}>
+              Nouveau funnel
+            </KazaButton>
+          </>
+        }
+      />
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 bg-gray-200 rounded-2xl" />
+            <div key={i} className="h-40 bg-slate-100 rounded-2xl" />
           ))}
         </div>
       ) : funnels.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
-            style={{ background: "linear-gradient(135deg, #006e2f15, #22c55e15)" }}
-          >
-            <span
-              className="material-symbols-outlined text-[#006e2f] text-[32px]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              account_tree
-            </span>
-          </div>
-          <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Lancez votre premier funnel</h2>
-          <p className="text-sm text-[#5c647a] max-w-md mx-auto mb-6 leading-relaxed">
-            Un funnel de vente, c&apos;est un parcours optimisé qui guide vos visiteurs depuis la découverte
-            jusqu&apos;à l&apos;achat — avec upsells et page de remerciement personnalisée.
-          </p>
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            <Link
-              href="/vendeur/marketing/funnels/nouveau-ai"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-bold text-sm hover:opacity-90 transition-opacity"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #ec4899)" }}
-            >
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-              Générer avec l&apos;IA
-            </Link>
-            <button
-              onClick={() => setShowCreate(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[#191c1e] font-bold text-sm border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">add</span>
-              Créer manuellement
-            </button>
-          </div>
-        </div>
+        <KazaEmpty
+          icon={Network}
+          title="Lancez votre premier funnel"
+          description="Un funnel de vente guide vos visiteurs depuis la découverte jusqu'à l'achat avec upsells et page de remerciement personnalisée."
+          action={{ label: "Générer avec l'IA", href: "/vendeur/marketing/funnels/nouveau-ai" }}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {funnels.map((f) => {
@@ -165,61 +138,52 @@ export default function FunnelsListPage() {
               <Link
                 key={f.id}
                 href={`/vendeur/marketing/funnels/${f.id}`}
-                className="bg-white rounded-2xl border border-gray-100 p-5 hover:border-[#006e2f]/30 hover:shadow-md transition-all group"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md hover:border-emerald-200 transition-all group"
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1.5">
-                      <h3 className="text-base font-extrabold text-[#191c1e] truncate">{f.name}</h3>
+                      <h3 className="text-base font-extrabold text-[#0b2540] truncate">{f.name}</h3>
                       {f.isActive ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                          Actif
-                        </span>
+                        <KazaBadge variant="green">Actif</KazaBadge>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">
-                          Brouillon
-                        </span>
+                        <KazaBadge variant="slate">Brouillon</KazaBadge>
                       )}
                     </div>
-                    <p className="text-xs text-[#5c647a] truncate">/{f.slug}</p>
+                    <p className="text-xs text-slate-500 truncate">/{f.slug}</p>
                   </div>
-                  <span className="material-symbols-outlined text-[#5c647a] group-hover:text-[#006e2f] transition-colors">
-                    arrow_forward
-                  </span>
+                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors flex-shrink-0" />
                 </div>
 
                 <div className="flex items-center gap-1 mb-4 overflow-x-auto">
                   {f.steps.map((s, i) => (
                     <div key={s.id} className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f] whitespace-nowrap">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 whitespace-nowrap">
                         {s.title}
                       </span>
                       {i < f.steps.length - 1 && (
-                        <span className="material-symbols-outlined text-gray-300 text-[14px]">
-                          arrow_forward
-                        </span>
+                        <ArrowRight className="w-3 h-3 text-slate-300" />
                       )}
                     </div>
                   ))}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">
+                <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
                   <div>
-                    <p className="text-[10px] text-[#5c647a] font-semibold uppercase">Vues</p>
-                    <p className="text-sm font-extrabold text-[#191c1e]">{fmt(f.totalViews)}</p>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase">Vues</p>
+                    <p className="text-sm font-extrabold text-[#0b2540]">{fmt(f.totalViews)}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[#5c647a] font-semibold uppercase">Conv.</p>
-                    <p className="text-sm font-extrabold text-[#191c1e]">{fmt(f.totalConversions)}</p>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase">Conv.</p>
+                    <p className="text-sm font-extrabold text-[#0b2540]">{fmt(f.totalConversions)}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-[#5c647a] font-semibold uppercase">Taux</p>
-                    <p className="text-sm font-extrabold text-[#006e2f]">{conversionRate.toFixed(1)}%</p>
+                    <p className="text-[10px] text-slate-500 font-semibold uppercase">Taux</p>
+                    <p className="text-sm font-extrabold text-emerald-600">{conversionRate.toFixed(1)}%</p>
                   </div>
                 </div>
 
-                <p className="text-[10px] text-[#5c647a] mt-3">Modifié {timeAgo(f.updatedAt)}</p>
+                <p className="text-[10px] text-slate-500 mt-3">Modifié {timeAgo(f.updatedAt)}</p>
               </Link>
             );
           })}
@@ -235,19 +199,19 @@ export default function FunnelsListPage() {
             className="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Nouveau funnel de vente</h2>
-            <p className="text-sm text-[#5c647a] mb-5">
+            <h2 className="text-xl font-extrabold text-[#0b2540] mb-2">Nouveau funnel de vente</h2>
+            <p className="text-sm text-slate-500 mb-5">
               Donnez un nom à votre funnel. Vous pourrez tout configurer ensuite (design, blocks, produits).
             </p>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
-                <p className="text-sm text-red-700">{error}</p>
+              <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                <AlertCircle size={18} className="text-rose-500" />
+                <p className="text-sm text-rose-700">{error}</p>
               </div>
             )}
 
-            <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Nom du funnel</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Nom du funnel</label>
             <input
               type="text"
               value={newName}
@@ -255,43 +219,30 @@ export default function FunnelsListPage() {
               placeholder="ex: Lancement formation marketing 2026"
               autoFocus
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]"
+              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
             />
 
-            <div className="bg-[#006e2f]/5 border border-[#006e2f]/20 rounded-xl p-3 mt-4 mb-5 flex items-start gap-2">
-              <span className="material-symbols-outlined text-[#006e2f] text-[16px] mt-0.5">info</span>
-              <p className="text-xs text-[#006e2f]">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mt-4 mb-5 flex items-start gap-2">
+              <Info size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
+              <p className="text-xs text-emerald-700">
                 Votre funnel sera créé avec 4 étapes par défaut :{" "}
                 <strong>Landing → Checkout → Upsell → Merci</strong>. Vous pourrez tout personnaliser.
               </p>
             </div>
 
             <div className="flex gap-2">
-              <button
-                onClick={() => setShowCreate(false)}
-                disabled={creating}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 disabled:opacity-50 transition-colors"
-              >
+              <KazaButton variant="ghost" className="flex-1" onClick={() => setShowCreate(false)} disabled={creating}>
                 Annuler
-              </button>
-              <button
+              </KazaButton>
+              <KazaButton
+                variant="primary"
+                className="flex-1"
                 onClick={handleCreate}
                 disabled={!newName.trim() || creating}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-white hover:opacity-90 disabled:opacity-50 transition-opacity flex items-center justify-center gap-2"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                icon={creating ? Loader2 : PlusCircle}
               >
-                {creating ? (
-                  <>
-                    <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                    Création…
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                    Créer
-                  </>
-                )}
-              </button>
+                {creating ? "Création…" : "Créer"}
+              </KazaButton>
             </div>
           </div>
         </div>

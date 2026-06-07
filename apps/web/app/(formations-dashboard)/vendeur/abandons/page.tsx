@@ -1,7 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import {
+  CreditCard,
+  Mail,
+  Phone,
+  MessageCircle,
+  Check,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ShoppingCart,
+  RefreshCw,
+  Clock,
+  Info,
+  Wallet,
+  Sparkles,
+  TrendingUp,
+  Percent,
+} from "lucide-react";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
 
 type Attempt = {
   id: string;
@@ -39,13 +64,13 @@ function timeAgo(iso: string): string {
   return `il y a ${d}j`;
 }
 
-function statusLabel(s: Attempt["status"]) {
-  const map: Record<Attempt["status"], { label: string; color: string; bg: string }> = {
-    STARTED: { label: "Démarré", color: "text-blue-700", bg: "bg-blue-50" },
-    ABANDONED: { label: "Abandonné", color: "text-amber-700", bg: "bg-amber-50" },
-    FAILED: { label: "Échoué", color: "text-rose-700", bg: "bg-rose-50" },
-    COMPLETED: { label: "Payé", color: "text-emerald-700", bg: "bg-emerald-50" },
-    RECOVERED: { label: "Récupéré", color: "text-emerald-700", bg: "bg-emerald-50" },
+function statusBadgeProps(s: Attempt["status"]): { label: string; variant: "blue" | "orange" | "rose" | "green" } {
+  const map: Record<Attempt["status"], { label: string; variant: "blue" | "orange" | "rose" | "green" }> = {
+    STARTED: { label: "Démarré", variant: "blue" },
+    ABANDONED: { label: "Abandonné", variant: "orange" },
+    FAILED: { label: "Échoué", variant: "rose" },
+    COMPLETED: { label: "Payé", variant: "green" },
+    RECOVERED: { label: "Récupéré", variant: "green" },
   };
   return map[s];
 }
@@ -60,6 +85,8 @@ export default function AbandonsPage() {
   const [stats, setStats] = useState<Record<string, { count: number; amount: number }>>({});
   const [status, setStatus] = useState<StatusFilter>("unresolved");
   const [loading, setLoading] = useState(true);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
+  const [sendResult, setSendResult] = useState<{ id: string; ok: boolean; message: string } | null>(null);
 
   async function load() {
     setLoading(true);
@@ -73,9 +100,6 @@ export default function AbandonsPage() {
     }
   }
   useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [status]);
-
-  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
-  const [sendResult, setSendResult] = useState<{ id: string; ok: boolean; message: string } | null>(null);
 
   async function markContacted(id: string) {
     await fetch("/api/formations/vendeur/checkout-attempts", {
@@ -99,7 +123,7 @@ export default function AbandonsPage() {
         setSendResult({ id, ok: false, message: json.error || "Échec d'envoi" });
       } else {
         setSendResult({ id, ok: true, message: `Email envoyé à ${json.sentTo}` });
-        load(); // refresh : mark contacted reflected
+        load();
       }
     } catch {
       setSendResult({ id, ok: false, message: "Erreur réseau" });
@@ -112,54 +136,70 @@ export default function AbandonsPage() {
   const totalLost = (stats.FAILED?.amount ?? 0) + (stats.ABANDONED?.amount ?? 0);
   const totalRecovered = stats.RECOVERED?.amount ?? 0;
   const totalCompleted = stats.COMPLETED?.amount ?? 0;
+  const conversionRate = stats.COMPLETED?.count
+    ? Math.round((stats.COMPLETED.count / ((stats.COMPLETED?.count ?? 0) + (stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0))) * 100)
+    : 0;
+
+  const filters: Array<{ id: StatusFilter; label: string }> = [
+    { id: "unresolved", label: "À relancer" },
+    { id: "failed", label: "Échecs" },
+    { id: "abandoned", label: "Abandons" },
+    { id: "recovered", label: "Récupérés" },
+    { id: "all", label: "Tout" },
+  ];
 
   return (
-    <div className="p-5 md:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
-          <Link href="/vendeur/dashboard" className="hover:text-[#006e2f]">Tableau de bord</Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="text-[#191c1e] font-medium">Abandons & Échecs</span>
-        </div>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-white shadow-lg">
-            <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>payments</span>
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Abandons & Paiements échoués</h1>
-            <p className="text-sm text-[#5c647a]">Relancez les visiteurs qui ont tenté d&apos;acheter mais n&apos;ont pas finalisé</p>
-          </div>
-        </div>
-      </div>
+    <div className="p-5 md:p-8 max-w-7xl mx-auto space-y-6">
+      <KazaHero
+        badge="Pro"
+        badgeColor="orange"
+        title="Abandons et paiements échoués"
+        subtitle="Relancez les visiteurs qui ont tenté d'acheter sans finaliser"
+        icon={CreditCard}
+      />
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Potentiel perdu" value={fmtFCFA(totalLost)} sub={`${(stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0)} tentatives`} color="rose" />
-        <StatCard label="Récupéré" value={fmtFCFA(totalRecovered)} sub={`${stats.RECOVERED?.count ?? 0} récupérations`} color="emerald" />
-        <StatCard label="Paiements réussis" value={fmtFCFA(totalCompleted)} sub={`${stats.COMPLETED?.count ?? 0} commandes`} color="blue" />
-        <StatCard
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KazaKpiCard
+          label="Potentiel perdu"
+          value={fmtFCFA(totalLost)}
+          delta={`${(stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0)} tentatives`}
+          deltaTrend="down"
+          icon={Wallet}
+          iconColor="rose"
+        />
+        <KazaKpiCard
+          label="Récupéré"
+          value={fmtFCFA(totalRecovered)}
+          delta={`${stats.RECOVERED?.count ?? 0} récup.`}
+          deltaTrend="up"
+          icon={Sparkles}
+          iconColor="emerald"
+        />
+        <KazaKpiCard
+          label="Paiements réussis"
+          value={fmtFCFA(totalCompleted)}
+          delta={`${stats.COMPLETED?.count ?? 0} cmd.`}
+          deltaTrend="up"
+          icon={TrendingUp}
+          iconColor="sky"
+        />
+        <KazaKpiCard
           label="Taux conversion"
-          value={`${stats.COMPLETED?.count ? Math.round((stats.COMPLETED.count / ((stats.COMPLETED?.count ?? 0) + (stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0))) * 100) : 0}%`}
-          sub="payés / total tentatives"
-          color="purple"
+          value={`${conversionRate}%`}
+          icon={Percent}
+          iconColor="violet"
         />
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-1 bg-white rounded-xl p-1 border border-gray-100 mb-4 w-fit overflow-x-auto">
-        {([
-          { id: "unresolved", label: "À relancer" },
-          { id: "failed", label: "Échecs" },
-          { id: "abandoned", label: "Abandons" },
-          { id: "recovered", label: "Récupérés" },
-          { id: "all", label: "Tout" },
-        ] as Array<{ id: StatusFilter; label: string }>).map((t) => (
+      <div className="flex items-center gap-1 bg-white rounded-xl p-1 border border-slate-100 w-fit overflow-x-auto">
+        {filters.map((t) => (
           <button
             key={t.id}
             onClick={() => setStatus(t.id)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap ${
-              status === t.id ? "bg-[#191c1e] text-white" : "text-[#5c647a] hover:bg-gray-50"
+            className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
+              status === t.id ? "bg-[#0b2540] text-white" : "text-slate-500 hover:bg-slate-50"
             }`}
           >
             {t.label}
@@ -170,35 +210,15 @@ export default function AbandonsPage() {
       {/* List */}
       {loading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-28 bg-gray-200 rounded-2xl animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-28 bg-slate-100 rounded-2xl animate-pulse" />)}
         </div>
       ) : attempts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">shopping_cart_off</span>
-          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun abandon dans cette catégorie</h3>
-          <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto leading-relaxed">
-            Les abandons apparaissent ici quand un visiteur clique sur <strong>« Payer »</strong> sans
-            finaliser le paiement (timeout après 1h d&apos;inactivité). Les paiements échoués s&apos;affichent
-            immédiatement dans l&apos;onglet « Échecs ».
-          </p>
-          <div className="mt-5 inline-flex flex-col sm:flex-row items-center gap-3 text-xs text-[#5c647a]">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 text-amber-700">
-              <span className="material-symbols-outlined text-[14px]">schedule</span>
-              Détection automatique : 1h après l&apos;arrêt
-            </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700">
-              <span className="material-symbols-outlined text-[14px]">info</span>
-              Onglet « Tout » pour voir l&apos;historique complet
-            </span>
-          </div>
-          <button
-            onClick={() => load()}
-            className="mt-5 inline-flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-[#006e2f] hover:bg-emerald-50 rounded-lg transition-colors"
-          >
-            <span className="material-symbols-outlined text-[16px]">refresh</span>
-            Actualiser
-          </button>
-        </div>
+        <KazaEmpty
+          icon={ShoppingCart}
+          title="Aucun abandon dans cette catégorie"
+          description="Les abandons apparaissent ici quand un visiteur clique sur « Payer » sans finaliser (timeout 1h). Les paiements échoués s'affichent immédiatement dans « Échecs »."
+          action={{ label: "Actualiser", onClick: () => load() }}
+        />
       ) : (
         <div className="space-y-3">
           {attempts.map((a) => {
@@ -206,51 +226,41 @@ export default function AbandonsPage() {
             const itemTitle = item?.title ?? "Produit supprimé";
             const itemType = a.formation ? "formation" : a.product ? "produit" : "inconnu";
             const visitorIdentity = a.visitorName || a.visitorEmail || "Visiteur anonyme";
-            const st = statusLabel(a.status);
+            const st = statusBadgeProps(a.status);
             const alreadyContacted = !!a.vendorContactedAt;
-            const emailSubject = encodeURIComponent(`À propos de votre achat : ${itemTitle}`);
-            const emailBody = encodeURIComponent(`Bonjour ${a.visitorName || ""},\n\nVous avez tenté d'acheter "${itemTitle}" sur notre boutique mais la transaction n'a pas abouti.\n\nJe voulais m'assurer que tout va bien et voir si je peux vous aider à finaliser votre achat.\n\nÀ bientôt,`);
             const waMessage = `Bonjour ${a.visitorName || ""}, vous avez tenté d'acheter "${itemTitle}" sur notre boutique. Je suis là si vous avez besoin d'aide pour finaliser votre achat.`;
 
             return (
-              <div key={a.id} className="bg-white rounded-2xl border border-gray-100 p-5 hover:border-[#006e2f]/30 transition-colors">
+              <KazaCard key={a.id}>
                 <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${st.bg} ${st.color}`}>
-                        {st.label}
-                      </span>
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <KazaBadge variant={st.variant}>{st.label}</KazaBadge>
                       {alreadyContacted && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700">
-                          ✓ Contacté
-                        </span>
+                        <KazaBadge variant="violet" icon={Check}>Contacté</KazaBadge>
                       )}
-                      {a.reminder1SentAt && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
-                          Rappel 1 envoyé
-                        </span>
-                      )}
-                      {a.reminder2SentAt && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">
-                          Rappel 2 envoyé
-                        </span>
-                      )}
-                      <span className="text-[10px] text-[#5c647a]">{timeAgo(a.createdAt)}</span>
+                      {a.reminder1SentAt && <KazaBadge variant="blue">Rappel 1 envoyé</KazaBadge>}
+                      {a.reminder2SentAt && <KazaBadge variant="blue">Rappel 2 envoyé</KazaBadge>}
+                      <span className="text-[10px] text-slate-500">{timeAgo(a.createdAt)}</span>
                     </div>
-                    <p className="text-base font-bold text-[#191c1e]">{visitorIdentity}</p>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-[#5c647a] mt-0.5">
-                      {a.visitorEmail && <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">mail</span>{a.visitorEmail}</span>}
-                      {a.visitorPhone && <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">phone</span>{a.visitorPhone}</span>}
+                    <p className="text-base font-bold text-slate-900">{visitorIdentity}</p>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-1">
+                      {a.visitorEmail && (
+                        <span className="inline-flex items-center gap-1"><Mail size={14} />{a.visitorEmail}</span>
+                      )}
+                      {a.visitorPhone && (
+                        <span className="inline-flex items-center gap-1"><Phone size={14} />{a.visitorPhone}</span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-extrabold text-[#191c1e]">{fmtFCFA(a.amount)}</p>
-                    <p className="text-[10px] text-[#5c647a]">{a.paymentMethod ?? "Moyen inconnu"}</p>
+                    <p className="text-lg font-extrabold text-[#0b2540] tabular-nums">{fmtFCFA(a.amount)}</p>
+                    <p className="text-[10px] text-slate-500">{a.paymentMethod ?? "Moyen inconnu"}</p>
                   </div>
                 </div>
 
-                <div className="bg-gray-50 rounded-xl p-3 mb-3 text-xs">
-                  <p className="text-[#5c647a]">
+                <div className="bg-slate-50 rounded-xl p-3 mb-3 text-xs">
+                  <p className="text-slate-600">
                     <span className="font-bold">{itemType === "formation" ? "Formation" : "Produit"} :</span> {itemTitle}
                   </p>
                   {a.failureReason && (
@@ -260,25 +270,21 @@ export default function AbandonsPage() {
                   )}
                 </div>
 
-                {/* Actions */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {a.visitorEmail && (
-                    <button
+                    <KazaButton
+                      variant="primary"
+                      size="sm"
                       onClick={() => sendRecoveryEmail(a.id)}
                       disabled={sendingEmailId === a.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold bg-[#006e2f] hover:bg-[#005523] disabled:opacity-50 disabled:cursor-not-allowed"
+                      icon={sendingEmailId === a.id ? Loader2 : Mail}
                     >
-                      <span className={`material-symbols-outlined text-[14px] ${sendingEmailId === a.id ? "animate-spin" : ""}`}>
-                        {sendingEmailId === a.id ? "progress_activity" : "mail"}
-                      </span>
                       {sendingEmailId === a.id ? "Envoi…" : "Envoyer un email"}
-                    </button>
+                    </KazaButton>
                   )}
                   {sendResult?.id === a.id && (
-                    <span
-                      className={`inline-flex items-center gap-1 text-xs font-semibold ${sendResult.ok ? "text-[#006e2f]" : "text-red-600"}`}
-                    >
-                      <span className="material-symbols-outlined text-[14px]">{sendResult.ok ? "check_circle" : "error"}</span>
+                    <span className={`inline-flex items-center gap-1 text-xs font-semibold ${sendResult.ok ? "text-emerald-600" : "text-rose-600"}`}>
+                      {sendResult.ok ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
                       {sendResult.message}
                     </span>
                   )}
@@ -288,43 +294,28 @@ export default function AbandonsPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => markContacted(a.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-bold bg-emerald-600 hover:bg-emerald-700"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-white text-xs font-bold bg-emerald-600 hover:bg-emerald-700"
                     >
-                      <span className="material-symbols-outlined text-[14px]">chat</span>
+                      <MessageCircle size={14} />
                       WhatsApp
                     </a>
                   )}
                   {!alreadyContacted && (a.visitorEmail || a.visitorPhone) && (
-                    <button
+                    <KazaButton
+                      variant="ghost"
+                      size="sm"
                       onClick={() => markContacted(a.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[#5c647a] text-xs font-bold border border-gray-200 hover:bg-gray-50"
+                      icon={Check}
                     >
-                      <span className="material-symbols-outlined text-[14px]">check</span>
-                      Marquer comme contacté
-                    </button>
+                      Marquer contacté
+                    </KazaButton>
                   )}
                 </div>
-              </div>
+              </KazaCard>
             );
           })}
         </div>
       )}
-    </div>
-  );
-}
-
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: "rose" | "emerald" | "blue" | "purple" }) {
-  const bg = {
-    rose: "bg-rose-50 text-rose-700",
-    emerald: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    purple: "bg-purple-50 text-purple-700",
-  }[color];
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-4">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a] mb-1">{label}</p>
-      <p className={`text-2xl font-extrabold ${bg.split(" ")[1]}`}>{value}</p>
-      <p className="text-[10px] text-[#5c647a] mt-1">{sub}</p>
     </div>
   );
 }
