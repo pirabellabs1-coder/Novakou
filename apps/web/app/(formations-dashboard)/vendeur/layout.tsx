@@ -1,4 +1,7 @@
 // Refonte par Augustin Mékongo + Fatou Diallo — bureau 2026-05-26 (votes 7, 8, 13)
+// Migration intégrale des icônes Material Symbols → Lucide React (2026-06-07)
+// pour éliminer le bug "da", "ba", "st"… affiché en texte brut quand la font
+// Material Symbols ne charge pas assez vite.
 "use client";
 
 import Link from "next/link";
@@ -6,6 +9,40 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSession, signOut } from "next-auth/react";
+import {
+  LayoutDashboard,
+  BarChart3,
+  Store,
+  CreditCard,
+  Layers,
+  Receipt,
+  AlertCircle,
+  Wallet,
+  Megaphone,
+  Sparkles,
+  Brain,
+  Bot,
+  Zap,
+  MessageSquare,
+  Star,
+  HelpCircle,
+  Users,
+  Headphones,
+  FolderOpen,
+  KeyRound,
+  Webhook,
+  BookOpen,
+  User,
+  ShieldCheck,
+  Settings,
+  Menu,
+  PanelLeft,
+  Search,
+  ChevronDown,
+  X,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
 import { RoleGuard } from "@/components/formations/RoleGuard";
 import { ShopProvider, useActiveShop } from "@/components/formations/ShopProvider";
 import ShopSwitcher from "@/components/formations/ShopSwitcher";
@@ -17,7 +54,6 @@ import { NovakouNotificationBell } from "@/components/notifications/NovakouNotif
  *   /vendeur/abandons  → abandons (CheckoutAttempt ABANDONED/FAILED non récupérés)
  *   /vendeur/inquiries → inquiries (ProductInquiry status="pending")
  *   /wallet            → retraits  (InstructorWithdrawal status="EN_ATTENTE")
- * Si le count = 0 ou indisponible → aucun badge rendu (on ne pollue pas la nav).
  */
 const COUNT_KEY_BY_HREF: Record<string, "abandons" | "inquiries" | "retraits"> = {
   "/vendeur/abandons": "abandons",
@@ -28,47 +64,49 @@ const COUNT_KEY_BY_HREF: Record<string, "abandons" | "inquiries" | "retraits"> =
 type SidebarCounts = { abandons: number; inquiries: number; retraits: number };
 
 type NavItem = {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   href: string;
   badge?: string;
   section?: string;
 };
 
+// Note : `Storefront` n'existe pas dans lucide-react — on utilise `Store` partout
+// et on distingue produits (Store) vs boutiques (Store) par les labels.
 const navItems: NavItem[] = [
   // Vue
-  { icon: "dashboard", label: "Tableau de bord", href: "/vendeur/dashboard", section: "Vue" },
-  { icon: "bar_chart", label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
+  { icon: LayoutDashboard, label: "Tableau de bord", href: "/vendeur/dashboard", section: "Vue" },
+  { icon: BarChart3, label: "Statistiques", href: "/vendeur/statistiques", section: "Vue" },
   // Catalogue
-  { icon: "storefront", label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
-  { icon: "card_membership", label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
-  { icon: "category", label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
-  { icon: "store", label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
-  { icon: "receipt_long", label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
-  { icon: "payments", label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
-  { icon: "account_balance_wallet", label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
+  { icon: Store, label: "Mes produits", href: "/vendeur/produits", section: "Catalogue" },
+  { icon: CreditCard, label: "Abonnements", href: "/vendeur/memberships", section: "Catalogue" },
+  { icon: Layers, label: "Bundles", href: "/vendeur/bundles", section: "Catalogue" },
+  { icon: Store, label: "Mes boutiques", href: "/vendeur/boutiques", section: "Catalogue" },
+  { icon: Receipt, label: "Transactions", href: "/vendeur/transactions", section: "Catalogue" },
+  { icon: AlertCircle, label: "Abandons & Échecs", href: "/vendeur/abandons", section: "Catalogue" },
+  { icon: Wallet, label: "Revenus & retraits", href: "/wallet", section: "Catalogue" },
   // Croissance
-  { icon: "campaign", label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
-  { icon: "auto_awesome", label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
-  { icon: "psychology", label: "Coach IA", href: "/vendeur/ai-coach", section: "Croissance", badge: "IA" },
-  { icon: "smart_toy", label: "Bot support boutique", href: "/vendeur/support-ia", section: "Croissance", badge: "IA" },
-  { icon: "bolt", label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
+  { icon: Megaphone, label: "Marketing", href: "/vendeur/marketing", section: "Croissance" },
+  { icon: Sparkles, label: "AI Studio", href: "/vendeur/ai-studio", section: "Croissance", badge: "IA" },
+  { icon: Brain, label: "Coach IA", href: "/vendeur/ai-coach", section: "Croissance", badge: "IA" },
+  { icon: Bot, label: "Bot support boutique", href: "/vendeur/support-ia", section: "Croissance", badge: "IA" },
+  { icon: Zap, label: "Automatisations", href: "/vendeur/automatisations", section: "Croissance" },
   // Engagement
-  { icon: "chat_bubble", label: "Messages", href: "/messages", section: "Engagement" },
-  { icon: "reviews", label: "Avis clients", href: "/vendeur/avis", section: "Engagement" },
-  { icon: "forum", label: "Questions acheteurs", href: "/vendeur/inquiries", section: "Engagement" },
-  { icon: "groups", label: "Communauté", href: "/vendeur/communaute", section: "Engagement" },
-  { icon: "support_agent", label: "Coaching", href: "/vendeur/coaching", section: "Engagement", badge: "Pro" },
-  { icon: "folder_open", label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },
+  { icon: MessageSquare, label: "Messages", href: "/messages", section: "Engagement" },
+  { icon: Star, label: "Avis clients", href: "/vendeur/avis", section: "Engagement" },
+  { icon: HelpCircle, label: "Questions acheteurs", href: "/vendeur/inquiries", section: "Engagement" },
+  { icon: Users, label: "Communauté", href: "/vendeur/communaute", section: "Engagement" },
+  { icon: Headphones, label: "Coaching", href: "/vendeur/coaching", section: "Engagement", badge: "Pro" },
+  { icon: FolderOpen, label: "Ressources", href: "/vendeur/ressources", section: "Engagement" },
   // Développeur
-  { icon: "key", label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
-  { icon: "webhook", label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
-  { icon: "menu_book", label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
+  { icon: KeyRound, label: "Clés API", href: "/vendeur/api-keys", section: "Développeur" },
+  { icon: Webhook, label: "Webhooks sortants", href: "/vendeur/webhooks", section: "Développeur" },
+  { icon: BookOpen, label: "Documentation API", href: "/vendeur/documentation-api", section: "Développeur" },
   // Compte
-  { icon: "account_circle", label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
-  { icon: "groups", label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
-  { icon: "verified_user", label: "Vérification KYC", href: "/kyc", section: "Compte" },
-  { icon: "settings", label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
+  { icon: User, label: "Mon profil", href: "/vendeur/profil", section: "Compte" },
+  { icon: Users, label: "Équipe", href: "/vendeur/parametres/equipe", section: "Compte" },
+  { icon: ShieldCheck, label: "Vérification KYC", href: "/kyc", section: "Compte" },
+  { icon: Settings, label: "Paramètres", href: "/vendeur/parametres", section: "Compte" },
 ];
 
 // Group nav items by section
@@ -94,13 +132,10 @@ export default function VendeurLayout({ children }: { children: React.ReactNode 
 function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  // Collapsed sidebar on desktop (persisted in localStorage)
   const [collapsed, setCollapsed] = useState(false);
   const { data: session } = useSession();
   const { activeShop } = useActiveShop();
 
-  // Vote 13 — badges compteur sur la sidebar (poll léger 60s, partagé via cache TanStack).
-  // L'endpoint renvoie 0 partout en cas d'erreur → pas de crash, juste pas de badge.
   const { data: countsResp } = useQuery<{ data: SidebarCounts }>({
     queryKey: ["vendeur-sidebar-counts"],
     queryFn: () => fetch("/api/formations/vendeur/sidebar-counts").then((r) => r.json()),
@@ -129,11 +164,8 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
   const sidebarWidth = collapsed ? "w-20" : "w-64";
   const mainOffset = collapsed ? "md:ml-20" : "md:ml-64";
 
-  // Couleur thème dynamique de la boutique active. Si la boutique a un themeColor → utilisée
-  // partout dans le chrome (sidebar item actif, accents, boutons). Sinon vert Novakou.
   const shopColor = activeShop?.themeColor || "#006e2f";
 
-  // Page chooser : pas de chrome (plein écran)
   if (pathname === "/vendeur/choisir-boutique") {
     return (
       <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
@@ -147,7 +179,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
       className="min-h-screen bg-[#f7f9fb]"
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif", "--shop-color": shopColor } as React.CSSProperties}
     >
-      {/* ── Top Navbar style KAZA — logo carré, search bar centrée, avatar 2 lignes ── */}
+      {/* ── Topbar KAZA — logo carré, search bar centrée, avatar 2 lignes ── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/80 h-[68px] flex items-center px-4 md:px-6 gap-3">
         {/* Mobile hamburger */}
         <button
@@ -155,7 +187,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           onClick={() => setMobileOpen(true)}
           aria-label="Ouvrir le menu"
         >
-          <span className="material-symbols-outlined text-[22px]">menu</span>
+          <Menu size={22} />
         </button>
 
         {/* Logo carré "N Novakou" style KAZA */}
@@ -173,20 +205,16 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           aria-label={collapsed ? "Étendre le menu" : "Réduire le menu"}
           title={collapsed ? "Étendre le menu" : "Réduire le menu"}
         >
-          <span className="material-symbols-outlined text-[22px]">
-            {collapsed ? "menu_open" : "menu"}
-          </span>
+          <PanelLeft size={22} />
         </button>
 
         {/* Active shop switcher (only shown when 2+ shops) */}
         <ShopSwitcher />
 
-        {/* Search bar centrée KAZA — plus large, dominante */}
+        {/* Search bar centrée KAZA */}
         <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto px-4">
           <div className="w-full relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 pointer-events-none">
-              search
-            </span>
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="search"
               placeholder="Rechercher..."
@@ -197,7 +225,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
 
         <div className="flex-1 md:hidden" />
 
-        {/* Right : notif + avatar avec nom + rôle (style KAZA) */}
+        {/* Right : notif + avatar 2 lignes (style KAZA) */}
         <div className="flex items-center gap-3 flex-shrink-0">
           <NovakouNotificationBell tone="slate" viewAllHref="/vendeur/notifications" />
           <Link
@@ -224,9 +252,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                 {activeShop?.name ? "Vendeur Pro" : "Vendeur"}
               </span>
             </div>
-            <span className="hidden md:block material-symbols-outlined text-[18px] text-slate-400 ml-1">
-              expand_more
-            </span>
+            <ChevronDown size={16} className="hidden md:block text-slate-400 ml-1" />
           </Link>
         </div>
       </header>
@@ -240,23 +266,22 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar — style KAZA : fond blanc, items minimaux, actif = navy plein */}
+      {/* Sidebar — style KAZA */}
       <aside
         className={`fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-slate-200/60 pt-[68px] flex flex-col transition-all duration-300 ${sidebarWidth} ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${mobileOpen ? "w-64" : ""}`}
       >
-        {/* Close button mobile */}
         {mobileOpen && (
           <button
             onClick={() => setMobileOpen(false)}
             className="md:hidden absolute top-4 right-4 p-1.5 rounded-lg hover:bg-gray-100"
+            aria-label="Fermer le menu"
           >
-            <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+            <X size={20} className="text-slate-500" />
           </button>
         )}
 
-        {/* Navigation style KAZA — actif = fond navy plein blanc texte, sections discrètes */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {sections.map((section) => {
             const items = navItems.filter((n) => n.section === section);
@@ -270,10 +295,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                 <ul className="space-y-1">
                   {items.map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-                    // Vote 13 — count rouge si la route a un compteur "à traiter" et qu'il est > 0.
                     const countKey = COUNT_KEY_BY_HREF[item.href];
                     const count = countKey ? counts[countKey] : 0;
                     const showCountBadge = count > 0;
+                    const Icon = item.icon;
                     return (
                       <li key={item.href}>
                         <Link
@@ -288,20 +313,13 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                               : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
                           }`}
                         >
-                          <span
-                            className={`material-symbols-outlined text-[20px] flex-shrink-0 ${
-                              isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"
-                            }`}
-                            style={{
-                              fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                            }}
-                          >
-                            {item.icon}
-                          </span>
+                          <Icon
+                            size={20}
+                            className={`flex-shrink-0 ${isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"}`}
+                          />
                           {(!collapsed || mobileOpen) && (
                             <>
                               <span className="truncate">{item.label}</span>
-                              {/* Badge count rose (vote 13) prioritaire sur le badge texte "IA"/"Pro" */}
                               {showCountBadge ? (
                                 <span
                                   aria-label={`${count} à traiter`}
@@ -345,12 +363,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Sign out only (Create product CTA retiré) */}
+        {/* Sign out */}
         <div className={`border-t border-gray-100 ${collapsed && !mobileOpen ? "p-2" : "px-3 py-4"}`}>
           <button
             onClick={() => {
-              // Vider le cookie boutique active pour qu'au prochain login l'utilisateur
-              // soit re-routé sur le chooser (s'il a 2+ boutiques)
               document.cookie = "nk_active_shop=; path=/; max-age=0";
               signOut({ callbackUrl: "/" });
             }}
@@ -359,13 +375,13 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
               collapsed && !mobileOpen ? "py-2 px-2" : "py-2.5 px-4"
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
+            <LogOut size={16} />
             {(!collapsed || mobileOpen) && "Se déconnecter"}
           </button>
         </div>
       </aside>
 
-      {/* Main content — pt-[68px] = hauteur du topbar style KAZA */}
+      {/* Main */}
       <main className={`pt-[68px] min-h-screen transition-all duration-300 ${mainOffset}`}>
         {children}
       </main>
