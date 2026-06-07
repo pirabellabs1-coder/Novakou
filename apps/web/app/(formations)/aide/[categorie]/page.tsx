@@ -5,17 +5,66 @@ import { CATEGORIES, getArticlesByCategory, getCategory } from "@/lib/help/artic
 
 type Params = { params: Promise<{ categorie: string }> };
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+
 export async function generateStaticParams() {
   return CATEGORIES.map((c) => ({ categorie: c.slug }));
+}
+
+/** Nettoie le markdown simplifié pour le réinjecter en texte lisible (JSON-LD). */
+function cleanBody(body: string): string {
+  return body
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/[#*_`>\-|]+/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Tronque une description à ~155 chars sans couper un mot. */
+function truncateMeta(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const slice = text.slice(0, max);
+  const lastSpace = slice.lastIndexOf(" ");
+  return (lastSpace > max - 30 ? slice.slice(0, lastSpace) : slice).trim() + "…";
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { categorie } = await params;
   const cat = getCategory(categorie);
   if (!cat) return { title: "Catégorie introuvable" };
+  const articles = getArticlesByCategory(cat.slug);
+  const description = truncateMeta(
+    `${cat.description} ${articles.length} article${articles.length > 1 ? "s" : ""} pratiques pour réussir sur Novakou.`,
+    155,
+  );
+  const title = `${cat.title} — Centre d'aide`;
+  const ogImage = `${BASE_URL}/api/og?type=guide&title=${encodeURIComponent(cat.title)}&subtitle=${encodeURIComponent(`${articles.length} article${articles.length > 1 ? "s" : ""} pour vous accompagner`)}`;
+
   return {
-    title: `${cat.title} — Centre d'aide Novakou`,
-    description: cat.description,
+    title,
+    description,
+    alternates: { canonical: `/aide/${cat.slug}` },
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/aide/${cat.slug}`,
+      type: "website",
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: `${cat.title} — Centre d'aide Novakou`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
   };
 }
 
@@ -25,8 +74,47 @@ export default async function HelpCategoryPage({ params }: Params) {
   if (!cat) notFound();
   const articles = getArticlesByCategory(cat.slug);
 
+  // FAQPage JSON-LD : Google exige ≥2 questions avec réponses ≥30 char.
+  // On prend max 20 articles pour ne pas surcharger le payload SERP.
+  const faqEntries = articles.slice(0, 20);
+  const faqSchema =
+    faqEntries.length >= 2
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqEntries.map((a) => ({
+            "@type": "Question",
+            name: a.title,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: `${a.excerpt} ${cleanBody(a.body).slice(0, 400)}`.slice(0, 700).trim(),
+            },
+          })),
+        }
+      : null;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Centre d'aide", item: `${BASE_URL}/aide` },
+      { "@type": "ListItem", position: 3, name: cat.title, item: `${BASE_URL}/aide/${cat.slug}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      {faqSchema && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       <header className="relative overflow-hidden border-b border-slate-200 bg-white">
         <div
           aria-hidden

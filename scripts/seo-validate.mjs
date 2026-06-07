@@ -23,6 +23,8 @@ const URLS = [
   { url: "/", expected: ["Organization", "WebSite"] },
   { url: "/explorer", expected: ["BreadcrumbList"] },
   { url: "/aide", expected: ["FAQPage", "BreadcrumbList"] },
+  { url: "/aide/paiements", expected: ["FAQPage", "BreadcrumbList"] },
+  { url: "/aide/paiements/methodes-paiement", expected: ["Article", "BreadcrumbList"] },
   { url: "/tarifs", expected: [] },
   { url: "/a-propos", expected: [] },
   { url: "/affiliation", expected: [] },

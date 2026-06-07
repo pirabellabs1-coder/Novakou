@@ -12,18 +12,59 @@ import { renderMarkdown } from "@/lib/help/markdown";
 
 type Params = { params: Promise<{ categorie: string; slug: string }> };
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+
 export async function generateStaticParams() {
   return ARTICLES.map((a) => ({ categorie: a.category, slug: a.slug }));
 }
 
+/** Tronque sans couper de mot pour rester ≤155 chars en meta description. */
+function truncateMeta(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const slice = text.slice(0, max);
+  const lastSpace = slice.lastIndexOf(" ");
+  return (lastSpace > max - 30 ? slice.slice(0, lastSpace) : slice).trim() + "…";
+}
+
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const { categorie, slug } = await params;
   const a = getArticleBySlug(slug);
   if (!a) return { title: "Article introuvable" };
+  const cat = getCategory(a.category);
+  const title = `${a.title} — Centre d'aide`;
+  const description = truncateMeta(a.excerpt, 155);
+  const ogImage = `${BASE_URL}/api/og?type=guide&title=${encodeURIComponent(a.title)}&subtitle=${encodeURIComponent(cat?.title ?? "Centre d'aide Novakou")}`;
+  const url = `${BASE_URL}/aide/${categorie}/${a.slug}`;
+
   return {
-    title: `${a.title} — Centre d'aide Novakou`,
-    description: a.excerpt,
+    title,
+    description,
     keywords: a.tags,
+    alternates: { canonical: `/aide/${categorie}/${a.slug}` },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "article",
+      publishedTime: a.lastUpdated,
+      modifiedTime: a.lastUpdated,
+      authors: ["Équipe Novakou"],
+      tags: a.tags,
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: a.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [ogImage],
+    },
   };
 }
 
@@ -45,8 +86,61 @@ export default async function HelpArticlePage({ params }: Params) {
     year: "numeric",
   });
 
+  // JSON-LD Article — datePublished depuis lastUpdated faute de mieux,
+  // author = "Équipe Novakou", publisher = Organization Novakou avec logo.
+  const articleUrl = `${BASE_URL}/aide/${cat.slug}/${article.slug}`;
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt,
+    datePublished: article.lastUpdated,
+    dateModified: article.lastUpdated,
+    author: {
+      "@type": "Organization",
+      name: "Équipe Novakou",
+      url: BASE_URL,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Novakou",
+      url: BASE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${BASE_URL}/logo.png`,
+      },
+    },
+    image: `${BASE_URL}/api/og?type=guide&title=${encodeURIComponent(article.title)}&subtitle=${encodeURIComponent(cat.title)}`,
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": articleUrl,
+    },
+    articleSection: cat.title,
+    keywords: article.tags?.join(", "),
+    inLanguage: "fr-FR",
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Accueil", item: BASE_URL },
+      { "@type": "ListItem", position: 2, name: "Centre d'aide", item: `${BASE_URL}/aide` },
+      { "@type": "ListItem", position: 3, name: cat.title, item: `${BASE_URL}/aide/${cat.slug}` },
+      { "@type": "ListItem", position: 4, name: article.title, item: articleUrl },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
       {/* Breadcrumb */}
       <nav className="max-w-4xl mx-auto px-5 md:px-8 pt-6 flex items-center gap-1 text-xs text-slate-500">
         <Link href="/aide" className="hover:text-slate-900">Centre d&apos;aide</Link>
