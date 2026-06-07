@@ -80,9 +80,38 @@ export default async function FormationPage({
   const formation = await prisma.formation
     .findUnique({
       where: { slug },
-      select: { id: true, title: true, shortDesc: true, description: true, thumbnail: true, price: true },
+      select: {
+        id: true,
+        title: true,
+        shortDesc: true,
+        description: true,
+        thumbnail: true,
+        price: true,
+        rating: true,
+        reviewsCount: true,
+        studentsCount: true,
+        instructeur: { select: { user: { select: { name: true } } } },
+      },
     })
     .catch(() => null);
+
+  // Top 3 reviews avec rating + texte pour enrichir le Schema.org Course.
+  // Google les affiche dans les rich results "Course" → boost CTR.
+  const topReviews = formation
+    ? await prisma.formationReview
+        .findMany({
+          where: { formationId: formation.id, comment: { not: "" } },
+          select: {
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: { select: { name: true } },
+          },
+          orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+          take: 3,
+        })
+        .catch(() => [])
+    : [];
 
   const ldDescription =
     formation?.shortDesc?.trim() ||
@@ -107,13 +136,62 @@ export default async function FormationPage({
                   name: "Novakou",
                   url: "https://novakou.com",
                 },
+                ...(formation.instructeur?.user?.name
+                  ? {
+                      author: {
+                        "@type": "Person",
+                        name: formation.instructeur.user.name,
+                      },
+                    }
+                  : {}),
                 ...(formation.thumbnail ? { image: formation.thumbnail } : {}),
+                // hasCourseInstance requis par Google pour valider Course
+                // rich results — sans ça, le snippet étoiles n'apparaît pas.
+                hasCourseInstance: {
+                  "@type": "CourseInstance",
+                  courseMode: "Online",
+                  courseWorkload: "P10H",
+                },
                 offers: {
                   "@type": "Offer",
                   price: formation.price,
                   priceCurrency: "XOF",
                   availability: "https://schema.org/InStock",
+                  category: "Paid",
                 },
+                // AggregateRating : déclenche les ⭐ dans Google SERP.
+                // N'apparaît que si reviewsCount ≥ 1 (sinon Google rejette).
+                ...(formation.rating && formation.reviewsCount && formation.reviewsCount > 0
+                  ? {
+                      aggregateRating: {
+                        "@type": "AggregateRating",
+                        ratingValue: Number(formation.rating.toFixed(2)),
+                        reviewCount: formation.reviewsCount,
+                        bestRating: 5,
+                        worstRating: 1,
+                      },
+                    }
+                  : {}),
+                // Top 3 reviews avec auteur + texte → boost crédibilité SERP.
+                ...(topReviews.length > 0
+                  ? {
+                      review: topReviews.map((r) => ({
+                        "@type": "Review",
+                        reviewRating: {
+                          "@type": "Rating",
+                          ratingValue: r.rating,
+                          bestRating: 5,
+                          worstRating: 1,
+                        },
+                        author: {
+                          "@type": "Person",
+                          name: r.user?.name || "Apprenant Novakou",
+                        },
+                        datePublished: r.createdAt.toISOString().split("T")[0],
+                        reviewBody: r.comment.slice(0, 280),
+                      })),
+                    }
+                  : {}),
               }),
             }}
           />

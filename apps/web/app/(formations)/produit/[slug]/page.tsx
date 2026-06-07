@@ -82,10 +82,27 @@ export default async function ProduitPage({
       where: { slug },
       select: {
         id: true, title: true, description: true, banner: true, thumbnail: true, price: true,
-        rating: true, reviewsCount: true,
+        rating: true, reviewsCount: true, salesCount: true,
+        instructeur: { select: { user: { select: { name: true } } } },
       },
     })
     .catch(() => null);
+
+  const topProductReviews = product
+    ? await prisma.digitalProductReview
+        .findMany({
+          where: { productId: product.id, comment: { not: "" } },
+          select: {
+            rating: true,
+            comment: true,
+            createdAt: true,
+            user: { select: { name: true } },
+          },
+          orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+          take: 3,
+        })
+        .catch(() => [])
+    : [];
 
   const productImage = product?.banner ?? product?.thumbnail ?? null;
   const productDescription = (product?.description ?? "").replace(/<[^>]+>/g, " ").trim().slice(0, 300);
@@ -116,15 +133,41 @@ export default async function ProduitPage({
                   availability: "https://schema.org/InStock",
                   url: `${baseUrl}/produit/${slug}`,
                 },
+                ...(product.instructeur?.user?.name
+                  ? {
+                      brand: { "@type": "Brand", name: product.instructeur.user.name },
+                      manufacturer: { "@type": "Person", name: product.instructeur.user.name },
+                    }
+                  : {}),
+                category: "Digital Goods",
                 ...(product.reviewsCount > 0
                   ? {
                       aggregateRating: {
                         "@type": "AggregateRating",
-                        ratingValue: product.rating || 5,
+                        ratingValue: product.rating ? Number(product.rating.toFixed(2)) : 5,
                         reviewCount: product.reviewsCount,
                         bestRating: 5,
                         worstRating: 1,
                       },
+                    }
+                  : {}),
+                ...(topProductReviews.length > 0
+                  ? {
+                      review: topProductReviews.map((r) => ({
+                        "@type": "Review",
+                        reviewRating: {
+                          "@type": "Rating",
+                          ratingValue: r.rating,
+                          bestRating: 5,
+                          worstRating: 1,
+                        },
+                        author: {
+                          "@type": "Person",
+                          name: r.user?.name || "Acheteur Novakou",
+                        },
+                        datePublished: r.createdAt.toISOString().split("T")[0],
+                        reviewBody: r.comment.slice(0, 280),
+                      })),
                     }
                   : {}),
               }),
