@@ -3,22 +3,43 @@
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import {
+  Settings,
+  UserCog,
+  AtSign,
+  Wallet,
+  Bell,
+  Shield,
+  Headphones,
+  Save,
+  LogOut,
+  CheckCircle2,
+  Loader2,
+  KeyRound,
+  Eye,
+  type LucideIcon,
+} from "lucide-react";
 import VendorDomainTab from "@/components/formations/VendorDomainTab";
 import AccountDeletionPanel from "@/components/account/AccountDeletionPanel";
 import TwoFactorSetup from "@/components/account/TwoFactorSetup";
 import CountrySelect from "@/components/account/CountrySelect";
 import ActiveSessions from "@/components/account/ActiveSessions";
 import PaymentSettingsPanel from "@/components/vendeur/PaymentSettingsPanel";
+import {
+  KazaHero,
+  KazaCard,
+  KazaButton,
+} from "@/components/kaza";
 
 type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
-const ALL_TABS: { value: Tab; label: string; icon: string }[] = [
-  { value: "compte", label: "Compte", icon: "manage_accounts" },
-  { value: "domaine", label: "Nom de domaine", icon: "alternate_email" },
-  { value: "paiements", label: "Paiements", icon: "account_balance_wallet" },
-  { value: "notifications", label: "Notifications", icon: "notifications" },
-  { value: "securite", label: "Sécurité", icon: "security" },
-  { value: "coaching", label: "Coaching", icon: "support_agent" },
+const ALL_TABS: { value: Tab; label: string; icon: LucideIcon }[] = [
+  { value: "compte", label: "Compte", icon: UserCog },
+  { value: "domaine", label: "Nom de domaine", icon: AtSign },
+  { value: "paiements", label: "Paiements", icon: Wallet },
+  { value: "notifications", label: "Notifications", icon: Bell },
+  { value: "securite", label: "Sécurité", icon: Shield },
+  { value: "coaching", label: "Coaching", icon: Headphones },
 ];
 
 // (payoutMethods is now loaded dynamically by <PaymentSettingsPanel />)
@@ -53,7 +74,7 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   return (
     <button
       onClick={() => onChange(!on)}
-      className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${on ? "bg-[#006e2f]" : "bg-gray-200"}`}
+      className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${on ? "bg-emerald-500" : "bg-slate-200"}`}
     >
       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${on ? "left-5" : "left-0.5"}`} />
     </button>
@@ -211,32 +232,36 @@ export default function ParamaetresPage() {
   };
 
   return (
-    <div className="p-5 md:p-8 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Paramètres</h1>
-        <p className="text-sm text-[#5c647a] mt-1">Gérez votre compte et vos préférences</p>
-      </div>
+    <div className="min-h-screen bg-slate-50/50">
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-4xl mx-auto space-y-8">
+        <KazaHero
+          badge={isMentorContext ? "Mentor" : "Pro"}
+          badgeColor={isMentorContext ? "white" : "orange"}
+          icon={Settings}
+          title="Paramètres"
+          subtitle="Gérez votre compte et vos préférences"
+        />
 
-      {/* Tab navigation */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl mb-8 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-              activeTab === tab.value
-                ? "bg-white text-[#191c1e] shadow-sm"
-                : "text-[#5c647a] hover:text-[#191c1e]"
-            }`}
-          >
-            <span className={`material-symbols-outlined text-[18px] ${activeTab === tab.value ? "text-[#006e2f]" : "text-[#5c647a]"}`}>
-              {tab.icon}
-            </span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
+        {/* Tab navigation */}
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl overflow-x-auto">
+          {tabs.map((tab) => {
+            const TabIcon = tab.icon;
+            return (
+              <button
+                key={tab.value}
+                onClick={() => setActiveTab(tab.value)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
+                  activeTab === tab.value
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+              >
+                <TabIcon className={`w-4 h-4 ${activeTab === tab.value ? "text-emerald-700" : "text-slate-500"}`} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
 
       {/* ─── COMPTE ─── */}
       {activeTab === "compte" && (
@@ -291,27 +316,17 @@ export default function ParamaetresPage() {
             </div>
 
             <div className="flex flex-wrap gap-3 items-center">
-              <button
+              <KazaButton
+                variant="primary"
+                icon={savingCompte ? Loader2 : Save}
                 onClick={saveCompte}
                 disabled={savingCompte}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90 shadow-md shadow-[#006e2f]/20 disabled:opacity-50"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
-                {savingCompte ? (
-                  <>
-                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                    Sauvegarde…
-                  </>
-                ) : (
-                  <>
-                    <span className="material-symbols-outlined text-[18px]">save</span>
-                    Enregistrer les modifications
-                  </>
-                )}
-              </button>
+                {savingCompte ? "Sauvegarde…" : "Enregistrer les modifications"}
+              </KazaButton>
               {compteSaved && (
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-green-700">
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                  <CheckCircle2 className="w-4 h-4" />
                   Sauvegardé !
                 </span>
               )}
@@ -319,16 +334,12 @@ export default function ParamaetresPage() {
           </div>
 
           {/* Logout + Danger zone */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
-            <h2 className="text-base font-bold text-[#191c1e] mb-1">Session</h2>
-            <p className="text-sm text-[#5c647a] mb-4">Déconnectez-vous de votre compte sur cet appareil.</p>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gray-100 text-[#191c1e] text-sm font-bold hover:bg-gray-200 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-4">
+            <h2 className="text-base font-bold text-slate-900 mb-1">Session</h2>
+            <p className="text-sm text-slate-500 mb-4">Déconnectez-vous de votre compte sur cet appareil.</p>
+            <KazaButton variant="ghost" icon={LogOut} onClick={handleLogout}>
               Se déconnecter
-            </button>
+            </KazaButton>
           </div>
 
           <AccountDeletionPanel />
@@ -384,22 +395,20 @@ export default function ParamaetresPage() {
       {activeTab === "coaching" && (
         <div className="space-y-6">
           {/* Activation toggle */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${coachActif ? "bg-[#006e2f]/10" : "bg-gray-100"}`}>
-                  <span className={`material-symbols-outlined text-[24px] ${coachActif ? "text-[#006e2f]" : "text-[#5c647a]"}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                    support_agent
-                  </span>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${coachActif ? "bg-emerald-50" : "bg-slate-100"}`}>
+                  <Headphones className={`w-6 h-6 ${coachActif ? "text-emerald-700" : "text-slate-500"}`} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#191c1e]">Mode Coach</h2>
-                  <p className="text-sm text-[#5c647a] mt-0.5 max-w-sm">
-                    Activez cette option pour proposer des sessions de coaching 1:1 et apparaître sur la page <span className="font-semibold text-[#006e2f]">Mentors</span> de Novakou.
+                  <h2 className="text-base font-bold text-slate-900">Mode Coach</h2>
+                  <p className="text-sm text-slate-500 mt-0.5 max-w-sm">
+                    Activez cette option pour proposer des sessions de coaching 1:1 et apparaître sur la page <span className="font-semibold text-emerald-700">Mentors</span> de Novakou.
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className={`w-2 h-2 rounded-full ${coachActif ? "bg-[#22c55e]" : "bg-gray-300"}`} />
-                    <span className={`text-xs font-semibold ${coachActif ? "text-[#006e2f]" : "text-[#5c647a]"}`}>
+                    <span className={`w-2 h-2 rounded-full ${coachActif ? "bg-emerald-500" : "bg-slate-300"}`} />
+                    <span className={`text-xs font-semibold ${coachActif ? "text-emerald-700" : "text-slate-500"}`}>
                       {coachActif ? "Actif — vous apparaissez sur la page Mentors" : "Inactif"}
                     </span>
                   </div>
@@ -548,10 +557,10 @@ export default function ParamaetresPage() {
               </div>
 
               {/* Aperçu fiche mentor */}
-              <div className="bg-white rounded-2xl border border-[#006e2f]/20 shadow-sm p-6">
+              <div className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-[18px] text-[#006e2f]">preview</span>
-                  <h2 className="text-sm font-bold text-[#006e2f]">Aperçu de votre fiche mentor</h2>
+                  <Eye className="w-4 h-4 text-emerald-700" />
+                  <h2 className="text-sm font-bold text-emerald-700">Aperçu de votre fiche mentor</h2>
                 </div>
                 <div className="flex items-start gap-4 p-4 rounded-xl bg-[#f7f9fb] border border-gray-100">
                   <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
@@ -585,24 +594,22 @@ export default function ParamaetresPage() {
                 </div>
               </div>
 
-              <button
+              <KazaButton
+                variant="primary"
+                icon={coachSaved ? CheckCircle2 : Save}
                 onClick={saveCoach}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-bold text-sm transition-opacity hover:opacity-90 shadow-md shadow-[#006e2f]/20"
-                style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
+                className="w-full"
               >
-                <span className="material-symbols-outlined text-[18px]">
-                  {coachSaved ? "check_circle" : "save"}
-                </span>
                 {coachSaved ? "Profil coach sauvegardé !" : "Sauvegarder mon profil coach"}
-              </button>
+              </KazaButton>
             </>
           )}
 
           {!coachActif && (
-            <div className="bg-[#f7f9fb] rounded-2xl border border-dashed border-gray-200 p-8 text-center">
-              <span className="material-symbols-outlined text-[48px] text-gray-300 block mb-3">support_agent</span>
-              <p className="text-sm font-semibold text-[#191c1e] mb-1">Activez le mode coach pour configurer vos sessions</p>
-              <p className="text-xs text-[#5c647a]">Une fois activé, vous apparaîtrez sur la page Mentors et les apprenants pourront réserver des sessions avec vous.</p>
+            <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
+              <Headphones className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+              <p className="text-sm font-semibold text-slate-900 mb-1">Activez le mode coach pour configurer vos sessions</p>
+              <p className="text-xs text-slate-500">Une fois activé, vous apparaîtrez sur la page Mentors et les apprenants pourront réserver des sessions avec vous.</p>
             </div>
           )}
         </div>
@@ -663,15 +670,14 @@ export default function ParamaetresPage() {
               </div>
             )}
 
-            <button
+            <KazaButton
+              variant="primary"
+              icon={KeyRound}
               onClick={handleChangePassword}
               disabled={pwdSubmitting}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[18px]">lock_reset</span>
               {pwdSubmitting ? "Mise à jour…" : "Mettre à jour le mot de passe"}
-            </button>
+            </KazaButton>
           </div>
 
           {/* 2FA — full setup flow (QR code + verification) */}
@@ -683,6 +689,7 @@ export default function ParamaetresPage() {
 
         </div>
       )}
+      </main>
     </div>
   );
 }

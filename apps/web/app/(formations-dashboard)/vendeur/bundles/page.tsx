@@ -2,10 +2,31 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  Package,
+  Plus,
+  X,
+  PlayCircle,
+  Download,
+  ExternalLink,
+  Pencil,
+  Pause,
+  Play,
+  Trash2,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
+import {
+  KazaHero,
+  KazaCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
 
 interface BundleItem {
   id: string;
@@ -47,8 +68,6 @@ export default function VendorBundlesPage() {
   const [showForm, setShowForm] = useState(false);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
 
-  // Form state — when `editingId` is set, the form is in EDIT mode (PATCH the
-  // existing bundle) ; null = create mode (POST a new bundle).
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -81,7 +100,6 @@ export default function VendorBundlesPage() {
         .filter((x): x is { kind: "formation" | "digital"; id: string } => !!x),
     );
     setShowForm(true);
-    // Scroll to top so the user sees the form
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -100,13 +118,11 @@ export default function VendorBundlesPage() {
 
   async function loadCatalog() {
     try {
-      // /catalog renvoie un tableau plat { kind: "formation"|"product", id, title, price, status, ... }
-      // On garde uniquement les produits ACTIFS (publiés et en ligne) pour les bundles.
       const res = await fetch("/api/formations/vendeur/catalog");
       const j = await res.json();
       const raw = Array.isArray(j?.data) ? (j.data as Array<{ kind: string; id: string; title: string; price: number; status?: string }>) : [];
       const items: CatalogItem[] = raw
-        .filter((it) => it.status === "ACTIF") // publiés uniquement
+        .filter((it) => it.status === "ACTIF")
         .map((it) => ({
           id: it.id,
           title: it.title,
@@ -138,10 +154,8 @@ export default function VendorBundlesPage() {
   const savings = originalPrice > 0 ? originalPrice - priceXof : 0;
   const savingsPct = originalPrice > 0 ? Math.round((savings / originalPrice) * 100) : 0;
 
-  // Pause / Reprendre — toggle isActive (BROUILLON ↔ ACTIF côté API)
   async function togglePause(b: Bundle) {
     const next = !b.isActive;
-    // Optimistic UI
     setBundles((prev) => prev.map((x) => (x.id === b.id ? { ...x, isActive: next } : x)));
     try {
       const res = await fetch(`/api/formations/vendeur/bundles/${b.id}`, {
@@ -152,11 +166,10 @@ export default function VendorBundlesPage() {
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         toast("error", j.error || "Impossible de changer le statut");
-        // Rollback
         setBundles((prev) => prev.map((x) => (x.id === b.id ? { ...x, isActive: b.isActive } : x)));
         return;
       }
-      toast("success", next ? "Bundle réactivé ✓" : "Bundle mis en pause");
+      toast("success", next ? "Bundle réactivé" : "Bundle mis en pause");
     } catch {
       setBundles((prev) => prev.map((x) => (x.id === b.id ? { ...x, isActive: b.isActive } : x)));
       toast("error", "Erreur réseau");
@@ -182,7 +195,7 @@ export default function VendorBundlesPage() {
         return;
       }
       const j = await res.json();
-      toast("success", j.data?.archived ? "Bundle archivé ✓" : "Bundle supprimé ✓");
+      toast("success", j.data?.archived ? "Bundle archivé" : "Bundle supprimé");
       load();
     } catch {
       toast("error", "Erreur réseau");
@@ -196,7 +209,6 @@ export default function VendorBundlesPage() {
     if (priceXof >= originalPrice) { toast("warning", "Le prix du bundle doit être inférieur au total."); return; }
     setSaving(true);
     try {
-      // Create (POST) ou Edit (PATCH) selon `editingId`
       const url = editingId
         ? `/api/formations/vendeur/bundles/${editingId}`
         : "/api/formations/vendeur/bundles";
@@ -215,7 +227,7 @@ export default function VendorBundlesPage() {
       });
       const j = await res.json();
       if (!res.ok) { toast("error", j.error || (editingId ? "Modification impossible." : "Création impossible.")); return; }
-      toast("success", editingId ? "Bundle mis à jour ✓" : "Bundle créé ✓");
+      toast("success", editingId ? "Bundle mis à jour" : "Bundle créé");
       resetForm();
       setShowForm(false);
       load();
@@ -223,196 +235,175 @@ export default function VendorBundlesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto">
-        <header className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-3">
-          <div>
-            <span className="text-[#006e2f] font-bold text-[10px] uppercase tracking-[0.2em] mb-2 block">
-              Marketing
-            </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900">
-              Bundles produits
-            </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Packagez plusieurs formations/produits à un prix réduit — panier moyen ↑.
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              if (showForm) { resetForm(); }
-              setShowForm((v) => !v);
-            }}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20"
-            style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-          >
-            <span className="material-symbols-outlined text-[18px]">{showForm ? "close" : "add_circle"}</span>
-            {showForm ? "Fermer" : "Nouveau bundle"}
-          </button>
-        </header>
+    <div className="min-h-screen bg-slate-50/50">
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
+        <KazaHero
+          badge="Pro"
+          badgeColor="orange"
+          icon={Package}
+          title="Bundles produits"
+          subtitle="Packagez plusieurs formations/produits à un prix réduit — augmentez votre panier moyen."
+          actions={
+            <KazaButton
+              variant="primary"
+              icon={showForm ? X : Plus}
+              onClick={() => {
+                if (showForm) resetForm();
+                setShowForm((v) => !v);
+              }}
+            >
+              {showForm ? "Fermer" : "Nouveau bundle"}
+            </KazaButton>
+          }
+        />
 
         {showForm && (
-          <form onSubmit={submit} className="bg-white rounded-2xl border border-slate-200 p-6 mb-6 space-y-4">
-            <h2 className="text-base font-bold text-slate-900">
-              {editingId ? "Modifier le bundle" : "Créer un bundle"}
-            </h2>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">Titre</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="ex. Pack Débutant — Marketing Digital"
-                maxLength={80}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                Description
-                <span className="ml-2 font-normal text-slate-500">(le bouton ✨ IA améliore le texte)</span>
-              </label>
-              <RichTextEditor
-                value={description}
-                onChange={setDescription}
-                placeholder="Présentez la valeur du pack — pourquoi c'est intéressant d'acheter le tout ensemble plutôt que séparément."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <KazaCard title={editingId ? "Modifier le bundle" : "Créer un bundle"}>
+            <form onSubmit={submit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Vignette (carte marketplace)</label>
-                <ImageUploader
-                  value={thumbnail}
-                  onChange={setThumbnail}
-                  aspectClass="aspect-square"
-                  helper="600×600 carré · JPG/PNG · Max 5 MB"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Bannière de couverture</label>
-                <ImageUploader
-                  value={banner}
-                  onChange={setBanner}
-                  aspectClass="aspect-video"
-                  helper="1280×720 (16:9) · JPG/PNG · Max 5 MB"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-2">
-                Articles inclus ({selected.length})
-              </label>
-              {catalog.length === 0 ? (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                  <p className="text-xs font-bold text-amber-900">
-                    Aucun produit publié pour cette boutique
-                  </p>
-                  <p className="text-xs text-amber-800">
-                    Pour créer un bundle, vous devez d&apos;abord avoir au moins{" "}
-                    <span className="font-bold">2 produits ou formations publiés</span> (statut Actif). Les
-                    brouillons ne sont pas inclus.
-                  </p>
-                  <a
-                    href="/vendeur/produits/creer"
-                    className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-lg bg-amber-900 text-white text-xs font-bold hover:bg-amber-800"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">add</span>
-                    Créer un produit
-                  </a>
-                </div>
-              ) : catalog.length < 2 ? (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                  <p className="text-xs font-bold text-amber-900">
-                    {catalog.length} produit publié — il en faut au moins 2 pour un bundle
-                  </p>
-                  <p className="text-xs text-amber-800">
-                    Vous avez actuellement <span className="font-bold">{catalog.length} produit publié</span>.
-                    Publiez au moins un autre produit (formation ou produit digital) pour pouvoir créer un bundle.
-                  </p>
-                  <a
-                    href="/vendeur/produits/creer"
-                    className="inline-flex items-center gap-1.5 mt-1 px-3 py-1.5 rounded-lg bg-amber-900 text-white text-xs font-bold hover:bg-amber-800"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">add</span>
-                    Créer un autre produit
-                  </a>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto border border-slate-100 rounded-xl p-3 bg-slate-50">
-                  {catalog.map((c) => {
-                    const isSel = !!selected.find((s) => s.kind === c.kind && s.id === c.id);
-                    return (
-                      <button
-                        type="button"
-                        key={`${c.kind}-${c.id}`}
-                        onClick={() => toggleItem(c.kind, c.id)}
-                        className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border text-left transition-colors ${
-                          isSel ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200 hover:bg-slate-100"
-                        }`}
-                      >
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-slate-900 truncate">{c.title}</p>
-                          <p className="text-[10px] text-slate-500 uppercase tracking-wider">
-                            {c.kind === "formation" ? "Formation" : "Produit"} · {fmtFCFA(c.price)}
-                          </p>
-                        </div>
-                        <span className={`material-symbols-outlined text-[18px] flex-shrink-0 ${isSel ? "text-emerald-600" : "text-slate-300"}`} style={{ fontVariationSettings: isSel ? "'FILL' 1" : undefined }}>
-                          {isSel ? "check_circle" : "radio_button_unchecked"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 rounded-xl p-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Prix individuel total</p>
-                <p className="text-lg font-extrabold text-slate-900 line-through opacity-60 tabular-nums">
-                  {fmtFCFA(originalPrice)}
-                </p>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
-                  Prix du bundle
-                </label>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Titre</label>
                 <input
-                  type="number" min={500}
-                  value={priceXof}
-                  onChange={(e) => setPriceXof(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-base font-bold text-emerald-700"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="ex. Pack Débutant — Marketing Digital"
+                  maxLength={80}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all"
+                  required
                 />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Économie</p>
-                <p className="text-lg font-extrabold text-emerald-600 tabular-nums">
-                  {fmtFCFA(savings)} <span className="text-xs">({savingsPct}%)</span>
-                </p>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  Description
+                  <span className="ml-2 font-normal text-slate-500">(le bouton IA améliore le texte)</span>
+                </label>
+                <RichTextEditor
+                  value={description}
+                  onChange={setDescription}
+                  placeholder="Présentez la valeur du pack — pourquoi c'est intéressant d'acheter le tout ensemble plutôt que séparément."
+                />
               </div>
-            </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-              <button
-                type="submit"
-                disabled={saving || selected.length < 2}
-                className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50"
-                style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-              >
-                {saving
-                  ? (editingId ? "Mise à jour…" : "Création…")
-                  : (editingId ? "Mettre à jour" : "Créer le bundle")}
-              </button>
-              <button
-                type="button"
-                onClick={() => { resetForm(); setShowForm(false); }}
-                className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-sm font-bold"
-              >
-                Annuler
-              </button>
-            </div>
-          </form>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Vignette (carte marketplace)</label>
+                  <ImageUploader
+                    value={thumbnail}
+                    onChange={setThumbnail}
+                    aspectClass="aspect-square"
+                    helper="600×600 carré · JPG/PNG · Max 5 MB"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Bannière de couverture</label>
+                  <ImageUploader
+                    value={banner}
+                    onChange={setBanner}
+                    aspectClass="aspect-video"
+                    helper="1280×720 (16:9) · JPG/PNG · Max 5 MB"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-2">
+                  Articles inclus ({selected.length})
+                </label>
+                {catalog.length === 0 ? (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                    <p className="text-xs font-bold text-amber-900">
+                      Aucun produit publié pour cette boutique
+                    </p>
+                    <p className="text-xs text-amber-800">
+                      Pour créer un bundle, vous devez d&apos;abord avoir au moins{" "}
+                      <span className="font-bold">2 produits ou formations publiés</span> (statut Actif). Les
+                      brouillons ne sont pas inclus.
+                    </p>
+                    <KazaButton variant="primary" size="sm" icon={Plus} href="/vendeur/produits/creer">
+                      Créer un produit
+                    </KazaButton>
+                  </div>
+                ) : catalog.length < 2 ? (
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+                    <p className="text-xs font-bold text-amber-900">
+                      {catalog.length} produit publié — il en faut au moins 2 pour un bundle
+                    </p>
+                    <p className="text-xs text-amber-800">
+                      Vous avez actuellement <span className="font-bold">{catalog.length} produit publié</span>.
+                      Publiez au moins un autre produit (formation ou produit digital) pour pouvoir créer un bundle.
+                    </p>
+                    <KazaButton variant="primary" size="sm" icon={Plus} href="/vendeur/produits/creer">
+                      Créer un autre produit
+                    </KazaButton>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto border border-slate-100 rounded-xl p-3 bg-slate-50">
+                    {catalog.map((c) => {
+                      const isSel = !!selected.find((s) => s.kind === c.kind && s.id === c.id);
+                      return (
+                        <button
+                          type="button"
+                          key={`${c.kind}-${c.id}`}
+                          onClick={() => toggleItem(c.kind, c.id)}
+                          className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border text-left transition-colors ${
+                            isSel ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200 hover:bg-slate-100"
+                          }`}
+                        >
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-slate-900 truncate">{c.title}</p>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                              {c.kind === "formation" ? "Formation" : "Produit"} · {fmtFCFA(c.price)}
+                            </p>
+                          </div>
+                          {isSel ? (
+                            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                          ) : (
+                            <Circle className="w-5 h-5 text-slate-300 flex-shrink-0" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 rounded-xl p-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Prix individuel total</p>
+                  <p className="text-lg font-extrabold text-slate-900 line-through opacity-60 tabular-nums">
+                    {fmtFCFA(originalPrice)}
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                    Prix du bundle
+                  </label>
+                  <input
+                    type="number" min={500}
+                    value={priceXof}
+                    onChange={(e) => setPriceXof(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 text-base font-bold text-emerald-700 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Économie</p>
+                  <p className="text-lg font-extrabold text-emerald-600 tabular-nums">
+                    {fmtFCFA(savings)} <span className="text-xs">({savingsPct}%)</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                <KazaButton variant="primary" type="submit" disabled={saving || selected.length < 2}>
+                  {saving
+                    ? (editingId ? "Mise à jour…" : "Création…")
+                    : (editingId ? "Mettre à jour" : "Créer le bundle")}
+                </KazaButton>
+                <KazaButton variant="ghost" type="button" onClick={() => { resetForm(); setShowForm(false); }}>
+                  Annuler
+                </KazaButton>
+              </div>
+            </form>
+          </KazaCard>
         )}
 
         {loading ? (
@@ -420,35 +411,35 @@ export default function VendorBundlesPage() {
             {[0, 1, 2].map((i) => <div key={i} className="h-32 bg-slate-100 rounded-2xl animate-pulse" />)}
           </div>
         ) : bundles.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-            <span className="material-symbols-outlined text-5xl text-slate-300">category</span>
-            <p className="text-base font-bold text-slate-700 mt-3">Aucun bundle pour le moment</p>
-            <p className="text-sm text-slate-500 mt-1">
-              Créez un bundle pour augmenter votre panier moyen en regroupant plusieurs produits.
-            </p>
-          </div>
+          <KazaEmpty
+            icon={Package}
+            title="Aucun bundle pour le moment"
+            description="Créez un bundle pour augmenter votre panier moyen en regroupant plusieurs produits."
+            action={!showForm ? { label: "Créer un bundle", onClick: () => setShowForm(true) } : undefined}
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {bundles.map((b) => (
-              <div key={b.id} className="bg-white rounded-2xl border border-slate-200 p-5">
-                <div className="flex items-start justify-between mb-3">
+              <div key={b.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3 gap-2">
                   <h3 className="text-base font-bold text-slate-900 leading-snug line-clamp-2">{b.title}</h3>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${b.isActive ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-600"}`}>
+                  <KazaBadge variant={b.isActive ? "green" : "slate"}>
                     {b.isActive ? "Actif" : "Masqué"}
-                  </span>
+                  </KazaBadge>
                 </div>
                 {b.description && (
                   <p className="text-xs text-slate-500 line-clamp-2 mb-3">{b.description}</p>
                 )}
                 <div className="space-y-1.5 mb-3">
-                  {b.items.slice(0, 4).map((it) => (
-                    <div key={it.id} className="flex items-center gap-2 text-xs text-slate-700">
-                      <span className="material-symbols-outlined text-[14px] text-emerald-600">
-                        {it.itemKind === "formation" ? "play_circle" : "download"}
-                      </span>
-                      <span className="truncate">{it.formation?.title ?? it.product?.title}</span>
-                    </div>
-                  ))}
+                  {b.items.slice(0, 4).map((it) => {
+                    const Icon = it.itemKind === "formation" ? PlayCircle : Download;
+                    return (
+                      <div key={it.id} className="flex items-center gap-2 text-xs text-slate-700">
+                        <Icon className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                        <span className="truncate">{it.formation?.title ?? it.product?.title}</span>
+                      </div>
+                    );
+                  })}
                   {b.items.length > 4 && (
                     <p className="text-[11px] text-slate-400">+{b.items.length - 4} autres</p>
                   )}
@@ -466,7 +457,6 @@ export default function VendorBundlesPage() {
                   </div>
                 </div>
 
-                {/* ─── Actions vendeur — Voir / Modifier / Pause / Supprimer ── */}
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
                   <Link
                     href={`/bundle/${b.slug}`}
@@ -474,14 +464,14 @@ export default function VendorBundlesPage() {
                     className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors"
                     aria-label="Voir publique"
                   >
-                    <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
                   </Link>
                   <button
                     type="button"
                     onClick={() => openEdit(b)}
                     className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold transition-colors"
                   >
-                    <span className="material-symbols-outlined text-[14px]">edit</span>
+                    <Pencil className="w-3.5 h-3.5" />
                     Modifier
                   </button>
                   <button
@@ -493,16 +483,16 @@ export default function VendorBundlesPage() {
                         : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[14px]">{b.isActive ? "pause" : "play_arrow"}</span>
+                    {b.isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                     {b.isActive ? "Pause" : "Reprendre"}
                   </button>
                   <button
                     type="button"
                     onClick={() => deleteBundle(b)}
-                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 border border-red-200 text-xs font-bold transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition-colors"
                     aria-label="Supprimer"
                   >
-                    <span className="material-symbols-outlined text-[14px]">delete</span>
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

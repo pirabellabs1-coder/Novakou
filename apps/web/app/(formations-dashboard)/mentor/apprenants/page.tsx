@@ -2,8 +2,27 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import {
+  Users,
+  Search,
+  X,
+  AlertCircle,
+  CalendarCheck,
+  CheckCircle2,
+  Wallet,
+  History,
+  Star,
+  MessageCircle,
+  UsersRound,
+} from "lucide-react";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface Booking {
   id: string;
   scheduledAt: string;
@@ -50,7 +69,6 @@ function initials(name: string | null): string {
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function MentorApprenantsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,7 +91,6 @@ export default function MentorApprenantsPage() {
     load();
   }, []);
 
-  // Group bookings by student
   const students: StudentSummary[] = useMemo(() => {
     const m = new Map<string, StudentSummary>();
     for (const b of bookings) {
@@ -103,7 +120,6 @@ export default function MentorApprenantsPage() {
       }
       m.set(sid, existing);
     }
-    // Compute avg rating per student
     for (const [sid, s] of m.entries()) {
       const ratings = bookings
         .filter((b) => b.student.id === sid && b.studentRating != null)
@@ -132,69 +148,50 @@ export default function MentorApprenantsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7f9fb] p-6">
+      <div className="min-h-screen bg-slate-50/50 p-6">
         <div className="max-w-5xl mx-auto space-y-4 animate-pulse">
-          <div className="h-8 w-48 bg-gray-200 rounded-xl" />
-          <div className="h-32 bg-gray-200 rounded-2xl" />
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-20 bg-gray-200 rounded-2xl" />)}
+          <div className="h-32 bg-slate-200 rounded-3xl" />
+          <div className="h-24 bg-slate-200 rounded-2xl" />
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-20 bg-slate-200 rounded-2xl" />)}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]">
-      {/* Top bar */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <Link href="/mentor/dashboard" className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
-          </Link>
-          <span className="text-sm font-bold text-[#191c1e] flex-1">Mes apprenants</span>
-        </div>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Welcome */}
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#191c1e]">Mes apprenants</h1>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Vue agrégée de toutes les personnes que vous avez accompagnées.
-          </p>
-        </div>
+    <div className="min-h-screen bg-slate-50/50">
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
+        <KazaHero
+          badge="Mentor"
+          badgeColor="white"
+          icon={Users}
+          title="Mes apprenants"
+          subtitle="Vue agrégée de toutes les personnes que vous avez accompagnées."
+        />
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-500" />
+            <p className="text-sm text-rose-700">{error}</p>
           </div>
         )}
 
-        {/* Stats */}
+        {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-xs text-[#5c647a] font-medium">Total apprenants</p>
-            <p className="text-2xl font-extrabold text-[#006e2f] mt-1">{students.length}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-xs text-[#5c647a] font-medium">Total séances</p>
-            <p className="text-2xl font-extrabold text-[#191c1e] mt-1">{bookings.length}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-xs text-[#5c647a] font-medium">Terminées</p>
-            <p className="text-2xl font-extrabold text-blue-600 mt-1">
-              {bookings.filter((b) => b.status === "COMPLETED").length}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <p className="text-xs text-[#5c647a] font-medium">Revenus bruts</p>
-            <p className="text-2xl font-extrabold text-[#006e2f] mt-1">{fmt(totalRevenue)} F</p>
-          </div>
+          <KazaKpiCard label="Total apprenants" value={students.length} icon={Users} iconColor="emerald" />
+          <KazaKpiCard label="Total séances" value={bookings.length} icon={CalendarCheck} iconColor="navy" />
+          <KazaKpiCard
+            label="Terminées"
+            value={bookings.filter((b) => b.status === "COMPLETED").length}
+            icon={CheckCircle2}
+            iconColor="sky"
+          />
+          <KazaKpiCard label="Revenus bruts" value={`${fmt(totalRevenue)} F`} icon={Wallet} iconColor="violet" />
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#5c647a] text-[18px]">search</span>
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex items-center gap-2">
+          <Search className="w-4 h-4 text-slate-500 ml-2" />
           <input
             type="text"
             value={search}
@@ -203,35 +200,30 @@ export default function MentorApprenantsPage() {
             className="flex-1 text-sm focus:outline-none bg-transparent"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="text-[#5c647a] hover:text-[#191c1e]">
-              <span className="material-symbols-outlined text-[16px]">close</span>
+            <button onClick={() => setSearch("")} className="text-slate-500 hover:text-slate-900 p-1">
+              <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
         {/* Students list */}
         {filtered.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-            <span className="material-symbols-outlined text-gray-300 text-5xl">group_off</span>
-            <p className="text-sm text-[#5c647a] font-medium mt-3">
-              {students.length === 0 ? "Aucun apprenant pour l'instant." : "Aucun résultat."}
-            </p>
-            {students.length === 0 && (
-              <p className="text-xs text-gray-400 mt-1">
-                Partagez votre profil public pour recevoir vos premières réservations.
-              </p>
-            )}
-          </div>
+          <KazaEmpty
+            icon={UsersRound}
+            title={students.length === 0 ? "Aucun apprenant pour l'instant" : "Aucun résultat"}
+            description={
+              students.length === 0
+                ? "Partagez votre profil public pour recevoir vos premières réservations."
+                : "Essayez d'autres mots-clés."
+            }
+            action={students.length === 0 ? { label: "Voir mon profil public", href: "/mentor/profil" } : undefined}
+          />
         ) : (
           <div className="space-y-3">
             {filtered.map((s) => (
-              <div
-                key={s.id}
-                className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-[#006e2f]/30 transition-colors"
-              >
+              <KazaCard key={s.id} className="hover:border-emerald-300 transition-colors">
                 <div className="flex items-start gap-4">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] text-white font-bold flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-400 text-white font-bold flex items-center justify-center flex-shrink-0">
                     {s.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={s.image} alt={s.name ?? ""} className="w-full h-full rounded-full object-cover" />
@@ -240,68 +232,59 @@ export default function MentorApprenantsPage() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-sm font-bold text-[#191c1e] truncate">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <p className="text-sm font-bold text-slate-900 truncate">
                         {s.name ?? s.email ?? "Apprenant"}
                       </p>
                       {s.email && s.name && (
-                        <p className="text-[11px] text-[#5c647a] truncate">{s.email}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{s.email}</p>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] text-[#5c647a]">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] text-slate-500">
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[13px]">event_available</span>
+                        <CalendarCheck className="w-3 h-3" />
                         {s.totalBookings} séance{s.totalBookings > 1 ? "s" : ""}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[13px]">check_circle</span>
+                        <CheckCircle2 className="w-3 h-3" />
                         {s.completedBookings} terminée{s.completedBookings > 1 ? "s" : ""}
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[13px]">payments</span>
+                        <Wallet className="w-3 h-3" />
                         {fmt(s.totalRevenue)} F
                       </span>
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[13px]">history</span>
+                        <History className="w-3 h-3" />
                         Dernière : {timeAgo(s.lastBookingAt)}
                       </span>
                       {s.avgRating != null && (
                         <span className="flex items-center gap-1 text-amber-600">
-                          <span
-                            className="material-symbols-outlined text-[13px]"
-                            style={{ fontVariationSettings: "'FILL' 1" }}
-                          >
-                            star
-                          </span>
+                          <Star className="w-3 h-3 fill-current" />
                           {s.avgRating.toFixed(1)}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col gap-1.5 flex-shrink-0">
+                  <div className="flex flex-col gap-1.5 flex-shrink-0 items-end">
                     {s.pendingOrConfirmed > 0 && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-center">
-                        {s.pendingOrConfirmed} à venir
-                      </span>
+                      <KazaBadge variant="orange">{s.pendingOrConfirmed} à venir</KazaBadge>
                     )}
                     <Link
                       href={`/messages?to=${s.id}`}
                       className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100"
                     >
-                      <span className="material-symbols-outlined text-[13px]">forum</span>
+                      <MessageCircle className="w-3 h-3" />
                       Message
                     </Link>
                   </div>
                 </div>
-              </div>
+              </KazaCard>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

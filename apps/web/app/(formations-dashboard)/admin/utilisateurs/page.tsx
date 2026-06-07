@@ -3,6 +3,25 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
+import {
+  Users,
+  Search,
+  GraduationCap,
+  UserCheck,
+  Trash2,
+  Ban,
+  PauseCircle,
+  PlayCircle,
+  Download,
+} from "lucide-react";
 
 type User = {
   id: string;
@@ -21,7 +40,11 @@ type User = {
   totalSpent: number;
 };
 
-type Summary = { totalUsers: number; totalInstructors: number; totalLearners: number };
+type Summary = {
+  totalUsers: number;
+  totalInstructors: number;
+  totalLearners: number;
+};
 
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
@@ -29,18 +52,33 @@ function formatFCFA(n: number) {
 
 export default function AdminUtilisateursPage() {
   const qc = useQueryClient();
-  const [filter, setFilter] = useState<"all" | "instructeurs" | "apprenants">("all");
+  const [filter, setFilter] = useState<"all" | "instructeurs" | "apprenants">(
+    "all"
+  );
   const [search, setSearch] = useState("");
 
-  const { data: response, isLoading } = useQuery<{ data: User[]; summary: Summary }>({
+  const { data: response, isLoading } = useQuery<{
+    data: User[];
+    summary: Summary;
+  }>({
     queryKey: ["admin-utilisateurs", filter, search],
     queryFn: () =>
-      fetch(`/api/formations/admin/utilisateurs?filter=${filter}&search=${encodeURIComponent(search)}`).then((r) => r.json()),
+      fetch(
+        `/api/formations/admin/utilisateurs?filter=${filter}&search=${encodeURIComponent(search)}`
+      ).then((r) => r.json()),
     staleTime: 15_000,
   });
 
   const userActionMutation = useMutation({
-    mutationFn: ({ id, action, reason }: { id: string; action: string; reason?: string }) =>
+    mutationFn: ({
+      id,
+      action,
+      reason,
+    }: {
+      id: string;
+      action: string;
+      reason?: string;
+    }) =>
       fetch(`/api/formations/admin/utilisateurs/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -51,7 +89,9 @@ export default function AdminUtilisateursPage() {
 
   const deleteUserMutation = useMutation({
     mutationFn: (id: string) =>
-      fetch(`/api/formations/admin/utilisateurs/${id}`, { method: "DELETE" }).then((r) => r.json()),
+      fetch(`/api/formations/admin/utilisateurs/${id}`, {
+        method: "DELETE",
+      }).then((r) => r.json()),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-utilisateurs"] }),
   });
 
@@ -60,184 +100,324 @@ export default function AdminUtilisateursPage() {
 
   const tabs: { value: typeof filter; label: string; count: number }[] = [
     { value: "all", label: "Tous", count: summary?.totalUsers ?? 0 },
-    { value: "instructeurs", label: "Instructeurs", count: summary?.totalInstructors ?? 0 },
-    { value: "apprenants", label: "Apprenants", count: summary?.totalLearners ?? 0 },
+    {
+      value: "instructeurs",
+      label: "Instructeurs",
+      count: summary?.totalInstructors ?? 0,
+    },
+    {
+      value: "apprenants",
+      label: "Apprenants",
+      count: summary?.totalLearners ?? 0,
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1920px] mx-auto">
-        <header className="mb-12">
-          <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
-            Community Directory
-          </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-900">Utilisateurs</h1>
-          <p className="text-sm text-zinc-500 mt-3">
-            {isLoading
-              ? "Chargement…"
-              : `${summary?.totalUsers ?? 0} comptes · ${summary?.totalInstructors ?? 0} instructeurs · ${summary?.totalLearners ?? 0} apprenants`}
-          </p>
-        </header>
+    <div
+      className="min-h-screen bg-slate-50"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1600px] mx-auto space-y-8">
+        <KazaHero
+          badge="Admin"
+          badgeColor="orange"
+          icon={Users}
+          title="Utilisateurs"
+          subtitle={
+            isLoading
+              ? "Chargement..."
+              : `${summary?.totalUsers ?? 0} comptes au total · ${summary?.totalInstructors ?? 0} instructeurs · ${summary?.totalLearners ?? 0} apprenants`
+          }
+          actions={
+            <KazaButton variant="secondary" icon={Download}>
+              Exporter CSV
+            </KazaButton>
+          }
+        />
 
-        {/* Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[18px] text-zinc-400">search</span>
-            <input
-              type="text"
-              placeholder="Rechercher par nom ou email…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-zinc-100 focus:border-[#22c55e] py-4 pl-12 pr-6 text-sm placeholder:text-zinc-400 outline-none transition-colors"
-            />
-          </div>
-          <div className="flex gap-0 border border-zinc-100 bg-white">
-            {tabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setFilter(tab.value)}
-                className={`flex items-center gap-2 px-5 py-4 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                  filter === tab.value ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
-                {tab.label}
-                <span className={`text-[9px] tabular-nums ${filter === tab.value ? "text-[#22c55e]" : "text-zinc-400"}`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </div>
+        {/* KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <KazaKpiCard
+            label="Comptes totaux"
+            value={summary?.totalUsers ?? 0}
+            icon={Users}
+            iconColor="navy"
+          />
+          <KazaKpiCard
+            label="Instructeurs"
+            value={summary?.totalInstructors ?? 0}
+            icon={GraduationCap}
+            iconColor="emerald"
+          />
+          <KazaKpiCard
+            label="Apprenants"
+            value={summary?.totalLearners ?? 0}
+            icon={UserCheck}
+            iconColor="sky"
+          />
         </div>
 
-        {/* Users table */}
-        <div className="bg-white">
-          <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-6 px-8 py-4 border-b border-zinc-100">
-            {["Compte", "Rôle", "Produits", "Gagné", "Dépensé", "Actions"].map((h) => (
-              <span key={h} className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{h}</span>
-            ))}
+        {/* Filtres */}
+        <KazaCard>
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search
+                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+              />
+              <input
+                type="text"
+                placeholder="Rechercher par nom ou email…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+              />
+            </div>
+            <div className="flex gap-2 bg-slate-50 p-1 rounded-xl">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setFilter(tab.value)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    filter === tab.value
+                      ? "bg-[#0b2540] text-white shadow"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {tab.label}
+                  <span
+                    className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
+                      filter === tab.value
+                        ? "bg-white/15 text-white"
+                        : "bg-white text-slate-500"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
+        </KazaCard>
 
+        {/* Table */}
+        <KazaCard noPadding>
           {isLoading ? (
-            <div className="p-8 space-y-3">
-              {[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-16 bg-[#f3f3f4] animate-pulse" />)}
+            <div className="p-5 space-y-3">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-16 bg-slate-100 animate-pulse rounded-xl"
+                />
+              ))}
             </div>
           ) : users.length === 0 ? (
-            <div className="py-24 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Aucun résultat</p>
-              <p className="text-sm text-zinc-500">Aucun utilisateur ne correspond à la recherche.</p>
+            <div className="p-5">
+              <KazaEmpty
+                icon={Users}
+                title="Aucun utilisateur"
+                description="Aucun compte ne correspond à votre recherche."
+              />
             </div>
           ) : (
-            <div className="divide-y divide-zinc-100">
-              {users.map((u) => {
-                const initials = (u.name ?? u.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-                const createdDate = new Date(u.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-                return (
-                  <div key={u.id} className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-6 px-8 py-5 items-center hover:bg-[#f3f3f4] transition-colors">
-                    <div className="flex items-center gap-4 min-w-0">
-                      {u.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={u.image} alt="" className="w-11 h-11 object-cover flex-shrink-0" />
-                      ) : (
-                        <div className="w-11 h-11 bg-zinc-900 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                          {initials}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-zinc-900 truncate">{u.name ?? "—"}</p>
-                        <p className="text-[10px] text-zinc-400 truncate">{u.email}</p>
-                        <p className="text-[9px] tabular-nums text-zinc-400 uppercase tracking-widest mt-0.5">Depuis {createdDate}</p>
-                      </div>
-                    </div>
-                    <div>
-                      {u.isInstructor ? (
-                        <span className="inline-block px-3 py-1 text-[9px] font-bold uppercase tracking-widest bg-[#22c55e] text-[#004b1e]">
-                          Instructeur
-                        </span>
-                      ) : (
-                        <span className="inline-block px-3 py-1 text-[9px] font-bold uppercase tracking-widest bg-zinc-200 text-zinc-700">
-                          Apprenant
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-extrabold tabular-nums text-zinc-900">{u.productsCount}</p>
-                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest">produits</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-extrabold tabular-nums text-[#006e2f]">{formatFCFA(u.totalEarned)}</p>
-                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest">FCFA</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-extrabold tabular-nums text-zinc-900">{formatFCFA(u.totalSpent)}</p>
-                      <p className="text-[10px] text-zinc-400 uppercase tracking-widest">{u.enrollmentsCount + u.purchasesCount} achats</p>
-                    </div>
-                    <div className="flex gap-0">
-                      {u.status === "SUSPENDU" || u.status === "BANNI" ? (
-                        <button
-                          onClick={() => userActionMutation.mutate({ id: u.id, action: "activate" })}
-                          disabled={userActionMutation.isPending}
-                          className="px-3 py-2 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-50"
-                        >
-                          Activer
-                        </button>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => {
-                              const reason = prompt("Raison de la suspension :");
-                              if (reason !== null) userActionMutation.mutate({ id: u.id, action: "suspend", reason });
-                            }}
-                            disabled={userActionMutation.isPending}
-                            className="px-3 py-2 bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-200 transition-colors disabled:opacity-50"
-                            title="Suspendre le compte"
-                          >
-                            Suspendre
-                          </button>
-                          <button
-                            onClick={async () => {
-                              const ok = await confirmAction({
-                                title: "Bannir définitivement ce compte ?",
-                                message: "Toutes ses données seront conservées mais il ne pourra plus se connecter.",
-                                confirmLabel: "Bannir",
-                                confirmVariant: "danger",
-                                icon: "block",
-                              });
-                              if (ok) {
-                                userActionMutation.mutate({ id: u.id, action: "ban" });
-                              }
-                            }}
-                            disabled={userActionMutation.isPending}
-                            className="px-3 py-2 bg-[#ffdad6] text-[#93000a] text-[10px] font-bold uppercase tracking-widest hover:bg-[#ffb4a9] transition-colors disabled:opacity-50"
-                            title="Bannir définitivement"
-                          >
-                            Bannir
-                          </button>
-                        </>
-                      )}
-                      <button
-                        onClick={async () => {
-                          const ok = await confirmAction({
-                            title: "Supprimer ce compte ?",
-                            message: `Cette action est irréversible. Le compte ${u.email} et toutes ses données associées seront définitivement supprimés.`,
-                            confirmLabel: "Supprimer",
-                            confirmVariant: "danger",
-                            icon: "delete_forever",
-                          });
-                          if (ok) deleteUserMutation.mutate(u.id);
-                        }}
-                        disabled={deleteUserMutation.isPending}
-                        className="px-3 py-2 bg-zinc-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-700 transition-colors disabled:opacity-50"
-                        title="Supprimer définitivement"
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+                    <th className="px-5 py-3 text-left font-semibold">
+                      Compte
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold">Rôle</th>
+                    <th className="px-5 py-3 text-right font-semibold">
+                      Produits
+                    </th>
+                    <th className="px-5 py-3 text-right font-semibold">
+                      Gagné
+                    </th>
+                    <th className="px-5 py-3 text-right font-semibold">
+                      Dépensé
+                    </th>
+                    <th className="px-5 py-3 text-right font-semibold">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => {
+                    const initials = (u.name ?? u.email)
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase();
+                    const createdDate = new Date(u.createdAt).toLocaleDateString(
+                      "fr-FR",
+                      { day: "numeric", month: "short", year: "numeric" }
+                    );
+                    const isBlocked =
+                      u.status === "SUSPENDU" || u.status === "BANNI";
+                    return (
+                      <tr
+                        key={u.id}
+                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
                       >
-                        Supprimer
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {u.image ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={u.image}
+                                alt=""
+                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0b2540] to-[#1a4a7d] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                                {initials}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-slate-900 truncate">
+                                {u.name ?? "—"}
+                              </p>
+                              <p className="text-xs text-slate-500 truncate">
+                                {u.email}
+                              </p>
+                              <p className="text-[10px] tabular-nums text-slate-400 mt-0.5">
+                                Inscrit le {createdDate}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4">
+                          {u.isInstructor ? (
+                            <KazaBadge variant="green" icon={GraduationCap}>
+                              Instructeur
+                            </KazaBadge>
+                          ) : (
+                            <KazaBadge variant="slate" icon={UserCheck}>
+                              Apprenant
+                            </KazaBadge>
+                          )}
+                          {isBlocked && (
+                            <div className="mt-1">
+                              <KazaBadge variant="rose">{u.status}</KazaBadge>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <p className="text-sm font-extrabold tabular-nums text-slate-900">
+                            {u.productsCount}
+                          </p>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <p className="text-sm font-extrabold tabular-nums text-emerald-700">
+                            {formatFCFA(u.totalEarned)}
+                          </p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest">
+                            FCFA
+                          </p>
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <p className="text-sm font-extrabold tabular-nums text-slate-900">
+                            {formatFCFA(u.totalSpent)}
+                          </p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-widest">
+                            {u.enrollmentsCount + u.purchasesCount} achats
+                          </p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <div className="flex gap-1.5 justify-end">
+                            {isBlocked ? (
+                              <KazaButton
+                                variant="primary"
+                                size="sm"
+                                icon={PlayCircle}
+                                onClick={() =>
+                                  userActionMutation.mutate({
+                                    id: u.id,
+                                    action: "activate",
+                                  })
+                                }
+                                disabled={userActionMutation.isPending}
+                              >
+                                Activer
+                              </KazaButton>
+                            ) : (
+                              <>
+                                <KazaButton
+                                  variant="ghost"
+                                  size="sm"
+                                  icon={PauseCircle}
+                                  onClick={() => {
+                                    const reason = prompt(
+                                      "Raison de la suspension :"
+                                    );
+                                    if (reason !== null)
+                                      userActionMutation.mutate({
+                                        id: u.id,
+                                        action: "suspend",
+                                        reason,
+                                      });
+                                  }}
+                                  disabled={userActionMutation.isPending}
+                                >
+                                  Suspendre
+                                </KazaButton>
+                                <KazaButton
+                                  variant="danger"
+                                  size="sm"
+                                  icon={Ban}
+                                  onClick={async () => {
+                                    const ok = await confirmAction({
+                                      title:
+                                        "Bannir définitivement ce compte ?",
+                                      message:
+                                        "Toutes ses données seront conservées mais il ne pourra plus se connecter.",
+                                      confirmLabel: "Bannir",
+                                      confirmVariant: "danger",
+                                      icon: "block",
+                                    });
+                                    if (ok) {
+                                      userActionMutation.mutate({
+                                        id: u.id,
+                                        action: "ban",
+                                      });
+                                    }
+                                  }}
+                                  disabled={userActionMutation.isPending}
+                                >
+                                  Bannir
+                                </KazaButton>
+                              </>
+                            )}
+                            <KazaButton
+                              variant="ghost"
+                              size="sm"
+                              icon={Trash2}
+                              onClick={async () => {
+                                const ok = await confirmAction({
+                                  title: "Supprimer ce compte ?",
+                                  message: `Cette action est irréversible. Le compte ${u.email} et toutes ses données associées seront définitivement supprimés.`,
+                                  confirmLabel: "Supprimer",
+                                  confirmVariant: "danger",
+                                  icon: "delete_forever",
+                                });
+                                if (ok) deleteUserMutation.mutate(u.id);
+                              }}
+                              disabled={deleteUserMutation.isPending}
+                            >
+                              Supprimer
+                            </KazaButton>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
-        </div>
+        </KazaCard>
       </main>
     </div>
   );

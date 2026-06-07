@@ -10,8 +10,24 @@
  */
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useToastStore } from "@/store/toast";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+} from "@/components/kaza";
+import {
+  Banknote,
+  ArrowLeft,
+  AlertTriangle,
+  Wallet,
+  CheckCircle,
+  Clock,
+  XCircle,
+  TrendingUp,
+} from "lucide-react";
 
 interface Balance {
   total: number;
@@ -36,10 +52,13 @@ const METHODS = [
   { value: "wise", label: "Wise" },
 ];
 
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  EN_ATTENTE: { label: "En attente", color: "bg-amber-100 text-amber-800" },
-  TRAITE: { label: "Traité", color: "bg-emerald-100 text-emerald-800" },
-  REFUSE: { label: "Refusé", color: "bg-rose-100 text-rose-800" },
+const STATUS_LABEL: Record<
+  string,
+  { label: string; variant: "orange" | "green" | "rose" }
+> = {
+  EN_ATTENTE: { label: "En attente", variant: "orange" },
+  TRAITE: { label: "Traité", variant: "green" },
+  REFUSE: { label: "Refusé", variant: "rose" },
 };
 
 function fmtFCFA(n: number) {
@@ -69,12 +88,13 @@ export default function AdminRetraitsPage() {
         const msg = j.error ?? "Chargement impossible";
         toast("error", msg);
         setLoadError(msg);
-        // Fallback : solde à zéro pour permettre l'affichage de la page
         setBalance({ total: 0, paid: 0, pending: 0, available: 0 });
         setWithdrawals([]);
         return;
       }
-      setBalance(j.data.balance ?? { total: 0, paid: 0, pending: 0, available: 0 });
+      setBalance(
+        j.data.balance ?? { total: 0, paid: 0, pending: 0, available: 0 }
+      );
       setWithdrawals(j.data.withdrawals ?? []);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erreur réseau";
@@ -87,7 +107,9 @@ export default function AdminRetraitsPage() {
     }
   }
 
-  useEffect(() => { load(); }, []); // eslint-disable-line
+  useEffect(() => {
+    load();
+  }, []); // eslint-disable-line
 
   const accountPlaceholder: Record<string, string> = {
     virement: "FR76 1234 5678 9012 3456 7890 123",
@@ -145,43 +167,43 @@ export default function AdminRetraitsPage() {
 
   if (loading || !balance) {
     return (
-      <div className="min-h-screen bg-[#f9f9f9] p-8">
+      <div
+        className="min-h-screen bg-slate-50 p-8"
+        style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      >
         <div className="max-w-5xl mx-auto space-y-4 animate-pulse">
-          <div className="h-8 w-64 bg-zinc-200 rounded" />
-          <div className="h-48 bg-white border border-gray-100" />
+          <div className="h-8 w-64 bg-slate-200 rounded" />
+          <div className="h-48 bg-white border border-slate-100 rounded-2xl" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <main className="px-6 md:px-12 py-10 md:py-14 max-w-5xl mx-auto">
-        <Link
-          href="/admin/dashboard"
-          className="text-xs font-semibold text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 mb-6"
-        >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+    <div
+      className="min-h-screen bg-slate-50"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-5xl mx-auto space-y-8">
+        <KazaButton variant="ghost" size="sm" icon={ArrowLeft} href="/admin/dashboard">
           Dashboard
-        </Link>
+        </KazaButton>
 
-        <header className="mb-10">
-          <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
-            Financial Ledger
-          </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">
-            Retraits commission plateforme
-          </h1>
-          <p className="text-sm text-zinc-500 mt-3">
-            Retirer les 10% de commission perçus par Novakou sur chaque vente.
-          </p>
-        </header>
+        <KazaHero
+          badge="Admin"
+          badgeColor="orange"
+          icon={Banknote}
+          title="Retraits commission plateforme"
+          subtitle="Retirer les 10 % de commission perçus par Novakou sur chaque vente"
+        />
 
         {loadError && (
-          <div className="mb-6 px-5 py-4 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-3">
-            <span className="material-symbols-outlined text-rose-600 mt-0.5">error</span>
-            <div>
-              <p className="text-sm font-bold text-rose-900">Impossible de charger les données</p>
+          <div className="px-5 py-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-bold text-rose-900">
+                Impossible de charger les données
+              </p>
               <p className="text-xs text-rose-700 mt-0.5">{loadError}</p>
               <button
                 onClick={() => load()}
@@ -193,41 +215,42 @@ export default function AdminRetraitsPage() {
           </div>
         )}
 
-        {/* Balance KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-px bg-zinc-100 mb-10 border border-zinc-100">
-          <div className="bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Commissions totales</p>
-            <p className="text-lg md:text-xl font-extrabold text-zinc-900 tabular-nums break-all">
-              {fmtFCFA(balance.total)}
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Déjà retirées</p>
-            <p className="text-lg md:text-xl font-extrabold text-zinc-700 tabular-nums break-all">
-              {fmtFCFA(balance.paid)}
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">En attente</p>
-            <p className="text-lg md:text-xl font-extrabold text-amber-600 tabular-nums break-all">
-              {fmtFCFA(balance.pending)}
-            </p>
-          </div>
-          <div className="bg-[#22c55e] p-6 text-[#004b1e]">
-            <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-3">Disponible</p>
-            <p className="text-lg md:text-xl font-extrabold tabular-nums break-all">
-              {fmtFCFA(balance.available)}
-            </p>
-          </div>
+        {/* KPIs solde */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KazaKpiCard
+            label="Commissions totales"
+            value={fmtFCFA(balance.total)}
+            icon={TrendingUp}
+            iconColor="navy"
+          />
+          <KazaKpiCard
+            label="Déjà retirées"
+            value={fmtFCFA(balance.paid)}
+            icon={CheckCircle}
+            iconColor="sky"
+          />
+          <KazaKpiCard
+            label="En attente"
+            value={fmtFCFA(balance.pending)}
+            icon={Clock}
+            iconColor="orange"
+          />
+          <KazaKpiCard
+            label="Disponible"
+            value={fmtFCFA(balance.available)}
+            icon={Wallet}
+            iconColor="emerald"
+          />
         </div>
 
-        {/* Formulaire retrait */}
-        <section className="bg-white border border-zinc-100 p-6 md:p-8 mb-10">
-          <h2 className="text-base font-extrabold text-zinc-900 mb-5">Nouvelle demande de retrait</h2>
-
+        {/* Formulaire */}
+        <KazaCard
+          title="Nouvelle demande de retrait"
+          subtitle="Renseignez le montant et la méthode de versement"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Montant (FCFA)
               </label>
               <input
@@ -237,34 +260,39 @@ export default function AdminRetraitsPage() {
                 min={1000}
                 max={balance.available}
                 placeholder="1 000 minimum"
-                className="w-full px-4 py-3 border border-zinc-200 text-lg font-bold tabular-nums focus:border-[#006e2f] outline-none"
+                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-lg font-bold tabular-nums focus:outline-none transition-all"
               />
               <button
                 type="button"
                 onClick={() => setAmount(Math.floor(balance.available))}
-                className="text-[10px] font-bold uppercase tracking-wider text-[#006e2f] hover:underline mt-1"
+                className="text-xs font-bold text-emerald-600 hover:underline mt-1.5"
               >
                 Maximum : {fmtFCFA(balance.available)}
               </button>
             </div>
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Méthode
               </label>
               <select
                 value={method}
-                onChange={(e) => { setMethod(e.target.value); setAccountInput(""); }}
-                className="w-full px-4 py-3 border border-zinc-200 text-sm focus:border-[#006e2f] outline-none bg-white"
+                onChange={(e) => {
+                  setMethod(e.target.value);
+                  setAccountInput("");
+                }}
+                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all"
               >
                 {METHODS.map((m) => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 {accountLabel[method]}
               </label>
               <input
@@ -272,12 +300,12 @@ export default function AdminRetraitsPage() {
                 value={accountInput}
                 onChange={(e) => setAccountInput(e.target.value)}
                 placeholder={accountPlaceholder[method]}
-                className="w-full px-4 py-3 border border-zinc-200 text-sm focus:border-[#006e2f] outline-none font-mono"
+                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm font-mono focus:outline-none transition-all"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Note (optionnel)
               </label>
               <textarea
@@ -285,53 +313,100 @@ export default function AdminRetraitsPage() {
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 maxLength={500}
-                className="w-full px-4 py-3 border border-zinc-200 text-sm focus:border-[#006e2f] outline-none resize-none"
+                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all resize-none"
               />
             </div>
           </div>
 
           <div className="flex justify-end mt-6">
-            <button
+            <KazaButton
+              variant="primary"
+              size="lg"
+              icon={Banknote}
               onClick={submit}
               disabled={submitting || amount < 1000 || !accountInput.trim()}
-              className="px-6 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50"
-              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
-              {submitting ? "Envoi…" : "Demander le retrait"}
-            </button>
+              {submitting ? "Envoi..." : "Demander le retrait"}
+            </KazaButton>
           </div>
-        </section>
+        </KazaCard>
 
         {/* Historique */}
-        <section className="bg-white border border-zinc-100">
-          <div className="px-6 py-4 border-b border-zinc-100">
-            <h2 className="text-base font-extrabold text-zinc-900">Historique ({withdrawals.length})</h2>
-          </div>
-          <div className="divide-y divide-zinc-100">
-            {withdrawals.length === 0 && (
-              <p className="px-6 py-10 text-center text-sm text-zinc-500">
-                Aucun retrait effectué pour l&apos;instant.
+        <KazaCard
+          title={`Historique (${withdrawals.length})`}
+          subtitle="Tous les retraits demandés sur la plateforme"
+          noPadding
+        >
+          {withdrawals.length === 0 ? (
+            <div className="p-10 text-center">
+              <p className="text-sm text-slate-500">
+                Aucun retrait effectué pour l'instant.
               </p>
-            )}
-            {withdrawals.map((w) => {
-              const status = STATUS_LABEL[w.status] ?? { label: w.status, color: "bg-gray-100 text-gray-700" };
-              return (
-                <div key={w.id} className="px-6 py-4 flex items-center gap-4">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-zinc-900">{fmtFCFA(w.amount)}</p>
-                    <p className="text-xs text-zinc-500">
-                      {w.method} · {new Date(w.createdAt).toLocaleDateString("fr-FR")}
-                      {w.note && <> · {w.note}</>}
-                    </p>
-                  </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${status.color}`}>
-                    {status.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </section>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+                    <th className="px-5 py-3 text-left font-semibold">
+                      Montant
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold">
+                      Méthode
+                    </th>
+                    <th className="px-5 py-3 text-left font-semibold">Date</th>
+                    <th className="px-5 py-3 text-left font-semibold">Note</th>
+                    <th className="px-5 py-3 text-right font-semibold">
+                      Statut
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {withdrawals.map((w) => {
+                    const status =
+                      STATUS_LABEL[w.status] ?? {
+                        label: w.status,
+                        variant: "slate" as const,
+                      };
+                    return (
+                      <tr
+                        key={w.id}
+                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-5 py-3 font-bold text-slate-900 tabular-nums">
+                          {fmtFCFA(w.amount)}
+                        </td>
+                        <td className="px-5 py-3 text-slate-700 uppercase text-xs tracking-wide">
+                          {w.method}
+                        </td>
+                        <td className="px-5 py-3 text-slate-500 text-xs tabular-nums">
+                          {new Date(w.createdAt).toLocaleDateString("fr-FR")}
+                        </td>
+                        <td className="px-5 py-3 text-slate-500 text-xs truncate max-w-[260px]">
+                          {w.note ?? "—"}
+                        </td>
+                        <td className="px-5 py-3 text-right">
+                          <KazaBadge
+                            variant={status.variant}
+                            icon={
+                              status.variant === "green"
+                                ? CheckCircle
+                                : status.variant === "rose"
+                                  ? XCircle
+                                  : Clock
+                            }
+                          >
+                            {status.label}
+                          </KazaBadge>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </KazaCard>
       </main>
     </div>
   );

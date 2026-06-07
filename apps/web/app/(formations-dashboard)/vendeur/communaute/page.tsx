@@ -2,6 +2,24 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Users,
+  FileText,
+  ThumbsUp,
+  MessageSquare,
+  Pin,
+  PinOff,
+  Trash2,
+  Flag,
+  Book,
+  MessagesSquare,
+} from "lucide-react";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaEmpty,
+} from "@/components/kaza";
 
 type Post = {
   id: string;
@@ -54,10 +72,10 @@ export default function CommunautePage() {
     },
     onSuccess: (data: { action: string }) => {
       const msg =
-        data.action === "delete" ? "Post supprime"
-        : data.action === "pin" ? "Post epingle"
-        : data.action === "unpin" ? "Epingle retiree"
-        : "Post signale";
+        data.action === "delete" ? "Post supprimé"
+        : data.action === "pin" ? "Post épinglé"
+        : data.action === "unpin" ? "Épingle retirée"
+        : "Post signalé";
       setToast(msg);
       qc.invalidateQueries({ queryKey: ["vendeur-communaute"] });
       setTimeout(() => setToast(null), 3000);
@@ -74,193 +92,174 @@ export default function CommunautePage() {
   const regular = posts.filter((p) => !p.isPinned);
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-slate-50/50">
       {toast && (
-        <div className="fixed top-20 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl rounded-lg">
+        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl rounded-lg">
           {toast}
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Ma Communauté</h1>
-          <p className="text-sm text-[#5c647a] mt-1">Animez et modérez votre espace apprenant</p>
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
+        <KazaHero
+          badge="Pro"
+          badgeColor="orange"
+          icon={MessagesSquare}
+          title="Ma Communauté"
+          subtitle="Animez et modérez votre espace apprenant"
+        />
+
+        {/* KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <KazaKpiCard
+            label="Apprenants inscrits"
+            value={isLoading ? "…" : stats?.totalMembers ?? 0}
+            delta="Tous produits confondus"
+            icon={Users}
+            iconColor="emerald"
+          />
+          <KazaKpiCard
+            label="Posts ce mois"
+            value={isLoading ? "…" : stats?.postsThisMonth ?? 0}
+            delta={`${stats?.totalPosts ?? 0} posts au total`}
+            icon={FileText}
+            iconColor="sky"
+          />
+          <KazaKpiCard
+            label="Taux d'engagement"
+            value={isLoading ? "…" : `${stats?.engagement ?? 0}%`}
+            delta="Posts + réponses / apprenants"
+            icon={ThumbsUp}
+            iconColor="violet"
+          />
         </div>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {[
-          {
-            icon: "group",
-            label: "Apprenants inscrits",
-            value: stats?.totalMembers ?? 0,
-            sub: "Tous produits confondus",
-            bg: "bg-[#006e2f]/10",
-            color: "text-[#006e2f]",
-          },
-          {
-            icon: "article",
-            label: "Posts ce mois",
-            value: stats?.postsThisMonth ?? 0,
-            sub: `${stats?.totalPosts ?? 0} posts au total`,
-            bg: "bg-blue-50",
-            color: "text-blue-600",
-          },
-          {
-            icon: "thumb_up",
-            label: "Taux d'engagement",
-            value: `${stats?.engagement ?? 0}%`,
-            sub: "Posts + réponses / apprenants",
-            bg: "bg-purple-50",
-            color: "text-purple-600",
-          },
-        ].map((kpi, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className={`w-10 h-10 rounded-xl ${kpi.bg} flex items-center justify-center mb-3`}>
-              <span className={`material-symbols-outlined text-[20px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                {kpi.icon}
-              </span>
+        {/* Pinned */}
+        {pinned.length > 0 && (
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Pin className="w-4 h-4 text-amber-500" />
+              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Épinglés</h2>
             </div>
-            <p className="text-xl font-extrabold text-[#191c1e]">{isLoading ? "…" : kpi.value}</p>
-            <p className="text-[11px] text-[#5c647a]">{kpi.label}</p>
-            <p className="text-[10px] text-[#5c647a] mt-0.5">{kpi.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Pinned */}
-      {pinned.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-[16px] text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>push_pin</span>
-            <h2 className="text-sm font-bold text-[#191c1e] uppercase tracking-wide">Épinglés</h2>
-          </div>
-          <div className="space-y-3">
-            {pinned.map((p, idx) => {
-              const initials = (p.user.name ?? p.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-              return (
-                <div key={p.id} className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-                  <div className="flex items-start gap-3">
-                    {p.user.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.user.image} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                        {initials}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#191c1e] truncate">{p.title}</p>
-                      <p className="text-xs text-[#5c647a] line-clamp-2 mt-0.5">{p.content}</p>
-                      <div className="flex items-center gap-3 mt-2 text-[10px] text-[#5c647a]">
-                        <span>{p.formation.title}</span>
-                        <span>·</span>
-                        <span>{timeAgo(p.createdAt)}</span>
-                        <span>·</span>
-                        <span>{p._count.replies} réponse{p._count.replies !== 1 ? "s" : ""}</span>
-                      </div>
-                      {p.status === "active" && (
-                        <ModerationActions
-                          post={p}
-                          isPending={moderateMut.isPending}
-                          onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
-                        />
+            <div className="space-y-3">
+              {pinned.map((p, idx) => {
+                const initials = (p.user.name ?? p.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <div key={p.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                    <div className="flex items-start gap-3">
+                      {p.user.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.user.image} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                          {initials}
+                        </div>
                       )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* All posts */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-base font-bold text-[#191c1e]">Discussions récentes</h2>
-          <span className="text-xs text-[#5c647a]">{regular.length} post{regular.length !== 1 ? "s" : ""}</span>
-        </div>
-
-        {isLoading ? (
-          <div className="p-6 space-y-3">
-            {[0, 1, 2].map((i) => <div key={i} className="h-20 bg-gray-50 rounded animate-pulse" />)}
-          </div>
-        ) : regular.length === 0 ? (
-          <div className="py-16 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-[28px] text-gray-300">forum</span>
-            </div>
-            <p className="font-semibold text-[#191c1e]">Aucune discussion pour l&apos;instant</p>
-            <p className="text-sm text-[#5c647a] mt-1">
-              {stats?.totalMembers === 0
-                ? "Publiez un produit pour attirer des apprenants et lancer la conversation."
-                : "Vos apprenants n'ont pas encore posé de questions. Ouvrez la discussion !"}
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {regular.map((p, idx) => {
-              const initials = (p.user.name ?? p.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-              return (
-                <div key={p.id} className="p-5 hover:bg-gray-50/30 transition-colors">
-                  <div className="flex items-start gap-3">
-                    {p.user.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={p.user.image} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                    ) : (
-                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                        {initials}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-sm font-semibold text-[#191c1e]">{p.user.name ?? p.user.email}</p>
-                        <span className="text-[10px] text-[#5c647a]">·</span>
-                        <span className="text-[10px] text-[#5c647a]">{timeAgo(p.createdAt)}</span>
-                        {p.reportCount > 0 && (
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-red-50 text-red-600">
-                            {p.reportCount} signal.
-                          </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{p.title}</p>
+                        <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{p.content}</p>
+                        <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500">
+                          <span>{p.formation.title}</span>
+                          <span>·</span>
+                          <span>{timeAgo(p.createdAt)}</span>
+                          <span>·</span>
+                          <span>{p._count.replies} réponse{p._count.replies !== 1 ? "s" : ""}</span>
+                        </div>
+                        {p.status === "active" && (
+                          <ModerationActions
+                            post={p}
+                            isPending={moderateMut.isPending}
+                            onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
+                          />
                         )}
                       </div>
-                      <p className="text-sm font-bold text-[#191c1e] mb-1">{p.title}</p>
-                      <p className="text-xs text-[#5c647a] line-clamp-2">{p.content}</p>
-                      <div className="flex items-center gap-4 mt-3 text-[11px]">
-                        <span className="text-[#5c647a]">
-                          <span className="material-symbols-outlined text-[13px] align-middle mr-1">book</span>
-                          {p.formation.title}
-                        </span>
-                        <span className="text-[#5c647a]">
-                          <span className="material-symbols-outlined text-[13px] align-middle mr-1">comment</span>
-                          {p._count.replies}
-                        </span>
-                      </div>
-                      {p.status === "active" && (
-                        <ModerationActions
-                          post={p}
-                          isPending={moderateMut.isPending}
-                          onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
-                        />
-                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
-      </div>
+
+        {/* All posts */}
+        <KazaCard
+          title="Discussions récentes"
+          subtitle={`${regular.length} post${regular.length !== 1 ? "s" : ""}`}
+          noPadding
+        >
+          {isLoading ? (
+            <div className="p-6 space-y-3">
+              {[0, 1, 2].map((i) => <div key={i} className="h-20 bg-slate-50 rounded animate-pulse" />)}
+            </div>
+          ) : regular.length === 0 ? (
+            <div className="p-6">
+              <KazaEmpty
+                icon={MessagesSquare}
+                title="Aucune discussion pour l'instant"
+                description={
+                  stats?.totalMembers === 0
+                    ? "Publiez un produit pour attirer des apprenants et lancer la conversation."
+                    : "Vos apprenants n'ont pas encore posé de questions. Ouvrez la discussion !"
+                }
+              />
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-50">
+              {regular.map((p, idx) => {
+                const initials = (p.user.name ?? p.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+                return (
+                  <div key={p.id} className="p-5 hover:bg-slate-50/30 transition-colors">
+                    <div className="flex items-start gap-3">
+                      {p.user.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.user.image} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                          {initials}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-sm font-semibold text-slate-900">{p.user.name ?? p.user.email}</p>
+                          <span className="text-[10px] text-slate-500">·</span>
+                          <span className="text-[10px] text-slate-500">{timeAgo(p.createdAt)}</span>
+                          {p.reportCount > 0 && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600">
+                              {p.reportCount} signal.
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-bold text-slate-900 mb-1">{p.title}</p>
+                        <p className="text-xs text-slate-500 line-clamp-2">{p.content}</p>
+                        <div className="flex items-center gap-4 mt-3 text-[11px]">
+                          <span className="text-slate-500 inline-flex items-center gap-1">
+                            <Book className="w-3 h-3" />
+                            {p.formation.title}
+                          </span>
+                          <span className="text-slate-500 inline-flex items-center gap-1">
+                            <MessageSquare className="w-3 h-3" />
+                            {p._count.replies}
+                          </span>
+                        </div>
+                        {p.status === "active" && (
+                          <ModerationActions
+                            post={p}
+                            isPending={moderateMut.isPending}
+                            onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </KazaCard>
+      </main>
     </div>
   );
 }
 
-/**
- * Boutons de modération vendeur sous chaque post actif :
- * Épingler / Désépingler, Supprimer (avec confirm), Reporter.
- */
 function ModerationActions({
   post,
   isPending,
@@ -271,15 +270,15 @@ function ModerationActions({
   onAction: (action: "pin" | "unpin" | "delete" | "report") => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-gray-100">
+    <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
       <button
         type="button"
         disabled={isPending}
         onClick={() => onAction(post.isPinned ? "unpin" : "pin")}
-        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-gray-200 text-[#5c647a] hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-slate-200 text-slate-500 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 disabled:opacity-50 transition-colors"
         title={post.isPinned ? "Désépingler ce post" : "Épingler ce post en haut"}
       >
-        <span className="material-symbols-outlined text-[13px]">push_pin</span>
+        {post.isPinned ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
         {post.isPinned ? "Désépingler" : "Épingler"}
       </button>
       <button
@@ -290,20 +289,20 @@ function ModerationActions({
             onAction("delete");
           }
         }}
-        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-gray-200 text-[#5c647a] hover:bg-red-50 hover:text-red-600 hover:border-red-200 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 disabled:opacity-50 transition-colors"
         title="Supprimer ce post (soft-delete)"
       >
-        <span className="material-symbols-outlined text-[13px]">delete</span>
+        <Trash2 className="w-3 h-3" />
         Supprimer
       </button>
       <button
         type="button"
         disabled={isPending}
         onClick={() => onAction("report")}
-        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-gray-200 text-[#5c647a] hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-slate-200 text-slate-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 disabled:opacity-50 transition-colors"
         title="Signaler ce post à l'admin Novakou"
       >
-        <span className="material-symbols-outlined text-[13px]">flag</span>
+        <Flag className="w-3 h-3" />
         Reporter
       </button>
     </div>

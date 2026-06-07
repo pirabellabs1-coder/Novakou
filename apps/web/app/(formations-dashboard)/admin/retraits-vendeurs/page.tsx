@@ -8,9 +8,30 @@
  */
 
 import { useState } from "react";
-import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import {
+  KazaHero,
+  KazaCard,
+  KazaKpiCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
+import {
+  Banknote,
+  ArrowLeft,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Wallet,
+  FlaskConical,
+  ShieldCheck,
+  RefreshCw,
+  Sparkles,
+  CreditCard,
+  Inbox,
+} from "lucide-react";
 
 type Withdrawal = {
   id: string;
@@ -70,10 +91,13 @@ function timeAgo(dateStr: string) {
   return `il y a ${d} j`;
 }
 
-const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string }> = {
-  EN_ATTENTE: { label: "En attente", bg: "bg-amber-100", text: "text-amber-800" },
-  TRAITE: { label: "Traité", bg: "bg-emerald-100", text: "text-emerald-800" },
-  REFUSE: { label: "Refusé", bg: "bg-rose-100", text: "text-rose-800" },
+const STATUS_CONFIG: Record<
+  string,
+  { label: string; variant: "orange" | "green" | "rose" }
+> = {
+  EN_ATTENTE: { label: "En attente", variant: "orange" },
+  TRAITE: { label: "Traité", variant: "green" },
+  REFUSE: { label: "Refusé", variant: "rose" },
 };
 
 export default function AdminRetraitsVendeursPage() {
@@ -456,57 +480,43 @@ export default function AdminRetraitsVendeursPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+    <div
+      className="min-h-screen bg-slate-50"
+      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+    >
       {toast && (
-        <div className="fixed top-6 right-6 z-50 bg-zinc-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl">
+        <div className="fixed top-6 right-6 z-50 bg-[#0b2540] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl">
           {toast}
         </div>
       )}
-      <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1400px] mx-auto">
-        <Link
-          href="/admin/dashboard"
-          className="text-xs font-semibold text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 mb-6"
-        >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1400px] mx-auto space-y-8">
+        <KazaButton variant="ghost" size="sm" icon={ArrowLeft} href="/admin/dashboard">
           Dashboard
-        </Link>
+        </KazaButton>
 
-        <header className="mb-10 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div>
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
-              Paiements vendeurs &amp; mentors
-            </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">
-              Demandes de retrait
-            </h1>
-            <p className="text-sm text-zinc-500 mt-3 max-w-2xl">
-              Approuvez ou refusez les retraits des vendeurs et mentors. Cliquez « Payer Moneroo »
-              pour envoyer les fonds automatiquement via l&apos;API Moneroo.
-            </p>
-          </div>
-          <button
-            onClick={() => setShowTest(!showTest)}
-            className="px-4 py-2.5 bg-blue-50 text-blue-800 text-[11px] font-bold uppercase tracking-widest hover:bg-blue-100 transition-colors inline-flex items-center gap-2 self-start"
-          >
-            <span className="material-symbols-outlined text-[16px]">science</span>
-            Tester Moneroo
-          </button>
-        </header>
+        <KazaHero
+          badge="Admin"
+          badgeColor="orange"
+          icon={Banknote}
+          title="Demandes de retrait vendeurs &amp; mentors"
+          subtitle="Approuvez ou refusez les retraits. Payez automatiquement via Moneroo / PayGenius."
+          actions={
+            <KazaButton
+              variant="secondary"
+              icon={FlaskConical}
+              onClick={() => setShowTest(!showTest)}
+            >
+              Tester Moneroo
+            </KazaButton>
+          }
+        />
 
         {/* ── Panneau de test Moneroo direct ──────────────────────────────── */}
         {showTest && (
-          <div className="mb-10 bg-white rounded-2xl border-2 border-blue-200 p-6">
-            <div className="flex items-start gap-3 mb-5">
-              <span className="material-symbols-outlined text-blue-600 text-[22px] mt-0.5">science</span>
-              <div>
-                <h2 className="text-base font-bold text-zinc-900">Test Moneroo direct</h2>
-                <p className="text-xs text-zinc-500 mt-1 max-w-2xl">
-                  Envoie un payout direct à Moneroo sans passer par InstructorWithdrawal. Utile pour vérifier
-                  que les codes méthode et le format msisdn sont acceptés.
-                  <strong> Attention : l&apos;argent sortira réellement de votre solde Moneroo (sandbox ou prod selon votre clé).</strong>
-                </p>
-              </div>
-            </div>
+          <KazaCard
+            title="Test Moneroo direct"
+            subtitle="Envoie un payout direct à Moneroo. ATTENTION : l'argent sort réellement de votre solde."
+          >
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
               <div>
@@ -578,87 +588,100 @@ export default function AdminRetraitsVendeursPage() {
             </button>
 
             {testResult !== null && (
-              <div className="mt-4 rounded-xl border p-4 font-mono text-[11px] overflow-x-auto bg-zinc-50 border-zinc-200">
-                <p className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${(testResult as { ok?: boolean }).ok ? "text-emerald-700" : "text-rose-700"}`}>
-                  {(testResult as { ok?: boolean }).ok ? "✓ Succès" : "✗ Erreur Moneroo"}
+              <div className="mt-4 rounded-xl border p-4 font-mono text-[11px] overflow-x-auto bg-slate-50 border-slate-200">
+                <p
+                  className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${(testResult as { ok?: boolean }).ok ? "text-emerald-700" : "text-rose-700"}`}
+                >
+                  {(testResult as { ok?: boolean }).ok ? "Succès" : "Erreur Moneroo"}
                 </p>
-                <pre className="whitespace-pre-wrap break-all text-zinc-800">{JSON.stringify(testResult, null, 2)}</pre>
+                <pre className="whitespace-pre-wrap break-all text-slate-800">
+                  {JSON.stringify(testResult, null, 2)}
+                </pre>
               </div>
             )}
-          </div>
+          </KazaCard>
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-px bg-zinc-100 mb-10 border border-zinc-100">
-          <div className="bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">En attente</p>
-            <p className="text-xl md:text-2xl font-extrabold text-amber-600 tabular-nums break-all">
-              {summary?.pending ?? 0}
-            </p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Montant en attente</p>
-            <p className="text-xl md:text-2xl font-extrabold text-amber-600 tabular-nums break-all">
-              {fmtFCFA(summary?.pendingAmount ?? 0)}
-            </p>
-            <p className="text-[10px] text-zinc-400 mt-1 uppercase tracking-widest">FCFA</p>
-          </div>
-          <div className="bg-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-3">Traités</p>
-            <p className="text-xl md:text-2xl font-extrabold text-emerald-600 tabular-nums break-all">
-              {summary?.processed ?? 0}
-            </p>
-          </div>
-          <div className="bg-zinc-900 text-white p-6">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">Refusés</p>
-            <p className="text-xl md:text-2xl font-extrabold tabular-nums break-all">
-              {summary?.refused ?? 0}
-            </p>
-          </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <KazaKpiCard
+            label="En attente"
+            value={summary?.pending ?? 0}
+            icon={Clock}
+            iconColor="orange"
+          />
+          <KazaKpiCard
+            label="Montant en attente"
+            value={`${fmtFCFA(summary?.pendingAmount ?? 0)} F`}
+            icon={Wallet}
+            iconColor="orange"
+          />
+          <KazaKpiCard
+            label="Traités"
+            value={summary?.processed ?? 0}
+            icon={CheckCircle}
+            iconColor="emerald"
+          />
+          <KazaKpiCard
+            label="Refusés"
+            value={summary?.refused ?? 0}
+            icon={XCircle}
+            iconColor="rose"
+          />
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-3 mb-8">
-          <div className="flex gap-0 border border-zinc-100 bg-white">
-            {(["EN_ATTENTE", "TRAITE", "REFUSE", "all"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setStatusFilter(s)}
-                className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                  statusFilter === s ? "bg-zinc-900 text-white" : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
-                {s === "all" ? "Tous" : STATUS_CONFIG[s]?.label}
-              </button>
-            ))}
+        {/* Filtres */}
+        <KazaCard>
+          <div className="flex flex-col md:flex-row gap-3 flex-wrap">
+            <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl flex-wrap">
+              {(["EN_ATTENTE", "TRAITE", "REFUSE", "all"] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    statusFilter === s
+                      ? "bg-[#0b2540] text-white shadow"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {s === "all" ? "Tous" : STATUS_CONFIG[s]?.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl flex-wrap">
+              {(["all", "vendor", "mentor"] as const).map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRoleFilter(r)}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    roleFilter === r
+                      ? "bg-emerald-500 text-white shadow"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  {r === "all" ? "Tous rôles" : r === "vendor" ? "Vendeurs" : "Mentors"}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-0 border border-zinc-100 bg-white">
-            {(["all", "vendor", "mentor"] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRoleFilter(r)}
-                className={`px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all ${
-                  roleFilter === r ? "bg-[#22c55e] text-[#004b1e]" : "text-zinc-500 hover:text-zinc-900"
-                }`}
-              >
-                {r === "all" ? "Tous rôles" : r === "vendor" ? "Vendeurs" : "Mentors"}
-              </button>
-            ))}
-          </div>
-        </div>
+        </KazaCard>
 
         {/* List */}
         {isLoading ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-24 bg-white border border-zinc-100 animate-pulse" />
+              <div
+                key={i}
+                className="h-24 bg-white rounded-2xl border border-slate-100 animate-pulse"
+              />
             ))}
           </div>
         ) : withdrawals.length === 0 ? (
-          <div className="bg-white p-16 text-center border border-zinc-100">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Aucune demande</p>
-            <p className="text-sm text-zinc-500">Aucune demande de retrait ne correspond à ces filtres.</p>
-          </div>
+          <KazaEmpty
+            icon={Inbox}
+            title="Aucune demande"
+            description="Aucune demande de retrait ne correspond à ces filtres."
+          />
         ) : (
           <div className="space-y-3">
             {/* Barre bulk — visible quand >= 1 EN_ATTENTE sélectionné.
@@ -773,9 +796,7 @@ export default function AdminRetraitsVendeursPage() {
                         </p>
                         <p className="text-[10px] text-zinc-400 uppercase tracking-widest">FCFA</p>
                       </div>
-                      <span className={`inline-block px-3 py-1 text-[9px] font-bold uppercase tracking-widest ${sc.bg} ${sc.text} whitespace-nowrap`}>
-                        {sc.label}
-                      </span>
+                      <KazaBadge variant={sc.variant}>{sc.label}</KazaBadge>
 
                       {w.status === "EN_ATTENTE" && (
                         <div className="flex gap-0 flex-wrap">

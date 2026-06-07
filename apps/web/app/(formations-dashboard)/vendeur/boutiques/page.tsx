@@ -1,8 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import {
+  Store,
+  Plus,
+  Settings,
+  Trash2,
+  Link as LinkIcon,
+  Globe,
+  Star,
+  BadgeCheck,
+} from "lucide-react";
 import { useToastStore } from "@/store/toast";
+import {
+  KazaHero,
+  KazaCard,
+  KazaButton,
+  KazaBadge,
+  KazaEmpty,
+} from "@/components/kaza";
 
 interface Shop {
   id: string;
@@ -95,66 +111,60 @@ export default function VendorShopsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mes boutiques</h1>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Créez jusqu&apos;à {max} boutiques avec leur propre nom de domaine. Les produits de votre catalogue
-            apparaissent dans toutes vos boutiques.
-          </p>
-        </div>
+    <div className="min-h-screen bg-slate-50/50">
+      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
+        <KazaHero
+          badge="Pro"
+          badgeColor="orange"
+          icon={Store}
+          title="Mes boutiques"
+          subtitle={`Créez jusqu'à ${max} boutiques avec leur propre nom de domaine. Vos produits apparaissent dans toutes vos boutiques.`}
+        />
 
         {/* Create form */}
         {shops.length < max && (
-          <form
-            onSubmit={handleCreate}
-            className="bg-white rounded-2xl border border-gray-100 p-5 md:p-6 mb-6 flex flex-col md:flex-row gap-3 items-stretch md:items-end"
-          >
-            <div className="flex-1">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-[#5c647a] mb-1.5">
-                Nom de la nouvelle boutique
-              </label>
-              <input
-                type="text"
-                value={newName}
-                onChange={(e) => setNewName(e.target.value)}
-                placeholder="Ex: Tools IA Pro"
-                maxLength={80}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={creating || newName.trim().length < 2}
-              className="px-6 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
-              style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-            >
-              <span className="material-symbols-outlined text-[16px]">add</span>
-              {creating ? "Création…" : "Créer"}
-            </button>
-          </form>
+          <KazaCard title="Nouvelle boutique" subtitle="Donnez-lui un nom mémorable">
+            <form onSubmit={handleCreate} className="flex flex-col md:flex-row gap-3 items-stretch md:items-end">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Ex: Tools IA Pro"
+                  maxLength={80}
+                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all"
+                />
+              </div>
+              <KazaButton
+                type="submit"
+                variant="primary"
+                icon={Plus}
+                disabled={creating || newName.trim().length < 2}
+              >
+                {creating ? "Création…" : "Créer la boutique"}
+              </KazaButton>
+            </form>
+          </KazaCard>
         )}
 
         {/* Shops list */}
         {loading ? (
           <div className="space-y-3 animate-pulse">
-            <div className="h-24 bg-white rounded-2xl border border-gray-100" />
-            <div className="h-24 bg-white rounded-2xl border border-gray-100" />
+            <div className="h-24 bg-white rounded-2xl border border-slate-100" />
+            <div className="h-24 bg-white rounded-2xl border border-slate-100" />
           </div>
         ) : shops.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <span className="material-symbols-outlined text-5xl text-gray-300">storefront</span>
-            <p className="text-base font-bold text-[#191c1e] mt-3">Aucune boutique encore</p>
-            <p className="text-sm text-[#5c647a] mt-1">Créez votre première boutique ci-dessus.</p>
-          </div>
+          <KazaEmpty
+            icon={Store}
+            title="Aucune boutique encore"
+            description="Créez votre première boutique pour publier votre catalogue sous votre propre marque."
+          />
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {shops.map((s) => (
               <div
                 key={s.id}
-                className="bg-white rounded-2xl border border-gray-100 p-5 flex flex-col md:flex-row md:items-center gap-4"
+                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col md:flex-row md:items-center gap-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div
@@ -164,27 +174,23 @@ export default function VendorShopsPage() {
                     {s.name[0]?.toUpperCase() ?? "?"}
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-base font-extrabold text-[#191c1e] truncate">{s.name}</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-base font-extrabold text-slate-900 truncate">{s.name}</p>
                       {s.isPrimary && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
-                          Principale
-                        </span>
+                        <KazaBadge variant="green" icon={Star}>Principale</KazaBadge>
                       )}
                       {s.customDomainVerified && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                          Domaine vérifié
-                        </span>
+                        <KazaBadge variant="blue" icon={BadgeCheck}>Domaine vérifié</KazaBadge>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-[#5c647a] mt-1 flex-wrap">
+                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                       <a
                         href={`https://novakou.com/boutique/${s.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-[#006e2f] inline-flex items-center gap-1"
+                        className="hover:text-emerald-700 inline-flex items-center gap-1"
                       >
-                        <span className="material-symbols-outlined text-[12px]">link</span>
+                        <LinkIcon className="w-3 h-3" />
                         novakou.com/boutique/{s.slug}
                       </a>
                       {s.customDomain && (
@@ -192,9 +198,9 @@ export default function VendorShopsPage() {
                           href={`https://${s.customDomain}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-[#006e2f] inline-flex items-center gap-1"
+                          className="hover:text-emerald-700 inline-flex items-center gap-1"
                         >
-                          <span className="material-symbols-outlined text-[12px]">public</span>
+                          <Globe className="w-3 h-3" />
                           {s.customDomain}
                         </a>
                       )}
@@ -202,28 +208,17 @@ export default function VendorShopsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Link
-                    href={`/vendeur/boutiques/${s.id}`}
-                    className="px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 inline-flex items-center gap-1.5"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">settings</span>
+                  <KazaButton variant="ghost" size="sm" icon={Settings} href={`/vendeur/boutiques/${s.id}`}>
                     Gérer
-                  </Link>
+                  </KazaButton>
                   {!s.isPrimary && (
                     <>
-                      <button
-                        onClick={() => handleSetPrimary(s.id)}
-                        className="px-4 py-2 rounded-xl text-sm font-semibold bg-[#006e2f]/5 text-[#006e2f] hover:bg-[#006e2f]/10"
-                      >
+                      <KazaButton variant="ghost" size="sm" icon={Star} onClick={() => handleSetPrimary(s.id)}>
                         Principale
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s.id, s.name)}
-                        className="p-2 rounded-xl text-red-500 hover:bg-red-50"
-                        aria-label="Supprimer"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">delete</span>
-                      </button>
+                      </KazaButton>
+                      <KazaButton variant="danger" size="sm" icon={Trash2} onClick={() => handleDelete(s.id, s.name)}>
+                        Supprimer
+                      </KazaButton>
                     </>
                   )}
                 </div>
@@ -232,10 +227,10 @@ export default function VendorShopsPage() {
           </div>
         )}
 
-        <p className="text-xs text-[#5c647a] mt-6 text-center">
+        <p className="text-xs text-slate-500 text-center">
           {shops.length}/{max} boutiques utilisées
         </p>
-      </div>
+      </main>
     </div>
   );
 }
