@@ -147,8 +147,8 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
       className="min-h-screen bg-[#f7f9fb]"
       style={{ fontFamily: "var(--font-inter), Inter, sans-serif", "--shop-color": shopColor } as React.CSSProperties}
     >
-      {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 h-16 flex items-center px-4 md:px-6 gap-3">
+      {/* ── Top Navbar style KAZA — logo carré, search bar centrée, avatar 2 lignes ── */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/80 h-[68px] flex items-center px-4 md:px-6 gap-3">
         {/* Mobile hamburger */}
         <button
           className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-700"
@@ -158,10 +158,18 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           <span className="material-symbols-outlined text-[22px]">menu</span>
         </button>
 
+        {/* Logo carré "N Novakou" style KAZA */}
+        <Link href="/vendeur/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
+          <div className="w-10 h-10 rounded-xl bg-[#0b2540] flex items-center justify-center group-hover:scale-105 transition-transform">
+            <span className="text-white font-extrabold text-base tracking-tight">N</span>
+          </div>
+          <span className="hidden sm:block font-extrabold text-slate-900 text-lg tracking-tight">Novakou</span>
+        </Link>
+
         {/* Desktop collapse toggle */}
         <button
           onClick={toggleCollapsed}
-          className="hidden md:flex p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
+          className="hidden md:flex ml-2 p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors"
           aria-label={collapsed ? "Étendre le menu" : "Réduire le menu"}
           title={collapsed ? "Étendre le menu" : "Réduire le menu"}
         >
@@ -170,84 +178,54 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           </span>
         </button>
 
-        {/* Logo */}
-        <Link href="/vendeur/dashboard" className="flex items-center gap-2 flex-shrink-0 group">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform"
-            style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
-          >
-            <span className="text-white font-extrabold text-xs tracking-tight">NK</span>
-          </div>
-          <span className="hidden sm:block font-extrabold text-slate-900 text-sm tracking-tight">Novakou</span>
-        </Link>
-
         {/* Active shop switcher (only shown when 2+ shops) */}
         <ShopSwitcher />
 
-        {/* Search bar (desktop) */}
-        <div className="hidden lg:flex flex-1 max-w-md mx-auto">
+        {/* Search bar centrée KAZA — plus large, dominante */}
+        <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto px-4">
           <div className="w-full relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400 pointer-events-none">
+            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-slate-400 pointer-events-none">
               search
             </span>
             <input
               type="search"
-              placeholder="Rechercher un produit, une commande..."
-              className="w-full pl-10 pr-4 py-2 text-xs bg-slate-100/80 border border-transparent rounded-xl placeholder-slate-400 text-slate-700 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+              placeholder="Rechercher..."
+              className="w-full pl-12 pr-4 py-2.5 text-sm bg-slate-100 border border-transparent rounded-2xl placeholder-slate-400 text-slate-700 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-emerald-500/10 transition-all"
             />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
-              ⌘K
-            </span>
           </div>
         </div>
 
-        <div className="flex-1 lg:hidden" />
+        <div className="flex-1 md:hidden" />
 
-        {/* Right actions */}
-        <div className="flex items-center gap-1">
-          {activeShop && (
-            <Link
-              href={`/boutique/${activeShop.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
-              title="Voir ma boutique en ligne"
-            >
-              <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-              <span className="hidden xl:inline">Voir ma boutique</span>
-            </Link>
-          )}
+        {/* Right : notif + avatar avec nom + rôle (style KAZA) */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           <NovakouNotificationBell tone="slate" viewAllHref="/vendeur/notifications" />
           <Link
-            href="/aide"
-            className="hidden md:flex p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors"
-            aria-label="Aide"
-            title="Centre d'aide"
-          >
-            <span className="material-symbols-outlined text-[20px]">help_outline</span>
-          </Link>
-          <div className="w-px h-6 bg-slate-200 mx-1 hidden md:block" />
-          <Link
             href="/vendeur/profil"
-            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition-colors"
+            className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-slate-100 transition-colors"
           >
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={avatarUrl}
                 alt={displayName}
-                className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-white shadow-sm"
+                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0 ring-2 ring-white shadow-sm"
-                style={{ background: "linear-gradient(135deg, #f59e0b, #f97316)" }}
-              >
+              <div className="w-9 h-9 rounded-full bg-[#0b2540] flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0">
                 {initials}
               </div>
             )}
-            <span className="hidden md:block text-xs font-bold text-slate-700 max-w-[100px] truncate">
-              {displayName.split(" ")[0]}
+            <div className="hidden md:flex flex-col items-start leading-tight">
+              <span className="text-sm font-bold text-slate-900 max-w-[140px] truncate">
+                {displayName}
+              </span>
+              <span className="text-[11px] text-slate-500">
+                {activeShop?.name ? "Vendeur Pro" : "Vendeur"}
+              </span>
+            </div>
+            <span className="hidden md:block material-symbols-outlined text-[18px] text-slate-400 ml-1">
+              expand_more
             </span>
           </Link>
         </div>
@@ -262,9 +240,9 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — style KAZA : fond blanc, items minimaux, actif = navy plein */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-gray-100 pt-16 flex flex-col transition-all duration-300 ${sidebarWidth} ${
+        className={`fixed top-0 left-0 bottom-0 z-40 bg-white border-r border-slate-200/60 pt-[68px] flex flex-col transition-all duration-300 ${sidebarWidth} ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${mobileOpen ? "w-64" : ""}`}
       >
@@ -278,18 +256,18 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
           </button>
         )}
 
-        {/* Navigation — sectioned (sidebar starts directly with nav, shop info is in the topbar) */}
+        {/* Navigation style KAZA — actif = fond navy plein blanc texte, sections discrètes */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
           {sections.map((section) => {
             const items = navItems.filter((n) => n.section === section);
             return (
-              <div key={section} className="mb-5 last:mb-0">
+              <div key={section} className="mb-6 last:mb-0">
                 {(!collapsed || mobileOpen) && (
-                  <p className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-[#5c647a]">
+                  <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                     {section}
                   </p>
                 )}
-                <ul className="space-y-0.5">
+                <ul className="space-y-1">
                   {items.map((item) => {
                     const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
                     // Vote 13 — count rouge si la route a un compteur "à traiter" et qu'il est > 0.
@@ -302,29 +280,20 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                           href={item.href}
                           onClick={() => setMobileOpen(false)}
                           title={collapsed && !mobileOpen ? item.label : undefined}
-                          className={`group flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                          className={`group flex items-center gap-3 rounded-xl text-sm transition-all duration-150 ${
                             collapsed && !mobileOpen ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
                           } ${
                             isActive
-                              ? "font-semibold"
-                              : "text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e]"
+                              ? "bg-[#0b2540] text-white font-semibold shadow-md shadow-slate-300/40"
+                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
                           }`}
-                          style={
-                            isActive
-                              ? {
-                                  background: `linear-gradient(to right, var(--shop-color, #006e2f)1a, transparent)`,
-                                  color: "var(--shop-color, #006e2f)",
-                                }
-                              : undefined
-                          }
                         >
                           <span
                             className={`material-symbols-outlined text-[20px] flex-shrink-0 ${
-                              isActive ? "" : "text-[#5c647a] group-hover:text-[#191c1e]"
+                              isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"
                             }`}
                             style={{
                               fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                              color: isActive ? "var(--shop-color, #006e2f)" : undefined,
                             }}
                           >
                             {item.icon}
@@ -336,12 +305,22 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                               {showCountBadge ? (
                                 <span
                                   aria-label={`${count} à traiter`}
-                                  className="bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5 ml-auto min-w-[18px] text-center leading-[18px] h-[18px]"
+                                  className={`text-[10px] font-bold rounded-full px-1.5 ml-auto min-w-[18px] text-center leading-[18px] h-[18px] ${
+                                    isActive ? "bg-rose-400 text-white" : "bg-rose-500 text-white"
+                                  }`}
                                 >
                                   {count > 99 ? "99+" : count}
                                 </span>
                               ) : item.badge ? (
-                                <span className="ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                                <span
+                                  className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    isActive
+                                      ? "bg-white/20 text-white"
+                                      : item.badge === "Pro"
+                                      ? "bg-orange-100 text-orange-700"
+                                      : "bg-amber-100 text-amber-700"
+                                  }`}
+                                >
                                   {item.badge}
                                 </span>
                               ) : null}
@@ -386,8 +365,8 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className={`pt-16 min-h-screen transition-all duration-300 ${mainOffset}`}>
+      {/* Main content — pt-[68px] = hauteur du topbar style KAZA */}
+      <main className={`pt-[68px] min-h-screen transition-all duration-300 ${mainOffset}`}>
         {children}
       </main>
     </div>
