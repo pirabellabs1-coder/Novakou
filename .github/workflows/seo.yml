@@ -1,0 +1,111 @@
+name: SEO Rich Results
+
+# Garde-fou SEO : lance le validateur Rich Results sur chaque PR + push main.
+# Le validateur scripts/seo-validate.mjs crawl localhost:3000 sur 13 URLs
+# clés, extrait tous les JSON-LD et vérifie la conformité Schema.org
+# (champs requis par type, FAQPage ≥ 2 questions, AggregateRating
+# reviewCount ≥ 1, og:image présent, title 25-65 char, description
+# 100-160 char).
+#
+# Si une régression SEO apparaît (schema cassé, og:image perdu, title
+# trop long), le job échoue avant deploy Vercel.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  seo-validate:
+    name: Validate Rich Results
+    runs-on: ubuntu-latest
+    # Skip si le commit ne touche que des fichiers non-SEO (docs, scripts
+    # internes, configs CI…). Si pas de match, on lance quand même par
+    # défaut — c'est juste une optim.
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build (production)
+        # Production build : nécessaire pour que `next start` serve des
+        # vrais bundles et que les pages soient indexables comme en prod.
+        # On utilise des placeholders pour les env runtime — pas grave,
+        # les schemas se génèrent à partir du contenu, pas des secrets.
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-test-secret-not-for-prod
+          NEXTAUTH_URL: http://localhost:3000
+          # DEV_MODE=true bypass Supabase et utilise les fixtures locales
+          # → les pages /aide, /tarifs, /guides/*, /, /explorer rendent
+          # sans nécessiter de DB live.
+          DEV_MODE: "true"
+
+      - name: Start Next.js (background)
+        run: |
+          pnpm --filter @freelancehigh/web start &
+          echo "next_pid=$!" >> $GITHUB_OUTPUT
+        id: next
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          NEXTAUTH_SECRET: ci-test-secret-not-for-prod
+          NEXTAUTH_URL: http://localhost:3000
+          DEV_MODE: "true"
+          PORT: "3000"
+
+      - name: Wait for server to be ready
+        # Polling jusqu'à ce que la home réponde 200, max 60s.
+        run: |
+          for i in {1..30}; do
+            if curl -fsS -o /dev/null http://localhost:3000/; then
+              echo "✓ Server ready after ${i}×2s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "✗ Server never became ready after 60s"
+          exit 1
+
+      - name: Run SEO validator
+        # Le script exit 1 si erreurs schemas → fail le job → bloque PR.
+        run: node scripts/seo-validate.mjs
+
+      - name: Upload SEO report
+        # Garde le rapport JSON même en cas de succès — utile pour diff
+        # entre PRs et tracker l'évolution du score SEO dans le temps.
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-report-${{ github.run_id }}
+          path: screenshots/seo-report-*.json
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Stop Next.js
+        if: always()
+        run: |
+          # Kill par port (plus robuste que par PID dans GitHub Actions).
+          fuser -k 3000/tcp || true
