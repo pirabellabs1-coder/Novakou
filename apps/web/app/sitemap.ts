@@ -16,7 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: BASE_URL, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
     { url: `${BASE_URL}/explorer`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
     { url: `${BASE_URL}/mentors`, lastModified: new Date(), changeFrequency: "hourly", priority: 0.9 },
-    { url: `${BASE_URL}/instructeurs`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    // /instructeurs (index) n'existe pas en tant que page — seuls
+    // /instructeurs/[id] sont indexables. Référencer un 404 dans le
+    // sitemap dégrade la note Search Console. Les profils dynamiques sont
+    // ajoutés plus bas via dynamicRoutes.
     { url: `${BASE_URL}/tarifs`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${BASE_URL}/affiliation`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE_URL}/a-propos`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },

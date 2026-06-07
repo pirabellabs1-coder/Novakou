@@ -1,13 +1,30 @@
 import type { Metadata } from "next";
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
+
 export const metadata: Metadata = {
   title: "Tarifs · 10% de commission, zéro abonnement",
   description:
     "Novakou prélève uniquement 10% sur vos ventes. Aucun abonnement mensuel, aucun frais caché. Comparez avec Gumroad, Hotmart et Systeme.io.",
+  alternates: { canonical: "/tarifs" },
   openGraph: {
     title: "Tarifs · Novakou",
     description: "10% de commission par vente. Pas d'abonnement. Toutes les fonctionnalités incluses.",
     type: "website",
+    url: `${BASE_URL}/tarifs`,
+    images: [
+      {
+        url: `${BASE_URL}/api/og?type=default&title=${encodeURIComponent("10% de commission. Zéro abonnement.")}&subtitle=${encodeURIComponent("Aucun frais caché. Vous payez seulement quand vous gagnez.")}`,
+        width: 1200,
+        height: 630,
+        alt: "Tarifs Novakou",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tarifs · Novakou",
+    description: "10% de commission par vente. Pas d'abonnement.",
   },
 };
 
