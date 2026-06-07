@@ -1,3 +1,5 @@
+// Refonte style KAZA — apprenant — 2026-06-07
+// Topbar navy + sidebar navy actif, sections sm-uppercase, icônes Lucide.
 "use client";
 
 import Link from "next/link";
@@ -6,104 +8,154 @@ import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
+import {
+  LayoutDashboard,
+  TrendingUp,
+  BookOpen,
+  Package,
+  Layers,
+  ShoppingBag,
+  CalendarDays,
+  UserPlus,
+  Settings,
+  Bell,
+  HelpCircle,
+  Search,
+  ChevronDown,
+  Menu,
+  X,
+  LogOut,
+  ShoppingCart,
+  Award,
+  CreditCard,
+  Wallet,
+  MessageSquare,
+  Sparkles,
+  Users,
+  Gift,
+  type LucideIcon,
+} from "lucide-react";
 
-const navGroups = [
+type NavItem = {
+  icon: LucideIcon;
+  label: string;
+  href: string;
+  badge?: boolean;
+};
+
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
+
+const navSections: NavSection[] = [
   {
-    label: "Général",
+    label: "Vue",
     items: [
-      { icon: "dashboard",         label: "Tableau de bord", href: "/apprenant/dashboard" },
-      { icon: "school",            label: "Mes formations",  href: "/apprenant/mes-formations" },
-      { icon: "inventory_2",       label: "Mes produits",    href: "/apprenant/mes-produits" },
-      { icon: "redeem",            label: "Mes packs",       href: "/apprenant/bundles" },
-      { icon: "card_membership",   label: "Mes abonnements", href: "/apprenant/abonnements" },
-      { icon: "workspace_premium", label: "Certificats",     href: "/apprenant/certificats" },
+      { icon: LayoutDashboard, label: "Tableau de bord", href: "/apprenant/dashboard" },
+      { icon: TrendingUp,      label: "Progression",      href: "/apprenant/progression" },
     ],
   },
   {
-    label: "Achats",
+    label: "Mes achats",
     items: [
-      { icon: "shopping_cart",         label: "Panier",    href: "/apprenant/panier",    badge: true },
-      { icon: "receipt_long",          label: "Commandes", href: "/apprenant/commandes" },
-      { icon: "account_balance_wallet",label: "Dépenses",  href: "/apprenant/depenses" },
+      { icon: BookOpen,    label: "Mes formations",  href: "/apprenant/mes-formations" },
+      { icon: Package,     label: "Mes produits",    href: "/apprenant/mes-produits" },
+      { icon: Layers,      label: "Mes bundles",     href: "/apprenant/bundles" },
+      { icon: CreditCard,  label: "Mes abonnements", href: "/apprenant/abonnements" },
+      { icon: Award,       label: "Certificats",     href: "/apprenant/certificats" },
+      { icon: ShoppingBag, label: "Mes commandes",   href: "/apprenant/commandes" },
+      { icon: ShoppingCart,label: "Panier",          href: "/apprenant/panier", badge: true },
+      { icon: Wallet,      label: "Dépenses",        href: "/apprenant/depenses" },
     ],
   },
   {
-    label: "Accompagnement",
+    label: "Mentorat",
     items: [
-      { icon: "support_agent", label: "Mes mentors",  href: "/apprenant/mentors" },
-      { icon: "event",         label: "Mes sessions", href: "/apprenant/sessions" },
-      { icon: "forum",         label: "Messages",     href: "/messages" },
-      { icon: "psychology",    label: "Coach IA",     href: "/apprenant/ai-coach" },
+      { icon: CalendarDays, label: "Mes sessions",    href: "/apprenant/sessions" },
+      { icon: Users,        label: "Mes mentors",     href: "/apprenant/mentors" },
+      { icon: UserPlus,     label: "Réserver mentor", href: "/mentors" },
+      { icon: MessageSquare,label: "Messages",        href: "/messages" },
+      { icon: Sparkles,     label: "Coach IA",        href: "/apprenant/ai-coach" },
     ],
   },
   {
-    label: "Compte",
+    label: "Paramètres",
     items: [
-      { icon: "settings", label: "Paramètres", href: "/apprenant/parametres" },
+      { icon: Settings,   label: "Mon compte",    href: "/apprenant/parametres" },
+      { icon: Bell,       label: "Notifications", href: "/apprenant/notifications" },
+      { icon: Gift,       label: "Affiliation",   href: "/apprenant/affiliation" },
+      { icon: HelpCircle, label: "Aide",          href: "/aide" },
     ],
   },
 ];
 
+// Derive initials from name
+function getInitials(name?: string | null): string {
+  if (!name) return "AP";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 function ApprenantFooter() {
   return (
-    <footer className="border-t border-gray-100 bg-white mt-auto">
-      <div className="px-6 py-8">
+    <footer className="border-t border-slate-200/60 bg-white mt-auto">
+      <div className="px-6 py-8 max-w-[1400px] mx-auto">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "#006e2f" }}>
-                <span className="text-white font-bold text-[10px]">NK</span>
+              <div className="w-8 h-8 rounded-lg bg-[#0b2540] flex items-center justify-center">
+                <span className="text-white font-extrabold text-sm">N</span>
               </div>
-              <span className="font-bold text-[#191c1e] text-sm">Novakou</span>
+              <span className="font-extrabold text-slate-900 text-base tracking-tight">Novakou</span>
             </div>
-            <p className="text-xs text-[#5c647a] leading-relaxed">
+            <p className="text-xs text-slate-500 leading-relaxed">
               La plateforme d&apos;apprentissage qui élève votre carrière freelance.
             </p>
           </div>
           <div>
-            <p className="text-xs font-bold text-[#191c1e] uppercase tracking-wide mb-3">Apprendre</p>
+            <p className="text-[10px] font-bold text-slate-900 uppercase tracking-widest mb-3">Apprendre</p>
             <ul className="space-y-1.5">
               {[
-                { label: "Explorer le catalogue",  href: "/explorer" },
-                { label: "Mes formations",          href: "/apprenant/mes-formations" },
-                { label: "Trouver un mentor",       href: "/mentors" },
-                { label: "Mes certificats",         href: "/apprenant/certificats" },
+                { label: "Explorer le catalogue", href: "/explorer" },
+                { label: "Mes formations",         href: "/apprenant/mes-formations" },
+                { label: "Trouver un mentor",      href: "/mentors" },
+                { label: "Mes certificats",        href: "/apprenant/certificats" },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-xs text-[#5c647a] hover:text-[#006e2f] transition-colors">{l.label}</Link>
+                  <Link href={l.href} className="text-xs text-slate-500 hover:text-[#0b2540] transition-colors">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
           <div>
-            <p className="text-xs font-bold text-[#191c1e] uppercase tracking-wide mb-3">Support</p>
+            <p className="text-[10px] font-bold text-slate-900 uppercase tracking-widest mb-3">Support</p>
             <ul className="space-y-1.5">
               {[
-                { label: "Centre d'aide",               href: "/aide" },
-                { label: "Contact",                      href: "/contact" },
-                { label: "Conditions d'utilisation",     href: "/cgu" },
-                { label: "Politique de confidentialité", href: "/confidentialite" },
+                { label: "Centre d'aide",                href: "/aide" },
+                { label: "Contact",                       href: "/contact" },
+                { label: "Conditions d'utilisation",      href: "/cgu" },
+                { label: "Politique de confidentialité",  href: "/confidentialite" },
               ].map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="text-xs text-[#5c647a] hover:text-[#006e2f] transition-colors">{l.label}</Link>
+                  <Link href={l.href} className="text-xs text-slate-500 hover:text-[#0b2540] transition-colors">
+                    {l.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
-        <div className="border-t border-gray-100 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-[10px] text-[#5c647a]">© 2026 Novakou — Tous droits réservés</p>
-          <p className="text-[10px] text-[#5c647a]">Fondé par Pirabel Labs · Afrique francophone &amp; diaspora</p>
+        <div className="border-t border-slate-100 pt-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <p className="text-[10px] text-slate-400">© 2026 Novakou — Tous droits réservés</p>
+          <p className="text-[10px] text-slate-400">Fondé par Pirabel Labs · Afrique francophone &amp; diaspora</p>
         </div>
       </div>
     </footer>
   );
-}
-
-// Derive initials from name
-function getInitials(name?: string | null): string {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
 export default function ApprenantLayout({ children }: { children: React.ReactNode }) {
@@ -118,7 +170,7 @@ export default function ApprenantLayout({ children }: { children: React.ReactNod
 
 function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session, status } = useSession();
 
   // Fetch cart count from real API
@@ -131,165 +183,193 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
 
   const cartCount: number = cartData?.count ?? 0;
   const user = session?.user;
-  const displayName  = user?.name ?? "Apprenant";
-  const displayEmail = user?.email ?? "";
-  const initials     = getInitials(user?.name);
-  const avatarUrl    = (user as Record<string, unknown> | undefined)?.image as string | undefined
-                    ?? (user as Record<string, unknown> | undefined)?.avatar as string | undefined;
+  const displayName = user?.name ?? "Apprenant";
+  const initials = getInitials(user?.name);
+  const avatarUrl =
+    ((user as Record<string, unknown> | undefined)?.image as string | undefined) ??
+    ((user as Record<string, unknown> | undefined)?.avatar as string | undefined);
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-4">
+    <div
+      className="min-h-screen bg-[#f7f9fb]"
+      style={{ fontFamily: "var(--font-manrope), var(--font-inter), Inter, sans-serif" }}
+    >
+      {/* ── Top Navbar style KAZA — logo carré navy, search centrée, avatar 2 lignes ── */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-slate-200/80 h-[68px] flex items-center px-4 md:px-6 gap-3">
+        {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-[#191c1e]"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          aria-label="Toggle sidebar"
+          className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-700"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Ouvrir le menu"
         >
-          <span className="material-symbols-outlined text-[22px]">menu</span>
+          <Menu className="w-5 h-5" />
         </button>
 
-        <Link href="/apprenant/dashboard" className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 rounded-[8px] flex items-center justify-center" style={{ background: "#006e2f" }}>
-            <span className="text-white font-bold text-xs tracking-tight">NK</span>
+        {/* Logo carré "N Novakou" style KAZA */}
+        <Link href="/apprenant/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
+          <div className="w-10 h-10 rounded-xl bg-[#0b2540] flex items-center justify-center group-hover:scale-105 transition-transform">
+            <span className="text-white font-extrabold text-base tracking-tight">N</span>
           </div>
-          <span className="hidden sm:block font-bold text-[#191c1e] text-sm">Novakou</span>
+          <span className="hidden sm:block font-extrabold text-slate-900 text-lg tracking-tight">Novakou</span>
         </Link>
 
-        <div className="flex-1" />
+        {/* Search bar centrée KAZA */}
+        <div className="hidden md:flex flex-1 justify-center max-w-2xl mx-auto px-4">
+          <div className="w-full relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            <input
+              type="search"
+              placeholder="Rechercher une formation, un mentor..."
+              className="w-full pl-12 pr-4 py-2.5 text-sm bg-slate-100 border border-transparent rounded-2xl placeholder-slate-400 text-slate-700 focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+            />
+          </div>
+        </div>
 
-        <div className="flex items-center gap-2">
-          {/* Notifications */}
-          <NovakouNotificationBell tone="light" viewAllHref="/apprenant/notifications" />
+        <div className="flex-1 md:hidden" />
+
+        {/* Right : notif + cart + avatar avec nom + rôle (style KAZA) */}
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <NovakouNotificationBell tone="slate" viewAllHref="/apprenant/notifications" />
 
           {/* Cart */}
-          <Link href="/apprenant/panier" className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]">
-            <span className="material-symbols-outlined text-[22px]">shopping_cart</span>
+          <Link
+            href="/apprenant/panier"
+            className="relative p-2 rounded-full hover:bg-slate-100 text-slate-600 transition-colors"
+            aria-label="Panier"
+          >
+            <ShoppingCart className="w-5 h-5" />
             {cartCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#006e2f] text-white text-[9px] font-bold flex items-center justify-center">
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-bold flex items-center justify-center">
                 {cartCount}
               </span>
             )}
           </Link>
 
-          {/* User avatar */}
-          <Link href="/apprenant/parametres">
+          {/* Avatar avec nom + rôle KAZA */}
+          <Link
+            href="/apprenant/parametres"
+            className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full hover:bg-slate-100 transition-colors"
+          >
             {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0 ml-1" />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={avatarUrl}
+                alt={displayName}
+                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+              />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ml-1">
+              <div className="w-9 h-9 rounded-full bg-[#0b2540] flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0">
                 {initials}
               </div>
             )}
+            <div className="hidden md:flex flex-col items-start leading-tight">
+              <span className="text-sm font-bold text-slate-900 max-w-[140px] truncate">
+                {displayName}
+              </span>
+              <span className="text-[11px] text-slate-500">Apprenant</span>
+            </div>
+            <ChevronDown className="hidden md:block w-4 h-4 text-slate-400 ml-1" />
           </Link>
         </div>
       </header>
 
-      {/* Sidebar overlay (mobile) */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black/30 md:hidden" onClick={() => setSidebarOpen(false)} />
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 md:hidden"
+          onClick={() => setMobileOpen(false)}
+          aria-hidden
+        />
       )}
 
-      {/* Left Sidebar */}
+      {/* Sidebar — style KAZA : fond blanc, items minimaux, actif = navy plein */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-white border-r border-gray-100 pt-16 flex flex-col transition-transform duration-300 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-white border-r border-slate-200/60 pt-[68px] flex flex-col transition-transform duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-        {/* User info */}
-        <div className="px-5 py-4 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                {initials}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="font-semibold text-[#191c1e] text-sm truncate">{displayName}</p>
-              <p className="text-xs text-[#5c647a] truncate">{displayEmail}</p>
-            </div>
-          </div>
-        </div>
+        {/* Close button mobile */}
+        {mobileOpen && (
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="md:hidden absolute top-4 right-4 p-1.5 rounded-lg hover:bg-slate-100"
+            aria-label="Fermer le menu"
+          >
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        )}
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          <div className="space-y-5">
-            {navGroups.map((group) => (
-              <div key={group.label}>
-                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-widest px-3 mb-1.5">
-                  {group.label}
-                </p>
-                <ul className="space-y-0.5">
-                  {group.items.map((item) => {
-                    const isActive =
-                      pathname === item.href ||
-                      (item.href !== "/apprenant/dashboard" && pathname.startsWith(item.href));
-                    const showBadge = "badge" in item && item.badge && cartCount > 0;
-                    return (
-                      <li key={item.href}>
-                        <Link
-                          href={item.href}
-                          onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                            isActive
-                              ? "bg-[#006e2f]/10 text-[#006e2f] font-semibold"
-                              : "text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e]"
+        {/* Navigation style KAZA — actif = fond navy plein blanc texte, sections sm-uppercase */}
+        <nav className="flex-1 px-3 py-5 overflow-y-auto">
+          {navSections.map((section) => (
+            <div key={section.label} className="mb-6 last:mb-0">
+              <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                {section.label}
+              </p>
+              <ul className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== "/apprenant/dashboard" && pathname.startsWith(item.href + "/"));
+                  const showBadge = item.badge && cartCount > 0;
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
+                          isActive
+                            ? "bg-[#0b2540] text-white font-semibold shadow-md shadow-slate-300/40"
+                            : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium"
+                        }`}
+                      >
+                        <Icon
+                          className={`w-[18px] h-[18px] flex-shrink-0 ${
+                            isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"
                           }`}
-                        >
+                          strokeWidth={isActive ? 2.4 : 2}
+                        />
+                        <span className="truncate flex-1">{item.label}</span>
+                        {showBadge && (
                           <span
-                            className={`material-symbols-outlined text-[20px] flex-shrink-0 ${isActive ? "text-[#006e2f]" : "text-[#5c647a]"}`}
-                            style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
+                            className={`text-[10px] font-bold rounded-full px-1.5 ml-auto min-w-[18px] text-center leading-[18px] h-[18px] ${
+                              isActive ? "bg-white/20 text-white" : "bg-emerald-500 text-white"
+                            }`}
                           >
-                            {item.icon}
+                            {cartCount}
                           </span>
-                          <span className="flex-1">{item.label}</span>
-                          {showBadge && (
-                            <span className="w-5 h-5 rounded-full bg-[#006e2f] text-white text-[9px] font-bold flex items-center justify-center">
-                              {cartCount}
-                            </span>
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
-        {/* CTAs */}
-        <div className="px-3 py-4 border-t border-gray-100 space-y-2">
-          <Link
-            href="/apprenant/affiliation"
-            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-white text-xs font-bold hover:opacity-90 transition-opacity"
-            style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
-          >
-            <span className="material-symbols-outlined text-[16px]">volunteer_activism</span>
-            Devenir Affilié
-            <span className="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded font-bold">40%</span>
-          </Link>
+        {/* CTAs bas de sidebar */}
+        <div className="px-3 py-4 border-t border-slate-100 space-y-2">
           <Link
             href="/explorer"
-            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl border border-[#006e2f]/30 text-[#006e2f] text-xs font-semibold hover:bg-[#006e2f]/5 transition-colors"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm"
           >
-            <span className="material-symbols-outlined text-[16px]">explore</span>
+            <Search className="w-4 h-4" strokeWidth={2.4} />
             Explorer le catalogue
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-600 text-xs font-semibold hover:bg-red-50 transition-colors border border-red-200"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-rose-600 text-xs font-semibold hover:bg-rose-50 transition-colors border border-rose-200"
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
+            <LogOut className="w-4 h-4" strokeWidth={2.4} />
             Se déconnecter
           </button>
         </div>
       </aside>
 
-      {/* Main content */}
-      <main className="md:ml-64 pt-16 min-h-screen flex flex-col">
+      {/* Main content — pt-[68px] = hauteur du topbar style KAZA */}
+      <main className="md:ml-64 pt-[68px] min-h-screen flex flex-col">
         <div className="flex-1">{children}</div>
         <ApprenantFooter />
       </main>
