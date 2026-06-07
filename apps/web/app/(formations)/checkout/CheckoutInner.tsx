@@ -951,11 +951,11 @@ export default function CheckoutInner() {
               </div>
             </div>
 
-            {/* Pay button */}
+            {/* Pay button — desktop / large screens */}
             <button
               onClick={handlePay}
               disabled={loading || cartLoading || cartItems.length === 0}
-              className="flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="hidden lg:flex items-center justify-center gap-2 w-full py-4 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
               {loading ? (
@@ -970,6 +970,38 @@ export default function CheckoutInner() {
                 </>
               )}
             </button>
+
+            {/* Pay button — mobile sticky bar (Bureau session 4, P0 Léa).
+                Avant : le CTA Payer était dans le sidebar récapitulatif,
+                hors-écran sur mobile portrait → conversion -8 à -12 %.
+                Maintenant : barre fixée en bas du viewport sur mobile,
+                toujours visible quel que soit le scroll. */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-2xl p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total</span>
+                <span className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatFCFA(totalAmount)}</span>
+              </div>
+              <button
+                onClick={handlePay}
+                disabled={loading || cartLoading || cartItems.length === 0}
+                className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl text-white font-bold text-base shadow-lg transition-all duration-200 hover:opacity-90 active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+              >
+                {loading ? (
+                  <>
+                    <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                    Redirection…
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[20px]">lock</span>
+                    Payer maintenant
+                  </>
+                )}
+              </button>
+            </div>
+            {/* Pad pour que le contenu ne soit pas caché derrière la sticky bar mobile */}
+            <div className="lg:hidden h-32" aria-hidden="true" />
 
             {/* Security badges */}
             <div className="mt-4 flex items-center justify-center gap-4">

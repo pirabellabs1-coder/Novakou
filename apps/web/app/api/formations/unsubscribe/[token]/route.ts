@@ -11,6 +11,7 @@
 //      le champ existe) pour bloquer aussi les futurs envois.
 //   3. Une page HTML simple confirme l'opt-out (pas de JSON brut au user).
 
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 
 type Params = { params: Promise<{ token: string }> };
@@ -75,9 +76,35 @@ export async function GET(_req: Request, { params }: Params) {
     );
   }
 
+  // Bureau session 4 (P0 Amélie) — validation HMAC du token.
+  // Format attendu (nouveau) : base64url(userId) + "." + sigBase64url
+  // Format legacy supporté en lecture seule : base64(userId) sans signature
+  // — pour ne pas casser les emails déjà envoyés. Une fois la fenêtre
+  // de 30 jours passée, on pourra retirer le fallback.
   let userId = "";
   try {
-    userId = Buffer.from(token, "base64").toString("utf-8");
+    const parts = token.split(".");
+    if (parts.length === 2) {
+      // Nouveau format signé HMAC
+      const [encodedUid, sig] = parts;
+      const candidateUid = Buffer.from(encodedUid, "base64url").toString("utf-8");
+      const secret = process.env.NEXTAUTH_SECRET || "dev-only-secret";
+      const expectedSig = crypto
+        .createHmac("sha256", secret)
+        .update(`unsubscribe:${candidateUid}`)
+        .digest("base64url");
+      // timing-safe comparison
+      if (
+        sig.length === expectedSig.length &&
+        crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))
+      ) {
+        userId = candidateUid;
+      }
+    } else {
+      // Format legacy (base64 sans signature) — temporaire pour les emails
+      // émis avant la rotation. À retirer après 30 jours.
+      userId = Buffer.from(token, "base64").toString("utf-8");
+    }
   } catch {
     return htmlResponse(
       page({

@@ -6,6 +6,7 @@
 // Séquence : 1h → RELANCE_1, 24h → RELANCE_2, 7j → RELANCE_3
 
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import prisma from "@freelancehigh/db";
 import {
   sendAbandonedCartEmail1,
@@ -45,7 +46,17 @@ export async function GET(req: NextRequest) {
       if (!email) continue;
 
       const cartUrl = `${APP_URL}/checkout`;
-      const unsubscribeToken = Buffer.from(cart.userId).toString("base64");
+      // Bureau session 4 (P0 Amélie) — token unsubscribe signé HMAC.
+      // Avant : token = base64(userId), trivialement forgeable (énumérer
+      // les userId visibles via API et désabonner tout le monde =
+      // sabotage RGPD inverse). Maintenant : signature HMAC SHA-256
+      // avec NEXTAUTH_SECRET → impossible à forger sans la clé serveur.
+      const unsubscribeSecret = process.env.NEXTAUTH_SECRET || "dev-only-secret";
+      const sig = crypto
+        .createHmac("sha256", unsubscribeSecret)
+        .update(`unsubscribe:${cart.userId}`)
+        .digest("base64url");
+      const unsubscribeToken = `${Buffer.from(cart.userId).toString("base64url")}.${sig}`;
       const unsubscribeUrl = `${APP_URL}/api/formations/unsubscribe/${unsubscribeToken}`;
 
       // Fetch cart items for email content
