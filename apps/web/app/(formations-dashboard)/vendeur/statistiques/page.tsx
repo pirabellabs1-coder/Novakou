@@ -1,77 +1,35 @@
 "use client";
+// Statistiques vendeur — design "Stitch" (maquette stich/novakou_statistiques.html
+// validée par Lissanon) : KPI + delta chips, évolution des revenus, tunnel de
+// conversion, top pays, performance par produit. 2026-06-10.
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ResponsiveContainer,
-  LineChart,
-  Line,
   AreaChart,
   Area,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 import {
-  BarChart3,
-  Wallet,
-  ShoppingBag,
-  Users,
-  Receipt,
-  TrendingUp,
-  Eye,
-  Package,
-  ShoppingCart,
-  Globe,
-  Filter,
-  Store,
   LineChart as LineChartIcon,
+  Filter,
+  Globe,
+  Store,
+  type LucideIcon,
 } from "lucide-react";
 import { countryName } from "@/lib/tracking/geo";
-import { Flag } from "@/components/ui/Flag";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaSection,
-  KazaEmpty,
-} from "@/components/kaza";
-
-/**
- * Tick custom Recharts pour YAxis : affiche un vrai drapeau PNG (via SVG
- * `<image>`) + le code pays.
- */
-function CountryFlagTick(props: { x?: number; y?: number; payload?: { value?: string } }) {
-  const { x = 0, y = 0, payload } = props;
-  const code = (payload?.value ?? "").toString().toLowerCase();
-  if (!code || code.length !== 2) {
-    return (
-      <text x={x} y={y} dy={4} fontSize={11} textAnchor="end" fill="#64748b">
-        {payload?.value ?? ""}
-      </text>
-    );
-  }
-  return (
-    <g transform={`translate(${x - 56},${y - 8})`}>
-      <image
-        href={`https://flagcdn.com/h20/${code}.png`}
-        width={20}
-        height={15}
-        preserveAspectRatio="xMidYMid slice"
-      />
-      <text x={26} y={11} fontSize={11} fill="#0b2540" fontWeight={600}>
-        {code.toUpperCase()}
-      </text>
-    </g>
-  );
-}
+  StCard,
+  StPageHeader,
+  StSectionTitle,
+  StTabs,
+  StDeltaChip,
+  ST,
+} from "@/components/stitch";
 
 type Period = "7d" | "30d" | "90d" | "12m" | "all";
 
@@ -95,15 +53,67 @@ type StatsData = {
   revenueByType: { type: string; value: number }[];
 };
 
-const BRAND = "#10b981";
-const ACCENT = "#22c55e";
-const CYAN = "#22d3ee";
-const AMBER = "#f59e0b";
-const PURPLE = "#a855f7";
-const DONUT_COLORS = [BRAND, ACCENT, CYAN, AMBER, PURPLE, "#ef4444", "#3b82f6"];
-
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
+}
+
+function formatPct1(n: number) {
+  return n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+}
+
+/** Bornes de la période sélectionnée (miroir du calcul de cutoff côté API). */
+function periodRange(period: Period): { start: Date; end: Date } | null {
+  const end = new Date();
+  switch (period) {
+    case "7d":
+      return { start: new Date(Date.now() - 7 * 86400000), end };
+    case "30d":
+      return { start: new Date(Date.now() - 30 * 86400000), end };
+    case "90d":
+      return { start: new Date(Date.now() - 90 * 86400000), end };
+    case "12m":
+      return { start: new Date(end.getFullYear(), end.getMonth() - 11, 1), end };
+    case "all":
+      return null;
+  }
+}
+
+function rangeSubtitle(period: Period): string {
+  const range = periodRange(period);
+  if (!range) return "Performance de votre boutique depuis le début.";
+  const sameYear = range.start.getFullYear() === range.end.getFullYear();
+  const startLabel = range.start.toLocaleDateString(
+    "fr-FR",
+    sameYear ? { day: "numeric", month: "long" } : { day: "numeric", month: "long", year: "numeric" },
+  );
+  const endLabel = range.end.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  return `Performance de votre boutique du ${startLabel} au ${endLabel}.`;
+}
+
+/* ── KPI card (maquette : label 12px 700, valeur 20px 800, chip delta) ──── */
+function KpiCard({ label, value, delta }: { label: string; value: ReactNode; delta?: number | null }) {
+  return (
+    <StCard className="!p-[15px_18px]">
+      <div className="text-[12px] font-bold" style={{ color: ST.textSecondary }}>{label}</div>
+      <div className="text-[20px] font-extrabold mt-[7px] mb-1.5 tabular-nums" style={{ color: ST.text }}>
+        {value}
+      </div>
+      {delta !== undefined && <StDeltaChip pct={delta} />}
+    </StCard>
+  );
+}
+
+function EmptyBlock({ icon: Icon, label, height = 212 }: { icon: LucideIcon; label: string; height?: number }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center" style={{ height }}>
+      <Icon size={36} style={{ color: "#d6e0da" }} />
+      <p className="text-[12.5px] font-bold mt-2.5" style={{ color: ST.textSecondary }}>{label}</p>
+    </div>
+  );
+}
+
+function LoadingBlock({ height = 212 }: { height?: number }) {
+  return <div className="animate-pulse rounded-xl" style={{ height, background: ST.divider }} />;
 }
 
 export default function StatistiquesPage() {
@@ -123,7 +133,6 @@ export default function StatistiquesPage() {
   const topProducts = d?.topProducts ?? [];
   const funnel = d?.conversionFunnel;
   const monthlyTrend = d?.monthlyTrend ?? [];
-  const revenueByType = d?.revenueByType ?? [];
 
   const countryMap = new Map<string, { country: string; views: number; sales: number; revenue: number }>();
   for (const v of viewsByCountry) {
@@ -141,351 +150,317 @@ export default function StatistiquesPage() {
 
   const funnelMax = funnel ? Math.max(funnel.views, funnel.productViews, funnel.purchases, 1) : 1;
 
-  const periodLabels: Record<Period, string> = {
-    "7d": "7j",
-    "30d": "30j",
-    "90d": "90j",
-    "12m": "1 an",
-    "all": "Tout",
-  };
+  // ── Top pays : part de chaque pays (revenus si dispo, sinon vues) ──
+  const countryRevTotal = countryRows.reduce((s, r) => s + r.revenue, 0);
+  const countryViewsTotal = countryRows.reduce((s, r) => s + r.views, 0);
+  const countryShare = (row: { revenue: number; views: number }) =>
+    countryRevTotal > 0
+      ? (row.revenue / countryRevTotal) * 100
+      : countryViewsTotal > 0
+        ? (row.views / countryViewsTotal) * 100
+        : 0;
+  const topCountries = countryRows.slice(0, 6);
 
-  const periodSubtitle =
-    period === "all"
-      ? "Depuis le début"
-      : `Sur les ${period === "7d" ? "7 derniers jours" : period === "30d" ? "30 derniers jours" : period === "90d" ? "90 derniers jours" : "12 derniers mois"}`;
+  // ── Tunnel de conversion (4 lignes maquette — Checkout non tracké : "—") ──
+  const funnelRows: { label: string; value: number | null; pct: number | null; sub: string }[] = funnel
+    ? [
+        { label: "Visiteurs", value: funnel.views, pct: (funnel.views / funnelMax) * 100, sub: "" },
+        {
+          label: "Fiche produit",
+          value: funnel.productViews,
+          pct: (funnel.productViews / funnelMax) * 100,
+          sub: funnel.views > 0 ? `− ${Math.round((1 - funnel.productViews / funnel.views) * 100)} %` : "",
+        },
+        { label: "Checkout", value: null, pct: null, sub: "" },
+        {
+          label: "Achat",
+          value: funnel.purchases,
+          pct: (funnel.purchases / funnelMax) * 100,
+          sub: `taux global ${formatPct1(funnel.conversionRate)} %`,
+        },
+      ]
+    : [];
+  const funnelEmpty = !funnel || (funnel.views === 0 && funnel.productViews === 0 && funnel.purchases === 0);
+
+  // ── Chart : journalier (7j/30j/90j), repli mensuel sinon ──
+  const chartIsDaily = revenueOverTime.length > 0;
+  const chartData = chartIsDaily
+    ? revenueOverTime.map((r) => ({
+        label: new Date(`${r.date}T00:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
+        amount: r.amount,
+      }))
+    : monthlyTrend.map((m) => ({ label: m.month, amount: m.revenue }));
+  const chartEmpty = chartData.length === 0 || chartData.every((c) => c.amount === 0);
 
   return (
-    <div className="p-5 md:p-8 max-w-7xl mx-auto space-y-6" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <KazaHero
-        badge="Pro"
-        badgeColor="orange"
-        title="Statistiques"
-        subtitle="Analyse détaillée de vos performances et de votre audience"
-        icon={BarChart3}
-        actions={
-          <div className="flex bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-1">
-            {(Object.keys(periodLabels) as Period[]).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  period === p ? "bg-white text-[#0b2540] shadow-sm" : "text-white/80 hover:text-white"
-                }`}
-              >
-                {periodLabels[p]}
-              </button>
-            ))}
-          </div>
-        }
-      />
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KazaKpiCard
-          label="Revenus bruts"
-          value={isLoading ? "—" : `${formatFCFA(overview?.revenue ?? 0)} FCFA`}
-          delta={
-            overview?.deltaRevenue !== undefined
-              ? `${overview.deltaRevenue >= 0 ? "+" : ""}${overview.deltaRevenue.toFixed(1)}%`
-              : undefined
+    <div
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
+    >
+      <main className="max-w-[1400px] mx-auto px-5 md:px-7 py-6 md:py-7">
+        <StPageHeader
+          title="Statistiques"
+          subtitle={rangeSubtitle(period)}
+          actions={
+            <StTabs
+              tabs={[
+                { key: "7d", label: "7 j" },
+                { key: "30d", label: "30 j" },
+                { key: "90d", label: "90 j" },
+                { key: "12m", label: "1 an" },
+              ]}
+              active={period}
+              onChange={(key) => setPeriod(key as Period)}
+            />
           }
-          deltaTrend={overview?.deltaRevenue !== undefined ? (overview.deltaRevenue >= 0 ? "up" : "down") : "neutral"}
-          icon={Wallet}
-          iconColor="emerald"
         />
-        <KazaKpiCard
-          label="Commandes"
-          value={isLoading ? "—" : (overview?.orders ?? 0).toLocaleString("fr-FR")}
-          delta={
-            overview?.deltaOrders !== undefined
-              ? `${overview.deltaOrders >= 0 ? "+" : ""}${overview.deltaOrders.toFixed(1)}%`
-              : undefined
-          }
-          deltaTrend={overview?.deltaOrders !== undefined ? (overview.deltaOrders >= 0 ? "up" : "down") : "neutral"}
-          icon={ShoppingBag}
-          iconColor="sky"
-        />
-        <KazaKpiCard
-          label="Clients uniques"
-          value={isLoading ? "—" : (overview?.uniqueCustomers ?? 0).toLocaleString("fr-FR")}
-          icon={Users}
-          iconColor="violet"
-        />
-        <KazaKpiCard
-          label="Panier moyen"
-          value={isLoading ? "—" : `${formatFCFA(overview?.avgOrder ?? 0)} FCFA`}
-          icon={Receipt}
-          iconColor="orange"
-        />
-      </div>
 
-      {/* Revenue over time + Revenue by type */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
-          <KazaCard title="Évolution du chiffre d'affaires" subtitle={periodSubtitle}>
+        {/* ── 4 KPI (maquette) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 mb-4">
+          <KpiCard
+            label="Revenus"
+            value={isLoading ? "—" : `${formatFCFA(overview?.revenue ?? 0)} FCFA`}
+            delta={isLoading ? null : (overview?.deltaRevenue ?? null)}
+          />
+          <KpiCard
+            label="Ventes"
+            value={isLoading ? "—" : (overview?.orders ?? 0).toLocaleString("fr-FR")}
+            delta={isLoading ? null : (overview?.deltaOrders ?? null)}
+          />
+          <KpiCard
+            label="Taux de conversion"
+            value={isLoading ? "—" : `${formatPct1(funnel?.conversionRate ?? 0)} %`}
+          />
+          <KpiCard
+            label="Panier moyen"
+            value={isLoading ? "—" : `${formatFCFA(overview?.avgOrder ?? 0)} FCFA`}
+          />
+        </div>
+
+        {/* ── Évolution des revenus + Tunnel de conversion ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.65fr_1fr] gap-3.5 mb-4">
+          <StCard className="!p-[18px_20px]">
+            <StSectionTitle
+              className="!mb-2"
+              action={
+                <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                  {chartIsDaily ? "FCFA / jour" : "FCFA / mois"}
+                </span>
+              }
+            >
+              Évolution des revenus
+            </StSectionTitle>
             {isLoading ? (
-              <div className="h-[280px] bg-slate-50 animate-pulse rounded-xl" />
-            ) : revenueOverTime.length === 0 && monthlyTrend.every((m) => m.revenue === 0) ? (
-              <EmptyChart icon={LineChartIcon} label="Aucune donnée pour cette période" />
+              <LoadingBlock />
+            ) : chartEmpty ? (
+              <EmptyBlock icon={LineChartIcon} label="Aucune donnée pour cette période" />
             ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <AreaChart data={revenueOverTime.length > 0 ? revenueOverTime : monthlyTrend.map((m) => ({ date: m.month, amount: m.revenue, orders: m.orders }))}>
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={ACCENT} stopOpacity={0.8} />
-                      <stop offset="100%" stopColor={ACCENT} stopOpacity={0.05} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                  <XAxis dataKey="date" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
-                  <YAxis fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`)} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
-                    formatter={(v: number, name: string) => (name === "amount" ? [`${formatFCFA(v)} FCFA`, "Revenus"] : [v, "Commandes"])}
+              <ResponsiveContainer width="100%" height={212}>
+                <AreaChart data={chartData} margin={{ top: 8, right: 4, left: -14, bottom: 0 }}>
+                  <CartesianGrid stroke={ST.divider} vertical={false} />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fill: ST.textFaint, fontSize: 10, fontWeight: 700 }}
+                    axisLine={false}
+                    tickLine={false}
+                    minTickGap={42}
                   />
-                  <Area type="monotone" dataKey="amount" stroke={BRAND} strokeWidth={2} fill="url(#revGrad)" />
+                  <YAxis
+                    tick={{ fill: ST.textFaint, fontSize: 10, fontWeight: 600 }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)} k` : `${v}`)}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: `1px solid ${ST.cardBorder}`,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                    }}
+                    formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="amount"
+                    stroke={ST.green}
+                    strokeWidth={2.5}
+                    fill="rgba(34,197,94,.14)"
+                    dot={false}
+                    activeDot={{ r: 4, fill: ST.green }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             )}
-          </KazaCard>
-        </div>
+          </StCard>
 
-        <KazaCard title="Répartition revenus" subtitle="Par type de produit">
-          {isLoading ? (
-            <div className="h-[280px] bg-slate-50 animate-pulse rounded-xl" />
-          ) : revenueByType.length === 0 ? (
-            <EmptyChart icon={Package} label="Aucune vente" />
-          ) : (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={revenueByType}
-                  dataKey="value"
-                  nameKey="type"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={95}
-                  paddingAngle={2}
-                  stroke="none"
-                >
-                  {revenueByType.map((_, i) => (
-                    <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]} />
-                <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </KazaCard>
-      </div>
-
-      {/* Countries + Funnel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2">
-          <KazaCard title="Performance par pays" subtitle="Vues (visiteurs) + achats sur la période">
+          <StCard className="!p-[18px_20px]">
+            <StSectionTitle>Tunnel de conversion</StSectionTitle>
             {isLoading ? (
-              <div className="h-[320px] bg-slate-50 animate-pulse rounded-xl" />
-            ) : countryRows.length === 0 ? (
-              <EmptyChart icon={Globe} label="Pas encore de données géolocalisées" />
+              <LoadingBlock />
+            ) : funnelEmpty ? (
+              <EmptyBlock icon={Filter} label="Pas encore de visites tracées" />
             ) : (
-              <>
-                <ResponsiveContainer width="100%" height={Math.max(180, countryRows.length * 28)}>
-                  <BarChart layout="vertical" data={countryRows} margin={{ top: 0, right: 16, bottom: 0, left: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                    <XAxis type="number" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
-                    <YAxis
-                      type="category"
-                      dataKey="country"
-                      fontSize={11}
-                      width={80}
-                      tickLine={false}
-                      axisLine={false}
-                      tick={<CountryFlagTick />}
-                    />
-                    <Tooltip
-                      contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
-                      formatter={(v: number, name: string) => {
-                        if (name === "views") return [v, "Vues"];
-                        if (name === "sales") return [v, "Ventes"];
-                        if (name === "revenue") return [`${formatFCFA(v)} FCFA`, "Revenus"];
-                        return [v, name];
-                      }}
-                      labelFormatter={(c: string) => countryName(c)}
-                    />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-                    <Bar dataKey="views" fill={CYAN} radius={[0, 6, 6, 0]} />
-                    <Bar dataKey="sales" fill={ACCENT} radius={[0, 6, 6, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="text-slate-500 uppercase tracking-wider text-[10px]">
-                        <th className="text-left py-2 font-semibold">Pays</th>
-                        <th className="text-right py-2 font-semibold">Vues</th>
-                        <th className="text-right py-2 font-semibold">Ventes</th>
-                        <th className="text-right py-2 font-semibold">Revenus</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {countryRows.map((row) => (
-                        <tr key={row.country} className="border-t border-slate-100">
-                          <td className="py-2 font-semibold text-slate-900">
-                            <span className="inline-flex items-center gap-1.5">
-                              <Flag code={row.country} size="sm" />
-                              {countryName(row.country)}
-                            </span>
-                          </td>
-                          <td className="py-2 text-right text-slate-900">{row.views.toLocaleString("fr-FR")}</td>
-                          <td className="py-2 text-right text-slate-900">{row.sales.toLocaleString("fr-FR")}</td>
-                          <td className="py-2 text-right font-bold text-emerald-600">
-                            {row.revenue > 0 ? `${formatFCFA(row.revenue)} FCFA` : "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
-          </KazaCard>
-        </div>
-
-        <KazaCard title="Entonnoir de conversion" subtitle="Visite → Produit → Achat">
-          {isLoading ? (
-            <div className="h-[280px] bg-slate-50 animate-pulse rounded-xl" />
-          ) : !funnel || (funnel.views === 0 && funnel.productViews === 0 && funnel.purchases === 0) ? (
-            <EmptyChart icon={Filter} label="Pas encore de visites tracées" />
-          ) : (
-            <div className="space-y-4 py-2">
-              {[
-                { label: "Visites totales", value: funnel.views, color: CYAN, icon: Eye },
-                { label: "Vues produits", value: funnel.productViews, color: ACCENT, icon: Package },
-                { label: "Achats", value: funnel.purchases, color: BRAND, icon: ShoppingCart },
-              ].map((step, idx) => {
-                const width = (step.value / funnelMax) * 100;
-                const StepIcon = step.icon;
-                return (
-                  <div key={idx}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <div className="flex items-center gap-2">
-                        <StepIcon size={18} style={{ color: step.color }} />
-                        <span className="text-xs font-semibold text-slate-900">{step.label}</span>
-                      </div>
-                      <span className="text-sm font-extrabold text-slate-900">{step.value.toLocaleString("fr-FR")}</span>
+              <div>
+                {funnelRows.map((row, i) => (
+                  <div key={row.label} className={i < funnelRows.length - 1 ? "mb-[13px]" : ""}>
+                    <div
+                      className="flex justify-between text-[12px] font-extrabold mb-[5px]"
+                      style={{ color: ST.text }}
+                    >
+                      <span>{row.label}</span>
+                      <span className="tabular-nums">
+                        {row.value === null ? "—" : row.value.toLocaleString("fr-FR")}
+                        {row.sub && (
+                          <span className="ml-[7px] text-[10.5px] font-bold" style={{ color: ST.textFaint }}>
+                            {row.sub}
+                          </span>
+                        )}
+                      </span>
                     </div>
-                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-[15px] rounded-full overflow-hidden" style={{ background: ST.divider }}>
                       <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.max(width, 4)}%`, background: step.color }}
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${Math.max(Math.min(row.pct ?? 0, 100), 8)}%`,
+                          background: ST.gradientH,
+                        }}
                       />
                     </div>
                   </div>
-                );
-              })}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-xs text-slate-500">Taux de conversion</span>
-                <span className="text-base font-extrabold text-emerald-600">
-                  {funnel.conversionRate}%
-                </span>
+                ))}
               </div>
-            </div>
-          )}
-        </KazaCard>
-      </div>
+            )}
+          </StCard>
+        </div>
 
-      {/* Top products + Monthly trend */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <KazaCard title="Top 5 produits" subtitle="Par chiffre d'affaires">
-          {isLoading ? (
-            <div className="h-[260px] bg-slate-50 animate-pulse rounded-xl" />
-          ) : topProducts.length === 0 || topProducts.every((p) => p.revenue === 0) ? (
-            topProducts.length === 0 ? (
-              <EmptyChart icon={Store} label="Aucun produit vendu" />
+        {/* ── Top pays + Performance par produit ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.65fr] gap-3.5">
+          <StCard className="!p-[18px_20px]">
+            <StSectionTitle>Top pays</StSectionTitle>
+            {isLoading ? (
+              <LoadingBlock />
+            ) : topCountries.length === 0 ? (
+              <EmptyBlock icon={Globe} label="Pas encore de données géolocalisées" />
             ) : (
-              <div className="space-y-3 py-4">
-                <p className="text-xs text-slate-500 mb-3">
-                  Tous les produits sont gratuits sur cette période — voici le classement par <strong className="text-slate-900">nombre de ventes</strong>.
-                </p>
-                {topProducts.slice(0, 5).map((p) => {
-                  const max = Math.max(1, ...topProducts.map((x) => x.sales));
-                  const pct = (p.sales / max) * 100;
+              <div>
+                {topCountries.map((row, i) => {
+                  const isOther = row.country === "??";
+                  const tone = !isOther && i < 4
+                    ? { background: ST.greenSoft, color: ST.green }
+                    : { background: "#f1efe8", color: "#5f5e5a" };
                   return (
-                    <div key={p.id} className="flex items-center gap-3">
-                      <p className="text-xs font-semibold text-slate-900 truncate w-32">{p.title}</p>
-                      <div className="flex-1 h-6 bg-slate-100 rounded-md overflow-hidden">
+                    <div
+                      key={row.country}
+                      className="flex items-center gap-[11px] py-2"
+                      style={i > 0 ? { borderTop: "1px solid #f3f6f4" } : undefined}
+                    >
+                      <div
+                        className="w-[30px] h-[30px] rounded-full flex items-center justify-center text-[10px] font-extrabold flex-shrink-0"
+                        style={tone}
+                      >
+                        {isOther ? "—" : row.country.toUpperCase()}
+                      </div>
+                      <span
+                        className="text-[12.5px] font-extrabold w-[96px] truncate"
+                        style={{ color: ST.text }}
+                      >
+                        {isOther ? "Autres" : countryName(row.country)}
+                      </span>
+                      <div className="flex-1 h-[7px] rounded-full overflow-hidden" style={{ background: ST.divider }}>
                         <div
-                          className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-md"
-                          style={{ width: `${pct}%` }}
+                          className="h-full rounded-full"
+                          style={{ width: `${Math.min(countryShare(row), 100)}%`, background: ST.gradientH }}
                         />
                       </div>
-                      <p className="text-xs font-bold text-emerald-600 w-16 text-right tabular-nums">
-                        {p.sales} {p.sales > 1 ? "ventes" : "vente"}
-                      </p>
+                      <span
+                        className="text-[12px] font-extrabold w-[38px] text-right tabular-nums"
+                        style={{ color: ST.text }}
+                      >
+                        {Math.round(countryShare(row))} %
+                      </span>
                     </div>
                   );
                 })}
               </div>
-            )
-          ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`)} />
-                <YAxis
-                  type="category"
-                  dataKey="title"
-                  fontSize={10}
-                  width={110}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(t: string) => (t.length > 16 ? t.slice(0, 16) + "…" : t)}
-                />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
-                  formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "CA"]}
-                />
-                <Bar dataKey="revenue" fill={BRAND} radius={[0, 8, 8, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </KazaCard>
+            )}
+          </StCard>
 
-        <KazaCard title="Tendance mensuelle" subtitle="12 derniers mois">
-          {isLoading ? (
-            <div className="h-[260px] bg-slate-50 animate-pulse rounded-xl" />
-          ) : monthlyTrend.every((m) => m.revenue === 0) ? (
-            <EmptyChart icon={TrendingUp} label="Pas encore de tendance" />
-          ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={monthlyTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="month" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
-                <YAxis fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} tickFormatter={(v: number) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`)} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid #e5e7eb", fontSize: 12 }}
-                  formatter={(v: number, name: string) => (name === "revenue" ? [`${formatFCFA(v)} FCFA`, "Revenus"] : [v, "Commandes"])}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="revenue" stroke={BRAND} strokeWidth={2.5} dot={{ r: 3, fill: BRAND }} activeDot={{ r: 5 }} />
-                <Line type="monotone" dataKey="orders" stroke={CYAN} strokeWidth={2} dot={{ r: 3, fill: CYAN }} />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </KazaCard>
-      </div>
-    </div>
-  );
-}
-
-function EmptyChart({ icon: Icon, label }: { icon: typeof Eye; label: string }) {
-  return (
-    <div className="h-[260px] flex flex-col items-center justify-center text-center">
-      <Icon size={36} className="text-slate-300 mb-2" />
-      <p className="text-sm text-slate-500">{label}</p>
+          <StCard className="!p-[18px_20px]">
+            <StSectionTitle className="!mb-2.5">Performance par produit</StSectionTitle>
+            {isLoading ? (
+              <LoadingBlock />
+            ) : topProducts.length === 0 ? (
+              <EmptyBlock icon={Store} label="Aucun produit vendu sur la période" />
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      {["Produit", "Vues", "Ventes", "Conversion", "Revenus"].map((h, i) => (
+                        <th
+                          key={h}
+                          className={`text-[10.5px] uppercase font-extrabold pb-[9px] pr-2 ${
+                            i === 4 ? "text-right" : "text-left"
+                          }`}
+                          style={{
+                            color: ST.textMuted,
+                            letterSpacing: ".06em",
+                            ...(i === 0 ? { width: "36%" } : {}),
+                          }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topProducts.map((p) => (
+                      <tr key={p.id}>
+                        <td
+                          className="text-[12.5px] font-bold py-[10px] pr-2"
+                          style={{ color: ST.text, borderTop: `1px solid ${ST.divider}` }}
+                        >
+                          {p.title}
+                        </td>
+                        {/* Vues par produit non disponibles dans l'API — pas d'invention */}
+                        <td
+                          className="text-[12.5px] font-bold py-[10px] pr-2 tabular-nums"
+                          style={{ color: ST.textSecondary, borderTop: `1px solid ${ST.divider}` }}
+                        >
+                          —
+                        </td>
+                        <td
+                          className="text-[12.5px] font-bold py-[10px] pr-2 tabular-nums"
+                          style={{ color: ST.textSecondary, borderTop: `1px solid ${ST.divider}` }}
+                        >
+                          {p.sales.toLocaleString("fr-FR")}
+                        </td>
+                        <td
+                          className="text-[12.5px] font-bold py-[10px] pr-2"
+                          style={{ color: ST.textSecondary, borderTop: `1px solid ${ST.divider}` }}
+                        >
+                          —
+                        </td>
+                        <td
+                          className="text-[12.5px] font-extrabold py-[10px] text-right tabular-nums"
+                          style={{ color: ST.text, borderTop: `1px solid ${ST.divider}` }}
+                        >
+                          {formatFCFA(p.revenue)}{" "}
+                          <span className="text-[10px] font-bold" style={{ color: ST.textFaint }}>
+                            FCFA
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </StCard>
+        </div>
+      </main>
     </div>
   );
 }
