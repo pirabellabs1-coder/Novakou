@@ -1,4 +1,7 @@
 "use client";
+// Page Mes produits — design "Stitch" (maquette stich/novakou_mes_produits.html
+// validée par Lissanon) : grille de cards 3 colonnes, KPI compacts, tabs
+// vert sombre, ghost card création. 2026-06-10.
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
@@ -8,7 +11,7 @@ import {
   Package,
   Download,
   Plus,
-  ShoppingCart,
+  ShoppingBag,
   Star,
   Wallet,
   Edit,
@@ -22,15 +25,18 @@ import {
   Headphones,
   Code,
   FileText,
+  Search,
 } from "lucide-react";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StKpiCompact,
+  StStatusPill,
+  StTabs,
+  StGhostCard,
+  ST,
+} from "@/components/stitch";
 
 type Product = {
   id: string;
@@ -63,7 +69,7 @@ function formatFCFA(n: number) {
 
 function kindLabel(kind: string): string {
   switch (kind) {
-    case "formation": return "Cours vidéo";
+    case "formation": return "Formation";
     case "EBOOK": return "E-book";
     case "PDF": return "PDF";
     case "TEMPLATE": return "Template";
@@ -74,14 +80,17 @@ function kindLabel(kind: string): string {
   }
 }
 
-function kindColors(kind: string): "blue" | "orange" | "violet" | "green" | "slate" {
+/** Couleurs des badges type — exactement la maquette :
+ *  Formation vert, Ebook/PDF bleu, Template ambre, Coaching/Audio rose. */
+function kindPill(kind: string): { background: string; color: string } {
   switch (kind) {
-    case "formation": return "blue";
+    case "formation": return { background: ST.greenSoft, color: ST.green };
     case "EBOOK":
-    case "PDF": return "orange";
-    case "BUNDLE": return "violet";
-    case "TEMPLATE": return "green";
-    default: return "slate";
+    case "PDF": return { background: ST.blueSoft, color: ST.blueText };
+    case "TEMPLATE": return { background: ST.amberSoft, color: ST.amberText };
+    case "AUDIO": return { background: ST.roseSoft, color: ST.roseText };
+    case "BUNDLE": return { background: ST.roseSoft, color: ST.roseText };
+    default: return { background: "#f1efe8", color: "#5f5e5a" };
   }
 }
 
@@ -98,27 +107,15 @@ function kindIcon(kind: string) {
   }
 }
 
-const GRADIENTS = [
-  "from-emerald-600 to-emerald-400",
-  "from-amber-500 to-orange-600",
-  "from-purple-600 to-indigo-700",
-  "from-blue-600 to-cyan-500",
-  "from-pink-500 to-rose-600",
-  "from-teal-500 to-emerald-600",
+/** Gradients verts variés pour les covers sans thumbnail (maquette). */
+const COVER_GRADIENTS = [
+  "linear-gradient(135deg,#006e2f,#22c55e)",
+  "linear-gradient(135deg,#0b3b20,#1d9e75)",
+  "linear-gradient(135deg,#14532d,#65d68d)",
+  "linear-gradient(135deg,#064e3b,#34d399)",
+  "linear-gradient(135deg,#1f2937,#4b6358)",
 ];
-
-function statusBadge(s: string): { variant: "green" | "slate" | "orange" | "rose"; label: string } {
-  switch (s.toUpperCase()) {
-    case "ACTIF":
-    case "ACTIF_PRODUCT": return { variant: "green", label: "Actif" };
-    case "BROUILLON":
-    case "BROUILLON_PRODUCT": return { variant: "slate", label: "Brouillon" };
-    case "EN_ATTENTE": return { variant: "orange", label: "En attente" };
-    case "ARCHIVE":
-    case "ARCHIVED": return { variant: "rose", label: "Archivé" };
-    default: return { variant: "slate", label: s };
-  }
-}
+const DRAFT_GRADIENT = "linear-gradient(135deg,#9caea3,#cfdcd4)";
 
 function isActive(p: Product) {
   return p.status === "ACTIF" || p.status === "ACTIF_PRODUCT";
@@ -130,30 +127,30 @@ function isArchived(p: Product) {
   return p.status === "ARCHIVE" || p.status === "ARCHIVED";
 }
 
-function SkeletonRow() {
+function statusKey(s: string): string {
+  if (s === "ACTIF_PRODUCT") return "ACTIF";
+  if (s === "BROUILLON_PRODUCT") return "BROUILLON";
+  if (s === "ARCHIVED") return "ARCHIVE";
+  return s;
+}
+
+function SkeletonCard() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 animate-pulse items-center">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-slate-100 flex-shrink-0" />
-        <div className="space-y-1.5">
-          <div className="h-3 bg-slate-100 rounded w-36" />
-          <div className="h-2 bg-slate-100 rounded w-20" />
-        </div>
+    <StCard noPadding className="overflow-hidden animate-pulse">
+      <div className="h-[108px]" style={{ background: "#f3f6f4" }} />
+      <div className="p-4 space-y-3">
+        <div className="h-3.5 rounded w-3/4" style={{ background: "#f3f6f4" }} />
+        <div className="h-4 rounded w-24" style={{ background: "#f3f6f4" }} />
+        <div className="h-3 rounded w-full" style={{ background: "#f3f6f4" }} />
       </div>
-      <div className="h-5 bg-slate-100 rounded-full w-20" />
-      <div className="h-3 bg-slate-100 rounded w-16" />
-      <div className="h-3 bg-slate-100 rounded w-12" />
-      <div className="h-5 bg-slate-100 rounded-full w-16" />
-      <div className="flex gap-1">
-        {[0, 1, 2].map((i) => <div key={i} className="w-8 h-8 rounded-lg bg-slate-100" />)}
-      </div>
-    </div>
+    </StCard>
   );
 }
 
 export default function ProduitsPage() {
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>("all");
+  const [searchQ, setSearchQ] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
   const { data: response, isLoading } = useQuery<{ data: FormationsData | null }>({
@@ -230,237 +227,239 @@ export default function ProduitsPage() {
     URL.revokeObjectURL(url);
   }
 
-  const tabs: { label: string; value: Tab; count: number }[] = [
-    { label: "Tous", value: "all", count: allItems.length },
-    { label: "Actifs", value: "actif", count: allItems.filter(isActive).length },
-    { label: "Brouillons", value: "brouillon", count: allItems.filter(isDraft).length },
-    { label: "Archivés", value: "archive", count: allItems.filter(isArchived).length },
+  const tabs = [
+    { key: "all", label: "Tous", count: allItems.length },
+    { key: "actif", label: "Actifs", count: allItems.filter(isActive).length },
+    { key: "brouillon", label: "Brouillons", count: allItems.filter(isDraft).length },
+    { key: "archive", label: "Archivés", count: allItems.filter(isArchived).length },
   ];
 
   const filtered = useMemo(() => {
-    if (activeTab === "all") return allItems;
-    if (activeTab === "actif") return allItems.filter(isActive);
-    if (activeTab === "brouillon") return allItems.filter(isDraft);
-    return allItems.filter(isArchived);
-  }, [allItems, activeTab]);
+    let items = allItems;
+    if (activeTab === "actif") items = items.filter(isActive);
+    else if (activeTab === "brouillon") items = items.filter(isDraft);
+    else if (activeTab === "archive") items = items.filter(isArchived);
+    if (searchQ.trim()) {
+      const q = searchQ.trim().toLowerCase();
+      items = items.filter((p) => p.title.toLowerCase().includes(q));
+    }
+    return items;
+  }, [allItems, activeTab, searchQ]);
 
   const ratingAvg = useMemo(() => {
     const rated = allItems.filter((p) => p.reviewsCount > 0);
     if (!rated.length) return null;
     const total = rated.reduce((s, p) => s + p.rating * p.reviewsCount, 0);
     const count = rated.reduce((s, p) => s + p.reviewsCount, 0);
-    return count > 0 ? (total / count).toFixed(2) : null;
+    return count > 0 ? (total / count).toFixed(1) : null;
   }, [allItems]);
 
+  const totalRevenue = totals?.revenue ?? 0;
+  const revenueDisplay =
+    totalRevenue >= 1_000_000
+      ? `${(totalRevenue / 1_000_000).toLocaleString("fr-FR", { maximumFractionDigits: 2 })} M`
+      : formatFCFA(totalRevenue);
+
   return (
-    <div className="p-5 md:p-8 max-w-6xl mx-auto space-y-6">
-      {toast && (
-        <div className="fixed top-20 right-6 z-50 bg-[#0b2540] text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl rounded-xl">
-          {toast}
-        </div>
-      )}
-
-      <KazaHero
-        badge="Pro"
-        badgeColor="orange"
-        title="Mes produits"
-        subtitle={
-          isLoading
-            ? "Chargement…"
-            : `${totals?.products ?? 0} produit${(totals?.products ?? 0) !== 1 ? "s" : ""} · ${totals?.activeFormations ?? 0} actif${(totals?.activeFormations ?? 0) !== 1 ? "s" : ""}`
-        }
-        icon={Package}
-        actions={
-          <>
-            <KazaButton variant="secondary" onClick={exportCSV} disabled={allItems.length === 0} icon={Download}>
-              Exporter
-            </KazaButton>
-            <KazaButton variant="primary" href="/vendeur/produits/creer" icon={Plus}>
-              Ajouter
-            </KazaButton>
-          </>
-        }
-      />
-
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <KazaKpiCard
-          label="Total produits"
-          value={isLoading ? "…" : String(totals?.products ?? 0)}
-          delta={isLoading ? undefined : `${totals?.activeFormations ?? 0} actif${(totals?.activeFormations ?? 0) !== 1 ? "s" : ""}`}
-          icon={Package}
-          iconColor="emerald"
-        />
-        <KazaKpiCard
-          label="Volume des ventes"
-          value={isLoading ? "…" : String(totals?.sales ?? 0)}
-          icon={ShoppingCart}
-          iconColor="sky"
-        />
-        <KazaKpiCard
-          label="Note moyenne"
-          value={isLoading ? "…" : (ratingAvg ?? "—")}
-          delta={isLoading ? undefined : `${allItems.reduce((s, p) => s + p.reviewsCount, 0)} avis`}
-          icon={Star}
-          iconColor="orange"
-        />
-        <KazaKpiCard
-          label="Revenus totaux"
-          value={isLoading ? "…" : `${formatFCFA(totals?.revenue ?? 0)} FCFA`}
-          delta={isLoading ? undefined : `≈ ${Math.round((totals?.revenue ?? 0) / 655.957).toLocaleString("fr-FR")} €`}
-          icon={Wallet}
-          iconColor="violet"
-        />
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            onClick={() => setActiveTab(tab.value)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-              activeTab === tab.value
-                ? "bg-[#0b2540] text-white shadow-sm"
-                : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-200 hover:text-emerald-600"
-            }`}
+    <div
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
+    >
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        {toast && (
+          <div
+            className="fixed top-20 right-6 z-50 text-white px-5 py-3 text-xs font-extrabold shadow-2xl rounded-xl"
+            style={{ background: ST.greenDark }}
           >
-            {tab.label}
-            <span
-              className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.value ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
-              }`}
-            >
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
+            {toast}
+          </div>
+        )}
 
-      {/* Table */}
-      {isLoading ? (
-        <KazaCard noPadding>
-          <div className="divide-y divide-slate-50">
-            {[0, 1, 2, 3].map((i) => <SkeletonRow key={i} />)}
-          </div>
-        </KazaCard>
-      ) : filtered.length === 0 ? (
-        allItems.length === 0 ? (
-          <KazaEmpty
-            icon={Store}
-            title="Aucun produit créé"
-            description="Publiez votre premier produit pour commencer à vendre. Formation vidéo, ebook, template ou pack."
-            action={{ label: "Créer votre premier produit", href: "/vendeur/produits/creer" }}
+        <StPageHeader
+          title="Mes produits"
+          subtitle="Gérez votre catalogue et suivez les performances de chaque produit."
+          actions={
+            <>
+              <StButton variant="secondary" onClick={exportCSV} disabled={allItems.length === 0} icon={Download}>
+                Exporter
+              </StButton>
+              <StButton href="/vendeur/produits/creer" icon={Plus}>
+                Nouveau produit
+              </StButton>
+            </>
+          }
+        />
+
+        {/* ── 4 KPI compacts (maquette) ── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 mb-[18px]">
+          <StKpiCompact
+            label="Produits au total"
+            value={isLoading ? "…" : String(totals?.products ?? 0)}
+            icon={Package}
+            tone="green"
           />
+          <StKpiCompact
+            label="Ventes cumulées"
+            value={isLoading ? "…" : (totals?.sales ?? 0).toLocaleString("fr-FR")}
+            icon={ShoppingBag}
+            tone="green"
+          />
+          <StKpiCompact
+            label="Note moyenne"
+            value={isLoading ? "…" : ratingAvg ?? "—"}
+            unit={ratingAvg ? "/ 5" : undefined}
+            icon={Star}
+            tone="amber"
+          />
+          <StKpiCompact
+            label="Revenus totaux"
+            value={isLoading ? "…" : revenueDisplay}
+            unit="FCFA"
+            icon={Wallet}
+            tone="green"
+          />
+        </div>
+
+        {/* ── Tabs + recherche (maquette) ── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
+          <StTabs tabs={tabs} active={activeTab} onChange={(k) => setActiveTab(k as Tab)} />
+          <div
+            className="flex items-center gap-2 bg-white rounded-[12px] px-3.5 py-2.5 w-full md:w-[280px]"
+            style={{ border: `1px solid ${ST.cardBorder}` }}
+          >
+            <Search size={15} style={{ color: ST.textMuted }} />
+            <input
+              type="search"
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
+              placeholder="Filtrer par nom…"
+              className="flex-1 bg-transparent text-[12.5px] font-semibold focus:outline-none"
+              style={{ color: ST.text }}
+            />
+          </div>
+        </div>
+
+        {/* ── Grille 3 colonnes de cards (maquette) ── */}
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
+            {[0, 1, 2, 3, 4, 5].map((i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filtered.length === 0 && allItems.length > 0 ? (
+          <StCard className="text-center py-12">
+            <Store size={40} style={{ color: "#d6e0da" }} className="mx-auto" />
+            <p className="text-[13.5px] font-extrabold mt-3" style={{ color: ST.text }}>
+              Aucun produit dans cette catégorie
+            </p>
+            <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textMuted }}>
+              Essayez un autre onglet ou modifiez votre recherche.
+            </p>
+          </StCard>
         ) : (
-          <KazaEmpty
-            icon={Store}
-            title="Aucun produit dans cette catégorie"
-            description="Essayez un autre onglet pour voir vos produits."
-          />
-        )
-      ) : (
-        <KazaCard noPadding>
-          <div className="hidden md:grid grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-6 py-3.5 bg-slate-50 border-b border-slate-100">
-            {["Produit", "Type", "Prix (FCFA)", "Ventes", "Statut", "Actions"].map((h) => (
-              <span key={h} className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{h}</span>
-            ))}
-          </div>
-          <div className="divide-y divide-slate-50">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5">
             {filtered.map((product, idx) => {
-              const status = statusBadge(product.status);
               const Icon = kindIcon(product.productKind);
-              const gradient = GRADIENTS[idx % GRADIENTS.length];
+              const pill = kindPill(product.productKind);
+              const cover = isDraft(product)
+                ? DRAFT_GRADIENT
+                : COVER_GRADIENTS[idx % COVER_GRADIENTS.length];
+              const editHref =
+                product.productKind === "formation"
+                  ? `/vendeur/cours/${product.id}/editer`
+                  : `/vendeur/produits/${product.id}/editer`;
               return (
-                <div
-                  key={product.id}
-                  className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr_1fr_auto] gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors items-center"
-                >
-                  <div className="flex items-center gap-3">
+                <StCard key={product.id} noPadding className="overflow-hidden">
+                  {/* Cover */}
+                  <div
+                    className="h-[108px] flex items-center justify-center relative"
+                    style={
+                      product.thumbnail
+                        ? undefined
+                        : { background: cover }
+                    }
+                  >
                     {product.thumbnail ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={product.thumbnail}
-                        alt={product.title}
-                        className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
-                      />
+                      <img src={product.thumbnail} alt={product.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className={`w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center bg-gradient-to-br ${gradient}`}>
-                        <Icon className="w-5 h-5 text-white" />
-                      </div>
+                      <Icon size={34} style={{ color: "rgba(255,255,255,.9)" }} />
                     )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 line-clamp-1">{product.title}</p>
-                      {product.reviewsCount > 0 && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <Star size={12} className="text-amber-400 fill-amber-400" />
-                          <span className="text-[10px] text-slate-500">{product.rating.toFixed(1)} ({product.reviewsCount} avis)</span>
-                        </div>
-                      )}
+                    <span
+                      className="absolute top-2.5 left-2.5 text-[10px] font-extrabold px-[9px] py-[3px] rounded-full"
+                      style={pill}
+                    >
+                      {kindLabel(product.productKind)}
+                    </span>
+                  </div>
+                  {/* Body */}
+                  <div className="px-4 pt-3 pb-4">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="text-[13.5px] font-extrabold leading-snug line-clamp-2" style={{ color: ST.text }}>
+                        {product.title}
+                      </div>
+                      <StStatusPill status={statusKey(product.status)} />
+                    </div>
+                    <div className="text-[16px] font-extrabold my-2 tabular-nums" style={{ color: ST.green }}>
+                      {formatFCFA(product.price)}{" "}
+                      <span className="text-[11px]" style={{ color: ST.textMuted }}>FCFA</span>
+                    </div>
+                    <div
+                      className="flex items-center justify-between pt-[11px]"
+                      style={{ borderTop: `1px solid ${ST.divider}` }}
+                    >
+                      <div className="flex gap-3 text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                        <span className="inline-flex items-center gap-1">
+                          <ShoppingBag size={12} />
+                          {product.sales.toLocaleString("fr-FR")}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Star size={12} style={{ color: "#ba7517" }} className="fill-[#ba7517]" />
+                          {product.reviewsCount > 0 ? product.rating.toFixed(1) : "—"}
+                        </span>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Link
+                          href={editHref}
+                          title="Modifier"
+                          className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-slate-50"
+                          style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
+                        >
+                          <Edit size={14} />
+                        </Link>
+                        <Link
+                          href="/vendeur/statistiques"
+                          title="Statistiques"
+                          className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-slate-50"
+                          style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
+                        >
+                          <BarChart3 size={14} />
+                        </Link>
+                        <button
+                          onClick={() => handleArchive(product)}
+                          disabled={archiveMut.isPending || isArchived(product)}
+                          title={isArchived(product) ? "Déjà archivé" : "Archiver"}
+                          className="w-[30px] h-[30px] rounded-[9px] bg-white flex items-center justify-center transition-colors hover:bg-rose-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                          style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
+                        >
+                          <Archive size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-
-                  <div>
-                    <KazaBadge variant={kindColors(product.productKind)}>{kindLabel(product.productKind)}</KazaBadge>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{formatFCFA(product.price)}</p>
-                    <p className="text-[10px] text-slate-500">≈ {Math.round(product.price / 655.957)} €</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{product.sales.toLocaleString("fr-FR")}</p>
-                    <p className="text-[10px] text-slate-500">ventes</p>
-                  </div>
-
-                  <div>
-                    <KazaBadge variant={status.variant}>{status.label}</KazaBadge>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    <Link
-                      href={
-                        product.productKind === "formation"
-                          ? `/vendeur/cours/${product.id}/editer`
-                          : `/vendeur/produits/${product.id}/editer`
-                      }
-                      className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
-                      title="Modifier"
-                    >
-                      <Edit size={16} />
-                    </Link>
-                    <Link
-                      href="/vendeur/statistiques"
-                      className="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
-                      title="Statistiques"
-                    >
-                      <BarChart3 size={16} />
-                    </Link>
-                    <button
-                      onClick={() => handleArchive(product)}
-                      disabled={archiveMut.isPending || isArchived(product)}
-                      className="p-2 rounded-lg hover:bg-rose-50 text-slate-500 hover:text-rose-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                      title={isArchived(product) ? "Déjà archivé" : "Archiver"}
-                    >
-                      <Archive size={16} />
-                    </button>
-                  </div>
-                </div>
+                </StCard>
               );
             })}
-          </div>
 
-          {filtered.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-              <p className="text-xs text-slate-500">
-                Affichage de <span className="font-semibold text-slate-900">1–{filtered.length}</span> sur{" "}
-                <span className="font-semibold text-slate-900">{allItems.length}</span> produits
-              </p>
-            </div>
-          )}
-        </KazaCard>
-      )}
+            {/* Ghost card création (maquette) */}
+            <StGhostCard
+              icon={Plus}
+              title="Créer un produit"
+              subtitle="Formation, ebook, template ou coaching — en 5 étapes"
+              href="/vendeur/produits/creer"
+              minHeight={230}
+            />
+          </div>
+        )}
+      </main>
     </div>
   );
 }
