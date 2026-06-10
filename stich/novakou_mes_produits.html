@@ -1,0 +1,62 @@
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Maquette de la page Mes produits de Novakou avec statistiques, filtres et grille de produits</h2>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+#s2{font-family:'Manrope',system-ui,sans-serif;color:#13241b;font-variant-numeric:tabular-nums}
+#s2 *{box-sizing:border-box;margin:0;font-family:inherit}
+#s2 .cd{background:#fff;border:1px solid #e4eae6;border-radius:18px;box-shadow:0 1px 3px rgba(16,52,32,.05)}
+#s2 .grad{background:linear-gradient(135deg,#006e2f,#22c55e)}
+#s2 .sec{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#8aa092;font-weight:800;margin:16px 16px 5px}
+#s2 .it{display:flex;align-items:center;gap:10px;padding:7.5px 12px;margin:1px 8px;border-radius:10px;font-size:13px;color:#41544a;font-weight:600}
+#s2 .it i{font-size:17px;color:#7d9486}
+#s2 .it.on{background:#e6f5eb;color:#006e2f}#s2 .it.on i{color:#006e2f}
+#s2 .it em{font-style:normal;margin-left:auto;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:linear-gradient(135deg,#006e2f,#22c55e);color:#fff}
+#s2 .it em.pro{background:#fef3c7;color:#92400e}
+#s2 .tab{font-size:12.5px;font-weight:800;color:#5d7166;padding:8px 14px;border-radius:10px}
+#s2 .tab.on{background:#0b3b20;color:#fff}
+#s2 .act{width:30px;height:30px;border-radius:9px;border:1px solid #e4eae6;background:#fff;display:flex;align-items:center;justify-content:center;color:#5d7166;font-size:15px}
+</style>
+<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:12px;overflow:hidden">
+<div id="s2" style="width:1180px;zoom:.55;background:#f7f9fb;border-radius:14px;border:1px solid #e3e8e5;overflow:hidden">
+<div style="display:flex;align-items:center;gap:18px;background:#fff;border-bottom:1px solid #e4eae6;padding:12px 22px">
+<div style="display:flex;align-items:center;gap:9px;width:196px"><div class="grad" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px">N</div><span style="font-weight:800;font-size:18px;letter-spacing:-.02em">Novakou</span></div>
+<div style="flex:1;display:flex;justify-content:center"><div style="display:flex;align-items:center;gap:8px;background:#f3f6f4;border:1px solid #e4eae6;border-radius:12px;padding:9px 14px;width:420px;color:#8aa092;font-size:13px;font-weight:600"><i class="ti ti-search" aria-hidden="true"></i>Rechercher un produit, une commande…</div></div>
+<div style="display:flex;align-items:center;gap:18px"><div style="position:relative"><i class="ti ti-bell" style="font-size:20px;color:#41544a" aria-hidden="true"></i><span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#22c55e"></span></div>
+<div style="display:flex;align-items:center;gap:9px"><div style="width:36px;height:36px;border-radius:50%;background:#dcefe2;color:#006e2f;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center">AS</div><div><div style="font-size:13px;font-weight:700">Aminata Sow</div><div style="font-size:11px;color:#8aa092;font-weight:600">Vendeur Pro</div></div></div></div>
+</div>
+<div style="display:flex;align-items:stretch">
+<aside id="sb2" style="width:218px;background:#fff;border-right:1px solid #e4eae6;padding:8px 0 24px;flex-shrink:0"></aside>
+<main style="flex:1;padding:26px 28px;min-width:0">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px">
+<div><h1 style="font-size:25px;font-weight:800;letter-spacing:-.02em">Mes produits</h1><p style="font-size:13.5px;color:#5d7166;font-weight:600;margin-top:4px">Gérez votre catalogue et suivez les performances de chaque produit.</p></div>
+<button class="grad" style="border:none;color:#fff;font-weight:800;font-size:13px;border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:7px"><i class="ti ti-plus" aria-hidden="true"></i>Nouveau produit</button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px">
+<div class="cd" style="padding:14px 18px;display:flex;align-items:center;gap:13px"><div style="width:38px;height:38px;border-radius:11px;background:#e6f5eb;color:#006e2f;display:flex;align-items:center;justify-content:center"><i class="ti ti-package" style="font-size:19px" aria-hidden="true"></i></div><div><div style="font-size:19px;font-weight:800">12</div><div style="font-size:11.5px;color:#5d7166;font-weight:700">Produits au total</div></div></div>
+<div class="cd" style="padding:14px 18px;display:flex;align-items:center;gap:13px"><div style="width:38px;height:38px;border-radius:11px;background:#e6f5eb;color:#006e2f;display:flex;align-items:center;justify-content:center"><i class="ti ti-shopping-bag" style="font-size:19px" aria-hidden="true"></i></div><div><div style="font-size:19px;font-weight:800">1 247</div><div style="font-size:11.5px;color:#5d7166;font-weight:700">Ventes cumulées</div></div></div>
+<div class="cd" style="padding:14px 18px;display:flex;align-items:center;gap:13px"><div style="width:38px;height:38px;border-radius:11px;background:#fdf3df;color:#854f0b;display:flex;align-items:center;justify-content:center"><i class="ti ti-star" style="font-size:19px" aria-hidden="true"></i></div><div><div style="font-size:19px;font-weight:800">4,8 <span style="font-size:12px;color:#8aa092">/ 5</span></div><div style="font-size:11.5px;color:#5d7166;font-weight:700">Note moyenne</div></div></div>
+<div class="cd" style="padding:14px 18px;display:flex;align-items:center;gap:13px"><div style="width:38px;height:38px;border-radius:11px;background:#e6f5eb;color:#006e2f;display:flex;align-items:center;justify-content:center"><i class="ti ti-wallet" style="font-size:19px" aria-hidden="true"></i></div><div><div style="font-size:19px;font-weight:800">8,41 M <span style="font-size:12px;color:#8aa092">FCFA</span></div><div style="font-size:11.5px;color:#5d7166;font-weight:700">Revenus totaux</div></div></div>
+</div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<div style="display:flex;gap:4px;background:#fff;border:1px solid #e4eae6;border-radius:13px;padding:4px"><span class="tab on">Tous · 12</span><span class="tab">Actifs · 8</span><span class="tab">Brouillons · 3</span><span class="tab">Archivés · 1</span></div>
+<div style="display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e4eae6;border-radius:12px;padding:9px 14px;width:280px;color:#8aa092;font-size:12.5px;font-weight:600"><i class="ti ti-search" aria-hidden="true"></i>Filtrer par nom…</div>
+</div>
+<div id="pg" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px"></div>
+</main></div></div>
+<script>
+var el=document.getElementById('s2');el.style.zoom=(el.parentElement.clientWidth-24)/1180;
+var NAV=[["Vue",[["Tableau de bord","layout-dashboard"],["Statistiques","chart-bar"]]],["Catalogue",[["Mes produits","package"],["Abonnements","refresh"],["Bundles","stack-2"],["Mes boutiques","building-store"],["Transactions","receipt"],["Abandons & Échecs","shopping-cart-x"],["Revenus & retraits","wallet"]]],["Croissance",[["Marketing","speakerphone"],["AI Studio","sparkles","IA"],["Coach IA","brain","IA"],["Bot support boutique","message-chatbot","IA"],["Automatisations","bolt"]]],["Engagement",[["Messages","mail"],["Avis clients","star"],["Questions acheteurs","messages"],["Communauté","users"],["Coaching","target","Pro"],["Ressources","book"]]],["Développeur",[["Clés API","key"],["Webhooks sortants","webhook"],["Documentation API","file-code"]]],["Compte",[["Mon profil","user"],["Équipe","users-group"],["Vérification KYC","shield-check"],["Paramètres","settings"]]]];
+var ACT="Mes produits";
+document.getElementById('sb2').innerHTML=NAV.map(function(s){return '<div class="sec">'+s[0]+'</div>'+s[1].map(function(t){return '<div class="it'+(t[0]===ACT?' on':'')+'"><i class="ti ti-'+t[1]+'" aria-hidden="true"></i><span>'+t[0]+'</span>'+(t[2]?'<em class="'+(t[2]==='Pro'?'pro':'')+'">'+t[2]+'</em>':'')+'</div>'}).join('')}).join('');
+var TYPES={Formation:["#e6f5eb","#006e2f"],Ebook:["#e8f3fc","#185fa5"],Template:["#fdf3df","#854f0b"],Coaching:["#fceef2","#993556"]};
+var P=[
+["Maîtriser Canva de A à Z","Formation","15 000",342,"4,9","Actif","linear-gradient(135deg,#006e2f,#22c55e)","palette"],
+["Vendre sur WhatsApp","Ebook","5 000",518,"4,7","Actif","linear-gradient(135deg,#0b3b20,#1d9e75)","brand-whatsapp"],
+["Pack 50 templates Insta","Template","8 000",203,"4,8","Actif","linear-gradient(135deg,#14532d,#65d68d)","layout-grid"],
+["Lancer son business en ligne","Formation","25 000",124,"4,9","Actif","linear-gradient(135deg,#064e3b,#34d399)","rocket"],
+["Coaching 1:1 — 60 minutes","Coaching","35 000",38,"5,0","Actif","linear-gradient(135deg,#1f2937,#4b6358)","video"],
+["Guide du Mobile Money","Ebook","6 000",0,"—","Brouillon","linear-gradient(135deg,#9caea3,#cfdcd4)","device-mobile"]];
+document.getElementById('pg').innerHTML=P.map(function(p){
+var t=TYPES[p[1]];var st=p[5]==='Actif'?'<span style="font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:99px;background:#e6f5eb;color:#006e2f"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px"></span>Actif</span>':'<span style="font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:99px;background:#f1efe8;color:#5f5e5a">Brouillon</span>';
+return '<div class="cd" style="overflow:hidden"><div style="height:108px;background:'+p[6]+';display:flex;align-items:center;justify-content:center;position:relative"><i class="ti ti-'+p[7]+'" style="font-size:34px;color:rgba(255,255,255,.9)" aria-hidden="true"></i><span style="position:absolute;top:10px;left:10px;font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;background:'+t[0]+';color:'+t[1]+'">'+p[1]+'</span></div><div style="padding:13px 15px 15px"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px"><div style="font-size:13.5px;font-weight:800;line-height:1.3">'+p[0]+'</div>'+st+'</div><div style="font-size:16px;font-weight:800;color:#006e2f;margin:8px 0 10px">'+p[2]+' <span style="font-size:11px;color:#8aa092">FCFA</span></div><div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #eef2ef;padding-top:11px"><div style="display:flex;gap:13px;font-size:11.5px;color:#5d7166;font-weight:700"><span><i class="ti ti-shopping-bag" style="vertical-align:-2px" aria-hidden="true"></i> '+p[3]+'</span><span><i class="ti ti-star" style="vertical-align:-2px;color:#ba7517" aria-hidden="true"></i> '+p[4]+'</span></div><div style="display:flex;gap:6px"><span class="act"><i class="ti ti-edit" aria-hidden="true"></i></span><span class="act"><i class="ti ti-chart-bar" aria-hidden="true"></i></span><span class="act"><i class="ti ti-dots" aria-hidden="true"></i></span></div></div></div></div>'}).join('')+
+'<div style="border:2px dashed #bcd6c5;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-height:230px;background:#fbfdfc"><div class="grad" style="width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#fff"><i class="ti ti-plus" style="font-size:22px" aria-hidden="true"></i></div><div style="font-size:13.5px;font-weight:800;color:#0b3b20">Créer un produit</div><div style="font-size:11.5px;color:#7d9486;font-weight:600;text-align:center;max-width:180px">Formation, ebook, template ou coaching — en 5 étapes</div></div>';
+</script>

@@ -1,0 +1,63 @@
+<h2 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Maquette de la page Statistiques Novakou avec KPI, évolution des revenus, tunnel de conversion et top pays</h2>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+#s5{font-family:'Manrope',system-ui,sans-serif;color:#13241b;font-variant-numeric:tabular-nums}
+#s5 *{box-sizing:border-box;margin:0;font-family:inherit}
+#s5 .cd{background:#fff;border:1px solid #e4eae6;border-radius:18px;box-shadow:0 1px 3px rgba(16,52,32,.05)}
+#s5 .grad{background:linear-gradient(135deg,#006e2f,#22c55e)}
+#s5 .sec{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:#8aa092;font-weight:800;margin:16px 16px 5px}
+#s5 .it{display:flex;align-items:center;gap:10px;padding:7.5px 12px;margin:1px 8px;border-radius:10px;font-size:13px;color:#41544a;font-weight:600}
+#s5 .it i{font-size:17px;color:#7d9486}
+#s5 .it.on{background:#e6f5eb;color:#006e2f}#s5 .it.on i{color:#006e2f}
+#s5 .it em{font-style:normal;margin-left:auto;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px;background:linear-gradient(135deg,#006e2f,#22c55e);color:#fff}
+#s5 .it em.pro{background:#fef3c7;color:#92400e}
+#s5 .per{font-size:12px;font-weight:800;color:#5d7166;padding:7px 13px;border-radius:9px}
+#s5 .per.on{background:#0b3b20;color:#fff}
+#s5 th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:#8aa092;font-weight:800;text-align:left;padding:0 8px 9px 0}
+#s5 td{font-size:12.5px;font-weight:700;padding:10px 8px 10px 0;border-top:1px solid #eef2ef}
+</style>
+<div style="background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:12px;overflow:hidden">
+<div id="s5" style="width:1180px;zoom:.55;background:#f7f9fb;border-radius:14px;border:1px solid #e3e8e5;overflow:hidden">
+<div style="display:flex;align-items:center;gap:18px;background:#fff;border-bottom:1px solid #e4eae6;padding:12px 22px">
+<div style="display:flex;align-items:center;gap:9px;width:196px"><div class="grad" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px">N</div><span style="font-weight:800;font-size:18px;letter-spacing:-.02em">Novakou</span></div>
+<div style="flex:1;display:flex;justify-content:center"><div style="display:flex;align-items:center;gap:8px;background:#f3f6f4;border:1px solid #e4eae6;border-radius:12px;padding:9px 14px;width:420px;color:#8aa092;font-size:13px;font-weight:600"><i class="ti ti-search" aria-hidden="true"></i>Rechercher un produit, une commande…</div></div>
+<div style="display:flex;align-items:center;gap:18px"><div style="position:relative"><i class="ti ti-bell" style="font-size:20px;color:#41544a" aria-hidden="true"></i><span style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#22c55e"></span></div>
+<div style="display:flex;align-items:center;gap:9px"><div style="width:36px;height:36px;border-radius:50%;background:#dcefe2;color:#006e2f;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center">AS</div><div><div style="font-size:13px;font-weight:700">Aminata Sow</div><div style="font-size:11px;color:#8aa092;font-weight:600">Vendeur Pro</div></div></div></div>
+</div>
+<div style="display:flex;align-items:stretch">
+<aside id="sb5" style="width:218px;background:#fff;border-right:1px solid #e4eae6;padding:8px 0 24px;flex-shrink:0"></aside>
+<main style="flex:1;padding:26px 28px;min-width:0">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px">
+<div><h1 style="font-size:25px;font-weight:800;letter-spacing:-.02em">Statistiques</h1><p style="font-size:13.5px;color:#5d7166;font-weight:600;margin-top:4px">Performance de votre boutique du 11 mai au 10 juin 2026.</p></div>
+<div style="display:flex;gap:4px;background:#fff;border:1px solid #e4eae6;border-radius:12px;padding:4px"><span class="per">7 j</span><span class="per on">30 j</span><span class="per">90 j</span><span class="per">1 an</span></div>
+</div>
+<div id="kpi" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px"></div>
+<div style="display:grid;grid-template-columns:1.65fr 1fr;gap:14px;margin-bottom:16px">
+<div class="cd" style="padding:18px 20px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:15px;font-weight:800">Évolution des revenus</span><span style="font-size:11.5px;font-weight:700;color:#5d7166">FCFA / jour</span></div>
+<div style="position:relative;height:212px"><canvas id="c5" role="img" aria-label="Courbe des revenus quotidiens sur 30 jours, entre 18 000 et 78 000 FCFA, tendance haussière">Revenus quotidiens sur 30 jours en hausse, de 22 000 à 78 000 FCFA.</canvas></div></div>
+<div class="cd" style="padding:18px 20px"><div style="font-size:15px;font-weight:800;margin-bottom:13px">Tunnel de conversion</div><div id="fun"></div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1.65fr;gap:14px">
+<div class="cd" style="padding:18px 20px"><div style="font-size:15px;font-weight:800;margin-bottom:13px">Top pays</div><div id="pays"></div></div>
+<div class="cd" style="padding:18px 20px"><div style="font-size:15px;font-weight:800;margin-bottom:10px">Performance par produit</div>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th style="width:36%">Produit</th><th>Vues</th><th>Ventes</th><th>Conversion</th><th style="text-align:right">Revenus</th></tr></thead><tbody id="perf"></tbody></table></div>
+</div>
+</main></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var el=document.getElementById('s5');el.style.zoom=(el.parentElement.clientWidth-24)/1180;
+var NAV=[["Vue",[["Tableau de bord","layout-dashboard"],["Statistiques","chart-bar"]]],["Catalogue",[["Mes produits","package"],["Abonnements","refresh"],["Bundles","stack-2"],["Mes boutiques","building-store"],["Transactions","receipt"],["Abandons & Échecs","shopping-cart-x"],["Revenus & retraits","wallet"]]],["Croissance",[["Marketing","speakerphone"],["AI Studio","sparkles","IA"],["Coach IA","brain","IA"],["Bot support boutique","message-chatbot","IA"],["Automatisations","bolt"]]],["Engagement",[["Messages","mail"],["Avis clients","star"],["Questions acheteurs","messages"],["Communauté","users"],["Coaching","target","Pro"],["Ressources","book"]]],["Développeur",[["Clés API","key"],["Webhooks sortants","webhook"],["Documentation API","file-code"]]],["Compte",[["Mon profil","user"],["Équipe","users-group"],["Vérification KYC","shield-check"],["Paramètres","settings"]]]];
+var ACT="Statistiques";
+document.getElementById('sb5').innerHTML=NAV.map(function(s){return '<div class="sec">'+s[0]+'</div>'+s[1].map(function(t){return '<div class="it'+(t[0]===ACT?' on':'')+'"><i class="ti ti-'+t[1]+'" aria-hidden="true"></i><span>'+t[0]+'</span>'+(t[2]?'<em class="'+(t[2]==='Pro'?'pro':'')+'">'+t[2]+'</em>':'')+'</div>'}).join('')}).join('');
+var K=[["Revenus","1 248 500 FCFA","+18,2 %",1],["Ventes","86","+12,4 %",1],["Taux de conversion","2,0 %","+0,3 pt",1],["Panier moyen","14 520 FCFA","−3,1 %",0]];
+document.getElementById('kpi').innerHTML=K.map(function(k){var up=k[3];return '<div class="cd" style="padding:15px 18px"><div style="font-size:12px;font-weight:700;color:#5d7166">'+k[0]+'</div><div style="font-size:20px;font-weight:800;margin:7px 0 6px">'+k[1]+'</div><span style="font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px;background:'+(up?'#e6f5eb':'#fceef2')+';color:'+(up?'#006e2f':'#993556')+'"><i class="ti ti-trending-'+(up?'up':'down')+'" style="vertical-align:-2px" aria-hidden="true"></i> '+k[2]+' vs période préc.</span></div>'}).join('');
+var F=[["Visiteurs","4 312",100,""],["Fiche produit","1 980",46,"− 54 %"],["Checkout","327",17,"− 83 %"],["Achat","86",8,"taux global 2,0 %"]];
+document.getElementById('fun').innerHTML=F.map(function(f,i){return '<div style="margin-bottom:'+(i<3?'13px':'0')+'"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:5px"><span>'+f[0]+'</span><span>'+f[1]+'<span style="color:#9baba1;font-weight:700;font-size:10.5px;margin-left:7px">'+f[3]+'</span></span></div><div style="height:15px;background:#eef2ef;border-radius:99px;overflow:hidden"><div style="width:'+Math.max(f[2],8)+'%;height:100%;border-radius:99px;background:linear-gradient(90deg,#006e2f,#22c55e)"></div></div></div>'}).join('');
+var PY=[["CI","Côte d'Ivoire","38 %",38,"#e6f5eb","#006e2f"],["SN","Sénégal","27 %",27,"#e6f5eb","#006e2f"],["CM","Cameroun","14 %",14,"#e6f5eb","#006e2f"],["BJ","Bénin","11 %",11,"#e6f5eb","#006e2f"],["FR","France","6 %",6,"#f1efe8","#5f5e5a"],["—","Autres","4 %",4,"#f1efe8","#5f5e5a"]];
+document.getElementById('pays').innerHTML=PY.map(function(p,i){return '<div style="display:flex;align-items:center;gap:11px;padding:8px 0;'+(i?'border-top:1px solid #f3f6f4':'')+'"><div style="width:30px;height:30px;border-radius:50%;background:'+p[4]+';color:'+p[5]+';font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+p[0]+'</div><span style="font-size:12.5px;font-weight:800;width:96px">'+p[1]+'</span><div style="flex:1;height:7px;background:#eef2ef;border-radius:99px;overflow:hidden"><div style="width:'+p[3]+'%;height:100%;border-radius:99px;background:linear-gradient(90deg,#006e2f,#22c55e)"></div></div><span style="font-size:12px;font-weight:800;width:38px;text-align:right">'+p[2]+'</span></div>'}).join('');
+var PF=[["Maîtriser Canva de A à Z","1 642","41","2,5 %","615 000"],["Vendre sur WhatsApp","1 204","23","1,9 %","115 000"],["Lancer son business en ligne","689","12","1,7 %","300 000"],["Pack 50 templates Insta","542","8","1,5 %","64 000"],["Coaching 1:1 — 60 minutes","235","2","0,9 %","70 000"]];
+document.getElementById('perf').innerHTML=PF.map(function(r){return '<tr><td>'+r[0]+'</td><td style="color:#5d7166">'+r[1]+'</td><td style="color:#5d7166">'+r[2]+'</td><td><span style="font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px;background:#e6f5eb;color:#006e2f">'+r[3]+'</span></td><td style="text-align:right;font-weight:800">'+r[4]+' <span style="font-size:10px;color:#9baba1">FCFA</span></td></tr>'}).join('');
+var D=[22,26,24,31,28,35,33,30,38,36,42,39,45,41,48,44,52,49,47,55,53,60,57,63,61,68,65,72,70,78].map(function(v){return v*1000});
+var L=D.map(function(_,i){return (11+i)<=31?(11+i)+' mai':(i-20)+' juin'});
+new Chart(document.getElementById('c5'),{type:'line',data:{labels:L,datasets:[{data:D,borderColor:'#006e2f',backgroundColor:'rgba(34,197,94,.14)',fill:true,tension:.4,pointRadius:0,pointHoverRadius:4,borderWidth:2.5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return c.parsed.y.toLocaleString('fr-FR')+' FCFA'}}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:7,color:'#9baba1',font:{family:'Manrope',weight:700,size:10}}},y:{grid:{color:'#eef2ef'},border:{display:false},ticks:{color:'#9baba1',font:{family:'Manrope',weight:600,size:10},callback:function(v){return (v/1000)+' k'}}}}}});
+</script>
