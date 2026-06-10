@@ -192,7 +192,10 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Logo carré "N Novakou" style KAZA */}
         <Link href="/vendeur/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
-          <div className="w-10 h-10 rounded-xl bg-[#0b2540] flex items-center justify-center group-hover:scale-105 transition-transform">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform"
+            style={{ background: "linear-gradient(135deg,#006e2f,#22c55e)" }}
+          >
             <span className="text-white font-extrabold text-base tracking-tight">N</span>
           </div>
           <span className="hidden sm:block font-extrabold text-slate-900 text-lg tracking-tight">Novakou</span>
@@ -240,7 +243,7 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                 className="w-9 h-9 rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-[#0b2540] flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[#dcefe2] flex items-center justify-center text-[#006e2f] text-xs font-extrabold flex-shrink-0">
                 {initials}
               </div>
             )}
@@ -309,13 +312,13 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                             collapsed && !mobileOpen ? "justify-center px-2 py-2.5" : "px-3 py-2.5"
                           } ${
                             isActive
-                              ? "bg-[#0b2540] text-white font-semibold shadow-md shadow-slate-300/40"
-                              : "text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                              ? "bg-[#e6f5eb] text-[#006e2f] font-bold"
+                              : "text-[#41544a] hover:bg-slate-50 hover:text-slate-900 font-semibold"
                           }`}
                         >
                           <Icon
-                            size={20}
-                            className={`flex-shrink-0 ${isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"}`}
+                            size={18}
+                            className={`flex-shrink-0 ${isActive ? "text-[#006e2f]" : "text-[#7d9486] group-hover:text-slate-700"}`}
                           />
                           {(!collapsed || mobileOpen) && (
                             <>
@@ -331,13 +334,14 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
                                 </span>
                               ) : item.badge ? (
                                 <span
-                                  className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                    isActive
-                                      ? "bg-white/20 text-white"
-                                      : item.badge === "Pro"
-                                      ? "bg-orange-100 text-orange-700"
-                                      : "bg-amber-100 text-amber-700"
+                                  className={`ml-auto text-[9px] font-extrabold px-1.5 py-0.5 rounded-full ${
+                                    item.badge === "Pro" ? "bg-[#fef3c7] text-[#92400e]" : "text-white"
                                   }`}
+                                  style={
+                                    item.badge === "Pro"
+                                      ? undefined
+                                      : { background: "linear-gradient(135deg,#006e2f,#22c55e)" }
+                                  }
                                 >
                                   {item.badge}
                                 </span>
