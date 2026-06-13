@@ -501,7 +501,7 @@ export default function CreerProduitPage() {
         {category && (
           <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 mb-1">{category}</p>
         )}
-        <h3 className="text-lg font-extrabold text-[#0b2540] leading-tight">
+        <h3 className="text-lg font-extrabold text-[#13241b] leading-tight">
           {title || <span className="text-slate-300">Titre du produit…</span>}
         </h3>
         {shortDesc && <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{shortDesc}</p>}
@@ -510,7 +510,7 @@ export default function CreerProduitPage() {
             <p className="text-2xl font-extrabold text-emerald-600">Gratuit</p>
           ) : (
             <>
-              <p className="text-2xl font-extrabold text-[#0b2540] tabular-nums">{formatFCFA(price)} FCFA</p>
+              <p className="text-2xl font-extrabold text-[#13241b] tabular-nums">{formatFCFA(price)} FCFA</p>
               {originalPrice > price && (
                 <p className="text-sm font-bold text-slate-400 line-through tabular-nums mb-0.5">{formatFCFA(originalPrice)}</p>
               )}
@@ -551,7 +551,7 @@ export default function CreerProduitPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-emerald-700 mb-1">
                   Bienvenue · Premier produit
                 </p>
-                <h3 className="text-lg md:text-xl font-extrabold text-[#0b2540] tracking-tight">
+                <h3 className="text-lg md:text-xl font-extrabold text-[#13241b] tracking-tight">
                   {onboardingStep === 0 && "Trois étapes pour publier en moins de 10 minutes"}
                   {onboardingStep === 1 && "Astuce 1/3 — Le brouillon est sauvegardé tout seul"}
                   {onboardingStep === 2 && "Astuce 2/3 — Active l'aperçu live à droite"}
@@ -608,7 +608,7 @@ export default function CreerProduitPage() {
           className="relative overflow-hidden rounded-3xl mb-8 p-7 md:p-10 text-white"
           style={{
             background:
-              "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)",
+              "linear-gradient(135deg,#006e2f,#22c55e)",
           }}
         >
           {/* Halos décoratifs subtils */}
@@ -729,7 +729,7 @@ export default function CreerProduitPage() {
                         active
                           ? "bg-emerald-500 text-white border-emerald-500 ring-4 ring-emerald-100"
                           : done
-                          ? "bg-[#0b2540] text-white border-[#0b2540]"
+                          ? "bg-[#006e2f] text-white border-[#006e2f]"
                           : "bg-white text-slate-400 border-slate-200"
                       }`}
                     >
@@ -738,7 +738,7 @@ export default function CreerProduitPage() {
                     <div className="hidden md:block">
                       <p
                         className={`text-[11px] font-bold uppercase tracking-wider leading-tight ${
-                          active ? "text-[#0b2540]" : done ? "text-slate-700" : "text-slate-400"
+                          active ? "text-[#13241b]" : done ? "text-slate-700" : "text-slate-400"
                         }`}
                       >
                         {s.label}
@@ -754,7 +754,7 @@ export default function CreerProduitPage() {
           {/* Bandeau bas : étape courante + estimation temps + indicateurs clavier */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 pt-5 border-t border-slate-100">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#0b2540] text-white text-[10px] font-bold uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#006e2f] text-white text-[10px] font-bold uppercase tracking-widest">
                 <CircleDot className="w-3 h-3" />
                 Étape {step}/{lastStep}
               </span>
@@ -798,7 +798,7 @@ export default function CreerProduitPage() {
         {step === 1 && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 p-6 md:p-10 mb-8">
             <div className="mb-8">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b2540] tracking-tight">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[#13241b] tracking-tight">
                 Quel type de produit créez-vous&nbsp;?
               </h2>
               <p className="text-sm text-slate-500 mt-2">
@@ -829,7 +829,7 @@ export default function CreerProduitPage() {
                       <Icon className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className={`text-base font-bold tracking-tight ${isSel ? "text-emerald-900" : "text-[#0b2540]"}`}>
+                      <p className={`text-base font-bold tracking-tight ${isSel ? "text-emerald-900" : "text-[#13241b]"}`}>
                         {pt.label}
                       </p>
                       <p className={`text-xs mt-1 leading-relaxed ${isSel ? "text-emerald-700" : "text-slate-500"}`}>
@@ -854,7 +854,7 @@ export default function CreerProduitPage() {
               <div className="border-t border-slate-200 pt-8">
                 <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-[#0b2540] tracking-tight mb-1">Identité du produit</h3>
+                    <h3 className="text-lg font-bold text-[#13241b] tracking-tight mb-1">Identité du produit</h3>
                     <p className="text-sm text-slate-500">Titre, catégorie, accroche et visuels.</p>
                   </div>
                   <button
@@ -962,7 +962,7 @@ export default function CreerProduitPage() {
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 p-6 md:p-10 mb-8">
             <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b2540] tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#13241b] tracking-tight">
                   {isFormation ? "Contenu pédagogique" : "Contenu du produit"}
                 </h2>
                 <p className="text-sm text-slate-500 mt-2 max-w-2xl">
@@ -1020,7 +1020,7 @@ export default function CreerProduitPage() {
         {step === 3 && isFormation && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 p-6 md:p-10 mb-8">
             <div className="mb-8">
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b2540] tracking-tight">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[#13241b] tracking-tight">
                 Modules &amp; leçons
               </h2>
               <p className="text-sm text-slate-500 mt-2">
@@ -1041,7 +1041,7 @@ export default function CreerProduitPage() {
                       value={mod.title}
                       onChange={(e) => updateModule(mIdx, e.target.value)}
                       placeholder="Titre du module…"
-                      className="flex-1 bg-transparent border-none text-base font-bold tracking-tight text-[#0b2540] placeholder:text-slate-400 outline-none"
+                      className="flex-1 bg-transparent border-none text-base font-bold tracking-tight text-[#13241b] placeholder:text-slate-400 outline-none"
                     />
                     {modules.length > 1 && (
                       <button
@@ -1144,17 +1144,17 @@ export default function CreerProduitPage() {
               <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Modules</p>
-                  <p className="text-2xl font-extrabold tabular-nums text-[#0b2540]">
+                  <p className="text-2xl font-extrabold tabular-nums text-[#13241b]">
                     {modules.filter((m) => m.title.trim()).length}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Leçons</p>
-                  <p className="text-2xl font-extrabold tabular-nums text-[#0b2540]">{totalLessons}</p>
+                  <p className="text-2xl font-extrabold tabular-nums text-[#13241b]">{totalLessons}</p>
                 </div>
                 <div className="rounded-2xl bg-slate-50 border border-slate-200 p-4">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Durée totale</p>
-                  <p className="text-2xl font-extrabold tabular-nums text-[#0b2540]">
+                  <p className="text-2xl font-extrabold tabular-nums text-[#13241b]">
                     {totalDuration} <span className="text-sm font-bold text-slate-400">min</span>
                   </p>
                 </div>
@@ -1177,7 +1177,7 @@ export default function CreerProduitPage() {
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 mb-3 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-widest border border-amber-200">
                 Étape optionnelle
               </div>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b2540] tracking-tight">
+              <h2 className="text-2xl md:text-3xl font-extrabold text-[#13241b] tracking-tight">
                 Fichier téléchargeable
               </h2>
               <p className="text-sm text-slate-500 mt-2">
@@ -1212,7 +1212,7 @@ export default function CreerProduitPage() {
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 p-6 md:p-10 mb-8">
             <div className="mb-8 flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b2540] tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#13241b] tracking-tight">
                   Tarification
                 </h2>
                 <p className="text-sm text-slate-500 mt-2">
@@ -1242,7 +1242,7 @@ export default function CreerProduitPage() {
               }`}
             >
               <div>
-                <p className="text-base font-bold text-[#0b2540]">
+                <p className="text-base font-bold text-[#13241b]">
                   {isFree ? "Ce produit est gratuit" : "Ce produit est payant"}
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
@@ -1320,7 +1320,7 @@ export default function CreerProduitPage() {
                 className="rounded-2xl p-7 text-white overflow-hidden relative"
                 style={{
                   background:
-                    "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)",
+                    "linear-gradient(135deg,#006e2f,#22c55e)",
                 }}
               >
                 <div
@@ -1360,7 +1360,7 @@ export default function CreerProduitPage() {
           <div className="space-y-6 mb-8">
             <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200/60 p-6 md:p-10">
               <div className="mb-8">
-                <h2 className="text-2xl md:text-3xl font-extrabold text-[#0b2540] tracking-tight">
+                <h2 className="text-2xl md:text-3xl font-extrabold text-[#13241b] tracking-tight">
                   Récapitulatif
                 </h2>
                 <p className="text-sm text-slate-500 mt-2">
@@ -1427,7 +1427,7 @@ export default function CreerProduitPage() {
                   ].map((row) => (
                     <div key={row.label} className="rounded-xl bg-slate-50 border border-slate-200 p-4">
                       <dt className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">{row.label}</dt>
-                      <dd className="text-sm font-bold text-[#0b2540] break-words">{row.value}</dd>
+                      <dd className="text-sm font-bold text-[#13241b] break-words">{row.value}</dd>
                     </div>
                   ))}
                 </dl>
@@ -1471,7 +1471,7 @@ export default function CreerProduitPage() {
                     <button
                       onClick={() => setPreviewMode("desktop")}
                       className={`p-1.5 rounded-md transition-colors ${
-                        previewMode === "desktop" ? "bg-[#0b2540] text-white" : "text-slate-400 hover:text-slate-700"
+                        previewMode === "desktop" ? "bg-[#006e2f] text-white" : "text-slate-400 hover:text-slate-700"
                       }`}
                       aria-label="Aperçu desktop"
                       aria-pressed={previewMode === "desktop"}
@@ -1481,7 +1481,7 @@ export default function CreerProduitPage() {
                     <button
                       onClick={() => setPreviewMode("mobile")}
                       className={`p-1.5 rounded-md transition-colors ${
-                        previewMode === "mobile" ? "bg-[#0b2540] text-white" : "text-slate-400 hover:text-slate-700"
+                        previewMode === "mobile" ? "bg-[#006e2f] text-white" : "text-slate-400 hover:text-slate-700"
                       }`}
                       aria-label="Aperçu mobile"
                       aria-pressed={previewMode === "mobile"}
@@ -1603,7 +1603,7 @@ export default function CreerProduitPage() {
             className={`pointer-events-auto inline-flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg border text-sm font-semibold transition-all motion-safe:animate-[slideInRight_220ms_ease-out] ${
               t.kind === "success"
                 ? "bg-emerald-500 text-white border-emerald-600"
-                : "bg-[#0b2540] text-white border-slate-700"
+                : "bg-[#006e2f] text-white border-slate-700"
             }`}
             style={{ animation: "slideInRight 220ms ease-out" }}
           >
