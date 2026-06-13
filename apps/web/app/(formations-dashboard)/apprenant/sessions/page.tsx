@@ -1,4 +1,4 @@
-// Refonte style KAZA — apprenant sessions — 2026-06-07
+// Refonte design "Stitch" — apprenant sessions — vert Novakou — 2026-06-13
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,13 +6,16 @@ import Link from "next/link";
 import { confirmAction } from "@/store/confirm";
 import { useToastStore } from "@/store/toast";
 import {
-  KazaHero,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-  KazaSection,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StChip,
+  StKpiCompact,
+  StStatusPill,
+  StSectionTitle,
+  StAvatar,
+  ST,
+} from "@/components/stitch";
 import {
   Calendar,
   CalendarCheck,
@@ -93,11 +96,6 @@ function fmtTime(iso: string) {
   });
 }
 
-function initials(name: string | null) {
-  if (!name) return "M";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
 function minutesUntil(iso: string): number {
   return Math.round((new Date(iso).getTime() - Date.now()) / 60000);
 }
@@ -109,17 +107,17 @@ function isJoinableNow(scheduledAt: string, durationMinutes: number): boolean {
 
 const STATUS_VARIANT: Record<
   BookingStatus,
-  { label: string; variant: "orange" | "green" | "blue" | "rose" | "slate" | "violet" }
+  { label: string; tone: "amber" | "green" | "blue" | "rose" | "neutral" }
 > = {
-  PAYMENT_PENDING: { label: "Paiement en cours", variant: "orange" },
-  PENDING: { label: "En attente mentor", variant: "orange" },
-  CONFIRMED: { label: "Confirmée", variant: "green" },
-  CANCELLATION_REQUESTED_STUDENT: { label: "Annul. en attente admin", variant: "orange" },
-  CANCELLATION_REQUESTED_MENTOR: { label: "Mentor a annulé · admin examine", variant: "orange" },
-  COMPLETED: { label: "Terminée", variant: "blue" },
-  RELEASED: { label: "Terminée (fonds libérés)", variant: "blue" },
-  CANCELLED: { label: "Annulée", variant: "rose" },
-  NO_SHOW: { label: "Absent", variant: "slate" },
+  PAYMENT_PENDING: { label: "Paiement en cours", tone: "amber" },
+  PENDING: { label: "En attente mentor", tone: "amber" },
+  CONFIRMED: { label: "Confirmée", tone: "green" },
+  CANCELLATION_REQUESTED_STUDENT: { label: "Annul. en attente admin", tone: "amber" },
+  CANCELLATION_REQUESTED_MENTOR: { label: "Mentor a annulé · admin examine", tone: "amber" },
+  COMPLETED: { label: "Terminée", tone: "blue" },
+  RELEASED: { label: "Terminée (fonds libérés)", tone: "blue" },
+  CANCELLED: { label: "Annulée", tone: "rose" },
+  NO_SHOW: { label: "Absent", tone: "neutral" },
 };
 
 // ─── Review modal ─────────────────────────────────────────────────────────────
@@ -158,20 +156,20 @@ function ReviewModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full p-6 relative">
+      <div className="bg-white rounded-[20px] max-w-md w-full p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-[#f1f5f3] flex items-center justify-center"
         >
           <X className="w-4 h-4" />
         </button>
-        <h2 className="text-lg font-extrabold text-[#0b2540]">Évaluer la séance</h2>
-        <p className="text-xs text-slate-500 mt-1">
+        <h2 className="text-[17px] font-extrabold" style={{ color: ST.text }}>Évaluer la séance</h2>
+        <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
           Votre avis aide {session.mentor.name ?? "le mentor"} et les futurs apprenants.
         </p>
 
         <div className="mt-5">
-          <p className="text-xs font-semibold text-[#0b2540] mb-2">Votre note</p>
+          <p className="text-[12px] font-extrabold mb-2" style={{ color: ST.text }}>Votre note</p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((s) => (
               <button
@@ -191,27 +189,23 @@ function ReviewModal({
         </div>
 
         <div className="mt-4">
-          <p className="text-xs font-semibold text-[#0b2540] mb-1.5">Commentaire (optionnel)</p>
+          <p className="text-[12px] font-extrabold mb-1.5" style={{ color: ST.text }}>Commentaire (optionnel)</p>
           <textarea
             value={review}
             onChange={(e) => setReview(e.target.value)}
             rows={4}
             maxLength={2000}
             placeholder="Qu'avez-vous appris ? Qu'avez-vous apprécié ?"
-            className="w-full text-sm border-2 border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 resize-none"
+            className="w-full text-[13.5px] rounded-[12px] px-3 py-2 focus:outline-none resize-none"
+            style={{ border: "1px solid #dde6e0", color: "#33453b" }}
           />
         </div>
 
-        {err && <p className="text-xs text-rose-600 mt-3">{err}</p>}
+        {err && <p className="text-[12px] font-bold mt-3" style={{ color: ST.roseText }}>{err}</p>}
 
-        <KazaButton
-          variant="primary"
-          onClick={submit}
-          disabled={submitting}
-          className="w-full mt-5"
-        >
+        <StButton onClick={submit} disabled={submitting} className="w-full mt-5">
           {submitting ? "Envoi…" : "Publier mon avis"}
-        </KazaButton>
+        </StButton>
       </div>
     </div>
   );
@@ -308,331 +302,284 @@ export default function ApprenantSessionsPage() {
 
   if (loading) {
     return (
-      <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6 animate-pulse">
-        <div className="h-32 bg-slate-200 rounded-3xl" />
-        <div className="grid grid-cols-4 gap-4">
-          {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-24 bg-slate-200 rounded-2xl" />
-          ))}
-        </div>
-        <div className="h-64 bg-slate-200 rounded-2xl" />
+      <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+        <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-4 animate-pulse">
+          <div className="h-20 rounded-[18px]" style={{ background: "#f3f6f4" }} />
+          <div className="grid grid-cols-4 gap-3.5">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-20 rounded-[18px]" style={{ background: "#f3f6f4" }} />
+            ))}
+          </div>
+          <div className="h-64 rounded-[18px]" style={{ background: "#f3f6f4" }} />
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Apprenant"
-        badgeColor="blue"
-        icon={CalendarCheck}
-        title="Mes sessions de mentorat"
-        subtitle="Suivez vos séances réservées, rejoignez les salles Jitsi et laissez vos avis."
-        actions={
-          <>
-            <KazaButton variant="secondary" href="/mentors" icon={Search}>
-              Trouver un mentor
-            </KazaButton>
-            <KazaButton variant="primary" href="/apprenant/mentors" icon={UserPlus}>
-              Mes mentors
-            </KazaButton>
-          </>
-        }
-      />
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title="Mes sessions de mentorat"
+          subtitle="Suivez vos séances réservées, rejoignez les salles Jitsi et laissez vos avis."
+          actions={
+            <>
+              <StButton variant="secondary" href="/mentors" icon={Search}>
+                Trouver un mentor
+              </StButton>
+              <StButton href="/apprenant/mentors" icon={UserPlus}>
+                Mes mentors
+              </StButton>
+            </>
+          }
+        />
 
-      {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-center gap-2">
-          <XCircle className="w-5 h-5 text-rose-500" />
-          <p className="text-sm text-rose-700">{error}</p>
-        </div>
-      )}
-
-      {/* KPIs */}
-      {stats && (
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KazaKpiCard label="À venir" value={stats.upcoming} icon={Calendar} iconColor="emerald" />
-          <KazaKpiCard
-            label="Confirmées"
-            value={stats.confirmed}
-            icon={CheckCircle2}
-            iconColor="emerald"
-          />
-          <KazaKpiCard
-            label="En attente"
-            value={stats.pending}
-            icon={Hourglass}
-            iconColor="orange"
-          />
-          <KazaKpiCard label="Terminées" value={stats.completed} icon={Star} iconColor="sky" />
-        </section>
-      )}
-
-      {/* Upcoming */}
-      <KazaSection
-        label="À venir"
-        title="Prochaines sessions"
-        action={
-          <KazaButton variant="ghost" size="sm" href="/mentors" icon={Plus}>
-            Nouvelle session
-          </KazaButton>
-        }
-      >
-        {upcoming.length === 0 ? (
-          <KazaEmpty
-            icon={Calendar}
-            title="Aucune session à venir"
-            description="Trouvez un mentor qui correspond à vos objectifs."
-            action={{ label: "Découvrir les mentors", href: "/mentors" }}
-          />
-        ) : (
-          <div className="space-y-3">
-            {upcoming.map((s) => {
-              const cfg = STATUS_VARIANT[s.status];
-              const joinable = isJoinableNow(s.scheduledAt, s.durationMinutes);
-              return (
-                <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-slate-100">
-                    <span className="text-xs font-semibold text-slate-500 capitalize">
-                      {fmtDate(s.scheduledAt)} · {fmtTime(s.scheduledAt)}
-                    </span>
-                    <div className="ml-auto">
-                      <KazaBadge variant={cfg.variant} size="sm">
-                        {cfg.label}
-                      </KazaBadge>
-                    </div>
-                  </div>
-
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold overflow-hidden flex-shrink-0"
-                        style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
-                      >
-                        {s.mentor.image ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={s.mentor.image}
-                            alt={s.mentor.name ?? ""}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          initials(s.mentor.name)
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <Link
-                          href={`/mentors/${s.mentor.id}`}
-                          className="text-sm font-bold text-[#0b2540] hover:underline"
-                        >
-                          {s.mentor.name ?? "Mentor"}
-                        </Link>
-                        <p className="text-xs text-slate-500">{s.mentor.specialty}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-[11px] text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <Timer className="w-3 h-3" />
-                            {s.durationMinutes} min
-                          </span>
-                          <span>·</span>
-                          <span className="font-semibold text-emerald-600 tabular-nums">
-                            {fmt(s.paidAmount)} F
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {s.studentGoals && (
-                      <div className="mt-3 bg-sky-50 border border-sky-200 rounded-xl px-3 py-2">
-                        <p className="text-[10px] font-bold text-sky-800 uppercase mb-0.5">
-                          Vos objectifs
-                        </p>
-                        <p className="text-xs text-sky-900 whitespace-pre-wrap line-clamp-2">
-                          {s.studentGoals}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100">
-                      <KazaButton
-                        variant="ghost"
-                        size="sm"
-                        href={`/apprenant/sessions/${s.id}`}
-                        icon={Info}
-                      >
-                        Détails
-                      </KazaButton>
-
-                      {s.status === "CONFIRMED" && (
-                        <KazaButton
-                          variant={joinable ? "primary" : "ghost"}
-                          size="sm"
-                          href={`/sessions/${s.id}/salle`}
-                          icon={Video}
-                        >
-                          {joinable ? "Rejoindre la salle" : "Ouvrir la salle"}
-                        </KazaButton>
-                      )}
-
-                      {s.status === "CONFIRMED" && minutesUntil(s.scheduledAt) < 30 && (
-                        <>
-                          {s.studentAttended === true ? (
-                            <KazaBadge variant="green" size="md" icon={CheckCircle2}>
-                              Présence confirmée
-                            </KazaBadge>
-                          ) : (
-                            <KazaButton
-                              variant="primary"
-                              size="sm"
-                              icon={CheckCircle2}
-                              onClick={async () => {
-                                const res = await fetch(
-                                  `/api/formations/mentor-bookings/${s.id}/attendance`,
-                                  {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ attended: true }),
-                                  },
-                                );
-                                if (res.ok) {
-                                  useToastStore.getState().addToast("success", "Présence enregistrée");
-                                  await load();
-                                } else {
-                                  const j = await res.json();
-                                  useToastStore.getState().addToast("error", j.error ?? "Erreur");
-                                }
-                              }}
-                            >
-                              J&apos;ai assisté
-                            </KazaButton>
-                          )}
-                        </>
-                      )}
-
-                      <KazaButton
-                        variant="ghost"
-                        size="sm"
-                        icon={MessageSquare}
-                        onClick={async () => {
-                          try {
-                            const res = await fetch("/api/formations/messages/conversations", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ otherUserId: s.mentor.userId }),
-                            });
-                            const json = await res.json();
-                            if (json.data?.id) {
-                              window.location.href = `/messages/${json.data.id}`;
-                            } else {
-                              useToastStore.getState().addToast("error", json.error ?? "Erreur");
-                            }
-                          } catch (e) {
-                            useToastStore
-                              .getState()
-                              .addToast("error", e instanceof Error ? e.message : "Erreur");
-                          }
-                        }}
-                        className="ml-auto"
-                      >
-                        Message
-                      </KazaButton>
-                      <KazaButton
-                        variant="danger"
-                        size="sm"
-                        icon={XCircle}
-                        onClick={() => cancelSession(s.id, s.status)}
-                      >
-                        Annuler
-                      </KazaButton>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        {error && (
+          <div className="rounded-[12px] px-4 py-3 flex items-center gap-2 mb-4" style={{ background: ST.roseSoft, border: "1px solid #f3cdd8" }}>
+            <XCircle className="w-5 h-5" style={{ color: ST.roseText }} />
+            <p className="text-[13px] font-semibold" style={{ color: ST.roseText }}>{error}</p>
           </div>
         )}
-      </KazaSection>
 
-      {/* Past */}
-      {past.length > 0 && (
-        <KazaSection label="Historique" title="Sessions passées">
-          <div className="space-y-2">
-            {past.map((s) => {
-              const cfg = STATUS_VARIANT[s.status];
-              return (
-                <div
-                  key={s.id}
-                  className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3 hover:border-emerald-200 transition-colors"
-                >
-                  <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden"
-                    style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
-                  >
-                    {s.mentor.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={s.mentor.image}
-                        alt={s.mentor.name ?? ""}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      initials(s.mentor.name)
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#0b2540] truncate">
-                      {s.mentor.name ?? "Mentor"}
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      {fmtDate(s.scheduledAt)} · {fmtTime(s.scheduledAt)} · {fmt(s.paidAmount)} F
-                    </p>
-                  </div>
-                  <KazaBadge variant={cfg.variant} size="sm">
-                    {cfg.label}
-                  </KazaBadge>
-                  {s.canReview && (
-                    <KazaButton
-                      variant="ghost"
-                      size="sm"
-                      icon={Star}
-                      onClick={() => setReviewTarget(s)}
-                    >
-                      Noter
-                    </KazaButton>
-                  )}
-                  {s.studentRating && (
-                    <span className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((st) => (
-                        <Star
-                          key={st}
-                          className="w-3 h-3"
-                          fill={st <= s.studentRating! ? "#f59e0b" : "transparent"}
-                          stroke={st <= s.studentRating! ? "#f59e0b" : "#d1d5db"}
-                        />
-                      ))}
-                    </span>
-                  )}
-                  <Link
-                    href={`/apprenant/sessions/${s.id}`}
-                    className="text-slate-500 hover:text-[#0b2540]"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              );
-            })}
+        {/* KPIs */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-4">
+            <StKpiCompact label="À venir" value={stats.upcoming} icon={Calendar} tone="green" />
+            <StKpiCompact label="Confirmées" value={stats.confirmed} icon={CheckCircle2} tone="green" />
+            <StKpiCompact label="En attente" value={stats.pending} icon={Hourglass} tone="amber" />
+            <StKpiCompact label="Terminées" value={stats.completed} icon={Star} tone="blue" />
           </div>
-        </KazaSection>
-      )}
+        )}
 
-      {reviewTarget && (
-        <ReviewModal
-          session={reviewTarget}
-          onClose={() => setReviewTarget(null)}
-          onSubmitted={async () => {
-            setReviewTarget(null);
-            await load();
-          }}
-        />
-      )}
+        {/* Upcoming */}
+        <section className="mb-5">
+          <StSectionTitle
+            action={
+              <StButton variant="ghost-green" size="sm" href="/mentors" icon={Plus}>
+                Nouvelle session
+              </StButton>
+            }
+          >
+            Prochaines sessions
+          </StSectionTitle>
+
+          {upcoming.length === 0 ? (
+            <StCard className="!p-10 text-center">
+              <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-4" style={{ background: ST.greenSoft }}>
+                <Calendar size={32} style={{ color: ST.green }} strokeWidth={1.8} />
+              </div>
+              <h3 className="text-[15px] font-extrabold mb-1.5" style={{ color: ST.text }}>Aucune session à venir</h3>
+              <p className="text-[13px] font-semibold mb-5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+                Trouvez un mentor qui correspond à vos objectifs.
+              </p>
+              <StButton href="/mentors" icon={Search}>Découvrir les mentors</StButton>
+            </StCard>
+          ) : (
+            <div className="space-y-3">
+              {upcoming.map((s) => {
+                const cfg = STATUS_VARIANT[s.status];
+                const joinable = isJoinableNow(s.scheduledAt, s.durationMinutes);
+                return (
+                  <StCard key={s.id} noPadding className="overflow-hidden">
+                    <div className="flex items-center gap-2 px-4 py-2.5" style={{ background: "#f7faf8", borderBottom: `1px solid ${ST.divider}` }}>
+                      <span className="text-[12px] font-bold capitalize" style={{ color: ST.textSecondary }}>
+                        {fmtDate(s.scheduledAt)} · {fmtTime(s.scheduledAt)}
+                      </span>
+                      <div className="ml-auto">
+                        <StChip tone={cfg.tone}>{cfg.label}</StChip>
+                      </div>
+                    </div>
+
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        <StAvatar name={s.mentor.name ?? "Mentor"} src={s.mentor.image} size={40} />
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={`/mentors/${s.mentor.id}`}
+                            className="text-[13.5px] font-extrabold hover:underline"
+                            style={{ color: ST.text }}
+                          >
+                            {s.mentor.name ?? "Mentor"}
+                          </Link>
+                          <p className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>{s.mentor.specialty}</p>
+                          <div className="flex flex-wrap gap-2 mt-1 text-[11px] font-semibold" style={{ color: ST.textMuted }}>
+                            <span className="flex items-center gap-1">
+                              <Timer className="w-3 h-3" />
+                              {s.durationMinutes} min
+                            </span>
+                            <span>·</span>
+                            <span className="font-extrabold tabular-nums" style={{ color: ST.green }}>
+                              {fmt(s.paidAmount)} F
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {s.studentGoals && (
+                        <div className="mt-3 rounded-[12px] px-3 py-2" style={{ background: ST.blueSoft, border: "1px solid #cfe3f5" }}>
+                          <p className="text-[10px] font-extrabold uppercase mb-0.5" style={{ color: ST.blueText }}>
+                            Vos objectifs
+                          </p>
+                          <p className="text-[12px] whitespace-pre-wrap line-clamp-2" style={{ color: "#0c447c" }}>
+                            {s.studentGoals}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap gap-2 mt-4 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <StButton variant="secondary" size="sm" href={`/apprenant/sessions/${s.id}`} icon={Info}>
+                          Détails
+                        </StButton>
+
+                        {s.status === "CONFIRMED" && (
+                          <StButton
+                            variant={joinable ? "primary" : "secondary"}
+                            size="sm"
+                            href={`/sessions/${s.id}/salle`}
+                            icon={Video}
+                          >
+                            {joinable ? "Rejoindre la salle" : "Ouvrir la salle"}
+                          </StButton>
+                        )}
+
+                        {s.status === "CONFIRMED" && minutesUntil(s.scheduledAt) < 30 && (
+                          <>
+                            {s.studentAttended === true ? (
+                              <StChip tone="green" icon={CheckCircle2}>Présence confirmée</StChip>
+                            ) : (
+                              <StButton
+                                size="sm"
+                                icon={CheckCircle2}
+                                onClick={async () => {
+                                  const res = await fetch(
+                                    `/api/formations/mentor-bookings/${s.id}/attendance`,
+                                    {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ attended: true }),
+                                    },
+                                  );
+                                  if (res.ok) {
+                                    useToastStore.getState().addToast("success", "Présence enregistrée");
+                                    await load();
+                                  } else {
+                                    const j = await res.json();
+                                    useToastStore.getState().addToast("error", j.error ?? "Erreur");
+                                  }
+                                }}
+                              >
+                                J&apos;ai assisté
+                              </StButton>
+                            )}
+                          </>
+                        )}
+
+                        <StButton
+                          variant="secondary"
+                          size="sm"
+                          icon={MessageSquare}
+                          onClick={async () => {
+                            try {
+                              const res = await fetch("/api/formations/messages/conversations", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ otherUserId: s.mentor.userId }),
+                              });
+                              const json = await res.json();
+                              if (json.data?.id) {
+                                window.location.href = `/messages/${json.data.id}`;
+                              } else {
+                                useToastStore.getState().addToast("error", json.error ?? "Erreur");
+                              }
+                            } catch (e) {
+                              useToastStore
+                                .getState()
+                                .addToast("error", e instanceof Error ? e.message : "Erreur");
+                            }
+                          }}
+                          className="ml-auto"
+                        >
+                          Message
+                        </StButton>
+                        <button
+                          type="button"
+                          onClick={() => cancelSession(s.id, s.status)}
+                          className="inline-flex items-center justify-center gap-2 font-extrabold transition-all whitespace-nowrap px-3 py-2 text-[12px] rounded-[10px] hover:opacity-90"
+                          style={{ background: ST.roseSoft, color: ST.roseText }}
+                        >
+                          <XCircle size={14} />
+                          Annuler
+                        </button>
+                      </div>
+                    </div>
+                  </StCard>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        {/* Past */}
+        {past.length > 0 && (
+          <section className="mb-5">
+            <StSectionTitle>Sessions passées</StSectionTitle>
+            <div className="space-y-2">
+              {past.map((s) => {
+                const cfg = STATUS_VARIANT[s.status];
+                return (
+                  <StCard key={s.id} className="!p-4 flex items-center gap-3">
+                    <StAvatar name={s.mentor.name ?? "Mentor"} src={s.mentor.image} size={36} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13.5px] font-extrabold truncate" style={{ color: ST.text }}>
+                        {s.mentor.name ?? "Mentor"}
+                      </p>
+                      <p className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>
+                        {fmtDate(s.scheduledAt)} · {fmtTime(s.scheduledAt)} · {fmt(s.paidAmount)} F
+                      </p>
+                    </div>
+                    <StChip tone={cfg.tone}>{cfg.label}</StChip>
+                    {s.canReview && (
+                      <StButton variant="secondary" size="sm" icon={Star} onClick={() => setReviewTarget(s)}>
+                        Noter
+                      </StButton>
+                    )}
+                    {s.studentRating && (
+                      <span className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((st) => (
+                          <Star
+                            key={st}
+                            className="w-3 h-3"
+                            fill={st <= s.studentRating! ? "#f59e0b" : "transparent"}
+                            stroke={st <= s.studentRating! ? "#f59e0b" : "#d1d5db"}
+                          />
+                        ))}
+                      </span>
+                    )}
+                    <Link
+                      href={`/apprenant/sessions/${s.id}`}
+                      className="hover:opacity-70"
+                      style={{ color: ST.textSecondary }}
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  </StCard>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {reviewTarget && (
+          <ReviewModal
+            session={reviewTarget}
+            onClose={() => setReviewTarget(null)}
+            onSubmitted={async () => {
+              setReviewTarget(null);
+              await load();
+            }}
+          />
+        )}
+      </main>
     </div>
   );
 }

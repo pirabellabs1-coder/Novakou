@@ -1,4 +1,4 @@
-// Refonte style KAZA — apprenant mes-produits — 2026-06-07
+// Refonte design "Stitch" — apprenant mes-produits — vert Novakou — 2026-06-13
 "use client";
 import { useToastStore } from "@/store/toast";
 
@@ -6,12 +6,14 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReviewModal } from "@/components/formations/ReviewModal";
 import {
-  KazaHero,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StChip,
+  StKpiCompact,
+  StTabs,
+  ST,
+} from "@/components/stitch";
 import {
   Package,
   Download,
@@ -62,9 +64,9 @@ type Purchase = {
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
 
 const typeLabels: Record<string, string> = { EBOOK: "E-book", TEMPLATE: "Template", AUDIO: "Audio" };
-const typeBadgeVariant: Record<string, "orange" | "blue" | "violet"> = {
-  EBOOK: "orange",
-  TEMPLATE: "violet",
+const typeBadgeTone: Record<string, "amber" | "blue" | "green"> = {
+  EBOOK: "amber",
+  TEMPLATE: "green",
   AUDIO: "blue",
 };
 const typeIcons: Record<string, typeof BookOpen> = {
@@ -73,8 +75,8 @@ const typeIcons: Record<string, typeof BookOpen> = {
   AUDIO: Headphones,
 };
 const typeGradients: Record<string, [string, string]> = {
-  EBOOK:    ["#1b4332", "#081c15"],
-  TEMPLATE: ["#92400e", "#451a03"],
+  EBOOK:    ["#006e2f", "#22c55e"],
+  TEMPLATE: ["#0b3b20", "#34b06a"],
   AUDIO:    ["#0f3460", "#16213e"],
 };
 
@@ -82,12 +84,12 @@ type FilterType = "tous" | "EBOOK" | "TEMPLATE" | "AUDIO";
 
 function SkeletonRow() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex gap-4 animate-pulse">
-      <div className="w-16 h-16 rounded-xl bg-slate-100 flex-shrink-0" />
+    <div className="rounded-[18px] bg-white p-5 flex gap-4 animate-pulse" style={{ border: `1px solid ${ST.cardBorder}` }}>
+      <div className="w-16 h-16 rounded-xl flex-shrink-0" style={{ background: "#f3f6f4" }} />
       <div className="flex-1 space-y-2 py-1">
-        <div className="h-4 bg-slate-100 rounded w-3/4" />
-        <div className="h-3 bg-slate-100 rounded w-1/2" />
-        <div className="h-3 bg-slate-100 rounded w-2/3" />
+        <div className="h-4 rounded w-3/4" style={{ background: "#f3f6f4" }} />
+        <div className="h-3 rounded w-1/2" style={{ background: "#f3f6f4" }} />
+        <div className="h-3 rounded w-2/3" style={{ background: "#f3f6f4" }} />
       </div>
     </div>
   );
@@ -165,205 +167,181 @@ export default function ProduitsPage() {
   };
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Apprenant"
-        badgeColor="blue"
-        icon={Package}
-        title="Mes produits numériques"
-        subtitle={
-          isLoading
-            ? "Chargement…"
-            : `${purchases.length} produit${purchases.length > 1 ? "s" : ""} acheté${purchases.length > 1 ? "s" : ""} · Accès à vie`
-        }
-        actions={
-          <KazaButton variant="primary" href="/explorer" icon={Search}>
-            Explorer le catalogue
-          </KazaButton>
-        }
-      />
-
-      {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KazaKpiCard
-          label="Total produits"
-          value={isLoading ? "…" : purchases.length}
-          icon={Package}
-          iconColor="orange"
-        />
-        <KazaKpiCard
-          label="Téléchargés"
-          value={isLoading ? "…" : downloadedCount}
-          icon={CheckCircle2}
-          iconColor="emerald"
-        />
-        <KazaKpiCard
-          label="À télécharger"
-          value={isLoading ? "…" : Math.max(0, purchases.length - downloadedCount)}
-          icon={DownloadCloud}
-          iconColor="sky"
-        />
-      </section>
-
-      {/* Filter pills */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {(["tous", "EBOOK", "TEMPLATE", "AUDIO"] as FilterType[]).map((f) => {
-          const isActive = filter === f;
-          return (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                isActive
-                  ? "bg-[#0b2540] text-white shadow-md"
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-[#0b2540]/30 hover:text-[#0b2540]"
-              }`}
-            >
-              {f === "tous" ? "Tous" : typeLabels[f]}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* List */}
-      {isLoading ? (
-        <div className="space-y-4">{[0,1,2].map((i) => <SkeletonRow key={i} />)}</div>
-      ) : filtered.length === 0 ? (
-        <KazaEmpty
-          icon={Package}
-          title="Aucun produit"
-          description={
-            filter === "tous"
-              ? "Vous n'avez pas encore acheté de produit numérique. Explorez le catalogue pour découvrir e-books, templates et audios."
-              : "Aucun produit dans cette catégorie."
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title="Mes produits numériques"
+          subtitle={
+            isLoading
+              ? "Chargement…"
+              : `${purchases.length} produit${purchases.length > 1 ? "s" : ""} acheté${purchases.length > 1 ? "s" : ""} · Accès à vie`
           }
-          action={{ label: "Explorer le catalogue", href: "/explorer" }}
+          actions={
+            <StButton href="/explorer" icon={Search}>
+              Explorer le catalogue
+            </StButton>
+          }
         />
-      ) : (
-        <div className="space-y-4">
-          {filtered.map((p) => {
-            const type = (p.product?.productType ?? "EBOOK").toUpperCase();
-            const isDown = p.downloadCount > 0 || downloaded.has(p.id);
-            const [gFrom, gTo] = typeGradients[type] ?? ["#006e2f", "#22c55e"];
-            const TypeIcon = typeIcons[type] ?? Package;
-            const purchaseDate = new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 
-            const productFiles = p.product?.files ?? [];
-            const fileCount = productFiles.length;
-            const existingReview = p.product?.reviews?.[0];
-
-            return (
-              <div key={p.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <div className="flex gap-4">
-                  <div
-                    className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0"
-                    style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}
-                  >
-                    <TypeIcon className="w-7 h-7 text-white" strokeWidth={2} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start gap-2 mb-1.5 flex-wrap">
-                      <KazaBadge variant={typeBadgeVariant[type] ?? "slate"} size="sm">
-                        {typeLabels[type] ?? type}
-                      </KazaBadge>
-                      {isDown && (
-                        <KazaBadge variant="green" size="sm" icon={CheckCircle2}>
-                          Téléchargé
-                        </KazaBadge>
-                      )}
-                      {fileCount > 1 && (
-                        <KazaBadge variant="blue" size="sm">
-                          {fileCount} fichiers
-                        </KazaBadge>
-                      )}
-                    </div>
-                    <h3 className="font-bold text-[#0b2540] text-sm leading-snug mb-1">{p.product?.title ?? "Produit"}</h3>
-                    <div className="flex items-center gap-3 text-[10px] text-slate-500 flex-wrap">
-                      {p.product?.fileSize != null && fileCount <= 1 && (
-                        <span className="flex items-center gap-1">
-                          <Folder className="w-3 h-3" />
-                          {p.product.fileSize > 1_000_000
-                            ? `${(p.product.fileSize / 1_000_000).toFixed(1)} Mo`
-                            : `${Math.round(p.product.fileSize / 1000)} Ko`}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        Acheté le {purchaseDate}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <p className="text-xs font-bold text-emerald-600">{formatFcfa(p.paidAmount)}</p>
-                    <KazaButton
-                      onClick={() => handleDownload(p)}
-                      variant={isDown ? "ghost" : "primary"}
-                      size="sm"
-                      icon={isDown ? CheckCircle2 : Download}
-                    >
-                      {isDown ? "Re-télécharger" : "Télécharger"}
-                    </KazaButton>
-                    <button
-                      onClick={() => setReviewTarget({
-                        id: p.product?.id ?? "",
-                        title: p.product?.title ?? "",
-                        existing: existingReview ? { rating: existingReview.rating, comment: existingReview.comment } : undefined,
-                      })}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
-                    >
-                      {existingReview ? (
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                      ) : (
-                        <Sparkles className="w-3.5 h-3.5" />
-                      )}
-                      {existingReview ? `${existingReview.rating}/5 · Modifier` : "Donner mon avis"}
-                    </button>
-                  </div>
-                </div>
-                {fileCount > 1 && (
-                  <ul className="mt-4 pt-4 border-t border-slate-100 space-y-1.5">
-                    {productFiles.map((f, fIdx) => {
-                      const Icon = getFileIcon(f);
-                      return (
-                        <li key={f.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors">
-                          <Icon className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                          <span className="flex-1 text-xs text-[#0b2540] truncate">{f.name}</span>
-                          {f.size != null && f.size > 0 && (
-                            <span className="text-[10px] text-slate-500 tabular-nums flex-shrink-0">
-                              {f.size > 1_000_000 ? `${(f.size / 1_000_000).toFixed(1)} Mo` : `${Math.round(f.size / 1000)} Ko`}
-                            </span>
-                          )}
-                          <a
-                            href={proxyHref(p.id, fIdx)}
-                            download={f.name || true}
-                            rel="noopener noreferrer"
-                            className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 hover:underline flex-shrink-0"
-                          >
-                            Télécharger
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
+        {/* KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
+          <StKpiCompact label="Total produits" value={isLoading ? "…" : purchases.length} icon={Package} tone="amber" />
+          <StKpiCompact label="Téléchargés" value={isLoading ? "…" : downloadedCount} icon={CheckCircle2} tone="green" />
+          <StKpiCompact label="À télécharger" value={isLoading ? "…" : Math.max(0, purchases.length - downloadedCount)} icon={DownloadCloud} tone="blue" />
         </div>
-      )}
 
-      {reviewTarget && (
-        <ReviewModal
-          open={!!reviewTarget}
-          onClose={() => setReviewTarget(null)}
-          onSuccess={() => qc.invalidateQueries({ queryKey: ["apprenant-products"] })}
-          kind="product"
-          itemId={reviewTarget.id}
-          itemTitle={reviewTarget.title}
-          initialRating={reviewTarget.existing?.rating}
-          initialComment={reviewTarget.existing?.comment}
-        />
-      )}
+        {/* Filter tabs */}
+        <div className="mb-4">
+          <StTabs
+            tabs={[
+              { key: "tous", label: "Tous" },
+              { key: "EBOOK", label: typeLabels.EBOOK },
+              { key: "TEMPLATE", label: typeLabels.TEMPLATE },
+              { key: "AUDIO", label: typeLabels.AUDIO },
+            ]}
+            active={filter}
+            onChange={(k) => setFilter(k as FilterType)}
+          />
+        </div>
+
+        {/* List */}
+        {isLoading ? (
+          <div className="space-y-3.5">{[0, 1, 2].map((i) => <SkeletonRow key={i} />)}</div>
+        ) : filtered.length === 0 ? (
+          <StCard className="!p-10 text-center">
+            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-4" style={{ background: ST.greenSoft }}>
+              <Package size={32} style={{ color: ST.green }} strokeWidth={1.8} />
+            </div>
+            <h3 className="text-[15px] font-extrabold mb-1.5" style={{ color: ST.text }}>Aucun produit</h3>
+            <p className="text-[13px] font-semibold mb-5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+              {filter === "tous"
+                ? "Vous n'avez pas encore acheté de produit numérique. Explorez le catalogue pour découvrir e-books, templates et audios."
+                : "Aucun produit dans cette catégorie."}
+            </p>
+            <StButton href="/explorer" icon={Search}>Explorer le catalogue</StButton>
+          </StCard>
+        ) : (
+          <div className="space-y-3.5">
+            {filtered.map((p) => {
+              const type = (p.product?.productType ?? "EBOOK").toUpperCase();
+              const isDown = p.downloadCount > 0 || downloaded.has(p.id);
+              const [gFrom, gTo] = typeGradients[type] ?? ["#006e2f", "#22c55e"];
+              const TypeIcon = typeIcons[type] ?? Package;
+              const purchaseDate = new Date(p.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+              const productFiles = p.product?.files ?? [];
+              const fileCount = productFiles.length;
+              const existingReview = p.product?.reviews?.[0];
+
+              return (
+                <StCard key={p.id}>
+                  <div className="flex gap-4">
+                    <div
+                      className="w-16 h-16 rounded-[13px] flex items-center justify-center flex-shrink-0"
+                      style={{ background: `linear-gradient(135deg, ${gFrom}, ${gTo})` }}
+                    >
+                      <TypeIcon className="w-7 h-7 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-2 mb-1.5 flex-wrap">
+                        <StChip tone={typeBadgeTone[type] ?? "neutral"}>{typeLabels[type] ?? type}</StChip>
+                        {isDown && (
+                          <StChip tone="green" icon={CheckCircle2}>Téléchargé</StChip>
+                        )}
+                        {fileCount > 1 && (
+                          <StChip tone="blue">{fileCount} fichiers</StChip>
+                        )}
+                      </div>
+                      <h3 className="font-extrabold text-[13.5px] leading-snug mb-1" style={{ color: ST.text }}>{p.product?.title ?? "Produit"}</h3>
+                      <div className="flex items-center gap-3 text-[10px] font-semibold flex-wrap" style={{ color: ST.textMuted }}>
+                        {p.product?.fileSize != null && fileCount <= 1 && (
+                          <span className="flex items-center gap-1">
+                            <Folder className="w-3 h-3" />
+                            {p.product.fileSize > 1_000_000
+                              ? `${(p.product.fileSize / 1_000_000).toFixed(1)} Mo`
+                              : `${Math.round(p.product.fileSize / 1000)} Ko`}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          Acheté le {purchaseDate}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <p className="text-[12px] font-extrabold" style={{ color: ST.green }}>{formatFcfa(p.paidAmount)}</p>
+                      <StButton
+                        onClick={() => handleDownload(p)}
+                        variant={isDown ? "secondary" : "primary"}
+                        size="sm"
+                        icon={isDown ? CheckCircle2 : Download}
+                      >
+                        {isDown ? "Re-télécharger" : "Télécharger"}
+                      </StButton>
+                      <button
+                        onClick={() => setReviewTarget({
+                          id: p.product?.id ?? "",
+                          title: p.product?.title ?? "",
+                          existing: existingReview ? { rating: existingReview.rating, comment: existingReview.comment } : undefined,
+                        })}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[11px] font-extrabold transition-colors hover:opacity-90"
+                        style={{ background: ST.amberSoft, color: ST.amberText }}
+                      >
+                        {existingReview ? (
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                        ) : (
+                          <Sparkles className="w-3.5 h-3.5" />
+                        )}
+                        {existingReview ? `${existingReview.rating}/5 · Modifier` : "Donner mon avis"}
+                      </button>
+                    </div>
+                  </div>
+                  {fileCount > 1 && (
+                    <ul className="mt-4 pt-4 space-y-1.5" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      {productFiles.map((f, fIdx) => {
+                        const Icon = getFileIcon(f);
+                        return (
+                          <li key={f.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#f7faf8] transition-colors">
+                            <Icon className="w-4 h-4 flex-shrink-0" style={{ color: ST.green }} />
+                            <span className="flex-1 text-[12px] truncate" style={{ color: ST.text }}>{f.name}</span>
+                            {f.size != null && f.size > 0 && (
+                              <span className="text-[10px] font-semibold tabular-nums flex-shrink-0" style={{ color: ST.textMuted }}>
+                                {f.size > 1_000_000 ? `${(f.size / 1_000_000).toFixed(1)} Mo` : `${Math.round(f.size / 1000)} Ko`}
+                              </span>
+                            )}
+                            <a
+                              href={proxyHref(p.id, fIdx)}
+                              download={f.name || true}
+                              rel="noopener noreferrer"
+                              className="text-[10px] font-extrabold uppercase tracking-widest hover:underline flex-shrink-0"
+                              style={{ color: ST.green }}
+                            >
+                              Télécharger
+                            </a>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </StCard>
+              );
+            })}
+          </div>
+        )}
+
+        {reviewTarget && (
+          <ReviewModal
+            open={!!reviewTarget}
+            onClose={() => setReviewTarget(null)}
+            onSuccess={() => qc.invalidateQueries({ queryKey: ["apprenant-products"] })}
+            kind="product"
+            itemId={reviewTarget.id}
+            itemTitle={reviewTarget.title}
+            initialRating={reviewTarget.existing?.rating}
+            initialComment={reviewTarget.existing?.comment}
+          />
+        )}
+      </main>
     </div>
   );
 }

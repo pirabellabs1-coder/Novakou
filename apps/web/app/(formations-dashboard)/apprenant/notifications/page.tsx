@@ -1,13 +1,9 @@
-// Refonte style KAZA — apprenant notifications — 2026-06-07
+// Refonte design "Stitch" — apprenant notifications — vert Novakou — 2026-06-13
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import {
-  KazaHero,
-  KazaButton,
-  KazaEmpty,
-} from "@/components/kaza";
+import { StCard, StPageHeader, StButton, StTabs, ST } from "@/components/stitch";
 import {
   Bell,
   BellOff,
@@ -37,27 +33,28 @@ interface Notification {
   createdAt: string;
 }
 
+// Pastilles d'icône en tons Stitch (vert / bleu / ambre / rose)
 const TYPE_ICONS: Record<string, { icon: LucideIcon; color: string; bg: string }> = {
-  order: { icon: ShoppingCart, color: "text-emerald-600", bg: "bg-emerald-50" },
-  ORDER: { icon: ShoppingCart, color: "text-emerald-600", bg: "bg-emerald-50" },
-  message: { icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
-  MESSAGE: { icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
-  payment: { icon: Wallet, color: "text-emerald-700", bg: "bg-emerald-50" },
-  PAYMENT: { icon: Wallet, color: "text-emerald-700", bg: "bg-emerald-50" },
-  system: { icon: Info, color: "text-slate-600", bg: "bg-slate-50" },
-  SYSTEM: { icon: Info, color: "text-slate-600", bg: "bg-slate-50" },
-  kyc: { icon: BadgeCheck, color: "text-violet-600", bg: "bg-violet-50" },
-  KYC: { icon: BadgeCheck, color: "text-violet-600", bg: "bg-violet-50" },
-  admin_action: { icon: ShieldCheck, color: "text-amber-600", bg: "bg-amber-50" },
-  ADMIN_ACTION: { icon: ShieldCheck, color: "text-amber-600", bg: "bg-amber-50" },
-  product: { icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
-  PRODUCT: { icon: Package, color: "text-indigo-600", bg: "bg-indigo-50" },
-  course: { icon: GraduationCap, color: "text-teal-600", bg: "bg-teal-50" },
-  COURSE: { icon: GraduationCap, color: "text-teal-600", bg: "bg-teal-50" },
-  review: { icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
-  REVIEW: { icon: Star, color: "text-amber-500", bg: "bg-amber-50" },
-  offer: { icon: Tag, color: "text-pink-600", bg: "bg-pink-50" },
-  OFFER: { icon: Tag, color: "text-pink-600", bg: "bg-pink-50" },
+  order: { icon: ShoppingCart, color: ST.green, bg: ST.greenSoft },
+  ORDER: { icon: ShoppingCart, color: ST.green, bg: ST.greenSoft },
+  message: { icon: MessageSquare, color: ST.blueText, bg: ST.blueSoft },
+  MESSAGE: { icon: MessageSquare, color: ST.blueText, bg: ST.blueSoft },
+  payment: { icon: Wallet, color: ST.green, bg: ST.greenSoft },
+  PAYMENT: { icon: Wallet, color: ST.green, bg: ST.greenSoft },
+  system: { icon: Info, color: ST.textSecondary, bg: "#f1efe8" },
+  SYSTEM: { icon: Info, color: ST.textSecondary, bg: "#f1efe8" },
+  kyc: { icon: BadgeCheck, color: ST.blueText, bg: ST.blueSoft },
+  KYC: { icon: BadgeCheck, color: ST.blueText, bg: ST.blueSoft },
+  admin_action: { icon: ShieldCheck, color: ST.amberText, bg: ST.amberSoft },
+  ADMIN_ACTION: { icon: ShieldCheck, color: ST.amberText, bg: ST.amberSoft },
+  product: { icon: Package, color: ST.blueText, bg: ST.blueSoft },
+  PRODUCT: { icon: Package, color: ST.blueText, bg: ST.blueSoft },
+  course: { icon: GraduationCap, color: ST.green, bg: ST.greenSoft },
+  COURSE: { icon: GraduationCap, color: ST.green, bg: ST.greenSoft },
+  review: { icon: Star, color: ST.amberText, bg: ST.amberSoft },
+  REVIEW: { icon: Star, color: ST.amberText, bg: ST.amberSoft },
+  offer: { icon: Tag, color: ST.roseText, bg: ST.roseSoft },
+  OFFER: { icon: Tag, color: ST.roseText, bg: ST.roseSoft },
 };
 
 function timeAgo(dateStr: string): string {
@@ -132,152 +129,140 @@ export default function NotificationsPage() {
   });
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Apprenant"
-        badgeColor="blue"
-        icon={Bell}
-        title="Notifications"
-        subtitle={
-          unreadCount > 0
-            ? `${unreadCount} notification${unreadCount > 1 ? "s" : ""} non lue${unreadCount > 1 ? "s" : ""}`
-            : "Toutes les notifications sont lues"
-        }
-        actions={
-          unreadCount > 0 ? (
-            <KazaButton variant="secondary" onClick={markAllRead} icon={CheckCheck}>
-              Tout marquer comme lu
-            </KazaButton>
-          ) : undefined
-        }
-      />
-
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {([
-          { value: "all" as const, label: "Toutes", count: notifications.length },
-          { value: "unread" as const, label: "Non lues", count: unreadCount },
-          { value: "read" as const, label: "Lues", count: notifications.length - unreadCount },
-        ]).map((f) => {
-          const isActive = filter === f.value;
-          return (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                isActive
-                  ? "bg-[#0b2540] text-white shadow-md"
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-[#0b2540]/30 hover:text-[#0b2540]"
-              }`}
-            >
-              {f.label}
-              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
-              }`}>
-                {f.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Notifications list */}
-      {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-100 p-8">
-          <div className="animate-pulse space-y-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-3">
-                <div className="w-10 h-10 bg-slate-100 rounded-xl flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-48 bg-slate-100 rounded" />
-                  <div className="h-3 w-64 bg-slate-100 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : filtered.length === 0 ? (
-        <KazaEmpty
-          icon={BellOff}
-          title={filter === "unread" ? "Aucune notification non lue" : "Aucune notification"}
-          description={
-            filter === "unread"
-              ? "Vous avez lu toutes vos notifications. Bravo !"
-              : "Vos notifications apparaîtront ici dès qu'il y aura de l'activité sur votre compte."
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title="Notifications"
+          subtitle={
+            unreadCount > 0
+              ? `${unreadCount} notification${unreadCount > 1 ? "s" : ""} non lue${unreadCount > 1 ? "s" : ""}`
+              : "Toutes les notifications sont lues"
+          }
+          actions={
+            unreadCount > 0 ? (
+              <StButton variant="secondary" onClick={markAllRead} icon={CheckCheck}>
+                Tout marquer comme lu
+              </StButton>
+            ) : undefined
           }
         />
-      ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden divide-y divide-slate-100">
-          {filtered.map((notif) => {
-            const typeInfo = TYPE_ICONS[notif.type] ?? TYPE_ICONS.system;
-            const Icon = typeInfo.icon;
-            const content = (
-              <div
-                className={`flex gap-4 px-5 py-4 transition-colors ${
-                  notif.read
-                    ? "hover:bg-slate-50"
-                    : "bg-emerald-50/40 hover:bg-emerald-50/70"
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-xl ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
-                  <Icon className={`w-5 h-5 ${typeInfo.color}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className={`text-sm font-bold truncate ${notif.read ? "text-slate-600" : "text-[#0b2540]"}`}>
-                      {notif.title}
-                    </p>
-                    {!notif.read && (
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{notif.message}</p>
-                  <p className="text-[10px] text-slate-400 mt-1.5">{timeAgo(notif.createdAt)}</p>
-                </div>
-                {!notif.read && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      markOneRead(notif.id);
-                    }}
-                    className="flex-shrink-0 p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-emerald-600 transition-colors self-center"
-                    title="Marquer comme lue"
-                  >
-                    <Check className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            );
 
-            if (notif.link) {
+        {/* Filters */}
+        <div className="mb-4">
+          <StTabs
+            tabs={[
+              { key: "all", label: "Toutes", count: notifications.length },
+              { key: "unread", label: "Non lues", count: unreadCount },
+              { key: "read", label: "Lues", count: notifications.length - unreadCount },
+            ]}
+            active={filter}
+            onChange={(k) => setFilter(k as FilterType)}
+          />
+        </div>
+
+        {/* Notifications list */}
+        {loading ? (
+          <StCard className="!p-8">
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-3">
+                  <div className="w-10 h-10 rounded-xl flex-shrink-0" style={{ background: "#f3f6f4" }} />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-48 rounded" style={{ background: "#f3f6f4" }} />
+                    <div className="h-3 w-64 rounded" style={{ background: "#f3f6f4" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </StCard>
+        ) : filtered.length === 0 ? (
+          <StCard className="!p-10 text-center">
+            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-4" style={{ background: ST.greenSoft }}>
+              <BellOff size={32} style={{ color: ST.green }} strokeWidth={1.8} />
+            </div>
+            <h3 className="text-[15px] font-extrabold mb-1.5" style={{ color: ST.text }}>
+              {filter === "unread" ? "Aucune notification non lue" : "Aucune notification"}
+            </h3>
+            <p className="text-[13px] font-semibold max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+              {filter === "unread"
+                ? "Vous avez lu toutes vos notifications. Bravo !"
+                : "Vos notifications apparaîtront ici dès qu'il y aura de l'activité sur votre compte."}
+            </p>
+          </StCard>
+        ) : (
+          <StCard noPadding className="overflow-hidden">
+            {filtered.map((notif, idx) => {
+              const typeInfo = TYPE_ICONS[notif.type] ?? TYPE_ICONS.system;
+              const Icon = typeInfo.icon;
+              const content = (
+                <div
+                  className="flex gap-4 px-5 py-4 transition-colors hover:bg-[#f7faf8]"
+                  style={{
+                    ...(idx ? { borderTop: `1px solid ${ST.divider}` } : {}),
+                    ...(notif.read ? {} : { background: "#f0faf3" }),
+                  }}
+                >
+                  <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0" style={{ background: typeInfo.bg }}>
+                    <Icon className="w-5 h-5" style={{ color: typeInfo.color }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[13.5px] font-extrabold truncate" style={{ color: notif.read ? ST.textSecondary : ST.text }}>
+                        {notif.title}
+                      </p>
+                      {!notif.read && (
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: ST.greenBright }} />
+                      )}
+                    </div>
+                    <p className="text-[12px] font-semibold mt-0.5 line-clamp-2" style={{ color: ST.textSecondary }}>{notif.message}</p>
+                    <p className="text-[10px] font-semibold mt-1.5" style={{ color: ST.textFaint }}>{timeAgo(notif.createdAt)}</p>
+                  </div>
+                  {!notif.read && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        markOneRead(notif.id);
+                      }}
+                      className="flex-shrink-0 p-1.5 rounded-lg transition-colors self-center hover:bg-[#e6f5eb]"
+                      style={{ color: ST.textSecondary }}
+                      title="Marquer comme lue"
+                    >
+                      <Check className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              );
+
+              if (notif.link) {
+                return (
+                  <Link
+                    key={notif.id}
+                    href={notif.link}
+                    onClick={() => {
+                      if (!notif.read) markOneRead(notif.id);
+                    }}
+                    className="block"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
               return (
-                <Link
+                <div
                   key={notif.id}
-                  href={notif.link}
+                  className="cursor-default"
                   onClick={() => {
                     if (!notif.read) markOneRead(notif.id);
                   }}
-                  className="block"
                 >
                   {content}
-                </Link>
+                </div>
               );
-            }
-            return (
-              <div
-                key={notif.id}
-                className="cursor-default"
-                onClick={() => {
-                  if (!notif.read) markOneRead(notif.id);
-                }}
-              >
-                {content}
-              </div>
-            );
-          })}
-        </div>
-      )}
+            })}
+          </StCard>
+        )}
+      </main>
     </div>
   );
 }
