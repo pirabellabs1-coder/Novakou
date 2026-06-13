@@ -1,15 +1,17 @@
-// Refonte style KAZA — mentor finances — 2026-06-07
+// Refonte design "Stitch" — finances mentor — vert Novakou officiel — 2026-06-13.
+// Logique 100% préservée : query wallet, modal de retrait, escrow/KYC, méthodes.
 "use client";
 
 import { useEffect, useState } from "react";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StKpiCompact,
+  StStatusPill,
+  StInput,
+  ST,
+} from "@/components/stitch";
 import {
   Wallet,
   Send,
@@ -66,12 +68,6 @@ const METHODS = [
   { code: "bank", label: "Virement bancaire", needs: "bank", icon: Landmark },
   { code: "paypal", label: "PayPal", needs: "email", icon: Mail },
 ];
-
-const STATUS_CONFIG: Record<string, { label: string; variant: "orange" | "green" | "rose" }> = {
-  EN_ATTENTE: { label: "En attente", variant: "orange" },
-  TRAITE: { label: "Traité", variant: "green" },
-  REFUSE: { label: "Refusé", variant: "rose" },
-};
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n));
 const fmtDate = (iso: string) =>
@@ -181,14 +177,16 @@ export default function MentorFinancesPage() {
 
   if (loading) {
     return (
-      <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6 animate-pulse">
-        <div className="h-32 bg-slate-200 rounded-3xl" />
-        <div className="h-48 bg-slate-200 rounded-2xl" />
-        <div className="grid grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 bg-slate-200 rounded-2xl" />
-          ))}
-        </div>
+      <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+        <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-4 animate-pulse">
+          <div className="h-10 w-64 rounded-xl" style={{ background: "#e9efeb" }} />
+          <div className="h-44 rounded-[20px]" style={{ background: "#e9efeb" }} />
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-20 rounded-[18px]" style={{ background: "#e9efeb" }} />
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -197,191 +195,194 @@ export default function MentorFinancesPage() {
   const available = wallet?.available ?? 0;
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Mentor"
-        badgeColor="white"
-        icon={Wallet}
-        title="Mes finances"
-        subtitle="Suivi de vos revenus, commissions et retraits. Commission plateforme : 10%."
-        actions={
-          <KazaButton
-            variant="primary"
-            onClick={() => setModalOpen(true)}
-            disabled={available < 5000}
-            icon={Send}
-          >
-            Demander un retrait
-          </KazaButton>
-        }
-      />
-
-      {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-start gap-2">
-          <CircleAlert className="w-5 h-5 text-rose-500 mt-0.5" />
-          <p className="text-sm text-rose-700">{error}</p>
-        </div>
-      )}
-
-      {!wallet ? (
-        <KazaEmpty
-          icon={Wallet}
-          title="Aucune donnée financière"
-          description="Vos premiers revenus apparaîtront ici dès qu'une session sera terminée."
-        />
-      ) : (
-        <>
-          {/* KYC banner */}
-          {kyc && !kyc.verified && (
-            <div
-              className={`rounded-2xl p-5 flex items-start gap-4 border ${
-                kyc.pending ? "bg-amber-50 border-amber-200" : "bg-rose-50 border-rose-200"
-              }`}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title="Mes finances"
+          subtitle="Suivi de vos revenus, commissions et retraits. Commission plateforme : 10%."
+          actions={
+            <StButton
+              onClick={() => setModalOpen(true)}
+              disabled={available < 5000}
+              icon={Send}
             >
-              <div
-                className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-white ${
-                  kyc.pending ? "bg-amber-500" : "bg-rose-500"
-                }`}
-              >
-                {kyc.pending ? <Hourglass className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-[#0b2540]">
-                  {kyc.pending ? "Vérification KYC en cours" : "Vérification KYC requise"}
-                </h3>
-                <p className="text-sm text-slate-600 mt-1">
-                  {kyc.pending
-                    ? "Votre demande est en attente de validation admin."
-                    : "Vous ne pouvez pas retirer vos gains sans vérifier votre identité."}
+              Demander un retrait
+            </StButton>
+          }
+        />
+
+        {error && (
+          <div className="mb-4 rounded-[13px] px-4 py-3 flex items-start gap-2" style={{ background: ST.roseSoft, border: "1px solid #f3d4de" }}>
+            <CircleAlert size={18} style={{ color: ST.roseText }} className="mt-0.5 flex-shrink-0" />
+            <p className="text-[13px] font-bold" style={{ color: ST.roseText }}>{error}</p>
+          </div>
+        )}
+
+        {!wallet ? (
+          <StCard className="text-center py-12">
+            <Wallet size={40} style={{ color: "#d6e0da" }} className="mx-auto" />
+            <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune donnée financière</p>
+            <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+              Vos premiers revenus apparaîtront ici dès qu&apos;une session sera terminée.
+            </p>
+          </StCard>
+        ) : (
+          <>
+            {/* KYC banner */}
+            {kyc && !kyc.verified && (
+              <StCard className="mb-4 !p-5">
+                <div className="flex items-start gap-4">
+                  <div
+                    className="w-11 h-11 rounded-[11px] flex items-center justify-center flex-shrink-0"
+                    style={kyc.pending ? { background: ST.amberSoft, color: ST.amberText } : { background: ST.roseSoft, color: ST.roseText }}
+                  >
+                    {kyc.pending ? <Hourglass size={20} /> : <AlertTriangle size={20} />}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>
+                      {kyc.pending ? "Vérification KYC en cours" : "Vérification KYC requise"}
+                    </h3>
+                    <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                      {kyc.pending
+                        ? "Votre demande est en attente de validation admin."
+                        : "Vous ne pouvez pas retirer vos gains sans vérifier votre identité."}
+                    </p>
+                    {!kyc.pending && (
+                      <div className="mt-3">
+                        <StButton size="sm" href="/kyc" icon={ShieldCheck}>
+                          Soumettre ma vérification
+                        </StButton>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </StCard>
+            )}
+
+            {/* 24h escrow info */}
+            <div className="mb-4 rounded-[13px] px-4 py-3 flex items-start gap-2.5" style={{ background: "#f1f8fe", border: "1px solid #cfe3f5" }}>
+              <Info size={16} style={{ color: ST.blueText }} className="mt-0.5 flex-shrink-0" />
+              <p className="text-[12px] font-semibold" style={{ color: "#0c447c" }}>
+                Les fonds des séances terminées sont en attente pendant {wallet.holdPeriodHours}h
+                avant d&apos;être disponibles pour retrait. Cela permet à l&apos;apprenant de signaler
+                un éventuel problème.
+              </p>
+            </div>
+
+            {/* Hero balance — gradient vert */}
+            <div
+              className="relative overflow-hidden rounded-[20px] p-6 text-white mb-4"
+              style={{ background: ST.gradient }}
+            >
+              <div aria-hidden className="absolute rounded-full" style={{ right: -50, top: -60, width: 210, height: 210, background: "rgba(255,255,255,.08)" }} />
+              <div aria-hidden className="absolute rounded-full" style={{ right: 60, bottom: -90, width: 170, height: 170, background: "rgba(255,255,255,.07)" }} />
+              <div className="relative">
+                <p className="text-[12.5px] font-extrabold uppercase tracking-[0.04em] opacity-85">
+                  Solde disponible
                 </p>
-                {!kyc.pending && (
-                  <KazaButton variant="primary" size="sm" href="/kyc" icon={ShieldCheck} className="mt-3">
-                    Soumettre ma vérification
-                  </KazaButton>
+                <p className="text-[32px] md:text-[38px] font-extrabold tracking-[-0.02em] mt-1.5 tabular-nums">
+                  {fmt(available)} <span className="text-[17px] font-bold opacity-85">FCFA</span>
+                </p>
+                <p className="text-[11.5px] font-semibold opacity-80 mt-1">≈ {fmt(available / 655.957)} EUR</p>
+                <div className="mt-4">
+                  <StButton
+                    variant="white"
+                    icon={Send}
+                    disabled={available < 5000}
+                    onClick={() => setModalOpen(true)}
+                  >
+                    Demander un retrait
+                  </StButton>
+                </div>
+                {available < 5000 && (
+                  <p className="text-[10.5px] font-semibold opacity-80 mt-2">
+                    Retrait disponible à partir de 5 000 FCFA
+                  </p>
                 )}
               </div>
             </div>
-          )}
 
-          {/* 24h escrow info */}
-          <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 flex items-start gap-2">
-            <Info className="w-5 h-5 text-sky-500 mt-0.5" />
-            <p className="text-xs text-sky-900">
-              Les fonds des séances terminées sont en attente pendant {wallet.holdPeriodHours}h
-              avant d&apos;être disponibles pour retrait. Cela permet à l&apos;apprenant de signaler
-              un éventuel problème.
-            </p>
-          </div>
-
-          {/* Hero balance */}
-          <div
-            className="rounded-2xl p-6 text-white shadow-xl"
-            style={{ background: "linear-gradient(135deg, #0b2540 0%, #103057 45%, #1a4a7d 100%)" }}
-          >
-            <p className="text-xs font-bold uppercase tracking-widest text-white/70">
-              Solde disponible
-            </p>
-            <p className="text-4xl md:text-5xl font-extrabold mt-2 tabular-nums">
-              {fmt(available)} <span className="text-xl font-bold">FCFA</span>
-            </p>
-            <p className="text-xs text-white/70 mt-1">≈ {fmt(available / 655.957)} EUR</p>
-            <button
-              onClick={() => setModalOpen(true)}
-              disabled={available < 5000}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-600 shadow-md disabled:opacity-50 transition-colors"
-            >
-              <Send className="w-4 h-4" />
-              Demander un retrait
-            </button>
-            {available < 5000 && (
-              <p className="text-[10px] text-white/70 mt-2">
-                Retrait disponible à partir de 5 000 FCFA
-              </p>
-            )}
-          </div>
-
-          {/* KPIs */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            <KazaKpiCard
-              label="Gains nets acquis"
-              value={`${fmt(wallet.netEarned)} F`}
-              delta={`${wallet.totalSessions} libérée(s)`}
-              icon={TrendingUp}
-              iconColor="emerald"
-            />
-            <KazaKpiCard
-              label="Gains bruts acquis"
-              value={`${fmt(wallet.gross)} F`}
-              delta="Après commission 10%"
-              icon={Receipt}
-              iconColor="navy"
-            />
-            <KazaKpiCard
-              label="En escrow"
-              value={`${fmt(wallet.pendingHold)} F`}
-              delta={`${wallet.pendingSessions ?? 0} session(s)`}
-              icon={Hourglass}
-              iconColor="orange"
-            />
-            <KazaKpiCard
-              label="Retraits en cours"
-              value={`${fmt(wallet.withdrawnPending)} F`}
-              delta="En traitement"
-              icon={HandCoins}
-              iconColor="violet"
-            />
-            <KazaKpiCard
-              label="Retiré"
-              value={`${fmt(wallet.withdrawnTreated)} F`}
-              delta="Traités"
-              icon={CheckCircle2}
-              iconColor="sky"
-            />
-          </section>
-
-          {(wallet.disputedSessions ?? 0) > 0 && (
-            <div className="bg-rose-50 border border-rose-200 rounded-2xl p-5 flex items-start gap-3">
-              <div className="w-11 h-11 rounded-xl bg-rose-500 flex items-center justify-center text-white flex-shrink-0">
-                <CircleAlert className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-rose-700">
-                  {fmt(wallet.disputedHold ?? 0)} F en dispute
-                </p>
-                <p className="text-xs text-rose-600 mt-0.5">
-                  {wallet.disputedSessions} session(s) en attente de décision admin
-                </p>
-              </div>
+            {/* KPIs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 mb-4">
+              <StKpiCompact
+                label="Gains nets acquis"
+                value={`${fmt(wallet.netEarned)} F`}
+                icon={TrendingUp}
+                tone="green"
+              />
+              <StKpiCompact
+                label="Gains bruts acquis"
+                value={`${fmt(wallet.gross)} F`}
+                icon={Receipt}
+                tone="green"
+              />
+              <StKpiCompact
+                label="En escrow"
+                value={`${fmt(wallet.pendingHold)} F`}
+                icon={Hourglass}
+                tone="amber"
+              />
+              <StKpiCompact
+                label="Retraits en cours"
+                value={`${fmt(wallet.withdrawnPending)} F`}
+                icon={HandCoins}
+                tone="blue"
+              />
+              <StKpiCompact
+                label="Retiré"
+                value={`${fmt(wallet.withdrawnTreated)} F`}
+                icon={CheckCircle2}
+                tone="green"
+              />
             </div>
-          )}
 
-          {/* Withdrawals history */}
-          <KazaCard
-            title="Historique des retraits"
-            subtitle={`${withdrawals.length} demande${withdrawals.length > 1 ? "s" : ""}`}
-            noPadding
-          >
-            {withdrawals.length === 0 ? (
-              <div className="p-8 text-center">
-                <Receipt className="w-12 h-12 text-slate-300 mx-auto" />
-                <p className="text-sm text-slate-500 mt-2">Aucun retrait demandé.</p>
+            {(wallet.disputedSessions ?? 0) > 0 && (
+              <StCard className="mb-4 !p-5">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-[11px] flex items-center justify-center flex-shrink-0" style={{ background: ST.roseSoft, color: ST.roseText }}>
+                    <CircleAlert size={20} />
+                  </div>
+                  <div>
+                    <p className="text-[13.5px] font-extrabold" style={{ color: ST.roseText }}>
+                      {fmt(wallet.disputedHold ?? 0)} F en dispute
+                    </p>
+                    <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>
+                      {wallet.disputedSessions} session(s) en attente de décision admin
+                    </p>
+                  </div>
+                </div>
+              </StCard>
+            )}
+
+            {/* Withdrawals history */}
+            <StCard className="!p-[18px_20px]">
+              <div className="flex justify-between items-center mb-1.5">
+                <span className="text-[15px] font-extrabold" style={{ color: ST.text }}>Historique des retraits</span>
+                <span className="text-[12px] font-bold" style={{ color: ST.textSecondary }}>
+                  {withdrawals.length} demande{withdrawals.length > 1 ? "s" : ""}
+                </span>
               </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {withdrawals.map((w) => {
-                  const s = STATUS_CONFIG[w.status];
-                  return (
-                    <div key={w.id} className="px-5 py-3 flex items-center gap-3">
+              {withdrawals.length === 0 ? (
+                <div className="py-10 text-center">
+                  <Receipt size={40} style={{ color: "#d6e0da" }} className="mx-auto" />
+                  <p className="text-[12.5px] font-bold mt-2.5" style={{ color: ST.textSecondary }}>Aucun retrait demandé.</p>
+                </div>
+              ) : (
+                <div>
+                  {withdrawals.map((w, i) => (
+                    <div
+                      key={w.id}
+                      className="flex items-center gap-3 py-3"
+                      style={i ? { borderTop: `1px solid ${ST.divider}` } : undefined}
+                    >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-[#0b2540] tabular-nums">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
                             {fmt(w.amount)} FCFA
                           </p>
-                          <KazaBadge variant={s.variant} size="sm">
-                            {s.label}
-                          </KazaBadge>
+                          <StStatusPill status={w.status} />
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-500">
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] font-semibold" style={{ color: ST.textMuted }}>
                           <span>{cleanMethodLabel(w.method)}</span>
                           <span>·</span>
                           <span>Demandé le {fmtDate(w.createdAt)}</span>
@@ -393,38 +394,45 @@ export default function MentorFinancesPage() {
                           )}
                         </div>
                         {w.status === "REFUSE" && w.refusedReason && (
-                          <p className="text-[11px] text-rose-600 mt-1">
+                          <p className="text-[11px] font-semibold mt-1" style={{ color: ST.roseText }}>
                             Motif : {w.refusedReason}
                           </p>
                         )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </KazaCard>
-        </>
-      )}
+                  ))}
+                </div>
+              )}
+            </StCard>
+          </>
+        )}
+      </main>
 
-      {/* Withdrawal modal */}
+      {/* Withdrawal modal — re-skin Stitch */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+          style={{ fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
+        >
+          <div
+            className="bg-white rounded-[20px] max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto"
+            style={{ border: `1px solid ${ST.cardBorder}`, boxShadow: "0 18px 50px rgba(16,52,32,.18)" }}
+          >
             <button
               onClick={() => setModalOpen(false)}
               className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center"
+              style={{ color: ST.textSecondary }}
             >
-              <X className="w-4 h-4" />
+              <X size={16} />
             </button>
-            <h2 className="text-lg font-extrabold text-[#0b2540]">Demander un retrait</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Solde disponible : {fmt(available)} FCFA
+            <h2 className="text-[17px] font-extrabold tracking-[-0.01em]" style={{ color: ST.text }}>Demander un retrait</h2>
+            <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+              Solde disponible : <strong style={{ color: ST.text }}>{fmt(available)} FCFA</strong>
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4 mt-5">
               <div>
-                <label className="block text-xs font-semibold text-[#0b2540] mb-1.5">Méthode</label>
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Méthode</label>
                 <div className="grid grid-cols-3 gap-2">
                   {METHODS.map((m) => {
                     const Icon = m.icon;
@@ -434,106 +442,76 @@ export default function MentorFinancesPage() {
                         key={m.code}
                         type="button"
                         onClick={() => setWMethod(m.code)}
-                        className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${
-                          isSelected
-                            ? "border-emerald-500 bg-emerald-50"
-                            : "border-slate-100 hover:border-slate-300"
-                        }`}
+                        className="flex flex-col items-center gap-1 p-2 rounded-[12px] transition-all"
+                        style={{
+                          border: isSelected ? `2px solid ${ST.green}` : `2px solid ${ST.cardBorder}`,
+                          background: isSelected ? "#f0faf3" : "#fff",
+                        }}
                       >
-                        <Icon className="w-4 h-4 text-emerald-600" />
-                        <span className="text-[10px] font-semibold text-[#0b2540]">{m.label}</span>
+                        <Icon size={16} style={{ color: ST.green }} />
+                        <span className="text-[10px] font-extrabold" style={{ color: ST.text }}>{m.label}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#0b2540] mb-1.5">
-                  Montant (FCFA)
-                </label>
-                <input
-                  type="number"
-                  min={5000}
-                  max={available}
-                  step={500}
-                  value={wAmount}
-                  onChange={(e) => setWAmount(Number(e.target.value))}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-                />
-                <p className="text-[10px] text-slate-500 mt-1">
-                  Min 5 000 · Max {fmt(available)}
-                </p>
-              </div>
+              <StInput
+                label="Montant (FCFA)"
+                type="number"
+                min={5000}
+                max={available}
+                step={500}
+                value={wAmount}
+                onChange={(e) => setWAmount(Number(e.target.value))}
+                required
+                hint={`Min 5 000 · Max ${fmt(available)}`}
+              />
 
               {selectedMethod?.needs === "phone" && (
-                <div>
-                  <label className="block text-xs font-semibold text-[#0b2540] mb-1.5">
-                    Numéro de téléphone
-                  </label>
-                  <input
-                    type="tel"
-                    value={wPhone}
-                    onChange={(e) => setWPhone(e.target.value)}
-                    placeholder="+221 77 123 45 67"
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-                  />
-                </div>
+                <StInput
+                  label="Numéro de téléphone"
+                  type="tel"
+                  value={wPhone}
+                  onChange={(e) => setWPhone(e.target.value)}
+                  placeholder="+221 77 123 45 67"
+                  required
+                />
               )}
               {selectedMethod?.needs === "email" && (
-                <div>
-                  <label className="block text-xs font-semibold text-[#0b2540] mb-1.5">
-                    Email PayPal
-                  </label>
-                  <input
-                    type="email"
-                    value={wEmail}
-                    onChange={(e) => setWEmail(e.target.value)}
-                    placeholder="vous@exemple.com"
-                    required
-                    className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-                  />
-                </div>
+                <StInput
+                  label="Email PayPal"
+                  type="email"
+                  value={wEmail}
+                  onChange={(e) => setWEmail(e.target.value)}
+                  placeholder="vous@exemple.com"
+                  required
+                />
               )}
               {selectedMethod?.needs === "bank" && (
                 <>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#0b2540] mb-1.5">
-                      Titulaire du compte
-                    </label>
-                    <input
-                      type="text"
-                      value={wHolder}
-                      onChange={(e) => setWHolder(e.target.value)}
-                      required
-                      className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#0b2540] mb-1.5">IBAN</label>
-                    <input
-                      type="text"
-                      value={wIban}
-                      onChange={(e) => setWIban(e.target.value)}
-                      placeholder="SN08 SN00 …"
-                      required
-                      className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-                    />
-                  </div>
+                  <StInput
+                    label="Titulaire du compte"
+                    type="text"
+                    value={wHolder}
+                    onChange={(e) => setWHolder(e.target.value)}
+                    required
+                  />
+                  <StInput
+                    label="IBAN"
+                    type="text"
+                    value={wIban}
+                    onChange={(e) => setWIban(e.target.value)}
+                    placeholder="SN08 SN00 …"
+                    required
+                  />
                 </>
               )}
 
-              <KazaButton
-                type="submit"
-                variant="primary"
-                disabled={submitting}
-                className="w-full"
-              >
+              <StButton type="submit" disabled={submitting} className="w-full">
                 {submitting ? "Envoi…" : "Confirmer la demande"}
-              </KazaButton>
-              <p className="text-center text-[10px] text-slate-500">
+              </StButton>
+              <p className="text-center text-[10.5px] font-semibold" style={{ color: ST.textMuted }}>
                 Les retraits sont traités sous 24-72h par l&apos;équipe Novakou.
               </p>
             </form>

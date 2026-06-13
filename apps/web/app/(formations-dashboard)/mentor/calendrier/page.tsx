@@ -1,4 +1,5 @@
-// Refonte style KAZA — mentor calendrier — 2026-06-07
+// Refonte design "Stitch" — calendrier mentor — vert Novakou officiel — 2026-06-13.
+// Logique 100% préservée : slots datés, blocs hebdo, config, presets, modal d'édition jour.
 "use client";
 
 /**
@@ -8,10 +9,12 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { confirmAction } from "@/store/confirm";
 import {
-  KazaHero,
-  KazaKpiCard,
-  KazaButton,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StKpiCompact,
+  ST,
+} from "@/components/stitch";
 import {
   Calendar,
   ChevronLeft,
@@ -395,9 +398,11 @@ export default function MentorCalendrierPage() {
 
   if (loading) {
     return (
-      <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6 animate-pulse">
-        <div className="h-32 bg-slate-200 rounded-3xl" />
-        <div className="h-96 bg-slate-200 rounded-2xl" />
+      <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+        <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-4 animate-pulse">
+          <div className="h-10 w-72 rounded-xl" style={{ background: "#e9efeb" }} />
+          <div className="h-96 rounded-[18px]" style={{ background: "#e9efeb" }} />
+        </main>
       </div>
     );
   }
@@ -406,307 +411,326 @@ export default function MentorCalendrierPage() {
   today.setHours(0, 0, 0, 0);
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Mentor"
-        badgeColor="white"
-        icon={Calendar}
-        title="Calendrier de disponibilité"
-        subtitle="Cliquez sur un jour pour ajouter vos plages horaires. Les apprenants verront automatiquement les créneaux libres."
-        actions={
-          <>
-            <KazaButton
-              variant="secondary"
-              onClick={applyWeekdaysPreset}
-              disabled={savingDay}
-              icon={Sparkles}
-            >
-              Préset 9h-12h / 14h-18h
-            </KazaButton>
-            <KazaButton variant="danger" onClick={clearAll} disabled={savingDay} icon={Trash2}>
-              Vider tout
-            </KazaButton>
-          </>
-        }
-      />
-
-      {info && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-sm text-emerald-700 font-semibold">{info}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-start gap-2">
-          <CircleAlert className="w-5 h-5 text-rose-500 mt-0.5" />
-          <p className="text-sm text-rose-700 flex-1">{error}</p>
-          <button
-            onClick={() => setError(null)}
-            className="text-rose-500 hover:bg-rose-100 rounded p-1"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* KPIs */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <KazaKpiCard
-          label="Plages ce mois"
-          value={totalRangesThisMonth}
-          delta={`${totalHoursThisMonth} h`}
-          icon={CalendarCheck}
-          iconColor="emerald"
-        />
-        <KazaKpiCard
-          label="Durée d'une session"
-          value={`${config.sessionDuration} min`}
-          icon={Timer}
-          iconColor="sky"
-        />
-        <KazaKpiCard
-          label="Délai min avant résa"
-          value={
-            config.bookingLeadTime >= 60
-              ? `${Math.round(config.bookingLeadTime / 60)} h`
-              : `${config.bookingLeadTime} min`
-          }
-          icon={Clock}
-          iconColor="violet"
-        />
-      </section>
-
-      {/* Month grid */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
-              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"
-              aria-label="Mois précédent"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => setMonth(startOfMonth(new Date()))}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-[#0b2540]"
-            >
-              Aujourd&apos;hui
-            </button>
-            <button
-              onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
-              className="p-2 rounded-lg hover:bg-slate-100 text-slate-500"
-              aria-label="Mois suivant"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
-          <h2 className="text-base font-extrabold text-[#0b2540]">
-            {MONTHS_FR[month.getMonth()]} {month.getFullYear()}
-          </h2>
-          <div className="text-[10px] text-slate-500 hidden sm:block">{config.timezone}</div>
-        </div>
-
-        <div className="grid grid-cols-7 text-[11px] font-bold text-slate-500 bg-slate-50 border-b border-slate-100">
-          {WEEK_HEADERS.map((h) => (
-            <div key={h} className="py-2 text-center uppercase">
-              {h}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7">
-          {monthGrid.map((d, i) => {
-            const inMonth = d.getMonth() === month.getMonth();
-            const isPast = d < today;
-            const isToday = sameLocalDay(d, today);
-            const list = slotsForDay(d);
-            const totalMin = list.reduce((a, s) => a + Math.max(0, s.endMin - s.startMin), 0);
-            const hours =
-              totalMin > 0
-                ? `${Math.floor(totalMin / 60)}h${totalMin % 60 ? String(totalMin % 60).padStart(2, "0") : ""}`
-                : null;
-
-            return (
-              <button
-                key={i}
-                onClick={() => openDay(d)}
-                disabled={isPast}
-                className={`relative min-h-[88px] sm:min-h-[100px] border-b border-r border-slate-100 p-1.5 text-left transition-colors ${
-                  inMonth ? "bg-white" : "bg-slate-50/60"
-                } ${isPast ? "opacity-40 cursor-not-allowed" : "hover:bg-emerald-50 cursor-pointer"} ${
-                  isToday ? "ring-2 ring-emerald-500 ring-inset" : ""
-                }`}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title="Calendrier de disponibilité"
+          subtitle="Cliquez sur un jour pour ajouter vos plages horaires. Les apprenants verront automatiquement les créneaux libres."
+          actions={
+            <>
+              <StButton
+                variant="secondary"
+                onClick={applyWeekdaysPreset}
+                disabled={savingDay}
+                icon={Sparkles}
               >
-                <div className="flex items-center justify-between">
-                  <span
-                    className={`text-[11px] font-bold ${
-                      inMonth ? "text-[#0b2540]" : "text-slate-400"
-                    } ${isToday ? "text-emerald-600" : ""}`}
-                  >
-                    {d.getDate()}
-                  </span>
-                  {list.length > 0 && (
-                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
-                  )}
-                </div>
-                {list.length > 0 && (
-                  <div className="mt-1 space-y-0.5">
-                    <p className="text-[10px] font-semibold text-emerald-600">
-                      {list.length} plage{list.length > 1 ? "s" : ""}
-                    </p>
-                    {hours && <p className="text-[9px] text-slate-500">{hours}</p>}
-                    <div className="hidden sm:block space-y-0.5 mt-1">
-                      {list.slice(0, 2).map((s, j) => (
-                        <div
-                          key={j}
-                          className="text-[9px] bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded font-semibold truncate"
-                        >
-                          {minToHHMM(s.startMin)}–{minToHHMM(s.endMin)}
-                        </div>
-                      ))}
-                      {list.length > 2 && (
-                        <div className="text-[9px] text-slate-500 font-semibold">
-                          +{list.length - 2} autre{list.length - 2 > 1 ? "s" : ""}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                Préset 9h-12h / 14h-18h
+              </StButton>
+              <button
+                type="button"
+                onClick={clearAll}
+                disabled={savingDay}
+                className="inline-flex items-center justify-center gap-2 font-extrabold text-[13px] rounded-[12px] px-4 py-2.5 transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+                style={{ background: ST.roseSoft, color: ST.roseText }}
+              >
+                <Trash2 size={16} />
+                Vider tout
               </button>
-            );
-          })}
-        </div>
-      </div>
+            </>
+          }
+        />
 
-      {/* Advanced weekly recurrence */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <button
-          onClick={() => setShowAdvanced((s) => !s)}
-          className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-slate-50"
-        >
-          <div>
-            <p className="text-sm font-bold text-[#0b2540]">
-              Mode avancé : récurrence hebdomadaire (legacy)
-            </p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Utilisé uniquement si aucune plage datée n&apos;est définie pour la semaine demandée.
-            </p>
-          </div>
-          {showAdvanced ? (
-            <ChevronUp className="w-5 h-5 text-slate-500" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-slate-500" />
-          )}
-        </button>
-        {showAdvanced && (
-          <div className="px-5 pb-5 border-t border-slate-100 pt-4 space-y-3">
-            {weeklyBlocks.length === 0 && (
-              <p className="text-xs text-slate-500">Aucune plage hebdomadaire définie.</p>
-            )}
-            <div className="space-y-1">
-              {weeklyBlocks.map((b, idx) => {
-                const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-                return (
-                  <div key={idx} className="flex items-center gap-2 text-xs py-1">
-                    <select
-                      value={b.dayOfWeek}
-                      onChange={(e) =>
-                        updateWeeklyBlock(idx, { dayOfWeek: Number(e.target.value) })
-                      }
-                      className="border border-slate-200 rounded px-2 py-1 text-xs"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 0].map((d) => (
-                        <option key={d} value={d}>
-                          {dayNames[d]}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="time"
-                      value={minToHHMM(b.startMin)}
-                      onChange={(e) =>
-                        updateWeeklyBlock(idx, { startMin: hhmmToMin(e.target.value) })
-                      }
-                      className="border border-slate-200 rounded px-2 py-1 text-xs font-bold text-[#0b2540] bg-white"
-                      step="900"
-                    />
-                    <span className="font-bold text-slate-500">→</span>
-                    <input
-                      type="time"
-                      value={minToHHMM(b.endMin)}
-                      onChange={(e) =>
-                        updateWeeklyBlock(idx, { endMin: hhmmToMin(e.target.value) })
-                      }
-                      className="border border-slate-200 rounded px-2 py-1 text-xs font-bold text-[#0b2540] bg-white"
-                      step="900"
-                    />
-                    <button
-                      onClick={() => removeWeeklyBlock(idx)}
-                      className="ml-auto text-rose-500 hover:bg-rose-50 p-1 rounded"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex items-center gap-2 flex-wrap pt-2">
-              {[1, 2, 3, 4, 5, 6, 0].map((d) => {
-                const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-                return (
-                  <button
-                    key={d}
-                    onClick={() => addWeeklyBlock(d)}
-                    className="px-2 py-1 rounded text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600"
-                  >
-                    + {dayNames[d]}
-                  </button>
-                );
-              })}
-              <div className="ml-auto">
-                <KazaButton
-                  variant="primary"
-                  size="sm"
-                  onClick={saveWeekly}
-                  disabled={savingWeekly}
-                >
-                  {savingWeekly ? "Enregistrement…" : "Enregistrer hebdo"}
-                </KazaButton>
-              </div>
-            </div>
+        {info && (
+          <div className="mb-4 rounded-[13px] px-4 py-2.5 flex items-center gap-2" style={{ background: ST.greenSoft, border: "1px solid #d7ecde" }}>
+            <CheckCircle2 size={16} style={{ color: ST.green }} />
+            <p className="text-[13px] font-extrabold" style={{ color: ST.greenDark }}>{info}</p>
           </div>
         )}
-      </div>
 
-      <div className="bg-sky-50 border border-sky-200 rounded-2xl px-4 py-3 flex items-start gap-2">
-        <Info className="w-5 h-5 text-sky-600 mt-0.5" />
-        <div className="flex-1 text-xs text-sky-800">
-          <p className="font-semibold">Comment ça marche</p>
-          <p className="mt-0.5">
-            Les plages que vous définissez sont découpées en créneaux de {config.sessionDuration}{" "}
-            min côté apprenant. Les sessions déjà réservées ne sont jamais écrasées.
-          </p>
+        {error && (
+          <div className="mb-4 rounded-[13px] px-4 py-3 flex items-start gap-2" style={{ background: ST.roseSoft, border: "1px solid #f3d4de" }}>
+            <CircleAlert size={18} style={{ color: ST.roseText }} className="mt-0.5 flex-shrink-0" />
+            <p className="text-[13px] font-bold flex-1" style={{ color: ST.roseText }}>{error}</p>
+            <button
+              onClick={() => setError(null)}
+              className="rounded p-1 hover:bg-rose-100"
+              style={{ color: ST.roseText }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
+        {/* KPIs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-4">
+          <StKpiCompact
+            label={`Plages ce mois · ${totalHoursThisMonth} h`}
+            value={totalRangesThisMonth}
+            icon={CalendarCheck}
+            tone="green"
+          />
+          <StKpiCompact
+            label="Durée d'une session"
+            value={`${config.sessionDuration} min`}
+            icon={Timer}
+            tone="blue"
+          />
+          <StKpiCompact
+            label="Délai min avant résa"
+            value={
+              config.bookingLeadTime >= 60
+                ? `${Math.round(config.bookingLeadTime / 60)} h`
+                : `${config.bookingLeadTime} min`
+            }
+            icon={Clock}
+            tone="amber"
+          />
         </div>
-      </div>
+
+        {/* Month grid */}
+        <StCard noPadding className="overflow-hidden mb-4">
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid ${ST.divider}` }}>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() - 1, 1))}
+                className="p-2 rounded-lg hover:bg-slate-100"
+                style={{ color: ST.textSecondary }}
+                aria-label="Mois précédent"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => setMonth(startOfMonth(new Date()))}
+                className="px-3 py-1.5 rounded-[10px] text-[12px] font-extrabold"
+                style={{ background: ST.greenSoft, color: ST.green }}
+              >
+                Aujourd&apos;hui
+              </button>
+              <button
+                onClick={() => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + 1, 1))}
+                className="p-2 rounded-lg hover:bg-slate-100"
+                style={{ color: ST.textSecondary }}
+                aria-label="Mois suivant"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+            <h2 className="text-[15px] font-extrabold" style={{ color: ST.text }}>
+              {MONTHS_FR[month.getMonth()]} {month.getFullYear()}
+            </h2>
+            <div className="text-[10px] font-semibold hidden sm:block" style={{ color: ST.textMuted }}>{config.timezone}</div>
+          </div>
+
+          <div className="grid grid-cols-7 text-[11px] font-extrabold" style={{ color: ST.textSecondary, background: "#f7faf8", borderBottom: `1px solid ${ST.divider}` }}>
+            {WEEK_HEADERS.map((h) => (
+              <div key={h} className="py-2 text-center uppercase">
+                {h}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7">
+            {monthGrid.map((d, i) => {
+              const inMonth = d.getMonth() === month.getMonth();
+              const isPast = d < today;
+              const isToday = sameLocalDay(d, today);
+              const list = slotsForDay(d);
+              const totalMin = list.reduce((a, s) => a + Math.max(0, s.endMin - s.startMin), 0);
+              const hours =
+                totalMin > 0
+                  ? `${Math.floor(totalMin / 60)}h${totalMin % 60 ? String(totalMin % 60).padStart(2, "0") : ""}`
+                  : null;
+
+              return (
+                <button
+                  key={i}
+                  onClick={() => openDay(d)}
+                  disabled={isPast}
+                  className={`relative min-h-[88px] sm:min-h-[100px] p-1.5 text-left transition-colors ${
+                    isPast ? "opacity-40 cursor-not-allowed" : "hover:bg-emerald-50 cursor-pointer"
+                  }`}
+                  style={{
+                    borderBottom: `1px solid ${ST.divider}`,
+                    borderRight: `1px solid ${ST.divider}`,
+                    background: inMonth ? "#fff" : "#f7faf8",
+                    boxShadow: isToday ? `inset 0 0 0 2px ${ST.greenBright}` : undefined,
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span
+                      className="text-[11px] font-extrabold"
+                      style={{ color: isToday ? ST.green : inMonth ? ST.text : ST.textFaint }}
+                    >
+                      {d.getDate()}
+                    </span>
+                    {list.length > 0 && (
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ background: ST.greenBright }} />
+                    )}
+                  </div>
+                  {list.length > 0 && (
+                    <div className="mt-1 space-y-0.5">
+                      <p className="text-[10px] font-extrabold" style={{ color: ST.green }}>
+                        {list.length} plage{list.length > 1 ? "s" : ""}
+                      </p>
+                      {hours && <p className="text-[9px] font-semibold" style={{ color: ST.textMuted }}>{hours}</p>}
+                      <div className="hidden sm:block space-y-0.5 mt-1">
+                        {list.slice(0, 2).map((s, j) => (
+                          <div
+                            key={j}
+                            className="text-[9px] px-1 py-0.5 rounded font-extrabold truncate"
+                            style={{ background: ST.greenSoft, color: ST.green }}
+                          >
+                            {minToHHMM(s.startMin)}–{minToHHMM(s.endMin)}
+                          </div>
+                        ))}
+                        {list.length > 2 && (
+                          <div className="text-[9px] font-extrabold" style={{ color: ST.textMuted }}>
+                            +{list.length - 2} autre{list.length - 2 > 1 ? "s" : ""}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </StCard>
+
+        {/* Advanced weekly recurrence */}
+        <StCard noPadding className="overflow-hidden mb-4">
+          <button
+            onClick={() => setShowAdvanced((s) => !s)}
+            className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-slate-50"
+          >
+            <div>
+              <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
+                Mode avancé : récurrence hebdomadaire (legacy)
+              </p>
+              <p className="text-[11px] font-semibold mt-0.5" style={{ color: ST.textMuted }}>
+                Utilisé uniquement si aucune plage datée n&apos;est définie pour la semaine demandée.
+              </p>
+            </div>
+            {showAdvanced ? (
+              <ChevronUp size={20} style={{ color: ST.textSecondary }} />
+            ) : (
+              <ChevronDown size={20} style={{ color: ST.textSecondary }} />
+            )}
+          </button>
+          {showAdvanced && (
+            <div className="px-5 pb-5 pt-4 space-y-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+              {weeklyBlocks.length === 0 && (
+                <p className="text-[11.5px] font-semibold" style={{ color: ST.textMuted }}>Aucune plage hebdomadaire définie.</p>
+              )}
+              <div className="space-y-1">
+                {weeklyBlocks.map((b, idx) => {
+                  const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+                  return (
+                    <div key={idx} className="flex items-center gap-2 text-[12px] py-1">
+                      <select
+                        value={b.dayOfWeek}
+                        onChange={(e) =>
+                          updateWeeklyBlock(idx, { dayOfWeek: Number(e.target.value) })
+                        }
+                        className="rounded px-2 py-1 text-[12px] font-semibold"
+                        style={{ border: "1px solid #dde6e0", color: ST.text }}
+                      >
+                        {[1, 2, 3, 4, 5, 6, 0].map((d) => (
+                          <option key={d} value={d}>
+                            {dayNames[d]}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="time"
+                        value={minToHHMM(b.startMin)}
+                        onChange={(e) =>
+                          updateWeeklyBlock(idx, { startMin: hhmmToMin(e.target.value) })
+                        }
+                        className="rounded px-2 py-1 text-[12px] font-extrabold bg-white"
+                        style={{ border: "1px solid #dde6e0", color: ST.text }}
+                        step="900"
+                      />
+                      <span className="font-extrabold" style={{ color: ST.textSecondary }}>→</span>
+                      <input
+                        type="time"
+                        value={minToHHMM(b.endMin)}
+                        onChange={(e) =>
+                          updateWeeklyBlock(idx, { endMin: hhmmToMin(e.target.value) })
+                        }
+                        className="rounded px-2 py-1 text-[12px] font-extrabold bg-white"
+                        style={{ border: "1px solid #dde6e0", color: ST.text }}
+                        step="900"
+                      />
+                      <button
+                        onClick={() => removeWeeklyBlock(idx)}
+                        className="ml-auto p-1 rounded hover:bg-rose-50"
+                        style={{ color: ST.roseText }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap pt-2">
+                {[1, 2, 3, 4, 5, 6, 0].map((d) => {
+                  const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+                  return (
+                    <button
+                      key={d}
+                      onClick={() => addWeeklyBlock(d)}
+                      className="px-2 py-1 rounded text-[10px] font-extrabold"
+                      style={{ background: ST.greenSoft, color: ST.green }}
+                    >
+                      + {dayNames[d]}
+                    </button>
+                  );
+                })}
+                <div className="ml-auto">
+                  <StButton
+                    size="sm"
+                    onClick={saveWeekly}
+                    disabled={savingWeekly}
+                  >
+                    {savingWeekly ? "Enregistrement…" : "Enregistrer hebdo"}
+                  </StButton>
+                </div>
+              </div>
+            </div>
+          )}
+        </StCard>
+
+        <div className="rounded-[14px] px-4 py-3 flex items-start gap-2" style={{ background: "#f1f8fe", border: "1px solid #cfe3f5" }}>
+          <Info size={18} style={{ color: ST.blueText }} className="mt-0.5" />
+          <div className="flex-1 text-[12px]" style={{ color: "#0c447c" }}>
+            <p className="font-extrabold">Comment ça marche</p>
+            <p className="font-semibold mt-0.5">
+              Les plages que vous définissez sont découpées en créneaux de {config.sessionDuration}{" "}
+              min côté apprenant. Les sessions déjà réservées ne sont jamais écrasées.
+            </p>
+          </div>
+        </div>
+      </main>
 
       {/* Modal */}
       {editingDate && (
         <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/50 p-4"
+          style={{ fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
           onClick={closeModal}
         >
           <div
-            className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[85vh] overflow-y-auto"
+            className="bg-white rounded-[20px] max-w-md w-full max-h-[85vh] overflow-y-auto"
+            style={{ border: `1px solid ${ST.cardBorder}`, boxShadow: "0 18px 50px rgba(16,52,32,.18)" }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b border-slate-100 flex items-start justify-between">
+            <div className="p-5 flex items-start justify-between" style={{ borderBottom: `1px solid ${ST.divider}` }}>
               <div>
-                <p className="text-xs text-slate-500 font-semibold uppercase">
+                <p className="text-[11px] font-extrabold uppercase" style={{ color: ST.textMuted }}>
                   {editingDate.toLocaleDateString("fr-FR", { weekday: "long" })}
                 </p>
-                <p className="text-lg font-extrabold text-[#0b2540]">
+                <p className="text-[17px] font-extrabold" style={{ color: ST.text }}>
                   {editingDate.toLocaleDateString("fr-FR", {
                     day: "numeric",
                     month: "long",
@@ -714,14 +738,14 @@ export default function MentorCalendrierPage() {
                   })}
                 </p>
               </div>
-              <button onClick={closeModal} className="p-1 hover:bg-slate-100 rounded">
-                <X className="w-5 h-5 text-slate-500" />
+              <button onClick={closeModal} className="p-1 hover:bg-slate-100 rounded" style={{ color: ST.textSecondary }}>
+                <X size={20} />
               </button>
             </div>
 
             <div className="p-5 space-y-3">
               {draftRanges.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-4">
+                <p className="text-[13px] font-semibold text-center py-4" style={{ color: ST.textMuted }}>
                   Aucune plage. Ajoutez votre première disponibilité ci-dessous.
                 </p>
               ) : (
@@ -733,25 +757,28 @@ export default function MentorCalendrierPage() {
                       onChange={(e) =>
                         updateDraftRange(idx, { startMin: hhmmToMin(e.target.value) })
                       }
-                      className="border-2 border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-[#0b2540] bg-white flex-1 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                      className="rounded-[10px] px-3 py-2 text-[13px] font-extrabold bg-white flex-1 focus:outline-none"
+                      style={{ border: "1px solid #dde6e0", color: ST.text }}
                       step="900"
                     />
-                    <span className="text-slate-500 font-bold">→</span>
+                    <span className="font-extrabold" style={{ color: ST.textSecondary }}>→</span>
                     <input
                       type="time"
                       value={minToHHMM(r.endMin)}
                       onChange={(e) =>
                         updateDraftRange(idx, { endMin: hhmmToMin(e.target.value) })
                       }
-                      className="border-2 border-slate-200 rounded-lg px-3 py-2 text-sm font-bold text-[#0b2540] bg-white flex-1 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                      className="rounded-[10px] px-3 py-2 text-[13px] font-extrabold bg-white flex-1 focus:outline-none"
+                      style={{ border: "1px solid #dde6e0", color: ST.text }}
                       step="900"
                     />
                     <button
                       onClick={() => removeDraftRange(idx)}
-                      className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg"
+                      className="p-2 rounded-[10px] hover:bg-rose-50"
+                      style={{ color: ST.roseText }}
                       aria-label="Supprimer"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 ))
@@ -759,28 +786,28 @@ export default function MentorCalendrierPage() {
 
               <button
                 onClick={addDraftRange}
-                className="w-full mt-2 py-2.5 rounded-xl border-2 border-dashed border-emerald-300 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 transition-colors flex items-center justify-center gap-1.5"
+                className="w-full mt-2 py-2.5 rounded-[12px] text-[13px] font-extrabold transition-colors hover:bg-emerald-50 flex items-center justify-center gap-1.5"
+                style={{ border: "2px dashed #bcd6c5", color: ST.green }}
               >
-                <Plus className="w-4 h-4" />
+                <Plus size={16} />
                 Ajouter une plage
               </button>
 
-              <div className="pt-3 border-t border-slate-100 space-y-2">
-                <p className="text-[10px] text-slate-500 text-center">
+              <div className="pt-3 space-y-2" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                <p className="text-[10px] font-semibold text-center" style={{ color: ST.textMuted }}>
                   Format HH:MM. Durée minimum 30 min, pas de chevauchement.
                 </p>
                 <div className="flex gap-2">
-                  <KazaButton variant="ghost" onClick={clearDay} className="flex-1">
+                  <StButton variant="secondary" onClick={clearDay} className="flex-1">
                     Vider ce jour
-                  </KazaButton>
-                  <KazaButton
-                    variant="primary"
+                  </StButton>
+                  <StButton
                     onClick={saveDay}
                     disabled={savingDay}
                     className="flex-1"
                   >
                     {savingDay ? "Enregistrement…" : "Enregistrer"}
-                  </KazaButton>
+                  </StButton>
                 </div>
               </div>
             </div>

@@ -1,13 +1,16 @@
-// Refonte style KAZA — mentor rendez-vous — 2026-06-07
+// Refonte design "Stitch" — rendez-vous mentor — vert Novakou officiel — 2026-06-13.
+// Logique 100% préservée : query bookings, actions (confirm/complete/cancel/link/feedback),
+// onglets, recherche, regroupement par jour.
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  KazaHero,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StTabs,
+  ST,
+} from "@/components/stitch";
 import {
   CalendarCheck,
   Search,
@@ -80,22 +83,56 @@ function dayKey(iso: string) {
 
 const STATUS_CONFIG: Record<
   BookingStatus,
-  { label: string; variant: "orange" | "green" | "blue" | "rose" | "slate" }
+  { label: string; bg: string; fg: string }
 > = {
-  PENDING: { label: "En attente", variant: "orange" },
-  CONFIRMED: { label: "Confirmé", variant: "green" },
-  COMPLETED: { label: "Terminé", variant: "blue" },
-  CANCELLED: { label: "Annulé", variant: "rose" },
-  NO_SHOW: { label: "Absent", variant: "slate" },
+  PENDING: { label: "En attente", bg: ST.amberSoft, fg: ST.amberText },
+  CONFIRMED: { label: "Confirmé", bg: ST.greenSoft, fg: ST.green },
+  COMPLETED: { label: "Terminé", bg: ST.blueSoft, fg: ST.blueText },
+  CANCELLED: { label: "Annulé", bg: ST.roseSoft, fg: ST.roseText },
+  NO_SHOW: { label: "Absent", bg: "#f1efe8", fg: "#5f5e5a" },
 };
 
-const TABS: { label: string; value: string }[] = [
-  { label: "Tous", value: "all" },
-  { label: "En attente", value: "PENDING" },
-  { label: "Confirmés", value: "CONFIRMED" },
-  { label: "Terminés", value: "COMPLETED" },
-  { label: "Annulés", value: "CANCELLED" },
+function StatusPill({ status }: { status: BookingStatus }) {
+  const cfg = STATUS_CONFIG[status];
+  return (
+    <span className="inline-flex items-center text-[10.5px] font-extrabold px-[9px] py-[3px] rounded-full whitespace-nowrap" style={{ background: cfg.bg, color: cfg.fg }}>
+      {cfg.label}
+    </span>
+  );
+}
+
+const TABS: { key: string; label: string }[] = [
+  { key: "all", label: "Tous" },
+  { key: "PENDING", label: "En attente" },
+  { key: "CONFIRMED", label: "Confirmés" },
+  { key: "COMPLETED", label: "Terminés" },
+  { key: "CANCELLED", label: "Annulés" },
 ];
+
+function DangerButton({
+  onClick,
+  disabled,
+  icon: Icon,
+  children,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  icon: typeof Gavel;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex items-center justify-center gap-2 font-extrabold text-[12px] rounded-[10px] px-3 py-2 transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+      style={{ background: ST.roseSoft, color: ST.roseText }}
+    >
+      <Icon size={14} className={Icon === Loader2 ? "animate-spin" : undefined} />
+      {children}
+    </button>
+  );
+}
 
 function BookingCard({
   booking,
@@ -121,23 +158,21 @@ function BookingCard({
   const isPast = new Date(booking.scheduledAt) < new Date();
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hover:border-emerald-200 hover:shadow-md transition-all">
-      <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-slate-100">
-        <span className="text-xs font-semibold text-slate-500">
+    <StCard noPadding className="overflow-hidden transition-all hover:-translate-y-0.5">
+      <div className="flex items-center gap-2 px-4 py-2" style={{ background: "#f7faf8", borderBottom: `1px solid ${ST.divider}` }}>
+        <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
           {fmtDate(booking.scheduledAt)} — {fmtTime(booking.scheduledAt)}
         </span>
         <div className="ml-auto">
-          <KazaBadge variant={cfg.variant} size="sm">
-            {cfg.label}
-          </KazaBadge>
+          <StatusPill status={booking.status} />
         </div>
       </div>
 
       <div className="p-4">
         <div className="flex items-start gap-3">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 overflow-hidden"
-            style={{ background: "linear-gradient(135deg, #0b2540 0%, #1a4a7d 100%)" }}
+            className="w-10 h-10 rounded-full flex items-center justify-center font-extrabold flex-shrink-0 overflow-hidden"
+            style={{ background: ST.avatarBg, color: ST.green }}
           >
             {booking.student.image ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -147,18 +182,18 @@ function BookingCard({
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-[#0b2540]">
+            <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
               {booking.student.name ?? booking.student.email ?? "Apprenant"}
             </p>
             {booking.student.email && (
-              <p className="text-xs text-slate-500 truncate">{booking.student.email}</p>
+              <p className="text-[11.5px] font-semibold truncate" style={{ color: ST.textMuted }}>{booking.student.email}</p>
             )}
             <div className="flex items-center gap-3 mt-1 flex-wrap">
-              <span className="text-xs text-slate-500 flex items-center gap-1">
-                <Timer className="w-3 h-3" />
+              <span className="text-[11.5px] font-semibold flex items-center gap-1" style={{ color: ST.textSecondary }}>
+                <Timer size={12} />
                 {booking.durationMinutes} min
               </span>
-              <span className="text-xs font-bold text-emerald-600 tabular-nums">
+              <span className="text-[12px] font-extrabold tabular-nums" style={{ color: ST.green }}>
                 {fmt(booking.paidAmount)} FCFA
               </span>
               {booking.studentRating && (
@@ -178,12 +213,12 @@ function BookingCard({
         </div>
 
         {booking.studentGoals && (
-          <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-            <p className="text-[10px] font-bold text-amber-800 uppercase mb-0.5 flex items-center gap-1">
-              <Flag className="w-3 h-3" />
+          <div className="mt-3 rounded-[12px] px-3 py-2" style={{ background: ST.amberSoft, border: "1px solid #f3e2bd" }}>
+            <p className="text-[10px] font-extrabold uppercase mb-0.5 flex items-center gap-1" style={{ color: ST.amberText }}>
+              <Flag size={12} />
               Objectifs de l&apos;apprenant
             </p>
-            <p className="text-xs text-amber-900 whitespace-pre-wrap">{booking.studentGoals}</p>
+            <p className="text-[12px] font-medium whitespace-pre-wrap" style={{ color: "#633806" }}>{booking.studentGoals}</p>
           </div>
         )}
 
@@ -192,46 +227,46 @@ function BookingCard({
             href={booking.meetingLink || buildJitsiUrl(booking.id)}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex items-center gap-1.5 text-xs text-sky-600 hover:underline break-all"
+            className="mt-3 flex items-center gap-1.5 text-[11.5px] font-semibold hover:underline break-all"
+            style={{ color: ST.blueText }}
           >
-            <Video className="w-3.5 h-3.5" />
-            <span className="font-semibold">Salle Jitsi</span>
+            <Video size={14} />
+            <span className="font-extrabold">Salle Jitsi</span>
             <span className="truncate">{booking.meetingLink || buildJitsiUrl(booking.id)}</span>
           </a>
         )}
 
         {booking.mentorFeedback && (
-          <div className="mt-3 bg-slate-50 rounded-xl px-3 py-2">
-            <p className="text-[10px] font-semibold text-slate-500 mb-0.5 uppercase tracking-wider">
+          <div className="mt-3 rounded-[12px] px-3 py-2" style={{ background: "#f7faf8" }}>
+            <p className="text-[10px] font-extrabold mb-0.5 uppercase tracking-wider" style={{ color: ST.textMuted }}>
               Mon feedback
             </p>
-            <p className="text-xs text-[#0b2540]">{booking.mentorFeedback}</p>
+            <p className="text-[12px] font-medium" style={{ color: ST.text }}>{booking.mentorFeedback}</p>
           </div>
         )}
 
         {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
-          <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-slate-100">
+          <div className="flex flex-wrap gap-2 mt-4 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
             {booking.status === "PENDING" && (
-              <KazaButton
-                variant="primary"
+              <StButton
                 size="sm"
                 disabled={!!loadingAction}
                 icon={loadingAction === "confirm" ? Loader2 : CheckCircle2}
                 onClick={() => act("confirm")}
               >
                 Confirmer
-              </KazaButton>
+              </StButton>
             )}
 
             {booking.status === "CONFIRMED" && isPast && !showCompleteConfirm && (
-              <KazaButton
-                variant="ghost"
+              <StButton
+                variant="secondary"
                 size="sm"
                 icon={CheckCircle2}
                 onClick={() => setShowCompleteConfirm(true)}
               >
                 Marquer terminé
-              </KazaButton>
+              </StButton>
             )}
 
             {showCompleteConfirm && (
@@ -240,11 +275,11 @@ function BookingCard({
                   value={feedbackVal}
                   onChange={(e) => setFeedbackVal(e.target.value)}
                   placeholder="Feedback optionnel pour l'apprenant…"
-                  className="w-full text-xs border-2 border-slate-200 rounded-xl px-3 py-2 resize-none h-16 focus:outline-none focus:ring-4 focus:ring-sky-100 focus:border-sky-500"
+                  className="w-full text-[12px] font-medium rounded-[12px] px-3 py-2 resize-none h-16 focus:outline-none"
+                  style={{ border: "1px solid #dde6e0", color: "#33453b" }}
                 />
                 <div className="flex gap-2">
-                  <KazaButton
-                    variant="primary"
+                  <StButton
                     size="sm"
                     icon={CheckCircle2}
                     disabled={!!loadingAction}
@@ -254,31 +289,30 @@ function BookingCard({
                     }}
                   >
                     Confirmer fin de séance
-                  </KazaButton>
-                  <KazaButton
-                    variant="ghost"
+                  </StButton>
+                  <StButton
+                    variant="secondary"
                     size="sm"
                     onClick={() => setShowCompleteConfirm(false)}
                   >
                     Annuler
-                  </KazaButton>
+                  </StButton>
                 </div>
               </div>
             )}
 
             {booking.status === "CONFIRMED" && (
-              <KazaButton
-                variant="primary"
+              <StButton
                 size="sm"
                 icon={Video}
                 href={booking.meetingLink || buildJitsiUrl(booking.id)}
               >
                 Rejoindre la salle
-              </KazaButton>
+              </StButton>
             )}
 
-            <KazaButton
-              variant="ghost"
+            <StButton
+              variant="secondary"
               size="sm"
               icon={Edit3}
               onClick={() => setShowLinkForm(!showLinkForm)}
@@ -286,17 +320,15 @@ function BookingCard({
               {booking.meetingLink && !booking.meetingLink.includes("meet.jit.si")
                 ? "Modifier lien perso"
                 : "Lien perso (Zoom/Meet)"}
-            </KazaButton>
+            </StButton>
 
-            <KazaButton
-              variant="danger"
-              size="sm"
+            <DangerButton
               disabled={!!loadingAction}
               icon={loadingAction === "cancel" ? Loader2 : Gavel}
               onClick={() => act("cancel")}
             >
               Annuler
-            </KazaButton>
+            </DangerButton>
 
             {showLinkForm && (
               <div className="w-full flex gap-2 mt-1">
@@ -305,10 +337,10 @@ function BookingCard({
                   value={linkVal}
                   onChange={(e) => setLinkVal(e.target.value)}
                   placeholder="https://meet.google.com/..."
-                  className="flex-1 text-xs border-2 border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className="flex-1 text-[12px] font-semibold rounded-[10px] px-3 py-2 focus:outline-none"
+                  style={{ border: "1px solid #dde6e0", color: ST.text }}
                 />
-                <KazaButton
-                  variant="primary"
+                <StButton
                   size="sm"
                   disabled={!linkVal || !!loadingAction}
                   onClick={() => {
@@ -317,23 +349,24 @@ function BookingCard({
                   }}
                 >
                   OK
-                </KazaButton>
-                <KazaButton variant="ghost" size="sm" onClick={() => setShowLinkForm(false)}>
-                  <X className="w-3 h-3" />
-                </KazaButton>
+                </StButton>
+                <StButton variant="secondary" size="sm" onClick={() => setShowLinkForm(false)}>
+                  <X size={12} />
+                </StButton>
               </div>
             )}
           </div>
         )}
 
         {booking.status === "COMPLETED" && !booking.mentorFeedback && (
-          <div className="mt-3 pt-3 border-t border-slate-100">
+          <div className="mt-3 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
             {!showFeedbackForm ? (
               <button
                 onClick={() => setShowFeedbackForm(true)}
-                className="text-xs text-slate-500 hover:text-[#0b2540] flex items-center gap-1"
+                className="text-[11.5px] font-semibold flex items-center gap-1 hover:opacity-80"
+                style={{ color: ST.textSecondary }}
               >
-                <MessageSquarePlus className="w-3.5 h-3.5" />
+                <MessageSquarePlus size={14} />
                 Ajouter un feedback
               </button>
             ) : (
@@ -342,11 +375,11 @@ function BookingCard({
                   value={feedbackVal}
                   onChange={(e) => setFeedbackVal(e.target.value)}
                   placeholder="Votre feedback pour l'apprenant…"
-                  className="w-full text-xs border-2 border-slate-200 rounded-xl px-3 py-2 resize-none h-16 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className="w-full text-[12px] font-medium rounded-[12px] px-3 py-2 resize-none h-16 focus:outline-none"
+                  style={{ border: "1px solid #dde6e0", color: "#33453b" }}
                 />
                 <div className="flex gap-2">
-                  <KazaButton
-                    variant="primary"
+                  <StButton
                     size="sm"
                     disabled={!feedbackVal || !!loadingAction}
                     onClick={() => {
@@ -355,21 +388,21 @@ function BookingCard({
                     }}
                   >
                     Enregistrer
-                  </KazaButton>
-                  <KazaButton
-                    variant="ghost"
+                  </StButton>
+                  <StButton
+                    variant="secondary"
                     size="sm"
                     onClick={() => setShowFeedbackForm(false)}
                   >
                     Annuler
-                  </KazaButton>
+                  </StButton>
                 </div>
               </div>
             )}
           </div>
         )}
       </div>
-    </div>
+    </StCard>
   );
 }
 
@@ -404,21 +437,21 @@ function DayGroup({
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-12 h-12 rounded-xl bg-emerald-100 flex flex-col items-center justify-center flex-shrink-0">
-          <p className="text-[10px] font-bold text-emerald-700 uppercase leading-none">
+        <div className="w-12 h-12 rounded-[12px] flex flex-col items-center justify-center flex-shrink-0" style={{ background: ST.greenSoft }}>
+          <p className="text-[10px] font-extrabold uppercase leading-none" style={{ color: ST.green }}>
             {d.toLocaleDateString("fr-FR", { month: "short" })}
           </p>
-          <p className="text-lg font-extrabold text-emerald-700 leading-none">{d.getDate()}</p>
+          <p className="text-[18px] font-extrabold leading-none" style={{ color: ST.green }}>{d.getDate()}</p>
         </div>
         <div>
-          <p className="text-sm font-bold text-[#0b2540] capitalize">{dayLabel}</p>
-          <p className="text-xs text-slate-500">
+          <p className="text-[13px] font-extrabold capitalize" style={{ color: ST.text }}>{dayLabel}</p>
+          <p className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
             {bookings.length} séance{bookings.length > 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex-1 h-px bg-slate-100" />
+        <div className="flex-1 h-px" style={{ background: ST.divider }} />
       </div>
-      <div className="space-y-3 ml-3 pl-10 border-l-2 border-slate-100">
+      <div className="space-y-3 ml-3 pl-10" style={{ borderLeft: `2px solid ${ST.divider}` }}>
         {bookings.map((b) => (
           <BookingCard key={b.id} booking={b} onAction={onAction} />
         ))}
@@ -481,92 +514,80 @@ export default function MentorRendezVousPage() {
     counts[b.status] = (counts[b.status] ?? 0) + 1;
   });
 
+  const tabsWithCounts = TABS.map((t) => ({
+    key: t.key,
+    label: t.label,
+    count: counts[t.key] > 0 ? counts[t.key] : undefined,
+  }));
+
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Mentor"
-        badgeColor="white"
-        icon={CalendarCheck}
-        title="Rendez-vous & séances"
-        subtitle="Gérez l'ensemble de vos réservations de mentorat."
-        actions={
-          <>
-            <KazaButton variant="secondary" href="/mentor/profil" icon={Edit3}>
-              Mon profil
-            </KazaButton>
-            <KazaButton variant="primary" href="/mentor/calendrier" icon={Calendar}>
-              Mon calendrier
-            </KazaButton>
-          </>
-        }
-      />
-
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un apprenant…"
-          className="w-full pl-10 pr-4 py-2.5 text-sm border-2 border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-        />
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.value;
-          return (
-            <button
-              key={tab.value}
-              onClick={() => setActiveTab(tab.value)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                isActive
-                  ? "bg-[#0b2540] text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {tab.label}
-              {counts[tab.value] > 0 && (
-                <span
-                  className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {counts[tab.value]}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Content */}
-      {loading ? (
-        <div className="space-y-4 animate-pulse">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-32 bg-slate-200 rounded-2xl" />
-          ))}
-        </div>
-      ) : sortedDays.length === 0 ? (
-        <KazaEmpty
-          icon={CalendarCheck}
-          title={search ? "Aucun résultat pour cette recherche" : "Aucune réservation"}
-          description={
-            search
-              ? "Essayez avec d'autres mots-clés."
-              : "Vous n'avez pas de rendez-vous dans cette catégorie."
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title="Rendez-vous & séances"
+          subtitle="Gérez l'ensemble de vos réservations de mentorat."
+          actions={
+            <>
+              <StButton variant="secondary" href="/mentor/profil" icon={Edit3}>
+                Mon profil
+              </StButton>
+              <StButton href="/mentor/calendrier" icon={Calendar}>
+                Mon calendrier
+              </StButton>
+            </>
           }
-          action={search ? { label: "Effacer la recherche", onClick: () => setSearch("") } : undefined}
         />
-      ) : (
-        <div className="space-y-8">
-          {sortedDays.map((day) => (
-            <DayGroup key={day} date={day} bookings={grouped[day]} onAction={handleAction} />
-          ))}
+
+        {/* Search */}
+        <div className="relative max-w-md mb-4">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: ST.textMuted }} />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher un apprenant…"
+            className="w-full pl-10 pr-4 py-2.5 text-[13px] font-semibold rounded-[12px] bg-white focus:outline-none"
+            style={{ border: `1px solid ${ST.cardBorder}`, color: ST.text }}
+          />
         </div>
-      )}
+
+        {/* Tabs */}
+        <div className="mb-4 overflow-x-auto pb-1">
+          <StTabs tabs={tabsWithCounts} active={activeTab} onChange={setActiveTab} />
+        </div>
+
+        {/* Content */}
+        {loading ? (
+          <div className="space-y-4 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 rounded-[18px]" style={{ background: "#e9efeb" }} />
+            ))}
+          </div>
+        ) : sortedDays.length === 0 ? (
+          <StCard className="text-center py-12">
+            <CalendarCheck size={40} style={{ color: "#d6e0da" }} className="mx-auto" />
+            <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>
+              {search ? "Aucun résultat pour cette recherche" : "Aucune réservation"}
+            </p>
+            <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+              {search
+                ? "Essayez avec d'autres mots-clés."
+                : "Vous n'avez pas de rendez-vous dans cette catégorie."}
+            </p>
+            {search && (
+              <div className="mt-4">
+                <StButton variant="secondary" onClick={() => setSearch("")}>Effacer la recherche</StButton>
+              </div>
+            )}
+          </StCard>
+        ) : (
+          <div className="space-y-8">
+            {sortedDays.map((day) => (
+              <DayGroup key={day} date={day} bookings={grouped[day]} onAction={handleAction} />
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+// Refonte design "Stitch" — apprenants mentor — vert Novakou officiel — 2026-06-13.
+// Logique 100% préservée : query bookings, agrégation students, recherche.
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -16,12 +18,13 @@ import {
   UsersRound,
 } from "lucide-react";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StChip,
+  StAvatar,
+  ST,
+} from "@/components/stitch";
 
 interface Booking {
   id: string;
@@ -62,11 +65,6 @@ function timeAgo(iso: string | null): string {
   if (d < 30) return `Il y a ${Math.floor(d / 7)} sem.`;
   if (d < 365) return `Il y a ${Math.floor(d / 30)} mois`;
   return `Il y a ${Math.floor(d / 365)} an(s)`;
-}
-
-function initials(name: string | null): string {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
 export default function MentorApprenantsPage() {
@@ -148,119 +146,124 @@ export default function MentorApprenantsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50/50 p-6">
-        <div className="max-w-5xl mx-auto space-y-4 animate-pulse">
-          <div className="h-32 bg-slate-200 rounded-3xl" />
-          <div className="h-24 bg-slate-200 rounded-2xl" />
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-20 bg-slate-200 rounded-2xl" />)}
-        </div>
+      <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+        <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto space-y-4 animate-pulse">
+          <div className="h-10 w-64 rounded-xl" style={{ background: "#e9efeb" }} />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+            {[1, 2, 3, 4].map((i) => <div key={i} className="h-20 rounded-[18px]" style={{ background: "#e9efeb" }} />)}
+          </div>
+          {[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-[18px]" style={{ background: "#e9efeb" }} />)}
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
-        <KazaHero
-          badge="Mentor"
-          badgeColor="white"
-          icon={Users}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StPageHeader
           title="Mes apprenants"
           subtitle="Vue agrégée de toutes les personnes que vous avez accompagnées."
         />
 
         {error && (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-500" />
-            <p className="text-sm text-rose-700">{error}</p>
+          <div className="mb-4 rounded-[13px] px-4 py-3 flex items-center gap-2" style={{ background: ST.roseSoft, border: "1px solid #f3d4de" }}>
+            <AlertCircle size={16} style={{ color: ST.roseText }} />
+            <p className="text-[13px] font-bold" style={{ color: ST.roseText }}>{error}</p>
           </div>
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-          <KazaKpiCard label="Total apprenants" value={students.length} icon={Users} iconColor="emerald" />
-          <KazaKpiCard label="Total séances" value={bookings.length} icon={CalendarCheck} iconColor="navy" />
-          <KazaKpiCard
+        <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3.5 mb-4">
+          <StKpiCompact label="Total apprenants" value={students.length} icon={Users} tone="green" />
+          <StKpiCompact label="Total séances" value={bookings.length} icon={CalendarCheck} tone="blue" />
+          <StKpiCompact
             label="Terminées"
             value={bookings.filter((b) => b.status === "COMPLETED").length}
             icon={CheckCircle2}
-            iconColor="sky"
+            tone="green"
           />
-          <KazaKpiCard label="Revenus bruts" value={`${fmt(totalRevenue)} F`} icon={Wallet} iconColor="violet" />
+          <StKpiCompact label="Revenus bruts" value={`${fmt(totalRevenue)} F`} icon={Wallet} tone="amber" />
         </div>
 
         {/* Search */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-3 flex items-center gap-2">
-          <Search className="w-4 h-4 text-slate-500 ml-2" />
+        <StCard className="!p-3 flex items-center gap-2 mb-4">
+          <Search size={16} className="ml-2" style={{ color: ST.textMuted }} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher par nom ou email…"
-            className="flex-1 text-sm focus:outline-none bg-transparent"
+            className="flex-1 text-[13px] font-semibold focus:outline-none bg-transparent"
+            style={{ color: ST.text }}
           />
           {search && (
-            <button onClick={() => setSearch("")} className="text-slate-500 hover:text-slate-900 p-1">
-              <X className="w-4 h-4" />
+            <button onClick={() => setSearch("")} className="p-1" style={{ color: ST.textMuted }}>
+              <X size={16} />
             </button>
           )}
-        </div>
+        </StCard>
 
         {/* Students list */}
         {filtered.length === 0 ? (
-          <KazaEmpty
-            icon={UsersRound}
-            title={students.length === 0 ? "Aucun apprenant pour l'instant" : "Aucun résultat"}
-            description={
-              students.length === 0
+          <StCard className="text-center py-12">
+            <UsersRound size={40} style={{ color: "#d6e0da" }} className="mx-auto" />
+            <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>
+              {students.length === 0 ? "Aucun apprenant pour l'instant" : "Aucun résultat"}
+            </p>
+            <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+              {students.length === 0
                 ? "Partagez votre profil public pour recevoir vos premières réservations."
-                : "Essayez d'autres mots-clés."
-            }
-            action={students.length === 0 ? { label: "Voir mon profil public", href: "/mentor/profil" } : undefined}
-          />
+                : "Essayez d'autres mots-clés."}
+            </p>
+            {students.length === 0 && (
+              <div className="mt-4">
+                <Link
+                  href="/mentor/profil"
+                  className="inline-flex items-center justify-center font-extrabold text-[12px] rounded-[10px] px-3 py-2"
+                  style={{ background: ST.greenSoft, color: ST.green }}
+                >
+                  Voir mon profil public
+                </Link>
+              </div>
+            )}
+          </StCard>
         ) : (
           <div className="space-y-3">
             {filtered.map((s) => (
-              <KazaCard key={s.id} className="hover:border-emerald-300 transition-colors">
+              <StCard key={s.id}>
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-700 to-emerald-400 text-white font-bold flex items-center justify-center flex-shrink-0">
-                    {s.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.image} alt={s.name ?? ""} className="w-full h-full rounded-full object-cover" />
-                    ) : (
-                      initials(s.name)
-                    )}
-                  </div>
+                  <StAvatar name={s.name ?? s.email ?? "Apprenant"} size={48} src={s.image} />
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <p className="text-sm font-bold text-slate-900 truncate">
+                      <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
                         {s.name ?? s.email ?? "Apprenant"}
                       </p>
                       {s.email && s.name && (
-                        <p className="text-[11px] text-slate-500 truncate">{s.email}</p>
+                        <p className="text-[11px] font-semibold truncate" style={{ color: ST.textMuted }}>{s.email}</p>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] text-slate-500">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-[11px] font-semibold" style={{ color: ST.textSecondary }}>
                       <span className="flex items-center gap-1">
-                        <CalendarCheck className="w-3 h-3" />
+                        <CalendarCheck size={12} />
                         {s.totalBookings} séance{s.totalBookings > 1 ? "s" : ""}
                       </span>
                       <span className="flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
+                        <CheckCircle2 size={12} />
                         {s.completedBookings} terminée{s.completedBookings > 1 ? "s" : ""}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Wallet className="w-3 h-3" />
+                        <Wallet size={12} />
                         {fmt(s.totalRevenue)} F
                       </span>
                       <span className="flex items-center gap-1">
-                        <History className="w-3 h-3" />
+                        <History size={12} />
                         Dernière : {timeAgo(s.lastBookingAt)}
                       </span>
                       {s.avgRating != null && (
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <Star className="w-3 h-3 fill-current" />
+                        <span className="flex items-center gap-1" style={{ color: "#b45309" }}>
+                          <Star size={12} className="fill-current" />
                           {s.avgRating.toFixed(1)}
                         </span>
                       )}
@@ -269,18 +272,19 @@ export default function MentorApprenantsPage() {
 
                   <div className="flex flex-col gap-1.5 flex-shrink-0 items-end">
                     {s.pendingOrConfirmed > 0 && (
-                      <KazaBadge variant="orange">{s.pendingOrConfirmed} à venir</KazaBadge>
+                      <StChip tone="amber">{s.pendingOrConfirmed} à venir</StChip>
                     )}
                     <Link
                       href={`/messages?to=${s.id}`}
-                      className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      className="flex items-center gap-1 px-3 py-1.5 rounded-[10px] text-[11px] font-extrabold"
+                      style={{ background: ST.greenSoft, color: ST.green }}
                     >
-                      <MessageCircle className="w-3 h-3" />
+                      <MessageCircle size={12} />
                       Message
                     </Link>
                   </div>
                 </div>
-              </KazaCard>
+              </StCard>
             ))}
           </div>
         )}

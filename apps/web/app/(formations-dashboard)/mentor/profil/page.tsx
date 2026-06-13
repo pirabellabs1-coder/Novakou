@@ -1,9 +1,10 @@
+// Refonte design "Stitch" — profil mentor — vert Novakou officiel — 2026-06-13.
+// Logique 100% préservée : query/PATCH profil, toggle dispo, langues, complétude, aperçu.
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  UserCircle,
   ExternalLink,
   AlertCircle,
   Save,
@@ -18,10 +19,13 @@ import {
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import DiscoverySessionPanel from "@/components/mentor/DiscoverySessionPanel";
 import {
-  KazaHero,
-  KazaCard,
-  KazaButton,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StProgressBar,
+  StChip,
+  ST,
+} from "@/components/stitch";
 
 function stripHtml(html: string): string {
   if (!html) return "";
@@ -84,6 +88,9 @@ const TIMEZONES = [
   { code: "Africa/Lagos",       label: "Lagos, Douala, Kinshasa (UTC+1)" },
   { code: "UTC",                label: "UTC" },
 ];
+
+const SELECT_CLASS = "w-full rounded-[12px] px-[14px] py-[11px] text-[13.5px] font-semibold bg-white focus:outline-none";
+const INPUT_CLASS = "w-full rounded-[12px] px-[14px] py-[11px] text-[13.5px] font-semibold bg-white focus:outline-none";
 
 export default function MentorProfilPage() {
   const [form, setForm] = useState<MentorProfileForm>({
@@ -191,92 +198,80 @@ export default function MentorProfilPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50/50 p-6">
-        <div className="max-w-2xl mx-auto space-y-4 animate-pulse">
-          <div className="h-32 bg-slate-200 rounded-3xl" />
+      <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+        <main className="px-5 md:px-7 py-6 md:py-7 max-w-3xl mx-auto space-y-4 animate-pulse">
+          <div className="h-10 w-64 rounded-xl" style={{ background: "#e9efeb" }} />
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 bg-slate-200 rounded-2xl" />
+            <div key={i} className="h-24 rounded-[18px]" style={{ background: "#e9efeb" }} />
           ))}
-        </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-3xl mx-auto space-y-6">
-        <KazaHero
-          badge="Mentor"
-          badgeColor="white"
-          icon={UserCircle}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-3xl mx-auto">
+        <StPageHeader
           title="Mon profil mentor"
           subtitle="Configurez votre fiche publique et vos paramètres de réservation."
           actions={
             mentorProfileId ? (
-              <KazaButton
+              <StButton
                 variant="secondary"
                 size="sm"
                 icon={ExternalLink}
                 href={`/mentors/${mentorProfileId}`}
               >
                 Voir public
-              </KazaButton>
+              </StButton>
             ) : undefined
           }
         />
 
         {/* Profile completion bar */}
-        <KazaCard>
+        <StCard className="mb-4">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs font-semibold text-slate-900">Complétude du profil</p>
-            <p className="text-xs font-bold text-emerald-700">{profileCompletion}%</p>
+            <p className="text-[12px] font-extrabold" style={{ color: ST.text }}>Complétude du profil</p>
+            <p className="text-[12px] font-extrabold" style={{ color: ST.green }}>{profileCompletion}%</p>
           </div>
-          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${profileCompletion}%`,
-                background: "linear-gradient(to right, #006e2f, #22c55e)",
-              }}
-            />
-          </div>
+          <StProgressBar percent={profileCompletion} height={8} />
           {profileCompletion < 100 && (
-            <p className="text-[11px] text-slate-500 mt-1.5">
+            <p className="text-[11px] font-semibold mt-1.5" style={{ color: ST.textMuted }}>
               Un profil complet apparaît mieux dans les résultats de recherche.
             </p>
           )}
-        </KazaCard>
+        </StCard>
 
         <form onSubmit={handleSave} className="space-y-4">
           {error && (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-500" />
-              <p className="text-sm text-rose-700">{error}</p>
+            <div className="rounded-[13px] px-4 py-3 flex items-center gap-2" style={{ background: ST.roseSoft, border: "1px solid #f3d4de" }}>
+              <AlertCircle size={16} style={{ color: ST.roseText }} />
+              <p className="text-[13px] font-bold" style={{ color: ST.roseText }}>{error}</p>
             </div>
           )}
 
           {saved && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 flex items-center gap-2">
-              <Check className="w-4 h-4 text-emerald-600" />
-              <p className="text-sm text-emerald-700 font-semibold">Profil sauvegardé</p>
+            <div className="rounded-[13px] px-4 py-3 flex items-center gap-2" style={{ background: ST.greenSoft, border: "1px solid #d7ecde" }}>
+              <Check size={16} style={{ color: ST.green }} />
+              <p className="text-[13px] font-extrabold" style={{ color: ST.greenDark }}>Profil sauvegardé</p>
             </div>
           )}
 
           {/* Availability toggle */}
-          <KazaCard>
+          <StCard>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-bold text-slate-900">Disponible pour des séances</p>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>Disponible pour des séances</p>
+                <p className="text-[11.5px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>
                   Désactivez si vous n&apos;acceptez pas de nouvelles réservations.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setForm((p) => ({ ...p, isAvailable: !p.isAvailable }))}
-                className={`relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none ${
-                  form.isAvailable ? "bg-emerald-500" : "bg-slate-200"
-                }`}
+                className="relative inline-flex h-6 w-11 rounded-full transition-colors focus:outline-none"
+                style={{ background: form.isAvailable ? ST.greenBright : "#cbd5cd" }}
               >
                 <span
                   className={`inline-block h-5 w-5 rounded-full bg-white shadow transform transition-transform mt-0.5 ${
@@ -285,14 +280,15 @@ export default function MentorProfilPage() {
                 />
               </button>
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Basic info */}
-          <KazaCard title="Informations de base">
+          <StCard className="!p-[18px_20px]">
+            <span className="text-[15px] font-extrabold block mb-4" style={{ color: ST.text }}>Informations de base</span>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
-                  Spécialité / Titre professionnel <span className="text-rose-500">*</span>
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
+                  Spécialité / Titre professionnel <span style={{ color: ST.roseText }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -300,18 +296,20 @@ export default function MentorProfilPage() {
                   onChange={(e) => setForm((p) => ({ ...p, specialty: e.target.value }))}
                   placeholder="ex: Expert Marketing Digital & Growth Hacking"
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 transition-all"
+                  className={INPUT_CLASS}
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   Domaine d&apos;expertise
                 </label>
                 <select
                   value={form.domain}
                   onChange={(e) => setForm((p) => ({ ...p, domain: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 bg-white"
+                  className={SELECT_CLASS}
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 >
                   <option value="">Sélectionner un domaine…</option>
                   {DOMAINS.map((d) => (
@@ -321,8 +319,8 @@ export default function MentorProfilPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
-                  Bio / Description <span className="text-rose-500">*</span>
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
+                  Bio / Description <span style={{ color: ST.roseText }}>*</span>
                 </label>
                 <RichTextEditor
                   value={form.bio}
@@ -333,23 +331,24 @@ export default function MentorProfilPage() {
                 {(() => {
                   const len = stripHtml(form.bio).length;
                   return (
-                    <p className="text-[10px] text-slate-500 mt-1">
+                    <p className="text-[10px] font-semibold mt-1" style={{ color: ST.textMuted }}>
                       {len} caractère{len !== 1 ? "s" : ""}
                       {len < 50 && len > 0 && (
-                        <span className="text-amber-500"> — Ajoutez au moins 50 caractères</span>
+                        <span style={{ color: ST.amberText }}> — Ajoutez au moins 50 caractères</span>
                       )}
                     </p>
                   );
                 })()}
               </div>
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Session settings */}
-          <KazaCard title="Tarifs & Durée">
+          <StCard className="!p-[18px_20px]">
+            <span className="text-[15px] font-extrabold block mb-4" style={{ color: ST.text }}>Tarifs & Durée</span>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   Prix par séance (FCFA)
                 </label>
                 <div className="relative">
@@ -360,25 +359,27 @@ export default function MentorProfilPage() {
                     min={1000}
                     step={500}
                     required
-                    className="w-full pr-14 pl-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                    className="w-full rounded-[12px] pr-14 pl-[14px] py-[11px] text-[13.5px] font-semibold bg-white focus:outline-none"
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-medium">
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[11px] font-bold" style={{ color: ST.textMuted }}>
                     FCFA
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] font-semibold mt-1" style={{ color: ST.textMuted }}>
                   ≈ {(form.sessionPrice / 655.957).toFixed(0)} EUR
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   Durée (minutes)
                 </label>
                 <select
                   value={form.sessionDuration}
                   onChange={(e) => setForm((p) => ({ ...p, sessionDuration: Number(e.target.value) }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 bg-white"
+                  className={SELECT_CLASS}
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 >
                   {[30, 45, 60, 90, 120].map((d) => (
                     <option key={d} value={d}>{d} min</option>
@@ -386,30 +387,31 @@ export default function MentorProfilPage() {
                 </select>
               </div>
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Advanced booking settings */}
-          <KazaCard
-            title="Réglages calendrier"
-            action={
+          <StCard className="!p-[18px_20px]">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-[15px] font-extrabold" style={{ color: ST.text }}>Réglages calendrier</span>
               <Link
                 href="/mentor/calendrier"
-                className="text-xs text-emerald-700 font-semibold hover:underline flex items-center gap-1"
+                className="text-[12px] font-extrabold hover:underline flex items-center gap-1"
+                style={{ color: ST.green }}
               >
                 Configurer mes créneaux
-                <ArrowRight className="w-3 h-3" />
+                <ArrowRight size={13} />
               </Link>
-            }
-          >
+            </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   Fuseau horaire
                 </label>
                 <select
                   value={form.timezone}
                   onChange={(e) => setForm((p) => ({ ...p, timezone: e.target.value }))}
-                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 bg-white"
+                  className={SELECT_CLASS}
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 >
                   {TIMEZONES.map((tz) => (
                     <option key={tz.code} value={tz.code}>{tz.label}</option>
@@ -419,28 +421,30 @@ export default function MentorProfilPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                     Pause entre sessions
                   </label>
                   <select
                     value={form.sessionBuffer}
                     onChange={(e) => setForm((p) => ({ ...p, sessionBuffer: Number(e.target.value) }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 bg-white"
+                    className={SELECT_CLASS}
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   >
                     {[0, 5, 10, 15, 20, 30, 45, 60].map((b) => (
                       <option key={b} value={b}>{b === 0 ? "Aucune" : `${b} min`}</option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-slate-500 mt-1">Empêche les résa coup sur coup</p>
+                  <p className="text-[10px] font-semibold mt-1" style={{ color: ST.textMuted }}>Empêche les résa coup sur coup</p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                     Délai min. de réservation
                   </label>
                   <select
                     value={form.bookingLeadTime}
                     onChange={(e) => setForm((p) => ({ ...p, bookingLeadTime: Number(e.target.value) }))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 bg-white"
+                    className={SELECT_CLASS}
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   >
                     <option value={30}>30 min</option>
                     <option value={60}>1 heure</option>
@@ -450,14 +454,15 @@ export default function MentorProfilPage() {
                     <option value={1440}>24 heures</option>
                     <option value={2880}>2 jours</option>
                   </select>
-                  <p className="text-[10px] text-slate-500 mt-1">Temps mini avant qu&apos;un apprenant puisse réserver</p>
+                  <p className="text-[10px] font-semibold mt-1" style={{ color: ST.textMuted }}>Temps mini avant qu&apos;un apprenant puisse réserver</p>
                 </div>
               </div>
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Languages */}
-          <KazaCard title="Langues parlées">
+          <StCard className="!p-[18px_20px]">
+            <span className="text-[15px] font-extrabold block mb-4" style={{ color: ST.text }}>Langues parlées</span>
             <div className="flex flex-wrap gap-2">
               {LANGUAGES.map((lang) => {
                 const selected = form.languages.includes(lang.code);
@@ -466,25 +471,27 @@ export default function MentorProfilPage() {
                     key={lang.code}
                     type="button"
                     onClick={() => toggleLanguage(lang.code)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all ${
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-[12px] font-extrabold transition-all"
+                    style={
                       selected
-                        ? "bg-emerald-500 text-white border-emerald-500"
-                        : "bg-white text-slate-500 border-slate-200 hover:border-emerald-300"
-                    }`}
+                        ? { background: ST.green, color: "#fff", border: `2px solid ${ST.green}` }
+                        : { background: "#fff", color: ST.textSecondary, border: `2px solid ${ST.cardBorder}` }
+                    }
                   >
                     {lang.label}
-                    {selected && <Check className="w-3 h-3" />}
+                    {selected && <Check size={12} />}
                   </button>
                 );
               })}
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Cover image */}
-          <KazaCard title="Photo de couverture">
+          <StCard className="!p-[18px_20px]">
+            <span className="text-[15px] font-extrabold block mb-4" style={{ color: ST.text }}>Photo de couverture</span>
             <div className="space-y-3">
               {form.coverImage && (
-                <div className="h-28 rounded-xl overflow-hidden relative">
+                <div className="h-28 rounded-[12px] overflow-hidden relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={form.coverImage} alt="Cover" className="w-full h-full object-cover" />
                   <button
@@ -492,13 +499,13 @@ export default function MentorProfilPage() {
                     onClick={() => setForm((p) => ({ ...p, coverImage: "" }))}
                     className="absolute top-2 right-2 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center hover:bg-black/80"
                   >
-                    <X className="w-3 h-3" />
+                    <X size={12} />
                   </button>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-slate-900 mb-1.5">
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   URL de l&apos;image (Cloudinary ou externe)
                 </label>
                 <input
@@ -506,19 +513,21 @@ export default function MentorProfilPage() {
                   value={form.coverImage}
                   onChange={(e) => setForm((p) => ({ ...p, coverImage: e.target.value }))}
                   placeholder="https://res.cloudinary.com/…"
-                  className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
+                  className={INPUT_CLASS}
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                 />
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[10px] font-semibold mt-1" style={{ color: ST.textMuted }}>
                   Recommandé : 1280×400 px. Laissez vide pour utiliser le dégradé par défaut.
                 </p>
               </div>
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Preview */}
-          <KazaCard title="Aperçu de votre profil">
-            <div className="border border-slate-100 rounded-2xl overflow-hidden max-w-xs mx-auto bg-white">
-              <div className="relative aspect-[4/3] bg-gradient-to-br from-emerald-900 via-emerald-700 to-emerald-400 overflow-hidden">
+          <StCard className="!p-[18px_20px]">
+            <span className="text-[15px] font-extrabold block mb-4" style={{ color: ST.text }}>Aperçu de votre profil</span>
+            <div className="rounded-[16px] overflow-hidden max-w-xs mx-auto bg-white" style={{ border: `1px solid ${ST.cardBorder}` }}>
+              <div className="relative aspect-[4/3] overflow-hidden" style={{ background: ST.gradient }}>
                 {form.coverImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -533,31 +542,30 @@ export default function MentorProfilPage() {
                 )}
 
                 <span
-                  className={`absolute top-2 left-2 inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full backdrop-blur shadow-sm ${
-                    form.isAvailable ? "bg-emerald-500/95 text-white" : "bg-slate-600/95 text-slate-100"
-                  }`}
+                  className="absolute top-2 left-2 inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full backdrop-blur shadow-sm"
+                  style={form.isAvailable ? { background: "rgba(34,197,94,.95)", color: "#fff" } : { background: "rgba(93,113,102,.95)", color: "#fff" }}
                 >
-                  <span className={`w-1 h-1 rounded-full ${form.isAvailable ? "bg-white animate-pulse" : "bg-slate-300"}`} />
+                  <span className="w-1 h-1 rounded-full" style={{ background: form.isAvailable ? "#fff" : "#cbd5cd" }} />
                   {form.isAvailable ? "Disponible" : "Indisponible"}
                 </span>
 
-                <div className="absolute bottom-2 left-2 w-12 h-12 rounded-full ring-2 ring-white shadow-lg overflow-hidden bg-gradient-to-br from-emerald-700 to-emerald-400 flex items-center justify-center text-white">
+                <div className="absolute bottom-2 left-2 w-12 h-12 rounded-full ring-2 ring-white shadow-lg overflow-hidden flex items-center justify-center text-white" style={{ background: ST.gradient }}>
                   <User className="w-6 h-6" />
                 </div>
               </div>
 
               <div className="p-4 flex flex-col gap-2">
                 <div>
-                  <p className="text-sm font-bold text-slate-900 line-clamp-1">
+                  <p className="text-[13px] font-extrabold line-clamp-1" style={{ color: ST.text }}>
                     {form.specialty || "Votre spécialité"}
                   </p>
                   {form.domain && (
-                    <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">
-                      {form.domain}
-                    </span>
+                    <div className="mt-1">
+                      <StChip tone="neutral">{form.domain}</StChip>
+                    </div>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                <p className="text-[11.5px] font-semibold line-clamp-2 leading-relaxed" style={{ color: ST.textSecondary }}>
                   {stripHtml(form.bio) || "Votre bio apparaîtra ici…"}
                 </p>
                 {form.languages.length > 0 && (
@@ -565,42 +573,42 @@ export default function MentorProfilPage() {
                     {form.languages.map((code) => (
                       <span
                         key={code}
-                        className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500"
+                        className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full"
+                        style={{ background: "#f1efe8", color: "#5f5e5a" }}
                       >
                         {code}
                       </span>
                     ))}
                   </div>
                 )}
-                <div className="flex items-center justify-between mt-1 pt-2 border-t border-slate-50">
-                  <p className="text-sm font-extrabold text-emerald-700">
+                <div className="flex items-center justify-between mt-1 pt-2" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                  <p className="text-[13px] font-extrabold" style={{ color: ST.green }}>
                     {new Intl.NumberFormat("fr-FR").format(form.sessionPrice)}{" "}
-                    <span className="text-[10px] font-bold text-slate-500">FCFA</span>
+                    <span className="text-[10px] font-bold" style={{ color: ST.textMuted }}>FCFA</span>
                   </p>
-                  <span className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-                    <Clock className="w-3 h-3" />
+                  <span className="flex items-center gap-1 text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>
+                    <Clock size={12} />
                     {form.sessionDuration} min
                   </span>
                 </div>
               </div>
             </div>
-          </KazaCard>
+          </StCard>
 
           {/* Save button */}
           <div className="pb-6">
-            <KazaButton
-              variant="primary"
+            <StButton
               type="submit"
               disabled={saving}
               icon={saving ? Loader2 : Save}
               className="w-full"
             >
               {saving ? "Sauvegarde en cours…" : "Enregistrer le profil"}
-            </KazaButton>
+            </StButton>
 
-            <p className="text-center text-xs text-slate-500 mt-3">
+            <p className="text-center text-[11.5px] font-semibold mt-3" style={{ color: ST.textSecondary }}>
               Votre profil sera visible sur{" "}
-              <Link href="/mentors" className="text-emerald-700 hover:underline font-semibold">
+              <Link href="/mentors" className="font-extrabold hover:underline" style={{ color: ST.green }}>
                 la page des mentors
               </Link>{" "}
               dès que vous êtes disponible.
