@@ -4,7 +4,8 @@ import { use, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { sanitizeRichHtml, stripHtml } from "@/lib/sanitize-html";
+import { stripHtml } from "@/lib/sanitize-html";
+import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -422,21 +423,12 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                 <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                   <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">À propos du mentor</h2>
                   {mentor.bio && stripHtml(mentor.bio).length > 0 ? (
-                    <div
-                      className="mentor-bio prose prose-sm max-w-none text-[#5c647a] leading-relaxed prose-headings:text-[#191c1e] prose-strong:text-[#191c1e] prose-a:text-[#006e2f] prose-a:no-underline hover:prose-a:underline prose-img:rounded-lg prose-hr:border-gray-200"
-                      // bio is sanitized server-side on save, sanitized again here as defense-in-depth
-                      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(mentor.bio) }}
-                    />
+                    <TiptapRenderer content={mentor.bio} />
                   ) : (
                     <p className="text-sm text-[#5c647a] leading-relaxed">
                       Ce mentor n&apos;a pas encore rédigé sa bio.
                     </p>
                   )}
-                  <style dangerouslySetInnerHTML={{ __html: `
-                    .mentor-bio [data-video-embed] { position: relative; padding-bottom: 56.25%; height: 0; margin: 1rem 0; border-radius: 0.75rem; overflow: hidden; background: #000; }
-                    .mentor-bio [data-video-embed] iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-                    .mentor-bio mark { padding: 0 3px; border-radius: 3px; }
-                  `}} />
                 </div>
 
                 {/* Domaine d'expertise */}

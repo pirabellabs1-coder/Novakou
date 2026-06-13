@@ -16,6 +16,8 @@
  * client, cette couche bloque les injections malicieuses en cas de bypass.
  */
 
+import { marked } from "marked";
+
 const FORBIDDEN_TAGS_RE =
   /<(script|style|object|embed|form|input|textarea|button|link|meta|base|svg|math)\b[^<]*(?:(?!<\/\1>)<[^<]*)*<\/\1\s*>/gi;
 
@@ -93,6 +95,52 @@ export function sanitizeRichHtml(input: string | null | undefined): string {
   );
 
   return html;
+}
+
+/**
+ * Heuristique : ce contenu contient-il déjà du balisage HTML (Tiptap) ?
+ * Si oui → on le traite comme du HTML. Sinon → c'est du Markdown (collé ou
+ * legacy) qu'il faut convertir.
+ */
+function looksLikeHtml(s: string): boolean {
+  return /<\/?(p|h[1-6]|ul|ol|li|strong|em|b|i|u|a|br|blockquote|img|hr|table|thead|tbody|tr|td|th|div|span|mark|iframe|pre|code)\b/i.test(s);
+}
+
+let markedConfigured = false;
+
+/**
+ * Convertit un contenu Markdown en HTML.
+ *
+ * `marked` v18 est pur ESM → import statique (un `require()` casserait en
+ * SSR Node avec ERR_REQUIRE_ESM). `marked.parse` est synchrone tant
+ * qu'aucune extension async n'est enregistrée — on caste donc en string.
+ */
+export function markdownToHtml(input: string): string {
+  if (!markedConfigured) {
+    marked.setOptions({ gfm: true, breaks: true });
+    markedConfigured = true;
+  }
+  return marked.parse(input) as string;
+}
+
+/**
+ * SOURCE DE VÉRITÉ UNIQUE pour afficher une description / bio enregistrée.
+ *
+ * - Si le contenu est déjà du HTML Tiptap → on le nettoie directement.
+ * - Si c'est du Markdown (collé dans l'éditeur, ou contenu legacy) → on le
+ *   convertit en HTML PUIS on le nettoie.
+ *
+ * Utilisé à la fois par l'aperçu de l'éditeur ET par toutes les pages
+ * publiques (via TiptapRenderer) → le rendu est TOUJOURS identique.
+ * Le rendu visuel est porté par la classe CSS `.nk-rich` (globals.css),
+ * partagée entre l'éditeur et le public.
+ */
+export function renderRichContent(input: string | null | undefined): string {
+  if (!input || typeof input !== "string") return "";
+  const trimmed = input.trim();
+  if (!trimmed) return "";
+  const html = looksLikeHtml(trimmed) ? trimmed : markdownToHtml(trimmed);
+  return sanitizeRichHtml(html);
 }
 
 /**

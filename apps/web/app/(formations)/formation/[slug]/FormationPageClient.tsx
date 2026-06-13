@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 
@@ -485,16 +486,8 @@ export default function FormationPageClient({ slug }: { slug: string }) {
             {formation.description && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                 <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">Description</h2>
-                {formation.descriptionFormat === "tiptap" || /<\/?(p|h[1-6]|ul|ol|li|strong|em|br|a|blockquote)[\s>/]/i.test(formation.description) ? (
-                  <div
-                    className="prose prose-sm max-w-none text-[#5c647a] prose-headings:text-[#191c1e] prose-strong:text-[#191c1e] prose-a:text-[#006e2f]"
-                    dangerouslySetInnerHTML={{ __html: formation.description }}
-                  />
-                ) : (
-                  <div className="text-sm text-[#5c647a] leading-relaxed whitespace-pre-wrap">
-                    {formation.description}
-                  </div>
-                )}
+                {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
+                <TiptapRenderer content={formation.description} />
               </div>
             )}
 

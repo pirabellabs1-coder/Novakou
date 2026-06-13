@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PixelInjector } from "@/components/formations/PixelInjector";
+import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import { SaleAvailability } from "@/components/formations/SaleAvailability";
@@ -360,17 +361,8 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 {product.description ? (
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                     <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">À propos de ce produit</h2>
-                    {/* Render HTML if description contains tags, otherwise plain text */}
-                    {product.description.includes("<") && product.description.includes(">") ? (
-                      <div
-                        className="text-sm text-[#5c647a] leading-relaxed prose prose-sm max-w-none prose-headings:text-[#191c1e] prose-strong:text-[#191c1e] prose-ul:my-2 prose-li:my-0.5"
-                        dangerouslySetInnerHTML={{ __html: product.description }}
-                      />
-                    ) : (
-                      <div className="text-sm text-[#5c647a] leading-relaxed whitespace-pre-wrap">
-                        {product.description}
-                      </div>
-                    )}
+                    {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
+                    <TiptapRenderer content={product.description} />
                   </div>
                 ) : (
                   <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">

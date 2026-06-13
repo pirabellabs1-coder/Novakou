@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
 
@@ -126,14 +127,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
               </Link>
             )}
             {plan.description && (
-              plan.description.includes("<") && plan.description.includes(">") ? (
-                <div
-                  className="text-sm text-[#5c647a] mt-4 leading-relaxed prose prose-sm max-w-none prose-headings:text-[#191c1e] prose-strong:text-[#191c1e] prose-ul:my-2 prose-li:my-0.5"
-                  dangerouslySetInnerHTML={{ __html: plan.description }}
-                />
-              ) : (
-                <p className="text-sm text-[#5c647a] mt-4 leading-relaxed whitespace-pre-wrap">{plan.description}</p>
-              )
+              <TiptapRenderer content={plan.description} className="mt-4" />
             )}
 
             {plan.activeCount > 0 && (

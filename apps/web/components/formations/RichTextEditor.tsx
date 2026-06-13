@@ -17,6 +17,36 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import Script from "next/script";
 import { useToastStore } from "@/store/toast";
 import { extractPuterText } from "@/lib/puter-ai";
+import { markdownToHtml } from "@/lib/sanitize-html";
+
+// ─── Détection Markdown ─────────────────────────────────────────────────────
+// Reconnaît un texte collé qui est du Markdown (pour le convertir en HTML
+// riche au lieu de l'insérer brut avec ses ## et ** visibles).
+function looksLikeMarkdown(text: string): boolean {
+  if (!text) return false;
+  // Si ça contient déjà des balises HTML de bloc → ce n'est pas du markdown brut
+  if (/<\/?(p|h[1-6]|ul|ol|li|strong|em|blockquote|a|img|table)\b/i.test(text)) return false;
+  return (
+    /(^|\n)\s{0,3}#{1,6}\s+\S/.test(text) ||          // titres  # ## ###
+    /(^|\n)\s{0,3}[-*+]\s+\S/.test(text) ||           // listes à puces
+    /(^|\n)\s{0,3}\d+\.\s+\S/.test(text) ||           // listes numérotées
+    /(^|\n)\s{0,3}>\s+\S/.test(text) ||               // citations
+    /\*\*[^*\n]+\*\*/.test(text) ||                   // **gras**
+    /\[[^\]]+\]\([^)]+\)/.test(text) ||               // [lien](url)
+    /(^|\n)\s{0,3}(---|\*\*\*|___)\s*(\n|$)/.test(text) || // séparateurs
+    /`[^`\n]+`/.test(text)                             // `code`
+  );
+}
+
+/** Convertit la valeur initiale : si c'est du markdown legacy → HTML. */
+function prepareInitialValue(value: string): string {
+  if (!value) return "";
+  if (/<\/?(p|h[1-6]|ul|ol|li|strong|em|blockquote|a|img|table|br|div)\b/i.test(value)) return value;
+  if (looksLikeMarkdown(value)) {
+    try { return markdownToHtml(value); } catch { return value; }
+  }
+  return value;
+}
 
 declare global {
   interface Window {
@@ -154,6 +184,10 @@ export function RichTextEditor({
     return () => clearInterval(interval);
   }, []);
 
+  // Ref stable vers l'éditeur — nécessaire dans handlePaste (défini une seule
+  // fois à la création, le `editor` du closure y serait null).
+  const editorRef = useRef(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
@@ -174,23 +208,50 @@ export function RichTextEditor({
       Placeholder.configure({ placeholder }),
       VideoEmbed,
     ],
-    content: value,
+    content: prepareInitialValue(value),
     editorProps: {
       attributes: {
-        class: "rte-content focus:outline-none text-zinc-900 leading-relaxed px-5 py-4",
+        // `nk-rich` = style PARTAGÉ avec les pages publiques → le rendu en
+        // édition est identique au rendu vu par les acheteurs.
+        class: "rte-content nk-rich focus:outline-none text-zinc-900 leading-relaxed px-5 py-4",
+      },
+      // ── Coller du Markdown → conversion automatique en HTML riche ──
+      handlePaste(_view, event) {
+        const ed = editorRef.current;
+        if (!ed) return false;
+        const htmlData = event.clipboardData?.getData("text/html") ?? "";
+        // Si le presse-papier contient du vrai HTML, on laisse Tiptap gérer.
+        if (htmlData && htmlData.trim()) return false;
+        const text = event.clipboardData?.getData("text/plain") ?? "";
+        if (text && looksLikeMarkdown(text)) {
+          try {
+            const html = markdownToHtml(text);
+            ed.chain().focus().insertContent(html).run();
+            return true; // on a géré le collage
+          } catch {
+            return false;
+          }
+        }
+        return false;
       },
     },
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     immediatelyRender: false,
   });
 
+  // Garde la ref à jour pour handlePaste.
+  useEffect(() => {
+    editorRef.current = editor;
+  }, [editor]);
+
   // Sync editor content when `value` prop changes (e.g. data fetched after mount).
   // Only update if value differs from current HTML to avoid loops with onUpdate.
   useEffect(() => {
     if (!editor) return;
+    const prepared = prepareInitialValue(value || "");
     const current = editor.getHTML();
-    if (value !== current) {
-      editor.commands.setContent(value || "", false);
+    if (prepared !== current) {
+      editor.commands.setContent(prepared, false);
     }
   }, [editor, value]);
 
@@ -339,28 +400,10 @@ IMPORTANT :
 
   if (!editor) return null;
 
-  // Inline styles for rich content
+  // Le rendu visuel du contenu est porté par la classe partagée `.nk-rich`
+  // (globals.css), IDENTIQUE entre l'éditeur et les pages publiques. On ne
+  // garde ici QUE la règle du placeholder, propre à l'état d'édition vide.
   const rteStyles = `
-    .rte-content { font-size: 15px; }
-    .rte-content h1 { font-size: 1.875rem; font-weight: 800; letter-spacing: -0.025em; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #18181b; }
-    .rte-content h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #18181b; }
-    .rte-content h3 { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #18181b; }
-    .rte-content p { margin-bottom: 0.75rem; }
-    .rte-content ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-    .rte-content ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
-    .rte-content li { margin-bottom: 0.25rem; }
-    .rte-content li > p { margin-bottom: 0; }
-    .rte-content blockquote { border-left: 4px solid #22c55e; padding-left: 1rem; margin: 1rem 0; color: #52525b; font-style: italic; }
-    .rte-content a { color: #006e2f; text-decoration: underline; text-underline-offset: 2px; }
-    .rte-content strong { font-weight: 700; color: #18181b; }
-    .rte-content em { font-style: italic; }
-    .rte-content u { text-decoration: underline; }
-    .rte-content s { text-decoration: line-through; color: #71717a; }
-    .rte-content img { border-radius: 0.5rem; max-width: 100%; height: auto; margin: 0.75rem 0; }
-    .rte-content hr { border: 0; border-top: 1px solid #e4e4e7; margin: 1.25rem 0; }
-    .rte-content mark { padding: 0 2px; border-radius: 2px; }
-    .rte-content .rte-video-embed { position: relative; padding-bottom: 56.25%; height: 0; margin: 0.75rem 0; border-radius: 0.5rem; overflow: hidden; background: #000; }
-    .rte-content .rte-video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
     .rte-content p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: #a1a1aa; pointer-events: none; float: left; height: 0; }
   `;
 
@@ -750,9 +793,8 @@ IMPORTANT :
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
-              <style dangerouslySetInnerHTML={{ __html: rteStyles }} />
               <div
-                className="rte-content border border-zinc-200 rounded-lg p-4 bg-zinc-50"
+                className="nk-rich border border-zinc-200 rounded-lg p-4 bg-zinc-50"
                 dangerouslySetInnerHTML={{ __html: aiPreview }}
               />
             </div>

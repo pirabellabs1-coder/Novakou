@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import LessonVideoPlayer from "@/components/formations/LessonVideoPlayer";
+import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
 // ── Types ────────────────────────────────────────────────────────────────
 interface ApiResource {
@@ -482,10 +483,7 @@ export default function FormationPlayerPage({
                         </p>
                       ) : null}
                       {activeLesson.content ? (
-                        <div
-                          className="prose prose-sm max-w-none text-[#191c1e]"
-                          dangerouslySetInnerHTML={{ __html: activeLesson.content }}
-                        />
+                        <TiptapRenderer content={activeLesson.content} />
                       ) : null}
                       {!activeLesson.desc && !activeLesson.content && (
                         <p className="text-sm text-[#5c647a] italic">
