@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StStatusPill,
+  ST,
+} from "@/components/stitch";
 import {
   Package,
   Search,
@@ -53,17 +53,12 @@ function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-type StatusInfo = {
-  label: string;
-  variant: "green" | "orange" | "slate" | "rose";
-};
-
-const STATUS_CONFIG: Record<string, StatusInfo> = {
-  ACTIF: { label: "Live", variant: "green" },
-  EN_ATTENTE: { label: "En attente", variant: "orange" },
-  BROUILLON: { label: "Brouillon", variant: "slate" },
-  ARCHIVE: { label: "Archivé", variant: "slate" },
-  REFUSE: { label: "Refusé", variant: "rose" },
+const STATUS_LABELS: Record<string, string> = {
+  ACTIF: "Live",
+  EN_ATTENTE: "En attente",
+  BROUILLON: "Brouillon",
+  ARCHIVE: "Archivé",
+  REFUSE: "Refusé",
 };
 
 export default function AdminProduitsPage() {
@@ -117,14 +112,11 @@ export default function AdminProduitsPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1600px] mx-auto space-y-8">
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Package}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
           title="Produits"
           subtitle={
             isLoading
@@ -132,260 +124,250 @@ export default function AdminProduitsPage() {
               : `${summary?.total ?? 0} produits · ${summary?.pending ?? 0} en attente de validation`
           }
           actions={
-            <KazaButton variant="secondary" icon={Download}>
+            <StButton variant="secondary" icon={Download}>
               Exporter CSV
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+          <StKpiCompact
             label="Total catalogue"
             value={summary?.total ?? 0}
             icon={Package}
-            iconColor="navy"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="En attente"
             value={summary?.pending ?? 0}
             icon={Clock}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Actifs"
             value={summary?.active ?? 0}
             icon={CheckCircle}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Brouillons"
             value={summary?.drafts ?? 0}
             icon={FileEdit}
-            iconColor="sky"
+            tone="blue"
           />
         </div>
 
         {/* Filtres */}
-        <KazaCard>
+        <StCard>
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: ST.textMuted }}
               />
               <input
                 type="text"
                 placeholder="Rechercher un produit..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
             </div>
-            <div className="flex gap-1.5 flex-wrap bg-slate-50 p-1 rounded-xl">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => setStatus(tab.value)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    status === tab.value
-                      ? "bg-[#0b2540] text-white shadow"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {tab.label}
-                  <span
-                    className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
-                      status === tab.value
-                        ? "bg-white/15 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
+            <div className="flex gap-1 flex-wrap p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+              {tabs.map((tab) => {
+                const on = status === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() => setStatus(tab.value)}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                    style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
                   >
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
+                    {tab.label}
+                    <span className="text-[10px] tabular-nums">· {tab.count}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </KazaCard>
+        </StCard>
 
         {/* Table */}
-        <KazaCard noPadding>
+        <StCard noPadding>
           {isLoading ? (
             <div className="p-5 space-y-3">
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-20 bg-slate-100 animate-pulse rounded-xl"
+                  className="h-20 animate-pulse rounded-xl"
+                  style={{ background: ST.divider }}
                 />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="p-5">
-              <KazaEmpty
-                icon={status === "ARCHIVE" ? Archive : Package}
-                title="Aucun produit"
-                description={
-                  status === "EN_ATTENTE"
-                    ? "Aucun produit en attente de validation."
-                    : "Aucun produit ne correspond aux filtres."
-                }
-              />
+            <div className="p-10 flex flex-col items-center text-center">
+              {status === "ARCHIVE" ? (
+                <Archive size={36} style={{ color: "#d6e0da" }} />
+              ) : (
+                <Package size={36} style={{ color: "#d6e0da" }} />
+              )}
+              <p className="text-[13.5px] font-extrabold mt-3" style={{ color: ST.text }}>Aucun produit</p>
+              <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                {status === "EN_ATTENTE"
+                  ? "Aucun produit en attente de validation."
+                  : "Aucun produit ne correspond aux filtres."}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Produit
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Vendeur
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Ventes
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Revenus
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Statut
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Actions
-                    </th>
+                  <tr>
+                    {[
+                      { h: "Produit", align: "text-left" },
+                      { h: "Vendeur", align: "text-left" },
+                      { h: "Ventes", align: "text-right" },
+                      { h: "Revenus", align: "text-right" },
+                      { h: "Statut", align: "text-left" },
+                      { h: "Actions", align: "text-right" },
+                    ].map((c) => (
+                      <th
+                        key={c.h}
+                        className={`text-[10.5px] uppercase font-extrabold px-5 py-3 ${c.align}`}
+                        style={{ color: ST.textMuted, letterSpacing: ".06em" }}
+                      >
+                        {c.h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => {
-                    const sc = STATUS_CONFIG[p.status] ?? STATUS_CONFIG.BROUILLON;
-                    return (
-                      <tr
-                        key={p.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-12 h-12 rounded-xl bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
-                              {p.thumbnail ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                  src={p.thumbnail}
-                                  alt=""
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : p.kind === "formation" ? (
-                                <BookOpen className="w-5 h-5 text-slate-400" />
-                              ) : (
-                                <BookText className="w-5 h-5 text-slate-400" />
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-900 truncate">
-                                {p.title}
-                              </p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                                  {p.productType}
-                                </span>
-                                <span className="text-[10px] text-slate-300">
-                                  ·
-                                </span>
-                                <span className="text-[10px] tabular-nums text-slate-500">
-                                  {formatFCFA(p.price)} FCFA
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <p className="text-xs font-bold text-slate-900 truncate max-w-[180px]">
-                            {p.seller}
-                          </p>
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <p className="text-sm font-extrabold tabular-nums text-slate-900">
-                            {p.sales}
-                          </p>
-                          {p.rating > 0 && (
-                            <p className="text-[10px] tabular-nums text-amber-500">
-                              ★ {p.rating.toFixed(1)}
-                            </p>
-                          )}
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <p className="text-sm font-extrabold tabular-nums text-emerald-700">
-                            {formatFCFA(p.revenue)}
-                          </p>
-                          <p className="text-[10px] text-slate-400 uppercase tracking-widest">
-                            FCFA
-                          </p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <KazaBadge variant={sc.variant}>{sc.label}</KazaBadge>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex gap-1.5 justify-end">
-                            {p.status === "EN_ATTENTE" ? (
-                              <>
-                                <KazaButton
-                                  variant="primary"
-                                  size="sm"
-                                  icon={CheckCircle}
-                                  onClick={() =>
-                                    actionMutation.mutate({
-                                      id: p.id,
-                                      kind: p.kind,
-                                      action: "approve",
-                                    })
-                                  }
-                                  disabled={actionMutation.isPending}
-                                >
-                                  Valider
-                                </KazaButton>
-                                <KazaButton
-                                  variant="ghost"
-                                  size="sm"
-                                  icon={XCircle}
-                                  onClick={() =>
-                                    actionMutation.mutate({
-                                      id: p.id,
-                                      kind: p.kind,
-                                      action: "reject",
-                                    })
-                                  }
-                                  disabled={actionMutation.isPending}
-                                >
-                                  Refuser
-                                </KazaButton>
-                              </>
-                            ) : p.slug ? (
-                              <KazaButton
-                                variant="ghost"
-                                size="sm"
-                                icon={ExternalLink}
-                                href={
-                                  p.kind === "formation"
-                                    ? `/formation/${p.slug}`
-                                    : `/produit/${p.slug}`
-                                }
-                              >
-                                Voir
-                              </KazaButton>
+                  {products.map((p) => (
+                    <tr key={p.id} className="transition-colors hover:bg-[#f7faf8]">
+                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div
+                            className="w-12 h-12 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
+                            style={{ background: ST.divider }}
+                          >
+                            {p.thumbnail ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={p.thumbnail}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : p.kind === "formation" ? (
+                              <BookOpen className="w-5 h-5" style={{ color: ST.textMuted }} />
                             ) : (
-                              <span className="text-xs text-slate-400">—</span>
+                              <BookText className="w-5 h-5" style={{ color: ST.textMuted }} />
                             )}
                           </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          <div className="min-w-0">
+                            <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
+                              {p.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <span className="text-[10px] font-extrabold uppercase tracking-wide" style={{ color: ST.textMuted }}>
+                                {p.productType}
+                              </span>
+                              <span className="text-[10px]" style={{ color: ST.textFaint }}>·</span>
+                              <span className="text-[10px] tabular-nums" style={{ color: ST.textMuted }}>
+                                {formatFCFA(p.price)} FCFA
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <p className="text-[12px] font-bold truncate max-w-[180px]" style={{ color: ST.text }}>
+                          {p.seller}
+                        </p>
+                      </td>
+                      <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
+                          {p.sales}
+                        </p>
+                        {p.rating > 0 && (
+                          <p className="text-[10px] tabular-nums" style={{ color: ST.amberText }}>
+                            ★ {p.rating.toFixed(1)}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.green }}>
+                          {formatFCFA(p.revenue)}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-widest" style={{ color: ST.textFaint }}>
+                          FCFA
+                        </p>
+                      </td>
+                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <StStatusPill status={p.status} label={STATUS_LABELS[p.status] ?? p.status} />
+                      </td>
+                      <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <div className="flex gap-1.5 justify-end">
+                          {p.status === "EN_ATTENTE" ? (
+                            <>
+                              <StButton
+                                variant="primary"
+                                size="sm"
+                                icon={CheckCircle}
+                                onClick={() =>
+                                  actionMutation.mutate({
+                                    id: p.id,
+                                    kind: p.kind,
+                                    action: "approve",
+                                  })
+                                }
+                                disabled={actionMutation.isPending}
+                              >
+                                Valider
+                              </StButton>
+                              <StButton
+                                variant="secondary"
+                                size="sm"
+                                icon={XCircle}
+                                onClick={() =>
+                                  actionMutation.mutate({
+                                    id: p.id,
+                                    kind: p.kind,
+                                    action: "reject",
+                                  })
+                                }
+                                disabled={actionMutation.isPending}
+                              >
+                                Refuser
+                              </StButton>
+                            </>
+                          ) : p.slug ? (
+                            <StButton
+                              variant="secondary"
+                              size="sm"
+                              icon={ExternalLink}
+                              href={
+                                p.kind === "formation"
+                                  ? `/formation/${p.slug}`
+                                  : `/produit/${p.slug}`
+                              }
+                            >
+                              Voir
+                            </StButton>
+                          ) : (
+                            <span className="text-xs" style={{ color: ST.textFaint }}>—</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
-        </KazaCard>
+        </StCard>
       </main>
     </div>
   );

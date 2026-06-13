@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StChip,
+  StAvatar,
+  ST,
+} from "@/components/stitch";
 import {
   Users,
   Search,
@@ -114,14 +115,11 @@ export default function AdminUtilisateursPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1600px] mx-auto space-y-8">
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Users}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
           title="Utilisateurs"
           subtitle={
             isLoading
@@ -129,127 +127,116 @@ export default function AdminUtilisateursPage() {
               : `${summary?.totalUsers ?? 0} comptes au total · ${summary?.totalInstructors ?? 0} instructeurs · ${summary?.totalLearners ?? 0} apprenants`
           }
           actions={
-            <KazaButton variant="secondary" icon={Download}>
+            <StButton variant="secondary" icon={Download}>
               Exporter CSV
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+          <StKpiCompact
             label="Comptes totaux"
             value={summary?.totalUsers ?? 0}
             icon={Users}
-            iconColor="navy"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Instructeurs"
             value={summary?.totalInstructors ?? 0}
             icon={GraduationCap}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Apprenants"
             value={summary?.totalLearners ?? 0}
             icon={UserCheck}
-            iconColor="sky"
+            tone="blue"
           />
         </div>
 
         {/* Filtres */}
-        <KazaCard>
+        <StCard>
           <div className="flex flex-col lg:flex-row gap-4">
             <div className="relative flex-1">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: ST.textMuted }}
               />
               <input
                 type="text"
                 placeholder="Rechercher par nom ou email…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
             </div>
-            <div className="flex gap-2 bg-slate-50 p-1 rounded-xl">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.value}
-                  onClick={() => setFilter(tab.value)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                    filter === tab.value
-                      ? "bg-[#0b2540] text-white shadow"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {tab.label}
-                  <span
-                    className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
-                      filter === tab.value
-                        ? "bg-white/15 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
+            <div className="flex gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+              {tabs.map((tab) => {
+                const on = filter === tab.value;
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() => setFilter(tab.value)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                    style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
                   >
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
+                    {tab.label}
+                    <span className="text-[10px] tabular-nums">· {tab.count}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </KazaCard>
+        </StCard>
 
         {/* Table */}
-        <KazaCard noPadding>
+        <StCard noPadding>
           {isLoading ? (
             <div className="p-5 space-y-3">
               {[0, 1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-16 bg-slate-100 animate-pulse rounded-xl"
+                  className="h-16 animate-pulse rounded-xl"
+                  style={{ background: ST.divider }}
                 />
               ))}
             </div>
           ) : users.length === 0 ? (
-            <div className="p-5">
-              <KazaEmpty
-                icon={Users}
-                title="Aucun utilisateur"
-                description="Aucun compte ne correspond à votre recherche."
-              />
+            <div className="p-10 flex flex-col items-center text-center">
+              <Users size={36} style={{ color: "#d6e0da" }} />
+              <p className="text-[13.5px] font-extrabold mt-3" style={{ color: ST.text }}>Aucun utilisateur</p>
+              <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                Aucun compte ne correspond à votre recherche.
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Compte
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">Rôle</th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Produits
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Gagné
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Dépensé
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Actions
-                    </th>
+                  <tr>
+                    {[
+                      { h: "Compte", align: "text-left" },
+                      { h: "Rôle", align: "text-left" },
+                      { h: "Produits", align: "text-right" },
+                      { h: "Gagné", align: "text-right" },
+                      { h: "Dépensé", align: "text-right" },
+                      { h: "Actions", align: "text-right" },
+                    ].map((c) => (
+                      <th
+                        key={c.h}
+                        className={`text-[10.5px] uppercase font-extrabold px-5 py-3 ${c.align}`}
+                        style={{ color: ST.textMuted, letterSpacing: ".06em" }}
+                      >
+                        {c.h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u) => {
-                    const initials = (u.name ?? u.email)
-                      .split(" ")
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase();
                     const createdDate = new Date(u.createdAt).toLocaleDateString(
                       "fr-FR",
                       { day: "numeric", month: "short", year: "numeric" }
@@ -257,78 +244,64 @@ export default function AdminUtilisateursPage() {
                     const isBlocked =
                       u.status === "SUSPENDU" || u.status === "BANNI";
                     return (
-                      <tr
-                        key={u.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-5 py-4">
+                      <tr key={u.id} className="transition-colors hover:bg-[#f7faf8]">
+                        <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                           <div className="flex items-center gap-3 min-w-0">
-                            {u.image ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={u.image}
-                                alt=""
-                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0b2540] to-[#1a4a7d] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                                {initials}
-                              </div>
-                            )}
+                            <StAvatar name={u.name ?? u.email} src={u.image} size={40} />
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-slate-900 truncate">
+                              <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
                                 {u.name ?? "—"}
                               </p>
-                              <p className="text-xs text-slate-500 truncate">
+                              <p className="text-[11.5px] truncate" style={{ color: ST.textSecondary }}>
                                 {u.email}
                               </p>
-                              <p className="text-[10px] tabular-nums text-slate-400 mt-0.5">
+                              <p className="text-[10px] tabular-nums mt-0.5" style={{ color: ST.textFaint }}>
                                 Inscrit le {createdDate}
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                           {u.isInstructor ? (
-                            <KazaBadge variant="green" icon={GraduationCap}>
+                            <StChip tone="green" icon={GraduationCap}>
                               Instructeur
-                            </KazaBadge>
+                            </StChip>
                           ) : (
-                            <KazaBadge variant="slate" icon={UserCheck}>
+                            <StChip tone="neutral" icon={UserCheck}>
                               Apprenant
-                            </KazaBadge>
+                            </StChip>
                           )}
                           {isBlocked && (
                             <div className="mt-1">
-                              <KazaBadge variant="rose">{u.status}</KazaBadge>
+                              <StChip tone="rose">{u.status}</StChip>
                             </div>
                           )}
                         </td>
-                        <td className="px-5 py-4 text-right">
-                          <p className="text-sm font-extrabold tabular-nums text-slate-900">
+                        <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
                             {u.productsCount}
                           </p>
                         </td>
-                        <td className="px-5 py-4 text-right">
-                          <p className="text-sm font-extrabold tabular-nums text-emerald-700">
+                        <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.green }}>
                             {formatFCFA(u.totalEarned)}
                           </p>
-                          <p className="text-[10px] text-slate-400 uppercase tracking-widest">
+                          <p className="text-[10px] uppercase tracking-widest" style={{ color: ST.textFaint }}>
                             FCFA
                           </p>
                         </td>
-                        <td className="px-5 py-4 text-right">
-                          <p className="text-sm font-extrabold tabular-nums text-slate-900">
+                        <td className="px-5 py-4 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
                             {formatFCFA(u.totalSpent)}
                           </p>
-                          <p className="text-[10px] text-slate-400 uppercase tracking-widest">
+                          <p className="text-[10px] uppercase tracking-widest" style={{ color: ST.textFaint }}>
                             {u.enrollmentsCount + u.purchasesCount} achats
                           </p>
                         </td>
-                        <td className="px-5 py-4">
+                        <td className="px-5 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
                           <div className="flex gap-1.5 justify-end">
                             {isBlocked ? (
-                              <KazaButton
+                              <StButton
                                 variant="primary"
                                 size="sm"
                                 icon={PlayCircle}
@@ -341,11 +314,11 @@ export default function AdminUtilisateursPage() {
                                 disabled={userActionMutation.isPending}
                               >
                                 Activer
-                              </KazaButton>
+                              </StButton>
                             ) : (
                               <>
-                                <KazaButton
-                                  variant="ghost"
+                                <StButton
+                                  variant="secondary"
                                   size="sm"
                                   icon={PauseCircle}
                                   onClick={() => {
@@ -362,11 +335,12 @@ export default function AdminUtilisateursPage() {
                                   disabled={userActionMutation.isPending}
                                 >
                                   Suspendre
-                                </KazaButton>
-                                <KazaButton
-                                  variant="danger"
+                                </StButton>
+                                <StButton
+                                  variant="secondary"
                                   size="sm"
                                   icon={Ban}
+                                  className="!text-[#993556]"
                                   onClick={async () => {
                                     const ok = await confirmAction({
                                       title:
@@ -387,11 +361,11 @@ export default function AdminUtilisateursPage() {
                                   disabled={userActionMutation.isPending}
                                 >
                                   Bannir
-                                </KazaButton>
+                                </StButton>
                               </>
                             )}
-                            <KazaButton
-                              variant="ghost"
+                            <StButton
+                              variant="secondary"
                               size="sm"
                               icon={Trash2}
                               onClick={async () => {
@@ -407,7 +381,7 @@ export default function AdminUtilisateursPage() {
                               disabled={deleteUserMutation.isPending}
                             >
                               Supprimer
-                            </KazaButton>
+                            </StButton>
                           </div>
                         </td>
                       </tr>
@@ -417,7 +391,7 @@ export default function AdminUtilisateursPage() {
               </table>
             </div>
           )}
-        </KazaCard>
+        </StCard>
       </main>
     </div>
   );

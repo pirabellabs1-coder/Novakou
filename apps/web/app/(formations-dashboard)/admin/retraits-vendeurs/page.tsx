@@ -11,24 +11,26 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StStatusPill,
+  StChip,
+  ST,
+} from "@/components/stitch";
 import {
   Banknote,
   ArrowLeft,
   Clock,
   CheckCircle,
+  CheckCircle2,
   XCircle,
   Wallet,
   FlaskConical,
-  ShieldCheck,
+  BadgeCheck,
   RefreshCw,
-  Sparkles,
+  Wand2,
   CreditCard,
   Inbox,
 } from "lucide-react";
@@ -91,13 +93,10 @@ function timeAgo(dateStr: string) {
   return `il y a ${d} j`;
 }
 
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; variant: "orange" | "green" | "rose" }
-> = {
-  EN_ATTENTE: { label: "En attente", variant: "orange" },
-  TRAITE: { label: "Traité", variant: "green" },
-  REFUSE: { label: "Refusé", variant: "rose" },
+const STATUS_LABELS: Record<string, string> = {
+  EN_ATTENTE: "En attente",
+  TRAITE: "Traité",
+  REFUSE: "Refusé",
 };
 
 export default function AdminRetraitsVendeursPage() {
@@ -481,50 +480,49 @@ export default function AdminRetraitsVendeursPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
       {toast && (
-        <div className="fixed top-6 right-6 z-50 bg-[#0b2540] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl">
+        <div className="fixed top-6 right-6 z-50 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl" style={{ background: ST.greenDark }}>
           {toast}
         </div>
       )}
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1400px] mx-auto space-y-8">
-        <KazaButton variant="ghost" size="sm" icon={ArrowLeft} href="/admin/dashboard">
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StButton variant="secondary" size="sm" icon={ArrowLeft} href="/admin/dashboard">
           Dashboard
-        </KazaButton>
+        </StButton>
 
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Banknote}
-          title="Demandes de retrait vendeurs &amp; mentors"
+        <StPageHeader
+          title="Demandes de retrait vendeurs & mentors"
           subtitle="Approuvez ou refusez les retraits. Payez automatiquement via Moneroo / PayGenius."
           actions={
-            <KazaButton
+            <StButton
               variant="secondary"
               icon={FlaskConical}
               onClick={() => setShowTest(!showTest)}
             >
               Tester Moneroo
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* ── Panneau de test Moneroo direct ──────────────────────────────── */}
         {showTest && (
-          <KazaCard
-            title="Test Moneroo direct"
-            subtitle="Envoie un payout direct à Moneroo. ATTENTION : l'argent sort réellement de votre solde."
-          >
+          <StCard className="!p-[18px_20px]">
+            <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Test Moneroo direct</h3>
+            <p className="text-[12px] font-semibold mt-0.5 mb-4" style={{ color: ST.textSecondary }}>
+              Envoie un payout direct à Moneroo. ATTENTION : l&apos;argent sort réellement de votre solde.
+            </p>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">Méthode</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ST.textMuted }}>Méthode</label>
                 <select
                   value={testMethod}
                   onChange={(e) => setTestMethod(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-sm"
+                  className="w-full px-3 py-2 rounded-xl text-[13px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                 >
                   <optgroup label="Sénégal">
                     <option value="wave_sn">Wave (SN)</option>
@@ -554,7 +552,7 @@ export default function AdminRetraitsVendeursPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">
+                <label className="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ST.textMuted }}>
                   Numéro (msisdn)
                 </label>
                 <input
@@ -562,109 +560,117 @@ export default function AdminRetraitsVendeursPage() {
                   value={testMsisdn}
                   onChange={(e) => setTestMsisdn(e.target.value)}
                   placeholder="Ex: 22957335726 (sans le +)"
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-sm font-mono"
+                  className="w-full px-3 py-2 rounded-xl text-[13px] font-mono focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                 />
-                <p className="text-[10px] text-zinc-500 mt-0.5">Digits only, format international sans +</p>
+                <p className="text-[10px] mt-0.5" style={{ color: ST.textMuted }}>Digits only, format international sans +</p>
               </div>
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1.5">Montant</label>
+                <label className="block text-[10px] font-extrabold uppercase tracking-widest mb-1.5" style={{ color: ST.textMuted }}>Montant</label>
                 <input
                   type="number"
                   value={testAmount}
                   onChange={(e) => setTestAmount(Number(e.target.value))}
                   min={100}
-                  className="w-full px-3 py-2 border border-zinc-200 rounded-xl text-sm"
+                  className="w-full px-3 py-2 rounded-xl text-[13px] font-semibold focus:outline-none"
+                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                 />
-                <p className="text-[10px] text-zinc-500 mt-0.5">500 = 500 FCFA / XOF</p>
+                <p className="text-[10px] mt-0.5" style={{ color: ST.textMuted }}>500 = 500 FCFA / XOF</p>
               </div>
             </div>
 
-            <button
+            <StButton
+              variant="dark"
+              icon={FlaskConical}
               onClick={runTestPayout}
               disabled={testing || !testMsisdn}
-              className="px-5 py-2.5 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-700 transition-colors disabled:opacity-50 inline-flex items-center gap-2"
             >
               {testing ? "Envoi en cours…" : "Envoyer à Moneroo"}
-            </button>
+            </StButton>
 
             {testResult !== null && (
-              <div className="mt-4 rounded-xl border p-4 font-mono text-[11px] overflow-x-auto bg-slate-50 border-slate-200">
+              <div
+                className="mt-4 rounded-xl p-4 font-mono text-[11px] overflow-x-auto"
+                style={{ background: ST.bg, border: `1px solid ${ST.cardBorder}` }}
+              >
                 <p
-                  className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${(testResult as { ok?: boolean }).ok ? "text-emerald-700" : "text-rose-700"}`}
+                  className="text-[10px] font-extrabold uppercase tracking-widest mb-2"
+                  style={{ color: (testResult as { ok?: boolean }).ok ? ST.green : ST.roseText }}
                 >
                   {(testResult as { ok?: boolean }).ok ? "Succès" : "Erreur Moneroo"}
                 </p>
-                <pre className="whitespace-pre-wrap break-all text-slate-800">
+                <pre className="whitespace-pre-wrap break-all" style={{ color: "#33453b" }}>
                   {JSON.stringify(testResult, null, 2)}
                 </pre>
               </div>
             )}
-          </KazaCard>
+          </StCard>
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <StKpiCompact
             label="En attente"
             value={summary?.pending ?? 0}
             icon={Clock}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Montant en attente"
-            value={`${fmtFCFA(summary?.pendingAmount ?? 0)} F`}
+            value={`${fmtFCFA(summary?.pendingAmount ?? 0)}`}
+            unit="F"
             icon={Wallet}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Traités"
             value={summary?.processed ?? 0}
             icon={CheckCircle}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Refusés"
             value={summary?.refused ?? 0}
             icon={XCircle}
-            iconColor="rose"
+            tone="rose"
           />
         </div>
 
         {/* Filtres */}
-        <KazaCard>
+        <StCard>
           <div className="flex flex-col md:flex-row gap-3 flex-wrap">
-            <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl flex-wrap">
-              {(["EN_ATTENTE", "TRAITE", "REFUSE", "all"] as const).map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    statusFilter === s
-                      ? "bg-[#0b2540] text-white shadow"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {s === "all" ? "Tous" : STATUS_CONFIG[s]?.label}
-                </button>
-              ))}
+            <div className="flex gap-1 p-1 rounded-[13px] flex-wrap" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+              {(["EN_ATTENTE", "TRAITE", "REFUSE", "all"] as const).map((s) => {
+                const on = statusFilter === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                    style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
+                  >
+                    {s === "all" ? "Tous" : STATUS_LABELS[s]}
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl flex-wrap">
-              {(["all", "vendor", "mentor"] as const).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setRoleFilter(r)}
-                  className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    roleFilter === r
-                      ? "bg-emerald-500 text-white shadow"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {r === "all" ? "Tous rôles" : r === "vendor" ? "Vendeurs" : "Mentors"}
-                </button>
-              ))}
+            <div className="flex gap-1 p-1 rounded-[13px] flex-wrap" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+              {(["all", "vendor", "mentor"] as const).map((r) => {
+                const on = roleFilter === r;
+                return (
+                  <button
+                    key={r}
+                    onClick={() => setRoleFilter(r)}
+                    className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                    style={on ? { background: ST.green, color: "#fff" } : { color: ST.textSecondary }}
+                  >
+                    {r === "all" ? "Tous rôles" : r === "vendor" ? "Vendeurs" : "Mentors"}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </KazaCard>
+        </StCard>
 
         {/* List */}
         {isLoading ? (
@@ -672,44 +678,51 @@ export default function AdminRetraitsVendeursPage() {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="h-24 bg-white rounded-2xl border border-slate-100 animate-pulse"
+                className="h-24 rounded-[18px] animate-pulse"
+                style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}
               />
             ))}
           </div>
         ) : withdrawals.length === 0 ? (
-          <KazaEmpty
-            icon={Inbox}
-            title="Aucune demande"
-            description="Aucune demande de retrait ne correspond à ces filtres."
-          />
+          <StCard className="flex flex-col items-center text-center py-12">
+            <Inbox size={40} style={{ color: "#d6e0da" }} />
+            <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune demande</p>
+            <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+              Aucune demande de retrait ne correspond à ces filtres.
+            </p>
+          </StCard>
         ) : (
           <div className="space-y-3">
             {/* Barre bulk — visible quand >= 1 EN_ATTENTE sélectionné.
                 Permet d'approuver via Moneroo/PayGenius/manuel ou refuser en masse. */}
             {selectedPendingCount > 0 && (
-              <div className="sticky top-2 z-20 bg-zinc-900 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-2xl rounded-md">
+              <div
+                className="sticky top-2 z-20 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-2xl rounded-xl"
+                style={{ background: ST.greenDark }}
+              >
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest">
                     {selectedPendingCount} retrait{selectedPendingCount > 1 ? "s" : ""} EN ATTENTE sélectionné{selectedPendingCount > 1 ? "s" : ""}
                   </span>
                   <button
                     onClick={() => setBulkIds(new Set())}
-                    className="text-[10px] font-semibold text-zinc-300 hover:text-white underline"
+                    className="text-[10px] font-semibold text-white/70 hover:text-white underline"
                   >
                     Désélectionner
                   </button>
                   <button
                     onClick={() => setBulkIds(new Set(pendingIds))}
-                    className="text-[10px] font-semibold text-zinc-300 hover:text-white underline"
+                    className="text-[10px] font-semibold text-white/70 hover:text-white underline"
                   >
                     Tout sélectionner ({pendingIds.length})
                   </button>
                 </div>
-                <div className="flex gap-0 flex-wrap">
+                <div className="flex gap-1.5 flex-wrap">
                   <button
                     onClick={() => bulkApprove("paygenius")}
                     disabled={bulkRunning}
-                    className="px-3 py-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50"
+                    className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50"
+                    style={{ background: ST.blueText }}
                     title="Payer la sélection via PayGenius"
                   >
                     {bulkRunning ? "…" : "Payer PayGenius"}
@@ -717,7 +730,8 @@ export default function AdminRetraitsVendeursPage() {
                   <button
                     onClick={() => bulkApprove("moneroo")}
                     disabled={bulkRunning}
-                    className="px-3 py-2 bg-[#006e2f] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#005a26] disabled:opacity-50"
+                    className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50"
+                    style={{ background: ST.green }}
                     title="Payer la sélection via Moneroo"
                   >
                     {bulkRunning ? "…" : "Payer Moneroo"}
@@ -725,7 +739,7 @@ export default function AdminRetraitsVendeursPage() {
                   <button
                     onClick={() => bulkApprove("manual")}
                     disabled={bulkRunning}
-                    className="px-3 py-2 bg-zinc-700 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-600 disabled:opacity-50"
+                    className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50 bg-white/15 hover:bg-white/25"
                     title="Marquer comme déjà payés (transfert hors plateforme)"
                   >
                     Manuel
@@ -733,7 +747,8 @@ export default function AdminRetraitsVendeursPage() {
                   <button
                     onClick={bulkReject}
                     disabled={bulkRunning}
-                    className="px-3 py-2 bg-[#ba1a1a] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#93000a] disabled:opacity-50"
+                    className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50"
+                    style={{ background: "#ba1a1a" }}
                   >
                     Refuser
                   </button>
@@ -741,13 +756,16 @@ export default function AdminRetraitsVendeursPage() {
               </div>
             )}
             {withdrawals.map((w) => {
-              const sc = STATUS_CONFIG[w.status];
               const isPending = w.status === "EN_ATTENTE";
               const isSelected = bulkIds.has(w.id);
               return (
                 <div
                   key={w.id}
-                  className={`bg-white p-6 border ${isSelected ? "border-[#006e2f] ring-2 ring-[#006e2f]/20" : "border-zinc-100"}`}
+                  className="bg-white p-5 rounded-[18px]"
+                  style={{
+                    border: isSelected ? `2px solid ${ST.green}` : `1px solid ${ST.cardBorder}`,
+                    boxShadow: isSelected ? `0 0 0 4px ${ST.greenSoft}` : "0 1px 3px rgba(16,52,32,.05)",
+                  }}
                 >
                   <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                     {isPending && (
@@ -762,28 +780,37 @@ export default function AdminRetraitsVendeursPage() {
                       </label>
                     )}
                     <div className="flex items-center gap-4 min-w-0 flex-1">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                      <div
+                        className="w-12 h-12 rounded-full flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0"
+                        style={{ background: ST.gradient }}
+                      >
                         {(w.user.name ?? w.user.email).charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-sm font-bold text-zinc-900 truncate">
+                          <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
                             {w.user.name ?? w.user.email}
                           </p>
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${w.role === "mentor" ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800"}`}>
+                          <span
+                            className="inline-block px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider"
+                            style={w.role === "mentor" ? { background: ST.blueSoft, color: ST.blueText } : { background: "#f1efe8", color: "#5f5e5a" }}
+                          >
                             {w.role}
                           </span>
                           {w.user.kyc >= 2 && (
-                            <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
-                              <span className="material-symbols-outlined text-[10px]">verified</span>
+                            <span
+                              className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider"
+                              style={{ background: ST.greenSoft, color: ST.green }}
+                            >
+                              <BadgeCheck size={10} />
                               KYC {w.user.kyc}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">
+                        <p className="text-[11px] mt-0.5" style={{ color: ST.textMuted }}>
                           {w.user.email} · {methodLabel(w.method)} · {timeAgo(w.createdAt)}
                         </p>
-                        <p className="text-[11px] text-zinc-600 mt-1 font-mono">
+                        <p className="text-[11px] mt-1 font-mono" style={{ color: ST.textSecondary }}>
                           {renderAccountInfo(w)}
                         </p>
                       </div>
@@ -791,37 +818,40 @@ export default function AdminRetraitsVendeursPage() {
 
                     <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 w-full lg:w-auto">
                       <div className="text-right">
-                        <p className="text-xl font-extrabold text-zinc-900 tabular-nums">
+                        <p className="text-[20px] font-extrabold tabular-nums" style={{ color: ST.text }}>
                           {fmtFCFA(w.amount)}
                         </p>
-                        <p className="text-[10px] text-zinc-400 uppercase tracking-widest">FCFA</p>
+                        <p className="text-[10px] uppercase tracking-widest" style={{ color: ST.textFaint }}>FCFA</p>
                       </div>
-                      <KazaBadge variant={sc.variant}>{sc.label}</KazaBadge>
+                      <StStatusPill status={w.status} />
 
                       {w.status === "EN_ATTENTE" && (
-                        <div className="flex gap-0 flex-wrap">
+                        <div className="flex gap-1.5 flex-wrap">
                           <button
                             onClick={() => handleApproveMoneroo(w)}
                             disabled={approveMut.isPending || refuseMut.isPending}
-                            className="px-4 py-2 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            className="px-4 py-2 rounded-[10px] text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            style={{ background: ST.greenBright, color: ST.greenDark }}
                             title="Déclencher un vrai paiement Moneroo"
                           >
-                            <span className="material-symbols-outlined text-[14px]">payments</span>
+                            <CreditCard size={14} />
                             Payer Moneroo
                           </button>
                           <button
                             onClick={() => handleApprovePayGenius(w)}
                             disabled={approveMut.isPending || refuseMut.isPending}
-                            className="px-4 py-2 bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-600 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            className="px-4 py-2 rounded-[10px] text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                            style={{ background: ST.blueText }}
                             title="Déclencher un paiement via PayGenius (wallet pré-financé requis)"
                           >
-                            <span className="material-symbols-outlined text-[14px]">auto_awesome</span>
+                            <Wand2 size={14} />
                             Payer PayGenius
                           </button>
                           <button
                             onClick={() => handleApproveManual(w)}
                             disabled={approveMut.isPending || refuseMut.isPending}
-                            className="px-3 py-2 bg-amber-100 text-amber-900 text-[10px] font-bold uppercase tracking-widest hover:bg-amber-200 transition-colors disabled:opacity-50"
+                            className="px-3 py-2 rounded-[10px] text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50"
+                            style={{ background: ST.amberSoft, color: ST.amberText }}
                             title="Marquer traité (virement fait à la main)"
                           >
                             Manuel
@@ -829,7 +859,8 @@ export default function AdminRetraitsVendeursPage() {
                           <button
                             onClick={() => handleRefuse(w)}
                             disabled={approveMut.isPending || refuseMut.isPending}
-                            className="px-4 py-2 bg-[#ffdad6] text-[#93000a] text-[10px] font-bold uppercase tracking-widest hover:bg-[#ffb4a9] transition-colors disabled:opacity-50"
+                            className="px-4 py-2 rounded-[10px] text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50"
+                            style={{ background: ST.roseSoft, color: ST.roseText }}
                           >
                             Refuser
                           </button>
@@ -843,32 +874,36 @@ export default function AdminRetraitsVendeursPage() {
                     const retries = getRetryCount(w);
                     const canRetry = retries < 3 && w.errorMessage;
                     return (
-                      <div className={`mt-4 border-l-4 pl-4 py-3 ${errCat === "insufficient_funds" ? "border-red-300 bg-red-50" : errCat === "validation" ? "border-orange-300 bg-orange-50" : "border-rose-200 bg-rose-50"}`}>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-rose-700 mb-1">
+                      <div
+                        className="mt-4 border-l-4 pl-4 py-3 rounded-r-lg"
+                        style={{ borderColor: "#f3cdd9", background: ST.roseSoft }}
+                      >
+                        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.roseText }}>
                           {errCat === "insufficient_funds" ? "Solde Moneroo insuffisant" : errCat === "validation" ? "Erreur de validation" : "Motif de refus"}
                         </p>
-                        {w.refusedReason && <p className="text-sm text-rose-900">{w.refusedReason}</p>}
+                        {w.refusedReason && <p className="text-[13px]" style={{ color: ST.roseText }}>{w.refusedReason}</p>}
                         {w.errorMessage && (
-                          <p className="text-[10px] text-rose-600 mt-1 font-mono">Erreur Moneroo : {w.errorMessage}</p>
+                          <p className="text-[10px] mt-1 font-mono" style={{ color: ST.roseText }}>Erreur Moneroo : {w.errorMessage}</p>
                         )}
                         {errCat === "insufficient_funds" && (
-                          <p className="text-xs text-red-700 mt-2 font-semibold">Rechargez votre compte Moneroo puis relancez le payout.</p>
+                          <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.roseText }}>Rechargez votre compte Moneroo puis relancez le payout.</p>
                         )}
                         {errCat === "validation" && (
-                          <p className="text-xs text-orange-700 mt-2 font-semibold">Vérifiez le numéro du bénéficiaire avant de relancer.</p>
+                          <p className="text-[12px] mt-2 font-semibold" style={{ color: ST.amberText }}>Vérifiez le numéro du bénéficiaire avant de relancer.</p>
                         )}
                         <div className="flex items-center gap-2 mt-3">
                           {canRetry ? (
                             <button
                               onClick={() => handleRetry(w)}
                               disabled={retryMut.isPending}
-                              className="px-3 py-1.5 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                              className="px-3 py-1.5 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center gap-1"
+                              style={{ background: ST.blueText }}
                             >
-                              <span className="material-symbols-outlined text-[14px]">refresh</span>
+                              <RefreshCw size={14} />
                               Relancer ({3 - retries} essais restants)
                             </button>
                           ) : retries >= 3 ? (
-                            <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                            <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
                               3/3 tentatives épuisées — contactez le support Moneroo
                             </span>
                           ) : null}
@@ -878,51 +913,55 @@ export default function AdminRetraitsVendeursPage() {
                   })()}
 
                   {w.status === "EN_ATTENTE" && w.errorMessage && (
-                    <div className="mt-4 border-l-4 border-amber-200 pl-4 py-2 bg-amber-50">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700 mb-1">Dernière tentative</p>
-                      <p className="text-sm text-amber-900">{w.errorMessage}</p>
+                    <div className="mt-4 border-l-4 pl-4 py-2 rounded-r-lg" style={{ borderColor: "#f3e2bd", background: ST.amberSoft }}>
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.amberText }}>Dernière tentative</p>
+                      <p className="text-[13px]" style={{ color: ST.amberText }}>{w.errorMessage}</p>
                     </div>
                   )}
 
                   {/* Bureau session 4 — bouton Réconcilier pour les payouts coincés
                       en EN_ATTENTE après init provider (paymentRef présent). */}
                   {w.status === "EN_ATTENTE" && w.paymentRef && w.paymentProvider && (
-                    <div className="mt-4 flex items-center justify-between gap-3 flex-wrap p-3 bg-blue-50 border border-blue-200 rounded-md">
-                      <div className="text-xs text-blue-900 flex-1 min-w-0">
-                        <p className="font-bold uppercase tracking-widest text-[10px] mb-1 text-blue-700">
+                    <div
+                      className="mt-4 flex items-center justify-between gap-3 flex-wrap p-3 rounded-lg"
+                      style={{ background: ST.blueSoft, border: "1px solid #cfe3f5" }}
+                    >
+                      <div className="text-[12px] flex-1 min-w-0" style={{ color: ST.blueText }}>
+                        <p className="font-extrabold uppercase tracking-widest text-[10px] mb-1">
                           Payout initié — en attente confirmation provider
                         </p>
                         <p className="font-mono text-[11px] truncate">
                           {w.paymentProvider}:{w.paymentRef}
                         </p>
                         <p className="text-[11px] mt-1 opacity-80">
-                          Le statut TRAITE/REFUSE arrive via webhook provider. Si rien après 15 min, cliquez "Réconcilier".
+                          Le statut TRAITE/REFUSE arrive via webhook provider. Si rien après 15 min, cliquez &quot;Réconcilier&quot;.
                         </p>
                       </div>
                       <button
                         onClick={() => handleReconcile(w)}
                         disabled={reconcileMut.isPending}
-                        className="px-3 py-2 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 inline-flex items-center gap-1 rounded-md"
+                        className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50 inline-flex items-center gap-1"
+                        style={{ background: ST.blueText }}
                       >
-                        <span className="material-symbols-outlined text-[14px]">sync</span>
+                        <RefreshCw size={14} />
                         {reconcileMut.isPending ? "Vérification…" : "Réconcilier"}
                       </button>
                     </div>
                   )}
 
                   {w.status === "TRAITE" && w.processedAt && (
-                    <div className="mt-4 flex items-center gap-3 text-[11px] text-emerald-700 flex-wrap">
+                    <div className="mt-4 flex items-center gap-3 text-[11px] flex-wrap" style={{ color: ST.green }}>
                       <span className="inline-flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                        <CheckCircle2 size={14} />
                         Traité le {new Date(w.processedAt).toLocaleString("fr-FR", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                       </span>
                       {w.paymentProvider === "moneroo" && w.paymentRef && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-mono text-[10px]">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-mono text-[10px]" style={{ background: ST.blueSoft, color: ST.blueText }}>
                           Moneroo · {w.paymentRef.slice(0, 16)}…
                         </span>
                       )}
                       {w.paymentProvider === "manual" && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-bold">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: ST.amberSoft, color: ST.amberText }}>
                           Virement manuel
                         </span>
                       )}

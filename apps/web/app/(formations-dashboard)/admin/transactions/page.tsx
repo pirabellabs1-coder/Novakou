@@ -3,15 +3,14 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StChip,
+  ST,
+} from "@/components/stitch";
 import {
-  Receipt,
   Search,
   Download,
   TrendingUp,
@@ -23,6 +22,7 @@ import {
   RotateCcw,
   Inbox,
   FilterX,
+  type LucideIcon,
 } from "lucide-react";
 
 type Period = "all" | "7d" | "30d" | "90d" | "custom";
@@ -58,11 +58,11 @@ function formatFCFA(n: number) {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; variant: "green" | "rose" | "orange" }
+  { label: string; tone: "green" | "rose" | "amber"; icon: LucideIcon }
 > = {
-  completed: { label: "Complète", variant: "green" },
-  refunded: { label: "Remboursée", variant: "rose" },
-  pending_refund: { label: "En cours", variant: "orange" },
+  completed: { label: "Complète", tone: "green", icon: CheckCircle },
+  refunded: { label: "Remboursée", tone: "rose", icon: XCircle },
+  pending_refund: { label: "En cours", tone: "amber", icon: Clock },
 };
 
 export default function AdminTransactionsPage() {
@@ -195,14 +195,11 @@ export default function AdminTransactionsPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1600px] mx-auto space-y-8">
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Receipt}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
           title="Transactions"
           subtitle={
             isLoading
@@ -210,112 +207,103 @@ export default function AdminTransactionsPage() {
               : `${summary?.total ?? 0} transactions enregistrées · ${filtered.length} visibles`
           }
           actions={
-            <KazaButton
+            <StButton
               variant="secondary"
               icon={Download}
               onClick={exportCSV}
               disabled={filtered.length === 0}
             >
               Exporter CSV
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* KPIs financiers */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <StKpiCompact
             label="Revenus totaux"
-            value={`${formatFCFA(summary?.totalRevenue ?? 0)} F`}
-            delta="Toutes transactions"
-            deltaTrend="neutral"
+            value={`${formatFCFA(summary?.totalRevenue ?? 0)}`}
+            unit="F"
             icon={TrendingUp}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Commission (10 %)"
-            value={`${formatFCFA(summary?.totalCommission ?? 0)} F`}
-            delta="Prélevés Novakou"
-            deltaTrend="neutral"
+            value={`${formatFCFA(summary?.totalCommission ?? 0)}`}
+            unit="F"
             icon={Wallet}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Versé aux vendeurs (90 %)"
-            value={`${formatFCFA(summary?.totalNetPaid ?? 0)} F`}
-            delta="Net créateurs"
-            deltaTrend="neutral"
+            value={`${formatFCFA(summary?.totalNetPaid ?? 0)}`}
+            unit="F"
             icon={Banknote}
-            iconColor="navy"
+            tone="green"
           />
         </div>
 
         {/* Filtres */}
-        <KazaCard>
+        <StCard>
           <div className="space-y-4">
             <div className="flex flex-col lg:flex-row gap-4">
               <div className="relative flex-1">
                 <Search
                   size={18}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                  style={{ color: ST.textMuted }}
                 />
                 <input
                   type="text"
                   placeholder="Rechercher par acheteur, vendeur, produit..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                 />
               </div>
-              <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl flex-wrap">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.value}
-                    onClick={() => setStatus(tab.value)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                      status === tab.value
-                        ? "bg-[#0b2540] text-white shadow"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {tab.label}
-                    <span
-                      className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
-                        status === tab.value
-                          ? "bg-white/15 text-white"
-                          : "bg-white text-slate-500"
-                      }`}
+              <div className="flex gap-1 p-1 rounded-[13px] flex-wrap" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+                {tabs.map((tab) => {
+                  const on = status === tab.value;
+                  return (
+                    <button
+                      key={tab.value}
+                      onClick={() => setStatus(tab.value)}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                      style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
                     >
-                      {tab.count}
-                    </span>
-                  </button>
-                ))}
+                      {tab.label}
+                      <span className="text-[10px] tabular-nums">· {tab.count}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between flex-wrap">
-              <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1 rounded-xl">
+              <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
                 {(
                   [
                     { v: "all", l: "Tout type" },
                     { v: "formation", l: "Formations" },
                     { v: "product", l: "Produits" },
                   ] as const
-                ).map((t) => (
-                  <button
-                    key={t.v}
-                    onClick={() => setType(t.v)}
-                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                      type === t.v
-                        ? "bg-emerald-500 text-white shadow"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {t.l}
-                  </button>
-                ))}
+                ).map((t) => {
+                  const on = type === t.v;
+                  return (
+                    <button
+                      key={t.v}
+                      onClick={() => setType(t.v)}
+                      className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                      style={on ? { background: ST.green, color: "#fff" } : { color: ST.textSecondary }}
+                    >
+                      {t.l}
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1 rounded-xl">
+                <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
                   {(
                     [
                       { v: "all", l: "Tout" },
@@ -323,25 +311,25 @@ export default function AdminTransactionsPage() {
                       { v: "30d", l: "30 j" },
                       { v: "90d", l: "90 j" },
                     ] as const
-                  ).map((p) => (
-                    <button
-                      key={p.v}
-                      onClick={() => {
-                        setPeriod(p.v);
-                        setCustomSince("");
-                      }}
-                      className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                        period === p.v
-                          ? "bg-[#0b2540] text-white shadow"
-                          : "text-slate-600 hover:text-slate-900"
-                      }`}
-                    >
-                      {p.l}
-                    </button>
-                  ))}
+                  ).map((p) => {
+                    const on = period === p.v;
+                    return (
+                      <button
+                        key={p.v}
+                        onClick={() => {
+                          setPeriod(p.v);
+                          setCustomSince("");
+                        }}
+                        className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                        style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
+                      >
+                        {p.l}
+                      </button>
+                    );
+                  })}
                 </div>
-                <label className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <label className="flex items-center gap-2 px-3 py-2 rounded-[12px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
                     Depuis
                   </span>
                   <input
@@ -351,80 +339,81 @@ export default function AdminTransactionsPage() {
                       setCustomSince(e.target.value);
                       setPeriod(e.target.value ? "custom" : "all");
                     }}
-                    className="text-xs text-slate-900 outline-none bg-transparent"
+                    className="text-[12px] outline-none bg-transparent"
+                    style={{ color: ST.text }}
                   />
                 </label>
                 {filtersActive && (
-                  <KazaButton
-                    variant="ghost"
+                  <StButton
+                    variant="secondary"
                     size="sm"
                     icon={RotateCcw}
                     onClick={resetFilters}
                   >
                     Réinitialiser
-                  </KazaButton>
+                  </StButton>
                 )}
               </div>
             </div>
           </div>
-        </KazaCard>
+        </StCard>
 
         {/* Table */}
-        <KazaCard noPadding>
+        <StCard noPadding>
           {isLoading ? (
             <div className="p-5 space-y-3">
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-16 bg-slate-100 animate-pulse rounded-xl"
+                  className="h-16 animate-pulse rounded-xl"
+                  style={{ background: ST.divider }}
                 />
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-5">
-              <KazaEmpty
-                icon={filtersActive && all.length > 0 ? FilterX : Inbox}
-                title={
-                  filtersActive && all.length > 0
-                    ? "Aucun résultat"
-                    : "Aucune transaction"
-                }
-                description={
-                  filtersActive && all.length > 0
-                    ? "Aucune transaction ne correspond à vos filtres."
-                    : "Aucune transaction enregistrée pour le moment."
-                }
-                action={
-                  filtersActive && all.length > 0
-                    ? {
-                        label: "Réinitialiser les filtres",
-                        onClick: resetFilters,
-                      }
-                    : undefined
-                }
-              />
+            <div className="p-10 flex flex-col items-center text-center">
+              {filtersActive && all.length > 0 ? (
+                <FilterX size={36} style={{ color: "#d6e0da" }} />
+              ) : (
+                <Inbox size={36} style={{ color: "#d6e0da" }} />
+              )}
+              <p className="text-[13.5px] font-extrabold mt-3" style={{ color: ST.text }}>
+                {filtersActive && all.length > 0 ? "Aucun résultat" : "Aucune transaction"}
+              </p>
+              <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                {filtersActive && all.length > 0
+                  ? "Aucune transaction ne correspond à vos filtres."
+                  : "Aucune transaction enregistrée pour le moment."}
+              </p>
+              {filtersActive && all.length > 0 && (
+                <div className="mt-4">
+                  <StButton variant="primary" size="sm" icon={RotateCcw} onClick={resetFilters}>
+                    Réinitialiser les filtres
+                  </StButton>
+                </div>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Acheteur
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Produit / Vendeur
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Montant
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Commission
-                    </th>
-                    <th className="px-5 py-3 text-right font-semibold">Net</th>
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Statut
-                    </th>
+                  <tr>
+                    {[
+                      { h: "Acheteur", align: "text-left" },
+                      { h: "Produit / Vendeur", align: "text-left" },
+                      { h: "Montant", align: "text-right" },
+                      { h: "Commission", align: "text-right" },
+                      { h: "Net", align: "text-right" },
+                      { h: "Statut", align: "text-left" },
+                    ].map((c) => (
+                      <th
+                        key={c.h}
+                        className={`text-[10.5px] uppercase font-extrabold px-5 py-3 ${c.align}`}
+                        style={{ color: ST.textMuted, letterSpacing: ".06em" }}
+                      >
+                        {c.h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -435,65 +424,46 @@ export default function AdminTransactionsPage() {
                       { day: "numeric", month: "short" }
                     );
                     return (
-                      <tr
-                        key={tx.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-5 py-3">
-                          <p className="text-sm font-bold text-slate-900 truncate max-w-[200px]">
+                      <tr key={tx.id} className="transition-colors hover:bg-[#f7faf8]">
+                        <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[12.5px] font-extrabold truncate max-w-[200px]" style={{ color: ST.text }}>
                             {tx.buyerName}
                           </p>
-                          <p className="text-[10px] text-slate-400 tabular-nums uppercase">
+                          <p className="text-[10px] tabular-nums uppercase" style={{ color: ST.textFaint }}>
                             {date}
                           </p>
                         </td>
-                        <td className="px-5 py-3">
-                          <p className="text-sm font-semibold text-slate-900 line-clamp-1 max-w-[280px]">
+                        <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[12.5px] font-bold line-clamp-1 max-w-[280px]" style={{ color: ST.text }}>
                             {tx.productTitle}
                           </p>
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mt-0.5">
+                          <p className="text-[10px] font-extrabold uppercase tracking-wide mt-0.5" style={{ color: ST.textFaint }}>
                             par {tx.sellerName}
                           </p>
                         </td>
-                        <td className="px-5 py-3 text-right">
+                        <td className="px-5 py-3 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
                           <p
-                            className={`text-sm font-extrabold tabular-nums ${tx.status === "refunded" ? "line-through text-slate-400" : "text-slate-900"}`}
+                            className={`text-[12.5px] font-extrabold tabular-nums ${tx.status === "refunded" ? "line-through" : ""}`}
+                            style={{ color: tx.status === "refunded" ? ST.textFaint : ST.text }}
                           >
                             {formatFCFA(tx.amount)}
                           </p>
-                          <p className="text-[9px] text-slate-400 uppercase">
-                            FCFA
-                          </p>
+                          <p className="text-[9px] uppercase" style={{ color: ST.textFaint }}>FCFA</p>
                         </td>
-                        <td className="px-5 py-3 text-right">
-                          <p className="text-sm font-bold tabular-nums text-orange-600">
+                        <td className="px-5 py-3 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[12.5px] font-bold tabular-nums" style={{ color: ST.amberText }}>
                             {formatFCFA(tx.commission)}
                           </p>
-                          <p className="text-[9px] text-slate-400 uppercase">
-                            10 %
-                          </p>
+                          <p className="text-[9px] uppercase" style={{ color: ST.textFaint }}>10 %</p>
                         </td>
-                        <td className="px-5 py-3 text-right">
-                          <p className="text-sm font-bold tabular-nums text-emerald-700">
+                        <td className="px-5 py-3 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <p className="text-[12.5px] font-bold tabular-nums" style={{ color: ST.green }}>
                             {formatFCFA(tx.netAmount)}
                           </p>
-                          <p className="text-[9px] text-slate-400 uppercase">
-                            90 %
-                          </p>
+                          <p className="text-[9px] uppercase" style={{ color: ST.textFaint }}>90 %</p>
                         </td>
-                        <td className="px-5 py-3">
-                          <KazaBadge
-                            variant={sc.variant}
-                            icon={
-                              sc.variant === "green"
-                                ? CheckCircle
-                                : sc.variant === "rose"
-                                  ? XCircle
-                                  : Clock
-                            }
-                          >
-                            {sc.label}
-                          </KazaBadge>
+                        <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                          <StChip tone={sc.tone} icon={sc.icon}>{sc.label}</StChip>
                         </td>
                       </tr>
                     );
@@ -502,7 +472,7 @@ export default function AdminTransactionsPage() {
               </table>
             </div>
           )}
-        </KazaCard>
+        </StCard>
       </main>
     </div>
   );

@@ -4,13 +4,13 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StChip,
+  ST,
+} from "@/components/stitch";
 import {
   Flag,
   Search,
@@ -426,59 +426,57 @@ export default function AdminSignalementsPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
       {toast && (
-        <div className="fixed top-6 right-6 z-50 bg-[#0b2540] text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl">
+        <div className="fixed top-6 right-6 z-50 text-white px-5 py-3 rounded-xl text-xs font-bold shadow-2xl" style={{ background: ST.greenDark }}>
           {toast}
         </div>
       )}
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1400px] mx-auto space-y-8">
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Flag}
-          title="Signalements &amp; litiges"
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
+          title="Signalements & litiges"
           subtitle="Gérer les contenus signalés et les demandes de remboursement"
           actions={
-            <KazaButton
+            <StButton
               variant="secondary"
               icon={Download}
               onClick={exportCSV}
               disabled={currentCount === 0}
             >
               Exporter CSV
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <StKpiCompact
             label="Signalements"
             value={summary?.totalReports ?? 0}
             icon={Flag}
-            iconColor="rose"
+            tone="rose"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Remboursements en attente"
             value={summary?.totalRefunds ?? 0}
             icon={AlertTriangle}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Montant à rembourser"
-            value={`${formatFCFA(summary?.pendingRefundAmount ?? 0)} F`}
+            value={`${formatFCFA(summary?.pendingRefundAmount ?? 0)}`}
+            unit="F"
             icon={Banknote}
-            iconColor="navy"
+            tone="green"
           />
         </div>
 
         {/* Tabs + Filtres */}
-        <KazaCard>
+        <StCard>
           <div className="space-y-4">
-            <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl w-fit">
+            <div className="flex gap-1 p-1 rounded-[13px] w-fit" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
               {[
                 {
                   value: "reports" as const,
@@ -494,27 +492,17 @@ export default function AdminSignalementsPage() {
                 },
               ].map((t) => {
                 const Icon = t.icon;
+                const on = tab === t.value;
                 return (
                   <button
                     key={t.value}
                     onClick={() => setTab(t.value)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                      tab === t.value
-                        ? "bg-[#0b2540] text-white shadow"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                    style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
                   >
                     <Icon size={14} />
                     {t.label}
-                    <span
-                      className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
-                        tab === t.value
-                          ? "bg-white/15 text-white"
-                          : "bg-white text-slate-500"
-                      }`}
-                    >
-                      {t.count}
-                    </span>
+                    <span className="text-[10px] tabular-nums">· {t.count}</span>
                   </button>
                 );
               })}
@@ -523,7 +511,8 @@ export default function AdminSignalementsPage() {
             <div className="relative">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: ST.textMuted }}
               />
               <input
                 type="text"
@@ -534,12 +523,13 @@ export default function AdminSignalementsPage() {
                 }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
             </div>
 
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between flex-wrap">
-              <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1 rounded-xl">
+              <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
                 {(
                   [
                     { v: "all", l: "Tout" },
@@ -547,26 +537,26 @@ export default function AdminSignalementsPage() {
                     { v: "30d", l: "30 j" },
                     { v: "90d", l: "90 j" },
                   ] as const
-                ).map((p) => (
-                  <button
-                    key={p.v}
-                    onClick={() => {
-                      setPeriod(p.v);
-                      setCustomSince("");
-                    }}
-                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                      period === p.v
-                        ? "bg-[#0b2540] text-white shadow"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {p.l}
-                  </button>
-                ))}
+                ).map((p) => {
+                  const on = period === p.v;
+                  return (
+                    <button
+                      key={p.v}
+                      onClick={() => {
+                        setPeriod(p.v);
+                        setCustomSince("");
+                      }}
+                      className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                      style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
+                    >
+                      {p.l}
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <label className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <label className="flex items-center gap-2 px-3 py-2 rounded-[12px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
                     Depuis
                   </span>
                   <input
@@ -576,23 +566,24 @@ export default function AdminSignalementsPage() {
                       setCustomSince(e.target.value);
                       setPeriod(e.target.value ? "custom" : "all");
                     }}
-                    className="text-xs text-slate-900 outline-none bg-transparent"
+                    className="text-[12px] outline-none bg-transparent"
+                    style={{ color: ST.text }}
                   />
                 </label>
                 {filtersActive && (
-                  <KazaButton
-                    variant="ghost"
+                  <StButton
+                    variant="secondary"
                     size="sm"
                     icon={RotateCcw}
                     onClick={resetFilters}
                   >
                     Réinitialiser
-                  </KazaButton>
+                  </StButton>
                 )}
               </div>
             </div>
           </div>
-        </KazaCard>
+        </StCard>
 
         {/* Reports list */}
         {tab === "reports" && (
@@ -601,45 +592,45 @@ export default function AdminSignalementsPage() {
               [0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="h-28 bg-white rounded-2xl animate-pulse"
+                  className="h-28 rounded-[18px] animate-pulse"
+                  style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}
                 />
               ))
             ) : filteredReports.length === 0 ? (
-              <KazaEmpty
-                icon={
-                  filtersActive && reports.length > 0 ? FilterX : Inbox
-                }
-                title={
-                  filtersActive && reports.length > 0
-                    ? "Aucun résultat"
-                    : "Tout est calme"
-                }
-                description={
-                  filtersActive && reports.length > 0
+              <StCard className="flex flex-col items-center text-center py-12">
+                {filtersActive && reports.length > 0 ? (
+                  <FilterX size={40} style={{ color: "#d6e0da" }} />
+                ) : (
+                  <Inbox size={40} style={{ color: "#d6e0da" }} />
+                )}
+                <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>
+                  {filtersActive && reports.length > 0 ? "Aucun résultat" : "Tout est calme"}
+                </p>
+                <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                  {filtersActive && reports.length > 0
                     ? "Aucun signalement ne correspond à vos filtres."
-                    : "Aucun contenu signalé actuellement."
-                }
-                action={
-                  filtersActive && reports.length > 0
-                    ? {
-                        label: "Réinitialiser les filtres",
-                        onClick: resetFilters,
-                      }
-                    : undefined
-                }
-              />
+                    : "Aucun contenu signalé actuellement."}
+                </p>
+                {filtersActive && reports.length > 0 && (
+                  <div className="mt-4">
+                    <StButton variant="primary" size="sm" icon={RotateCcw} onClick={resetFilters}>
+                      Réinitialiser les filtres
+                    </StButton>
+                  </div>
+                )}
+              </StCard>
             ) : (
               <>
                 {selectedReports.size > 0 && (
-                  <div className="sticky top-2 z-10 bg-[#0b2540] text-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap shadow-2xl rounded-xl">
+                  <div className="sticky top-2 z-10 text-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap shadow-2xl rounded-xl" style={{ background: ST.greenDark }}>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold">
+                      <span className="text-xs font-extrabold">
                         {selectedReports.size} sélectionné
                         {selectedReports.size > 1 ? "s" : ""}
                       </span>
                       <button
                         onClick={clearSelection}
-                        className="text-[10px] font-semibold text-slate-300 hover:text-white underline"
+                        className="text-[10px] font-semibold text-white/70 hover:text-white underline"
                       >
                         Désélectionner
                       </button>
@@ -649,114 +640,117 @@ export default function AdminSignalementsPage() {
                             new Set(filteredReports.map((r) => r.id))
                           )
                         }
-                        className="text-[10px] font-semibold text-slate-300 hover:text-white underline"
+                        className="text-[10px] font-semibold text-white/70 hover:text-white underline"
                       >
                         Tout sélectionner ({filteredReports.length})
                       </button>
                     </div>
                     <div className="flex gap-2">
-                      <KazaButton
-                        variant="ghost"
-                        size="sm"
+                      <button
                         onClick={() => handleBulkReports("dismiss")}
                         disabled={bulkRunning}
+                        className="px-3 py-2 rounded-[9px] text-[11px] font-extrabold bg-white/15 hover:bg-white/25 disabled:opacity-50"
                       >
                         {bulkRunning ? "Traitement..." : "Ignorer"}
-                      </KazaButton>
-                      <KazaButton
-                        variant="danger"
-                        size="sm"
-                        icon={Trash2}
+                      </button>
+                      <button
                         onClick={() => handleBulkReports("delete_content")}
                         disabled={bulkRunning}
+                        className="px-3 py-2 rounded-[9px] text-[11px] font-extrabold inline-flex items-center gap-1.5 text-white disabled:opacity-50"
+                        style={{ background: "#ba1a1a" }}
                       >
+                        <Trash2 size={14} />
                         Supprimer
-                      </KazaButton>
+                      </button>
                     </div>
                   </div>
                 )}
-                {filteredReports.map((r) => (
-                  <KazaCard
-                    key={r.id}
-                    className={
-                      selectedReports.has(r.id)
-                        ? "ring-2 ring-emerald-500 ring-inset"
-                        : ""
-                    }
-                  >
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <label className="inline-flex items-center cursor-pointer flex-shrink-0">
-                          <input
-                            type="checkbox"
-                            checked={selectedReports.has(r.id)}
-                            onChange={() => toggleReportSelection(r.id)}
-                            className="w-4 h-4 accent-emerald-500 cursor-pointer"
-                            aria-label="Sélectionner ce signalement"
-                          />
-                        </label>
-                        <KazaBadge variant="rose">
-                          {REASON_LABELS[r.reason] ?? r.reason}
-                        </KazaBadge>
-                        <span className="text-[11px] tabular-nums text-slate-400">
-                          {timeAgo(r.createdAt)}
-                        </span>
-                        <span className="text-[11px] text-slate-500">
-                          par {r.user.name ?? r.user.email}
-                        </span>
+                {filteredReports.map((r) => {
+                  const on = selectedReports.has(r.id);
+                  return (
+                    <StCard
+                      key={r.id}
+                      style={
+                        on
+                          ? { boxShadow: `inset 0 0 0 2px ${ST.greenBright}, 0 1px 3px rgba(16,52,32,.05)` }
+                          : undefined
+                      }
+                    >
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div className="flex items-center gap-3 flex-wrap">
+                          <label className="inline-flex items-center cursor-pointer flex-shrink-0">
+                            <input
+                              type="checkbox"
+                              checked={on}
+                              onChange={() => toggleReportSelection(r.id)}
+                              className="w-4 h-4 accent-[#006e2f] cursor-pointer"
+                              aria-label="Sélectionner ce signalement"
+                            />
+                          </label>
+                          <StChip tone="rose">
+                            {REASON_LABELS[r.reason] ?? r.reason}
+                          </StChip>
+                          <span className="text-[11px] tabular-nums" style={{ color: ST.textFaint }}>
+                            {timeAgo(r.createdAt)}
+                          </span>
+                          <span className="text-[11px]" style={{ color: ST.textSecondary }}>
+                            par {r.user.name ?? r.user.email}
+                          </span>
+                        </div>
+                        <div className="flex gap-2 flex-shrink-0">
+                          <StButton
+                            variant="secondary"
+                            size="sm"
+                            icon={Trash2}
+                            className="!text-[#993556]"
+                            onClick={() => handleDeleteContent(r.id)}
+                            disabled={reportMut.isPending}
+                          >
+                            Supprimer
+                          </StButton>
+                          <StButton
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleDismissReport(r.id)}
+                            disabled={reportMut.isPending}
+                          >
+                            Ignorer
+                          </StButton>
+                        </div>
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <KazaButton
-                          variant="danger"
-                          size="sm"
-                          icon={Trash2}
-                          onClick={() => handleDeleteContent(r.id)}
-                          disabled={reportMut.isPending}
-                        >
-                          Supprimer
-                        </KazaButton>
-                        <KazaButton
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDismissReport(r.id)}
-                          disabled={reportMut.isPending}
-                        >
-                          Ignorer
-                        </KazaButton>
-                      </div>
-                    </div>
 
-                    {r.discussion && (
-                      <div className="border-l-4 border-slate-200 pl-4 py-2 bg-slate-50 rounded-r-lg">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                          Discussion · {r.discussion.formation.title}
-                        </p>
-                        <p className="text-sm font-bold text-slate-900">
-                          « {r.discussion.title} »
-                        </p>
-                        <p className="text-xs text-slate-600 line-clamp-2 mt-1">
-                          {r.discussion.content}
-                        </p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-2">
-                          par {r.discussion.user.name ?? "—"}
-                        </p>
-                      </div>
-                    )}
-                    {r.reply && (
-                      <div className="border-l-4 border-slate-200 pl-4 py-2 bg-slate-50 rounded-r-lg">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
-                          Réponse signalée
-                        </p>
-                        <p className="text-xs text-slate-600 line-clamp-3">
-                          {r.reply.content}
-                        </p>
-                        <p className="text-[10px] text-slate-400 uppercase tracking-wide mt-2">
-                          par {r.reply.user.name ?? "—"}
-                        </p>
-                      </div>
-                    )}
-                  </KazaCard>
-                ))}
+                      {r.discussion && (
+                        <div className="border-l-4 pl-4 py-2 rounded-r-lg" style={{ borderColor: ST.cardBorder, background: ST.bg }}>
+                          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.textMuted }}>
+                            Discussion · {r.discussion.formation.title}
+                          </p>
+                          <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
+                            « {r.discussion.title} »
+                          </p>
+                          <p className="text-[12px] line-clamp-2 mt-1" style={{ color: ST.textSecondary }}>
+                            {r.discussion.content}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-wide mt-2" style={{ color: ST.textFaint }}>
+                            par {r.discussion.user.name ?? "—"}
+                          </p>
+                        </div>
+                      )}
+                      {r.reply && (
+                        <div className="border-l-4 pl-4 py-2 rounded-r-lg" style={{ borderColor: ST.cardBorder, background: ST.bg }}>
+                          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.textMuted }}>
+                            Réponse signalée
+                          </p>
+                          <p className="text-[12px] line-clamp-3" style={{ color: ST.textSecondary }}>
+                            {r.reply.content}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-wide mt-2" style={{ color: ST.textFaint }}>
+                            par {r.reply.user.name ?? "—"}
+                          </p>
+                        </div>
+                      )}
+                    </StCard>
+                  );
+                })}
               </>
             )}
           </div>
@@ -769,58 +763,56 @@ export default function AdminSignalementsPage() {
               [0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="h-28 bg-white rounded-2xl animate-pulse"
+                  className="h-28 rounded-[18px] animate-pulse"
+                  style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}
                 />
               ))
             ) : filteredRefunds.length === 0 ? (
-              <KazaEmpty
-                icon={
-                  filtersActive && refunds.length > 0 ? FilterX : Inbox
-                }
-                title={
-                  filtersActive && refunds.length > 0
-                    ? "Aucun résultat"
-                    : "Aucun litige"
-                }
-                description={
-                  filtersActive && refunds.length > 0
+              <StCard className="flex flex-col items-center text-center py-12">
+                {filtersActive && refunds.length > 0 ? (
+                  <FilterX size={40} style={{ color: "#d6e0da" }} />
+                ) : (
+                  <Inbox size={40} style={{ color: "#d6e0da" }} />
+                )}
+                <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>
+                  {filtersActive && refunds.length > 0 ? "Aucun résultat" : "Aucun litige"}
+                </p>
+                <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                  {filtersActive && refunds.length > 0
                     ? "Aucun remboursement ne correspond à vos filtres."
-                    : "Aucune demande de remboursement en attente."
-                }
-                action={
-                  filtersActive && refunds.length > 0
-                    ? {
-                        label: "Réinitialiser les filtres",
-                        onClick: resetFilters,
-                      }
-                    : undefined
-                }
-              />
+                    : "Aucune demande de remboursement en attente."}
+                </p>
+                {filtersActive && refunds.length > 0 && (
+                  <div className="mt-4">
+                    <StButton variant="primary" size="sm" icon={RotateCcw} onClick={resetFilters}>
+                      Réinitialiser les filtres
+                    </StButton>
+                  </div>
+                )}
+              </StCard>
             ) : (
               filteredRefunds.map((r) => (
-                <KazaCard key={r.id}>
+                <StCard key={r.id}>
                   <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
                     <div>
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
-                        <KazaBadge variant="orange" icon={Clock}>
-                          En attente
-                        </KazaBadge>
-                        <span className="text-[11px] tabular-nums text-slate-400">
+                        <StChip tone="amber" icon={Clock}>En attente</StChip>
+                        <span className="text-[11px] tabular-nums" style={{ color: ST.textFaint }}>
                           {timeAgo(r.createdAt)}
                         </span>
                       </div>
-                      <p className="text-base font-bold text-slate-900">
+                      <p className="text-[15px] font-extrabold" style={{ color: ST.text }}>
                         {r.user.name ?? r.user.email} ·{" "}
-                        <span className="text-emerald-700">
+                        <span style={{ color: ST.green }}>
                           {formatFCFA(r.amount)} FCFA
                         </span>
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-[12px] mt-0.5" style={{ color: ST.textSecondary }}>
                         Formation : {r.enrollment.formation.title}
                       </p>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
-                      <KazaButton
+                      <StButton
                         variant="primary"
                         size="sm"
                         icon={CheckCircle}
@@ -828,25 +820,26 @@ export default function AdminSignalementsPage() {
                         disabled={refundMut.isPending}
                       >
                         Approuver
-                      </KazaButton>
-                      <KazaButton
-                        variant="danger"
+                      </StButton>
+                      <StButton
+                        variant="secondary"
                         size="sm"
                         icon={XCircle}
+                        className="!text-[#993556]"
                         onClick={() => handleRejectRefund(r.id)}
                         disabled={refundMut.isPending}
                       >
                         Refuser
-                      </KazaButton>
+                      </StButton>
                     </div>
                   </div>
-                  <div className="border-l-4 border-slate-200 pl-4 py-2 bg-slate-50 rounded-r-lg">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                  <div className="border-l-4 pl-4 py-2 rounded-r-lg" style={{ borderColor: ST.cardBorder, background: ST.bg }}>
+                    <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.textMuted }}>
                       Motif
                     </p>
-                    <p className="text-sm text-slate-700">{r.reason}</p>
+                    <p className="text-[13px]" style={{ color: ST.textSecondary }}>{r.reason}</p>
                   </div>
-                </KazaCard>
+                </StCard>
               ))
             )}
           </div>

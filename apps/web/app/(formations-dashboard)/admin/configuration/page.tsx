@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, Save } from "lucide-react";
+import { StCard, StPageHeader, StButton, ST } from "@/components/stitch";
 
 type ConfigData = {
   configs: { id: string; key: string; value: string; label: string | null }[];
@@ -92,64 +94,70 @@ export default function AdminConfigurationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <main className="px-6 md:px-12 py-10 md:py-14 max-w-[1100px] mx-auto">
-        <div className="flex items-start justify-between gap-6 mb-12 flex-wrap">
-          <div>
-            <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
-              Platform Settings
-            </span>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-900">Configuration</h1>
-            <p className="text-sm text-zinc-500 mt-3">Paramètres globaux de la plateforme Formations</p>
-          </div>
-          <div className="flex items-center gap-4">
-            {saved && (
-              <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-[#006e2f]">
-                <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                Enregistré
-              </span>
-            )}
-            <button
-              onClick={() => saveMutation.mutate()}
-              disabled={!dirty || saveMutation.isPending}
-              className="px-10 py-4 bg-[#22c55e] text-[#004b1e] text-[10px] font-bold uppercase tracking-widest hover:bg-[#4ae176] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
-            </button>
-          </div>
-        </div>
+    <div
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
+    >
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1100px] mx-auto space-y-5">
+        <StPageHeader
+          title="Configuration"
+          subtitle="Paramètres globaux de la plateforme Formations"
+          actions={
+            <>
+              {saved && (
+                <span className="flex items-center gap-1.5 text-[11px] font-extrabold" style={{ color: ST.green }}>
+                  <CheckCircle2 size={15} />
+                  Enregistré
+                </span>
+              )}
+              <StButton
+                variant="primary"
+                icon={Save}
+                onClick={() => saveMutation.mutate()}
+                disabled={!dirty || saveMutation.isPending}
+              >
+                {saveMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+              </StButton>
+            </>
+          }
+        />
 
         {isLoading ? (
-          <div className="space-y-6">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-48 bg-white animate-pulse" />)}
+          <div className="space-y-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-48 rounded-[18px] animate-pulse" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }} />
+            ))}
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4">
             {CONFIG_SECTIONS.map((section) => (
-              <div key={section.title} className="bg-white">
-                <div className="px-8 py-6 border-b border-zinc-100">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1 block">
+              <StCard key={section.title} noPadding>
+                <div className="px-6 py-5" style={{ borderBottom: `1px solid ${ST.divider}` }}>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest mb-1 block" style={{ color: ST.green }}>
                     {section.eyebrow}
                   </span>
-                  <h3 className="text-xl font-bold tracking-tight text-zinc-900">{section.title}</h3>
+                  <h3 className="text-[17px] font-extrabold tracking-tight" style={{ color: ST.text }}>{section.title}</h3>
                 </div>
-                <div className="divide-y divide-zinc-100">
-                  {section.items.map((item) => (
-                    <div key={item.key} className="px-8 py-6 flex items-center justify-between gap-6">
+                <div>
+                  {section.items.map((item, idx) => (
+                    <div
+                      key={item.key}
+                      className="px-6 py-5 flex items-center justify-between gap-6"
+                      style={idx > 0 ? { borderTop: `1px solid ${ST.divider}` } : undefined}
+                    >
                       <div className="flex-1 min-w-0">
-                        <label className="block text-sm font-bold text-zinc-900 mb-1">{item.label}</label>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">{item.hint}</p>
+                        <label className="block text-[13.5px] font-extrabold mb-1" style={{ color: ST.text }}>{item.label}</label>
+                        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: ST.textMuted }}>{item.hint}</p>
                       </div>
                       <div className="flex-shrink-0">
                         {item.type === "toggle" ? (
                           <button
                             onClick={() => updateField(item.key, values[item.key] === "true" ? "false" : "true")}
-                            className={`relative w-14 h-7 transition-colors ${
-                              values[item.key] === "true" ? "bg-[#22c55e]" : "bg-zinc-200"
-                            }`}
+                            className="relative w-14 h-7 rounded-full transition-colors"
+                            style={{ background: values[item.key] === "true" ? ST.greenBright : "#dde6e0" }}
                           >
                             <span
-                              className={`absolute top-0.5 w-6 h-6 bg-white shadow transition-all ${
+                              className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-all ${
                                 values[item.key] === "true" ? "left-[1.8rem]" : "left-0.5"
                               }`}
                             />
@@ -159,14 +167,15 @@ export default function AdminConfigurationPage() {
                             type={item.type}
                             value={values[item.key] ?? ""}
                             onChange={(e) => updateField(item.key, e.target.value)}
-                            className="w-56 bg-[#f3f3f4] border-none focus:ring-1 focus:ring-[#22c55e] py-3 px-4 text-sm tabular-nums font-bold text-zinc-900 outline-none transition-shadow text-right"
+                            className="w-56 rounded-[12px] py-3 px-4 text-[13.5px] tabular-nums font-extrabold outline-none transition-all text-right focus:outline-none"
+                            style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
                           />
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </StCard>
             ))}
           </div>
         )}

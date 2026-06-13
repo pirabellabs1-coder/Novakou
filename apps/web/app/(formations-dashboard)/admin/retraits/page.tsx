@@ -12,12 +12,14 @@
 import { useEffect, useState } from "react";
 import { useToastStore } from "@/store/toast";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StStatusPill,
+  StHeroGradient,
+  ST,
+} from "@/components/stitch";
 import {
   Banknote,
   ArrowLeft,
@@ -25,7 +27,6 @@ import {
   Wallet,
   CheckCircle,
   Clock,
-  XCircle,
   TrendingUp,
 } from "lucide-react";
 
@@ -51,15 +52,6 @@ const METHODS = [
   { value: "paypal", label: "PayPal" },
   { value: "wise", label: "Wise" },
 ];
-
-const STATUS_LABEL: Record<
-  string,
-  { label: string; variant: "orange" | "green" | "rose" }
-> = {
-  EN_ATTENTE: { label: "En attente", variant: "orange" },
-  TRAITE: { label: "Traité", variant: "green" },
-  REFUSE: { label: "Refusé", variant: "rose" },
-};
 
 function fmtFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
@@ -168,12 +160,12 @@ export default function AdminRetraitsPage() {
   if (loading || !balance) {
     return (
       <div
-        className="min-h-screen bg-slate-50 p-8"
-        style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+        className="min-h-screen p-8"
+        style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
       >
         <div className="max-w-5xl mx-auto space-y-4 animate-pulse">
-          <div className="h-8 w-64 bg-slate-200 rounded" />
-          <div className="h-48 bg-white border border-slate-100 rounded-2xl" />
+          <div className="h-8 w-64 rounded" style={{ background: ST.divider }} />
+          <div className="h-48 rounded-2xl" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }} />
         </div>
       </div>
     );
@@ -181,33 +173,31 @@ export default function AdminRetraitsPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-5xl mx-auto space-y-8">
-        <KazaButton variant="ghost" size="sm" icon={ArrowLeft} href="/admin/dashboard">
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-5xl mx-auto space-y-5">
+        <StButton variant="secondary" size="sm" icon={ArrowLeft} href="/admin/dashboard">
           Dashboard
-        </KazaButton>
+        </StButton>
 
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Banknote}
+        <StPageHeader
           title="Retraits commission plateforme"
           subtitle="Retirer les 10 % de commission perçus par Novakou sur chaque vente"
         />
 
         {loadError && (
-          <div className="px-5 py-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-rose-600 mt-0.5 flex-shrink-0" />
+          <div className="px-5 py-4 rounded-2xl flex items-start gap-3" style={{ background: ST.roseSoft, border: "1px solid #f3cdd9" }}>
+            <AlertTriangle className="w-5 h-5 mt-0.5 flex-shrink-0" style={{ color: ST.roseText }} />
             <div className="flex-1">
-              <p className="text-sm font-bold text-rose-900">
+              <p className="text-[13px] font-extrabold" style={{ color: ST.roseText }}>
                 Impossible de charger les données
               </p>
-              <p className="text-xs text-rose-700 mt-0.5">{loadError}</p>
+              <p className="text-[12px] mt-0.5" style={{ color: ST.roseText }}>{loadError}</p>
               <button
                 onClick={() => load()}
-                className="mt-2 text-xs font-bold text-rose-700 hover:text-rose-900 underline"
+                className="mt-2 text-[12px] font-extrabold underline"
+                style={{ color: ST.roseText }}
               >
                 Réessayer
               </button>
@@ -215,42 +205,53 @@ export default function AdminRetraitsPage() {
           </div>
         )}
 
-        {/* KPIs solde */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KazaKpiCard
-            label="Commissions totales"
-            value={fmtFCFA(balance.total)}
-            icon={TrendingUp}
-            iconColor="navy"
-          />
-          <KazaKpiCard
-            label="Déjà retirées"
-            value={fmtFCFA(balance.paid)}
-            icon={CheckCircle}
-            iconColor="sky"
-          />
-          <KazaKpiCard
-            label="En attente"
-            value={fmtFCFA(balance.pending)}
-            icon={Clock}
-            iconColor="orange"
-          />
-          <KazaKpiCard
-            label="Disponible"
-            value={fmtFCFA(balance.available)}
-            icon={Wallet}
-            iconColor="emerald"
-          />
+        {/* Hero solde disponible + KPIs */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_2fr] gap-3.5">
+          <StHeroGradient className="flex flex-col justify-center">
+            <div className="flex items-center justify-between">
+              <span className="text-[12.5px] font-bold text-white/80">Solde disponible</span>
+              <Wallet size={20} className="text-white/80" />
+            </div>
+            <div className="text-[28px] md:text-[32px] font-extrabold mt-2 tabular-nums leading-none">
+              {new Intl.NumberFormat("fr-FR").format(Math.round(balance.available))}
+              <span className="text-[15px] ml-1.5 text-white/75">FCFA</span>
+            </div>
+            <p className="text-[11.5px] font-semibold text-white/70 mt-3">
+              Commission plateforme retirable
+            </p>
+          </StHeroGradient>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <StKpiCompact
+              label="Commissions totales"
+              value={fmtFCFA(balance.total)}
+              icon={TrendingUp}
+              tone="green"
+            />
+            <StKpiCompact
+              label="Déjà retirées"
+              value={fmtFCFA(balance.paid)}
+              icon={CheckCircle}
+              tone="blue"
+            />
+            <StKpiCompact
+              label="En attente"
+              value={fmtFCFA(balance.pending)}
+              icon={Clock}
+              tone="amber"
+            />
+          </div>
         </div>
 
         {/* Formulaire */}
-        <KazaCard
-          title="Nouvelle demande de retrait"
-          subtitle="Renseignez le montant et la méthode de versement"
-        >
+        <StCard className="!p-[18px_20px]">
+          <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Nouvelle demande de retrait</h3>
+          <p className="text-[12px] font-semibold mt-0.5 mb-4" style={{ color: ST.textSecondary }}>
+            Renseignez le montant et la méthode de versement
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                 Montant (FCFA)
               </label>
               <input
@@ -260,19 +261,21 @@ export default function AdminRetraitsPage() {
                 min={1000}
                 max={balance.available}
                 placeholder="1 000 minimum"
-                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-lg font-bold tabular-nums focus:outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl text-[17px] font-extrabold tabular-nums focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
               <button
                 type="button"
                 onClick={() => setAmount(Math.floor(balance.available))}
-                className="text-xs font-bold text-emerald-600 hover:underline mt-1.5"
+                className="text-[12px] font-extrabold hover:underline mt-1.5"
+                style={{ color: ST.green }}
               >
                 Maximum : {fmtFCFA(balance.available)}
               </button>
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                 Méthode
               </label>
               <select
@@ -281,7 +284,8 @@ export default function AdminRetraitsPage() {
                   setMethod(e.target.value);
                   setAccountInput("");
                 }}
-                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               >
                 {METHODS.map((m) => (
                   <option key={m.value} value={m.value}>
@@ -292,7 +296,7 @@ export default function AdminRetraitsPage() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                 {accountLabel[method]}
               </label>
               <input
@@ -300,12 +304,13 @@ export default function AdminRetraitsPage() {
                 value={accountInput}
                 onChange={(e) => setAccountInput(e.target.value)}
                 placeholder={accountPlaceholder[method]}
-                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm font-mono focus:outline-none transition-all"
+                className="w-full px-4 py-3 rounded-xl text-[13.5px] font-mono focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                 Note (optionnel)
               </label>
               <textarea
@@ -313,13 +318,14 @@ export default function AdminRetraitsPage() {
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 maxLength={500}
-                className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all resize-none"
+                className="w-full px-4 py-3 rounded-xl text-[13.5px] font-medium focus:outline-none transition-all resize-none"
+                style={{ color: "#33453b", border: "1px solid #dde6e0", background: "#fff" }}
               />
             </div>
           </div>
 
           <div className="flex justify-end mt-6">
-            <KazaButton
+            <StButton
               variant="primary"
               size="lg"
               icon={Banknote}
@@ -327,86 +333,71 @@ export default function AdminRetraitsPage() {
               disabled={submitting || amount < 1000 || !accountInput.trim()}
             >
               {submitting ? "Envoi..." : "Demander le retrait"}
-            </KazaButton>
+            </StButton>
           </div>
-        </KazaCard>
+        </StCard>
 
         {/* Historique */}
-        <KazaCard
-          title={`Historique (${withdrawals.length})`}
-          subtitle="Tous les retraits demandés sur la plateforme"
-          noPadding
-        >
+        <StCard noPadding>
+          <div className="px-5 pt-[18px] pb-3">
+            <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Historique ({withdrawals.length})</h3>
+            <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>
+              Tous les retraits demandés sur la plateforme
+            </p>
+          </div>
           {withdrawals.length === 0 ? (
             <div className="p-10 text-center">
-              <p className="text-sm text-slate-500">
-                Aucun retrait effectué pour l'instant.
+              <p className="text-[13px] font-semibold" style={{ color: ST.textSecondary }}>
+                Aucun retrait effectué pour l&apos;instant.
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Montant
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">
-                      Méthode
-                    </th>
-                    <th className="px-5 py-3 text-left font-semibold">Date</th>
-                    <th className="px-5 py-3 text-left font-semibold">Note</th>
-                    <th className="px-5 py-3 text-right font-semibold">
-                      Statut
-                    </th>
+                  <tr>
+                    {[
+                      { h: "Montant", align: "text-left" },
+                      { h: "Méthode", align: "text-left" },
+                      { h: "Date", align: "text-left" },
+                      { h: "Note", align: "text-left" },
+                      { h: "Statut", align: "text-right" },
+                    ].map((c) => (
+                      <th
+                        key={c.h}
+                        className={`text-[10.5px] uppercase font-extrabold px-5 py-3 ${c.align}`}
+                        style={{ color: ST.textMuted, letterSpacing: ".06em" }}
+                      >
+                        {c.h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {withdrawals.map((w) => {
-                    const status =
-                      STATUS_LABEL[w.status] ?? {
-                        label: w.status,
-                        variant: "slate" as const,
-                      };
-                    return (
-                      <tr
-                        key={w.id}
-                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                      >
-                        <td className="px-5 py-3 font-bold text-slate-900 tabular-nums">
-                          {fmtFCFA(w.amount)}
-                        </td>
-                        <td className="px-5 py-3 text-slate-700 uppercase text-xs tracking-wide">
-                          {w.method}
-                        </td>
-                        <td className="px-5 py-3 text-slate-500 text-xs tabular-nums">
-                          {new Date(w.createdAt).toLocaleDateString("fr-FR")}
-                        </td>
-                        <td className="px-5 py-3 text-slate-500 text-xs truncate max-w-[260px]">
-                          {w.note ?? "—"}
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <KazaBadge
-                            variant={status.variant}
-                            icon={
-                              status.variant === "green"
-                                ? CheckCircle
-                                : status.variant === "rose"
-                                  ? XCircle
-                                  : Clock
-                            }
-                          >
-                            {status.label}
-                          </KazaBadge>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {withdrawals.map((w) => (
+                    <tr key={w.id} className="transition-colors hover:bg-[#f7faf8]">
+                      <td className="px-5 py-3 text-[12.5px] font-extrabold tabular-nums" style={{ color: ST.text, borderTop: `1px solid ${ST.divider}` }}>
+                        {fmtFCFA(w.amount)}
+                      </td>
+                      <td className="px-5 py-3 uppercase text-[11px] font-bold tracking-wide" style={{ color: ST.textSecondary, borderTop: `1px solid ${ST.divider}` }}>
+                        {w.method}
+                      </td>
+                      <td className="px-5 py-3 text-[12px] tabular-nums" style={{ color: ST.textMuted, borderTop: `1px solid ${ST.divider}` }}>
+                        {new Date(w.createdAt).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td className="px-5 py-3 text-[12px] truncate max-w-[260px]" style={{ color: ST.textMuted, borderTop: `1px solid ${ST.divider}` }}>
+                        {w.note ?? "—"}
+                      </td>
+                      <td className="px-5 py-3 text-right" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                        <StStatusPill status={w.status} />
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           )}
-        </KazaCard>
+        </StCard>
       </main>
     </div>
   );

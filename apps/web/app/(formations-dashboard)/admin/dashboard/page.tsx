@@ -20,16 +20,17 @@ import {
   Legend,
 } from "recharts";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaSection,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpi,
+  StKpiCompact,
+  StButton,
+  StChip,
+  StSectionTitle,
+  StHeroGradient,
+  ST,
+} from "@/components/stitch";
 import {
-  LayoutDashboard,
   Banknote,
   Users,
   Package,
@@ -97,17 +98,20 @@ function WipeMenu() {
 
   return (
     <div className="relative">
-      <KazaButton
+      <StButton
         variant="secondary"
         icon={Trash2}
         onClick={() => setOpen(!open)}
       >
         Nettoyer la plateforme
-      </KazaButton>
+      </StButton>
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-30 bg-white rounded-2xl shadow-xl border border-slate-200 min-w-[300px] overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+        <div
+          className="absolute right-0 top-full mt-2 z-30 bg-white rounded-2xl shadow-xl min-w-[300px] overflow-hidden"
+          style={{ border: `1px solid ${ST.cardBorder}` }}
+        >
+          <div className="px-4 py-3" style={{ borderBottom: `1px solid ${ST.divider}`, background: ST.bg }}>
+            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
               Mode de nettoyage
             </p>
           </div>
@@ -143,17 +147,18 @@ function WipeMenu() {
               key={opt.mode}
               onClick={() => runWipe(opt.mode, opt.label)}
               disabled={working !== null}
-              className={`w-full text-left px-4 py-3 text-xs font-semibold transition-colors disabled:opacity-50 border-b border-slate-50 last:border-0 ${
+              className={`w-full text-left px-4 py-3 text-xs font-bold transition-colors disabled:opacity-50 last:border-0 ${
                 opt.danger
                   ? "text-rose-700 hover:bg-rose-50"
-                  : "text-slate-900 hover:bg-slate-50"
+                  : "hover:bg-[#f7faf8]"
               }`}
+              style={{ borderBottom: `1px solid ${ST.divider}`, color: opt.danger ? undefined : ST.text }}
             >
               {working === opt.mode ? "Nettoyage..." : opt.label}
             </button>
           ))}
           {result && (
-            <div className="px-4 py-3 bg-slate-900 text-white text-xs tabular-nums">
+            <div className="px-4 py-3 text-white text-xs tabular-nums" style={{ background: ST.greenDark }}>
               {result}
             </div>
           )}
@@ -284,15 +289,12 @@ export default function AdminDashboardPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1600px] mx-auto space-y-8">
-        {/* ── Hero KAZA navy ─────────────────────────────────────────── */}
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={LayoutDashboard}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <StPageHeader
           title="Centre de contrôle"
           subtitle={
             isLoading
@@ -301,119 +303,116 @@ export default function AdminDashboardPage() {
           }
           actions={
             <>
-              <KazaButton
+              <StButton
                 variant="secondary"
                 icon={TrendingUp}
                 href="/admin/rapports"
               >
                 Rapports
-              </KazaButton>
+              </StButton>
               <WipeMenu />
             </>
           }
         />
 
-        {/* ── KPI principaux ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          <KazaKpiCard
-            label="Revenus totaux"
-            value={
-              isLoading
-                ? "…"
-                : `${formatFCFA(d?.kpis.totalRevenue ?? 0)} F`
-            }
-            delta={
-              d?.kpis.platformCommission
-                ? `+${formatFCFA(d.kpis.platformCommission)} F commission`
-                : undefined
-            }
-            deltaTrend="up"
-            icon={Banknote}
-            iconColor="emerald"
-          />
-          <KazaKpiCard
-            label="Utilisateurs"
-            value={
-              isLoading
-                ? "…"
-                : (d?.kpis.totalUsers ?? 0).toLocaleString("fr-FR")
-            }
-            delta={
-              d?.kpis.newUsersToday
-                ? `+${d.kpis.newUsersToday} aujourd'hui`
-                : undefined
-            }
-            deltaTrend="up"
-            icon={Users}
-            iconColor="sky"
-          />
-          <KazaKpiCard
-            label="Produits publiés"
-            value={
-              isLoading
-                ? "…"
-                : (d?.kpis.publishedProducts ?? 0).toLocaleString("fr-FR")
-            }
-            delta={
-              d?.kpis.pendingProducts
-                ? `${d.kpis.pendingProducts} en attente`
-                : undefined
-            }
-            deltaTrend="neutral"
-            icon={Package}
-            iconColor="violet"
-          />
-          <KazaKpiCard
-            label="Santé plateforme"
-            value="99.98%"
-            delta="Nominal"
-            deltaTrend="up"
-            icon={ShieldCheck}
-            iconColor="emerald"
-          />
+        {/* ── Hero GMV + KPI principaux ──────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_2fr] gap-3.5">
+          <StHeroGradient className="flex flex-col justify-center">
+            <div className="flex items-center justify-between">
+              <span className="text-[12.5px] font-bold text-white/80">Revenus totaux</span>
+              <Banknote size={20} className="text-white/80" />
+            </div>
+            <div className="text-[30px] md:text-[34px] font-extrabold mt-2 tabular-nums leading-none">
+              {isLoading ? "…" : formatFCFA(d?.kpis.totalRevenue ?? 0)}
+              <span className="text-[15px] ml-1.5 text-white/75">FCFA</span>
+            </div>
+            {!!d?.kpis.platformCommission && (
+              <div className="mt-3 inline-flex items-center gap-1.5 self-start text-[11.5px] font-extrabold px-2.5 py-1 rounded-full bg-white/15 text-white">
+                <TrendingUp size={13} />
+                +{formatFCFA(d.kpis.platformCommission)} F commission
+              </div>
+            )}
+          </StHeroGradient>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <StKpi
+              label="Utilisateurs"
+              value={isLoading ? "…" : (d?.kpis.totalUsers ?? 0).toLocaleString("fr-FR")}
+              icon={Users}
+              chip={
+                d?.kpis.newUsersToday ? (
+                  <StChip tone="green" icon={UserPlus}>
+                    +{d.kpis.newUsersToday} aujourd&apos;hui
+                  </StChip>
+                ) : undefined
+              }
+            />
+            <StKpi
+              label="Produits publiés"
+              value={isLoading ? "…" : (d?.kpis.publishedProducts ?? 0).toLocaleString("fr-FR")}
+              icon={Package}
+              chip={
+                d?.kpis.pendingProducts ? (
+                  <StChip tone="amber">{d.kpis.pendingProducts} en attente</StChip>
+                ) : undefined
+              }
+            />
+            <StKpi
+              label="Santé plateforme"
+              value="99.98%"
+              icon={ShieldCheck}
+              chip={<StChip tone="green">Nominal</StChip>}
+            />
+          </div>
         </div>
 
         {/* ── Analytics live (30j) ───────────────────────────────────── */}
         {charts?.data && (
-          <KazaSection
-            label="Live"
-            title="Activité plateforme — 30 jours"
-            description="Vue temps réel des revenus et acquisitions"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <KazaKpiCard
+          <div className="space-y-3.5">
+            <StSectionTitle className="!mb-0 mt-1">Activité plateforme — 30 jours</StSectionTitle>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+              <StKpiCompact
                 label="Revenus 30j (brut)"
-                value={`${formatFCFA(charts.data.totals.grossLast30)} F`}
+                value={`${formatFCFA(charts.data.totals.grossLast30)}`}
+                unit="F"
                 icon={Banknote}
-                iconColor="emerald"
+                tone="green"
               />
-              <KazaKpiCard
+              <StKpiCompact
                 label="Commission plateforme"
-                value={`${formatFCFA(charts.data.totals.commissionLast30)} F`}
+                value={`${formatFCFA(charts.data.totals.commissionLast30)}`}
+                unit="F"
                 icon={Wallet}
-                iconColor="orange"
+                tone="amber"
               />
-              <KazaKpiCard
+              <StKpiCompact
                 label="Nouveaux users (7j)"
                 value={String(charts.data.totals.newUsersLast7)}
                 icon={UserPlus}
-                iconColor="sky"
+                tone="blue"
               />
-              <KazaKpiCard
+              <StKpiCompact
                 label="Sessions mentor (30j)"
                 value={String(charts.data.totals.mentorBookingsLast30)}
                 icon={CalendarCheck}
-                iconColor="violet"
+                tone="green"
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
               {/* Revenus 30j */}
               <div className="lg:col-span-2">
-                <KazaCard
-                  title="Revenus par source — 30 jours"
-                  subtitle="Formations · Produits · Mentors"
-                >
+                <StCard className="!p-[18px_20px]">
+                  <StSectionTitle
+                    className="!mb-3"
+                    action={
+                      <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                        Formations · Produits · Mentors
+                      </span>
+                    }
+                  >
+                    Revenus par source — 30 jours
+                  </StSectionTitle>
                   <ResponsiveContainer width="100%" height={260}>
                     <AreaChart data={charts.data.revenueSeries}>
                       <defs>
@@ -424,8 +423,8 @@ export default function AdminDashboardPage() {
                           x2="0"
                           y2="1"
                         >
-                          <stop offset="0%" stopColor="#0b2540" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#0b2540" stopOpacity={0.05} />
+                          <stop offset="0%" stopColor="#006e2f" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#006e2f" stopOpacity={0.05} />
                         </linearGradient>
                         <linearGradient
                           id="gProd"
@@ -434,8 +433,8 @@ export default function AdminDashboardPage() {
                           x2="0"
                           y2="1"
                         >
-                          <stop offset="0%" stopColor="#10b981" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#10b981" stopOpacity={0.05} />
+                          <stop offset="0%" stopColor="#22c55e" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05} />
                         </linearGradient>
                         <linearGradient
                           id="gMent"
@@ -444,24 +443,24 @@ export default function AdminDashboardPage() {
                           x2="0"
                           y2="1"
                         >
-                          <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.6} />
-                          <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0.05} />
+                          <stop offset="0%" stopColor="#185fa5" stopOpacity={0.6} />
+                          <stop offset="100%" stopColor="#185fa5" stopOpacity={0.05} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
                         strokeDasharray="3 3"
-                        stroke="#f1f5f9"
+                        stroke="#eef2ef"
                         vertical={false}
                       />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 10, fill: "#64748b" }}
+                        tick={{ fontSize: 10, fill: "#9baba1" }}
                         axisLine={false}
                         tickLine={false}
                         interval={3}
                       />
                       <YAxis
-                        tick={{ fontSize: 10, fill: "#64748b" }}
+                        tick={{ fontSize: 10, fill: "#9baba1" }}
                         axisLine={false}
                         tickLine={false}
                         tickFormatter={(v: number) =>
@@ -471,7 +470,7 @@ export default function AdminDashboardPage() {
                       <Tooltip
                         contentStyle={{
                           borderRadius: 12,
-                          border: "1px solid #e2e8f0",
+                          border: "1px solid #e4eae6",
                           fontSize: 12,
                         }}
                         formatter={(v: number) => `${formatFCFA(v)} F`}
@@ -481,7 +480,7 @@ export default function AdminDashboardPage() {
                         type="monotone"
                         dataKey="formations"
                         name="Formations"
-                        stroke="#0b2540"
+                        stroke="#006e2f"
                         strokeWidth={2}
                         fill="url(#gForm)"
                         stackId="1"
@@ -490,7 +489,7 @@ export default function AdminDashboardPage() {
                         type="monotone"
                         dataKey="products"
                         name="Produits"
-                        stroke="#10b981"
+                        stroke="#22c55e"
                         strokeWidth={2}
                         fill="url(#gProd)"
                         stackId="1"
@@ -499,21 +498,19 @@ export default function AdminDashboardPage() {
                         type="monotone"
                         dataKey="mentors"
                         name="Mentors"
-                        stroke="#0ea5e9"
+                        stroke="#185fa5"
                         strokeWidth={2}
                         fill="url(#gMent)"
                         stackId="1"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
-                </KazaCard>
+                </StCard>
               </div>
 
               {/* Pie */}
-              <KazaCard
-                title="Répartition 30j"
-                subtitle="Sources de revenus"
-              >
+              <StCard className="!p-[18px_20px]">
+                <StSectionTitle className="!mb-3">Répartition 30j</StSectionTitle>
                 {charts.data.breakdown.length > 0 ? (
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
@@ -533,7 +530,7 @@ export default function AdminDashboardPage() {
                       <Tooltip
                         contentStyle={{
                           borderRadius: 12,
-                          border: "1px solid #e2e8f0",
+                          border: "1px solid #e4eae6",
                           fontSize: 12,
                         }}
                         formatter={(v: number) => `${formatFCFA(v)} F`}
@@ -541,7 +538,7 @@ export default function AdminDashboardPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-[220px] flex items-center justify-center text-xs text-slate-500">
+                  <div className="h-[220px] flex items-center justify-center text-xs" style={{ color: ST.textSecondary }}>
                     Aucune donnée
                   </div>
                 )}
@@ -551,43 +548,46 @@ export default function AdminDashboardPage() {
                       key={b.name}
                       className="flex items-center justify-between text-xs"
                     >
-                      <span className="flex items-center gap-2">
+                      <span className="flex items-center gap-2" style={{ color: ST.textSecondary }}>
                         <span
                           className="w-3 h-3 rounded"
                           style={{ backgroundColor: b.color }}
                         />
                         {b.name}
                       </span>
-                      <span className="font-bold text-slate-900 tabular-nums">
+                      <span className="font-extrabold tabular-nums" style={{ color: ST.text }}>
                         {formatFCFA(b.value)} F
                       </span>
                     </div>
                   ))}
                 </div>
-              </KazaCard>
+              </StCard>
             </div>
 
             {/* New users 7d */}
-            <div className="mt-6">
-              <KazaCard
-                title="Nouveaux utilisateurs — 7 jours"
-                subtitle={`${charts.data.totals.newUsersLast7} inscrits sur la période`}
-              >
+            <div>
+              <StCard className="!p-[18px_20px]">
+                <StSectionTitle className="!mb-3">
+                  Nouveaux utilisateurs — 7 jours
+                  <span className="ml-2 text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                    · {charts.data.totals.newUsersLast7} inscrits
+                  </span>
+                </StSectionTitle>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={charts.data.newUsersSeries}>
                     <CartesianGrid
                       strokeDasharray="3 3"
-                      stroke="#f1f5f9"
+                      stroke="#eef2ef"
                       vertical={false}
                     />
                     <XAxis
                       dataKey="date"
-                      tick={{ fontSize: 10, fill: "#64748b" }}
+                      tick={{ fontSize: 10, fill: "#9baba1" }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 10, fill: "#64748b" }}
+                      tick={{ fontSize: 10, fill: "#9baba1" }}
                       axisLine={false}
                       tickLine={false}
                       allowDecimals={false}
@@ -595,111 +595,103 @@ export default function AdminDashboardPage() {
                     <Tooltip
                       contentStyle={{
                         borderRadius: 12,
-                        border: "1px solid #e2e8f0",
+                        border: "1px solid #e4eae6",
                         fontSize: 12,
                       }}
                     />
                     <Bar
                       dataKey="count"
                       name="Inscriptions"
-                      fill="#0ea5e9"
+                      fill="#22c55e"
                       radius={[8, 8, 0, 0]}
                     />
                   </BarChart>
                 </ResponsiveContainer>
-              </KazaCard>
+              </StCard>
             </div>
-          </KazaSection>
+          </div>
         )}
 
         {/* ── Actions requises + ce mois ─────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
           <div className="lg:col-span-2">
-            <KazaCard
-              title="Transactions récentes"
-              subtitle="Les 10 derniers paiements"
-              action={
-                <KazaButton
-                  variant="ghost"
-                  size="sm"
-                  href="/admin/transactions"
-                  iconRight={ArrowUpRight}
-                >
+            <StCard noPadding>
+              <div className="flex items-center justify-between px-5 pt-[18px] pb-3">
+                <div>
+                  <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Transactions récentes</h3>
+                  <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>Les 10 derniers paiements</p>
+                </div>
+                <StButton variant="secondary" size="sm" href="/admin/transactions" iconRight={ArrowUpRight}>
                   Tout voir
-                </KazaButton>
-              }
-              noPadding
-            >
+                </StButton>
+              </div>
               {isLoading ? (
                 <div className="p-5 space-y-3">
                   {[0, 1, 2].map((i) => (
                     <div
                       key={i}
-                      className="h-16 bg-slate-100 animate-pulse rounded-xl"
+                      className="h-16 animate-pulse rounded-xl"
+                      style={{ background: ST.divider }}
                     />
                   ))}
                 </div>
               ) : (d?.recentTransactions ?? []).length === 0 ? (
-                <div className="p-5">
-                  <KazaEmpty
-                    icon={Inbox}
-                    title="Aucune transaction"
-                    description="Les paiements apparaîtront ici dès qu'ils seront enregistrés."
-                  />
+                <div className="p-8 flex flex-col items-center text-center">
+                  <Inbox size={36} style={{ color: "#d6e0da" }} />
+                  <p className="text-[13px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune transaction</p>
+                  <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                    Les paiements apparaîtront ici dès qu&apos;ils seront enregistrés.
+                  </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
-                        <th className="px-5 py-3 text-left font-semibold">
-                          Acheteur
-                        </th>
-                        <th className="px-5 py-3 text-left font-semibold">
-                          Produit
-                        </th>
-                        <th className="px-5 py-3 text-left font-semibold">
-                          Type
-                        </th>
-                        <th className="px-5 py-3 text-right font-semibold">
-                          Montant
-                        </th>
+                      <tr>
+                        {["Acheteur", "Produit", "Type", "Montant"].map((h, i) => (
+                          <th
+                            key={h}
+                            className={`text-[10.5px] uppercase font-extrabold px-5 py-3 ${i === 3 ? "text-right" : "text-left"}`}
+                            style={{ color: ST.textMuted, letterSpacing: ".06em" }}
+                          >
+                            {h}
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {(d?.recentTransactions ?? []).map((tx) => (
-                        <tr
-                          key={tx.id}
-                          className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors"
-                        >
-                          <td className="px-5 py-3">
+                        <tr key={tx.id}>
+                          <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
                             <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold bg-gradient-to-br from-[#0b2540] to-[#1a4a7d]">
+                              <div
+                                className="w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-extrabold flex-shrink-0"
+                                style={{ background: ST.avatarBg, color: ST.green }}
+                              >
                                 {tx.user.charAt(0).toUpperCase()}
                               </div>
-                              <span className="font-semibold text-slate-900 truncate max-w-[180px]">
+                              <span className="text-[12.5px] font-bold truncate max-w-[180px]" style={{ color: ST.text }}>
                                 {tx.user}
                               </span>
                             </div>
                           </td>
-                          <td className="px-5 py-3">
-                            <p className="text-slate-700 truncate max-w-[240px]">
+                          <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                            <p className="text-[12.5px] font-bold truncate max-w-[240px]" style={{ color: ST.textSecondary }}>
                               {tx.product}
                             </p>
                           </td>
-                          <td className="px-5 py-3">
-                            <KazaBadge
-                              variant={
-                                tx.type === "formation" ? "blue" : "violet"
-                              }
-                              icon={
-                                tx.type === "formation" ? BookOpen : BookText
-                              }
+                          <td className="px-5 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                            <StChip
+                              tone={tx.type === "formation" ? "blue" : "green"}
+                              icon={tx.type === "formation" ? BookOpen : BookText}
                             >
                               {tx.type === "formation" ? "Formation" : "Produit"}
-                            </KazaBadge>
+                            </StChip>
                           </td>
-                          <td className="px-5 py-3 text-right font-extrabold text-emerald-700 tabular-nums">
+                          <td
+                            className="px-5 py-3 text-right text-[12.5px] font-extrabold tabular-nums"
+                            style={{ color: ST.green, borderTop: `1px solid ${ST.divider}` }}
+                          >
                             {formatFCFA(tx.amount)}
                           </td>
                         </tr>
@@ -708,128 +700,131 @@ export default function AdminDashboardPage() {
                   </table>
                 </div>
               )}
-            </KazaCard>
+            </StCard>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-3.5">
             {/* Actions requises */}
-            <KazaCard
-              title="Actions requises"
-              subtitle="À traiter en priorité"
-            >
+            <StCard className="!p-[18px_20px]">
+              <StSectionTitle className="!mb-3">Actions requises</StSectionTitle>
               <div className="space-y-3">
                 <Link
                   href="/admin/produits?status=EN_ATTENTE"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group"
+                  className="flex items-center justify-between p-3 rounded-xl transition-colors group hover:bg-[#f0faf3]"
+                  style={{ background: ST.bg }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: ST.greenSoft, color: ST.green }}>
                       <Package className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: ST.textMuted }}>
                         Modération
                       </p>
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
                         {pendingCount} produits à valider
                       </p>
                     </div>
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 transition-all" style={{ color: ST.textMuted }} />
                 </Link>
 
                 <Link
                   href="/admin/signalements"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group"
+                  className="flex items-center justify-between p-3 rounded-xl transition-colors group hover:bg-[#f0faf3]"
+                  style={{ background: ST.bg }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: ST.roseSoft, color: ST.roseText }}>
                       <FlagIcon className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: ST.textMuted }}>
                         Litiges
                       </p>
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
                         {d?.quickStats.pendingRefunds ?? 0} remboursements
                       </p>
                     </div>
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 transition-all" style={{ color: ST.textMuted }} />
                 </Link>
 
                 <Link
                   href="/admin/signalements"
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors group"
+                  className="flex items-center justify-between p-3 rounded-xl transition-colors group hover:bg-[#f0faf3]"
+                  style={{ background: ST.bg }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: ST.amberSoft, color: ST.amberText }}>
                       <AlertTriangle className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: ST.textMuted }}>
                         Signalements
                       </p>
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
                         {d?.quickStats.pendingReports ?? 0} contenus signalés
                       </p>
                     </div>
                   </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 transition-all" style={{ color: ST.textMuted }} />
                 </Link>
               </div>
-            </KazaCard>
+            </StCard>
 
             {/* Ce mois */}
-            <KazaCard title="Ce mois" subtitle="Synthèse du mois en cours">
+            <StCard className="!p-[18px_20px]">
+              <StSectionTitle className="!mb-3">Ce mois</StSectionTitle>
               <div className="space-y-4">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.textMuted }}>
                     Transactions
                   </p>
-                  <p className="text-2xl font-extrabold tabular-nums tracking-tight text-[#0b2540]">
+                  <p className="text-[22px] font-extrabold tabular-nums tracking-tight" style={{ color: ST.text }}>
                     {(d?.kpis.transactionsThisMonth ?? 0).toLocaleString("fr-FR")}
                   </p>
                 </div>
-                <div className="h-px bg-slate-200" />
+                <div className="h-px" style={{ background: ST.divider }} />
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">
+                  <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.textMuted }}>
                     Revenus
                   </p>
-                  <p className="text-2xl font-extrabold tabular-nums text-emerald-700">
+                  <p className="text-[22px] font-extrabold tabular-nums" style={{ color: ST.green }}>
                     {formatFCFA(d?.kpis.transactionsThisMonthRevenue ?? 0)}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-1">FCFA</p>
+                  <p className="text-[10px] mt-1" style={{ color: ST.textFaint }}>FCFA</p>
                 </div>
               </div>
-            </KazaCard>
+            </StCard>
           </div>
         </div>
 
         {/* ── Produits en attente d'approbation ──────────────────────── */}
         {!isLoading && (d?.pendingItems ?? []).length > 0 && (
-          <KazaCard
-            title="Produits en attente d'approbation"
-            subtitle={`${(d?.pendingItems ?? []).length} éléments à modérer`}
-            action={
-              <KazaButton
-                variant="ghost"
-                size="sm"
-                href="/admin/produits?status=EN_ATTENTE"
-                iconRight={ArrowUpRight}
-              >
+          <StCard noPadding>
+            <div className="flex items-center justify-between px-5 pt-[18px] pb-3">
+              <div>
+                <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Produits en attente d&apos;approbation</h3>
+                <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>
+                  {(d?.pendingItems ?? []).length} éléments à modérer
+                </p>
+              </div>
+              <StButton variant="secondary" size="sm" href="/admin/produits?status=EN_ATTENTE" iconRight={ArrowUpRight}>
                 Tout voir
-              </KazaButton>
-            }
-            noPadding
-          >
-            <div className="divide-y divide-slate-100">
+              </StButton>
+            </div>
+            <div>
               {(d?.pendingItems ?? []).map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-4 p-4 md:p-5 hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-4 p-4 md:px-5 transition-colors hover:bg-[#f7faf8]"
+                  style={{ borderTop: `1px solid ${ST.divider}` }}
                 >
-                  <div className="w-14 h-14 rounded-xl bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                  <div
+                    className="w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden flex items-center justify-center"
+                    style={{ background: ST.divider }}
+                  >
                     {p.thumbnail ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -838,17 +833,17 @@ export default function AdminDashboardPage() {
                         className="w-full h-full object-cover"
                       />
                     ) : p.kind === "formation" ? (
-                      <BookOpen className="w-5 h-5 text-slate-400" />
+                      <BookOpen className="w-5 h-5" style={{ color: ST.textMuted }} />
                     ) : (
-                      <BookText className="w-5 h-5 text-slate-400" />
+                      <BookText className="w-5 h-5" style={{ color: ST.textMuted }} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">
+                    <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
                       {p.title}
                     </p>
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                      <span className="font-semibold">{p.seller}</span>
+                    <div className="flex items-center gap-2 mt-1 text-[11.5px]" style={{ color: ST.textSecondary }}>
+                      <span className="font-bold">{p.seller}</span>
                       <span>·</span>
                       <span className="tabular-nums">
                         {timeAgo(p.submittedAt)}
@@ -856,15 +851,15 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 hidden sm:block">
-                    <p className="text-sm font-extrabold tabular-nums text-slate-900">
+                    <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>
                       {formatFCFA(p.price)} F
                     </p>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">
+                    <p className="text-[10px] uppercase tracking-widest" style={{ color: ST.textMuted }}>
                       {p.type}
                     </p>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
-                    <KazaButton
+                    <StButton
                       variant="primary"
                       size="sm"
                       icon={CheckCircle}
@@ -878,9 +873,9 @@ export default function AdminDashboardPage() {
                       disabled={approveMutation.isPending}
                     >
                       Valider
-                    </KazaButton>
-                    <KazaButton
-                      variant="ghost"
+                    </StButton>
+                    <StButton
+                      variant="secondary"
                       size="sm"
                       onClick={() =>
                         approveMutation.mutate({
@@ -892,16 +887,16 @@ export default function AdminDashboardPage() {
                       disabled={approveMutation.isPending}
                     >
                       Refuser
-                    </KazaButton>
+                    </StButton>
                   </div>
                 </div>
               ))}
             </div>
-          </KazaCard>
+          </StCard>
         )}
 
         {/* Footer signature subtile */}
-        <div className="text-center text-xs text-slate-400 pt-4 flex items-center justify-center gap-1.5">
+        <div className="text-center text-xs pt-4 flex items-center justify-center gap-1.5" style={{ color: ST.textFaint }}>
           <Sparkles className="w-3 h-3" />
           Tableau de bord administrateur Novakou
         </div>

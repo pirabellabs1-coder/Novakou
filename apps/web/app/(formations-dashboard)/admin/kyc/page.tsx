@@ -5,13 +5,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StChip,
+  ST,
+} from "@/components/stitch";
 import {
   ShieldCheck,
   Clock,
@@ -152,185 +152,165 @@ export default function AdminKycPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1400px] mx-auto space-y-8">
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={ShieldCheck}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
           title="Vérification KYC"
           subtitle={`${counts.pending} demandes en attente · ${counts.history} dans l'historique. Les retraits sont bloqués sans KYC validé.`}
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <StKpiCompact
             label="En attente"
             value={counts.pending}
             icon={Clock}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Historique"
             value={counts.history}
             icon={History}
-            iconColor="navy"
+            tone="green"
           />
         </div>
 
         {/* Tabs */}
-        <KazaCard>
-          <div className="flex gap-1.5 bg-slate-50 p-1 rounded-xl w-fit">
-            {[
-              {
-                id: "pending" as const,
-                label: "En attente",
-                count: counts.pending,
-                icon: Clock,
-              },
-              {
-                id: "history" as const,
-                label: "Historique",
-                count: counts.history,
-                icon: History,
-              },
-            ].map((t) => {
-              const Icon = t.icon;
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    setTab(t.id);
-                    setSelected(null);
-                  }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                    tab === t.id
-                      ? "bg-[#0b2540] text-white shadow"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  <Icon size={14} />
-                  {t.label}
-                  <span
-                    className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
-                      tab === t.id
-                        ? "bg-white/15 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
-                  >
-                    {t.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </KazaCard>
+        <div className="flex gap-1 p-1 rounded-[13px] w-fit" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+          {[
+            {
+              id: "pending" as const,
+              label: "En attente",
+              count: counts.pending,
+              icon: Clock,
+            },
+            {
+              id: "history" as const,
+              label: "Historique",
+              count: counts.history,
+              icon: History,
+            },
+          ].map((t) => {
+            const Icon = t.icon;
+            const on = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => {
+                  setTab(t.id);
+                  setSelected(null);
+                }}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
+              >
+                <Icon size={14} />
+                {t.label}
+                <span className="text-[10px] tabular-nums">· {t.count}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {/* List */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {[0, 1].map((i) => (
               <div
                 key={i}
-                className="h-40 bg-white border border-slate-100 rounded-2xl animate-pulse"
+                className="h-40 rounded-[18px] animate-pulse"
+                style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}
               />
             ))}
           </div>
         ) : items.length === 0 ? (
-          <KazaEmpty
-            icon={Inbox}
-            title={
-              tab === "pending"
-                ? "Aucune demande en attente"
-                : "Aucune demande archivée"
-            }
-            description={
-              tab === "pending"
+          <StCard className="flex flex-col items-center text-center py-12">
+            <Inbox size={40} style={{ color: "#d6e0da" }} />
+            <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>
+              {tab === "pending" ? "Aucune demande en attente" : "Aucune demande archivée"}
+            </p>
+            <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+              {tab === "pending"
                 ? "Toutes les demandes ont été traitées."
-                : "L'historique des décisions KYC apparaîtra ici."
-            }
-          />
+                : "L'historique des décisions KYC apparaîtra ici."}
+            </p>
+          </StCard>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {items.map((k) => (
-              <button
-                key={k.id}
-                onClick={() => {
-                  setSelected(k);
-                  setRefuseReason("");
-                }}
-                className={`text-left bg-white border-2 rounded-2xl p-5 transition-all hover:shadow-md ${
-                  selected?.id === k.id
-                    ? "border-emerald-500 shadow-md ring-4 ring-emerald-100"
-                    : "border-slate-100"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-slate-900 truncate">
-                      {k.user.name ?? k.user.email}
-                    </p>
-                    <p className="text-xs text-slate-500 truncate">
-                      {k.user.email}
-                    </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {items.map((k) => {
+              const on = selected?.id === k.id;
+              return (
+                <button
+                  key={k.id}
+                  onClick={() => {
+                    setSelected(k);
+                    setRefuseReason("");
+                  }}
+                  className="text-left bg-white rounded-[18px] p-5 transition-all hover:shadow-md"
+                  style={{
+                    border: on ? `2px solid ${ST.greenBright}` : `1px solid ${ST.cardBorder}`,
+                    boxShadow: on ? `0 0 0 4px ${ST.greenSoft}` : "0 1px 3px rgba(16,52,32,.05)",
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>
+                        {k.user.name ?? k.user.email}
+                      </p>
+                      <p className="text-[11.5px] truncate" style={{ color: ST.textSecondary }}>
+                        {k.user.email}
+                      </p>
+                    </div>
+                    {k.status === "EN_ATTENTE" ? (
+                      <StChip tone="amber" icon={Clock}>En attente</StChip>
+                    ) : k.status === "APPROUVE" ? (
+                      <StChip tone="green" icon={CheckCircle}>Validée</StChip>
+                    ) : (
+                      <StChip tone="rose" icon={XCircle}>Refusée</StChip>
+                    )}
                   </div>
-                  {k.status === "EN_ATTENTE" ? (
-                    <KazaBadge variant="orange" icon={Clock}>
-                      En attente
-                    </KazaBadge>
-                  ) : k.status === "APPROUVE" ? (
-                    <KazaBadge variant="green" icon={CheckCircle}>
-                      Validée
-                    </KazaBadge>
-                  ) : (
-                    <KazaBadge variant="rose" icon={XCircle}>
-                      Refusée
-                    </KazaBadge>
-                  )}
-                </div>
-                <p className="text-xs text-slate-600">
-                  {DOC_LABELS[k.documentType]} ·{" "}
-                  {k.user.formationsRole ?? k.user.role}
-                </p>
-                <p className="text-[11px] text-slate-400 mt-2">
-                  Soumis le {formatDate(k.createdAt)}
-                </p>
-              </button>
-            ))}
+                  <p className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>
+                    {DOC_LABELS[k.documentType]} ·{" "}
+                    {k.user.formationsRole ?? k.user.role}
+                  </p>
+                  <p className="text-[11px] mt-2" style={{ color: ST.textFaint }}>
+                    Soumis le {formatDate(k.createdAt)}
+                  </p>
+                </button>
+              );
+            })}
           </div>
         )}
 
         {/* Detail panel */}
         {selected && (
-          <KazaCard
-            title="Détail de la demande KYC"
-            subtitle={`${selected.user.name ?? selected.user.email} · ${DOC_LABELS[selected.documentType]}`}
-            action={
-              <KazaButton
-                variant="ghost"
-                size="sm"
-                icon={X}
-                onClick={() => setSelected(null)}
-              >
+          <StCard className="!p-[18px_20px]">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="min-w-0">
+                <h3 className="text-[15px] font-extrabold" style={{ color: ST.text }}>Détail de la demande KYC</h3>
+                <p className="text-[12px] font-semibold mt-0.5 truncate" style={{ color: ST.textSecondary }}>
+                  {selected.user.name ?? selected.user.email} · {DOC_LABELS[selected.documentType]}
+                </p>
+              </div>
+              <StButton variant="secondary" size="sm" icon={X} onClick={() => setSelected(null)}>
                 Fermer
-              </KazaButton>
-            }
-          >
+              </StButton>
+            </div>
+
             <div className="grid md:grid-cols-2 gap-4 mb-6">
-              <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+              <div className="rounded-xl p-4" style={{ background: ST.bg }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
                   Utilisateur
                 </p>
-                <p className="text-sm font-bold text-slate-900">
+                <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
                   {selected.user.name ?? "—"}
                 </p>
-                <p className="text-xs text-slate-500">{selected.user.email}</p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-[12px]" style={{ color: ST.textSecondary }}>{selected.user.email}</p>
+                <p className="text-[12px] mt-1" style={{ color: ST.textSecondary }}>
                   Rôle : {selected.user.formationsRole ?? selected.user.role}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-[12px]" style={{ color: ST.textSecondary }}>
                   Demande :{" "}
                   {selected.requestedLevel === 4
                     ? "Certification pro"
@@ -340,11 +320,11 @@ export default function AdminKycPage() {
                     " (identité déjà vérifiée)"}
                 </p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+              <div className="rounded-xl p-4" style={{ background: ST.bg }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
                   Document
                 </p>
-                <p className="text-sm font-bold text-slate-900">
+                <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
                   {DOC_LABELS[selected.documentType]}
                 </p>
                 {selected.documentUrl && (
@@ -352,7 +332,8 @@ export default function AdminKycPage() {
                     href={selected.documentUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1 text-[12px] font-extrabold hover:underline"
+                    style={{ color: ST.green }}
                   >
                     <ExternalLink size={14} />
                     Voir le document
@@ -363,10 +344,13 @@ export default function AdminKycPage() {
 
             {selected.documentUrl && (
               <div className="mb-6">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
                   Aperçu document
                 </p>
-                <div className="rounded-xl border border-slate-200 overflow-hidden bg-slate-50 max-h-[500px] overflow-y-auto">
+                <div
+                  className="rounded-xl overflow-hidden max-h-[500px] overflow-y-auto"
+                  style={{ border: `1px solid ${ST.cardBorder}`, background: ST.bg }}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={selected.documentUrl}
@@ -388,9 +372,9 @@ export default function AdminKycPage() {
             {selected.status === "EN_ATTENTE" ? (
               <>
                 <div className="mb-6">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                     Motif de refus{" "}
-                    <span className="text-xs font-normal text-slate-500">
+                    <span className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>
                       (obligatoire si refus, min 10 car.)
                     </span>
                   </label>
@@ -399,22 +383,24 @@ export default function AdminKycPage() {
                     onChange={(e) => setRefuseReason(e.target.value)}
                     rows={2}
                     placeholder="Document illisible, photo de mauvaise qualité, etc."
-                    className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all resize-none"
+                    className="w-full px-4 py-3 rounded-xl text-[13.5px] font-medium focus:outline-none transition-all resize-none"
+                    style={{ color: "#33453b", border: "1px solid #dde6e0", background: "#fff" }}
                   />
                 </div>
 
                 <div className="flex gap-3 flex-wrap">
-                  <KazaButton
+                  <StButton
                     variant="primary"
                     icon={CheckCircle}
                     onClick={handleApprove}
                     disabled={decideMutation.isPending}
                   >
                     Valider le KYC
-                  </KazaButton>
-                  <KazaButton
-                    variant="danger"
+                  </StButton>
+                  <StButton
+                    variant="secondary"
                     icon={XCircle}
+                    className="!text-[#993556]"
                     onClick={handleRefuse}
                     disabled={
                       decideMutation.isPending ||
@@ -422,42 +408,35 @@ export default function AdminKycPage() {
                     }
                   >
                     Refuser
-                  </KazaButton>
+                  </StButton>
                 </div>
               </>
             ) : (
-              <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+              <div className="rounded-xl p-4" style={{ background: ST.bg }}>
+                <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
                   Décision
                 </p>
                 <div className="flex items-center gap-2 flex-wrap">
                   {selected.status === "APPROUVE" ? (
-                    <KazaBadge variant="green" icon={CheckCircle}>
-                      Validée
-                    </KazaBadge>
+                    <StChip tone="green" icon={CheckCircle}>Validée</StChip>
                   ) : (
-                    <KazaBadge variant="rose" icon={XCircle}>
-                      Refusée
-                    </KazaBadge>
+                    <StChip tone="rose" icon={XCircle}>Refusée</StChip>
                   )}
                   {selected.reviewedAt && (
-                    <span className="text-xs text-slate-500">
+                    <span className="text-[12px]" style={{ color: ST.textSecondary }}>
                       Le {formatDate(selected.reviewedAt)}
                     </span>
                   )}
                 </div>
                 {selected.refuseReason && (
-                  <p className="text-sm text-rose-600 mt-2 flex items-start gap-1">
-                    <FileText
-                      size={14}
-                      className="mt-0.5 flex-shrink-0"
-                    />
+                  <p className="text-[13px] mt-2 flex items-start gap-1" style={{ color: ST.roseText }}>
+                    <FileText size={14} className="mt-0.5 flex-shrink-0" />
                     Motif : {selected.refuseReason}
                   </p>
                 )}
               </div>
             )}
-          </KazaCard>
+          </StCard>
         )}
       </main>
     </div>

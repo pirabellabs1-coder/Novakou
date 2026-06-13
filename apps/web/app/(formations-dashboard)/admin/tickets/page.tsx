@@ -3,15 +3,14 @@
 import { useState, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StButton,
+  StChip,
+  ST,
+} from "@/components/stitch";
 import {
-  Headphones,
   Search,
   Download,
   Bot,
@@ -52,12 +51,12 @@ type TicketFull = TicketSummary & {
 
 const STATUS_INFO: Record<
   Status,
-  { label: string; variant: "orange" | "blue" | "green" | "slate" }
+  { label: string; tone: "amber" | "blue" | "green" | "neutral" }
 > = {
-  NEW: { label: "Nouveau", variant: "orange" },
-  AUTO_REPLIED: { label: "IA répondue", variant: "blue" },
-  HUMAN_REPLIED: { label: "Répondu", variant: "green" },
-  CLOSED: { label: "Fermé", variant: "slate" },
+  NEW: { label: "Nouveau", tone: "amber" },
+  AUTO_REPLIED: { label: "IA répondue", tone: "blue" },
+  HUMAN_REPLIED: { label: "Répondu", tone: "green" },
+  CLOSED: { label: "Fermé", tone: "neutral" },
 };
 
 function fmtDate(iso: string) {
@@ -265,63 +264,61 @@ export default function AdminTicketsPage() {
 
   return (
     <div
-      className="min-h-screen bg-slate-50"
-      style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
     >
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1600px] mx-auto space-y-8">
-        <KazaHero
-          badge="Admin"
-          badgeColor="orange"
-          icon={Headphones}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
           title="Support tickets"
           subtitle="Tous les messages reçus via le formulaire de contact, avec auto-réponse IA."
           actions={
-            <KazaButton
+            <StButton
               variant="secondary"
               icon={Download}
               onClick={exportCSV}
               disabled={items.length === 0}
             >
               Exporter CSV
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          <StKpiCompact
             label="Nouveaux"
             value={counts.NEW ?? 0}
             icon={Inbox}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="IA répondue"
             value={counts.AUTO_REPLIED ?? 0}
             icon={Bot}
-            iconColor="sky"
+            tone="blue"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Répondus"
             value={counts.HUMAN_REPLIED ?? 0}
             icon={MailCheck}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Fermés"
             value={counts.CLOSED ?? 0}
             icon={CheckCircle2}
-            iconColor="navy"
+            tone="green"
           />
         </div>
 
         {/* Filtres */}
-        <KazaCard>
+        <StCard>
           <div className="space-y-4">
             <div className="relative">
               <Search
                 size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: ST.textMuted }}
               />
               <input
                 value={search}
@@ -330,40 +327,33 @@ export default function AdminTicketsPage() {
                   setPage(1);
                 }}
                 placeholder="Rechercher par email, nom, référence ou contenu..."
-                className="w-full pl-11 pr-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+                className="w-full pl-11 pr-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
             </div>
 
-            <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1 rounded-xl w-fit">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => {
-                    setTab(t.id);
-                    setPage(1);
-                  }}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                    tab === t.id
-                      ? "bg-[#0b2540] text-white shadow"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {t.label}
-                  <span
-                    className={`text-[10px] tabular-nums px-1.5 py-0.5 rounded ${
-                      tab === t.id
-                        ? "bg-white/15 text-white"
-                        : "bg-white text-slate-500"
-                    }`}
+            <div className="flex flex-wrap gap-1 p-1 rounded-[13px] w-fit" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+              {tabs.map((t) => {
+                const on = tab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => {
+                      setTab(t.id);
+                      setPage(1);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                    style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
                   >
-                    {t.count}
-                  </span>
-                </button>
-              ))}
+                    {t.label}
+                    <span className="text-[10px] tabular-nums">· {t.count}</span>
+                  </button>
+                );
+              })}
             </div>
 
             <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between flex-wrap">
-              <div className="flex flex-wrap gap-1.5 bg-slate-50 p-1 rounded-xl">
+              <div className="flex flex-wrap gap-1 p-1 rounded-[13px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
                 {(
                   [
                     { v: "all", l: "Tout" },
@@ -371,26 +361,26 @@ export default function AdminTicketsPage() {
                     { v: "30d", l: "30 j" },
                     { v: "90d", l: "90 j" },
                   ] as const
-                ).map((p) => (
-                  <button
-                    key={p.v}
-                    onClick={() => {
-                      setPeriod(p.v);
-                      setCustomSince("");
-                    }}
-                    className={`px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                      period === p.v
-                        ? "bg-emerald-500 text-white shadow"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    {p.l}
-                  </button>
-                ))}
+                ).map((p) => {
+                  const on = period === p.v;
+                  return (
+                    <button
+                      key={p.v}
+                      onClick={() => {
+                        setPeriod(p.v);
+                        setCustomSince("");
+                      }}
+                      className="px-3 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors"
+                      style={on ? { background: ST.green, color: "#fff" } : { color: ST.textSecondary }}
+                    >
+                      {p.l}
+                    </button>
+                  );
+                })}
               </div>
               <div className="flex items-center gap-3 flex-wrap">
-                <label className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-xl">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                <label className="flex items-center gap-2 px-3 py-2 rounded-[12px]" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
                     Depuis
                   </span>
                   <input
@@ -400,61 +390,65 @@ export default function AdminTicketsPage() {
                       setCustomSince(e.target.value);
                       setPeriod(e.target.value ? "custom" : "all");
                     }}
-                    className="text-xs text-slate-900 outline-none bg-transparent"
+                    className="text-[12px] outline-none bg-transparent"
+                    style={{ color: ST.text }}
                   />
                 </label>
                 {filtersActive && (
-                  <KazaButton
-                    variant="ghost"
+                  <StButton
+                    variant="secondary"
                     size="sm"
                     icon={RotateCcw}
                     onClick={resetFilters}
                   >
                     Réinitialiser
-                  </KazaButton>
+                  </StButton>
                 )}
               </div>
             </div>
           </div>
-        </KazaCard>
+        </StCard>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-3.5">
           {/* List */}
-          <KazaCard noPadding>
+          <StCard noPadding>
             {list.isLoading ? (
-              <div className="p-6 text-sm text-slate-500">Chargement...</div>
+              <div className="p-6 text-[13px] font-semibold" style={{ color: ST.textSecondary }}>Chargement...</div>
             ) : items.length === 0 ? (
-              <div className="p-5">
-                <KazaEmpty
-                  icon={filtersActive ? FilterX : Inbox}
-                  title={filtersActive ? "Aucun résultat" : "Aucun ticket"}
-                  description={
-                    filtersActive
-                      ? "Aucun ticket ne correspond à vos filtres."
-                      : "Aucun message dans cette catégorie."
-                  }
-                  action={
-                    filtersActive
-                      ? {
-                          label: "Réinitialiser les filtres",
-                          onClick: resetFilters,
-                        }
-                      : undefined
-                  }
-                />
+              <div className="p-10 flex flex-col items-center text-center">
+                {filtersActive ? (
+                  <FilterX size={36} style={{ color: "#d6e0da" }} />
+                ) : (
+                  <Inbox size={36} style={{ color: "#d6e0da" }} />
+                )}
+                <p className="text-[13.5px] font-extrabold mt-3" style={{ color: ST.text }}>
+                  {filtersActive ? "Aucun résultat" : "Aucun ticket"}
+                </p>
+                <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                  {filtersActive
+                    ? "Aucun ticket ne correspond à vos filtres."
+                    : "Aucun message dans cette catégorie."}
+                </p>
+                {filtersActive && (
+                  <div className="mt-4">
+                    <StButton variant="primary" size="sm" icon={RotateCcw} onClick={resetFilters}>
+                      Réinitialiser les filtres
+                    </StButton>
+                  </div>
+                )}
               </div>
             ) : (
               <>
                 {bulkIds.size > 0 && (
-                  <div className="sticky top-0 z-10 bg-[#0b2540] text-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="sticky top-0 z-10 text-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap rounded-t-[18px]" style={{ background: ST.greenDark }}>
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold">
+                      <span className="text-xs font-extrabold">
                         {bulkIds.size} sélectionné
                         {bulkIds.size > 1 ? "s" : ""}
                       </span>
                       <button
                         onClick={() => setBulkIds(new Set())}
-                        className="text-[10px] font-semibold text-slate-300 hover:text-white underline"
+                        className="text-[10px] font-semibold text-white/70 hover:text-white underline"
                       >
                         Désélectionner
                       </button>
@@ -462,68 +456,69 @@ export default function AdminTicketsPage() {
                         onClick={() =>
                           setBulkIds(new Set(items.map((t) => t.id)))
                         }
-                        className="text-[10px] font-semibold text-slate-300 hover:text-white underline"
+                        className="text-[10px] font-semibold text-white/70 hover:text-white underline"
                       >
                         Tout sélectionner ({items.length})
                       </button>
                     </div>
-                    <KazaButton
-                      variant="primary"
-                      size="sm"
+                    <button
                       onClick={bulkCloseSelected}
                       disabled={bulkRunning}
+                      className="px-3 py-2 rounded-[9px] text-[11px] font-extrabold bg-white/15 hover:bg-white/25 disabled:opacity-50"
                     >
                       {bulkRunning
                         ? "Fermeture..."
                         : `Fermer ${bulkIds.size} ticket${bulkIds.size > 1 ? "s" : ""}`}
-                    </KazaButton>
+                    </button>
                   </div>
                 )}
                 {bulkToast && (
-                  <div className="bg-emerald-50 border-b border-emerald-200 text-emerald-900 text-xs font-semibold px-4 py-2">
+                  <div className="text-[12px] font-semibold px-4 py-2" style={{ background: ST.greenSoft, borderBottom: "1px solid #d7ecde", color: ST.green }}>
                     {bulkToast}
                   </div>
                 )}
-                <ul className="divide-y divide-slate-100">
+                <ul>
                   {items.map((t) => {
                     const sc = STATUS_INFO[t.status];
                     const isSelected = selectedId === t.id;
                     return (
                       <li
                         key={t.id}
-                        className={`flex items-stretch ${isSelected ? "bg-emerald-50/40" : ""}`}
+                        className="flex items-stretch"
+                        style={{
+                          borderTop: `1px solid ${ST.divider}`,
+                          background: isSelected ? "#f0faf3" : undefined,
+                        }}
                       >
                         <label className="flex items-start pt-5 pl-4 pr-2 cursor-pointer flex-shrink-0">
                           <input
                             type="checkbox"
                             checked={bulkIds.has(t.id)}
                             onChange={() => toggleBulk(t.id)}
-                            className="w-4 h-4 accent-emerald-500 cursor-pointer"
+                            className="w-4 h-4 accent-[#006e2f] cursor-pointer"
                             aria-label="Sélectionner ce ticket"
                           />
                         </label>
                         <button
                           onClick={() => setSelectedId(t.id)}
-                          className="flex-1 text-left p-4 pl-2 hover:bg-slate-50 transition-colors"
+                          className="flex-1 text-left p-4 pl-2 transition-colors hover:bg-[#f7faf8]"
                         >
                           <div className="flex items-start justify-between gap-3 mb-1">
-                            <p className="text-sm font-bold text-slate-900 truncate flex-1">
+                            <p className="text-[13px] font-extrabold truncate flex-1" style={{ color: ST.text }}>
                               {t.name}
                             </p>
-                            <KazaBadge variant={sc.variant}>
-                              {sc.label}
-                            </KazaBadge>
+                            <StChip tone={sc.tone}>{sc.label}</StChip>
                           </div>
-                          <p className="text-[11px] text-slate-500 font-mono mb-1">
+                          <p className="text-[11px] font-mono mb-1" style={{ color: ST.textMuted }}>
                             {t.reference} · {t.email}
                           </p>
-                          <p className="text-xs text-slate-900 font-semibold mb-1 truncate">
+                          <p className="text-[12px] font-bold mb-1 truncate" style={{ color: ST.text }}>
                             {t.subject || "—"}
                           </p>
-                          <p className="text-xs text-slate-500 line-clamp-2">
+                          <p className="text-[12px] line-clamp-2" style={{ color: ST.textSecondary }}>
                             {t.message}
                           </p>
-                          <p className="text-[10px] text-slate-400 mt-2">
+                          <p className="text-[10px] mt-2" style={{ color: ST.textFaint }}>
                             {fmtDate(t.createdAt)}
                           </p>
                         </button>
@@ -533,21 +528,19 @@ export default function AdminTicketsPage() {
                 </ul>
               </>
             )}
-          </KazaCard>
+          </StCard>
 
           {/* Detail */}
-          <KazaCard>
+          <StCard>
             {!selectedId ? (
-              <div className="text-center py-12 text-slate-500">
-                <ArrowLeftCircle
-                  className="mx-auto w-12 h-12 text-slate-300"
-                />
-                <p className="text-sm mt-3">
+              <div className="text-center py-12" style={{ color: ST.textSecondary }}>
+                <ArrowLeftCircle className="mx-auto w-12 h-12" style={{ color: "#d6e0da" }} />
+                <p className="text-[13px] font-semibold mt-3">
                   Sélectionnez un ticket pour voir les détails
                 </p>
               </div>
             ) : detail.isLoading || !detail.data ? (
-              <div className="text-sm text-slate-500">Chargement...</div>
+              <div className="text-[13px] font-semibold" style={{ color: ST.textSecondary }}>Chargement...</div>
             ) : (
               <TicketDetail
                 ticket={detail.data.data}
@@ -559,7 +552,7 @@ export default function AdminTicketsPage() {
                 }}
               />
             )}
-          </KazaCard>
+          </StCard>
         </div>
       </main>
     </div>
@@ -620,17 +613,18 @@ function TicketDetail({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-1" style={{ color: ST.textMuted }}>
             Référence
           </p>
-          <p className="text-lg font-mono font-bold text-emerald-700">
+          <p className="text-[18px] font-mono font-extrabold" style={{ color: ST.green }}>
             {ticket.reference}
           </p>
         </div>
         <select
           value={ticket.status}
           onChange={(e) => setStatus(e.target.value as Status)}
-          className="px-3 py-2 rounded-xl border-2 border-slate-200 text-xs font-semibold focus:outline-none focus:border-emerald-500"
+          className="px-3 py-2 rounded-xl text-[12px] font-semibold focus:outline-none"
+          style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
         >
           <option value="NEW">Nouveau</option>
           <option value="AUTO_REPLIED">IA répondue</option>
@@ -639,38 +633,38 @@ function TicketDetail({
         </select>
       </div>
 
-      <div className="bg-slate-50 rounded-xl p-4 space-y-1">
-        <p className="text-sm font-bold text-slate-900">
+      <div className="rounded-xl p-4 space-y-1" style={{ background: ST.bg }}>
+        <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>
           {ticket.name}{" "}
-          <span className="font-normal text-slate-500">
+          <span className="font-medium" style={{ color: ST.textSecondary }}>
             &lt;{ticket.email}&gt;
           </span>
         </p>
-        <p className="text-xs text-slate-500">
+        <p className="text-[12px]" style={{ color: ST.textSecondary }}>
           Sujet : <strong>{ticket.subject || "—"}</strong>
         </p>
-        <p className="text-[10px] text-slate-400">
+        <p className="text-[10px]" style={{ color: ST.textFaint }}>
           {fmtDate(ticket.createdAt)} · IP {ticket.ipAddress ?? "—"}
         </p>
       </div>
 
       <div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
           Message original
         </p>
-        <div className="bg-white border border-slate-200 rounded-xl p-4 text-sm text-slate-900 whitespace-pre-wrap leading-relaxed">
+        <div className="rounded-xl p-4 text-[13px] whitespace-pre-wrap leading-relaxed" style={{ color: ST.text, background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
           {ticket.message}
         </div>
       </div>
 
       {ticket.aiReply && (
         <div>
-          <p className="text-[10px] font-bold text-sky-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2 flex items-center gap-2" style={{ color: ST.blueText }}>
             <Bot size={14} />
             Réponse IA — {ticket.aiReplyModel ?? "?"} ·{" "}
             {ticket.aiReplySentAt ? fmtDate(ticket.aiReplySentAt) : ""}
           </p>
-          <div className="bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-slate-900 whitespace-pre-wrap leading-relaxed">
+          <div className="rounded-xl p-4 text-[13px] whitespace-pre-wrap leading-relaxed" style={{ color: ST.text, background: ST.blueSoft, border: "1px solid #cfe3f5" }}>
             {ticket.aiReply}
           </div>
         </div>
@@ -678,41 +672,42 @@ function TicketDetail({
 
       {ticket.adminReply && (
         <div>
-          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.green }}>
             Votre réponse ·{" "}
             {ticket.adminReplyAt ? fmtDate(ticket.adminReplyAt) : ""}
           </p>
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-slate-900 whitespace-pre-wrap leading-relaxed">
+          <div className="rounded-xl p-4 text-[13px] whitespace-pre-wrap leading-relaxed" style={{ color: ST.text, background: ST.greenSoft, border: "1px solid #d7ecde" }}>
             {ticket.adminReply}
           </div>
         </div>
       )}
 
       <div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
-          Répondre à l'utilisateur
+        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
+          Répondre à l&apos;utilisateur
         </p>
         <textarea
           value={reply}
           onChange={(e) => setReply(e.target.value)}
           rows={5}
           placeholder="Tapez votre réponse — elle sera envoyée par email à l'utilisateur."
-          className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all resize-none"
+          className="w-full px-4 py-3 rounded-xl text-[13.5px] font-medium focus:outline-none transition-all resize-none"
+          style={{ color: "#33453b", border: "1px solid #dde6e0", background: "#fff" }}
         />
         <div className="mt-2">
-          <KazaButton
+          <StButton
             variant="primary"
             icon={Send}
             onClick={sendReply}
             disabled={!reply.trim() || sending}
           >
             {sending ? "Envoi..." : "Envoyer la réponse"}
-          </KazaButton>
+          </StButton>
         </div>
       </div>
 
       <div>
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
+        <p className="text-[10px] font-extrabold uppercase tracking-widest mb-2" style={{ color: ST.textMuted }}>
           Notes internes (privées)
         </p>
         <textarea
@@ -720,14 +715,15 @@ function TicketDetail({
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
           placeholder="Notes pour l'équipe — pas envoyées à l'utilisateur."
-          className="w-full px-4 py-3 bg-white border-2 border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 rounded-xl text-sm focus:outline-none transition-all resize-none"
+          className="w-full px-4 py-3 rounded-xl text-[13.5px] font-medium focus:outline-none transition-all resize-none"
+          style={{ color: "#33453b", border: "1px solid #dde6e0", background: "#fff" }}
         />
         <div className="flex items-center gap-2 mt-2">
-          <KazaButton variant="ghost" size="sm" icon={Save} onClick={saveNotes}>
+          <StButton variant="secondary" size="sm" icon={Save} onClick={saveNotes}>
             Enregistrer les notes
-          </KazaButton>
+          </StButton>
           {saved && (
-            <span className="text-xs text-emerald-600 font-semibold inline-flex items-center gap-1">
+            <span className="text-[12px] font-semibold inline-flex items-center gap-1" style={{ color: ST.green }}>
               <CheckCircle2 size={12} />
               Sauvegardé
             </span>
