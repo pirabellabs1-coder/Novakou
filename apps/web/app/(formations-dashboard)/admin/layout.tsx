@@ -5,28 +5,57 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  LayoutDashboard,
+  BrainCircuit,
+  Package,
+  Users,
+  Receipt,
+  Banknote,
+  Landmark,
+  MessageSquare,
+  Flag,
+  Gavel,
+  BadgeCheck,
+  UserMinus,
+  Megaphone,
+  MessagesSquare,
+  Headphones,
+  History,
+  BarChart3,
+  Filter,
+  Settings,
+  Menu,
+  Shield,
+  ExternalLink,
+  Store,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
 
-const navItems = [
-  { icon: "dashboard", label: "Vue générale", href: "/admin/dashboard" },
-  { icon: "neurology", label: "IA Assistant", href: "/admin/ai-assistant" },
-  { icon: "inventory_2", label: "Produits", href: "/admin/produits" },
-  { icon: "people", label: "Utilisateurs", href: "/admin/utilisateurs" },
-  { icon: "receipt_long", label: "Transactions", href: "/admin/transactions" },
-  { icon: "payments", label: "Retraits vendeurs", href: "/admin/retraits-vendeurs" },
-  { icon: "account_balance", label: "Retraits plateforme", href: "/admin/retraits" },
-  { icon: "comment", label: "Commentaires", href: "/admin/commentaires" },
-  { icon: "flag", label: "Signalements", href: "/admin/signalements" },
-  { icon: "gavel", label: "Disputes mentor", href: "/admin/mentor-disputes" },
-  { icon: "badge", label: "Vérification KYC", href: "/admin/kyc" },
-  { icon: "person_remove", label: "Suppressions de compte", href: "/admin/suppressions" },
-  { icon: "campaign", label: "Campagnes email", href: "/admin/emails" },
-  { icon: "forum", label: "Conversations", href: "/admin/conversations" },
-  { icon: "support_agent", label: "Tickets support", href: "/admin/tickets" },
-  { icon: "history", label: "Journal d'audit", href: "/admin/audit" },
-  { icon: "assessment", label: "Rapports", href: "/admin/rapports" },
-  { icon: "filter_alt", label: "Funnel acheteur", href: "/admin/analytics-funnel" },
-  { icon: "settings", label: "Configuration", href: "/admin/configuration" },
+type NavItem = { icon: LucideIcon; label: string; href: string };
+
+const navItems: NavItem[] = [
+  { icon: LayoutDashboard, label: "Vue générale", href: "/admin/dashboard" },
+  { icon: BrainCircuit, label: "IA Assistant", href: "/admin/ai-assistant" },
+  { icon: Package, label: "Produits", href: "/admin/produits" },
+  { icon: Users, label: "Utilisateurs", href: "/admin/utilisateurs" },
+  { icon: Receipt, label: "Transactions", href: "/admin/transactions" },
+  { icon: Banknote, label: "Retraits vendeurs", href: "/admin/retraits-vendeurs" },
+  { icon: Landmark, label: "Retraits plateforme", href: "/admin/retraits" },
+  { icon: MessageSquare, label: "Commentaires", href: "/admin/commentaires" },
+  { icon: Flag, label: "Signalements", href: "/admin/signalements" },
+  { icon: Gavel, label: "Disputes mentor", href: "/admin/mentor-disputes" },
+  { icon: BadgeCheck, label: "Vérification KYC", href: "/admin/kyc" },
+  { icon: UserMinus, label: "Suppressions de compte", href: "/admin/suppressions" },
+  { icon: Megaphone, label: "Campagnes email", href: "/admin/emails" },
+  { icon: MessagesSquare, label: "Conversations", href: "/admin/conversations" },
+  { icon: Headphones, label: "Tickets support", href: "/admin/tickets" },
+  { icon: History, label: "Journal d'audit", href: "/admin/audit" },
+  { icon: BarChart3, label: "Rapports", href: "/admin/rapports" },
+  { icon: Filter, label: "Funnel acheteur", href: "/admin/analytics-funnel" },
+  { icon: Settings, label: "Configuration", href: "/admin/configuration" },
 ];
 
 function getInitials(name?: string | null): string {
@@ -74,33 +103,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+    <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       {/* Top Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 h-16 flex items-center px-4 md:px-6 gap-4">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#e4eae6] h-16 flex items-center px-4 md:px-6 gap-4">
         {/* Hamburger (mobile) */}
         <button
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-[#191c1e]"
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 text-[#13241b]"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           aria-label="Toggle sidebar"
         >
-          <span className="material-symbols-outlined text-[22px]">menu</span>
+          <Menu size={22} />
         </button>
 
         {/* Logo */}
         <Link href="/admin/dashboard" className="flex items-center gap-2 flex-shrink-0">
           <div
-            className="w-8 h-8 rounded-[8px] flex items-center justify-center"
-            style={{ background: "#006e2f" }}
+            className="w-9 h-9 rounded-[10px] flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg,#006e2f,#22c55e)" }}
           >
-            <span className="text-white font-bold text-xs tracking-tight">NK</span>
+            <span className="text-white font-extrabold text-sm tracking-tight">N</span>
           </div>
-          <span className="hidden sm:block font-bold text-[#191c1e] text-sm">Novakou</span>
+          <span className="hidden sm:block font-extrabold text-[#13241b] text-base tracking-tight">Novakou</span>
         </Link>
 
         {/* Admin badge */}
-        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white bg-[#191c1e]">
-          <span className="material-symbols-outlined text-[12px]">shield</span>
-          Admin Panel
+        <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider text-white bg-[#0b3b20]">
+          <Shield size={12} />
+          Admin
         </span>
 
         <div className="flex-1" />
@@ -111,26 +140,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link
             href="/admin/configuration"
             title="Configuration"
-            className="relative p-2 rounded-full hover:bg-gray-100 text-[#5c647a]"
+            className="relative p-2 rounded-full hover:bg-gray-100 text-[#5d7166]"
           >
-            <span className="material-symbols-outlined text-[22px]">settings</span>
+            <Settings size={20} />
           </Link>
           {/* Admin avatar */}
           <div className="flex items-center gap-2 ml-1">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatarUrl} alt={displayName} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <img src={avatarUrl} alt={displayName} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
             ) : (
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #191c1e 0%, #006e2f 100%)" }}
-              >
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-[#006e2f] text-xs font-extrabold flex-shrink-0 bg-[#dcefe2]">
                 {initials}
               </div>
             )}
             <div className="hidden md:block">
-              <p className="text-xs font-semibold text-[#191c1e] leading-none">{displayName}</p>
-              <p className="text-[10px] text-[#5c647a]">{displayEmail}</p>
+              <p className="text-xs font-bold text-[#13241b] leading-none">{displayName}</p>
+              <p className="text-[10px] text-[#5d7166] mt-0.5">{displayEmail}</p>
             </div>
           </div>
         </div>
@@ -146,29 +172,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Left Sidebar */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-white border-r border-gray-100 pt-16 flex flex-col transition-transform duration-300 ${
+        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-white border-r border-[#e4eae6] pt-16 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
         {/* Admin info */}
-        <div className="px-5 py-4 border-b border-gray-100">
+        <div className="px-5 py-4 border-b border-[#e4eae6]">
           <div className="flex items-center gap-3">
             {avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
             ) : (
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #191c1e 0%, #006e2f 100%)" }}
-              >
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-[#006e2f] font-extrabold text-sm flex-shrink-0 bg-[#dcefe2]">
                 {initials}
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-semibold text-[#191c1e] text-sm truncate">{displayName}</p>
+              <p className="font-bold text-[#13241b] text-sm truncate">{displayName}</p>
               <div className="flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-[#22c55e] rounded-full"></span>
-                <p className="text-[10px] text-[#5c647a]">Accès complet</p>
+                <p className="text-[10px] text-[#5d7166] font-semibold">Accès complet</p>
               </div>
             </div>
           </div>
@@ -176,47 +199,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-4 overflow-y-auto">
-          <p className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-[#5c647a]">
+          <p className="px-3 mb-2 text-[10px] font-extrabold uppercase tracking-widest text-[#8aa092]">
             Administration
           </p>
           <ul className="space-y-1">
             {navItems.map((item) => {
               const isActive =
                 pathname === item.href || pathname.startsWith(item.href + "/");
+              const Icon = item.icon;
+              const showReports = item.href === "/admin/signalements" && badges.reports > 0;
+              const showComments = item.href === "/admin/commentaires" && badges.comments > 0;
+              const showWithdrawals = item.href === "/admin/retraits-vendeurs" && badges.withdrawals > 0;
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] transition-all duration-150 ${
                       isActive
-                        ? "bg-[#006e2f]/10 text-[#006e2f] font-semibold"
-                        : "text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e]"
+                        ? "bg-[#e6f5eb] text-[#006e2f] font-bold"
+                        : "text-[#41544a] hover:bg-slate-50 hover:text-[#13241b] font-semibold"
                     }`}
                   >
-                    <span
-                      className={`material-symbols-outlined text-[20px] flex-shrink-0 ${
-                        isActive ? "text-[#006e2f]" : "text-[#5c647a]"
-                      }`}
-                      style={{
-                        fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
-                      }}
-                    >
-                      {item.icon}
-                    </span>
-                    {item.label}
-                    {item.icon === "flag" && badges.reports > 0 && (
-                      <span className="ml-auto bg-red-100 text-red-600 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                    <Icon
+                      size={18}
+                      className={`flex-shrink-0 ${isActive ? "text-[#006e2f]" : "text-[#7d9486]"}`}
+                    />
+                    <span className="truncate flex-1">{item.label}</span>
+                    {showReports && (
+                      <span className="ml-auto bg-rose-100 text-rose-600 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                         {badges.reports}
                       </span>
                     )}
-                    {item.icon === "comment" && badges.comments > 0 && (
-                      <span className="ml-auto bg-yellow-100 text-yellow-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                    {showComments && (
+                      <span className="ml-auto bg-amber-100 text-amber-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                         {badges.comments}
                       </span>
                     )}
-                    {item.icon === "payments" && badges.withdrawals > 0 && (
-                      <span className="ml-auto bg-amber-100 text-amber-700 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                    {showWithdrawals && (
+                      <span className="ml-auto bg-amber-100 text-amber-700 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                         {badges.withdrawals}
                       </span>
                     )}
@@ -226,34 +247,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             })}
           </ul>
 
-          <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="px-3 mb-2 text-[9px] font-bold uppercase tracking-widest text-[#5c647a]">
+          <div className="mt-6 pt-4 border-t border-[#e4eae6]">
+            <p className="px-3 mb-2 text-[10px] font-extrabold uppercase tracking-widest text-[#8aa092]">
               Accès rapide
             </p>
             <Link
               href="/"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e] transition-all duration-200"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold text-[#41544a] hover:bg-slate-50 hover:text-[#13241b] transition-all duration-150"
             >
-              <span className="material-symbols-outlined text-[20px] flex-shrink-0">open_in_new</span>
+              <ExternalLink size={18} className="flex-shrink-0 text-[#7d9486]" />
               Voir la plateforme
             </Link>
             <Link
               href="/explorer"
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#5c647a] hover:bg-gray-50 hover:text-[#191c1e] transition-all duration-200"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-semibold text-[#41544a] hover:bg-slate-50 hover:text-[#13241b] transition-all duration-150"
             >
-              <span className="material-symbols-outlined text-[20px] flex-shrink-0">storefront</span>
+              <Store size={18} className="flex-shrink-0 text-[#7d9486]" />
               Marketplace
             </Link>
           </div>
         </nav>
 
         {/* Bottom section */}
-        <div className="px-3 py-4 border-t border-gray-100">
+        <div className="px-3 py-4 border-t border-[#e4eae6]">
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-all duration-200"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-[13px] font-semibold text-red-500 hover:bg-red-50 transition-all duration-150"
           >
-            <span className="material-symbols-outlined text-[20px]">logout</span>
+            <LogOut size={18} />
             Déconnexion
           </button>
         </div>

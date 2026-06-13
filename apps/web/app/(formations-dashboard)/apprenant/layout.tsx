@@ -105,7 +105,7 @@ function ApprenantFooter() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#0b2540] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[#006e2f] flex items-center justify-center">
                 <span className="text-white font-extrabold text-sm">N</span>
               </div>
               <span className="font-extrabold text-slate-900 text-base tracking-tight">Novakou</span>
@@ -124,7 +124,7 @@ function ApprenantFooter() {
                 { label: "Mes certificats",        href: "/apprenant/certificats" },
               ].map((l) => (
                 <li key={l.href}>
-                  <Link href={l.href} className="text-xs text-slate-500 hover:text-[#0b2540] transition-colors">
+                  <Link href={l.href} className="text-xs text-slate-500 hover:text-[#006e2f] transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -141,7 +141,7 @@ function ApprenantFooter() {
                 { label: "Politique de confidentialité",  href: "/confidentialite" },
               ].map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="text-xs text-slate-500 hover:text-[#0b2540] transition-colors">
+                  <Link href={l.href} className="text-xs text-slate-500 hover:text-[#006e2f] transition-colors">
                     {l.label}
                   </Link>
                 </li>
@@ -207,7 +207,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Logo carré "N Novakou" style KAZA */}
         <Link href="/apprenant/dashboard" className="flex items-center gap-2.5 flex-shrink-0 group">
-          <div className="w-10 h-10 rounded-xl bg-[#0b2540] flex items-center justify-center group-hover:scale-105 transition-transform">
+          <div className="w-10 h-10 rounded-xl bg-[#006e2f] flex items-center justify-center group-hover:scale-105 transition-transform">
             <span className="text-white font-extrabold text-base tracking-tight">N</span>
           </div>
           <span className="hidden sm:block font-extrabold text-slate-900 text-lg tracking-tight">Novakou</span>
@@ -258,7 +258,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
                 className="w-9 h-9 rounded-full object-cover flex-shrink-0"
               />
             ) : (
-              <div className="w-9 h-9 rounded-full bg-[#0b2540] flex items-center justify-center text-white text-xs font-extrabold flex-shrink-0">
+              <div className="w-9 h-9 rounded-full bg-[#dcefe2] flex items-center justify-center text-[#006e2f] text-xs font-extrabold flex-shrink-0">
                 {initials}
               </div>
             )}
@@ -320,13 +320,13 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
                         onClick={() => setMobileOpen(false)}
                         className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
                           isActive
-                            ? "bg-[#0b2540] text-white font-semibold shadow-md shadow-slate-300/40"
+                            ? "bg-[#e6f5eb] text-[#006e2f] font-bold"
                             : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium"
                         }`}
                       >
                         <Icon
                           className={`w-[18px] h-[18px] flex-shrink-0 ${
-                            isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"
+                            isActive ? "text-[#006e2f]" : "text-slate-500 group-hover:text-slate-700"
                           }`}
                           strokeWidth={isActive ? 2.4 : 2}
                         />
@@ -334,7 +334,7 @@ function ApprenantLayoutInner({ children }: { children: React.ReactNode }) {
                         {showBadge && (
                           <span
                             className={`text-[10px] font-bold rounded-full px-1.5 ml-auto min-w-[18px] text-center leading-[18px] h-[18px] ${
-                              isActive ? "bg-white/20 text-white" : "bg-emerald-500 text-white"
+                              isActive ? "bg-[#006e2f] text-white" : "bg-emerald-500 text-white"
                             }`}
                           >
                             {cartCount}
