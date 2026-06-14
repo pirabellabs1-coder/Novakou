@@ -6,6 +6,70 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Columns3,
+  Columns2,
+  Rows3,
+  LayoutGrid,
+  LayoutDashboard,
+  LayoutTemplate,
+  MousePointerClick,
+  MousePointer2,
+  Heading,
+  Type,
+  Pilcrow,
+  ListChecks,
+  Boxes,
+  Minus,
+  MoveVertical,
+  Image as ImageIcon,
+  Images,
+  PlayCircle,
+  GalleryThumbnails,
+  ShoppingBag,
+  Flame,
+  ShieldCheck,
+  Building2,
+  ArrowDownToLine,
+  Megaphone,
+  Sparkles,
+  CheckCircle2,
+  BarChart3,
+  Quote,
+  HelpCircle,
+  Timer,
+  TimerOff,
+  Tag,
+  GitCompare,
+  BadgeCheck,
+  Users,
+  Code,
+  Rocket,
+  CreditCard,
+  BadgePercent,
+  PartyPopper,
+  Trash2,
+  X,
+  Info,
+  Plus,
+  SlidersHorizontal,
+  ChevronDown,
+  ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  ArrowRight,
+  Loader2,
+  ExternalLink,
+  Send,
+  Palette,
+  Lightbulb,
+  Wand2,
+  Copy,
+  Gem,
+  Briefcase,
+  Video,
+  type LucideIcon,
+} from "lucide-react";
 import { MediaUpload } from "@/components/funnels/MediaUpload";
 import { IconPicker } from "@/components/funnels/IconPicker";
 import { ColorPicker, ColumnPicker } from "@/components/funnels/ColorPicker";
@@ -82,13 +146,13 @@ interface Funnel {
 // ═══════════════════════════════════════════════════════════════════════════
 // BLOCK TEMPLATES + PALETTE CATEGORIES
 // ═══════════════════════════════════════════════════════════════════════════
-type BlockTpl = { label: string; icon: string; default: Record<string, unknown>; atomic?: boolean };
+type BlockTpl = { label: string; icon: LucideIcon; default: Record<string, unknown>; atomic?: boolean };
 
 const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   // ─── Containers ─────────────────────────────────────────────────────────
   row: {
     label: "Rangée",
-    icon: "view_column",
+    icon: Columns3,
     default: {
       columns: [{ blocks: [] }, { blocks: [] }],
       gap: 16,
@@ -98,7 +162,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   section: {
     label: "Section",
-    icon: "dashboard",
+    icon: LayoutDashboard,
     default: {
       blocks: [] as Block[],
       bgColor: "",
@@ -111,7 +175,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   "content-box": {
     label: "Boîte de contenu",
-    icon: "call_to_action",
+    icon: MousePointerClick,
     default: {
       blocks: [] as Block[],
       bgColor: "#ffffff",
@@ -125,25 +189,25 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   // ─── Atomic content ─────────────────────────────────────────────────────
   heading: {
     label: "Titre",
-    icon: "title",
+    icon: Heading,
     atomic: true,
     default: { content: "Votre titre ici", level: 2, align: "left", color: "" },
   },
   text: {
     label: "Texte",
-    icon: "format_paragraph",
+    icon: Pilcrow,
     atomic: true,
     default: { content: "Écrivez votre texte ici. Décrivez ce que vous offrez de manière claire et concise.", align: "left", size: 16, color: "" },
   },
   image: {
     label: "Image",
-    icon: "image",
+    icon: ImageIcon,
     atomic: true,
     default: { url: "", alt: "", align: "center", radius: 12, width: "auto" },
   },
   button: {
     label: "Bouton",
-    icon: "smart_button",
+    icon: MousePointer2,
     atomic: true,
     default: {
       text: "Cliquez ici",
@@ -160,25 +224,25 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   "icon-box": {
     label: "Boîte à icône",
-    icon: "inventory_2",
+    icon: Boxes,
     atomic: true,
     default: { icon: "verified", title: "Un atout clé", desc: "Une brève description.", align: "center", color: "" },
   },
   divider: {
     label: "Ligne horizontale",
-    icon: "horizontal_rule",
+    icon: Minus,
     atomic: true,
     default: { style: "solid", color: "#e5e7eb", thickness: 1, width: 100 },
   },
   spacer: {
     label: "Espace",
-    icon: "height",
+    icon: MoveVertical,
     atomic: true,
     default: { height: 32 },
   },
   list: {
     label: "Liste à puces",
-    icon: "checklist",
+    icon: ListChecks,
     atomic: true,
     default: {
       items: ["Premier élément de la liste", "Deuxième élément", "Troisième élément"],
@@ -188,13 +252,13 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   html: {
     label: "Code HTML",
-    icon: "code",
+    icon: Code,
     atomic: true,
     default: { html: "<p>Votre HTML personnalisé</p>" },
   },
   product: {
     label: "Produit / Formation",
-    icon: "shopping_bag",
+    icon: ShoppingBag,
     atomic: true,
     default: {
       kind: "",          // "formation" | "product"
@@ -216,14 +280,14 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   // ─── Media ──────────────────────────────────────────────────────────────
   video: {
     label: "Vidéo",
-    icon: "play_circle",
+    icon: PlayCircle,
     atomic: true,
     default: { externalUrl: "", caption: "" },
   },
   // ─── Ready-made sections ────────────────────────────────────────────────
   hero: {
     label: "Hero / Bannière",
-    icon: "view_carousel",
+    icon: LayoutTemplate,
     default: {
       badge: "Nouveau",
       headline: "Votre titre accrocheur ici",
@@ -237,7 +301,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   features: {
     label: "Liste de bénéfices",
-    icon: "check_circle",
+    icon: CheckCircle2,
     default: {
       title: "Ce que vous obtenez",
       columns: 3,
@@ -250,7 +314,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   countdown: {
     label: "Compteur urgence",
-    icon: "timer",
+    icon: Timer,
     default: {
       title: "Offre limitée — fin dans :",
       endsInHours: 48,
@@ -268,7 +332,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   testimonials: {
     label: "Témoignages",
-    icon: "format_quote",
+    icon: Quote,
     default: {
       title: "Ils en parlent mieux que nous",
       columns: 2,
@@ -277,17 +341,17 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   faq: {
     label: "FAQ",
-    icon: "help",
+    icon: HelpCircle,
     default: { title: "Questions fréquentes", items: [{ q: "Une question fréquente ?", a: "Réponse claire et rassurante." }] },
   },
   cta: {
     label: "Appel à l'action",
-    icon: "ads_click",
+    icon: MousePointerClick,
     default: { headline: "Prêt à passer à l'action ?", subheadline: "Rejoignez la communauté maintenant.", ctaText: "Commencer", ctaLink: "" },
   },
   stats: {
     label: "Statistiques",
-    icon: "monitoring",
+    icon: BarChart3,
     default: {
       title: "",
       subtitle: "",
@@ -303,7 +367,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   pricing: {
     label: "Pricing",
-    icon: "sell",
+    icon: Tag,
     default: {
       title: "Investissement",
       price: 25000,
@@ -321,7 +385,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   scarcity: {
     label: "Rareté / Limite",
-    icon: "local_fire_department",
+    icon: Flame,
     default: {
       text: "Plus que {remaining} places disponibles !",
       urgentThreshold: 5,
@@ -334,7 +398,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   guarantee: {
     label: "Badge garantie",
-    icon: "verified_user",
+    icon: ShieldCheck,
     default: {
       icon: "verified_user",
       title: "Garantie 14 jours",
@@ -345,7 +409,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   "logo-bar": {
     label: "Barre de logos",
-    icon: "corporate_fare",
+    icon: Building2,
     default: {
       title: "Ils nous font confiance",
       items: [
@@ -362,7 +426,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   alert: {
     label: "Alerte / Bannière",
-    icon: "campaign",
+    icon: Megaphone,
     default: {
       text: "Offre flash : -50% pendant 24h seulement !",
       variant: "warning" as "info" | "success" | "warning" | "danger",
@@ -372,7 +436,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   "social-proof": {
     label: "Preuve sociale",
-    icon: "group",
+    icon: Users,
     default: {
       style: "live" as "live" | "counter" | "recent",
       liveText: "{count} personnes regardent cette page",
@@ -392,7 +456,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   comparison: {
     label: "Tableau comparatif",
-    icon: "compare",
+    icon: GitCompare,
     default: {
       title: "Pourquoi nous choisir ?",
       columns: ["Sans nous", "Avec nous"],
@@ -407,7 +471,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   "floating-cta": {
     label: "CTA flottant",
-    icon: "vertical_align_bottom",
+    icon: ArrowDownToLine,
     default: {
       text: "Profitez de l'offre maintenant",
       buttonText: "Commander",
@@ -421,7 +485,7 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
   },
   "image-gallery": {
     label: "Galerie d'images",
-    icon: "photo_library",
+    icon: GalleryThumbnails,
     atomic: true,
     default: {
       images: [
@@ -440,66 +504,66 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
 // PaletteKey = either a BlockType or a preset (row with N columns)
 type PaletteKey = BlockType | "row-1" | "row-2" | "row-3" | "row-4";
 
-type PaletteItem = { key: PaletteKey; label: string; icon: string };
+type PaletteItem = { key: PaletteKey; label: string; icon: LucideIcon };
 
-const PALETTE_CATEGORIES: Array<{ label: string; icon: string; items: PaletteItem[] }> = [
+const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: PaletteItem[] }> = [
   {
-    label: "Mise en page", icon: "dashboard", items: [
-      { key: "row-1", label: "Rangée (1 col)", icon: "table_rows" },
-      { key: "row-2", label: "2 colonnes", icon: "view_column_2" },
-      { key: "row-3", label: "3 colonnes", icon: "view_column" },
-      { key: "row-4", label: "4 colonnes", icon: "grid_view" },
-      { key: "section", label: "Section", icon: "dashboard" },
-      { key: "content-box", label: "Boîte de contenu", icon: "call_to_action" },
+    label: "Mise en page", icon: LayoutDashboard, items: [
+      { key: "row-1", label: "Rangée (1 col)", icon: Rows3 },
+      { key: "row-2", label: "2 colonnes", icon: Columns2 },
+      { key: "row-3", label: "3 colonnes", icon: Columns3 },
+      { key: "row-4", label: "4 colonnes", icon: LayoutGrid },
+      { key: "section", label: "Section", icon: LayoutDashboard },
+      { key: "content-box", label: "Boîte de contenu", icon: MousePointerClick },
     ],
   },
   {
-    label: "Contenu", icon: "article", items: [
-      { key: "heading", label: "Titre", icon: "title" },
-      { key: "text", label: "Texte", icon: "format_paragraph" },
-      { key: "list", label: "Liste à puces", icon: "checklist" },
-      { key: "icon-box", label: "Boîte à icône", icon: "inventory_2" },
-      { key: "divider", label: "Ligne", icon: "horizontal_rule" },
-      { key: "spacer", label: "Espace", icon: "height" },
+    label: "Contenu", icon: Type, items: [
+      { key: "heading", label: "Titre", icon: Heading },
+      { key: "text", label: "Texte", icon: Pilcrow },
+      { key: "list", label: "Liste à puces", icon: ListChecks },
+      { key: "icon-box", label: "Boîte à icône", icon: Boxes },
+      { key: "divider", label: "Ligne", icon: Minus },
+      { key: "spacer", label: "Espace", icon: MoveVertical },
     ],
   },
   {
-    label: "Média", icon: "perm_media", items: [
-      { key: "image", label: "Image", icon: "image" },
-      { key: "video", label: "Vidéo", icon: "play_circle" },
-      { key: "image-gallery", label: "Galerie", icon: "photo_library" },
+    label: "Média", icon: Images, items: [
+      { key: "image", label: "Image", icon: ImageIcon },
+      { key: "video", label: "Vidéo", icon: PlayCircle },
+      { key: "image-gallery", label: "Galerie", icon: GalleryThumbnails },
     ],
   },
   {
-    label: "Conversion", icon: "ads_click", items: [
-      { key: "button", label: "Bouton", icon: "smart_button" },
-      { key: "product", label: "Produit / Formation", icon: "shopping_bag" },
-      { key: "scarcity", label: "Rareté / Limite", icon: "local_fire_department" },
-      { key: "guarantee", label: "Garantie", icon: "verified_user" },
-      { key: "floating-cta", label: "CTA flottant", icon: "vertical_align_bottom" },
-      { key: "alert", label: "Alerte / Bannière", icon: "campaign" },
+    label: "Conversion", icon: MousePointerClick, items: [
+      { key: "button", label: "Bouton", icon: MousePointer2 },
+      { key: "product", label: "Produit / Formation", icon: ShoppingBag },
+      { key: "scarcity", label: "Rareté / Limite", icon: Flame },
+      { key: "guarantee", label: "Garantie", icon: ShieldCheck },
+      { key: "floating-cta", label: "CTA flottant", icon: ArrowDownToLine },
+      { key: "alert", label: "Alerte / Bannière", icon: Megaphone },
     ],
   },
   {
-    label: "Sections prêtes", icon: "auto_awesome", items: [
-      { key: "hero", label: "Hero / Bannière", icon: "view_carousel" },
-      { key: "features", label: "Bénéfices", icon: "check_circle" },
-      { key: "stats", label: "Statistiques", icon: "monitoring" },
-      { key: "testimonials", label: "Témoignages", icon: "format_quote" },
-      { key: "faq", label: "FAQ", icon: "help" },
-      { key: "countdown", label: "Countdown", icon: "timer" },
-      { key: "cta", label: "Appel à l'action", icon: "ads_click" },
-      { key: "pricing", label: "Pricing", icon: "sell" },
-      { key: "comparison", label: "Comparatif", icon: "compare" },
+    label: "Sections prêtes", icon: Sparkles, items: [
+      { key: "hero", label: "Hero / Bannière", icon: LayoutTemplate },
+      { key: "features", label: "Bénéfices", icon: CheckCircle2 },
+      { key: "stats", label: "Statistiques", icon: BarChart3 },
+      { key: "testimonials", label: "Témoignages", icon: Quote },
+      { key: "faq", label: "FAQ", icon: HelpCircle },
+      { key: "countdown", label: "Countdown", icon: Timer },
+      { key: "cta", label: "Appel à l'action", icon: MousePointerClick },
+      { key: "pricing", label: "Pricing", icon: Tag },
+      { key: "comparison", label: "Comparatif", icon: GitCompare },
     ],
   },
   {
-    label: "Confiance", icon: "verified", items: [
-      { key: "logo-bar", label: "Barre de logos", icon: "corporate_fare" },
-      { key: "social-proof", label: "Preuve sociale", icon: "group" },
+    label: "Confiance", icon: BadgeCheck, items: [
+      { key: "logo-bar", label: "Barre de logos", icon: Building2 },
+      { key: "social-proof", label: "Preuve sociale", icon: Users },
     ],
   },
-  { label: "Avancé", icon: "code", items: [{ key: "html", label: "Code HTML", icon: "code" }] },
+  { label: "Avancé", icon: Code, items: [{ key: "html", label: "Code HTML", icon: Code }] },
 ];
 
 // Which palette keys are allowed inside a column (no infinite nesting: no row/section inside column)
@@ -535,7 +599,7 @@ function createFromPaletteKey(key: PaletteKey): Block {
 // STEP TYPES — Purpose, colors, advice, default templates
 // ═══════════════════════════════════════════════════════════════════════════
 type StepInfo = {
-  icon: string;
+  icon: LucideIcon;
   color: string;
   bgTint: string;
   title: string;
@@ -546,7 +610,7 @@ type StepInfo = {
 
 const STEP_INFO: Record<string, StepInfo> = {
   LANDING: {
-    icon: "rocket_launch",
+    icon: Rocket,
     color: "#006e2f",
     bgTint: "#006e2f0D",
     title: "Page de vente publique",
@@ -555,7 +619,7 @@ const STEP_INFO: Record<string, StepInfo> = {
     templateLabel: "Template page de vente complète",
   },
   PRODUCT: {
-    icon: "credit_card",
+    icon: CreditCard,
     color: "#2563eb",
     bgTint: "#2563eb0D",
     title: "Checkout (paiement)",
@@ -564,7 +628,7 @@ const STEP_INFO: Record<string, StepInfo> = {
     templateLabel: "Template page de rassurance pré-paiement",
   },
   UPSELL: {
-    icon: "local_offer",
+    icon: BadgePercent,
     color: "#f59e0b",
     bgTint: "#f59e0b0D",
     title: "Offre complémentaire (upsell)",
@@ -573,9 +637,9 @@ const STEP_INFO: Record<string, StepInfo> = {
     templateLabel: "Template offre upsell urgente",
   },
   THANK_YOU: {
-    icon: "celebration",
-    color: "#8b5cf6",
-    bgTint: "#8b5cf60D",
+    icon: PartyPopper,
+    color: "#16a34a",
+    bgTint: "#16a34a0D",
     title: "Page de remerciement",
     subtitle: "Après l'achat confirmé — rassure le client et guide la suite",
     advice: "Confirmez le paiement, expliquez comment accéder au produit (email, compte), proposez la suite (formation suivante, communauté, avis). Un bon Thank You améliore l'expérience et réduit les demandes de remboursement.",
@@ -616,6 +680,16 @@ function getStepTemplate(stepType: string): Block[] {
       return [];
   }
 }
+
+// Maps LANDING_TEMPLATES badge icon strings (material-symbol names) to Lucide components
+const TEMPLATE_BADGE_ICONS: Record<string, LucideIcon> = {
+  diamond: Gem,
+  local_fire_department: Flame,
+  rocket_launch: Rocket,
+  business_center: Briefcase,
+  palette: Palette,
+  videocam: Video,
+};
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INPUT PRIMITIVES
@@ -671,7 +745,7 @@ function ListEditor<T extends Record<string, unknown>>({ label, items, template,
             <div className="flex items-center justify-between mb-2">
               <span className="text-[10px] font-semibold text-[#5c647a]">#{i + 1}</span>
               <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="text-red-500 hover:text-red-700">
-                <span className="material-symbols-outlined text-[16px]">delete</span>
+                <Trash2 size={16} />
               </button>
             </div>
             {renderItem(item, (patch) => { const updated = [...items]; updated[i] = { ...item, ...patch }; onChange(updated); })}
@@ -703,29 +777,35 @@ function PalettePicker({ onPick, onClose, allowed }: { onPick: (key: PaletteKey)
             <p className="text-xs text-[#5c647a] mt-0.5">Cliquez pour insérer.</p>
           </div>
           <button onClick={onClose} className="text-[#5c647a] hover:text-[#191c1e] p-1">
-            <span className="material-symbols-outlined">close</span>
+            <X size={24} />
           </button>
         </div>
         <div className="overflow-y-auto px-7 py-5 space-y-6">
-          {categories.map((cat) => (
+          {categories.map((cat) => {
+            const CatIcon = cat.icon;
+            return (
             <div key={cat.label}>
               <div className="flex items-center gap-2 mb-2.5">
-                <span className="material-symbols-outlined text-[#006e2f] text-[16px]">{cat.icon}</span>
+                <CatIcon size={16} className="text-[#006e2f]" />
                 <h3 className="text-xs font-bold text-[#5c647a] uppercase tracking-wider">{cat.label}</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-2.5">
-                {cat.items.map((item) => (
+                {cat.items.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
                   <button key={item.key} onClick={() => onPick(item.key)}
                     className="bg-[#f7f9fb] rounded-2xl p-3 text-left hover:bg-[#006e2f]/5 hover:ring-2 hover:ring-[#006e2f]/30 transition-all group">
                     <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center mb-2 group-hover:bg-[#006e2f]/10 transition-colors">
-                      <span className="material-symbols-outlined text-[#006e2f] text-[18px]">{item.icon}</span>
+                      <ItemIcon size={18} className="text-[#006e2f]" />
                     </div>
                     <p className="text-xs font-bold text-[#191c1e] leading-tight">{item.label}</p>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -864,8 +944,8 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
       return (
         <div className="space-y-2.5">
           <StringInput label="Lien vidéo (YouTube, Vimeo, ou MP4)" value={(block.data.externalUrl as string) ?? ""} onChange={(v) => update({ externalUrl: v })} placeholder="https://www.youtube.com/watch?v=..." />
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[10px] text-blue-800">
-            <span className="material-symbols-outlined text-[12px] align-text-top mr-1">info</span>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[10px] text-blue-800 flex items-start gap-1">
+            <Info size={12} className="mt-0.5 flex-shrink-0" />
             Formats acceptés : YouTube, Vimeo, ou lien direct .mp4/.webm
           </div>
           <StringInput label="Légende (optionnel)" value={(block.data.caption as string) ?? ""} onChange={(v) => update({ caption: v })} />
@@ -954,7 +1034,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
           <ColorPicker label="Couleur du texte" value={(block.data.textColor as string) || null} onChange={(c) => update({ textColor: c ?? "" })} />
           <details className="border border-gray-100 rounded-lg">
             <summary className="flex items-center gap-2 px-3 py-2 text-[10px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
-              <span className="material-symbols-outlined text-[14px]">timer_off</span>
+              <TimerOff size={14} />
               Après expiration
             </summary>
             <div className="px-3 pb-3 space-y-2">
@@ -1106,8 +1186,8 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
             <ColorPicker label="Couleur texte" value={(block.data.textColor as string) || null} onChange={(c) => update({ textColor: c ?? "" })} />
           </div>
           <StringInput label="Texte quand complet" value={(block.data.emptyText as string) ?? ""} onChange={(v) => update({ emptyText: v })} />
-          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-[10px] text-amber-800">
-            <span className="material-symbols-outlined text-[12px] align-text-top mr-1">info</span>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-[10px] text-amber-800 flex items-start gap-1">
+            <Info size={12} className="mt-0.5 flex-shrink-0" />
             La limite se configure dans les paramètres du funnel (salesLimit). Le compteur se met à jour automatiquement.
           </div>
         </div>
@@ -1356,7 +1436,7 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
     <div className="bg-[#f7f9fb] rounded-2xl border-2 border-dashed border-[#006e2f]/30 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 bg-[#006e2f]/5 border-b border-[#006e2f]/10">
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#006e2f] text-[16px]">view_column</span>
+          <Columns3 size={16} className="text-[#006e2f]" />
           <span className="text-xs font-bold text-[#006e2f]">Rangée · {columns.length} colonne{columns.length > 1 ? "s" : ""}</span>
         </div>
         <div className="flex items-center gap-1.5">
@@ -1367,7 +1447,7 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
             </button>
           ))}
           <button onClick={onDelete} className="ml-2 text-red-500 hover:text-red-700">
-            <span className="material-symbols-outlined text-[18px]">delete</span>
+            <Trash2 size={18} />
           </button>
         </div>
       </div>
@@ -1405,7 +1485,7 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
               ))}
               <button onClick={() => setPickerColIdx(colIdx)}
                 className="w-full py-3 rounded-lg border-2 border-dashed border-gray-300 text-xs font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] hover:bg-[#006e2f]/5 transition-all flex items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px]">add</span>
+                <Plus size={16} />
                 Ajouter un élément
               </button>
             </div>
@@ -1431,12 +1511,13 @@ function ContainerEditor({
   onChange: (b: Block) => void;
   onDelete: () => void;
   title: string;
-  iconName: string;
+  iconName: LucideIcon;
   accentColor: string;
   renderSettings: (updateData: (patch: Record<string, unknown>) => void) => React.ReactNode;
   previewStyle?: React.CSSProperties;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
+  const IconName = iconName;
   const children = (block.data.blocks as Block[]) ?? [];
   const updateData = (patch: Record<string, unknown>) => onChange({ ...block, data: { ...block.data, ...patch } });
 
@@ -1457,11 +1538,11 @@ function ContainerEditor({
     <div className="rounded-2xl border-2 border-dashed overflow-hidden" style={{ borderColor: `${accentColor}40` }}>
       <div className="flex items-center justify-between px-4 py-2.5 border-b" style={{ background: `${accentColor}0A`, borderColor: `${accentColor}1A` }}>
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[16px]" style={{ color: accentColor }}>{iconName}</span>
+          <IconName size={16} style={{ color: accentColor }} />
           <span className="text-xs font-bold" style={{ color: accentColor }}>{title} · {children.length} élément{children.length > 1 ? "s" : ""}</span>
         </div>
         <button onClick={onDelete} className="text-red-500 hover:text-red-700">
-          <span className="material-symbols-outlined text-[18px]">delete</span>
+          <Trash2 size={18} />
         </button>
       </div>
 
@@ -1479,7 +1560,7 @@ function ContainerEditor({
           ))}
           <button onClick={() => setPickerOpen(true)}
             className="w-full py-2.5 rounded-lg border-2 border-dashed border-gray-300 text-[11px] font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] hover:bg-[#006e2f]/5 transition-all flex items-center justify-center gap-1.5">
-            <span className="material-symbols-outlined text-[14px]">add</span>
+            <Plus size={14} />
             Ajouter un élément
           </button>
         </div>
@@ -1496,7 +1577,7 @@ function SectionEditor({ block, onChange, onDelete }: { block: Block; onChange: 
   return (
     <ContainerEditor
       block={block} onChange={onChange} onDelete={onDelete}
-      title="Section" iconName="dashboard" accentColor="#006e2f"
+      title="Section" iconName={LayoutDashboard} accentColor="#006e2f"
       previewStyle={{ background: (block.data.bgColor as string) || undefined }}
       renderSettings={(updateData) => (
         <>
@@ -1533,7 +1614,7 @@ function ContentBoxEditor({ block, onChange, onDelete }: { block: Block; onChang
   return (
     <ContainerEditor
       block={block} onChange={onChange} onDelete={onDelete}
-      title="Boîte de contenu" iconName="call_to_action" accentColor="#2563eb"
+      title="Boîte de contenu" iconName={MousePointerClick} accentColor="#006e2f"
       previewStyle={{ background: bg, borderRadius: `${radius}px`, border: `${borderWidth}px solid ${border}`, padding: `${padding}px` }}
       renderSettings={(updateData) => (
         <>
@@ -1670,6 +1751,7 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
 
   const tpl = BLOCK_TEMPLATES[block.type];
   const isAtomic = tpl.atomic;
+  const TplIcon = tpl.icon;
   const animValue = (block.data._animation as string) ?? "none";
   const visValue = (block.data._visibility as string) ?? "all";
 
@@ -1677,7 +1759,7 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
     <div className="bg-[#f7f9fb] rounded-xl border border-gray-200">
       <div className={`flex items-center justify-between bg-white border-b border-gray-200 rounded-t-xl ${compact ? "px-3 py-2" : "px-4 py-3"}`}>
         <div className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#006e2f] text-[18px]">{tpl.icon}</span>
+          <TplIcon size={18} className="text-[#006e2f]" />
           <span className="font-bold text-[#191c1e] text-sm">{tpl.label}</span>
           {visValue !== "all" && (
             <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 uppercase">
@@ -1685,13 +1767,13 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
             </span>
           )}
           {animValue !== "none" && (
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 uppercase">
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#006e2f]/10 text-[#006e2f] uppercase">
               {animValue}
             </span>
           )}
         </div>
         <button onClick={onDelete} className="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
-          <span className="material-symbols-outlined text-[18px]">delete</span>
+          <Trash2 size={18} />
         </button>
       </div>
       <div className={compact ? "p-3" : "p-4"}>
@@ -1700,9 +1782,9 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
       {/* Advanced: Animation + Visibility */}
       <details className="border-t border-gray-200">
         <summary className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
-          <span className="material-symbols-outlined text-[14px]">tune</span>
+          <SlidersHorizontal size={14} />
           Animation &amp; visibilité
-          <span className="ml-auto material-symbols-outlined text-[14px]">expand_more</span>
+          <ChevronDown size={14} className="ml-auto" />
         </summary>
         <div className="px-4 pb-3 space-y-2">
           <SelectInput label="Animation" value={animValue} options={[
@@ -1841,7 +1923,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="px-5 md:px-8 h-14 flex items-center gap-3 max-w-7xl mx-auto">
           <Link href="/vendeur/marketing/funnels" className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            <ArrowLeft size={20} />
           </Link>
           <input type="text" value={funnel.name}
             onChange={(e) => setFunnel({ ...funnel, name: e.target.value })}
@@ -1849,17 +1931,17 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             className="text-sm font-bold text-[#191c1e] flex-1 bg-transparent placeholder-gray-400 focus:outline-none focus:bg-gray-50 px-2 py-1 rounded transition-colors"
             placeholder="Nom du funnel" />
           <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-            {saving ? (<><span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>Sauvegarde…</>)
-              : savedAt ? (<><span className="material-symbols-outlined text-[14px] text-green-500">check_circle</span>Sauvegardé</>)
+            {saving ? (<><Loader2 size={14} className="animate-spin" />Sauvegarde…</>)
+              : savedAt ? (<><CheckCircle2 size={14} className="text-green-500" />Sauvegardé</>)
               : null}
           </div>
           <a href={`/f/${funnel.slug}${funnel.isActive ? "" : "?preview=1"}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
-            <span className="material-symbols-outlined text-[14px]">open_in_new</span>Aperçu
+            <ExternalLink size={14} />Aperçu
           </a>
           <button onClick={() => save({ isActive: !funnel.isActive })}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${funnel.isActive ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-900 text-white hover:bg-gray-700"}`}>
-            <span className="material-symbols-outlined text-[14px]">{funnel.isActive ? "check_circle" : "publish"}</span>
+            {funnel.isActive ? <CheckCircle2 size={14} /> : <Send size={14} />}
             {funnel.isActive ? "Publié" : "Publier"}
           </button>
         </div>
@@ -1874,11 +1956,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               {funnel.steps.map((s) => {
                 const info = STEP_INFO[s.stepType] ?? STEP_INFO.LANDING;
                 const isActive = s.id === activeStepId;
+                const StepIcon = info.icon;
                 return (
                   <button key={s.id} onClick={() => setActiveStepId(s.id)}
                     className={`w-full flex items-center gap-2 text-left px-2 py-2 rounded-lg transition-colors ${isActive ? "bg-[#006e2f]/10" : "hover:bg-gray-50"}`}>
                     <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${isActive ? "bg-[#006e2f] text-white" : "bg-gray-100 text-[#5c647a]"}`}>
-                      <span className="material-symbols-outlined text-[14px]">{info.icon}</span>
+                      <StepIcon size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-[11px] font-bold truncate leading-tight ${isActive ? "text-[#006e2f]" : "text-[#191c1e]"}`}>{s.title}</p>
@@ -1894,7 +1977,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             </div>
             <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
               <p className="text-[9px] font-bold text-[#5c647a] uppercase flex items-center gap-1">
-                <span className="material-symbols-outlined text-[12px]">local_fire_department</span>Limite de ventes
+                <Flame size={12} />Limite de ventes
               </p>
               <div className="flex items-center gap-1.5">
                 <input type="number" min="0" placeholder="∞"
@@ -1914,9 +1997,9 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               {/* Theme settings */}
               <details className="mt-2 border border-gray-100 rounded-lg overflow-hidden">
                 <summary className="flex items-center gap-1.5 px-2 py-1.5 text-[9px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
-                  <span className="material-symbols-outlined text-[12px]">palette</span>
+                  <Palette size={12} />
                   Thème
-                  <span className="ml-auto material-symbols-outlined text-[12px]">expand_more</span>
+                  <ChevronDown size={12} className="ml-auto" />
                 </summary>
                 <div className="px-2 pb-2 space-y-2">
                   <ColorPicker label="Couleur principale" value={funnel.theme?.primaryColor || "#006e2f"} onChange={(c) => save({ theme: { ...funnel.theme, primaryColor: c ?? "#006e2f" } })} />
@@ -1938,7 +2021,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 </div>
               </details>
               <button onClick={handleDelete} className="w-full mt-2 text-[10px] text-red-500 hover:text-red-700 flex items-center justify-center gap-1 py-1.5">
-                <span className="material-symbols-outlined text-[12px]">delete</span>Supprimer
+                <Trash2 size={12} />Supprimer
               </button>
             </div>
           </div>
@@ -1948,6 +2031,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
         <main className="lg:col-span-10 space-y-4">
           {(() => {
             const info = STEP_INFO[activeStep?.stepType ?? "LANDING"] ?? STEP_INFO.LANDING;
+            const InfoIcon = info.icon;
             const applyStepTemplate = () => {
               if (!activeStep) return;
               const tpl = getStepTemplate(activeStep.stepType);
@@ -1962,7 +2046,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="flex items-start gap-3 p-5" style={{ background: info.bgTint }}>
                   <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: info.color }}>
-                    <span className="material-symbols-outlined text-white text-[22px]">{info.icon}</span>
+                    <InfoIcon size={22} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -1982,9 +2066,9 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 </div>
                 <details className="border-t border-gray-100">
                   <summary className="flex items-center gap-2 px-5 py-3 text-xs font-semibold text-[#5c647a] cursor-pointer hover:bg-gray-50 list-none">
-                    <span className="material-symbols-outlined text-[16px]">lightbulb</span>
+                    <Lightbulb size={16} />
                     Guide — comment utiliser cette étape
-                    <span className="ml-auto material-symbols-outlined text-[16px]">expand_more</span>
+                    <ChevronDown size={16} className="ml-auto" />
                   </summary>
                   <div className="px-5 pb-4 text-xs text-[#191c1e] leading-relaxed">
                     {info.advice}
@@ -1997,12 +2081,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   <div className="flex items-center gap-2">
                     {activeStep?.stepType === "LANDING" && (
                       <button onClick={openGallery} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-[#006e2f] border border-[#006e2f] hover:bg-[#006e2f]/5 transition-colors">
-                        <span className="material-symbols-outlined text-[14px]">palette</span>
+                        <Palette size={14} />
                         Galerie de templates
                       </button>
                     )}
                     <button onClick={applyStepTemplate} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-opacity" style={{ background: info.color }}>
-                      <span className="material-symbols-outlined text-[14px]">auto_fix_high</span>
+                      <Wand2 size={14} />
                       {blocks.length === 0 ? "Charger template par défaut" : "Template par défaut"}
                     </button>
                   </div>
@@ -2013,11 +2097,11 @@ export default function FunnelEditorClient({ id }: { id: string }) {
 
           {blocks.length === 0 ? (
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
-              <span className="material-symbols-outlined text-gray-300 text-5xl">widgets</span>
+              <Boxes size={48} className="text-gray-300 mx-auto" />
               <p className="text-sm font-bold text-[#191c1e] mt-3">Page vierge — commencez par une rangée</p>
               <p className="text-xs text-[#5c647a] mt-1 mb-4">Choisissez d&apos;abord un layout (1, 2, 3 ou 4 colonnes), puis ajoutez des éléments dans chaque colonne.</p>
               <button onClick={() => setShowAddBlock(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                <span className="material-symbols-outlined text-[16px]">add</span>Ajouter un élément
+                <Plus size={16} />Ajouter un élément
               </button>
             </div>
           ) : (
@@ -2032,18 +2116,18 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                       <button onClick={() => moveBlock(i, -1)} disabled={i === 0}
                         className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed rounded-l-lg transition-colors"
                         title="Monter">
-                        <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
+                        <ArrowUp size={16} />
                       </button>
                       <button onClick={() => moveBlock(i, 1)} disabled={i === blocks.length - 1}
                         className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         title="Descendre">
-                        <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
+                        <ArrowDown size={16} />
                       </button>
                       <div className="w-px h-4 bg-gray-200" />
                       <button onClick={() => duplicateBlock(i)}
                         className="p-1.5 text-[#5c647a] hover:text-[#006e2f] hover:bg-gray-50 rounded-r-lg transition-colors"
                         title="Dupliquer">
-                        <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                        <Copy size={16} />
                       </button>
                     </div>
                     <BlockEditor block={block} onChange={(b) => updateBlock(i, b)} onDelete={() => deleteBlock(i)} />
@@ -2052,7 +2136,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               />
               <button onClick={() => setShowAddBlock(true)}
                 className="w-full py-3.5 rounded-2xl border-2 border-dashed border-gray-300 text-sm font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-[18px]">add</span>Ajouter un élément
+                <Plus size={18} />Ajouter un élément
               </button>
             </>
           )}
@@ -2069,28 +2153,30 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             <div className="px-8 py-6 border-b border-gray-100 bg-white flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="material-symbols-outlined text-[#006e2f] text-[20px]">palette</span>
+                  <Palette size={20} className="text-[#006e2f]" />
                   <h2 className="text-xl font-extrabold text-[#191c1e]">Galerie de templates</h2>
                   <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#006e2f]/10 text-[#006e2f]">6 designs</span>
                 </div>
                 <p className="text-xs text-[#5c647a]">Chaque template a une structure visuelle différente — survolez pour le détail, cliquez pour appliquer.</p>
               </div>
               <button onClick={() => setShowGallery(false)} className="text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-100 p-2 rounded-lg transition-colors">
-                <span className="material-symbols-outlined">close</span>
+                <X size={24} />
               </button>
             </div>
 
             {/* Cards grid */}
             <div className="overflow-y-auto p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {LANDING_TEMPLATES.map((tpl) => (
+                {LANDING_TEMPLATES.map((tpl) => {
+                  const TplBadgeIcon = TEMPLATE_BADGE_ICONS[tpl.icon] ?? Sparkles;
+                  return (
                   <div key={tpl.key} className="rounded-2xl bg-white shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group border border-gray-100">
                     {/* Visual mockup preview */}
                     <div className="relative h-64 bg-gray-50 border-b border-gray-100 overflow-hidden">
                       <TemplatePreviewMockup vibe={tpl.vibe} palette={tpl.palette} preview={tpl.preview} variant={tpl.key} />
                       {/* Badge vibe + icon */}
                       <span className="absolute top-3 left-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/95 text-[#191c1e] shadow-sm backdrop-blur-sm">
-                        <span className="material-symbols-outlined text-[12px]" style={{ color: tpl.palette[0] }}>{tpl.icon}</span>
+                        <TplBadgeIcon size={12} style={{ color: tpl.palette[0] }} />
                         {tpl.vibe}
                       </span>
                       {/* Palette swatches */}
@@ -2110,7 +2196,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                       {/* Unique sections */}
                       <div className="mt-4 pt-4 border-t border-gray-100">
                         <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[14px]" style={{ color: tpl.palette[1] }}>auto_awesome</span>
+                          <Sparkles size={14} style={{ color: tpl.palette[1] }} />
                           Sections uniques de ce template
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -2138,18 +2224,19 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         style={{ background: tpl.preview }}
                       >
                         Utiliser ce template
-                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        <ArrowRight size={18} />
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
             {/* Footer */}
             <div className="px-8 py-4 border-t border-gray-100 bg-white flex items-center justify-between">
               <p className="text-xs text-[#5c647a] flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[14px]">info</span>
+                <Info size={14} />
                 Images et textes sont des suggestions — tout se modifie ensuite dans l'éditeur.
               </p>
               <button onClick={() => setShowGallery(false)} className="text-xs font-semibold text-[#5c647a] hover:text-[#191c1e] px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors">

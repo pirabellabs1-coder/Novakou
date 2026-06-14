@@ -2,12 +2,28 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  ChevronRight,
+  Settings,
+  Info,
+  Braces,
+  Move,
+  GripVertical,
+  Loader2,
+  Save,
+  ShoppingCart,
+  CreditCard,
+  ShoppingBag,
+  GraduationCap,
+  Clock,
+  type LucideIcon,
+} from "lucide-react";
 import { useToastStore } from "@/store/toast";
 import { safeJson } from "@/lib/safe-fetch";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 
-// ─── Theme — bleu SaaS primaire ────────────────────────────────────────────────
-const BRAND = "#3F41C2";
+// ─── Theme — vert Novakou primaire ─────────────────────────────────────────────
+const BRAND = "#006e2f";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 interface Step {
@@ -47,12 +63,12 @@ const VARIABLES = [
 // ─── Trigger tabs — segments larges ────────────────────────────────────────────
 type TabKey = "ABANDONED_CART" | "PAYMENT_FAILED" | "PURCHASE" | "ENROLLMENT" | "USER_INACTIVITY";
 
-const TABS: { key: TabKey; label: string; icon: string; color: string }[] = [
-  { key: "ABANDONED_CART", label: "Panier abandonné", icon: "remove_shopping_cart", color: "text-orange-500" },
-  { key: "PAYMENT_FAILED", label: "Échec de paiement", icon: "credit_card_off", color: "text-red-500" },
-  { key: "PURCHASE", label: "Après achat", icon: "shopping_bag", color: "text-green-600" },
-  { key: "ENROLLMENT", label: "Inscription", icon: "school", color: "text-blue-600" },
-  { key: "USER_INACTIVITY", label: "Inactivité", icon: "schedule", color: "text-gray-500" },
+const TABS: { key: TabKey; label: string; icon: LucideIcon; color: string }[] = [
+  { key: "ABANDONED_CART", label: "Panier abandonné", icon: ShoppingCart, color: "text-orange-500" },
+  { key: "PAYMENT_FAILED", label: "Échec de paiement", icon: CreditCard, color: "text-red-500" },
+  { key: "PURCHASE", label: "Après achat", icon: ShoppingBag, color: "text-green-600" },
+  { key: "ENROLLMENT", label: "Inscription", icon: GraduationCap, color: "text-blue-600" },
+  { key: "USER_INACTIVITY", label: "Inactivité", icon: Clock, color: "text-gray-500" },
 ];
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
@@ -133,7 +149,7 @@ export default function SequenceEditorClient({ id }: { id: string }) {
     return (
       <div className="p-12 text-center">
         <p className="text-sm text-gray-600">Séquence introuvable.</p>
-        <Link href="/vendeur/marketing/sequences" className="text-[#3F41C2] text-sm mt-3 inline-block">
+        <Link href="/vendeur/marketing/sequences" className="text-[#006e2f] text-sm mt-3 inline-block">
           ← Retour
         </Link>
       </div>
@@ -145,10 +161,10 @@ export default function SequenceEditorClient({ id }: { id: string }) {
       <div className="max-w-5xl mx-auto px-6 py-8 pb-32">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link href="/vendeur/marketing/sequences" className="hover:text-[#3F41C2]">
+          <Link href="/vendeur/marketing/sequences" className="hover:text-[#006e2f]">
             Séquences email
           </Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight size={14} />
           <span className="text-gray-900 font-medium">{sequence.name}</span>
         </div>
 
@@ -169,16 +185,16 @@ export default function SequenceEditorClient({ id }: { id: string }) {
                 <select
                   value={channel}
                   onChange={(e) => setChannel(e.target.value as "EMAIL" | "SMS")}
-                  className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 font-medium focus:outline-none focus:border-[#3F41C2] focus:ring-2 focus:ring-[#3F41C2]/10"
+                  className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 font-medium focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10"
                 >
-                  <option value="EMAIL">✉️ Mail Default</option>
-                  <option value="SMS" disabled>📱 SMS (bientôt)</option>
+                  <option value="EMAIL">Mail Default</option>
+                  <option value="SMS" disabled>SMS (bientôt)</option>
                 </select>
                 <Link
                   href="/vendeur/marketing/pixels"
-                  className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-600 hover:border-[#3F41C2] hover:text-[#3F41C2] flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-600 hover:border-[#006e2f] hover:text-[#006e2f] flex items-center gap-1.5 transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[16px]">settings</span>
+                  <Settings size={16} />
                   Intégrations
                 </Link>
               </div>
@@ -195,6 +211,7 @@ export default function SequenceEditorClient({ id }: { id: string }) {
           <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-1 px-1">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.key;
+              const TabIcon = tab.icon;
               return (
                 <button
                   key={tab.key}
@@ -206,9 +223,7 @@ export default function SequenceEditorClient({ id }: { id: string }) {
                   }`}
                   style={isActive ? { background: BRAND, boxShadow: `0 8px 24px ${BRAND}25` } : {}}
                 >
-                  <span className={`material-symbols-outlined text-[18px] ${isActive ? "text-white" : tab.color}`}>
-                    {tab.icon}
-                  </span>
+                  <TabIcon size={18} className={isActive ? "text-white" : tab.color} />
                   {tab.label}
                 </button>
               );
@@ -228,7 +243,7 @@ export default function SequenceEditorClient({ id }: { id: string }) {
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Ex: Vous avez oublié quelque chose {{clientName}}…"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#3F41C2] focus:ring-2 focus:ring-[#3F41C2]/10 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
             />
           </div>
 
@@ -247,7 +262,7 @@ export default function SequenceEditorClient({ id }: { id: string }) {
             />
 
             <div className="flex items-center gap-2 mt-2 text-[11px] text-gray-500">
-              <span className="material-symbols-outlined text-[14px]">info</span>
+              <Info size={14} />
               Utilisez les variables ci-dessous pour personnaliser chaque email automatiquement.
             </div>
           </div>
@@ -257,16 +272,11 @@ export default function SequenceEditorClient({ id }: { id: string }) {
         <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-6">
           <div className="mb-4">
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-              <span
-                className="material-symbols-outlined text-[18px]"
-                style={{ color: BRAND }}
-              >
-                data_object
-              </span>
+              <Braces size={18} style={{ color: BRAND }} />
               Variables disponibles
             </h3>
             <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
-              <span className="material-symbols-outlined text-[13px]">drag_pan</span>
+              <Move size={13} />
               Glissez-déposez une variable dans un champ ou cliquez pour l&apos;insérer à la position du curseur.
             </p>
           </div>
@@ -291,7 +301,7 @@ export default function SequenceEditorClient({ id }: { id: string }) {
                 }}
                 title={`${v.tag} — Glissez-déposez ou cliquez pour insérer`}
               >
-                <span className="material-symbols-outlined text-[14px] opacity-60">drag_indicator</span>
+                <GripVertical size={14} className="opacity-60" />
                 {v.label}
               </button>
             ))}
@@ -320,12 +330,12 @@ export default function SequenceEditorClient({ id }: { id: string }) {
             >
               {saving ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <Loader2 size={18} className="animate-spin" />
                   Sauvegarde…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">save</span>
+                  <Save size={18} />
                   Enregistrer
                 </>
               )}

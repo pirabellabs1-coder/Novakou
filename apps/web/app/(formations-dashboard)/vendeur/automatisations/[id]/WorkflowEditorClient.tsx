@@ -2,6 +2,31 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  ChevronRight,
+  ChevronDown,
+  Package,
+  X,
+  Search,
+  Check,
+  Zap,
+  Clock,
+  Trash2,
+  Plus,
+  Loader2,
+  Save,
+  ShoppingCart,
+  CreditCard,
+  GraduationCap,
+  BadgeCheck,
+  CheckCircle2,
+  UserPlus,
+  Tag,
+  Mail,
+  Split,
+  Webhook,
+  type LucideIcon,
+} from "lucide-react";
 import { useToastStore } from "@/store/toast";
 
 import type {
@@ -45,23 +70,23 @@ interface Workflow {
 }
 
 // ─── Trigger options ──────────────────────────────────────────────────────────
-const TRIGGER_OPTIONS = [
-  { value: "PURCHASE", label: "Vente effectuée", icon: "shopping_cart" },
-  { value: "CART_ABANDONED", label: "Panier abandonné", icon: "remove_shopping_cart" },
-  { value: "PAYMENT_FAILED", label: "Paiement échoué", icon: "credit_card_off" },
-  { value: "ENROLLMENT", label: "Inscription formation", icon: "school" },
-  { value: "COURSE_COMPLETED", label: "Cours terminé", icon: "verified" },
-  { value: "LESSON_COMPLETED", label: "Leçon terminée", icon: "check_circle" },
-  { value: "USER_SIGNUP", label: "Nouvelle inscription", icon: "person_add" },
-  { value: "INACTIVITY", label: "Inactivité", icon: "schedule" },
-  { value: "TAG_ADDED", label: "Tag ajouté", icon: "label" },
+const TRIGGER_OPTIONS: { value: string; label: string; icon: LucideIcon }[] = [
+  { value: "PURCHASE", label: "Vente effectuée", icon: ShoppingCart },
+  { value: "CART_ABANDONED", label: "Panier abandonné", icon: ShoppingCart },
+  { value: "PAYMENT_FAILED", label: "Paiement échoué", icon: CreditCard },
+  { value: "ENROLLMENT", label: "Inscription formation", icon: GraduationCap },
+  { value: "COURSE_COMPLETED", label: "Cours terminé", icon: BadgeCheck },
+  { value: "LESSON_COMPLETED", label: "Leçon terminée", icon: CheckCircle2 },
+  { value: "USER_SIGNUP", label: "Nouvelle inscription", icon: UserPlus },
+  { value: "INACTIVITY", label: "Inactivité", icon: Clock },
+  { value: "TAG_ADDED", label: "Tag ajouté", icon: Tag },
 ];
 
 // ─── Action picker options ────────────────────────────────────────────────────
 const ACTION_OPTIONS: Array<{
   value: ActionType;
   label: string;
-  icon: string;
+  icon: LucideIcon;
   color: string;
   bg: string;
   description: string;
@@ -69,7 +94,7 @@ const ACTION_OPTIONS: Array<{
   {
     value: "SEND_EMAIL",
     label: "Envoyer un email",
-    icon: "mail",
+    icon: Mail,
     color: "text-[#006e2f]",
     bg: "bg-[#006e2f]/10",
     description: "Email transactionnel avec corps HTML personnalisé",
@@ -77,23 +102,23 @@ const ACTION_OPTIONS: Array<{
   {
     value: "ADD_TAG",
     label: "Ajouter un tag",
-    icon: "label",
-    color: "text-violet-600",
-    bg: "bg-violet-100",
+    icon: Tag,
+    color: "text-[#006e2f]",
+    bg: "bg-[#006e2f]/10",
     description: "Segmenter le client selon son comportement",
   },
   {
     value: "ENROLL_SEQUENCE",
     label: "Démarrer une séquence",
-    icon: "alt_route",
-    color: "text-pink-600",
-    bg: "bg-pink-100",
+    icon: Split,
+    color: "text-emerald-600",
+    bg: "bg-emerald-100",
     description: "Inscrire le client à une séquence email",
   },
   {
     value: "WEBHOOK",
     label: "Déclencher un webhook",
-    icon: "webhook",
+    icon: Webhook,
     color: "text-amber-600",
     bg: "bg-amber-100",
     description: "Envoyer les données vers n8n, Make, Zapier…",
@@ -101,7 +126,7 @@ const ACTION_OPTIONS: Array<{
   {
     value: "WAIT",
     label: "Attendre un délai",
-    icon: "schedule",
+    icon: Clock,
     color: "text-gray-600",
     bg: "bg-gray-100",
     description: "Pause avant la prochaine action",
@@ -165,7 +190,7 @@ function ProductMultiSelect({
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200 bg-white text-left hover:border-[#006e2f] transition-colors"
       >
-        <span className="material-symbols-outlined text-[18px] text-gray-400">inventory_2</span>
+        <Package size={18} className="text-gray-400" />
         <span className="flex-1 text-sm text-gray-900 truncate">
           {selectedItems.length === 0
             ? "Tous mes produits (choisir pour filtrer)"
@@ -173,9 +198,7 @@ function ProductMultiSelect({
               ? selectedItems[0].title
               : `${selectedItems.length} produits sélectionnés`}
         </span>
-        <span className={`material-symbols-outlined text-[18px] text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}>
-          expand_more
-        </span>
+        <ChevronDown size={18} className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {selectedItems.length > 0 && (
@@ -195,7 +218,7 @@ function ProductMultiSelect({
                 className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-[#006e2f]/20"
                 aria-label={`Retirer ${p.title}`}
               >
-                <span className="material-symbols-outlined text-[12px]">close</span>
+                <X size={12} />
               </button>
             </span>
           ))}
@@ -213,9 +236,10 @@ function ProductMultiSelect({
         <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-xl border border-gray-200 shadow-lg z-20 overflow-hidden">
           <div className="p-2 border-b border-gray-100">
             <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[16px] text-gray-400">
-                search
-              </span>
+              <Search
+                size={16}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+              />
               <input
                 type="text"
                 value={query}
@@ -246,12 +270,10 @@ function ProductMultiSelect({
                     <span
                       className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${checked ? "bg-[#006e2f] border-[#006e2f]" : "border-gray-300"}`}
                     >
-                      {checked && (
-                        <span className="material-symbols-outlined text-white text-[12px]">check</span>
-                      )}
+                      {checked && <Check size={12} className="text-white" />}
                     </span>
                     <span
-                      className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${p.kind === "formation" ? "bg-blue-100 text-blue-700" : "bg-purple-100 text-purple-700"}`}
+                      className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${p.kind === "formation" ? "bg-blue-100 text-blue-700" : "bg-emerald-100 text-emerald-700"}`}
                     >
                       {p.kind === "formation" ? "Formation" : "Produit"}
                     </span>
@@ -469,7 +491,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
           <Link href="/vendeur/automatisations" className="hover:text-[#006e2f]">
             Automatisations
           </Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight size={14} />
           <span className="text-gray-900 font-medium">{workflow.name}</span>
         </div>
 
@@ -523,7 +545,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
                   className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white"
                   style={{ background: BRAND }}
                 >
-                  <span className="material-symbols-outlined text-[20px]">bolt</span>
+                  <Zap size={20} />
                 </div>
                 <div className="flex-1">
                   <p
@@ -581,7 +603,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 w-full max-w-md">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gray-100 text-gray-600 flex-shrink-0">
-                      <span className="material-symbols-outlined text-[20px]">schedule</span>
+                      <Clock size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
@@ -602,7 +624,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
                       onClick={() => deleteAction(idx)}
                       className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500"
                     >
-                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
@@ -634,7 +656,7 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
               style={{ background: BRAND }}
               title="Ajouter une action"
             >
-              <span className="material-symbols-outlined text-[22px]">add</span>
+              <Plus size={22} />
             </button>
             <p className="text-xs text-gray-400 mt-2">Ajouter une action</p>
           </div>
@@ -666,14 +688,12 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
             >
               {saving ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">
-                    progress_activity
-                  </span>
+                  <Loader2 size={18} className="animate-spin" />
                   Sauvegarde…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">save</span>
+                  <Save size={18} />
                   Enregistrer
                 </>
               )}
@@ -698,30 +718,31 @@ export default function WorkflowEditorClient({ id }: { id: string }) {
                 onClick={() => setShowActionPicker(false)}
                 className="text-gray-400 hover:text-gray-900"
               >
-                <span className="material-symbols-outlined">close</span>
+                <X size={24} />
               </button>
             </div>
             <div className="space-y-2">
-              {ACTION_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => openAddAction(opt.value)}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-[#006e2f] hover:bg-[#006e2f]/5 text-left transition-all"
-                >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${opt.bg} ${opt.color}`}
+              {ACTION_OPTIONS.map((opt) => {
+                const OptIcon = opt.icon;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => openAddAction(opt.value)}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-white hover:border-[#006e2f] hover:bg-[#006e2f]/5 text-left transition-all"
                   >
-                    <span className="material-symbols-outlined text-[20px]">{opt.icon}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{opt.label}</p>
-                    <p className="text-[11px] text-gray-500">{opt.description}</p>
-                  </div>
-                  <span className="material-symbols-outlined text-[18px] text-gray-400">
-                    chevron_right
-                  </span>
-                </button>
-              ))}
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${opt.bg} ${opt.color}`}
+                    >
+                      <OptIcon size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{opt.label}</p>
+                      <p className="text-[11px] text-gray-500">{opt.description}</p>
+                    </div>
+                    <ChevronRight size={18} className="text-gray-400" />
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
