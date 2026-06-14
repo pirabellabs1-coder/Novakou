@@ -1,4 +1,13 @@
 import type { Metadata } from "next";
+import {
+  BadgeCheck,
+  Globe,
+  GraduationCap,
+  Rocket,
+  ThumbsUp,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -7,17 +16,17 @@ export const metadata: Metadata = {
 };
 
 const VALUES = [
-  { icon: "rocket_launch", title: "Concret avant tout", desc: "Pas de théorie déconnectée. Chaque formation, produit, outil est pensé pour produire des résultats mesurables." },
+  { icon: Rocket, title: "Concret avant tout", desc: "Pas de théorie déconnectée. Chaque formation, produit, outil est pensé pour produire des résultats mesurables." },
   { icon: "diversity_3", title: "Communauté d'abord", desc: "Une plateforme bâtie POUR les créateurs et les apprenants. Vos retours façonnent chaque évolution produit." },
-  { icon: "verified", title: "Qualité sans compromis", desc: "Curation manuelle des formateurs, modération active, support réactif. Pas de spam, pas de scams." },
-  { icon: "trending_up", title: "Croissance partagée", desc: "Quand vous gagnez, on gagne. Notre commission n'augmente que si vos ventes augmentent — alignement total." },
+  { icon: BadgeCheck, title: "Qualité sans compromis", desc: "Curation manuelle des formateurs, modération active, support réactif. Pas de spam, pas de scams." },
+  { icon: TrendingUp, title: "Croissance partagée", desc: "Quand vous gagnez, on gagne. Notre commission n'augmente que si vos ventes augmentent — alignement total." },
 ];
 
 const STATS = [
-  { value: "12 000", suffix: "+", label: "Apprenants accompagnés", icon: "groups" },
-  { value: "850", suffix: "+", label: "Créateurs actifs", icon: "school" },
-  { value: "94", suffix: "%", label: "Taux de satisfaction", icon: "thumb_up" },
-  { value: "17", suffix: "", label: "Pays africains couverts", icon: "public" },
+  { value: "12 000", suffix: "+", label: "Apprenants accompagnés", icon: Users },
+  { value: "850", suffix: "+", label: "Créateurs actifs", icon: GraduationCap },
+  { value: "94", suffix: "%", label: "Taux de satisfaction", icon: ThumbsUp },
+  { value: "17", suffix: "", label: "Pays africains couverts", icon: Globe },
 ];
 
 const TEAM = [
@@ -73,7 +82,7 @@ export default function AProposPage() {
               {STATS.map((s) => (
                 <div key={s.label}>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="material-symbols-outlined text-[20px] text-[#006e2f]">{s.icon}</span>
+                    {(()=>{const _I=s.icon;return _I?<_I size={20} className="text-[#006e2f]" />:null;})()}
                   </div>
                   <p className="text-3xl font-extrabold text-[#191c1e]">{s.value}<span className="text-[#006e2f]">{s.suffix}</span></p>
                   <p className="text-xs text-[#5c647a] mt-1 font-semibold">{s.label}</p>
@@ -95,7 +104,7 @@ export default function AProposPage() {
             {VALUES.map((v) => (
               <div key={v.title} className="bg-white border border-slate-200 rounded-2xl p-7 hover:border-[#006e2f]/30 hover:shadow-lg transition-all">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: "linear-gradient(135deg, #006e2f15, #22c55e15)" }}>
-                  <span className="material-symbols-outlined text-[24px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{v.icon}</span>
+                  {(()=>{const _I=v.icon;return _I?<_I size={24} className="text-[#006e2f]" />:null;})()}
                 </div>
                 <h3 className="text-lg font-extrabold text-[#191c1e] mb-2">{v.title}</h3>
                 <p className="text-[#5c647a] text-sm leading-relaxed">{v.desc}</p>

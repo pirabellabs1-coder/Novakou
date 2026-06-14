@@ -4,8 +4,14 @@ import Link from "next/link";
 import {
   ChevronDown,
   Info,
+  Percent,
   Rocket,
+  Share2,
+  Timer,
   Trophy,
+  UserPlus,
+  Users,
+  Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +36,7 @@ const COOKIE_DAYS = 30;
 
 const steps = [
   {
-    icon: "share",
+    icon: Share2,
     step: "01",
     title: "Partagez votre lien",
     desc: "Copiez votre lien d'affiliation unique et partagez-le sur vos réseaux sociaux, blog, newsletter ou auprès de votre communauté.",
@@ -38,7 +44,7 @@ const steps = [
     bg: "#e8f5e9",
   },
   {
-    icon: "person_add",
+    icon: UserPlus,
     step: "02",
     title: "Quelqu'un s'inscrit",
     desc: `Un visiteur clique sur votre lien et s'inscrit sur Novakou Formations. Le cookie est valable ${COOKIE_DAYS} jours après son premier clic.`,
@@ -46,7 +52,7 @@ const steps = [
     bg: "#e3f2fd",
   },
   {
-    icon: "emoji_events",
+    icon: Trophy,
     step: "03",
     title: `Vous gagnez ${COMMISSION_PCT}%`,
     desc: `Dès qu'un achat est réalisé par quelqu'un que vous avez référé, vous recevez automatiquement ${COMMISSION_PCT}% du montant HT de la vente.`,
@@ -99,14 +105,14 @@ export default function AffiliationPage() {
 
   const stats = [
     {
-      icon: "groups",
+      icon: Users,
       label: "Affiliés actifs",
       value: publicStats ? (publicStats.totalUsers > 0 ? String(publicStats.totalUsers) : "Soyez le premier") : "…",
       color: "#006e2f",
       bg: "#e8f5e9",
     },
     {
-      icon: "payments",
+      icon: Wallet,
       label: "Commissions versées",
       value: publicStats && publicStats.totalSales > 0
         ? `${formatFCFA(publicStats.totalSales * 10000)} FCFA`
@@ -115,8 +121,8 @@ export default function AffiliationPage() {
       color: "#1565c0",
       bg: "#e3f2fd",
     },
-    { icon: "percent", label: "Commission", value: `${COMMISSION_PCT}%`, sub: "sur chaque vente", color: "#6a1b9a", bg: "#f3e5f5" },
-    { icon: "timer", label: "Durée cookie", value: `${COOKIE_DAYS} jours`, sub: "par clic", color: "#e65100", bg: "#fff3e0" },
+    { icon: Percent, label: "Commission", value: `${COMMISSION_PCT}%`, sub: "sur chaque vente", color: "#6a1b9a", bg: "#f3e5f5" },
+    { icon: Timer, label: "Durée cookie", value: `${COOKIE_DAYS} jours`, sub: "par clic", color: "#e65100", bg: "#fff3e0" },
   ];
 
   return (
@@ -172,9 +178,7 @@ export default function AffiliationPage() {
                 className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: stat.bg }}
               >
-                <span className="material-symbols-outlined text-[20px]" style={{ color: stat.color }}>
-                  {stat.icon}
-                </span>
+                {(()=>{const _I=stat.icon;return _I?<_I size={20} />:null;})()}
               </div>
               <div className="min-w-0">
                 <p className="font-bold text-[#191c1e] text-sm leading-tight">{stat.value}</p>
@@ -210,9 +214,7 @@ export default function AffiliationPage() {
                   className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5"
                   style={{ background: step.bg }}
                 >
-                  <span className="material-symbols-outlined text-[28px]" style={{ color: step.color }}>
-                    {step.icon}
-                  </span>
+                  {(()=>{const _I=step.icon;return _I?<_I size={28} />:null;})()}
                 </div>
                 <h3 className="font-bold text-[#191c1e] text-base mb-2">{step.title}</h3>
                 <p className="text-sm text-[#5c647a] leading-relaxed">{step.desc}</p>

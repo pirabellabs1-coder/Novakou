@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import {
+  BarChart3,
   CheckCircle2,
+  Lock,
+  Megaphone,
+  SlidersHorizontal,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,7 +16,7 @@ export const metadata: Metadata = {
 const COOKIE_CATEGORIES = [
   {
     key: "essential",
-    icon: "lock",
+    icon: Lock,
     color: "#006e2f",
     title: "Strictement nécessaires",
     required: true,
@@ -25,7 +29,7 @@ const COOKIE_CATEGORIES = [
   },
   {
     key: "preferences",
-    icon: "tune",
+    icon: SlidersHorizontal,
     color: "#2563eb",
     title: "Préférences",
     required: false,
@@ -37,7 +41,7 @@ const COOKIE_CATEGORIES = [
   },
   {
     key: "analytics",
-    icon: "analytics",
+    icon: BarChart3,
     color: "#f59e0b",
     title: "Analytiques",
     required: false,
@@ -48,7 +52,7 @@ const COOKIE_CATEGORIES = [
   },
   {
     key: "marketing",
-    icon: "campaign",
+    icon: Megaphone,
     color: "#dc2626",
     title: "Marketing & publicité",
     required: false,
@@ -108,7 +112,7 @@ export default function CookiesPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
                     <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${cat.color}15` }}>
-                      <span className="material-symbols-outlined text-[22px]" style={{ color: cat.color, fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+                      {(()=>{const _I=cat.icon;return _I?<_I size={22} />:null;})()}
                     </div>
                     <div>
                       <h2 className="text-lg font-extrabold text-[#191c1e]">{cat.title}</h2>

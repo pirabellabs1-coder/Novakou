@@ -4,21 +4,28 @@ import Link from "next/link";
 import {
   AlertTriangle,
   BookOpen,
+  CreditCard,
+  GraduationCap,
+  Headset,
+  HelpCircle,
   Mail,
   MailCheck,
   ShieldCheck,
+  Store,
+  User,
+  Wrench,
 } from "lucide-react";
 import { useState } from "react";
 
 const CATEGORIES = [
-  { value: "paiement", label: "Problème de paiement", icon: "payment" },
-  { value: "technique", label: "Bug ou problème technique", icon: "build" },
-  { value: "compte", label: "Compte et connexion", icon: "person" },
-  { value: "vendeur", label: "Vendre / boutique", icon: "storefront" },
-  { value: "mentor", label: "Mentorat / séances", icon: "support_agent" },
-  { value: "apprenant", label: "Achat / formation", icon: "school" },
-  { value: "rgpd", label: "Vie privée & données", icon: "shield" },
-  { value: "autre", label: "Autre", icon: "help" },
+  { value: "paiement", label: "Problème de paiement", icon: CreditCard },
+  { value: "technique", label: "Bug ou problème technique", icon: Wrench },
+  { value: "compte", label: "Compte et connexion", icon: User },
+  { value: "vendeur", label: "Vendre / boutique", icon: Store },
+  { value: "mentor", label: "Mentorat / séances", icon: Headset },
+  { value: "apprenant", label: "Achat / formation", icon: GraduationCap },
+  { value: "rgpd", label: "Vie privée & données", icon: ShieldCheck },
+  { value: "autre", label: "Autre", icon: HelpCircle },
 ];
 
 export default function ContactPage() {
@@ -191,7 +198,7 @@ export default function ContactPage() {
                         : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
                     }`}
                   >
-                    <span className="material-symbols-outlined text-[20px]">{c.icon}</span>
+                    {(()=>{const _I=c.icon;return _I?<_I size={20} />:null;})()}
                     <span className="text-[10px] font-bold leading-tight">{c.label}</span>
                   </button>
                 ))}

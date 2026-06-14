@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
 import {
+  Bot,
+  CreditCard,
+  Database,
+  FileImage,
   Handshake,
+  Headset,
+  Mail,
+  Smartphone,
+  TrendingUp,
+  Users,
+  Waves,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -10,25 +20,25 @@ export const metadata: Metadata = {
 };
 
 const PAYMENT_PARTNERS = [
-  { name: "Orange Money", desc: "Mobile Money disponible en Afrique francophone (CI, SN, CM, BF...)", icon: "smartphone", color: "#ff6b00" },
-  { name: "Wave", desc: "Paiements et transferts instantanés au Sénégal et Côte d'Ivoire", icon: "waves", color: "#1dafff" },
-  { name: "MTN MoMo", desc: "Mobile Money sur les marchés MTN d'Afrique de l'Ouest et centrale", icon: "smartphone", color: "#ffcb05" },
-  { name: "Moneroo", desc: "Agrégateur multi-paiements panafricain (cartes, Mobile Money, virements)", icon: "credit_card", color: "#7c3aed" },
-  { name: "Stripe", desc: "Paiements internationaux par carte (Visa, Mastercard) pour la diaspora", icon: "credit_card", color: "#635bff" },
+  { name: "Orange Money", desc: "Mobile Money disponible en Afrique francophone (CI, SN, CM, BF...)", icon: Smartphone, color: "#ff6b00" },
+  { name: "Wave", desc: "Paiements et transferts instantanés au Sénégal et Côte d'Ivoire", icon: Waves, color: "#1dafff" },
+  { name: "MTN MoMo", desc: "Mobile Money sur les marchés MTN d'Afrique de l'Ouest et centrale", icon: Smartphone, color: "#ffcb05" },
+  { name: "Moneroo", desc: "Agrégateur multi-paiements panafricain (cartes, Mobile Money, virements)", icon: CreditCard, color: "#7c3aed" },
+  { name: "Stripe", desc: "Paiements internationaux par carte (Visa, Mastercard) pour la diaspora", icon: CreditCard, color: "#635bff" },
 ];
 
 const TECH_PARTNERS = [
-  { name: "Supabase", desc: "Base de données PostgreSQL + authentification + stockage", icon: "storage", color: "#3ecf8e" },
-  { name: "Resend", desc: "Emails transactionnels avec design React", icon: "mail", color: "#000000" },
-  { name: "Cloudinary", desc: "Hébergement et optimisation média (images, vidéos)", icon: "image", color: "#3448c5" },
-  { name: "OpenAI", desc: "Intelligence artificielle pour la modération et l'aide à la création", icon: "smart_toy", color: "#10a37f" },
+  { name: "Supabase", desc: "Base de données PostgreSQL + authentification + stockage", icon: Database, color: "#3ecf8e" },
+  { name: "Resend", desc: "Emails transactionnels avec design React", icon: Mail, color: "#000000" },
+  { name: "Cloudinary", desc: "Hébergement et optimisation média (images, vidéos)", icon: FileImage, color: "#3448c5" },
+  { name: "OpenAI", desc: "Intelligence artificielle pour la modération et l'aide à la création", icon: Bot, color: "#10a37f" },
 ];
 
 const PROGRAM_BENEFITS = [
-  { icon: "trending_up", title: "Visibilité", desc: "Votre logo sur cette page + dans nos campagnes marketing." },
-  { icon: "groups", title: "Audience qualifiée", desc: "Accès direct à une communauté de créateurs et apprenants engagés." },
-  { icon: "handshake", title: "Co-création", desc: "Participation aux roadmaps produit et programmes événementiels." },
-  { icon: "support_agent", title: "Support dédié", desc: "Un point de contact unique pour intégration technique et marketing." },
+  { icon: TrendingUp, title: "Visibilité", desc: "Votre logo sur cette page + dans nos campagnes marketing." },
+  { icon: Users, title: "Audience qualifiée", desc: "Accès direct à une communauté de créateurs et apprenants engagés." },
+  { icon: Handshake, title: "Co-création", desc: "Participation aux roadmaps produit et programmes événementiels." },
+  { icon: Headset, title: "Support dédié", desc: "Un point de contact unique pour intégration technique et marketing." },
 ];
 
 export default function PartenairesPage() {
@@ -62,7 +72,7 @@ export default function PartenairesPage() {
             {PAYMENT_PARTNERS.map((p) => (
               <div key={p.name} className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${p.color}15` }}>
-                  <span className="material-symbols-outlined text-[24px]" style={{ color: p.color, fontVariationSettings: "'FILL' 1" }}>{p.icon}</span>
+                  {(()=>{const _I=p.icon;return _I?<_I size={24} />:null;})()}
                 </div>
                 <h3 className="text-base font-extrabold text-[#191c1e]">{p.name}</h3>
                 <p className="text-sm text-[#5c647a] mt-2 leading-relaxed">{p.desc}</p>
@@ -84,7 +94,7 @@ export default function PartenairesPage() {
             {TECH_PARTNERS.map((p) => (
               <div key={p.name} className="bg-white border border-slate-200 rounded-2xl p-6 flex items-start gap-4 hover:shadow-lg transition-shadow">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${p.color}15` }}>
-                  <span className="material-symbols-outlined text-[24px]" style={{ color: p.color }}>{p.icon}</span>
+                  {(()=>{const _I=p.icon;return _I?<_I size={24} />:null;})()}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-extrabold text-[#191c1e]">{p.name}</h3>
@@ -112,7 +122,7 @@ export default function PartenairesPage() {
             {PROGRAM_BENEFITS.map((b) => (
               <div key={b.title} className="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
                 <div className="w-12 h-12 rounded-xl bg-[#22c55e]/15 flex items-center justify-center mb-4">
-                  <span className="material-symbols-outlined text-[24px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>{b.icon}</span>
+                  {(()=>{const _I=b.icon;return _I?<_I size={24} className="text-[#22c55e]" />:null;})()}
                 </div>
                 <h3 className="text-base font-extrabold">{b.title}</h3>
                 <p className="text-sm text-slate-300 mt-2 leading-relaxed">{b.desc}</p>

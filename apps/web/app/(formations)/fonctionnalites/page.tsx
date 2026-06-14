@@ -3,14 +3,57 @@
 import Image from "next/image";
 import {
   ArrowRight,
+  Award,
+  BarChart3,
+  BellRing,
+  Bot,
+  Brain,
+  Captions,
   CheckCircle2,
   ChevronDown,
+  CreditCard,
+  Database,
+  Gauge,
+  GitCompare,
+  Globe,
+  GraduationCap,
   GripVertical,
+  HelpCircle,
+  Languages,
+  LayoutDashboard,
+  Link2,
+  Lock,
+  Mail,
+  Megaphone,
+  MonitorSmartphone,
   Package,
+  Palette,
+  Pencil,
+  Percent,
   Play,
+  PlayCircle,
+  Receipt,
+  Repeat,
+  Search,
   Send,
   Settings,
+  ShieldCheck,
+  ShoppingCart,
+  Smartphone,
+  Sparkles,
+  Star,
+  Store,
+  Tag,
+  Timer,
+  TrendingUp,
+  Tv,
+  UploadCloud,
+  UserPlus,
+  Users,
+  Wallet,
+  Workflow,
   XCircle,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -36,18 +79,18 @@ const SH: React.CSSProperties = { ...S, fontWeight: 700, letterSpacing: "-0.04em
 const TABS = [
   {
     id: "boutique",
-    icon: "storefront",
+    icon: Store,
     label: "Boutique",
     color: C.primary,
     headline: "Votre boutique en ligne en 3 minutes",
     sub: "Publiez vos formations, ebooks, templates et coaching sur une vitrine professionnelle clé en main. Aucune connaissance technique requise — votre boutique est active dès que vous créez votre compte, avec votre branding, vos couleurs et votre domaine personnalisé.",
     features: [
-      { icon: "palette", title: "Design 100% personnalisable", desc: "Couleurs, logo, polices, bannière, palette de couleurs — tout reflète votre marque, pas la nôtre. Chaque créateur a une boutique unique qui renforce son image professionnelle auprès de ses clients." },
-      { icon: "devices", title: "100% responsive mobile", desc: "Expérience parfaite sur smartphone Android ou iPhone, tablette et desktop. Votre boutique est conçue pour le mobile dès le départ." },
-      { icon: "search", title: "SEO automatique intégré", desc: "Balises meta générées automatiquement, URLs propres et lisibles, sitemap dynamique soumis à Google, schema.org pour les produits. Votre boutique se positionne naturellement dans les résultats de recherche sans effort technique de votre part." },
-      { icon: "link", title: "Domaine personnalisé gratuit", desc: "Connectez votre propre nom de domaine (monsite.com) en quelques clics pour une image 100% professionnelle. Fini les URLs génériques — votre marque s'affiche partout." },
-      { icon: "category", title: "Catalogue organisé intelligemment", desc: "Catégories hiérarchisées, filtres avancés par prix, type, niveau, recherche interne en temps réel. Vos clients trouvent le bon produit en moins de 2 clics, ce qui augmente vos conversions." },
-      { icon: "star_rate", title: "Avis vérifiés authentiques", desc: "Collectez des avis certifiés uniquement de vrais acheteurs, répondez publiquement, signalez les abusifs. La preuve sociale est le levier #1 de conversion — Novakou l'intègre au cœur de votre boutique." },
+      { icon: Palette, title: "Design 100% personnalisable", desc: "Couleurs, logo, polices, bannière, palette de couleurs — tout reflète votre marque, pas la nôtre. Chaque créateur a une boutique unique qui renforce son image professionnelle auprès de ses clients." },
+      { icon: MonitorSmartphone, title: "100% responsive mobile", desc: "Expérience parfaite sur smartphone Android ou iPhone, tablette et desktop. Votre boutique est conçue pour le mobile dès le départ." },
+      { icon: Search, title: "SEO automatique intégré", desc: "Balises meta générées automatiquement, URLs propres et lisibles, sitemap dynamique soumis à Google, schema.org pour les produits. Votre boutique se positionne naturellement dans les résultats de recherche sans effort technique de votre part." },
+      { icon: Link2, title: "Domaine personnalisé gratuit", desc: "Connectez votre propre nom de domaine (monsite.com) en quelques clics pour une image 100% professionnelle. Fini les URLs génériques — votre marque s'affiche partout." },
+      { icon: Tag, title: "Catalogue organisé intelligemment", desc: "Catégories hiérarchisées, filtres avancés par prix, type, niveau, recherche interne en temps réel. Vos clients trouvent le bon produit en moins de 2 clics, ce qui augmente vos conversions." },
+      { icon: Star, title: "Avis vérifiés authentiques", desc: "Collectez des avis certifiés uniquement de vrais acheteurs, répondez publiquement, signalez les abusifs. La preuve sociale est le levier #1 de conversion — Novakou l'intègre au cœur de votre boutique." },
     ],
     mockup: {
       title: "Aperçu de boutique",
@@ -61,18 +104,18 @@ const TABS = [
   },
   {
     id: "tunnels",
-    icon: "account_tree",
+    icon: Workflow,
     label: "Tunnels de vente",
     color: "#7c3aed",
     headline: "Des tunnels qui convertissent à chaque clic",
     sub: "Builder visuel drag-and-drop avec 30+ blocs prêts à l'emploi, génération automatique par IA et templates optimisés pour le marché africain. Construisez des pages de vente professionnelles qui guident chaque visiteur vers l'achat, sans coder une seule ligne.",
     features: [
-      { icon: "drag_indicator", title: "Éditeur drag-and-drop fluide", desc: "Glissez, déposez, réorganisez chaque bloc en temps réel. Hero, témoignages, compteur d'urgence, FAQ, bouton de paiement — tout se configure visuellement. Le résultat est professionnel, que vous soyez débutant ou expert." },
-      { icon: "auto_awesome", title: "Génération IA complète en 30 secondes", desc: "Décrivez votre produit en 2 phrases, l'IA génère un tunnel complet avec titre accrocheur, description de vente, sections structurées et appels à l'action optimisés. Basé sur des données de conversion du marché africain." },
-      { icon: "timer", title: "Compteurs d'urgence par visiteur", desc: "Countdown unique par visiteur (pas partagé), alertes de rareté, offres limitées dans le temps avec remise automatique. Ces leviers de conversion sont responsables de 25% à 40% des ventes sur les tunnels bien configurés." },
-      { icon: "trending_up", title: "Upsell & order bumps natifs", desc: "Augmentez votre panier moyen avec des offres complémentaires affichées au bon moment : order bump sur la page de paiement (+25% de panier moyen), upsell post-achat quand l'enthousiasme est au maximum." },
-      { icon: "compare", title: "Tableaux comparatifs intégrés", desc: "Montrez clairement pourquoi votre offre est le meilleur choix : comparaison avec la concurrence, différences entre vos forfaits, tableau des bénéfices inclus. Les acheteurs informés convertissent 3× plus." },
-      { icon: "analytics", title: "A/B testing automatisé", desc: "Testez deux versions de votre tunnel (titre, couleur du bouton, image, prix) sur des audiences divisées automatiquement. Novakou garde la version gagnante et pause l'autre. Aucune stat à lire, le système décide pour vous." },
+      { icon: GripVertical, title: "Éditeur drag-and-drop fluide", desc: "Glissez, déposez, réorganisez chaque bloc en temps réel. Hero, témoignages, compteur d'urgence, FAQ, bouton de paiement — tout se configure visuellement. Le résultat est professionnel, que vous soyez débutant ou expert." },
+      { icon: Sparkles, title: "Génération IA complète en 30 secondes", desc: "Décrivez votre produit en 2 phrases, l'IA génère un tunnel complet avec titre accrocheur, description de vente, sections structurées et appels à l'action optimisés. Basé sur des données de conversion du marché africain." },
+      { icon: Timer, title: "Compteurs d'urgence par visiteur", desc: "Countdown unique par visiteur (pas partagé), alertes de rareté, offres limitées dans le temps avec remise automatique. Ces leviers de conversion sont responsables de 25% à 40% des ventes sur les tunnels bien configurés." },
+      { icon: TrendingUp, title: "Upsell & order bumps natifs", desc: "Augmentez votre panier moyen avec des offres complémentaires affichées au bon moment : order bump sur la page de paiement (+25% de panier moyen), upsell post-achat quand l'enthousiasme est au maximum." },
+      { icon: GitCompare, title: "Tableaux comparatifs intégrés", desc: "Montrez clairement pourquoi votre offre est le meilleur choix : comparaison avec la concurrence, différences entre vos forfaits, tableau des bénéfices inclus. Les acheteurs informés convertissent 3× plus." },
+      { icon: BarChart3, title: "A/B testing automatisé", desc: "Testez deux versions de votre tunnel (titre, couleur du bouton, image, prix) sur des audiences divisées automatiquement. Novakou garde la version gagnante et pause l'autre. Aucune stat à lire, le système décide pour vous." },
     ],
     mockup: {
       title: "Éditeur de tunnel",
@@ -82,18 +125,18 @@ const TABS = [
   },
   {
     id: "paiements",
-    icon: "account_balance_wallet",
+    icon: Wallet,
     label: "Paiements",
     color: "#f59e0b",
     headline: "Encaissez partout en Afrique et dans le monde",
     sub: "Orange Money, Wave, MTN MoMo, Moov Money, cartes Visa / Mastercard, PayPal, virement SEPA. Vos clients paient avec le moyen qu'ils utilisent au quotidien — aucune friction, maximum de conversions.",
     features: [
-      { icon: "phone_android", title: "Mobile Money intégré nativement", desc: "Intégration native Orange Money, Wave, MTN MoMo, Moov, M-Pesa. Novakou est la seule plateforme à les proposer tous sans configuration supplémentaire." },
-      { icon: "credit_card", title: "Cartes & paiements internationaux", desc: "Visa, Mastercard, SEPA, PayPal, Apple Pay. Parfait pour la diaspora africaine en France, Belgique, Canada et les clients internationaux qui veulent suivre une formation de votre catalogue. Paiement en 3× disponible pour les formations > 30 000 FCFA." },
-      { icon: "lock", title: "Sécurité bancaire SSL/TLS", desc: "Chaque transaction est chiffrée avec les standards bancaires SSL/TLS. Conformité PCI DSS pour les paiements par carte. Vos clients voient le cadenas de sécurité et achètent en toute confiance — les taux d'abandon au checkout sont réduits de 40%." },
-      { icon: "receipt_long", title: "Factures PDF automatiques conformes", desc: "Chaque vente génère et envoie automatiquement une facture PDF professionnelle à l'acheteur : numéro de facture, TVA si applicable, détail de la commande, coordonnées du vendeur. Aucun travail administratif pour vous." },
-      { icon: "speed", title: "Retraits rapides sous 24-48h", desc: "Demandez un retrait depuis votre tableau de bord, recevez votre argent sous 24h sur Mobile Money ou sous 48h sur compte bancaire. Pas de seuil minimum abusif — retirez dès 5 000 FCFA." },
-      { icon: "public", title: "Afrique francophone + international", desc: "Couverture Mobile Money dans plusieurs pays africains : Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso et plus. L'international via Stripe." },
+      { icon: Smartphone, title: "Mobile Money intégré nativement", desc: "Intégration native Orange Money, Wave, MTN MoMo, Moov, M-Pesa. Novakou est la seule plateforme à les proposer tous sans configuration supplémentaire." },
+      { icon: CreditCard, title: "Cartes & paiements internationaux", desc: "Visa, Mastercard, SEPA, PayPal, Apple Pay. Parfait pour la diaspora africaine en France, Belgique, Canada et les clients internationaux qui veulent suivre une formation de votre catalogue. Paiement en 3× disponible pour les formations > 30 000 FCFA." },
+      { icon: Lock, title: "Sécurité bancaire SSL/TLS", desc: "Chaque transaction est chiffrée avec les standards bancaires SSL/TLS. Conformité PCI DSS pour les paiements par carte. Vos clients voient le cadenas de sécurité et achètent en toute confiance — les taux d'abandon au checkout sont réduits de 40%." },
+      { icon: Receipt, title: "Factures PDF automatiques conformes", desc: "Chaque vente génère et envoie automatiquement une facture PDF professionnelle à l'acheteur : numéro de facture, TVA si applicable, détail de la commande, coordonnées du vendeur. Aucun travail administratif pour vous." },
+      { icon: Gauge, title: "Retraits rapides sous 24-48h", desc: "Demandez un retrait depuis votre tableau de bord, recevez votre argent sous 24h sur Mobile Money ou sous 48h sur compte bancaire. Pas de seuil minimum abusif — retirez dès 5 000 FCFA." },
+      { icon: Globe, title: "Afrique francophone + international", desc: "Couverture Mobile Money dans plusieurs pays africains : Sénégal, Côte d'Ivoire, Cameroun, Togo, Bénin, Mali, Burkina Faso et plus. L'international via Stripe." },
     ],
     mockup: {
       title: "Passerelle de paiement",
@@ -108,18 +151,18 @@ const TABS = [
   },
   {
     id: "ia",
-    icon: "auto_awesome",
+    icon: Sparkles,
     label: "Assistant IA",
     color: "#ec4899",
     headline: "Un assistant IA qui comprend le marché africain",
     sub: "Générez des plans de cours complets, rédigez vos pages de vente, créez des quiz pertinents, structurez vos modules pédagogiques. Notre IA est entraînée sur des données du marché francophone africain — les textes générés résonnent avec votre audience, pas avec celle du marché américain.",
     features: [
-      { icon: "school", title: "Structure de formation en 10 secondes", desc: "Donnez votre sujet (ex : 'Marketing digital pour PME africaines'), l'IA génère un plan complet avec modules, leçons, objectifs pédagogiques et durée estimée. Économisez 3-4 heures de conception pédagogique dès votre premier cours." },
-      { icon: "edit_note", title: "Copywriting de vente qui convertit", desc: "Pages de vente, titres accrocheurs, descriptions de produits, séquences email, posts réseaux sociaux — des textes adaptés aux codes culturels et aux attentes de l'Afrique francophone." },
-      { icon: "quiz", title: "Quiz et évaluations automatiques", desc: "Générez des QCM pertinents, des exercices pratiques et des études de cas pour chaque module de votre formation en un clic." },
-      { icon: "smart_toy", title: "Chatbot support apprenant 24/7", desc: "Configurez un assistant IA qui répond aux questions de vos apprenants à toute heure avec le contexte de votre formation. Disponibilité permanente, même quand vous dormez." },
-      { icon: "translate", title: "Contexte culturel africain intégré", desc: "L'IA intègre des références, exemples et cas d'usage pertinents pour le marché africain : noms, devises, situations professionnelles locales, plateformes de paiement régionales. Vos textes générés sonnent locaux, pas traduits." },
-      { icon: "psychology", title: "Optimisation SEO assistée", desc: "Suggestions de titres optimisés pour Google, mots-clés à intégrer dans vos descriptions, meta descriptions générées automatiquement, score de lisibilité. Vos produits remontent dans les recherches Google sans effort technique." },
+      { icon: GraduationCap, title: "Structure de formation en 10 secondes", desc: "Donnez votre sujet (ex : 'Marketing digital pour PME africaines'), l'IA génère un plan complet avec modules, leçons, objectifs pédagogiques et durée estimée. Économisez 3-4 heures de conception pédagogique dès votre premier cours." },
+      { icon: Pencil, title: "Copywriting de vente qui convertit", desc: "Pages de vente, titres accrocheurs, descriptions de produits, séquences email, posts réseaux sociaux — des textes adaptés aux codes culturels et aux attentes de l'Afrique francophone." },
+      { icon: HelpCircle, title: "Quiz et évaluations automatiques", desc: "Générez des QCM pertinents, des exercices pratiques et des études de cas pour chaque module de votre formation en un clic." },
+      { icon: Bot, title: "Chatbot support apprenant 24/7", desc: "Configurez un assistant IA qui répond aux questions de vos apprenants à toute heure avec le contexte de votre formation. Disponibilité permanente, même quand vous dormez." },
+      { icon: Languages, title: "Contexte culturel africain intégré", desc: "L'IA intègre des références, exemples et cas d'usage pertinents pour le marché africain : noms, devises, situations professionnelles locales, plateformes de paiement régionales. Vos textes générés sonnent locaux, pas traduits." },
+      { icon: Brain, title: "Optimisation SEO assistée", desc: "Suggestions de titres optimisés pour Google, mots-clés à intégrer dans vos descriptions, meta descriptions générées automatiquement, score de lisibilité. Vos produits remontent dans les recherches Google sans effort technique." },
     ],
     mockup: {
       title: "Novakou AI",
@@ -132,18 +175,18 @@ const TABS = [
   },
   {
     id: "video",
-    icon: "play_circle",
+    icon: PlayCircle,
     label: "Hébergement vidéo",
     color: "#2563eb",
     headline: "Hébergez vos vidéos de formation en toute sécurité",
     sub: "Uploadez directement sur Novakou — pas besoin de YouTube, Vimeo ou d'un service tiers. Streaming adaptatif qui s'adapte à la connexion de vos apprenants (de la 3G à la fibre), protection anti-téléchargement avancée et lecteur entièrement brandé à votre couleurs.",
     features: [
-      { icon: "cloud_upload", title: "Upload direct sans limite", desc: "Glissez vos fichiers vidéo jusqu'à 10 Go par fichier, sans limite de durée totale. Traitement automatique en arrière-plan pendant que vous continuez à travailler. Formats acceptés : MP4, MOV, AVI, WebM." },
-      { icon: "shield", title: "Protection DRM anti-piratage", desc: "Vos vidéos ne peuvent pas être téléchargées, enregistrées ou partagées sans autorisation. Filigrane numérique avec le nom de l'acheteur, chiffrement des flux vidéo, désactivation du clic droit. Votre contenu reste votre propriété et votre source de revenus." },
-      { icon: "hd", title: "Streaming adaptatif 3G/4G/fibre", desc: "Le lecteur Novakou s'adapte automatiquement à la vitesse de connexion : qualité 240p en 3G, 720p en 4G, 1080p en fibre. Aucun buffering frustrant pour vos apprenants en Afrique, quelle que soit leur connexion." },
-      { icon: "bar_chart", title: "Analytics de visionnage détaillés", desc: "Voyez exactement où chaque apprenant en est dans chaque vidéo, quel pourcentage a regardé chaque module, où les gens s'arrêtent et re-regardent. Ces données vous permettent d'améliorer votre contenu là où il perd les apprenants." },
-      { icon: "subtitles", title: "Sous-titres automatiques en français", desc: "Génération automatique de sous-titres en français pour toutes vos vidéos. Améliorez l'accessibilité pour les apprenants malentendants, facilite la compréhension dans des environnements bruyants, et booste le SEO de vos contenus vidéo." },
-      { icon: "storage", title: "Stockage et bande passante illimités", desc: "Aucune limite de stockage, aucune limite de bande passante, aucun frais supplémentaire selon le nombre de vues. Hébergez 1 ou 100 formations avec autant de vidéos que nécessaire pour le même tarif." },
+      { icon: UploadCloud, title: "Upload direct sans limite", desc: "Glissez vos fichiers vidéo jusqu'à 10 Go par fichier, sans limite de durée totale. Traitement automatique en arrière-plan pendant que vous continuez à travailler. Formats acceptés : MP4, MOV, AVI, WebM." },
+      { icon: ShieldCheck, title: "Protection DRM anti-piratage", desc: "Vos vidéos ne peuvent pas être téléchargées, enregistrées ou partagées sans autorisation. Filigrane numérique avec le nom de l'acheteur, chiffrement des flux vidéo, désactivation du clic droit. Votre contenu reste votre propriété et votre source de revenus." },
+      { icon: Tv, title: "Streaming adaptatif 3G/4G/fibre", desc: "Le lecteur Novakou s'adapte automatiquement à la vitesse de connexion : qualité 240p en 3G, 720p en 4G, 1080p en fibre. Aucun buffering frustrant pour vos apprenants en Afrique, quelle que soit leur connexion." },
+      { icon: BarChart3, title: "Analytics de visionnage détaillés", desc: "Voyez exactement où chaque apprenant en est dans chaque vidéo, quel pourcentage a regardé chaque module, où les gens s'arrêtent et re-regardent. Ces données vous permettent d'améliorer votre contenu là où il perd les apprenants." },
+      { icon: Captions, title: "Sous-titres automatiques en français", desc: "Génération automatique de sous-titres en français pour toutes vos vidéos. Améliorez l'accessibilité pour les apprenants malentendants, facilite la compréhension dans des environnements bruyants, et booste le SEO de vos contenus vidéo." },
+      { icon: Database, title: "Stockage et bande passante illimités", desc: "Aucune limite de stockage, aucune limite de bande passante, aucun frais supplémentaire selon le nombre de vues. Hébergez 1 ou 100 formations avec autant de vidéos que nécessaire pour le même tarif." },
     ],
     mockup: {
       title: "Player vidéo sécurisé",
@@ -152,18 +195,18 @@ const TABS = [
   },
   {
     id: "automatisations",
-    icon: "bolt",
+    icon: Zap,
     label: "Automatisations",
     color: "#06b6d4",
     headline: "Vendez et accompagnez sans être connecté H24",
     sub: "Emails automatiques de bienvenue, séquences de nurturing, relances de paniers abandonnés, certificats automatiques, notifications multi-canaux — configurez une fois, le système tourne ensuite indéfiniment à votre place. 73% des ventes Novakou se font hors des heures ouvrées.",
     features: [
-      { icon: "mail", title: "23 séquences email prêtes à l'emploi", desc: "Bienvenue personnalisé, relance panier abandonné (3 emails), suivi post-achat J+1/J+3/J+7, rappel de progression, demande d'avis, offre de montée en gamme. 23 templates conçus pour le marché africain, modifiables en 2 clics." },
-      { icon: "notifications_active", title: "Notifications email, SMS et push", desc: "Alertez vos clients selon les événements importants (achat, livraison, accès, nouveau module disponible) via email, SMS court ou notification push navigateur. Paramétrez finement quelle alerte va sur quel canal selon le type d'événement." },
-      { icon: "workspace_premium", title: "Certificats PDF automatiques", desc: "Vos apprenants reçoivent un certificat PDF personnalisé avec leur nom, la date et votre signature numérique dès qu'ils atteignent 100% de la formation. Augmente la motivation des apprenants et la valeur perçue de vos formations." },
-      { icon: "group_add", title: "Programme d'affiliation automatisé", desc: "Vos clients les plus satisfaits deviennent vos vendeurs. Commission paramétrable librement (20%, 30%, 40%), lien de tracking unique par affilié, calcul automatique des commissions, paiement automatique à chaque vente. Zéro gestion manuelle." },
-      { icon: "shopping_cart", title: "Récupération panier abandonné", desc: "65% des visiteurs commencent un achat sans le finir. Novakou envoie automatiquement 3 emails de relance intelligents (1h, 24h, 72h après l'abandon) avec des arguments adaptés à l'objection probable de chaque étape." },
-      { icon: "repeat", title: "Abonnements et revenus récurrents", desc: "Créez des produits en abonnement mensuel ou annuel : accès à une communauté privée, coaching groupe mensuel, bibliothèque de ressources en continu. Facturation automatique, gestion des suspensions et reprises sans intervention manuelle." },
+      { icon: Mail, title: "23 séquences email prêtes à l'emploi", desc: "Bienvenue personnalisé, relance panier abandonné (3 emails), suivi post-achat J+1/J+3/J+7, rappel de progression, demande d'avis, offre de montée en gamme. 23 templates conçus pour le marché africain, modifiables en 2 clics." },
+      { icon: BellRing, title: "Notifications email, SMS et push", desc: "Alertez vos clients selon les événements importants (achat, livraison, accès, nouveau module disponible) via email, SMS court ou notification push navigateur. Paramétrez finement quelle alerte va sur quel canal selon le type d'événement." },
+      { icon: Award, title: "Certificats PDF automatiques", desc: "Vos apprenants reçoivent un certificat PDF personnalisé avec leur nom, la date et votre signature numérique dès qu'ils atteignent 100% de la formation. Augmente la motivation des apprenants et la valeur perçue de vos formations." },
+      { icon: UserPlus, title: "Programme d'affiliation automatisé", desc: "Vos clients les plus satisfaits deviennent vos vendeurs. Commission paramétrable librement (20%, 30%, 40%), lien de tracking unique par affilié, calcul automatique des commissions, paiement automatique à chaque vente. Zéro gestion manuelle." },
+      { icon: ShoppingCart, title: "Récupération panier abandonné", desc: "65% des visiteurs commencent un achat sans le finir. Novakou envoie automatiquement 3 emails de relance intelligents (1h, 24h, 72h après l'abandon) avec des arguments adaptés à l'objection probable de chaque étape." },
+      { icon: Repeat, title: "Abonnements et revenus récurrents", desc: "Créez des produits en abonnement mensuel ou annuel : accès à une communauté privée, coaching groupe mensuel, bibliothèque de ressources en continu. Facturation automatique, gestion des suspensions et reprises sans intervention manuelle." },
     ],
     mockup: {
       title: "Centre d'automatisation",
@@ -178,18 +221,18 @@ const TABS = [
   },
   {
     id: "affiliation",
-    icon: "group",
+    icon: Users,
     label: "Affiliation",
     color: "#10b981",
     headline: "Vos clients deviennent vos meilleurs vendeurs",
     sub: "Créez votre programme d'affiliation en 5 minutes. Chaque affilié reçoit un lien traçable unique, un tableau de bord dédié pour suivre ses performances, et ses commissions sont calculées et payées automatiquement à chaque vente générée.",
     features: [
-      { icon: "link", title: "Liens affiliés uniques et traçables", desc: "Chaque affilié reçoit un lien personnalisé (novakou.com/r/sonnom) qui trace précisément chaque clic, visite et achat généré. Attribution sur 30 jours — si un client revient acheter 3 semaines plus tard, l'affilié est tout de même crédité." },
-      { icon: "percent", title: "Commission 100% paramétrable", desc: "Définissez librement le taux de commission : 10%, 20%, 30%, 40%, ou montant fixe. Paramétrez des commissions différentes par produit — formation principale à 30%, ebook à 50%, coaching à 20%. Flexibilité totale selon votre stratégie." },
-      { icon: "dashboard", title: "Dashboard affilié complet", desc: "Chaque affilié a son propre espace pour suivre ses clics en temps réel, ses ventes générées, ses commissions accumulées et en attente de paiement, son lien personnel et les ressources marketing mises à disposition." },
-      { icon: "payments", title: "Paiement automatique des commissions", desc: "Les commissions sont calculées instantanément à chaque vente et versées automatiquement sur le moyen de paiement choisi par l'affilié : Wave, Orange Money, MTN, PayPal ou virement. Aucune gestion manuelle de votre côté." },
-      { icon: "analytics", title: "Analytics par affilié en temps réel", desc: "Identifiez vos affiliés les plus performants (clics, taux de conversion, revenus générés), comparez leurs performances dans le temps, envoyez-leur des ressources supplémentaires pour les aider à vendre plus. Transformez vos meilleurs affiliés en partenaires stratégiques." },
-      { icon: "campaign", title: "Kit marketing prêt à l'emploi", desc: "Fournissez à vos affiliés visuels aux formats Reels/Stories/Posts, textes de vente copywrités, emails prêts à envoyer, arguments de vente et FAQ. Plus ils ont d'outils, plus ils vendent — et plus vous gagnez." },
+      { icon: Link2, title: "Liens affiliés uniques et traçables", desc: "Chaque affilié reçoit un lien personnalisé (novakou.com/r/sonnom) qui trace précisément chaque clic, visite et achat généré. Attribution sur 30 jours — si un client revient acheter 3 semaines plus tard, l'affilié est tout de même crédité." },
+      { icon: Percent, title: "Commission 100% paramétrable", desc: "Définissez librement le taux de commission : 10%, 20%, 30%, 40%, ou montant fixe. Paramétrez des commissions différentes par produit — formation principale à 30%, ebook à 50%, coaching à 20%. Flexibilité totale selon votre stratégie." },
+      { icon: LayoutDashboard, title: "Dashboard affilié complet", desc: "Chaque affilié a son propre espace pour suivre ses clics en temps réel, ses ventes générées, ses commissions accumulées et en attente de paiement, son lien personnel et les ressources marketing mises à disposition." },
+      { icon: Wallet, title: "Paiement automatique des commissions", desc: "Les commissions sont calculées instantanément à chaque vente et versées automatiquement sur le moyen de paiement choisi par l'affilié : Wave, Orange Money, MTN, PayPal ou virement. Aucune gestion manuelle de votre côté." },
+      { icon: BarChart3, title: "Analytics par affilié en temps réel", desc: "Identifiez vos affiliés les plus performants (clics, taux de conversion, revenus générés), comparez leurs performances dans le temps, envoyez-leur des ressources supplémentaires pour les aider à vendre plus. Transformez vos meilleurs affiliés en partenaires stratégiques." },
+      { icon: Megaphone, title: "Kit marketing prêt à l'emploi", desc: "Fournissez à vos affiliés visuels aux formats Reels/Stories/Posts, textes de vente copywrités, emails prêts à envoyer, arguments de vente et FAQ. Plus ils ont d'outils, plus ils vendent — et plus vous gagnez." },
     ],
     mockup: {
       title: "Programme d'affiliation",
@@ -403,7 +446,7 @@ function TabMockup({ tab }: { tab: typeof TABS[number] }) {
       <div className="p-5">
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${tab.color}15` }}>
-            <span className="material-symbols-outlined text-[18px]" style={{ color: tab.color, fontVariationSettings: "'FILL' 1" }}>{tab.icon}</span>
+            {(()=>{const _I=tab.icon;return _I?<_I size={18} />:null;})()}
           </div>
           <span className="text-sm font-bold text-[#191c1e]">{tab.mockup.title}</span>
         </div>
@@ -483,10 +526,7 @@ export default function FonctionnalitesPage() {
                     color: activeTab === t.id ? "white" : C.muted,
                   }}
                 >
-                  <span
-                    className="material-symbols-outlined text-[16px]"
-                    style={{ fontVariationSettings: "'FILL' 1", color: activeTab === t.id ? "white" : t.color }}
-                  >{t.icon}</span>
+                  {(()=>{const _I=t.icon;return _I?<_I size={16} />:null;})()}
                   {t.label}
                 </button>
               ))}
@@ -501,7 +541,7 @@ export default function FonctionnalitesPage() {
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider mb-5"
                 style={{ backgroundColor: `${tab.color}15`, color: tab.color }}
               >
-                <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>{tab.icon}</span>
+                {(()=>{const _I=tab.icon;return _I?<_I size={16} />:null;})()}
                 {tab.label}
               </div>
               <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-4 leading-[1.1]" style={{ ...SH, color: C.dark }}>
@@ -518,10 +558,7 @@ export default function FonctionnalitesPage() {
                       className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
                       style={{ backgroundColor: `${tab.color}12` }}
                     >
-                      <span
-                        className="material-symbols-outlined text-[18px]"
-                        style={{ color: tab.color, fontVariationSettings: "'FILL' 1" }}
-                      >{f.icon}</span>
+                      {(()=>{const _I=f.icon;return _I?<_I size={18} />:null;})()}
                     </div>
                     <div>
                       <p className="text-sm font-bold mb-1" style={{ color: C.dark }}>{f.title}</p>

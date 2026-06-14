@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import {
   ArrowRight,
+  BookOpen,
   CheckCircle2,
+  GraduationCap,
+  LayoutDashboard,
+  Music,
+  Video,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,7 +17,7 @@ export const metadata: Metadata = {
 
 const PRODUCT_TYPES = [
   {
-    icon: "school",
+    icon: GraduationCap,
     color: "#006e2f",
     bg: "linear-gradient(135deg, #006e2f, #22c55e)",
     title: "Formations vidéo",
@@ -22,7 +27,7 @@ const PRODUCT_TYPES = [
     cta: "Voir les formations",
   },
   {
-    icon: "menu_book",
+    icon: BookOpen,
     color: "#dc2626",
     bg: "linear-gradient(135deg, #dc2626, #f97316)",
     title: "E-books & PDF",
@@ -32,7 +37,7 @@ const PRODUCT_TYPES = [
     cta: "Voir les e-books",
   },
   {
-    icon: "dashboard_customize",
+    icon: LayoutDashboard,
     color: "#8b5cf6",
     bg: "linear-gradient(135deg, #8b5cf6, #a855f7)",
     title: "Templates & Modèles",
@@ -42,7 +47,7 @@ const PRODUCT_TYPES = [
     cta: "Voir les templates",
   },
   {
-    icon: "music_note",
+    icon: Music,
     color: "#0ea5e9",
     bg: "linear-gradient(135deg, #0ea5e9, #06b6d4)",
     title: "Audio & Podcasts",
@@ -52,7 +57,7 @@ const PRODUCT_TYPES = [
     cta: "Voir les audios",
   },
   {
-    icon: "video_call",
+    icon: Video,
     color: "#f59e0b",
     bg: "linear-gradient(135deg, #f59e0b, #facc15)",
     title: "Coaching individuel",
@@ -104,7 +109,7 @@ export default function ServicesPage() {
           {PRODUCT_TYPES.map((p) => (
             <div key={p.title} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-2xl hover:-translate-y-1 transition-all flex flex-col">
               <div className="h-32 flex items-center justify-center" style={{ background: p.bg }}>
-                <span className="material-symbols-outlined text-white text-[64px] opacity-80" style={{ fontVariationSettings: "'FILL' 1" }}>{p.icon}</span>
+                {(()=>{const _I=p.icon;return _I?<_I size={64} className="text-white opacity-80" />:null;})()}
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <h3 className="text-xl font-extrabold text-[#191c1e] mb-2">{p.title}</h3>

@@ -1,6 +1,16 @@
 import type { Metadata } from "next";
 import {
+  Activity,
   ArrowRight,
+  BadgeCheck,
+  Bot,
+  Code,
+  Edit,
+  Headset,
+  Megaphone,
+  Palette,
+  ShieldCheck,
+  TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -10,19 +20,19 @@ export const metadata: Metadata = {
 };
 
 const SPECIALTIES = [
-  { icon: "code", label: "Développement", count: "120+", color: "#006e2f" },
-  { icon: "campaign", label: "Marketing digital", count: "85+", color: "#dc2626" },
-  { icon: "palette", label: "Design", count: "60+", color: "#8b5cf6" },
-  { icon: "monitoring", label: "Business & Stratégie", count: "75+", color: "#0ea5e9" },
-  { icon: "edit", label: "Rédaction & Contenu", count: "40+", color: "#f59e0b" },
-  { icon: "smart_toy", label: "Intelligence artificielle", count: "30+", color: "#7c3aed" },
+  { icon: Code, label: "Développement", count: "120+", color: "#006e2f" },
+  { icon: Megaphone, label: "Marketing digital", count: "85+", color: "#dc2626" },
+  { icon: Palette, label: "Design", count: "60+", color: "#8b5cf6" },
+  { icon: Activity, label: "Business & Stratégie", count: "75+", color: "#0ea5e9" },
+  { icon: Edit, label: "Rédaction & Contenu", count: "40+", color: "#f59e0b" },
+  { icon: Bot, label: "Intelligence artificielle", count: "30+", color: "#7c3aed" },
 ];
 
 const PERKS = [
-  { icon: "verified", title: "Profils vérifiés", desc: "Chaque créateur est validé manuellement par notre équipe avant d'apparaître sur la marketplace." },
-  { icon: "trending_up", title: "Notes & avis transparents", desc: "Les évaluations sont laissées par de vrais acheteurs. Pas de modération abusive." },
-  { icon: "support_agent", title: "Support client réactif", desc: "En cas de problème avec un créateur, notre support intervient sous 24h." },
-  { icon: "verified_user", title: "Garantie satisfait", desc: "14 jours pour tester. Si ça ne convient pas, remboursement intégral." },
+  { icon: BadgeCheck, title: "Profils vérifiés", desc: "Chaque créateur est validé manuellement par notre équipe avant d'apparaître sur la marketplace." },
+  { icon: TrendingUp, title: "Notes & avis transparents", desc: "Les évaluations sont laissées par de vrais acheteurs. Pas de modération abusive." },
+  { icon: Headset, title: "Support client réactif", desc: "En cas de problème avec un créateur, notre support intervient sous 24h." },
+  { icon: ShieldCheck, title: "Garantie satisfait", desc: "14 jours pour tester. Si ça ne convient pas, remboursement intégral." },
 ];
 
 export default function FreelancesPage() {
@@ -66,7 +76,7 @@ export default function FreelancesPage() {
                 className="group bg-white border border-slate-200 rounded-2xl p-6 text-center hover:shadow-lg hover:-translate-y-1 transition-all"
               >
                 <div className="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ background: `${s.color}15` }}>
-                  <span className="material-symbols-outlined text-[28px]" style={{ color: s.color, fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                  {(()=>{const _I=s.icon;return _I?<_I size={28} />:null;})()}
                 </div>
                 <h3 className="text-base font-extrabold text-[#191c1e]">{s.label}</h3>
                 <p className="text-xs font-bold text-[#006e2f] mt-1">{s.count} créateurs</p>
@@ -87,7 +97,7 @@ export default function FreelancesPage() {
             {PERKS.map((p) => (
               <div key={p.title} className="flex items-start gap-4 bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-shadow">
                 <div className="w-12 h-12 rounded-xl bg-[#006e2f]/10 flex items-center justify-center flex-shrink-0">
-                  <span className="material-symbols-outlined text-[24px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{p.icon}</span>
+                  {(()=>{const _I=p.icon;return _I?<_I size={24} className="text-[#006e2f]" />:null;})()}
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-[#191c1e] mb-1">{p.title}</h3>
