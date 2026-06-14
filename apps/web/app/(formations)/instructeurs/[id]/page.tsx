@@ -1,6 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ArrowUpRight,
+  Download,
+  Globe,
+  Link2,
+  Package,
+  PlayCircle,
+  Quote,
+  ShoppingBag,
+  UserSearch,
+  Users,
+} from "lucide-react";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { avatarSrc } from "@/lib/utils/image-url";
@@ -118,7 +130,7 @@ export default function InstructeurPublicPage() {
       <div className="min-h-[60vh] flex items-center justify-center p-8">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[32px] text-gray-300">person_search</span>
+            <UserSearch size={32} className="text-gray-300" />
           </div>
           <p className="text-xl font-bold text-[#191c1e] mb-2">Instructeur introuvable</p>
           <p className="text-sm text-[#5c647a] mb-6">Ce profil n&apos;existe pas ou n&apos;est plus disponible.</p>
@@ -204,7 +216,7 @@ export default function InstructeurPublicPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-[#5c647a] hover:bg-gray-50 hover:text-[#006e2f] transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[14px]">link</span>
+                  <Link2 size={14} />
                   LinkedIn
                 </a>
               )}
@@ -215,7 +227,7 @@ export default function InstructeurPublicPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-[#5c647a] hover:bg-gray-50 hover:text-[#006e2f] transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[14px]">language</span>
+                  <Globe size={14} />
                   Site web
                 </a>
               )}
@@ -226,7 +238,7 @@ export default function InstructeurPublicPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-[#5c647a] hover:bg-gray-50 hover:text-[#006e2f] transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[14px]">play_circle</span>
+                  <PlayCircle size={14} />
                   YouTube
                 </a>
               )}
@@ -275,7 +287,7 @@ export default function InstructeurPublicPage() {
                 className="text-sm font-bold text-[#006e2f] flex items-center gap-1 hover:underline underline-offset-4"
               >
                 Tout voir
-                <span className="material-symbols-outlined text-sm">arrow_outward</span>
+                <ArrowUpRight size={14} />
               </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -295,7 +307,7 @@ export default function InstructeurPublicPage() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       ) : (
-                        <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+                        <PlayCircle size={48} className="text-white opacity-60" />
                       )}
                       {f.customCategory && (
                         <span className="absolute top-3 left-3 bg-white/90 text-[#006e2f] px-2 py-0.5 rounded-full text-[10px] font-bold">
@@ -320,7 +332,7 @@ export default function InstructeurPublicPage() {
                         {f.reviewsCount > 0 && ` (${f.reviewsCount})`}
                       </span>
                       <span className="text-[11px] text-[#5c647a] flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[12px]">groups</span>
+                        <Users size={12} />
                         <span className="font-semibold text-[#191c1e]">{f.studentsCount}</span>
                         élève{f.studentsCount !== 1 ? "s" : ""}
                       </span>
@@ -335,7 +347,7 @@ export default function InstructeurPublicPage() {
                       href={`/checkout?fids=${f.id}`}
                       className="mt-auto inline-flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-zinc-700 transition-colors"
                     >
-                      <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                      <ShoppingBag size={16} />
                       Acheter maintenant
                     </Link>
                   </div>
@@ -372,7 +384,7 @@ export default function InstructeurPublicPage() {
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.thumbnail ?? p.banner ?? ""} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                         ) : (
-                          <span className="material-symbols-outlined text-white text-[48px] opacity-60" style={{ fontVariationSettings: "'FILL' 1" }}>download</span>
+                          <Download size={48} className="text-white opacity-60" />
                         )}
                         <span className="absolute top-3 left-3 bg-white/95 text-violet-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
                           {p.productType}
@@ -395,7 +407,7 @@ export default function InstructeurPublicPage() {
                           {p.reviewsCount > 0 && ` (${p.reviewsCount})`}
                         </span>
                         <span className="text-[11px] text-[#5c647a] flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">shopping_bag</span>
+                          <ShoppingBag size={12} />
                           <span className="font-semibold text-[#191c1e]">{p.salesCount}</span>
                           vente{p.salesCount !== 1 ? "s" : ""}
                         </span>
@@ -410,7 +422,7 @@ export default function InstructeurPublicPage() {
                         href={`/checkout?pids=${p.id}`}
                         className="mt-auto inline-flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                        <ShoppingBag size={16} />
                         Acheter maintenant
                       </Link>
                     </div>
@@ -425,7 +437,7 @@ export default function InstructeurPublicPage() {
         {formations.length === 0 && products.length === 0 && (
           <section className="bg-gray-50 rounded-2xl py-16 text-center mb-16">
             <div className="w-16 h-16 rounded-2xl bg-white flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-[32px] text-gray-300">inventory_2</span>
+              <Package size={32} className="text-gray-300" />
             </div>
             <p className="font-bold text-[#191c1e] mb-1">Aucun produit publié pour l&apos;instant</p>
             <p className="text-sm text-[#5c647a]">
@@ -448,7 +460,7 @@ export default function InstructeurPublicPage() {
                 const initials = (r.user.name ?? "U").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
                 return (
                   <div key={r.id} className="p-6 bg-gray-50 rounded-2xl relative">
-                    <span className="material-symbols-outlined absolute top-6 right-6 text-[#006e2f]/20 text-[48px]">format_quote</span>
+                    <Quote size={48} className="absolute top-6 right-6 text-[#006e2f]/20" />
                     <div className="flex items-center gap-2 mb-3">
                       <Stars rating={r.rating} />
                     </div>

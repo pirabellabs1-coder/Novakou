@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { MailCheck, ArrowLeft, AlertCircle, Mail, Loader2, Send, Lock } from "lucide-react";
 
 export default function MotDePasseOubliePage() {
   const [email, setEmail] = useState("");
@@ -48,12 +49,7 @@ export default function MotDePasseOubliePage() {
           {sent ? (
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <span
-                  className="material-symbols-outlined text-green-600 text-[32px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  mark_email_read
-                </span>
+                <MailCheck size={32} className="text-green-600" />
               </div>
               <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Email envoyé !</h2>
               <p className="text-sm text-[#5c647a] leading-relaxed mb-5">
@@ -68,7 +64,7 @@ export default function MotDePasseOubliePage() {
                 href="/connexion"
                 className="inline-flex items-center gap-1.5 text-sm text-[#006e2f] font-bold hover:underline"
               >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                <ArrowLeft size={16} />
                 Retour à la connexion
               </Link>
             </div>
@@ -83,7 +79,7 @@ export default function MotDePasseOubliePage() {
 
               {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
+                  <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-700 font-medium">{error}</p>
                 </div>
               )}
@@ -91,9 +87,7 @@ export default function MotDePasseOubliePage() {
               <div className="mb-5">
                 <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">
-                    mail
-                  </span>
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                   <input
                     type="email"
                     value={email}
@@ -114,12 +108,12 @@ export default function MotDePasseOubliePage() {
               >
                 {loading ? (
                   <>
-                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                    <Loader2 size={18} className="animate-spin" />
                     Envoi…
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-[18px]">send</span>
+                    <Send size={18} />
                     Envoyer le lien de réinitialisation
                   </>
                 )}
@@ -130,7 +124,7 @@ export default function MotDePasseOubliePage() {
                   href="/connexion"
                   className="text-sm text-[#5c647a] hover:text-[#006e2f] font-semibold inline-flex items-center gap-1"
                 >
-                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <ArrowLeft size={16} />
                   Retour à la connexion
                 </Link>
               </div>
@@ -139,7 +133,7 @@ export default function MotDePasseOubliePage() {
         </div>
 
         <p className="text-center text-[11px] text-[#5c647a] mt-4 flex items-center justify-center gap-1.5">
-          <span className="material-symbols-outlined text-[13px]">lock</span>
+          <Lock size={13} />
           Vos données sont protégées. SSL 256-bit.
         </p>
       </div>

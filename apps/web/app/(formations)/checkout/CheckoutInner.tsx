@@ -4,6 +4,31 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import {
+  ChevronRight,
+  ChevronDown,
+  Lock,
+  CheckCircle2,
+  Info,
+  Sparkles,
+  Wallet,
+  Loader2,
+  XCircle,
+  AlertCircle,
+  ArrowRightLeft,
+  RefreshCw,
+  GraduationCap,
+  FolderArchive,
+  ShoppingCart,
+  Tag,
+  ShieldCheck,
+  RotateCcw,
+  Smartphone,
+  Waves,
+  Phone,
+  CreditCard,
+  type LucideIcon,
+} from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { COUNTRIES as ALL_COUNTRIES } from "@/lib/countries";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
@@ -369,11 +394,11 @@ export default function CheckoutInner() {
     }
   }
 
-  const paymentMethods: { id: PaymentMethod; label: string; icon: string }[] = [
-    { id: "orange_money", label: "Orange Money", icon: "smartphone" },
-    { id: "wave", label: "Wave", icon: "waves" },
-    { id: "mtn", label: "MTN MoMo", icon: "phone_android" },
-    { id: "card", label: "Carte bancaire", icon: "credit_card" },
+  const paymentMethods: { id: PaymentMethod; label: string; Icon: LucideIcon }[] = [
+    { id: "orange_money", label: "Orange Money", Icon: Smartphone },
+    { id: "wave", label: "Wave", Icon: Waves },
+    { id: "mtn", label: "MTN MoMo", Icon: Phone },
+    { id: "card", label: "Carte bancaire", Icon: CreditCard },
   ];
 
   const selectedCountry = COUNTRIES.find((c) => c.code === countryCode) ?? COUNTRIES[0];
@@ -391,9 +416,9 @@ export default function CheckoutInner() {
       <div className="max-w-5xl mx-auto mb-6">
         <div className="flex items-center gap-2 text-xs text-[#5c647a]">
           <Link href="/" className="hover:text-[#006e2f] transition-colors">Accueil</Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <ChevronRight size={12} />
           <Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <ChevronRight size={12} />
           <span className="text-[#191c1e] font-medium">Commande</span>
         </div>
       </div>
@@ -402,7 +427,7 @@ export default function CheckoutInner() {
       <div className="max-w-5xl mx-auto mb-8">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#006e2f" }}>
-            <span className="material-symbols-outlined text-white text-[20px]">lock</span>
+            <Lock size={20} className="text-white" />
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-[#191c1e] tracking-tight">Finaliser votre commande</h1>
@@ -477,7 +502,7 @@ export default function CheckoutInner() {
                         className="rounded-sm"
                       />
                       <span className="font-semibold">{selectedCountry.code}</span>
-                      <span className="material-symbols-outlined text-[14px] text-[#5c647a]">expand_more</span>
+                      <ChevronDown size={14} className="text-[#5c647a]" />
                     </button>
                     {countryOpen && (
                       <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-72 max-h-80 overflow-hidden flex flex-col">
@@ -558,16 +583,12 @@ export default function CheckoutInner() {
                     paymentMethod === method.id ? "border-[#006e2f] bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"
                   }`}
                 >
-                  <span className={`material-symbols-outlined text-[22px] ${paymentMethod === method.id ? "text-[#006e2f]" : "text-[#5c647a]"}`}>
-                    {method.icon}
-                  </span>
+                  <method.Icon size={22} className={paymentMethod === method.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
                   <span className={`text-sm font-semibold ${paymentMethod === method.id ? "text-[#006e2f]" : "text-[#191c1e]"}`}>
                     {method.label}
                   </span>
                   {paymentMethod === method.id && (
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px] ml-auto" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      check_circle
-                    </span>
+                    <CheckCircle2 size={16} className="text-[#006e2f] ml-auto" />
                   )}
                 </button>
               ))}
@@ -597,7 +618,7 @@ export default function CheckoutInner() {
                         className="rounded-sm"
                       />
                       <span className="font-semibold">{selectedCountry.code}</span>
-                      <span className="material-symbols-outlined text-[14px] text-[#5c647a]">expand_more</span>
+                      <ChevronDown size={14} className="text-[#5c647a]" />
                     </button>
                     {countryOpen && (
                       <div className="absolute top-full left-0 mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-xl w-60 max-h-64 overflow-y-auto">
@@ -640,7 +661,7 @@ export default function CheckoutInner() {
             {/* Card — Moneroo hosted form handles this */}
             {paymentMethod === "card" && (
               <div className="rounded-xl bg-blue-50 border border-blue-100 p-4 flex items-center gap-3">
-                <span className="material-symbols-outlined text-blue-500 text-[22px]">info</span>
+                <Info size={22} className="text-blue-500" />
                 <p className="text-sm text-blue-800 font-medium leading-snug">
                   Vous serez redirigé vers la page de paiement sécurisée pour entrer les détails de votre carte.
                 </p>
@@ -674,13 +695,11 @@ export default function CheckoutInner() {
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
                     >
-                      <span
-                        className={`material-symbols-outlined text-[22px] mt-0.5 ${
-                          provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"
-                        }`}
-                      >
-                        {p.id === "paygenius" ? "auto_awesome" : "account_balance_wallet"}
-                      </span>
+                      {p.id === "paygenius" ? (
+                        <Sparkles size={22} className={`mt-0.5 ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} />
+                      ) : (
+                        <Wallet size={22} className={`mt-0.5 ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} />
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span
@@ -691,12 +710,7 @@ export default function CheckoutInner() {
                             {p.label}
                           </span>
                           {provider === p.id && (
-                            <span
-                              className="material-symbols-outlined text-[#006e2f] text-[16px] ml-auto"
-                              style={{ fontVariationSettings: "'FILL' 1" }}
-                            >
-                              check_circle
-                            </span>
+                            <CheckCircle2 size={16} className="text-[#006e2f] ml-auto" />
                           )}
                         </div>
                         <p className="text-[11px] text-[#5c647a] mt-1 leading-snug">{p.description}</p>
@@ -731,13 +745,13 @@ export default function CheckoutInner() {
               />
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
                 {discountStatus === "validating" && (
-                  <span className="material-symbols-outlined text-[#5c647a] text-[20px] animate-spin">progress_activity</span>
+                  <Loader2 size={20} className="text-[#5c647a] animate-spin" />
                 )}
                 {discountStatus === "valid" && (
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <CheckCircle2 size={20} className="text-emerald-600" />
                 )}
                 {discountStatus === "invalid" && (
-                  <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
+                  <XCircle size={20} className="text-red-500" />
                 )}
               </div>
             </div>
@@ -776,7 +790,7 @@ export default function CheckoutInner() {
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <span className="material-symbols-outlined text-red-500 text-[20px] mt-0.5">error</span>
+                <AlertCircle size={20} className="text-red-500 mt-0.5" />
                 <div className="flex-1">
                   <p className="text-sm text-red-700 font-medium">{error}</p>
                   {/* Si le message évoque une indisponibilité provider, propose
@@ -797,7 +811,7 @@ export default function CheckoutInner() {
                             }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
                           >
-                            <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
+                            <ArrowRightLeft size={14} />
                             Essayer avec {p.label}
                           </button>
                         ))}
@@ -806,7 +820,7 @@ export default function CheckoutInner() {
                         onClick={() => { setError(null); void handlePay(); }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-red-300 text-red-700 text-xs font-bold hover:bg-red-100 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[14px]">refresh</span>
+                        <RefreshCw size={14} />
                         Réessayer
                       </button>
                     </div>
@@ -838,9 +852,11 @@ export default function CheckoutInner() {
                       <img src={item.thumbnail} alt={item.title} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" />
                     ) : (
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center flex-shrink-0">
-                        <span className="material-symbols-outlined text-white text-[18px]">
-                          {item.kind === "formation" ? "school" : "folder_zip"}
-                        </span>
+                        {item.kind === "formation" ? (
+                          <GraduationCap size={18} className="text-white" />
+                        ) : (
+                          <FolderArchive size={18} className="text-white" />
+                        )}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
@@ -921,7 +937,7 @@ export default function CheckoutInner() {
               {bumpsTotal > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-amber-700 font-semibold inline-flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">add_shopping_cart</span>
+                    <ShoppingCart size={14} />
                     Offre{acceptedBumpIds.length > 1 ? "s" : ""} additionnelle{acceptedBumpIds.length > 1 ? "s" : ""}
                   </span>
                   <span className="font-bold text-amber-700">+{formatFCFA(bumpsTotal)}</span>
@@ -930,7 +946,7 @@ export default function CheckoutInner() {
               {discountStatus === "valid" && discountAmount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-emerald-700 font-semibold inline-flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">local_offer</span>
+                    <Tag size={14} />
                     Code {discountCode}
                   </span>
                   <span className="font-bold text-emerald-600">−{formatFCFA(discountAmount)}</span>
@@ -960,12 +976,12 @@ export default function CheckoutInner() {
             >
               {loading ? (
                 <>
-                  <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                  <Loader2 size={20} className="animate-spin" />
                   Redirection…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[20px]">lock</span>
+                  <Lock size={20} />
                   Payer {formatFCFA(totalAmount)}
                 </>
               )}
@@ -989,12 +1005,12 @@ export default function CheckoutInner() {
               >
                 {loading ? (
                   <>
-                    <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+                    <Loader2 size={20} className="animate-spin" />
                     Redirection…
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-[20px]">lock</span>
+                    <Lock size={20} />
                     Payer maintenant
                   </>
                 )}
@@ -1006,12 +1022,12 @@ export default function CheckoutInner() {
             {/* Security badges */}
             <div className="mt-4 flex items-center justify-center gap-4">
               {[
-                { icon: "lock", label: "SSL" },
-                { icon: "verified_user", label: "Sécurisé" },
-                { icon: "replay_30", label: "30j remboursé" },
+                { Icon: Lock, label: "SSL" },
+                { Icon: ShieldCheck, label: "Sécurisé" },
+                { Icon: RotateCcw, label: "30j remboursé" },
               ].map((item) => (
                 <div key={item.label} className="flex flex-col items-center gap-0.5">
-                  <span className="material-symbols-outlined text-[#5c647a] text-[16px]">{item.icon}</span>
+                  <item.Icon size={16} className="text-[#5c647a]" />
                   <span className="text-[9px] text-[#5c647a] font-medium">{item.label}</span>
                 </div>
               ))}
@@ -1019,9 +1035,7 @@ export default function CheckoutInner() {
 
             {/* Guarantee */}
             <div className="mt-5 p-3 rounded-xl bg-green-50 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#006e2f] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                verified_user
-              </span>
+              <ShieldCheck size={18} className="text-[#006e2f] flex-shrink-0" />
               <p className="text-[11px] font-semibold text-[#006e2f] leading-snug">
                 Garantie satisfait ou remboursé sous 30 jours, sans questions posées.
               </p>

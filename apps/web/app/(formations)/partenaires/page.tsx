@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import {
+  Handshake,
+} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -119,7 +122,7 @@ export default function PartenairesPage() {
 
           <div className="mt-12 text-center">
             <Link href="/contact?subject=partnership" className="inline-flex items-center gap-2 bg-white text-[#006e2f] px-7 py-4 rounded-2xl font-extrabold text-sm hover:bg-slate-100 transition-colors shadow-xl">
-              <span className="material-symbols-outlined text-[18px]">handshake</span>
+              <Handshake size={18} />
               Contacter l&apos;équipe partenariats
             </Link>
           </div>

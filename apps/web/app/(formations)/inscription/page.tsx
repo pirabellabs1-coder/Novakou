@@ -4,6 +4,23 @@ import Link from "next/link";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import {
+  CheckCircle2,
+  BadgeCheck,
+  Store,
+  GraduationCap,
+  Mic,
+  Users,
+  AlertCircle,
+  Mail,
+  Lock,
+  KeyRound,
+  Eye,
+  EyeOff,
+  Loader2,
+  Rocket,
+  type LucideIcon,
+} from "lucide-react";
 
 type TabType = "vendeur" | "apprenant" | "mentor" | "affilie";
 const VALID_ROLES: TabType[] = ["vendeur", "apprenant", "mentor", "affilie"];
@@ -133,11 +150,11 @@ function InscriptionInner() {
     }
   }
 
-  const tabs: { id: TabType; label: string; icon: string; desc: string }[] = [
-    { id: "vendeur", label: "Je vends", icon: "storefront", desc: "Formations & ebooks" },
-    { id: "apprenant", label: "J'apprends", icon: "school", desc: "Accès au catalogue" },
-    { id: "mentor", label: "Je coach", icon: "record_voice_over", desc: "Sessions 1:1" },
-    { id: "affilie", label: "J'affilie", icon: "diversity_3", desc: "40% commission" },
+  const tabs: { id: TabType; label: string; icon: LucideIcon; desc: string }[] = [
+    { id: "vendeur", label: "Je vends", icon: Store, desc: "Formations & ebooks" },
+    { id: "apprenant", label: "J'apprends", icon: GraduationCap, desc: "Accès au catalogue" },
+    { id: "mentor", label: "Je coach", icon: Mic, desc: "Sessions 1:1" },
+    { id: "affilie", label: "J'affilie", icon: Users, desc: "40% commission" },
   ];
 
   return (
@@ -181,7 +198,7 @@ function InscriptionInner() {
               "Support en français 7j/7",
             ].map((t, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-[#22c55e] text-[18px] flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <CheckCircle2 size={18} className="text-[#22c55e] flex-shrink-0" />
                 <p className="text-white/85 text-sm">{t}</p>
               </div>
             ))}
@@ -189,7 +206,7 @@ function InscriptionInner() {
         </div>
 
         <div className="relative z-10 flex items-center gap-2">
-          <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+          <BadgeCheck size={18} className="text-white" />
           <p className="text-white/80 text-xs">Plateforme 100% africaine · Construite pour les créateurs</p>
         </div>
       </div>
@@ -219,19 +236,20 @@ function InscriptionInner() {
 
             {/* Role tabs */}
             <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-gray-100 rounded-2xl mb-6">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl text-center transition-all duration-200 ${activeTab === tab.id ? "bg-white shadow-sm text-[#006e2f]" : "text-[#5c647a] hover:text-[#191c1e]"}`}
-                >
-                  <span className={`material-symbols-outlined text-[20px] ${activeTab === tab.id ? "text-[#006e2f]" : "text-[#5c647a]"}`} style={{ fontVariationSettings: activeTab === tab.id ? "'FILL' 1" : "'FILL' 0" }}>
-                    {tab.icon}
-                  </span>
-                  <span className="text-xs font-bold leading-tight">{tab.label}</span>
-                  <span className="text-[9px] text-[#5c647a] leading-tight hidden sm:block">{tab.desc}</span>
-                </button>
-              ))}
+              {tabs.map((tab) => {
+                const TabIcon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl text-center transition-all duration-200 ${activeTab === tab.id ? "bg-white shadow-sm text-[#006e2f]" : "text-[#5c647a] hover:text-[#191c1e]"}`}
+                  >
+                    <TabIcon size={20} className={activeTab === tab.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
+                    <span className="text-xs font-bold leading-tight">{tab.label}</span>
+                    <span className="text-[9px] text-[#5c647a] leading-tight hidden sm:block">{tab.desc}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Google OAuth */}
@@ -258,7 +276,7 @@ function InscriptionInner() {
             {/* Error */}
             {error && (
               <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
+                <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
                 <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
             )}
@@ -280,7 +298,7 @@ function InscriptionInner() {
               <div>
                 <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">mail</span>
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                   <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" required autoComplete="email"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white" />
                 </div>
@@ -289,11 +307,11 @@ function InscriptionInner() {
               <div>
                 <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Mot de passe <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock</span>
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                   <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8 caractères minimum" required autoComplete="new-password"
                     className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white" />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a] hover:text-[#191c1e]">
-                    <span className="material-symbols-outlined text-[18px]">{showPassword ? "visibility_off" : "visibility"}</span>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {password && password.length < 8 && (
@@ -304,11 +322,11 @@ function InscriptionInner() {
               <div>
                 <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Confirmer le mot de passe <span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock_reset</span>
+                  <KeyRound size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                   <input type={showConfirm ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Répétez votre mot de passe" required autoComplete="new-password"
                     className={`w-full pl-10 pr-12 py-3 rounded-xl border text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white ${confirm && confirm !== password ? "border-red-300" : "border-gray-200"}`} />
                   <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a] hover:text-[#191c1e]">
-                    <span className="material-symbols-outlined text-[18px]">{showConfirm ? "visibility_off" : "visibility"}</span>
+                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
                 {confirm && confirm !== password && (
@@ -331,9 +349,9 @@ function InscriptionInner() {
                 className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2 mt-1 disabled:opacity-50"
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
                 {loading ? (
-                  <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Création du compte…</>
+                  <><Loader2 size={18} className="animate-spin" />Création du compte…</>
                 ) : (
-                  <><span className="material-symbols-outlined text-[18px]">rocket_launch</span>Créer mon compte gratuitement</>
+                  <><Rocket size={18} />Créer mon compte gratuitement</>
                 )}
               </button>
             </form>
@@ -345,7 +363,7 @@ function InscriptionInner() {
           </div>
 
           <p className="text-center text-[11px] text-[#5c647a] mt-4 flex items-center justify-center gap-1.5">
-            <span className="material-symbols-outlined text-[13px]">lock</span>
+            <Lock size={13} />
             Inscription gratuite · Aucune carte requise · Résiliable à tout moment
           </p>
         </div>

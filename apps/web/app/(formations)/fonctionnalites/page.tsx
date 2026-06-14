@@ -1,6 +1,17 @@
 "use client";
 
 import Image from "next/image";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  GripVertical,
+  Package,
+  Play,
+  Send,
+  Settings,
+  XCircle,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -204,7 +215,7 @@ function MockupBoutique({ data }: { data: typeof TABS[0]["mockup"] }) {
         <div key={item.label} className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 bg-white">
           <div className="w-10 h-10 rounded-lg flex-shrink-0" style={{ background: `${item.color}20` }}>
             <div className="w-full h-full rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-[18px]" style={{ color: item.color }}>inventory_2</span>
+              <Package size={18} />
             </div>
           </div>
           <div className="flex-1 min-w-0">
@@ -227,9 +238,9 @@ function MockupTunnel({ data }: { data: typeof TABS[1]["mockup"] }) {
     <div className="space-y-2">
       {data.blocks.map((block, i) => (
         <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 bg-white cursor-grab hover:border-gray-300 transition-colors">
-          <span className="material-symbols-outlined text-[16px] text-gray-300">drag_indicator</span>
+          <GripVertical size={16} className="text-gray-300" />
           <span className="text-sm text-[#191c1e] font-medium flex-1">{block}</span>
-          <span className="material-symbols-outlined text-[14px] text-gray-300">settings</span>
+          <Settings size={14} className="text-gray-300" />
         </div>
       ))}
       <button className="w-full py-2.5 rounded-xl text-white text-sm font-bold mt-2" style={{ backgroundColor: data.accent }}>
@@ -287,7 +298,7 @@ function MockupIA({ data }: { data: typeof TABS[3]["mockup"] }) {
       <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
         <div className="flex-1 bg-gray-50 rounded-full px-3 py-2 text-xs text-gray-400">Posez une question à l&apos;IA…</div>
         <button className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: data.accent }}>
-          <span className="material-symbols-outlined text-[14px]">send</span>
+          <Send size={14} />
         </button>
       </div>
     </div>
@@ -300,7 +311,7 @@ function MockupVideo() {
       <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900 to-blue-600 opacity-80" />
         <div className="relative w-14 h-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors">
-          <span className="material-symbols-outlined text-[32px] text-white" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+          <Play size={32} className="text-white" />
         </div>
         <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
           <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
@@ -526,7 +537,7 @@ export default function FonctionnalitesPage() {
                 style={{ backgroundColor: tab.color }}
               >
                 Essayer gratuitement
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <ArrowRight size={16} />
               </Link>
             </div>
 
@@ -585,18 +596,18 @@ export default function FonctionnalitesPage() {
                     <td className="py-3 px-4 font-medium text-[#191c1e] text-sm">{label as string}</td>
                     <td className="py-3 px-4 text-center" style={{ background: `${C.primary}04` }}>
                       {nova
-                        ? <span className="material-symbols-outlined text-[18px]" style={{ color: C.primary, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
-                        : <span className="material-symbols-outlined text-[18px] text-gray-200">cancel</span>}
+                        ? <CheckCircle2 size={18} />
+                        : <XCircle size={18} className="text-gray-200" />}
                     </td>
                     <td className="py-3 px-4 text-center">
                       {sys
-                        ? <span className="material-symbols-outlined text-[18px] text-gray-400">check_circle</span>
-                        : <span className="material-symbols-outlined text-[18px] text-gray-200">cancel</span>}
+                        ? <CheckCircle2 size={18} className="text-gray-400" />
+                        : <XCircle size={18} className="text-gray-200" />}
                     </td>
                     <td className="py-3 px-4 text-center">
                       {gum
-                        ? <span className="material-symbols-outlined text-[18px] text-gray-400">check_circle</span>
-                        : <span className="material-symbols-outlined text-[18px] text-gray-200">cancel</span>}
+                        ? <CheckCircle2 size={18} className="text-gray-400" />
+                        : <XCircle size={18} className="text-gray-200" />}
                     </td>
                   </tr>
                 ))}
@@ -915,7 +926,7 @@ export default function FonctionnalitesPage() {
               <details key={i} className="group bg-white rounded-xl border border-gray-100 p-5 [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex items-center justify-between cursor-pointer font-semibold text-sm md:text-base gap-3" style={{ color: C.dark }}>
                   {item.q}
-                  <span className="material-symbols-outlined text-[20px] flex-shrink-0 transition-transform group-open:rotate-180 text-gray-400">expand_more</span>
+                  <ChevronDown size={20} className="flex-shrink-0 transition-transform group-open:rotate-180 text-gray-400" />
                 </summary>
                 <p className="mt-3 text-sm leading-relaxed" style={{ color: C.muted }}>{item.a}</p>
               </details>

@@ -1,6 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import {
+  AlertTriangle,
+  BookOpen,
+  Mail,
+  MailCheck,
+  ShieldCheck,
+} from "lucide-react";
 import { useState } from "react";
 
 const CATEGORIES = [
@@ -64,12 +71,7 @@ export default function ContactPage() {
             className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-white"
             style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
           >
-            <span
-              className="material-symbols-outlined text-4xl"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              mark_email_read
-            </span>
+            <MailCheck size={36} />
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
             Message reçu 👍
@@ -256,9 +258,7 @@ export default function ContactPage() {
               <h3 className="text-sm font-bold text-slate-900 mb-3">Autres moyens de nous joindre</h3>
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px] flex-shrink-0">
-                    mail
-                  </span>
+                  <Mail size={20} className="text-emerald-600 flex-shrink-0" />
                   <div>
                     <a
                       href="mailto:support@novakou.com"
@@ -270,9 +270,7 @@ export default function ContactPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px] flex-shrink-0">
-                    priority_high
-                  </span>
+                  <AlertTriangle size={20} className="text-emerald-600 flex-shrink-0" />
                   <div>
                     <a
                       href="mailto:paiements@novakou.com"
@@ -284,9 +282,7 @@ export default function ContactPage() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-[20px] flex-shrink-0">
-                    shield
-                  </span>
+                  <ShieldCheck size={20} className="text-emerald-600 flex-shrink-0" />
                   <div>
                     <a
                       href="mailto:privacy@novakou.com"
@@ -309,7 +305,7 @@ export default function ContactPage() {
                 href="/aide"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900"
               >
-                <span className="material-symbols-outlined text-[14px]">menu_book</span>
+                <BookOpen size={14} />
                 Consulter le centre d&apos;aide →
               </Link>
             </div>

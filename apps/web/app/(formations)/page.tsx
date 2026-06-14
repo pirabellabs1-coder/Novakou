@@ -1,6 +1,36 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ArrowRight,
+  Search,
+  LayoutGrid,
+  ShoppingCart,
+  Package,
+  Bot,
+  Settings,
+  Bell,
+  TrendingUp,
+  TrendingDown,
+  Rocket,
+  Share2,
+  Wallet,
+  Store,
+  Sparkles,
+  Network,
+  Video,
+  Award,
+  Workflow,
+  Smartphone,
+  CheckCircle2,
+  Send,
+  CircleDot,
+  Circle,
+  Star,
+  ChevronDown,
+  Package2,
+  BookOpen,
+} from "lucide-react";
 import { RevenueSimulator } from "@/components/formations/RevenueSimulator";
 import { CreatorsJoinBadge, HeroBadge } from "@/components/formations/PublicStatsBadge";
 import { BestSellers } from "@/components/formations/BestSellers";
@@ -118,14 +148,14 @@ export default async function FormationsPage() {
               style={{ ...satoshi, backgroundColor: COLORS.primary, boxShadow: `0 10px 30px ${COLORS.primary}25` }}
             >
               Lancer ma boutique
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              <ArrowRight size={18} />
             </Link>
             <Link
               href="/explorer"
               className="w-full sm:w-auto bg-transparent text-lg py-4 px-8 rounded-lg font-medium border-2 transition-colors flex items-center justify-center gap-2 hover:bg-white"
               style={{ ...satoshi, color: COLORS.dark, borderColor: COLORS.outlineVariant }}
             >
-              <span className="material-symbols-outlined text-[20px]">search</span>
+              <Search size={20} />
               Explorer les formations
             </Link>
           </div>
@@ -192,22 +222,22 @@ export default async function FormationsPage() {
                     style={{ backgroundColor: COLORS.primary + "1A", color: COLORS.primary }}
                     href="#"
                   >
-                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>grid_view</span>
+                    <LayoutGrid size={20} />
                     Dashboard
                   </a>
                   {[
-                    { icon: "shopping_cart", label: "Commandes" },
-                    { icon: "inventory_2", label: "Formations" },
+                    { Icon: ShoppingCart, label: "Commandes" },
+                    { Icon: Package, label: "Formations" },
                   ].map((item) => (
                     <a key={item.label} href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm hover:bg-white transition-colors" style={{ color: COLORS.muted }}>
-                      <span className="material-symbols-outlined">{item.icon}</span>
+                      <item.Icon size={20} />
                       {item.label}
                     </a>
                   ))}
                   <div className="pt-6 pb-2">
                     <div className="px-4 text-xs font-bold uppercase tracking-wider mb-2" style={{ color: "#6f7a6e" }}>IA STUDIO</div>
                     <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm hover:bg-white transition-colors relative" style={{ color: COLORS.muted }}>
-                      <span className="material-symbols-outlined">smart_toy</span>
+                      <Bot size={20} />
                       Chatbots
                       <span className="absolute right-4 w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: "#4ae176" }} />
                     </a>
@@ -215,7 +245,7 @@ export default async function FormationsPage() {
                 </nav>
                 <div className="mt-auto">
                   <a href="#" className="flex items-center gap-3 px-4 py-2 rounded-lg text-sm hover:bg-white transition-colors" style={{ color: COLORS.muted }}>
-                    <span className="material-symbols-outlined">settings</span>
+                    <Settings size={20} />
                     Paramètres
                   </a>
                 </div>
@@ -226,7 +256,7 @@ export default async function FormationsPage() {
                 <div className="flex justify-between items-center mb-8">
                   <h2 className="text-2xl md:text-3xl" style={{ ...satoshiHeading, color: COLORS.dark }}>Bonjour, Aminata</h2>
                   <button className="p-2 rounded-full border hover:bg-white transition-colors" style={{ backgroundColor: COLORS.surfaceLow, borderColor: COLORS.outlineVariant + "4D", color: COLORS.muted }}>
-                    <span className="material-symbols-outlined">notifications</span>
+                    <Bell size={24} />
                   </button>
                 </div>
 
@@ -234,16 +264,16 @@ export default async function FormationsPage() {
                     de l'interface, pas des chiffres réels d'un compte client) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
-                    { label: "Revenus (7j)", value: "412 000 F", trend: "+18 %", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Ventes (7j)", value: "37", trend: "+12 %", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Visiteurs", value: "1 248", trend: "+5 %", trendColor: COLORS.primary, icon: "trending_up" },
-                    { label: "Taux de conv.", value: "2,9 %", trend: "−0,3 pt", trendColor: "#ba1a1a", icon: "trending_down" },
+                    { label: "Revenus (7j)", value: "412 000 F", trend: "+18 %", trendColor: COLORS.primary, Icon: TrendingUp },
+                    { label: "Ventes (7j)", value: "37", trend: "+12 %", trendColor: COLORS.primary, Icon: TrendingUp },
+                    { label: "Visiteurs", value: "1 248", trend: "+5 %", trendColor: COLORS.primary, Icon: TrendingUp },
+                    { label: "Taux de conv.", value: "2,9 %", trend: "−0,3 pt", trendColor: "#ba1a1a", Icon: TrendingDown },
                   ].map((k) => (
                     <div key={k.label} className="p-5 rounded-xl border" style={{ backgroundColor: COLORS.surfaceLow, borderColor: COLORS.outlineVariant + "33" }}>
                       <div className="text-sm mb-2" style={{ color: COLORS.muted }}>{k.label}</div>
                       <div className="text-2xl font-bold" style={{ ...satoshiHeading, color: COLORS.dark }}>{k.value}</div>
                       <div className="text-xs font-medium mt-2 flex items-center gap-1" style={{ color: k.trendColor }}>
-                        <span className="material-symbols-outlined text-[14px]">{k.icon}</span>
+                        <k.Icon size={14} />
                         {k.trend}
                       </div>
                     </div>
@@ -325,19 +355,19 @@ export default async function FormationsPage() {
             {[
               {
                 n: "01",
-                icon: "rocket_launch",
+                Icon: Rocket,
                 title: "Lancez",
                 desc: "Inscrivez-vous gratuitement, créez votre boutique, ajoutez vos produits. Tout se fait en moins de 10 minutes sans compétence technique.",
               },
               {
                 n: "02",
-                icon: "share",
+                Icon: Share2,
                 title: "Diffusez",
                 desc: "Partagez le lien de votre boutique sur WhatsApp, Instagram, TikTok, ou intégrez-le à votre site. Tunnels de vente et popups inclus.",
               },
               {
                 n: "03",
-                icon: "account_balance_wallet",
+                Icon: Wallet,
                 title: "Encaissez",
                 desc: "Recevez les paiements automatiquement sur votre wallet. Retrait vers Mobile Money, carte bancaire ou virement quand vous voulez.",
               },
@@ -351,7 +381,7 @@ export default async function FormationsPage() {
                   {step.n}
                 </div>
                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: COLORS.primary, color: "white" }}>
-                  <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>{step.icon}</span>
+                  <step.Icon size={28} />
                 </div>
                 <h3 className="text-2xl mb-3" style={{ ...satoshiHeading, color: COLORS.dark, fontWeight: 700, letterSpacing: "-0.02em" }}>
                   {step.title}
@@ -379,14 +409,14 @@ export default async function FormationsPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
             {[
-              { icon: "storefront", title: "Boutique en ligne", desc: "Créez votre boutique vitrine personnalisée en quelques clics, sans coder." },
-              { icon: "account_balance_wallet", title: "Paiements locaux", desc: "Acceptez Mobile Money (Wave, Orange, MTN) et les cartes bancaires internationales." },
-              { icon: "auto_awesome", title: "Assistant IA", desc: "Générez vos plans de formation et vos argumentaires de vente automatiquement." },
-              { icon: "account_tree", title: "Tunnels de vente", desc: "Pages de capture, vente, upsell, remerciement — prêtes à l'emploi." },
-              { icon: "ondemand_video", title: "Hébergement vidéo", desc: "Vos vidéos sont sécurisées et hébergées chez nous, sans frais supplémentaires." },
-              { icon: "workspace_premium", title: "Certificats", desc: "Génération automatique de diplômes pour vos apprenants." },
-              { icon: "workflow", title: "Automatisations", desc: "Séquences d'emails, relances panier abandonné, offres post-achat automatiques." },
-              { icon: "devices", title: "100% Mobile", desc: "Une expérience parfaite sur smartphone pour vous et vos clients." },
+              { Icon: Store, title: "Boutique en ligne", desc: "Créez votre boutique vitrine personnalisée en quelques clics, sans coder." },
+              { Icon: Wallet, title: "Paiements locaux", desc: "Acceptez Mobile Money (Wave, Orange, MTN) et les cartes bancaires internationales." },
+              { Icon: Sparkles, title: "Assistant IA", desc: "Générez vos plans de formation et vos argumentaires de vente automatiquement." },
+              { Icon: Network, title: "Tunnels de vente", desc: "Pages de capture, vente, upsell, remerciement — prêtes à l'emploi." },
+              { Icon: Video, title: "Hébergement vidéo", desc: "Vos vidéos sont sécurisées et hébergées chez nous, sans frais supplémentaires." },
+              { Icon: Award, title: "Certificats", desc: "Génération automatique de diplômes pour vos apprenants." },
+              { Icon: Workflow, title: "Automatisations", desc: "Séquences d'emails, relances panier abandonné, offres post-achat automatiques." },
+              { Icon: Smartphone, title: "100% Mobile", desc: "Une expérience parfaite sur smartphone pour vous et vos clients." },
             ].map((f) => (
               <div
                 key={f.title}
@@ -395,7 +425,7 @@ export default async function FormationsPage() {
               >
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: COLORS.surfaceLow, color: COLORS.primary }}>
-                    <span className="material-symbols-outlined">{f.icon}</span>
+                    <f.Icon size={24} />
                   </div>
                   <div>
                     <h3 className="text-xl mb-2" style={{ ...satoshiHeading, color: COLORS.dark, fontWeight: 600, letterSpacing: "-0.02em" }}>{f.title}</h3>
@@ -412,7 +442,7 @@ export default async function FormationsPage() {
               style={{ ...satoshi, color: COLORS.dark, borderColor: COLORS.outlineVariant }}
             >
               Voir toutes les fonctionnalités
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              <ArrowRight size={18} />
             </Link>
           </div>
         </section>
@@ -439,7 +469,7 @@ export default async function FormationsPage() {
                   "Chatbot de support automatique 24/7",
                 ].map((t) => (
                   <li key={t} className="flex items-center gap-3">
-                    <span className="material-symbols-outlined" style={{ color: "white" }}>check_circle</span>
+                    <CheckCircle2 size={24} style={{ color: "white" }} />
                     <span className="font-medium" style={{ color: "white" }}>{t}</span>
                   </li>
                 ))}
@@ -449,7 +479,7 @@ export default async function FormationsPage() {
             <div className="bg-white p-6 rounded-2xl shadow-2xl">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white" style={{ backgroundColor: COLORS.primary }}>
-                  <span className="material-symbols-outlined">smart_toy</span>
+                  <Bot size={24} />
                 </div>
                 <div>
                   <div className="font-bold" style={{ color: COLORS.dark }}>Novakou AI</div>
@@ -482,7 +512,7 @@ export default async function FormationsPage() {
                   type="text"
                 />
                 <button className="w-10 h-10 text-white rounded-full flex items-center justify-center hover:opacity-90 transition-opacity" style={{ backgroundColor: COLORS.primary }}>
-                  <span className="material-symbols-outlined text-sm">send</span>
+                  <Send size={16} />
                 </button>
               </div>
             </div>
@@ -528,14 +558,14 @@ export default async function FormationsPage() {
                     <div className="w-10 h-10 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: "#1e88e5" }}>WAVE</div>
                     <span className="font-medium" style={{ color: COLORS.dark }}>Wave Mobile Money</span>
                   </div>
-                  <span className="material-symbols-outlined" style={{ color: COLORS.primary }}>radio_button_checked</span>
+                  <CircleDot size={24} style={{ color: COLORS.primary }} />
                 </div>
                 <div className="border border-slate-200 rounded-xl p-4 mb-6 flex justify-between items-center hover:bg-slate-50 cursor-pointer">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: "#f97316" }}>ORANGE</div>
                     <span className="font-medium" style={{ color: COLORS.dark }}>Orange Money</span>
                   </div>
-                  <span className="material-symbols-outlined text-slate-300">radio_button_unchecked</span>
+                  <Circle size={24} className="text-slate-300" />
                 </div>
                 <button className="w-full text-white py-3 rounded-lg font-bold" style={{ ...satoshi, backgroundColor: COLORS.primary }}>
                   Payer maintenant
@@ -560,7 +590,7 @@ export default async function FormationsPage() {
                   </div>
                 </div>
                 <button className="w-full text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2" style={{ ...satoshi, backgroundColor: COLORS.dark }}>
-                  <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
+                  <Wallet size={16} />
                   Demander un retrait
                 </button>
               </div>
@@ -605,7 +635,7 @@ export default async function FormationsPage() {
               <div key={t.name} className="bg-white p-8 rounded-2xl shadow-sm border" style={{ borderColor: COLORS.outlineVariant + "4D" }}>
                 <div className="flex gap-1 mb-6" style={{ color: COLORS.accent }}>
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <Star key={i} size={20} fill="currentColor" />
                   ))}
                 </div>
                 <p className="mb-8 text-base" style={{ color: COLORS.dark, lineHeight: 1.6 }}>&ldquo;{t.text}&rdquo;</p>
@@ -649,7 +679,7 @@ export default async function FormationsPage() {
                 "Toutes les fonctionnalités débloquées",
               ].map((t) => (
                 <li key={t} className="flex items-center gap-3">
-                  <span className="material-symbols-outlined" style={{ color: COLORS.accent, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  <CheckCircle2 size={24} style={{ color: COLORS.accent }} />
                   <span style={{ color: COLORS.dark }}>{t}</span>
                 </li>
               ))}
@@ -694,7 +724,7 @@ export default async function FormationsPage() {
                 <summary className="flex items-center justify-between cursor-pointer font-semibold text-base md:text-lg gap-3" style={{ ...satoshi, color: COLORS.dark }}>
                   {item.q}
                   <span className="transition group-open:rotate-180">
-                    <span className="material-symbols-outlined">expand_more</span>
+                    <ChevronDown size={24} />
                   </span>
                 </summary>
                 <div className="mt-4 text-base leading-[1.6]" style={{ color: COLORS.muted }}>
@@ -727,7 +757,7 @@ export default async function FormationsPage() {
                 <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #006e2f, #22c55e)` }}>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>package_2</span>
+                      <Package2 size={48} className="text-white" />
                     </div>
                   </div>
                   <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
@@ -746,7 +776,7 @@ export default async function FormationsPage() {
                     De l&apos;idée à la publication : identifiez votre expertise, structurez votre contenu, produisez avec un smartphone et publiez sur Novakou.
                   </p>
                   <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: COLORS.primary }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    Lire le guide <ArrowRight size={16} />
                   </span>
                 </div>
               </Link>
@@ -756,7 +786,7 @@ export default async function FormationsPage() {
                 <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #7c3aed, #ec4899)` }}>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>trending_up</span>
+                      <TrendingUp size={48} className="text-white" />
                     </div>
                   </div>
                   <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
@@ -775,7 +805,7 @@ export default async function FormationsPage() {
                     Pages de vente, tunnels, leviers psychologiques, réseaux sociaux, email marketing, affiliation. Toutes les stratégies qui marchent.
                   </p>
                   <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#5b21b6" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    Lire le guide <ArrowRight size={16} />
                   </span>
                 </div>
               </Link>
@@ -785,7 +815,7 @@ export default async function FormationsPage() {
                 <div className="h-48 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #f59e0b, #ef4444)` }}>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-5">
-                      <span className="material-symbols-outlined text-white text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>menu_book</span>
+                      <BookOpen size={48} className="text-white" />
                     </div>
                   </div>
                   <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[10px] font-bold bg-white/20 text-white backdrop-blur-sm">
@@ -804,7 +834,7 @@ export default async function FormationsPage() {
                     De l&apos;inscription à votre première vente. Boutique, paiements, tunnels, IA, emails, affiliation, retraits. Tout est couvert.
                   </p>
                   <span className="text-sm font-bold flex items-center gap-1 group-hover:gap-2 transition-all" style={{ color: "#b45309" }}>
-                    Lire le guide <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    Lire le guide <ArrowRight size={16} />
                   </span>
                 </div>
               </Link>
@@ -822,7 +852,7 @@ export default async function FormationsPage() {
                 style={{ backgroundColor: COLORS.primary, color: "#fff", ...satoshi }}
               >
                 Voir tous les guides
-                <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+                <ArrowRight size={20} />
               </Link>
             </div>
           </div>

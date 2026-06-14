@@ -1,4 +1,8 @@
 import Link from "next/link";
+import {
+  ArrowLeft,
+  Clock,
+} from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { CATEGORIES, getArticlesByCategory, getCategory } from "@/lib/help/articles";
@@ -123,7 +127,7 @@ export default async function HelpCategoryPage({ params }: Params) {
         />
         <div className="relative max-w-5xl mx-auto px-5 md:px-8 py-10 md:py-14">
           <Link href="/aide" className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 mb-5">
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            <ArrowLeft size={14} />
             Centre d&apos;aide
           </Link>
           <div className="flex items-start gap-4">
@@ -167,7 +171,7 @@ export default async function HelpCategoryPage({ params }: Params) {
                 </h3>
                 <p className="text-xs text-slate-500 mt-2 line-clamp-2">{a.excerpt}</p>
                 <div className="flex items-center gap-2 mt-3 text-[11px] text-slate-400">
-                  <span className="material-symbols-outlined text-[14px]">schedule</span>
+                  <Clock size={14} />
                   {a.readingMin} min de lecture
                   {a.tags && a.tags.length > 0 && (
                     <span className="ml-2">·</span>

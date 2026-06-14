@@ -2,6 +2,22 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import {
+  Trophy,
+  BadgeCheck,
+  Code,
+  Star,
+  Brain,
+  Search,
+  UserSearch,
+  HandHeart,
+  Mic,
+  LogIn,
+  Headset,
+  Clock,
+  Tag,
+  type LucideIcon,
+} from "lucide-react";
 
 // ─── Mentor shape (matches /api/formations/mentors response) ────────────────
 type Mentor = {
@@ -65,11 +81,11 @@ function gradientFor(id: string): string {
 
 const domains = ["Tous", "Marketing", "Dev", "Design", "Business"];
 
-const badgeConfig: Record<string, { bg: string; text: string; icon: string }> = {
-  "Top Mentor":    { bg: "bg-amber-50",  text: "text-amber-700",  icon: "emoji_events" },
-  "Vérifié":       { bg: "bg-green-50",  text: "text-green-700",  icon: "verified" },
-  "Expert Tech":   { bg: "bg-blue-50",   text: "text-blue-700",   icon: "code" },
-  "Rising Star":   { bg: "bg-purple-50", text: "text-purple-700", icon: "star" },
+const badgeConfig: Record<string, { bg: string; text: string; icon: LucideIcon }> = {
+  "Top Mentor":    { bg: "bg-amber-50",  text: "text-amber-700",  icon: Trophy },
+  "Vérifié":       { bg: "bg-green-50",  text: "text-green-700",  icon: BadgeCheck },
+  "Expert Tech":   { bg: "bg-blue-50",   text: "text-blue-700",   icon: Code },
+  "Rising Star":   { bg: "bg-purple-50", text: "text-purple-700", icon: Star },
 };
 
 export default function MentorsPage() {
@@ -126,7 +142,7 @@ export default function MentorsPage() {
         </div>
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-semibold px-4 py-2 rounded-full mb-5 border border-white/20">
-            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>psychology</span>
+            <Brain size={16} />
             Mentorat 1:1 · Experts africains
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-white leading-tight mb-4">
@@ -136,7 +152,7 @@ export default function MentorsPage() {
             Des professionnels qui vous accompagnent en session individuelle pour accélérer votre carrière freelance.
           </p>
           <div className="relative max-w-md mx-auto">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-[20px]">search</span>
+            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Chercher un mentor, une spécialité…"
@@ -189,7 +205,7 @@ export default function MentorsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-[#5c647a]">
-              <span className="material-symbols-outlined text-[56px] block mb-3 text-gray-300">person_search</span>
+              <UserSearch size={56} className="mb-3 text-gray-300 mx-auto" />
               <p className="font-semibold text-[#191c1e] mb-1">
                 {allMentors.length === 0 ? "Aucun mentor inscrit pour l'instant" : "Aucun mentor trouvé"}
               </p>
@@ -204,7 +220,7 @@ export default function MentorsPage() {
                   className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                 >
-                  <span className="material-symbols-outlined text-[16px]">volunteer_activism</span>
+                  <HandHeart size={16} />
                   Devenir mentor
                 </Link>
               )}
@@ -223,7 +239,7 @@ export default function MentorsPage() {
       <section className="py-20 px-4 bg-white">
         <div className="max-w-2xl mx-auto text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#e8f5e9] flex items-center justify-center mx-auto mb-5">
-            <span className="material-symbols-outlined text-[32px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>record_voice_over</span>
+            <Mic size={32} className="text-[#006e2f]" />
           </div>
           <h2 className="text-2xl font-extrabold text-[#191c1e] mb-3">Devenez mentor sur Novakou</h2>
           <p className="text-[#5c647a] text-base mb-8 max-w-lg mx-auto leading-relaxed">
@@ -234,14 +250,14 @@ export default function MentorsPage() {
               href="/inscription?role=mentor"
               className="inline-flex items-center justify-center gap-2 bg-[#006e2f] text-white font-bold px-8 py-3.5 rounded-2xl text-sm shadow-lg hover:bg-[#005a26] hover:shadow-xl transition-all hover:-translate-y-0.5"
             >
-              <span className="material-symbols-outlined text-[18px]">volunteer_activism</span>
+              <HandHeart size={18} />
               Postuler comme mentor
             </Link>
             <Link
               href="/connexion"
               className="inline-flex items-center justify-center gap-2 border border-gray-200 text-[#5c647a] font-semibold px-8 py-3.5 rounded-2xl text-sm hover:bg-gray-50 transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">login</span>
+              <LogIn size={18} />
               J&apos;ai déjà un compte
             </Link>
           </div>
@@ -272,12 +288,7 @@ function MentorCard({ mentor }: { mentor: Mentor }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <span
-              className="material-symbols-outlined text-white text-[72px] opacity-60"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              support_agent
-            </span>
+            <Headset size={72} className="text-white opacity-60" />
           </div>
         )}
 
@@ -293,11 +304,10 @@ function MentorCard({ mentor }: { mentor: Mentor }) {
           </span>
           {mentor.isVerified && (
             <span
-              className="material-symbols-outlined text-blue-500 bg-white rounded-full p-0.5 shadow-sm"
-              style={{ fontSize: "14px", fontVariationSettings: "'FILL' 1" }}
+              className="text-blue-500 bg-white rounded-full p-0.5 shadow-sm inline-flex"
               title="Profil vérifié"
             >
-              verified
+              <BadgeCheck size={14} />
             </span>
           )}
         </div>
@@ -306,12 +316,7 @@ function MentorCard({ mentor }: { mentor: Mentor }) {
         {mentor.rating > 0 && (
           <div className="absolute top-3 right-3">
             <span className="inline-flex items-center gap-1 bg-white/95 backdrop-blur text-[#191c1e] text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-              <span
-                className="material-symbols-outlined text-amber-400 text-[12px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                star
-              </span>
+              <Star size={12} className="text-amber-400 fill-amber-400" />
               {mentor.rating.toFixed(1)}
               {mentor.reviews > 0 && <span className="text-[#5c647a]">({mentor.reviews})</span>}
             </span>
@@ -360,18 +365,14 @@ function MentorCard({ mentor }: { mentor: Mentor }) {
           <div className="flex flex-wrap gap-1">
             {mentor.badges.slice(0, 2).map((badge) => {
               const cfg =
-                badgeConfig[badge] ?? { bg: "bg-gray-100", text: "text-gray-600", icon: "label" };
+                badgeConfig[badge] ?? { bg: "bg-gray-100", text: "text-gray-600", icon: Tag };
+              const BadgeIcon = cfg.icon;
               return (
                 <span
                   key={badge}
                   className={`inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`}
                 >
-                  <span
-                    className="material-symbols-outlined text-[10px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    {cfg.icon}
-                  </span>
+                  <BadgeIcon size={10} />
                   {badge}
                 </span>
               );
@@ -399,7 +400,7 @@ function MentorCard({ mentor }: { mentor: Mentor }) {
             </p>
           </div>
           <div className="flex items-center gap-1 text-xs text-[#5c647a] font-medium">
-            <span className="material-symbols-outlined text-[14px]">schedule</span>
+            <Clock size={14} />
             {mentor.sessionDurationLabel ?? `${mentor.sessionDuration} min`}
           </div>
         </div>

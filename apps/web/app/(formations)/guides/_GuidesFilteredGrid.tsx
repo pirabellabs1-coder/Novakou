@@ -7,6 +7,10 @@
 // Une fois hydraté, useState gère le filtre activement côté client.
 
 import { useState } from "react";
+import {
+  ArrowRight,
+  Package,
+} from "lucide-react";
 import Link from "next/link";
 
 const satoshi = {
@@ -78,9 +82,7 @@ export default function GuidesFilteredGrid({ guides, categories }: Props) {
         <div className="max-w-6xl mx-auto">
           {filtered.length === 0 ? (
             <div className="text-center py-20">
-              <span className="material-symbols-outlined text-6xl text-gray-300 mb-4 inline-block">
-                inventory_2
-              </span>
+              <Package className="text-6xl text-gray-300 mb-4 inline-block" />
               <p className="text-lg font-bold text-[#191c1e] mb-2">
                 Aucun guide dans cette catégorie pour l'instant
               </p>
@@ -149,7 +151,7 @@ export default function GuidesFilteredGrid({ guides, categories }: Props) {
                       style={{ color: guide.levelColor }}
                     >
                       Lire le guide{" "}
-                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                      <ArrowRight size={16} />
                     </span>
                   </div>
                 </Link>

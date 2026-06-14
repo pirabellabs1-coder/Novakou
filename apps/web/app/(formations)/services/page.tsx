@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -108,14 +112,14 @@ export default function ServicesPage() {
                 <ul className="space-y-1.5 mb-5 flex-1">
                   {p.features.map((f) => (
                     <li key={f} className="flex items-center gap-2 text-xs text-[#191c1e]">
-                      <span className="material-symbols-outlined text-[14px]" style={{ color: p.color, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      <CheckCircle2 size={14} />
                       {f}
                     </li>
                   ))}
                 </ul>
                 <Link href={p.href} className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity" style={{ background: p.bg }}>
                   {p.cta}
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  <ArrowRight size={16} />
                 </Link>
               </div>
             </div>
@@ -153,7 +157,7 @@ export default function ServicesPage() {
           </p>
           <Link href="/explorer" className="inline-flex items-center gap-2 bg-white text-[#006e2f] px-7 py-4 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-colors">
             Voir le catalogue complet
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            <ArrowRight size={18} />
           </Link>
         </div>
       </section>

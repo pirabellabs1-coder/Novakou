@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { AlertCircle, UserPlus, MailCheck, Loader2, CheckCircle2 } from "lucide-react";
 
 function VerifierEmailInner() {
   const searchParams = useSearchParams();
@@ -157,7 +158,7 @@ function VerifierEmailInner() {
     return (
       <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-          <span className="material-symbols-outlined text-red-500 text-5xl">error</span>
+          <AlertCircle size={48} className="text-red-500 mx-auto" />
           <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Lien invalide</h2>
           <p className="text-sm text-[#5c647a] mt-2 mb-5">Ce lien a expiré ou est invalide.</p>
           <Link
@@ -165,7 +166,7 @@ function VerifierEmailInner() {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+            <UserPlus size={16} />
             Créer un compte
           </Link>
         </div>
@@ -187,7 +188,7 @@ function VerifierEmailInner() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
           {/* Icon */}
           <div className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-5" style={{ background: "linear-gradient(135deg, #006e2f15, #22c55e15)" }}>
-            <span className="material-symbols-outlined text-[28px] text-[#006e2f]">mark_email_read</span>
+            <MailCheck size={28} className="text-[#006e2f]" />
           </div>
 
           {/* Heading */}
@@ -221,14 +222,14 @@ function VerifierEmailInner() {
 
             {error && (
               <p className="mt-4 text-center text-sm text-red-600 flex items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px]">error</span>
+                <AlertCircle size={16} />
                 {error}
               </p>
             )}
 
             {loading && (
               <p className="mt-4 text-center text-sm text-[#5c647a] flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <Loader2 size={16} className="animate-spin" />
                 Vérification…
               </p>
             )}
@@ -238,7 +239,7 @@ function VerifierEmailInner() {
           <div className="mt-6 pt-6 border-t border-gray-100 text-center">
             {resent ? (
               <p className="text-sm text-[#006e2f] font-semibold flex items-center justify-center gap-1.5">
-                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                <CheckCircle2 size={16} />
                 Nouveau code envoyé !
               </p>
             ) : (
@@ -274,7 +275,7 @@ export default function VerifierEmailPage() {
   return (
     <Suspense fallback={
       <div className="min-h-[calc(100vh-96px)] bg-[#f7f9fb] flex items-center justify-center">
-        <span className="material-symbols-outlined text-[40px] text-[#006e2f] animate-spin">progress_activity</span>
+        <Loader2 size={40} className="text-[#006e2f] animate-spin" />
       </div>
     }>
       <VerifierEmailInner />

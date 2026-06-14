@@ -4,6 +4,30 @@ import { use, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import {
+  Star,
+  UserX,
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  ChevronLeft,
+  Headset,
+  BadgeCheck,
+  Trophy,
+  Users,
+  CalendarCheck,
+  CalendarDays,
+  CalendarX,
+  CalendarPlus,
+  Tag,
+  PiggyBank,
+  ShoppingBag,
+  MessageSquareText,
+  Share2,
+  ShieldCheck,
+  Repeat,
+  Video,
+} from "lucide-react";
 import { stripHtml } from "@/lib/sanitize-html";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import TrackPageView from "@/components/tracking/TrackPageView";
@@ -117,16 +141,11 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
-        <span
+        <Star
           key={s}
-          className="material-symbols-outlined text-yellow-400"
-          style={{
-            fontSize: `${size}px`,
-            fontVariationSettings: s <= Math.floor(rating) ? "'FILL' 1" : "'FILL' 0",
-          }}
-        >
-          star
-        </span>
+          size={size}
+          className={`text-yellow-400 ${s <= Math.floor(rating) ? "fill-yellow-400" : ""}`}
+        />
       ))}
     </div>
   );
@@ -248,7 +267,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <span className="material-symbols-outlined text-gray-300 text-5xl">person_off</span>
+          <UserX size={48} className="text-gray-300 mx-auto" />
           <h2 className="text-lg font-bold text-[#191c1e] mt-3">Mentor introuvable</h2>
           <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
             Ce profil n&apos;existe pas ou n&apos;est plus disponible.
@@ -258,7 +277,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Retour à la liste
           </Link>
         </div>
@@ -280,9 +299,9 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
       <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-3">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-[#5c647a]">
           <Link href="/" className="hover:text-[#006e2f] transition-colors">Accueil</Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <ChevronRight size={12} />
           <Link href="/mentors" className="hover:text-[#006e2f] transition-colors">Mentors</Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <ChevronRight size={12} />
           <span className="text-[#191c1e] font-medium truncate max-w-[200px]">{mentor.name ?? "Mentor"}</span>
         </div>
       </div>
@@ -298,12 +317,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                 <img src={mentor.coverImage} alt={mentor.name ?? "Mentor"} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span
-                    className="material-symbols-outlined text-white/30 text-[100px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    support_agent
-                  </span>
+                  <Headset size={100} className="text-white/30" />
                 </div>
               )}
               <div className="absolute top-4 left-4 flex items-center gap-2 flex-wrap">
@@ -346,23 +360,13 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                 })}
                 {mentor.isVerified && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700">
-                    <span
-                      className="material-symbols-outlined text-[13px]"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      verified
-                    </span>
+                    <BadgeCheck size={13} />
                     VÉRIFIÉ
                   </span>
                 )}
                 {isTopMentor && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
-                    <span
-                      className="material-symbols-outlined text-[13px]"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      emoji_events
-                    </span>
+                    <Trophy size={13} />
                     TOP MENTOR
                   </span>
                 )}
@@ -385,17 +389,17 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                   )}
                 </div>
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">groups</span>
+                  <Users size={14} />
                   <span className="font-semibold text-[#191c1e]">{fmt(mentor.totalStudents)}</span>
                   apprenant{mentor.totalStudents > 1 ? "s" : ""}
                 </span>
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">event_available</span>
+                  <CalendarCheck size={14} />
                   <span className="font-semibold text-[#191c1e]">{fmt(mentor.totalSessions)}</span>
                   séance{mentor.totalSessions > 1 ? "s" : ""}
                 </span>
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">calendar_month</span>
+                  <CalendarDays size={14} />
                   Membre depuis {new Date(mentor.memberSince).getFullYear()}
                 </span>
               </div>
@@ -437,7 +441,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                   <div className="flex flex-wrap gap-2">
                     {mentor.domain && (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#006e2f]/10 text-[#006e2f]">
-                        <span className="material-symbols-outlined text-[14px]">category</span>
+                        <Tag size={14} />
                         {mentor.domain}
                       </span>
                     )}
@@ -464,7 +468,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                 {mentor.sessionPacks && mentor.sessionPacks.length > 0 && (
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="material-symbols-outlined text-[20px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>local_offer</span>
+                      <Tag size={20} className="text-[#006e2f]" />
                       <h2 className="text-lg font-extrabold text-[#191c1e]">Packs de séances</h2>
                     </div>
                     <p className="text-sm text-[#5c647a] mb-4">
@@ -478,7 +482,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                         >
                           {pack.savingPct > 0 && (
                             <span className="self-start inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-800 mb-3">
-                              <span className="material-symbols-outlined text-[12px]">savings</span>
+                              <PiggyBank size={12} />
                               -{pack.savingPct}%
                             </span>
                           )}
@@ -505,7 +509,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                               className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
                               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                             >
-                              <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                              <ShoppingBag size={16} />
                               Acheter
                             </button>
                           </div>
@@ -520,7 +524,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                     <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                       <h2 className="text-lg font-extrabold text-[#191c1e] flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px] text-[#006e2f]">event_available</span>
+                        <CalendarCheck size={20} className="text-[#006e2f]" />
                         Disponibilités
                       </h2>
                       <button
@@ -528,13 +532,13 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                         className="text-xs font-semibold text-[#006e2f] hover:underline flex items-center gap-1"
                       >
                         Tous les créneaux
-                        <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                        <ArrowRight size={14} />
                       </button>
                     </div>
 
                     {previewSlots.length === 0 ? (
                       <div className="text-center py-6">
-                        <span className="material-symbols-outlined text-gray-300 text-4xl">event_busy</span>
+                        <CalendarX size={36} className="text-gray-300 mx-auto" />
                         <p className="text-sm text-[#5c647a] mt-2">
                           Aucun créneau disponible pour le moment.
                         </p>
@@ -548,7 +552,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                             className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a]"
                             aria-label="Mois précédent"
                           >
-                            <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                            <ChevronLeft size={18} />
                           </button>
                           <p className="text-sm font-bold text-[#191c1e]">
                             {MONTHS_FR[calMonth.getMonth()]} {calMonth.getFullYear()}
@@ -558,7 +562,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                             className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a]"
                             aria-label="Mois suivant"
                           >
-                            <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                            <ChevronRight size={18} />
                           </button>
                         </div>
 
@@ -645,7 +649,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
               <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                 {mentor.reviews.length === 0 ? (
                   <div className="text-center py-8">
-                    <span className="material-symbols-outlined text-gray-300 text-5xl">reviews</span>
+                    <MessageSquareText size={48} className="text-gray-300 mx-auto" />
                     <p className="text-sm text-[#5c647a] mt-3">Aucun avis publié pour l&apos;instant.</p>
                     <p className="text-xs text-gray-400 mt-1">Soyez le premier à réserver une séance !</p>
                   </div>
@@ -721,7 +725,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                   className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 hover:-translate-y-0.5 flex items-center justify-center gap-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">calendar_add_on</span>
+                  <CalendarPlus size={18} />
                   {mentor.isAvailable ? "Réserver une séance" : "Indisponible"}
                 </button>
 
@@ -730,26 +734,26 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                   onClick={handleShare}
                   className="w-full mt-2 py-2.5 rounded-xl text-[#191c1e] font-semibold text-sm border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-[16px]">share</span>
+                  <Share2 size={16} />
                   Partager
                 </button>
 
                 {/* Trust */}
                 <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">verified_user</span>
+                    <ShieldCheck size={16} className="text-[#006e2f]" />
                     Paiement 100% sécurisé
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">event_repeat</span>
+                    <Repeat size={16} className="text-[#006e2f]" />
                     Annulation gratuite jusqu&apos;à 24h
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">support_agent</span>
+                    <Headset size={16} className="text-[#006e2f]" />
                     Support disponible 24/7
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">video_camera_front</span>
+                    <Video size={16} className="text-[#006e2f]" />
                     Séance en visio sécurisée
                   </div>
                 </div>
@@ -759,9 +763,9 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
             {/* Back link */}
             <Link
               href="/mentors"
-              className="block text-center text-xs font-semibold text-[#5c647a] hover:text-[#006e2f] transition-colors"
+              className="inline-flex items-center justify-center gap-1 w-full text-center text-xs font-semibold text-[#5c647a] hover:text-[#006e2f] transition-colors"
             >
-              <span className="material-symbols-outlined text-[14px] align-middle">arrow_back</span>{" "}
+              <ArrowLeft size={14} />
               Retour à la liste des mentors
             </Link>
           </div>

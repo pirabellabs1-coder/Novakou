@@ -1,6 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ArrowRight,
+  AtSign,
+  Mail,
+  Search,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { ARTICLES, CATEGORIES, searchArticles } from "@/lib/help/articles";
 
@@ -24,7 +30,7 @@ export default function AidePage() {
             {ARTICLES.length} articles pour tout maîtriser — création de compte, vente, paiement, retrait, mentorat, sécurité.
           </p>
           <div className="max-w-2xl mx-auto mt-8 relative">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[22px] pointer-events-none">search</span>
+            <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="search" value={query} onChange={(e) => setQuery(e.target.value)} autoFocus
               placeholder="Rechercher un sujet, un problème, une question…"
@@ -61,7 +67,7 @@ export default function AidePage() {
                       <h3 className="text-base font-bold text-slate-900 group-hover:text-emerald-700">{a.title}</h3>
                       <p className="text-xs text-slate-500 mt-1 line-clamp-2">{a.excerpt}</p>
                     </div>
-                    <span className="material-symbols-outlined text-slate-400">arrow_forward</span>
+                    <ArrowRight className="text-slate-400" />
                   </Link>
                 );
               })}
@@ -104,7 +110,7 @@ export default function AidePage() {
                         <p className="text-sm font-bold text-slate-900 truncate">{a.title}</p>
                         <p className="text-[11px] text-slate-500">{cat?.title} · {a.readingMin} min</p>
                       </div>
-                      <span className="material-symbols-outlined text-slate-300 text-[18px]">arrow_forward</span>
+                      <ArrowRight size={18} className="text-slate-300" />
                     </Link>
                   );
                 })}
@@ -119,11 +125,11 @@ export default function AidePage() {
                 </p>
                 <div className="flex flex-wrap gap-3 mt-6">
                   <Link href="/contact" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 text-white text-sm font-bold hover:bg-emerald-400 transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">mail</span>
+                    <Mail size={18} />
                     Envoyer un message
                   </Link>
                   <a href="mailto:support@novakou.com" className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-bold hover:bg-white/15">
-                    <span className="material-symbols-outlined text-[18px]">alternate_email</span>
+                    <AtSign size={18} />
                     support@novakou.com
                   </a>
                 </div>

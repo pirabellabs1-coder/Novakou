@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import { AlertCircle, LogIn, ShieldCheck, Loader2, LogOut } from "lucide-react";
 
 function TwoFaInner() {
   const searchParams = useSearchParams();
@@ -24,7 +25,7 @@ function TwoFaInner() {
     return (
       <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-          <span className="material-symbols-outlined text-red-500 text-5xl">error</span>
+          <AlertCircle size={48} className="text-red-500 mx-auto" />
           <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Session expirée</h2>
           <p className="text-sm text-[#5c647a] mt-2 mb-5">Veuillez vous reconnecter.</p>
           <Link
@@ -32,7 +33,7 @@ function TwoFaInner() {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">login</span>
+            <LogIn size={16} />
             Se connecter
           </Link>
         </div>
@@ -95,12 +96,7 @@ function TwoFaInner() {
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
           <div className="text-center mb-6">
             <div className="w-16 h-16 rounded-full bg-[#006e2f]/10 flex items-center justify-center mx-auto mb-4">
-              <span
-                className="material-symbols-outlined text-[#006e2f] text-[32px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                shield_lock
-              </span>
+              <ShieldCheck size={32} className="text-[#006e2f]" />
             </div>
             <h2 className="text-xl font-extrabold text-[#191c1e]">Authentification à deux facteurs</h2>
             <p className="text-sm text-[#5c647a] mt-1.5">
@@ -114,7 +110,7 @@ function TwoFaInner() {
 
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
+              <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
               <p className="text-sm text-red-700 font-medium">{error}</p>
             </div>
           )}
@@ -149,12 +145,12 @@ function TwoFaInner() {
             >
               {loading ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <Loader2 size={18} className="animate-spin" />
                   Vérification…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                  <ShieldCheck size={18} />
                   Accéder à mon espace
                 </>
               )}
@@ -166,7 +162,7 @@ function TwoFaInner() {
                 onClick={handleCancel}
                 className="text-xs text-[#5c647a] hover:text-red-600 font-semibold inline-flex items-center gap-1"
               >
-                <span className="material-symbols-outlined text-[14px]">logout</span>
+                <LogOut size={14} />
                 Annuler et me déconnecter
               </button>
             </div>

@@ -1,6 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ChevronDown,
+  Info,
+  Rocket,
+  Trophy,
+} from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -126,7 +132,7 @@ export default function AffiliationPage() {
         />
         <div className="relative max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white text-sm font-semibold px-4 py-2 rounded-full mb-6">
-            <span className="material-symbols-outlined text-[16px]">emoji_events</span>
+            <Trophy size={16} />
             Programme d&apos;affiliation
           </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight mb-5">
@@ -143,14 +149,14 @@ export default function AffiliationPage() {
               href="/inscription?role=affilie"
               className="inline-flex items-center justify-center gap-2 bg-white text-[#006e2f] font-bold px-7 py-3.5 rounded-2xl text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
             >
-              <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+              <Rocket size={18} />
               Démarrer maintenant — c&apos;est gratuit
             </Link>
             <a
               href="#comment-ca-marche"
               className="inline-flex items-center justify-center gap-2 border border-white/30 text-white font-semibold px-7 py-3.5 rounded-2xl text-sm hover:bg-white/10 transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">info</span>
+              <Info size={18} />
               Comment ça marche ?
             </a>
           </div>
@@ -330,7 +336,7 @@ export default function AffiliationPage() {
             href="/inscription?role=affilie"
             className="inline-flex items-center gap-2 bg-[#006e2f] text-white font-bold px-8 py-4 rounded-2xl text-base shadow-lg hover:bg-[#005a26] hover:shadow-xl transition-all hover:-translate-y-0.5"
           >
-            <span className="material-symbols-outlined text-[20px]">rocket_launch</span>
+            <Rocket size={20} />
             Créer mon compte affilié
           </Link>
         </div>
@@ -350,12 +356,7 @@ export default function AffiliationPage() {
                   className="w-full flex items-center justify-between px-6 py-4 text-left"
                 >
                   <span className="font-semibold text-[#191c1e] text-sm">{faq.q}</span>
-                  <span
-                    className="material-symbols-outlined text-[20px] text-[#5c647a] flex-shrink-0 ml-4 transition-transform"
-                    style={{ transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)" }}
-                  >
-                    expand_more
-                  </span>
+                  <ChevronDown size={20} className="text-[#5c647a] flex-shrink-0 ml-4 transition-transform" />
                 </button>
                 {openFaq === i && (
                   <div className="px-6 pb-4">

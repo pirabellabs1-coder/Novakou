@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import {
+  ArrowRight,
+} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -105,7 +108,7 @@ export default function FreelancesPage() {
           </p>
           <Link href="/mentors" className="inline-flex items-center gap-2 bg-white text-[#006e2f] px-7 py-4 rounded-2xl font-bold text-sm hover:bg-slate-100 transition-colors">
             Voir tous les mentors
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            <ArrowRight size={18} />
           </Link>
         </div>
       </section>

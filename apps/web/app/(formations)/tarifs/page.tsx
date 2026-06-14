@@ -2,6 +2,23 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import {
+  BadgeCheck,
+  Rocket,
+  Compass,
+  Wallet,
+  Percent,
+  Lightbulb,
+  CheckCircle2,
+  Check,
+  Shield,
+  CalendarCheck,
+  Headset,
+  Globe,
+  Stars,
+  ChevronDown,
+  MessageCircle,
+} from "lucide-react";
 
 const INCLUDED_FEATURES = [
   {
@@ -114,12 +131,7 @@ export default function TarifsPage() {
         </div>
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/15 text-white text-sm font-semibold px-4 py-2 rounded-full mb-5 border border-white/20">
-            <span
-              className="material-symbols-outlined text-[16px]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              verified
-            </span>
+            <BadgeCheck size={16} />
             Aucun abonnement. Jamais.
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight mb-5">
@@ -136,14 +148,14 @@ export default function TarifsPage() {
               href="/inscription?role=vendeur"
               className="inline-flex items-center justify-center gap-2 bg-white text-[#006e2f] font-bold px-8 py-3.5 rounded-2xl text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
             >
-              <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+              <Rocket size={18} />
               Créer ma boutique gratuitement
             </Link>
             <Link
               href="/explorer"
               className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-semibold px-8 py-3.5 rounded-2xl text-sm hover:bg-white/20 transition-all"
             >
-              <span className="material-symbols-outlined text-[18px]">explore</span>
+              <Compass size={18} />
               Explorer le catalogue
             </Link>
           </div>
@@ -192,12 +204,7 @@ export default function TarifsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-[#006e2f]/5 border border-[#006e2f]/20 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className="material-symbols-outlined text-[#006e2f] text-[18px]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    account_balance_wallet
-                  </span>
+                  <Wallet size={18} className="text-[#006e2f]" />
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#006e2f]">
                     Votre revenu net
                   </p>
@@ -211,7 +218,7 @@ export default function TarifsPage() {
               </div>
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="material-symbols-outlined text-[#5c647a] text-[18px]">percent</span>
+                  <Percent size={18} className="text-[#5c647a]" />
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">
                     Commission plateforme
                   </p>
@@ -224,9 +231,7 @@ export default function TarifsPage() {
             </div>
 
             <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-3 flex items-start gap-3">
-              <span className="material-symbols-outlined text-amber-600 text-[20px] flex-shrink-0">
-                lightbulb
-              </span>
+              <Lightbulb size={20} className="text-amber-600 flex-shrink-0" />
               <p className="text-xs text-amber-900">
                 <strong>Pas de frais cachés.</strong> Les 10 % incluent le traitement des paiements, l&apos;hébergement, les emails, le support et toutes les fonctionnalités. Aucun abonnement mensuel.
               </p>
@@ -256,20 +261,13 @@ export default function TarifsPage() {
               className="bg-white rounded-2xl border border-gray-100 p-6 hover:border-[#006e2f]/30 transition-colors"
             >
               <h3 className="text-sm font-extrabold text-[#191c1e] mb-4 flex items-center gap-2">
-                <span
-                  className="material-symbols-outlined text-[#006e2f] text-[20px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  check_circle
-                </span>
+                <CheckCircle2 size={20} className="text-[#006e2f]" />
                 {category.category}
               </h3>
               <ul className="space-y-2.5">
                 {category.items.map((item, j) => (
                   <li key={j} className="flex items-start gap-2.5">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px] mt-0.5 flex-shrink-0">
-                      done
-                    </span>
+                    <Check size={16} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-[#5c647a] leading-relaxed">{item}</span>
                   </li>
                 ))}
@@ -311,12 +309,7 @@ export default function TarifsPage() {
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         {c.highlighted && (
-                          <span
-                            className="material-symbols-outlined text-[#006e2f] text-[18px]"
-                            style={{ fontVariationSettings: "'FILL' 1" }}
-                          >
-                            stars
-                          </span>
+                          <Stars size={18} className="text-[#006e2f]" />
                         )}
                         <span
                           className={`${
@@ -350,19 +343,14 @@ export default function TarifsPage() {
       <section className="bg-[#f7f9fb] py-12 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { icon: "shield", label: "Paiement sécurisé", sub: "SSL & 3D Secure" },
-            { icon: "event_available", label: "Remboursement 14j", sub: "Satisfait ou remboursé" },
-            { icon: "support_agent", label: "Support réactif", sub: "Réponse en 24h max" },
-            { icon: "language", label: "17 pays africains", sub: "+ international" },
+            { Icon: Shield, label: "Paiement sécurisé", sub: "SSL & 3D Secure" },
+            { Icon: CalendarCheck, label: "Remboursement 14j", sub: "Satisfait ou remboursé" },
+            { Icon: Headset, label: "Support réactif", sub: "Réponse en 24h max" },
+            { Icon: Globe, label: "17 pays africains", sub: "+ international" },
           ].map((item) => (
             <div key={item.label} className="flex flex-col items-center text-center gap-2">
               <div className="w-12 h-12 rounded-2xl bg-[#006e2f]/10 flex items-center justify-center">
-                <span
-                  className="material-symbols-outlined text-[#006e2f] text-[22px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  {item.icon}
-                </span>
+                <item.Icon size={22} className="text-[#006e2f]" />
               </div>
               <p className="font-bold text-[#191c1e] text-sm">{item.label}</p>
               <p className="text-xs text-[#5c647a]">{item.sub}</p>
@@ -391,12 +379,11 @@ export default function TarifsPage() {
                 className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-[#f7f9fb] transition-colors"
               >
                 <span className="font-semibold text-[#191c1e] text-sm pr-4">{faq.q}</span>
-                <span
-                  className="material-symbols-outlined text-[#5c647a] text-[20px] flex-shrink-0 transition-transform duration-200"
+                <ChevronDown
+                  size={20}
+                  className="text-[#5c647a] flex-shrink-0 transition-transform duration-200"
                   style={{ transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)" }}
-                >
-                  expand_more
-                </span>
+                />
               </button>
               {openFaq === i && (
                 <div className="px-6 pb-5 pt-0">
@@ -413,7 +400,7 @@ export default function TarifsPage() {
             href="/contact"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border-2 border-[#006e2f] text-[#006e2f] font-bold text-sm hover:bg-[#006e2f] hover:text-white transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">chat</span>
+            <MessageCircle size={18} />
             Contacter le support
           </Link>
         </div>
@@ -435,7 +422,7 @@ export default function TarifsPage() {
             href="/inscription?role=vendeur"
             className="inline-flex items-center justify-center gap-2 bg-white text-[#006e2f] font-bold px-8 py-3.5 rounded-2xl text-sm shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
           >
-            <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+            <Rocket size={18} />
             Créer ma boutique gratuitement
           </Link>
         </div>

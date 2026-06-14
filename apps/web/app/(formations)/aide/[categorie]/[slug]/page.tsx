@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+  Clock,
+  MessageSquare,
+  RefreshCw,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import {
@@ -167,11 +174,11 @@ export default async function HelpArticlePage({ params }: Params) {
 
         <div className="flex items-center gap-4 mt-5 pb-6 border-b border-slate-200 text-xs text-slate-400">
           <span className="inline-flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">schedule</span>
+            <Clock size={14} />
             {article.readingMin} min de lecture
           </span>
           <span className="inline-flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">update</span>
+            <RefreshCw size={14} />
             Mis à jour le {dateStr}
           </span>
         </div>
@@ -200,11 +207,11 @@ export default async function HelpArticlePage({ params }: Params) {
           <p className="text-sm font-bold text-slate-900 mb-3">Cet article vous a-t-il aidé ?</p>
           <div className="flex flex-wrap gap-2">
             <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold hover:bg-emerald-100">
-              <span className="material-symbols-outlined text-[16px]">thumb_up</span>
+              <ThumbsUp size={16} />
               Oui, merci
             </button>
             <button className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-200">
-              <span className="material-symbols-outlined text-[16px]">thumb_down</span>
+              <ThumbsDown size={16} />
               Pas vraiment
             </button>
             <Link
@@ -212,7 +219,7 @@ export default async function HelpArticlePage({ params }: Params) {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold ml-auto"
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[16px]">chat</span>
+              <MessageSquare size={16} />
               Contacter le support
             </Link>
           </div>

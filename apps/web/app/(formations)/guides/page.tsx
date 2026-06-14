@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  CheckCircle2,
+  ChevronDown,
+} from "lucide-react";
 import Link from "next/link";
 import GuidesFilteredGrid from "./_GuidesFilteredGrid";
 
@@ -327,15 +331,15 @@ export default function GuidesIndexPage() {
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.primary }}>
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              <CheckCircle2 size={18} />
               20 guides
             </div>
             <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.primary }}>
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              <CheckCircle2 size={18} />
               100 % gratuits
             </div>
             <div className="flex items-center gap-1.5 text-sm font-semibold" style={{ color: COLORS.primary }}>
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              <CheckCircle2 size={18} />
               Écrits pour l&apos;Afrique
             </div>
           </div>
@@ -370,12 +374,7 @@ export default function GuidesIndexPage() {
                   <span className="font-bold text-base" style={{ color: COLORS.dark }}>
                     {item.q}
                   </span>
-                  <span
-                    className="material-symbols-outlined text-[20px] flex-shrink-0 transition-transform group-open:rotate-180"
-                    style={{ color: COLORS.primary }}
-                  >
-                    expand_more
-                  </span>
+                  <ChevronDown size={20} className="flex-shrink-0 transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-5 pb-5">
                   <p className="text-sm leading-relaxed" style={{ color: COLORS.muted }}>

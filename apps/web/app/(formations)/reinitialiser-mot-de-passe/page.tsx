@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { AlertCircle, CheckCircle2, Circle, Lock, Eye, EyeOff, Loader2, KeyRound } from "lucide-react";
 
 function ResetInner() {
   const searchParams = useSearchParams();
@@ -67,7 +68,7 @@ function ResetInner() {
     return (
       <div className="min-h-[calc(100vh-96px)] flex items-center justify-center px-5 py-10 bg-[#f7f9fb]">
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-          <span className="material-symbols-outlined text-red-500 text-5xl">error</span>
+          <AlertCircle size={48} className="text-red-500 mx-auto" />
           <h2 className="text-lg font-extrabold text-[#191c1e] mt-3">Lien invalide</h2>
           <p className="text-sm text-[#5c647a] mt-2 mb-5">
             Ce lien de réinitialisation est invalide ou a expiré. Demandez un nouveau lien.
@@ -98,12 +99,7 @@ function ResetInner() {
           {success ? (
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <span
-                  className="material-symbols-outlined text-green-600 text-[32px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  check_circle
-                </span>
+                <CheckCircle2 size={32} className="text-green-600" />
               </div>
               <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Mot de passe mis à jour !</h2>
               <p className="text-sm text-[#5c647a]">
@@ -119,7 +115,7 @@ function ResetInner() {
 
               {error && (
                 <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
+                  <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-700 font-medium">{error}</p>
                 </div>
               )}
@@ -128,7 +124,7 @@ function ResetInner() {
                 <div>
                   <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Nouveau mot de passe</label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock</span>
+                    <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
@@ -142,9 +138,7 @@ function ResetInner() {
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]"
                     >
-                      <span className="material-symbols-outlined text-[18px]">
-                        {showPassword ? "visibility_off" : "visibility"}
-                      </span>
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
@@ -152,7 +146,7 @@ function ResetInner() {
                 <div>
                   <label className="block text-xs font-semibold text-[#191c1e] mb-1.5">Confirmer</label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock</span>
+                    <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                     <input
                       type={showPassword ? "text" : "password"}
                       value={confirm}
@@ -174,26 +168,25 @@ function ResetInner() {
                     { key: "upper", label: "Une lettre majuscule (A-Z)" },
                     { key: "lower", label: "Une lettre minuscule (a-z)" },
                     { key: "number", label: "Un chiffre (0-9)" },
-                  ].map((c) => (
-                    <div key={c.key} className="flex items-center gap-1.5">
-                      <span
-                        className="material-symbols-outlined text-[13px]"
-                        style={{
-                          color: passwordChecks[c.key as keyof typeof passwordChecks] ? "#006e2f" : "#d1d5db",
-                          fontVariationSettings: "'FILL' 1",
-                        }}
-                      >
-                        {passwordChecks[c.key as keyof typeof passwordChecks] ? "check_circle" : "radio_button_unchecked"}
-                      </span>
-                      <span
-                        className={`text-[11px] ${
-                          passwordChecks[c.key as keyof typeof passwordChecks] ? "text-[#006e2f] font-semibold" : "text-[#5c647a]"
-                        }`}
-                      >
-                        {c.label}
-                      </span>
-                    </div>
-                  ))}
+                  ].map((c) => {
+                    const passed = passwordChecks[c.key as keyof typeof passwordChecks];
+                    return (
+                      <div key={c.key} className="flex items-center gap-1.5">
+                        {passed ? (
+                          <CheckCircle2 size={13} className="text-[#006e2f]" />
+                        ) : (
+                          <Circle size={13} className="text-gray-300" />
+                        )}
+                        <span
+                          className={`text-[11px] ${
+                            passed ? "text-[#006e2f] font-semibold" : "text-[#5c647a]"
+                          }`}
+                        >
+                          {c.label}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -205,12 +198,12 @@ function ResetInner() {
               >
                 {loading ? (
                   <>
-                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                    <Loader2 size={18} className="animate-spin" />
                     Mise à jour…
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-[18px]">lock_reset</span>
+                    <KeyRound size={18} />
                     Mettre à jour le mot de passe
                   </>
                 )}

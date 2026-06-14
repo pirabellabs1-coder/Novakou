@@ -5,7 +5,24 @@ import { useEffect, useState } from "react";
 import { signIn, getSession, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import {
+  PlayCircle,
+  RefreshCw,
+  Smartphone,
+  Star,
+  AlertCircle,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  LogIn,
+  ShoppingBag,
+  ArrowRight,
+} from "lucide-react";
 import { getDashboardForFormationsRole } from "@/lib/formations/role-routing";
+
+const HERO_ICONS = { play_circle: PlayCircle, autorenew: RefreshCw, phone_android: Smartphone } as const;
 
 function ConnexionInner() {
   const router = useRouter();
@@ -191,25 +208,28 @@ function ConnexionInner() {
             en ligne
           </h1>
           <div className="space-y-4">
-            {[
-              { icon: "play_circle", text: "Vendez formations, ebooks et services numériques" },
-              { icon: "autorenew", text: "Processus 100% automatisé — encaissez pendant que vous dormez" },
-              { icon: "phone_android", text: "Paiement Mobile Money (Orange, Wave, MTN) dès le départ" },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
+            {([
+              { icon: "play_circle" as const, text: "Vendez formations, ebooks et services numériques" },
+              { icon: "autorenew" as const, text: "Processus 100% automatisé — encaissez pendant que vous dormez" },
+              { icon: "phone_android" as const, text: "Paiement Mobile Money (Orange, Wave, MTN) dès le départ" },
+            ]).map((item, i) => {
+              const Icon = HERO_ICONS[item.icon];
+              return (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Icon size={18} className="text-white" />
+                  </div>
+                  <p className="text-white/85 text-sm leading-relaxed">{item.text}</p>
                 </div>
-                <p className="text-white/85 text-sm leading-relaxed">{item.text}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
         <div className="relative z-10 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
           <div className="flex items-center gap-1 mb-2">
             {[1,2,3,4,5].map((s) => (
-              <span key={s} className="material-symbols-outlined text-amber-300 text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+              <Star key={s} size={14} className="text-amber-300 fill-amber-300" />
             ))}
           </div>
           <p className="text-white/90 text-sm italic leading-relaxed mb-3">
@@ -265,7 +285,7 @@ function ConnexionInner() {
             {/* Error */}
             {error && (
               <div id="login-error" role="alert" aria-live="polite" className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-2">
-                <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
+                <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
                 <p className="text-sm text-red-700 font-medium">{error}</p>
               </div>
             )}
@@ -274,7 +294,7 @@ function ConnexionInner() {
               <div>
                 <label htmlFor="login-email" className="block text-xs font-semibold text-[#191c1e] mb-1.5">Adresse email</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">mail</span>
+                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                   <input
                     id="login-email"
                     type="email"
@@ -299,7 +319,7 @@ function ConnexionInner() {
                   </Link>
                 </div>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-[#5c647a]">lock</span>
+                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                   <input
                     id="login-password"
                     type={showPassword ? "text" : "password"}
@@ -314,7 +334,7 @@ function ConnexionInner() {
                     className="w-full pl-10 pr-12 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] transition-all bg-white"
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5c647a] hover:text-[#191c1e]" aria-label="Afficher le mot de passe">
-                    <span className="material-symbols-outlined text-[18px]">{showPassword ? "visibility_off" : "visibility"}</span>
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
@@ -326,9 +346,9 @@ function ConnexionInner() {
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
                 {loading ? (
-                  <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Connexion…</>
+                  <><Loader2 size={18} className="animate-spin" />Connexion…</>
                 ) : (
-                  <><span className="material-symbols-outlined text-[18px]">login</span>Se connecter</>
+                  <><LogIn size={18} />Se connecter</>
                 )}
               </button>
             </form>
@@ -353,14 +373,14 @@ function ConnexionInner() {
               href="/acheteur/connexion"
               className="inline-flex items-center gap-1.5 text-sm font-bold text-[#006e2f] hover:underline"
             >
-              <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+              <ShoppingBag size={16} />
               Accéder à mes achats
-              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+              <ArrowRight size={14} />
             </Link>
           </div>
 
           <p className="text-center text-[11px] text-[#5c647a] mt-4 flex items-center justify-center gap-1.5">
-            <span className="material-symbols-outlined text-[13px]">lock</span>
+            <Lock size={13} />
             Connexion sécurisée SSL 256-bit
           </p>
         </div>

@@ -4,6 +4,20 @@ import { useState, useEffect, useMemo, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  CalendarX,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Loader2,
+  PauseCircle,
+  Video,
+} from "lucide-react";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -236,7 +250,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
       <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
           <Link href={`/mentors/${id}`} className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            <ArrowLeft size={20} />
           </Link>
           <span className="text-sm font-bold text-[#191c1e] flex-1">Réserver une séance</span>
 
@@ -258,7 +272,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
         {/* Error */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-start gap-2">
-            <span className="material-symbols-outlined text-red-500 text-[18px] mt-0.5">error</span>
+            <AlertCircle size={18} className="text-red-500 mt-0.5 flex-shrink-0" />
             <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
@@ -303,7 +317,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                 className="inline-flex items-center gap-0.5 mt-1 text-[10px] font-semibold text-[#006e2f] hover:underline"
               >
                 Voir profil
-                <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+                <ArrowRight size={12} />
               </Link>
             </div>
           </div>
@@ -321,7 +335,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
 
             {!mentor?.isAvailable ? (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center">
-                <span className="material-symbols-outlined text-amber-600 text-4xl">pause_circle</span>
+                <PauseCircle size={36} className="text-amber-600 mx-auto" />
                 <p className="text-sm font-bold text-amber-800 mt-2">
                   Ce mentor n&apos;accepte plus de nouvelles réservations pour l&apos;instant.
                 </p>
@@ -329,7 +343,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
               </div>
             ) : slots.length === 0 && !mentor.hasSchedule ? (
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 text-center">
-                <span className="material-symbols-outlined text-gray-400 text-4xl">event_busy</span>
+                <CalendarX size={36} className="text-gray-400 mx-auto" />
                 <p className="text-sm font-bold text-[#191c1e] mt-2">
                   Le mentor n&apos;a pas encore configuré son calendrier.
                 </p>
@@ -346,7 +360,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                     className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a]"
                     aria-label="Mois précédent"
                   >
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    <ChevronLeft size={18} />
                   </button>
                   <p className="text-sm font-bold text-[#191c1e]">
                     {MONTHS_FR[calMonth.getMonth()]} {calMonth.getFullYear()}
@@ -356,7 +370,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                     className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a]"
                     aria-label="Mois suivant"
                   >
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    <ChevronRight size={18} />
                   </button>
                 </div>
 
@@ -460,7 +474,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
                 Continuer
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <ArrowRight size={16} />
               </button>
             </div>
           </>
@@ -478,7 +492,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
 
             <div className="bg-white rounded-2xl border border-gray-100 p-4">
               <div className="flex items-center gap-2 mb-2 text-xs text-[#5c647a]">
-                <span className="material-symbols-outlined text-[14px]">event</span>
+                <Calendar size={14} />
                 <span className="font-semibold text-[#191c1e] capitalize">{fmtDay(selectedSlot.start)}</span>
                 <span>·</span>
                 <span>{fmtTime(selectedSlot.start)} – {fmtTime(selectedSlot.end)}</span>
@@ -516,7 +530,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
                 Continuer
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                <ArrowRight size={16} />
               </button>
             </div>
           </>
@@ -551,7 +565,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-[#5c647a]">Vidéo</span>
                   <span className="text-sm font-bold text-blue-600 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">videocam</span>
+                    <Video size={14} />
                     Salle Jitsi auto
                   </span>
                 </div>
@@ -567,7 +581,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-2 text-xs text-blue-900">
-              <span className="material-symbols-outlined text-[16px] mt-0.5">info</span>
+              <Info size={16} className="mt-0.5" />
               <div>
                 <p className="font-semibold">Comment ça fonctionne</p>
                 <p className="mt-0.5">
@@ -591,9 +605,9 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
                 {confirming ? (
-                  <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                  <Loader2 size={16} className="animate-spin" />
                 ) : (
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                  <CheckCircle2 size={16} />
                 )}
                 {confirming ? "Envoi…" : "Confirmer et réserver"}
               </button>
@@ -605,7 +619,7 @@ export default function ReservationPage({ params }: { params: Promise<{ id: stri
         {step === 4 && bookingResult && (
           <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center space-y-4">
             <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto">
-              <span className="material-symbols-outlined text-green-600 text-4xl">check_circle</span>
+              <CheckCircle2 size={36} className="text-green-600" />
             </div>
             <div>
               <h2 className="text-xl font-extrabold text-[#191c1e]">Demande envoyée !</h2>

@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2, CheckCircle2, ArrowRight, Clock, AlertCircle } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { trackEvents } from "@/lib/tracking/events";
 
@@ -223,7 +224,7 @@ function ReturnInner() {
         {status === "loading" && (
           <>
             <div className="w-16 h-16 rounded-full bg-zinc-100 flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <span className="material-symbols-outlined text-[36px] text-zinc-400 animate-spin">progress_activity</span>
+              <Loader2 size={36} className="text-zinc-400 animate-spin" />
             </div>
             <h1 className="text-2xl font-extrabold text-zinc-900 mb-2">Vérification…</h1>
             <p className="text-zinc-500">{message}</p>
@@ -232,7 +233,7 @@ function ReturnInner() {
         {status === "success" && (
           <>
             <div className="w-20 h-20 rounded-full bg-[#22c55e]/10 flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-[#006e2f] text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+              <CheckCircle2 size={48} className="text-[#006e2f]" />
             </div>
             <h1 className="text-3xl font-extrabold text-zinc-900 mb-2">Paiement réussi !</h1>
             <p className="text-zinc-600 mb-6">{message}</p>
@@ -243,14 +244,14 @@ function ReturnInner() {
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
               Accéder à mes contenus
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              <ArrowRight size={18} />
             </Link>
           </>
         )}
         {status === "pending" && (
           <>
             <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-amber-500 text-[48px]">schedule</span>
+              <Clock size={48} className="text-amber-500" />
             </div>
             <h1 className="text-2xl font-extrabold text-zinc-900 mb-2">Paiement en attente</h1>
             <p className="text-zinc-600 mb-6">{message}</p>
@@ -262,7 +263,7 @@ function ReturnInner() {
         {status === "failed" && (
           <>
             <div className="w-20 h-20 rounded-full bg-[#ffdad6] flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-[#ba1a1a] text-[48px]">error</span>
+              <AlertCircle size={48} className="text-[#ba1a1a]" />
             </div>
             <h1 className="text-2xl font-extrabold text-zinc-900 mb-2">Paiement échoué</h1>
             <p className="text-zinc-600 mb-6">{message}</p>

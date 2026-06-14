@@ -1,7 +1,106 @@
 "use client";
 
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useState, type ReactElement, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Activity,
+  ArrowRight,
+  Award,
+  BadgeCheck,
+  BadgePercent,
+  BarChart3,
+  BookOpen,
+  Boxes,
+  Brain,
+  Calendar,
+  CalendarCheck,
+  Camera,
+  CheckCheck,
+  CheckCircle2,
+  ChevronDown,
+  CircleDollarSign,
+  Clock,
+  CloudDownload,
+  Code,
+  Construction,
+  CreditCard,
+  DollarSign,
+  Download,
+  Eye,
+  FileText,
+  Flame,
+  Gem,
+  Globe,
+  GraduationCap,
+  Handshake,
+  Headphones,
+  Headset,
+  Heart,
+  Home,
+  Infinity as InfinityIcon,
+  LayoutDashboard,
+  LayoutGrid,
+  Lightbulb,
+  LineChart,
+  Link as LinkIcon,
+  Link2Off,
+  ListChecks,
+  Loader2,
+  Lock,
+  Mail,
+  MailCheck,
+  Medal,
+  Megaphone,
+  MessageCircle,
+  MessagesSquare,
+  MinusCircle,
+  Music,
+  Newspaper,
+  Package,
+  Paintbrush,
+  Palette,
+  Paperclip,
+  PartyPopper,
+  Pencil,
+  Percent,
+  Phone,
+  PieChart,
+  PiggyBank,
+  PlayCircle,
+  PlusCircle,
+  Puzzle,
+  QrCode,
+  RefreshCw,
+  Rocket,
+  RotateCw,
+  Send,
+  Settings,
+  Share2,
+  Shield,
+  ShieldCheck,
+  ShoppingBag,
+  ShoppingCart,
+  SlidersHorizontal,
+  Sparkles,
+  Star,
+  Store,
+  Tag,
+  Terminal,
+  ThumbsUp,
+  Timer,
+  TrendingUp,
+  Trophy,
+  User,
+  UserPlus,
+  Users,
+  Video,
+  Wallet,
+  Wrench,
+  X,
+  XCircle,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import AnimatedBlock, { type AnimationType } from "@/components/funnels/AnimatedBlock";
 
@@ -56,6 +155,137 @@ interface Funnel {
 }
 
 const fmt = (n: number) => new Intl.NumberFormat("fr-FR").format(n);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MATERIAL SYMBOL → LUCIDE MAPPER
+// ═══════════════════════════════════════════════════════════════════════════
+// Funnel blocks store Material-Symbol icon names (string) in their data — the
+// editor's IconPicker writes names like "rocket_launch", "verified", etc.
+// We render those instantly as inline Lucide SVGs (no font-load flash) via a
+// static name→component map. Unknown names fall back to a neutral check icon.
+const ICON_MAP: Record<string, LucideIcon> = {
+  check_circle: CheckCircle2,
+  done_all: CheckCheck,
+  task_alt: CheckCircle2,
+  fact_check: CheckCircle2,
+  checklist: ListChecks,
+  star: Star,
+  favorite: Heart,
+  rocket_launch: Rocket,
+  bolt: Zap,
+  flash_on: Zap,
+  trending_up: TrendingUp,
+  verified: BadgeCheck,
+  gpp_good: ShieldCheck,
+  shield: Shield,
+  lock: Lock,
+  visibility: Eye,
+  settings: Settings,
+  tune: SlidersHorizontal,
+  analytics: LineChart,
+  bar_chart: BarChart3,
+  pie_chart: PieChart,
+  timeline: Activity,
+  schedule: Clock,
+  timer: Timer,
+  event: Calendar,
+  event_available: CalendarCheck,
+  support_agent: Headset,
+  chat_bubble: MessageCircle,
+  forum: MessagesSquare,
+  groups: Users,
+  group: Users,
+  person: User,
+  person_add: UserPlus,
+  school: GraduationCap,
+  psychology: Brain,
+  lightbulb: Lightbulb,
+  tips_and_updates: Lightbulb,
+  workspace_premium: Award,
+  emoji_events: Trophy,
+  military_tech: Medal,
+  paid: CircleDollarSign,
+  attach_money: DollarSign,
+  savings: PiggyBank,
+  credit_card: CreditCard,
+  shopping_cart: ShoppingCart,
+  shopping_bag: ShoppingBag,
+  storefront: Store,
+  inventory_2: Package,
+  local_offer: Tag,
+  sell: BadgePercent,
+  percent: Percent,
+  workspaces: LayoutGrid,
+  handshake: Handshake,
+  campaign: Megaphone,
+  send: Send,
+  mail: Mail,
+  mark_email_read: MailCheck,
+  phone: Phone,
+  video_call: Video,
+  videocam: Camera,
+  play_circle: PlayCircle,
+  music_note: Music,
+  headphones: Headphones,
+  download: Download,
+  cloud_download: CloudDownload,
+  attach_file: Paperclip,
+  description: FileText,
+  article: Newspaper,
+  menu_book: BookOpen,
+  auto_stories: BookOpen,
+  done: CheckCheck,
+  all_inclusive: InfinityIcon,
+  autorenew: RefreshCw,
+  sync: RefreshCw,
+  update: RotateCw,
+  diamond: Gem,
+  auto_awesome: Sparkles,
+  celebration: PartyPopper,
+  whatshot: Flame,
+  local_fire_department: Flame,
+  language: Globe,
+  public: Globe,
+  home: Home,
+  dashboard: LayoutDashboard,
+  widgets: Boxes,
+  extension: Puzzle,
+  api: Code,
+  code: Code,
+  terminal: Terminal,
+  design_services: Palette,
+  palette: Palette,
+  brush: Paintbrush,
+  edit: Pencil,
+  add_circle: PlusCircle,
+  remove_circle: MinusCircle,
+  share: Share2,
+  link: LinkIcon,
+  qr_code: QrCode,
+  arrow_forward: ArrowRight,
+  verified_user: ShieldCheck,
+  account_balance_wallet: Wallet,
+  payments: Wallet,
+  thumb_up: ThumbsUp,
+  cancel: XCircle,
+  close: X,
+  expand_more: ChevronDown,
+};
+
+function MaterialIcon({
+  name,
+  size = 24,
+  className,
+  style,
+}: {
+  name?: string;
+  size?: number;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  const Icon = (name && ICON_MAP[name]) || CheckCircle2;
+  return <Icon size={size} className={className} style={style} />;
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LINK RESOLUTION
@@ -154,7 +384,7 @@ function ButtonBlock({ data, theme, onDefault }: { data: Record<string, unknown>
   return (
     <div className={`flex ${justify}`}>
       <button onClick={handle} className={`${btnClass} ${padding} ${fullWidth ? "w-full justify-center" : ""}`} style={btnStyle}>
-        {icon && <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>}
+        {icon && <MaterialIcon name={icon} size={18} />}
         {text}
       </button>
     </div>
@@ -171,7 +401,7 @@ function IconBoxBlock({ data, theme }: { data: Record<string, unknown>; theme: T
   return (
     <div className={`flex flex-col ${alignCls} gap-3 py-2`}>
       <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: `${iconColor}15` }}>
-        <span className="material-symbols-outlined text-[24px]" style={{ color: iconColor, fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+        <MaterialIcon name={icon} size={24} style={{ color: iconColor }} />
       </div>
       {title && <h3 className="text-base font-extrabold" style={{ color: titleColor }}>{title}</h3>}
       {desc && <p className="text-sm leading-relaxed" style={{ color: titleColor, opacity: 0.75 }}>{desc}</p>}
@@ -232,7 +462,7 @@ function ListBlock({ data, theme }: { data: Record<string, unknown>; theme: Them
     <ul className="space-y-2">
       {items.map((it, i) => (
         <li key={i} className="flex items-start gap-2.5" style={{ color: txtColor }}>
-          <span className="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5" style={{ color: iconColor, fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+          <MaterialIcon name={icon} size={18} className="flex-shrink-0 mt-0.5" style={{ color: iconColor }} />
           <span className="text-sm leading-relaxed">{it}</span>
         </li>
       ))}
@@ -398,7 +628,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
   if (!kind || !id) {
     return (
       <div className="max-w-3xl mx-auto bg-amber-50 border-2 border-dashed border-amber-300 rounded-2xl p-6 text-center">
-        <span className="material-symbols-outlined text-amber-600 text-4xl">shopping_bag</span>
+        <ShoppingBag size={36} className="text-amber-600 mx-auto" />
         <p className="text-sm text-amber-700 mt-2 font-semibold">Aucun produit sélectionné dans l&apos;éditeur</p>
       </div>
     );
@@ -432,7 +662,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
             </p>
           )}
         </div>
-        <span className="material-symbols-outlined text-[28px]" style={{ color: accent }}>{ctaIcon || "arrow_forward"}</span>
+        <MaterialIcon name={ctaIcon || "arrow_forward"} size={28} style={{ color: accent }} />
       </a>
     );
   }
@@ -449,7 +679,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
             <div className="flex items-center gap-4 mb-5 flex-wrap">
               {showRating && info.rating > 0 && (
                 <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[18px]" style={{ color: "#f59e0b", fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <Star size={18} style={{ color: "#f59e0b" }} fill="#f59e0b" />
                   <span className="text-sm font-bold">{info.rating.toFixed(1)}</span>
                   <span className="text-xs text-gray-500">({info.reviewsCount} avis)</span>
                 </div>
@@ -465,7 +695,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
             )}
             <a href={checkoutLink} className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl text-white font-bold text-base shadow-lg hover:opacity-90 transition-opacity" style={{ background: `linear-gradient(to right, ${accent}, ${theme.accentColor})` }}>
               {ctaText ?? "Acheter maintenant"}
-              <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>{ctaIcon || "shopping_cart"}</span>
+              <MaterialIcon name={ctaIcon || "shopping_cart"} size={20} />
             </a>
           </div>
         </div>
@@ -483,7 +713,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
         <div className="flex items-center gap-3 mb-4 flex-wrap text-sm">
           {showRating && info.rating > 0 && (
             <div className="flex items-center gap-1">
-              <span className="material-symbols-outlined text-[16px]" style={{ color: "#f59e0b", fontVariationSettings: "'FILL' 1" }}>star</span>
+              <Star size={16} style={{ color: "#f59e0b" }} fill="#f59e0b" />
               <span className="font-bold">{info.rating.toFixed(1)}</span>
             </div>
           )}
@@ -498,7 +728,7 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
         )}
         <a href={checkoutLink} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl text-white font-bold shadow-lg hover:opacity-90 transition-opacity" style={{ background: `linear-gradient(to right, ${accent}, ${theme.accentColor})` }}>
           {ctaText ?? "Acheter maintenant"}
-          <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>{ctaIcon || "shopping_cart"}</span>
+          <MaterialIcon name={ctaIcon || "shopping_cart"} size={20} />
         </a>
       </div>
     </div>
@@ -521,7 +751,7 @@ function HeroBlock({ data, theme, onCta }: { data: Record<string, unknown>; them
         <div>
           {badge && (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-4" style={{ background: `${theme.primaryColor}15`, color: theme.primaryColor }}>
-              <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+              <Flame size={14} />
               {badge}
             </span>
           )}
@@ -529,7 +759,7 @@ function HeroBlock({ data, theme, onCta }: { data: Record<string, unknown>; them
           {subheadline && <p className="text-base md:text-lg mb-7 leading-relaxed" style={{ color: heroText, opacity: 0.85 }}>{subheadline}</p>}
           <button onClick={handleCta} className="inline-flex items-center gap-2 px-7 py-4 rounded-2xl text-white font-bold text-base shadow-lg hover:opacity-90 hover:-translate-y-0.5 transition-all" style={{ background: `linear-gradient(to right, ${theme.primaryColor}, ${theme.accentColor})` }}>
             {ctaText ?? "Commencer"}
-            <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+            <ArrowRight size={20} />
           </button>
         </div>
         {imageUrl && <div><img src={imageUrl} alt="" className="w-full rounded-3xl shadow-2xl" /></div>}
@@ -550,7 +780,7 @@ function FeaturesBlock({ data, theme }: { data: Record<string, unknown>; theme: 
           {(items ?? []).map((item, i) => (
             <div key={i} className="bg-gray-50 rounded-2xl p-6 hover:bg-gray-100 transition-colors">
               <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ background: `${theme.primaryColor}15` }}>
-                <span className="material-symbols-outlined text-[24px]" style={{ color: theme.primaryColor, fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
+                <MaterialIcon name={item.icon} size={24} style={{ color: theme.primaryColor }} />
               </div>
               <h3 className="text-base font-extrabold mb-1.5" style={{ color: theme.textColor }}>{item.title}</h3>
               <p className="text-sm text-gray-600 leading-relaxed">{item.desc}</p>
@@ -660,7 +890,7 @@ function TestimonialsBlock({ data, theme }: { data: Record<string, unknown>; the
             <div key={i} className="bg-gray-50 rounded-2xl p-6">
               <div className="flex items-center gap-1 mb-3">
                 {[1, 2, 3, 4, 5].map((s) => (
-                  <span key={s} className="material-symbols-outlined text-[16px]" style={{ color: s <= item.rating ? "#f59e0b" : "#d1d5db", fontVariationSettings: "'FILL' 1" }}>star</span>
+                  <Star key={s} size={16} style={{ color: s <= item.rating ? "#f59e0b" : "#d1d5db" }} fill={s <= item.rating ? "#f59e0b" : "#d1d5db"} />
                 ))}
               </div>
               <p className="text-sm text-gray-700 leading-relaxed mb-4 italic">&ldquo;{item.text}&rdquo;</p>
@@ -692,7 +922,7 @@ function FaqBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme
             <details key={i} className="group bg-white rounded-2xl border border-gray-200 overflow-hidden">
               <summary className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50 list-none">
                 <span className="text-sm font-bold" style={{ color: theme.textColor }}>{item.q}</span>
-                <span className="material-symbols-outlined text-[20px] group-open:rotate-180 transition-transform" style={{ color: theme.primaryColor }}>expand_more</span>
+                <ChevronDown size={20} className="group-open:rotate-180 transition-transform" style={{ color: theme.primaryColor }} />
               </summary>
               <div className="px-5 pb-5 text-sm text-gray-600 leading-relaxed">{item.a}</div>
             </details>
@@ -713,7 +943,7 @@ function CtaBlock({ data, theme, onCta }: { data: Record<string, unknown>; theme
         {subheadline && <p className="text-base md:text-lg opacity-90 mb-7">{subheadline}</p>}
         <button onClick={handle} className="inline-flex items-center gap-2 bg-white px-7 py-4 rounded-2xl font-bold text-base shadow-lg hover:opacity-90 transition-opacity" style={{ color: theme.primaryColor }}>
           {ctaText ?? "Commencer"}
-          <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
+          <ArrowRight size={20} />
         </button>
       </div>
     </section>
@@ -767,7 +997,7 @@ function StatsBlock({ data, theme }: { data: Record<string, unknown>; theme: The
             <div key={i} className="flex flex-col items-center">
               {s.icon && (
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-3" style={{ background: `${valColor}15` }}>
-                  <span className="material-symbols-outlined text-[24px]" style={{ color: valColor, fontVariationSettings: "'FILL' 1" }}>{s.icon}</span>
+                  <MaterialIcon name={s.icon} size={24} style={{ color: valColor }} />
                 </div>
               )}
               <p className="text-3xl md:text-5xl font-extrabold" style={{ color: valColor }}>
@@ -821,7 +1051,7 @@ function PricingBlock({ data, theme, onCta }: { data: Record<string, unknown>; t
           </button>
           {guaranteeText && (
             <p className="text-xs text-gray-500 mt-4 flex items-center justify-center gap-1.5">
-              <span className="material-symbols-outlined text-[14px]" style={{ color: accent }}>verified_user</span>
+              <ShieldCheck size={14} />
               {guaranteeText}
             </p>
           )}
@@ -1039,9 +1269,9 @@ function ComparisonBlock({ data, theme }: { data: Record<string, unknown>; theme
                 <div key={j} className="p-3 text-center text-sm"
                   style={j === highlightColumn ? { background: `${accent}08`, color: accent, fontWeight: 700 } : { color: "#6b7280" }}>
                   {val === "Oui" || val === "✓" ? (
-                    <span className="material-symbols-outlined text-[18px]" style={{ color: accent, fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <CheckCircle2 size={18} />
                   ) : val === "Non" || val === "✗" ? (
-                    <span className="material-symbols-outlined text-[18px] text-gray-300">cancel</span>
+                    <XCircle size={18} className="text-gray-300" />
                   ) : val}
                 </div>
               ))}
@@ -1114,7 +1344,7 @@ function ImageGalleryBlock({ data }: { data: Record<string, unknown> }) {
         <div className="fixed inset-0 z-[9999] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
           <img src={lightbox} alt="" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
           <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 text-white/80 hover:text-white">
-            <span className="material-symbols-outlined text-[32px]">close</span>
+            <X size={32} />
           </button>
         </div>
       )}
@@ -1159,7 +1389,7 @@ function ScarcityBlock({ data, theme, salesLimit, salesCount }: { data: Record<s
     return (
       <div className="flex justify-center py-4 px-4">
         <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold shadow-sm ${isUrgent ? "bg-red-100 text-red-700 animate-pulse" : "bg-gray-100"}`} style={{ color: isUrgent ? undefined : txt }}>
-          <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+          <Flame size={16} />
           {displayText}
         </span>
       </div>
@@ -1179,7 +1409,7 @@ function ScarcityBlock({ data, theme, salesLimit, salesCount }: { data: Record<s
     <div className="py-5 px-4">
       <div className="max-w-2xl mx-auto">
         <p className={`text-center text-sm md:text-base font-bold mb-3 ${isUrgent ? "animate-pulse" : ""}`} style={{ color: txt }}>
-          <span className="material-symbols-outlined text-[18px] align-text-bottom mr-1" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+          <Flame size={18} className="align-text-bottom mr-1" />
           {displayText}
         </p>
         {showProgressBar && !isSoldOut && (
@@ -1302,7 +1532,7 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <span className="material-symbols-outlined text-[#006e2f] text-5xl animate-spin">progress_activity</span>
+        <Loader2 size={48} className="text-[#006e2f] animate-spin" />
       </div>
     );
   }
@@ -1311,7 +1541,7 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <span className="material-symbols-outlined text-gray-300 text-6xl">link_off</span>
+          <Link2Off className="text-gray-300 text-6xl" />
           <h2 className="text-lg font-bold text-[#191c1e] mt-3">Page introuvable</h2>
           <p className="text-sm text-[#5c647a] mt-1.5 mb-4">Cette page de vente n&apos;existe pas ou n&apos;a pas encore été publiée.</p>
         </div>
@@ -1330,7 +1560,7 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
       {blocks.length === 0 ? (
         <div className="min-h-screen flex items-center justify-center px-6">
           <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-            <span className="material-symbols-outlined text-gray-300 text-6xl">construction</span>
+            <Wrench className="text-gray-300 text-6xl" />
             <h2 className="text-lg font-bold text-[#191c1e] mt-3">Page en construction</h2>
             <p className="text-sm text-[#5c647a] mt-1.5">Ce funnel n&apos;a pas encore de contenu publié.</p>
           </div>

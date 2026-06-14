@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import {
+  CheckCircle2,
+} from "lucide-react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -81,15 +84,15 @@ export default function CookiesPage() {
           <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">En bref</h2>
           <ul className="space-y-2 text-sm text-[#5c647a] leading-relaxed">
             <li className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-[18px] text-[#006e2f] mt-0.5 flex-shrink-0">check_circle</span>
+              <CheckCircle2 size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
               Nous utilisons uniquement les cookies nécessaires + ceux que vous acceptez.
             </li>
             <li className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-[18px] text-[#006e2f] mt-0.5 flex-shrink-0">check_circle</span>
+              <CheckCircle2 size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
               Aucun cookie tiers à des fins publicitaires sans consentement explicite.
             </li>
             <li className="flex items-start gap-2">
-              <span className="material-symbols-outlined text-[18px] text-[#006e2f] mt-0.5 flex-shrink-0">check_circle</span>
+              <CheckCircle2 size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
               Vous pouvez modifier vos préférences à tout moment depuis vos paramètres.
             </li>
           </ul>
