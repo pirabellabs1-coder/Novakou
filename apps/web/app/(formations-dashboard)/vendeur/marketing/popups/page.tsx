@@ -4,6 +4,21 @@ import { useToastStore } from "@/store/toast";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import {
+  type LucideIcon,
+  ChevronRight,
+  Plus,
+  X,
+  Trash2,
+  Tag,
+  Mail,
+  Megaphone,
+  TrendingUp,
+  Timer,
+  MousePointerClick,
+  Eye,
+  GitBranch,
+} from "lucide-react";
 
 type Popup = {
   id: string;
@@ -23,12 +38,12 @@ type Popup = {
   createdAt: string;
 };
 
-const POPUP_TYPES: Record<string, { label: string; icon: string; bg: string; color: string; desc: string }> = {
-  DISCOUNT: { label: "Code promo", icon: "local_offer", bg: "bg-amber-50", color: "text-amber-600", desc: "Offre une réduction au visiteur" },
-  EMAIL_CAPTURE: { label: "Capture email", icon: "mail_outline", bg: "bg-blue-50", color: "text-blue-600", desc: "Collecte les emails visiteurs" },
-  ANNOUNCEMENT: { label: "Annonce", icon: "campaign", bg: "bg-green-50", color: "text-green-600", desc: "Informe d'une nouveauté" },
-  UPSELL: { label: "Upsell", icon: "trending_up", bg: "bg-purple-50", color: "text-purple-600", desc: "Propose une offre complémentaire" },
-  COUNTDOWN: { label: "Compte à rebours", icon: "timer", bg: "bg-red-50", color: "text-red-500", desc: "Crée l'urgence avec un timer" },
+const POPUP_TYPES: Record<string, { label: string; icon: LucideIcon; bg: string; color: string; desc: string }> = {
+  DISCOUNT: { label: "Code promo", icon: Tag, bg: "bg-amber-50", color: "text-amber-600", desc: "Offre une réduction au visiteur" },
+  EMAIL_CAPTURE: { label: "Capture email", icon: Mail, bg: "bg-blue-50", color: "text-blue-600", desc: "Collecte les emails visiteurs" },
+  ANNOUNCEMENT: { label: "Annonce", icon: Megaphone, bg: "bg-green-50", color: "text-green-600", desc: "Informe d'une nouveauté" },
+  UPSELL: { label: "Upsell", icon: TrendingUp, bg: "bg-[#e6f5eb]", color: "text-[#006e2f]", desc: "Propose une offre complémentaire" },
+  COUNTDOWN: { label: "Compte à rebours", icon: Timer, bg: "bg-red-50", color: "text-red-500", desc: "Crée l'urgence avec un timer" },
 };
 
 const TRIGGERS: Record<string, { label: string; icon: string }> = {
@@ -107,7 +122,7 @@ export default function PopupsPage() {
         <div>
           <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
             <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight size={14} />
             <span className="text-[#191c1e] font-medium">Popups Intelligents</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Popups Intelligents</h1>
@@ -118,21 +133,21 @@ export default function PopupsPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Plus size={18} />
           Créer un popup
         </button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        {[
-          { label: "Popups actifs", value: popups.filter((p) => p.isActive).length, icon: "ads_click", color: "text-pink-500", bg: "bg-pink-50" },
-          { label: "Impressions totales", value: totalImpressions.toLocaleString("fr-FR"), icon: "visibility", color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Taux de conversion", value: `${avgCR}%`, icon: "conversion_path", color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ].map((kpi, i) => (
+        {([
+          { label: "Popups actifs", value: popups.filter((p) => p.isActive).length, icon: MousePointerClick, color: "text-[#22c55e]", bg: "bg-[#e6f5eb]" },
+          { label: "Impressions totales", value: totalImpressions.toLocaleString("fr-FR"), icon: Eye, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Taux de conversion", value: `${avgCR}%`, icon: GitBranch, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
+        ] as { label: string; value: number | string; icon: LucideIcon; color: string; bg: string }[]).map((kpi, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-              <span className={`material-symbols-outlined text-[20px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{kpi.icon}</span>
+              <kpi.icon size={20} className={kpi.color} />
             </div>
             <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
             <p className="text-lg font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
@@ -147,7 +162,7 @@ export default function PopupsPage() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-[#191c1e]">Nouveau popup</h2>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+                <X size={20} className="text-[#5c647a]" />
               </button>
             </div>
 
@@ -175,7 +190,7 @@ export default function PopupsPage() {
                       }`}
                     >
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${cfg.bg}`}>
-                        <span className={`material-symbols-outlined text-[16px] ${cfg.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{cfg.icon}</span>
+                        <cfg.icon size={16} className={cfg.color} />
                       </div>
                       <span className="text-[10px] font-semibold text-[#191c1e] leading-tight">{cfg.label}</span>
                     </button>
@@ -288,7 +303,7 @@ export default function PopupsPage() {
           ))
         ) : popups.length === 0 ? (
           <div className="col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
-            <span className="material-symbols-outlined text-[40px] text-gray-300 block mb-3">ads_click</span>
+            <MousePointerClick size={40} className="text-gray-300 mx-auto mb-3" />
             <p className="font-semibold text-[#191c1e]">Aucun popup créé</p>
             <p className="text-sm text-[#5c647a] mt-1">Créez votre premier popup pour capturer plus de ventes</p>
           </div>
@@ -302,7 +317,7 @@ export default function PopupsPage() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${tc.bg}`}>
-                      <span className={`material-symbols-outlined text-[20px] ${tc.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{tc.icon}</span>
+                      <tc.icon size={20} className={tc.color} />
                     </div>
                     <div>
                       <p className="font-bold text-[#191c1e] text-sm">{popup.name}</p>
@@ -329,7 +344,7 @@ export default function PopupsPage() {
                       }}
                       className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
                     >
-                      <span className="material-symbols-outlined text-[16px]">delete</span>
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>

@@ -298,7 +298,7 @@ export default function VendorWebhooksPage() {
                     className="p-2 rounded-lg hover:bg-blue-50 text-[#5c647a] hover:text-blue-600"
                     title="Envoyer un event de test (voir payload + réponse)"
                   >
-                    <span className="material-symbols-outlined text-[18px]">science</span>
+                    <FlaskConical size={18} />
                   </button>
                   <button
                     onClick={() => toggleMut.mutate({ id: wh.id, isActive: !wh.isActive })}
@@ -306,9 +306,7 @@ export default function VendorWebhooksPage() {
                     className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a]"
                     title={wh.isActive ? "Désactiver" : "Activer"}
                   >
-                    <span className="material-symbols-outlined text-[18px]">
-                      {wh.isActive ? "toggle_on" : "toggle_off"}
-                    </span>
+                    {wh.isActive ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
                   </button>
                   <button
                     onClick={() => handleDelete(wh)}
@@ -316,7 +314,7 @@ export default function VendorWebhooksPage() {
                     className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
                     title="Supprimer"
                   >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
@@ -478,9 +476,7 @@ function TestEchoModal({ echo, onClose }: { echo: TestEcho; onClose: () => void 
             <div
               className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${ok ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-red-50 text-red-600"}`}
             >
-              <span className="material-symbols-outlined text-[22px]">
-                {ok ? "check_circle" : "error"}
-              </span>
+              {ok ? <CheckCircle2 size={22} /> : <XCircle size={22} />}
             </div>
             <div className="min-w-0">
               <h2 className="text-lg font-extrabold text-[#191c1e]">
@@ -496,7 +492,7 @@ function TestEchoModal({ echo, onClose }: { echo: TestEcho; onClose: () => void 
             className="p-2 rounded-lg hover:bg-gray-100 flex-shrink-0"
             aria-label="Fermer"
           >
-            <span className="material-symbols-outlined text-[20px] text-gray-500">close</span>
+            <X size={20} className="text-gray-500" />
           </button>
         </div>
 
@@ -529,9 +525,7 @@ function TestEchoModal({ echo, onClose }: { echo: TestEcho; onClose: () => void 
             <span className="text-[11px] font-bold uppercase tracking-widest text-[#191c1e]">
               Requête envoyée
             </span>
-            <span className="material-symbols-outlined text-[18px] text-[#5c647a]">
-              {reqOpen ? "expand_less" : "expand_more"}
-            </span>
+            {reqOpen ? <ChevronUp size={18} className="text-[#5c647a]" /> : <ChevronDown size={18} className="text-[#5c647a]" />}
           </button>
           {reqOpen && (
             <div className="p-4 space-y-3">
@@ -565,9 +559,7 @@ function TestEchoModal({ echo, onClose }: { echo: TestEcho; onClose: () => void 
             <span className="text-[11px] font-bold uppercase tracking-widest text-[#191c1e]">
               Réponse de votre endpoint
             </span>
-            <span className="material-symbols-outlined text-[18px] text-[#5c647a]">
-              {resOpen ? "expand_less" : "expand_more"}
-            </span>
+            {resOpen ? <ChevronUp size={18} className="text-[#5c647a]" /> : <ChevronDown size={18} className="text-[#5c647a]" />}
           </button>
           {resOpen && (
             <div className="p-4 space-y-3">

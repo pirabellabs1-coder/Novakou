@@ -2,6 +2,18 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import {
+  ChevronRight,
+  Key,
+  Webhook,
+  Terminal,
+  Braces,
+  Check,
+  Copy,
+  ShieldAlert,
+  Info,
+  Gauge,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -703,9 +715,7 @@ export default function DocumentationApiPage() {
         >
           Espace vendeur
         </Link>
-        <span className="material-symbols-outlined text-[14px]">
-          chevron_right
-        </span>
+        <ChevronRight size={14} />
         <span className="text-[#191c1e] font-medium">Documentation API</span>
       </div>
 
@@ -724,16 +734,14 @@ export default function DocumentationApiPage() {
             href="/vendeur/api-keys"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#191c1e] hover:bg-gray-50"
           >
-            <span className="material-symbols-outlined text-[18px]">key</span>
+            <Key size={18} />
             Mes clés API
           </Link>
           <Link
             href="/vendeur/webhooks"
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#191c1e] hover:bg-gray-50"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              webhook
-            </span>
+            <Webhook size={18} />
             Webhooks
           </Link>
         </div>
@@ -742,9 +750,7 @@ export default function DocumentationApiPage() {
       {/* Base URL banner */}
       <div className="bg-zinc-900 text-white rounded-2xl p-5 mb-6">
         <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined text-emerald-400 text-[20px] mt-0.5">
-            terminal
-          </span>
+          <Terminal size={20} className="text-emerald-400 mt-0.5" />
           <div className="flex-1 min-w-0">
             <p className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">
               Base URL
@@ -920,9 +926,7 @@ function EndpointDetail({ endpoint }: { endpoint: Endpoint }) {
       {/* Response */}
       <div className="bg-zinc-900 rounded-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-zinc-700 flex items-center gap-2">
-          <span className="material-symbols-outlined text-[14px] text-zinc-400">
-            data_object
-          </span>
+          <Braces size={14} className="text-zinc-400" />
           <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
             Réponse exemple
           </p>
@@ -1006,9 +1010,7 @@ function CopyButton({ text }: { text: string }) {
       }}
       className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-emerald-400 transition-colors"
     >
-      <span className="material-symbols-outlined text-[14px]">
-        {copied ? "check" : "content_copy"}
-      </span>
+      {copied ? <Check size={14} /> : <Copy size={14} />}
       {copied ? "Copié" : "Copier"}
     </button>
   );
@@ -1101,9 +1103,7 @@ const { data, pagination } = await res.json();`}
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-        <span className="material-symbols-outlined text-amber-600 text-[20px] mt-0.5">
-          security
-        </span>
+        <ShieldAlert size={20} className="text-amber-600 mt-0.5" />
         <div className="text-sm text-amber-900">
           <p className="font-bold">Sécurité</p>
           <p className="text-xs mt-1 leading-relaxed">
@@ -1261,9 +1261,7 @@ export async function POST(req: Request) {
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-        <span className="material-symbols-outlined text-blue-600 text-[20px] mt-0.5">
-          info
-        </span>
+        <Info size={20} className="text-blue-600 mt-0.5" />
         <div className="text-sm text-blue-900">
           <p className="font-bold">Bonnes pratiques</p>
           <ul className="text-xs mt-1 space-y-1 list-disc pl-4 leading-relaxed">
@@ -1386,9 +1384,7 @@ function ErrorsTab() {
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-        <span className="material-symbols-outlined text-blue-600 text-[20px] mt-0.5">
-          rate_review
-        </span>
+        <Gauge size={20} className="text-blue-600 mt-0.5" />
         <div className="text-sm text-blue-900">
           <p className="font-bold">Rate Limiting</p>
           <p className="text-xs mt-1 leading-relaxed">

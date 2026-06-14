@@ -9,6 +9,23 @@ import { ImageUploader } from "@/components/formations/ImageUploader";
 import { MultiFileUploader, type ProductFile } from "@/components/formations/MultiFileUploader";
 import { confirmAction } from "@/store/confirm";
 import {
+  type LucideIcon,
+  ShoppingBag,
+  ArrowLeft,
+  Loader2,
+  CheckCircle2,
+  CloudUpload,
+  ExternalLink,
+  Save,
+  Pause,
+  Upload,
+  Eye,
+  Star,
+  MessageSquare,
+  Info,
+  Trash2,
+} from "lucide-react";
+import {
   useDraftField,
   useDraftSavedAt,
   formatSavedAt,
@@ -288,13 +305,13 @@ export default function EditerProduitPage() {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center p-8">
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <span className="material-symbols-outlined text-gray-300 text-5xl">shopping_bag</span>
+          <ShoppingBag size={48} className="text-gray-300 mx-auto" />
           <p className="text-lg font-bold text-[#191c1e] mt-3">Produit introuvable</p>
           <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
             Ce produit n&apos;existe pas ou ne vous appartient pas.
           </p>
           <Link href="/vendeur/produits" className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Retour aux produits
           </Link>
         </div>
@@ -311,7 +328,7 @@ export default function EditerProduitPage() {
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-5 md:px-8 h-14 flex items-center gap-3">
           <Link href="/vendeur/produits" className="text-[#5c647a] hover:text-[#191c1e]">
-            <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            <ArrowLeft size={20} />
           </Link>
           <div className="flex-1 min-w-0">
             <p className="text-xs text-[#5c647a] truncate">Édition produit · {product.slug}</p>
@@ -319,22 +336,22 @@ export default function EditerProduitPage() {
           <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${status.cls}`}>{status.label}</span>
           <div className="flex items-center gap-2 text-xs text-[#5c647a]">
             {saveMutation.isPending ? (
-              <><span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>Sauvegarde…</>
+              <><Loader2 size={14} className="animate-spin" />Sauvegarde…</>
             ) : savedAt ? (
-              <><span className="material-symbols-outlined text-[14px] text-green-500">check_circle</span>Sauvegardé</>
+              <><CheckCircle2 size={14} className="text-green-500" />Sauvegardé</>
             ) : draftLabel ? (
               <span
                 title="Vos modifications sont stockées localement à chaque saisie. Vous pouvez fermer l'onglet et revenir, elles seront restaurées."
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[10px] font-bold text-emerald-700"
               >
-                <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_done</span>
+                <CloudUpload size={12} />
                 Brouillon {draftLabel}
               </span>
             ) : null}
           </div>
           <a href={`/produit/${product.slug}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
-            <span className="material-symbols-outlined text-[14px]">open_in_new</span>Aperçu
+            <ExternalLink size={14} />Aperçu
           </a>
           <button
             onClick={handleSave}
@@ -342,7 +359,7 @@ export default function EditerProduitPage() {
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white disabled:opacity-50"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[14px]">save</span>
+            <Save size={14} />
             Enregistrer
           </button>
           <button
@@ -352,7 +369,7 @@ export default function EditerProduitPage() {
               isPublished ? "bg-amber-100 text-amber-700 hover:bg-amber-200" : "bg-zinc-900 text-white hover:bg-zinc-700"
             }`}
           >
-            <span className="material-symbols-outlined text-[14px]">{isPublished ? "pause" : "publish"}</span>
+            {isPublished ? <Pause size={14} /> : <Upload size={14} />}
             {isPublished ? "Dépublier" : "Publier"}
           </button>
         </div>
@@ -363,15 +380,15 @@ export default function EditerProduitPage() {
 
         {/* Stats card */}
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-3">
-          {[
-            { label: "Ventes", value: product.salesCount, icon: "shopping_bag", color: "#006e2f" },
-            { label: "Vues", value: product.viewsCount, icon: "visibility", color: "#2563eb" },
-            { label: "Note moyenne", value: product.rating > 0 ? product.rating.toFixed(1) : "—", icon: "star", color: "#f59e0b" },
-            { label: "Avis", value: product.reviewsCount, icon: "reviews", color: "#8b5cf6" },
-          ].map((s) => (
+          {([
+            { label: "Ventes", value: product.salesCount, icon: ShoppingBag, color: "#006e2f" },
+            { label: "Vues", value: product.viewsCount, icon: Eye, color: "#006e2f" },
+            { label: "Note moyenne", value: product.rating > 0 ? product.rating.toFixed(1) : "—", icon: Star, color: "#f59e0b" },
+            { label: "Avis", value: product.reviewsCount, icon: MessageSquare, color: "#22c55e" },
+          ] as { label: string; value: number | string; icon: LucideIcon; color: string }[]).map((s) => (
             <div key={s.label} className="bg-white rounded-xl border border-gray-100 p-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: s.color }}>{s.icon}</span>
+                <s.icon size={16} style={{ color: s.color }} />
                 <p className="text-[10px] font-bold uppercase text-[#5c647a] tracking-wider">{s.label}</p>
               </div>
               <p className="text-xl font-extrabold text-[#191c1e] mt-1">{typeof s.value === "number" ? fmt(s.value) : s.value}</p>
@@ -615,7 +632,7 @@ export default function EditerProduitPage() {
 
           {!files.some((f) => (f.mimeType ?? "").toLowerCase() === "application/pdf") && (
             <div className="flex items-start gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
-              <span className="material-symbols-outlined text-[16px] flex-shrink-0 mt-0.5">info</span>
+              <Info size={16} className="flex-shrink-0 mt-0.5" />
               <p>Aucun PDF n&apos;est attaché à ce produit. L&apos;aperçu ne s&apos;affichera que si vous ajoutez un fichier PDF dans la section ci-dessus.</p>
             </div>
           )}
@@ -733,7 +750,7 @@ export default function EditerProduitPage() {
             disabled={deleteMutation.isPending}
             className="px-4 py-2 rounded-xl bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100 transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-[16px]">delete</span>
+            <Trash2 size={16} />
             Supprimer ce produit
           </button>
         </div>

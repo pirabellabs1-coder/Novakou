@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
+import {
+  ChevronRight,
+  Sparkles,
+  Loader2,
+  CheckCircle2,
+  Workflow,
+  Route,
+  RefreshCw,
+  Rocket,
+} from "lucide-react";
 
 // ─── Typage Puter ──────────────────────────────────────────────
 type PuterContentBlock = { type?: string; text?: string };
@@ -297,12 +307,12 @@ ${SYSTEM_PROMPT}`;
           <Link href="/vendeur/marketing/funnels" className="hover:text-[#006e2f] transition-colors">
             Funnels de vente
           </Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight size={14} />
           <span className="text-[#191c1e] font-medium">Générer avec l&apos;IA</span>
         </div>
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg">
-            <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white shadow-lg">
+            <Sparkles size={26} />
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Tunnel de vente par IA</h1>
@@ -325,7 +335,7 @@ ${SYSTEM_PROMPT}`;
               </label>
               {catalogLoading ? (
                 <div className="text-xs text-[#5c647a] px-3 py-2.5 bg-gray-50 rounded-xl border border-gray-200 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                  <Loader2 size={14} className="animate-spin" />
                   Chargement du catalogue…
                 </div>
               ) : catalog.length === 0 ? (
@@ -361,7 +371,7 @@ ${SYSTEM_PROMPT}`;
               )}
               {selectedCatalogItem && (
                 <p className="text-[10px] text-emerald-600 mt-1 flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                  <CheckCircle2 size={12} />
                   L&apos;IA adaptera le tunnel à ce produit.
                 </p>
               )}
@@ -429,21 +439,21 @@ ${SYSTEM_PROMPT}`;
               onClick={generate}
               disabled={loading || !product.trim() || !puterReady || creating}
               className="w-full py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #ec4899)" }}
+              style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
               {loading ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <Loader2 size={18} className="animate-spin" />
                   Claude construit votre tunnel…
                 </>
               ) : !puterReady ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <Loader2 size={18} className="animate-spin" />
                   Chargement du SDK IA…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                  <Sparkles size={18} />
                   Générer mon tunnel
                 </>
               )}
@@ -463,7 +473,7 @@ ${SYSTEM_PROMPT}`;
         <div className="lg:col-span-3 space-y-4">
           {!generated && !loading && (
             <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
-              <span className="material-symbols-outlined text-5xl text-gray-300">account_tree</span>
+              <Workflow size={48} className="text-gray-300 mx-auto" />
               <h3 className="text-lg font-bold text-[#191c1e] mt-3">Votre tunnel va apparaître ici</h3>
               <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto">
                 Claude va générer 4 étapes complètes : landing, checkout, upsell, page de remerciement — avec tous les textes, témoignages et FAQ.
@@ -473,13 +483,13 @@ ${SYSTEM_PROMPT}`;
 
           {loading && (
             <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
-              <span className="material-symbols-outlined text-5xl text-purple-500 animate-pulse" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+              <Sparkles size={48} className="text-[#22c55e] animate-pulse mx-auto" />
               <p className="text-sm text-[#191c1e] font-bold mt-4">Claude construit votre tunnel…</p>
               <p className="text-xs text-[#5c647a] mt-1">Landing, checkout, upsell, remerciement — avec textes, témoignages, FAQ…</p>
               <div className="mt-5 flex items-center justify-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-bounce" style={{ animationDelay: "0ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-bounce" style={{ animationDelay: "150ms" }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-bounce" style={{ animationDelay: "300ms" }} />
               </div>
             </div>
           )}
@@ -487,8 +497,8 @@ ${SYSTEM_PROMPT}`;
           {generated && (
             <>
               {/* Titre du funnel */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl border border-purple-200 p-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-purple-700 mb-1">Nom du funnel</p>
+              <div className="bg-gradient-to-br from-[#e6f5eb] to-[#f0faf3] rounded-2xl border border-[#bfe6cd] p-5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">Nom du funnel</p>
                 <h2 className="text-xl font-extrabold text-[#191c1e]">{generated.name}</h2>
                 {generated.description && <p className="text-sm text-[#5c647a] mt-1">{generated.description}</p>}
               </div>
@@ -496,7 +506,7 @@ ${SYSTEM_PROMPT}`;
               {/* Apercu des etapes */}
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h3 className="text-base font-bold text-[#191c1e] mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[#006e2f]">route</span>
+                  <Route size={20} className="text-[#006e2f]" />
                   Les 4 étapes de votre tunnel
                 </h3>
                 <div className="space-y-3">
@@ -544,7 +554,7 @@ ${SYSTEM_PROMPT}`;
                   className="flex-1 px-5 py-3 rounded-xl text-sm font-bold text-[#5c647a] border border-gray-200 hover:bg-gray-50 inline-flex items-center justify-center gap-2"
                   disabled={creating}
                 >
-                  <span className="material-symbols-outlined text-[16px]">refresh</span>
+                  <RefreshCw size={16} />
                   Regénérer
                 </button>
                 <button
@@ -555,12 +565,12 @@ ${SYSTEM_PROMPT}`;
                 >
                   {creating ? (
                     <>
-                      <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                      <Loader2 size={18} className="animate-spin" />
                       Création du funnel…
                     </>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
+                      <Rocket size={18} />
                       Créer et éditer ce tunnel
                     </>
                   )}

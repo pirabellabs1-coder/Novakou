@@ -3,6 +3,24 @@ import { useToastStore } from "@/store/toast";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type LucideIcon,
+  ChevronRight,
+  Plus,
+  PlusCircle,
+  UserPlus,
+  MousePointerClick,
+  GitBranch,
+  Banknote,
+  Users,
+  Percent,
+  Cookie,
+  Wallet,
+  UserCheck,
+  Check,
+  Copy,
+  X,
+} from "lucide-react";
 
 type AffiliateProgram = {
   id: string;
@@ -43,7 +61,7 @@ function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-const GRADIENTS = ["from-violet-400 to-purple-600","from-blue-400 to-sky-600","from-pink-400 to-rose-500","from-amber-400 to-orange-500","from-teal-400 to-emerald-600"];
+const GRADIENTS = ["from-[#006e2f] to-[#22c55e]","from-emerald-400 to-teal-600","from-teal-400 to-emerald-600","from-amber-400 to-orange-500","from-green-400 to-emerald-600"];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   ACTIVE: { bg: "bg-[#006e2f]/10", text: "text-[#006e2f]", label: "Actif" },
@@ -115,7 +133,7 @@ export default function AffiliationPage() {
         <div>
           <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
             <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight size={14} />
             <span className="text-[#191c1e] font-medium">Programme Affiliation</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Programme d'Affiliation</h1>
@@ -127,7 +145,7 @@ export default function AffiliationPage() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Plus size={18} />
             Créer mon programme
           </button>
         )}
@@ -135,15 +153,15 @@ export default function AffiliationPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Affiliés actifs", value: stats?.activeAffiliates ?? 0, icon: "group_add", color: "text-indigo-600", bg: "bg-indigo-50" },
-          { label: "Clics générés", value: (stats?.totalClicks ?? 0).toLocaleString("fr-FR"), icon: "ads_click", color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Conversions", value: stats?.totalConversions ?? 0, icon: "conversion_path", color: "text-purple-600", bg: "bg-purple-50" },
-          { label: "Revenus affiliation", value: `${formatFCFA(stats?.totalEarned ?? 0)} FCFA`, icon: "payments", color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ].map((kpi, i) => (
+        {([
+          { label: "Affiliés actifs", value: stats?.activeAffiliates ?? 0, icon: UserPlus, color: "text-[#006e2f]", bg: "bg-[#e6f5eb]" },
+          { label: "Clics générés", value: (stats?.totalClicks ?? 0).toLocaleString("fr-FR"), icon: MousePointerClick, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Conversions", value: stats?.totalConversions ?? 0, icon: GitBranch, color: "text-[#22c55e]", bg: "bg-[#e6f5eb]" },
+          { label: "Revenus affiliation", value: `${formatFCFA(stats?.totalEarned ?? 0)} FCFA`, icon: Banknote, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
+        ] as { label: string; value: number | string; icon: LucideIcon; color: string; bg: string }[]).map((kpi, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-              <span className={`material-symbols-outlined text-[20px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{kpi.icon}</span>
+              <kpi.icon size={20} className={kpi.color} />
             </div>
             <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
             <p className="text-base font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
@@ -153,9 +171,9 @@ export default function AffiliationPage() {
 
       {/* No program */}
       {!isLoading && !mainProgram && (
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-10 text-center">
+        <div className="bg-gradient-to-br from-[#e6f5eb] to-[#f0faf3] border border-[#bfe6cd] rounded-2xl p-10 text-center">
           <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[32px] text-indigo-600" style={{ fontVariationSettings: "'FILL' 1" }}>diversity_3</span>
+            <Users size={32} className="text-[#006e2f]" />
           </div>
           <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Lancez votre programme d'affiliation</h2>
           <p className="text-sm text-[#5c647a] max-w-md mx-auto mb-6">
@@ -166,7 +184,7 @@ export default function AffiliationPage() {
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold transition-opacity hover:opacity-90"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            <PlusCircle size={18} />
             Créer mon programme
           </button>
         </div>
@@ -187,15 +205,15 @@ export default function AffiliationPage() {
               </button>
             </div>
             <div className="space-y-3">
-              {[
-                { label: "Commission", value: `${mainProgram.commissionPct}% par vente`, icon: "percent" },
-                { label: "Cookie tracking", value: `${mainProgram.cookieDays} jours`, icon: "cookie" },
-                { label: "Seuil retrait", value: `${formatFCFA(mainProgram.minPayoutAmount)} FCFA`, icon: "account_balance_wallet" },
-                { label: "Approbation", value: mainProgram.autoApprove ? "Automatique" : "Manuelle", icon: "how_to_reg" },
-              ].map((item) => (
+              {([
+                { label: "Commission", value: `${mainProgram.commissionPct}% par vente`, icon: Percent },
+                { label: "Cookie tracking", value: `${mainProgram.cookieDays} jours`, icon: Cookie },
+                { label: "Seuil retrait", value: `${formatFCFA(mainProgram.minPayoutAmount)} FCFA`, icon: Wallet },
+                { label: "Approbation", value: mainProgram.autoApprove ? "Automatique" : "Manuelle", icon: UserCheck },
+              ] as { label: string; value: string; icon: LucideIcon }[]).map((item) => (
                 <div key={item.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[16px] text-[#5c647a]">{item.icon}</span>
+                    <item.icon size={16} className="text-[#5c647a]" />
                     <span className="text-xs text-[#5c647a]">{item.label}</span>
                   </div>
                   <span className="text-xs font-bold text-[#191c1e]">{item.value}</span>
@@ -278,7 +296,7 @@ export default function AffiliationPage() {
                         copiedCode === aff.affiliateCode ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a] hover:bg-gray-200"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[14px]">{copiedCode === aff.affiliateCode ? "check" : "content_copy"}</span>
+                      {copiedCode === aff.affiliateCode ? <Check size={14} /> : <Copy size={14} />}
                       {copiedCode === aff.affiliateCode ? "Copié" : aff.affiliateCode}
                     </button>
                   </div>
@@ -296,7 +314,7 @@ export default function AffiliationPage() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-[#191c1e]">Créer mon programme</h2>
               <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+                <X size={20} className="text-[#5c647a]" />
               </button>
             </div>
             <div className="space-y-4">

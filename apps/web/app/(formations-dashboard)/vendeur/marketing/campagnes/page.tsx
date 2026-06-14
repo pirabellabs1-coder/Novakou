@@ -4,6 +4,19 @@ import { useToastStore } from "@/store/toast";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import {
+  type LucideIcon,
+  ChevronRight,
+  Link2,
+  MousePointerClick,
+  GitBranch,
+  Percent,
+  X,
+  Trash2,
+  Check,
+  Copy,
+  Banknote,
+} from "lucide-react";
 
 type Campaign = {
   id: string;
@@ -114,7 +127,7 @@ export default function CampagnesPage() {
         <div>
           <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
             <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight size={14} />
             <span className="text-[#191c1e] font-medium">Liens de Campagne</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Liens de Campagne</h1>
@@ -125,22 +138,22 @@ export default function CampagnesPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">add_link</span>
+          <Link2 size={18} />
           Créer un lien
         </button>
       </div>
 
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Liens actifs", value: campaigns.filter((c) => c.isActive).length, icon: "link", color: "text-teal-600", bg: "bg-teal-50" },
-          { label: "Clics totaux", value: totalClicks.toLocaleString("fr-FR"), icon: "ads_click", color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Conversions", value: totalConversions, icon: "conversion_path", color: "text-purple-600", bg: "bg-purple-50" },
-          { label: "Taux conversion", value: `${conversionRate}%`, icon: "percent", color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ].map((kpi, i) => (
+        {([
+          { label: "Liens actifs", value: campaigns.filter((c) => c.isActive).length, icon: Link2, color: "text-teal-600", bg: "bg-teal-50" },
+          { label: "Clics totaux", value: totalClicks.toLocaleString("fr-FR"), icon: MousePointerClick, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Conversions", value: totalConversions, icon: GitBranch, color: "text-[#22c55e]", bg: "bg-[#e6f5eb]" },
+          { label: "Taux conversion", value: `${conversionRate}%`, icon: Percent, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
+        ] as { label: string; value: number | string; icon: LucideIcon; color: string; bg: string }[]).map((kpi, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-              <span className={`material-symbols-outlined text-[18px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{kpi.icon}</span>
+              <kpi.icon size={18} className={kpi.color} />
             </div>
             <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
             <p className="text-base font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
@@ -155,7 +168,7 @@ export default function CampagnesPage() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-[#191c1e]">Nouveau lien de campagne</h2>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+                <X size={20} className="text-[#5c647a]" />
               </button>
             </div>
 
@@ -280,7 +293,7 @@ export default function CampagnesPage() {
           ))
         ) : campaigns.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
-            <span className="material-symbols-outlined text-[40px] text-gray-300 block mb-3">add_link</span>
+            <Link2 size={40} className="text-gray-300 mx-auto mb-3" />
             <p className="font-semibold text-[#191c1e]">Aucun lien de campagne</p>
             <p className="text-sm text-[#5c647a] mt-1">Créez votre premier lien pour tracker vos sources de trafic</p>
           </div>
@@ -303,7 +316,7 @@ export default function CampagnesPage() {
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {c.utmSource && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{c.utmSource}</span>}
-                    {c.utmMedium && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-medium">{c.utmMedium}</span>}
+                    {c.utmMedium && <span className="text-[10px] bg-[#e6f5eb] text-[#006e2f] px-2 py-0.5 rounded-full font-medium">{c.utmMedium}</span>}
                     {c.utmCampaign && <span className="text-[10px] bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full font-medium">{c.utmCampaign}</span>}
                   </div>
                 </div>
@@ -327,7 +340,7 @@ export default function CampagnesPage() {
                     }}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
                   >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                    <Trash2 size={16} />
                   </button>
                 </div>
               </div>
@@ -343,20 +356,20 @@ export default function CampagnesPage() {
                     copied === c.id ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a] hover:bg-gray-200"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[14px]">{copied === c.id ? "check" : "content_copy"}</span>
+                  {copied === c.id ? <Check size={14} /> : <Copy size={14} />}
                   {copied === c.id ? "Copié !" : "Copier"}
                 </button>
               </div>
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-50">
-                {[
-                  { label: "Clics", value: c.totalClicks.toLocaleString("fr-FR"), icon: "ads_click", color: "text-blue-600" },
-                  { label: "Conversions", value: c.totalConversions, icon: "conversion_path", color: "text-purple-600" },
-                  { label: "Revenus", value: `${formatFCFA(c.totalRevenue)} FCFA`, icon: "payments", color: "text-[#006e2f]" },
-                ].map((stat) => (
+                {([
+                  { label: "Clics", value: c.totalClicks.toLocaleString("fr-FR"), icon: MousePointerClick, color: "text-blue-600" },
+                  { label: "Conversions", value: c.totalConversions, icon: GitBranch, color: "text-[#22c55e]" },
+                  { label: "Revenus", value: `${formatFCFA(c.totalRevenue)} FCFA`, icon: Banknote, color: "text-[#006e2f]" },
+                ] as { label: string; value: number | string; icon: LucideIcon; color: string }[]).map((stat) => (
                   <div key={stat.label} className="flex items-center gap-2">
-                    <span className={`material-symbols-outlined text-[16px] ${stat.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{stat.icon}</span>
+                    <stat.icon size={16} className={stat.color} />
                     <div>
                       <p className="text-sm font-bold text-[#191c1e]">{stat.value}</p>
                       <p className="text-[10px] text-[#5c647a]">{stat.label}</p>

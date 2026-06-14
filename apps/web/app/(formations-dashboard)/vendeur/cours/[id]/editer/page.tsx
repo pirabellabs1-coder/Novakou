@@ -11,6 +11,20 @@ import { useToastStore } from "@/store/toast";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { confirmAction } from "@/store/confirm";
 import { promptAction } from "@/store/prompt";
+import {
+  ArrowLeft,
+  PlusSquare,
+  Plus,
+  GripVertical,
+  PlayCircle,
+  HelpCircle,
+  FileText,
+  X,
+  Image as ImageIcon,
+  CheckCircle2,
+  ListChecks,
+  MonitorPlay,
+} from "lucide-react";
 
 type Lesson = {
   id: string;
@@ -276,7 +290,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
           href="/vendeur/produits"
           className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors mb-8"
         >
-          <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          <ArrowLeft size={14} />
           Mes produits
         </Link>
 
@@ -297,7 +311,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                   title="Ajouter un module"
                   className="text-[#22c55e] hover:bg-[#e8e8e8] p-1 transition-colors disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined">add_box</span>
+                  <PlusSquare size={22} />
                 </button>
               </div>
 
@@ -311,7 +325,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                     disabled={createSectionMutation.isPending}
                     className="inline-flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-widest text-white bg-[#006e2f] hover:bg-[#22c55e] transition-colors disabled:opacity-50"
                   >
-                    <span className="material-symbols-outlined text-[14px]">add</span>
+                    <Plus size={14} />
                     {createSectionMutation.isPending ? "Création…" : "Créer un module"}
                   </button>
                 </div>
@@ -323,9 +337,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                         <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
                           Module {String(sIdx + 1).padStart(2, "0")}
                         </span>
-                        <span className="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 cursor-grab text-zinc-400">
-                          drag_indicator
-                        </span>
+                        <GripVertical size={16} className="opacity-0 group-hover:opacity-100 cursor-grab text-zinc-400" />
                       </div>
                       <div className="bg-white p-4 border-l-4 border-[#22c55e] shadow-sm">
                         <p className="text-sm font-bold text-zinc-900 leading-tight">{section.title}</p>
@@ -341,9 +353,10 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                                 active ? "bg-[#f3f3f4]" : "hover:bg-[#f3f3f4]"
                               }`}
                             >
-                              <span className={`material-symbols-outlined text-sm ${active ? "text-[#006e2f]" : "text-zinc-400"}`}>
-                                {lesson.type === "VIDEO" ? "play_circle" : lesson.type === "QUIZ" ? "quiz" : "description"}
-                              </span>
+                              {(() => {
+                                const LessonIcon = lesson.type === "VIDEO" ? PlayCircle : lesson.type === "QUIZ" ? HelpCircle : FileText;
+                                return <LessonIcon size={16} className={active ? "text-[#006e2f]" : "text-zinc-400"} />;
+                              })()}
                               <span className="text-xs font-medium text-zinc-600 flex-1 truncate">{lesson.title}</span>
                               {lesson.isFree && (
                                 <span className="text-[8px] font-bold uppercase tracking-widest text-[#006e2f] flex-shrink-0">
@@ -358,7 +371,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                           disabled={createLessonMutation.isPending}
                           className="flex items-center gap-2 text-[10px] font-bold text-[#006e2f] uppercase tracking-widest hover:underline mt-2 py-1 disabled:opacity-50"
                         >
-                          <span className="material-symbols-outlined text-xs">add</span>
+                          <Plus size={13} />
                           Ajouter leçon
                         </button>
                       </div>
@@ -538,7 +551,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                         className="p-1 text-zinc-400 hover:text-zinc-700"
                         title="Fermer"
                       >
-                        <span className="material-symbols-outlined text-[18px]">close</span>
+                        <X size={18} />
                       </button>
                     </div>
                     <ImageUploader
@@ -559,7 +572,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                       <img src={thumbnail} alt="Cover" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 group-hover:scale-105 transition-all duration-700" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-6xl text-white/20">image</span>
+                        <ImageIcon size={64} className="text-white/20" />
                       </div>
                     )}
                     <div className="absolute inset-0 p-6 md:p-8 flex flex-col justify-between">
@@ -691,7 +704,7 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
 
                 {formation.status === "ACTIF" && (
                   <span className="flex items-center gap-1.5 px-4 py-4 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-widest">
-                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                    <CheckCircle2 size={14} />
                     Publié
                   </span>
                 )}
@@ -728,7 +741,7 @@ function LessonVideoEditorSection({
   if (!selectedLesson) {
     return (
       <section className="bg-[#f3f3f4] p-8 md:p-12 border-2 border-dashed border-[#bccbb9] flex flex-col items-center justify-center text-center space-y-4 min-h-[300px]">
-        <span className="material-symbols-outlined text-5xl text-[#22c55e]">list_alt</span>
+        <ListChecks size={48} className="text-[#22c55e]" />
         <div>
           <h3 className="text-lg font-bold tracking-tight text-zinc-900">
             Sélectionnez une leçon
@@ -787,7 +800,7 @@ function LessonVideoEditorSection({
             le logo provider est déjà masqué (cf. mention plus bas dans la page). */}
         {provider && valid && (
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider">
-            <span className="material-symbols-outlined text-[12px]">check_circle</span>
+            <CheckCircle2 size={12} />
             URL valide
           </span>
         )}
@@ -803,7 +816,7 @@ function LessonVideoEditorSection({
       ) : (
         <div className="w-full aspect-video rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
           <div className="text-center text-slate-500">
-            <span className="material-symbols-outlined text-5xl mb-2">smart_display</span>
+            <MonitorPlay size={48} className="mb-2 mx-auto" />
             <p className="text-sm font-semibold">Aucune vidéo pour l'instant</p>
             <p className="text-xs">Collez une URL YouTube, Vimeo ou un lien MP4 ci-dessous</p>
           </div>
