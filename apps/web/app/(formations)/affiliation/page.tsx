@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import {
+  Check,
   ChevronDown,
+  Copy,
   Info,
   Percent,
   Rocket,
@@ -326,9 +328,7 @@ export default function AffiliationPage() {
                   copied ? "bg-green-100 text-green-700" : "bg-[#006e2f] text-white hover:bg-[#005a26]"
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px]">
-                  {copied ? "check" : "content_copy"}
-                </span>
+                {copied ? <Check size={16} /> : <Copy size={16} />}
                 {copied ? "Copié !" : "Copier"}
               </button>
             </div>

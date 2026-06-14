@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import {
   AlertCircle,
+  Eye,
+  EyeOff,
   ShieldCheck,
   Store,
 } from "lucide-react";
@@ -227,7 +229,7 @@ export default function AdminMarketplaceLoginPage() {
                   className="w-full px-4 py-3 pr-12 bg-slate-800 border border-slate-700 rounded-xl text-white text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all"
                 />
                 <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-red-400">
-                  <span className="material-symbols-outlined text-lg">{showPassword ? "visibility_off" : "visibility"}</span>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>

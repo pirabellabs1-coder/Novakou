@@ -11,6 +11,8 @@ import {
   Captions,
   CheckCircle2,
   ChevronDown,
+  Circle,
+  CircleDot,
   CreditCard,
   Database,
   Gauge,
@@ -306,9 +308,9 @@ function MockupPaiements({ data }: { data: typeof TABS[2]["mockup"] }) {
               style={{ backgroundColor: m.color }}>{m.name.split(" ")[0].slice(0, 4)}</div>
             <span className="text-sm font-medium text-[#191c1e]">{m.name}</span>
           </div>
-          <span className="material-symbols-outlined text-[18px]" style={{ color: m.selected ? data.accent : "#d1d5db" }}>
-            {m.selected ? "radio_button_checked" : "radio_button_unchecked"}
-          </span>
+          {m.selected
+            ? <CircleDot size={18} style={{ color: data.accent }} />
+            : <Circle size={18} style={{ color: "#d1d5db" }} />}
         </div>
       ))}
       <button className="w-full py-3 rounded-xl text-white text-sm font-bold" style={{ backgroundColor: data.accent }}>
@@ -372,9 +374,9 @@ function MockupVideo() {
         { title: "Module 3 — Mise en pratique", duration: "25:10", done: false },
       ].map((v) => (
         <div key={v.title} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 bg-white">
-          <span className="material-symbols-outlined text-[18px]" style={{ color: v.done ? "#22c55e" : "#d1d5db", fontVariationSettings: "'FILL' 1" }}>
-            {v.done ? "check_circle" : "play_circle"}
-          </span>
+          {v.done
+            ? <CheckCircle2 size={18} style={{ color: "#22c55e" }} />
+            : <PlayCircle size={18} style={{ color: "#d1d5db" }} />}
           <span className="flex-1 text-xs text-[#191c1e]">{v.title}</span>
           <span className="text-[10px] text-[#5c647a]">{v.duration}</span>
         </div>

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import {
   AlertCircle,
+  Eye,
+  EyeOff,
   History,
   Loader2,
   LockOpen,
@@ -142,9 +144,7 @@ export default function AdminLoginClient() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {showPassword ? "visibility_off" : "visibility"}
-                  </span>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>

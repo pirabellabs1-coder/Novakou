@@ -10,6 +10,7 @@ import {
   PlayCircle,
   Quote,
   ShoppingBag,
+  Star,
   UserSearch,
   Users,
 } from "lucide-react";
@@ -87,13 +88,11 @@ function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((n) => (
-        <span
+        <Star
           key={n}
-          className={`material-symbols-outlined text-[14px] ${n <= Math.round(rating) ? "text-amber-400" : "text-gray-200"}`}
-          style={{ fontVariationSettings: "'FILL' 1" }}
-        >
-          star
-        </span>
+          size={14}
+          className={n <= Math.round(rating) ? "fill-amber-400 text-amber-400" : "fill-gray-200 text-gray-200"}
+        />
       ))}
     </div>
   );
