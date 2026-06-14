@@ -13,6 +13,8 @@ import {
   MailCheck,
   Send,
   ShieldCheck,
+  Store,
+  Zap,
 } from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -149,13 +151,13 @@ function ConnexionInner() {
           </h1>
           <div className="space-y-4">
             {[
-              { icon: "lock", text: "Connexion sans mot de passe par code sécurisé" },
-              { icon: "bolt", text: "Accès immédiat à vos formations et téléchargements" },
-              { icon: "storefront", text: "Vos achats de toutes les boutiques Novakou réunis" },
+              { icon: Lock, text: "Connexion sans mot de passe par code sécurisé" },
+              { icon: Zap, text: "Accès immédiat à vos formations et téléchargements" },
+              { icon: Store, text: "Vos achats de toutes les boutiques Novakou réunis" },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="material-symbols-outlined text-white text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
+                  {(()=>{const _I=item.icon;return _I?<_I size={18} className="text-white" />:null;})()}
                 </div>
                 <p className="text-white/85 text-sm leading-relaxed">{item.text}</p>
               </div>
