@@ -1,4 +1,4 @@
-// Refonte style KAZA — messages chat — 2026-06-07
+// Refonte design "Stitch" — messages chat — vert Novakou — 2026-06-14
 "use client";
 
 import { use, useState, useEffect, useRef, useCallback } from "react";
@@ -14,7 +14,7 @@ import {
   Check,
   CheckCheck,
 } from "lucide-react";
-import { KAZA_GRADIENT } from "@/components/kaza";
+import { ST, StAvatar } from "@/components/stitch";
 
 interface Sender {
   id: string;
@@ -93,17 +93,7 @@ function MessageBubble({
     <div className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : "flex-row"}`}>
       <div className="w-7 h-7 flex-shrink-0">
         {!isMe && showAvatar ? (
-          <div
-            className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white text-[10px] font-bold"
-            style={{ background: KAZA_GRADIENT }}
-          >
-            {message.sender.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={message.sender.image} alt="" className="w-full h-full object-cover" />
-            ) : (
-              initials(message.sender.name)
-            )}
-          </div>
+          <StAvatar name={message.sender.name ?? "?"} src={message.sender.image} size={28} />
         ) : null}
       </div>
 
@@ -113,17 +103,18 @@ function MessageBubble({
             href={message.fileUrl ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 px-3 py-2 rounded-2xl border ${
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl"
+            style={
               isMe
-                ? "bg-emerald-500 text-white border-transparent"
-                : "bg-slate-100 text-[#0b2540] border-slate-200"
-            }`}
+                ? { background: ST.green, color: "#fff", border: "1px solid transparent" }
+                : { background: "#f1f5f3", color: ST.text, border: `1px solid ${ST.cardBorder}` }
+            }
           >
             <Paperclip className="w-5 h-5" />
             <div className="min-w-0">
               <p className="text-xs font-semibold truncate max-w-40">{message.fileName ?? "Fichier"}</p>
               {message.fileSizeBytes && (
-                <p className={`text-[10px] ${isMe ? "text-white/70" : "text-slate-500"}`}>
+                <p className="text-[10px]" style={{ color: isMe ? "rgba(255,255,255,.7)" : ST.textMuted }}>
                   {fmtBytes(message.fileSizeBytes)}
                 </p>
               )}
@@ -132,21 +123,27 @@ function MessageBubble({
           </a>
         ) : (
           <div
-            className={`px-4 py-2.5 rounded-2xl ${
+            className={`px-4 py-2.5 rounded-2xl ${isMe ? "rounded-br-md shadow-sm" : "rounded-bl-md"}`}
+            style={
               isMe
-                ? "bg-emerald-500 text-white rounded-br-md shadow-sm"
-                : "bg-slate-100 text-[#0b2540] rounded-bl-md"
-            }`}
+                ? { background: ST.green, color: "#fff" }
+                : { background: "#f1f5f3", color: ST.text }
+            }
           >
             <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
           </div>
         )}
 
         {showTimestamp && (
-          <p className={`text-[10px] text-slate-500 mt-1 flex items-center gap-1 ${isMe ? "justify-end" : "justify-start"}`}>
+          <p
+            className={`text-[10px] mt-1 flex items-center gap-1 ${isMe ? "justify-end" : "justify-start"}`}
+            style={{ color: ST.textMuted }}
+          >
             {fmtFull(message.createdAt)}
             {isMe && (
-              message.read ? <CheckCheck className="w-3 h-3 text-emerald-600" /> : <Check className="w-3 h-3" />
+              message.read
+                ? <CheckCheck className="w-3 h-3" style={{ color: ST.green }} />
+                : <Check className="w-3 h-3" />
             )}
           </p>
         )}
@@ -291,10 +288,10 @@ export default function ConversationPage({
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-slate-50">
+      <div className="flex flex-col h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
         <div
           className="rounded-b-3xl px-5 py-4 flex items-center gap-3 animate-pulse"
-          style={{ background: KAZA_GRADIENT }}
+          style={{ background: ST.gradient }}
         >
           <div className="w-9 h-9 bg-white/20 rounded-full" />
           <div className="h-4 w-40 bg-white/20 rounded-xl" />
@@ -302,8 +299,8 @@ export default function ConversationPage({
         <div className="flex-1 p-4 space-y-3">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className={`flex ${i % 2 === 0 ? "flex-row-reverse" : ""} gap-2 items-end`}>
-              <div className="w-7 h-7 bg-slate-200 rounded-full" />
-              <div className={`h-10 bg-slate-200 rounded-2xl ${i % 2 === 0 ? "w-48" : "w-64"}`} />
+              <div className="w-7 h-7 rounded-full" style={{ background: "#e9efeb" }} />
+              <div className={`h-10 rounded-2xl ${i % 2 === 0 ? "w-48" : "w-64"}`} style={{ background: "#e9efeb" }} />
             </div>
           ))}
         </div>
@@ -312,16 +309,16 @@ export default function ConversationPage({
   }
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
-      {/* ── Header navy verre dépoli ──────────────────────────────────────── */}
+    <div className="flex flex-col h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      {/* ── Header gradient vert Novakou ──────────────────────────────────── */}
       <div
         className="rounded-b-3xl shadow-lg text-white sticky top-0 z-10"
-        style={{ background: KAZA_GRADIENT }}
+        style={{ background: ST.gradient }}
       >
         <div className="px-5 py-4 flex items-center gap-3">
           <Link
             href="/messages"
-            className="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/20 transition-colors flex-shrink-0"
+            className="w-9 h-9 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/25 transition-colors flex-shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
@@ -339,7 +336,7 @@ export default function ConversationPage({
             <p className="text-base font-extrabold truncate tracking-tight">
               {otherUser?.name ?? otherUser?.email ?? "Conversation"}
             </p>
-            <p className="text-[11px] text-slate-300 truncate">
+            <p className="text-[11px] text-white/70 truncate">
               {otherUser?.email}
             </p>
           </div>
@@ -353,7 +350,8 @@ export default function ConversationPage({
             <button
               onClick={loadMore}
               disabled={loadingMore}
-              className="inline-flex items-center gap-1.5 text-xs text-emerald-600 font-semibold hover:underline disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 text-xs font-extrabold hover:underline disabled:opacity-50"
+              style={{ color: ST.green }}
             >
               {loadingMore ? (
                 <>
@@ -369,11 +367,11 @@ export default function ConversationPage({
 
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center px-6">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-              <MessagesSquare className="w-7 h-7 text-slate-400" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: ST.greenSoft }}>
+              <MessagesSquare className="w-7 h-7" style={{ color: ST.green }} />
             </div>
-            <p className="text-sm text-[#0b2540] font-bold">Aucun message pour l&apos;instant</p>
-            <p className="text-xs text-slate-500 mt-1 max-w-xs">
+            <p className="text-sm font-extrabold" style={{ color: ST.text }}>Aucun message pour l&apos;instant</p>
+            <p className="text-xs mt-1 max-w-xs font-semibold" style={{ color: ST.textSecondary }}>
               Envoyez le premier message pour démarrer la conversation.
             </p>
           </div>
@@ -390,11 +388,11 @@ export default function ConversationPage({
               <div key={msg.id}>
                 {showDaySep && (
                   <div className="flex items-center gap-3 my-4">
-                    <div className="flex-1 h-px bg-slate-200" />
-                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider px-2">
+                    <div className="flex-1 h-px" style={{ background: ST.cardBorder }} />
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2" style={{ color: ST.textMuted }}>
                       {fmtDaySep(msg.createdAt)}
                     </span>
-                    <div className="flex-1 h-px bg-slate-200" />
+                    <div className="flex-1 h-px" style={{ background: ST.cardBorder }} />
                   </div>
                 )}
                 <MessageBubble message={msg} isMe={isMe} showAvatar={showAvatar} />
@@ -406,7 +404,7 @@ export default function ConversationPage({
       </div>
 
       {/* ── Input ────────────────────────────────────────────────────────────── */}
-      <div className="bg-white border-t border-slate-100 px-4 py-3">
+      <div className="bg-white px-4 py-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
         <form onSubmit={handleSend} className="flex items-end gap-2">
           <div className="flex-1 relative">
             <textarea
@@ -416,8 +414,10 @@ export default function ConversationPage({
               onKeyDown={handleKeyDown}
               placeholder="Écrivez un message… (Entrée pour envoyer)"
               rows={1}
-              className="w-full px-4 py-3 rounded-2xl border-2 border-slate-200 text-sm text-[#0b2540] placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 resize-none transition-all"
+              className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none resize-none transition-all"
               style={{
+                color: ST.text,
+                border: "1px solid #dde6e0",
                 minHeight: "44px",
                 maxHeight: "120px",
                 overflowY: input.split("\n").length > 3 ? "auto" : "hidden",
@@ -432,19 +432,18 @@ export default function ConversationPage({
           <button
             type="submit"
             disabled={!input.trim() || sending}
-            className={`w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 shadow-md ${
-              input.trim() ? "bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20" : "bg-slate-200"
-            }`}
+            className="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-all disabled:opacity-40 shadow-md active:scale-95"
+            style={input.trim() ? { background: ST.gradient } : { background: "#e4eae6" }}
             aria-label="Envoyer"
           >
             {sending ? (
               <Loader2 className="w-5 h-5 text-white animate-spin" />
             ) : (
-              <Send className={`w-5 h-5 ${input.trim() ? "text-white" : "text-slate-400"}`} />
+              <Send className="w-5 h-5" style={{ color: input.trim() ? "#fff" : ST.textMuted }} />
             )}
           </button>
         </form>
-        <p className="text-[10px] text-slate-400 mt-1.5 text-center">
+        <p className="text-[10px] mt-1.5 text-center font-semibold" style={{ color: ST.textFaint }}>
           Shift + Entrée pour nouvelle ligne
         </p>
       </div>

@@ -14,6 +14,7 @@ import {
   Save,
   LogOut,
   CheckCircle2,
+  Check,
   Loader2,
   KeyRound,
   Eye,
@@ -26,10 +27,10 @@ import CountrySelect from "@/components/account/CountrySelect";
 import ActiveSessions from "@/components/account/ActiveSessions";
 import PaymentSettingsPanel from "@/components/vendeur/PaymentSettingsPanel";
 import {
-  KazaHero,
-  KazaCard,
-  KazaButton,
-} from "@/components/kaza";
+  StPageHeader,
+  StButton,
+  ST,
+} from "@/components/stitch";
 
 type Tab = "compte" | "paiements" | "notifications" | "securite" | "coaching" | "domaine";
 
@@ -74,7 +75,8 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   return (
     <button
       onClick={() => onChange(!on)}
-      className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${on ? "bg-emerald-500" : "bg-slate-200"}`}
+      className="relative w-10 h-5 rounded-full transition-colors flex-shrink-0"
+      style={{ background: on ? ST.green : "#e4eae6" }}
     >
       <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all ${on ? "left-5" : "left-0.5"}`} />
     </button>
@@ -232,31 +234,26 @@ export default function ParamaetresPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-4xl mx-auto space-y-8">
-        <KazaHero
-          badge={isMentorContext ? "Mentor" : "Pro"}
-          badgeColor={isMentorContext ? "white" : "orange"}
-          icon={Settings}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-4xl mx-auto space-y-6">
+        <StPageHeader
           title="Paramètres"
           subtitle="Gérez votre compte et vos préférences"
         />
 
         {/* Tab navigation */}
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-2xl overflow-x-auto">
+        <div className="flex gap-1 p-1 rounded-2xl overflow-x-auto" style={{ background: "#fff", border: `1px solid ${ST.cardBorder}` }}>
           {tabs.map((tab) => {
             const TabIcon = tab.icon;
+            const on = activeTab === tab.value;
             return (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 ${
-                  activeTab === tab.value
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-900"
-                }`}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12.5px] font-extrabold transition-all whitespace-nowrap flex-shrink-0"
+                style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
               >
-                <TabIcon className={`w-4 h-4 ${activeTab === tab.value ? "text-emerald-700" : "text-slate-500"}`} />
+                <TabIcon className="w-4 h-4" style={{ color: on ? "#fff" : ST.textMuted }} />
                 {tab.label}
               </button>
             );
@@ -316,16 +313,15 @@ export default function ParamaetresPage() {
             </div>
 
             <div className="flex flex-wrap gap-3 items-center">
-              <KazaButton
-                variant="primary"
+              <StButton
                 icon={savingCompte ? Loader2 : Save}
                 onClick={saveCompte}
                 disabled={savingCompte}
               >
                 {savingCompte ? "Sauvegarde…" : "Enregistrer les modifications"}
-              </KazaButton>
+              </StButton>
               {compteSaved && (
-                <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                <span className="flex items-center gap-1.5 text-xs font-extrabold" style={{ color: ST.green }}>
                   <CheckCircle2 className="w-4 h-4" />
                   Sauvegardé !
                 </span>
@@ -334,12 +330,12 @@ export default function ParamaetresPage() {
           </div>
 
           {/* Logout + Danger zone */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 mb-4">
-            <h2 className="text-base font-bold text-slate-900 mb-1">Session</h2>
-            <p className="text-sm text-slate-500 mb-4">Déconnectez-vous de votre compte sur cet appareil.</p>
-            <KazaButton variant="ghost" icon={LogOut} onClick={handleLogout}>
+          <div className="bg-white rounded-2xl shadow-sm p-6 mb-4" style={{ border: `1px solid ${ST.cardBorder}` }}>
+            <h2 className="text-base font-extrabold mb-1" style={{ color: ST.text }}>Session</h2>
+            <p className="text-sm mb-4 font-semibold" style={{ color: ST.textSecondary }}>Déconnectez-vous de votre compte sur cet appareil.</p>
+            <StButton variant="secondary" icon={LogOut} onClick={handleLogout}>
               Se déconnecter
-            </KazaButton>
+            </StButton>
           </div>
 
           <AccountDeletionPanel />
@@ -395,20 +391,20 @@ export default function ParamaetresPage() {
       {activeTab === "coaching" && (
         <div className="space-y-6">
           {/* Activation toggle */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-2xl shadow-sm p-6" style={{ border: `1px solid ${ST.cardBorder}` }}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${coachActif ? "bg-emerald-50" : "bg-slate-100"}`}>
-                  <Headphones className={`w-6 h-6 ${coachActif ? "text-emerald-700" : "text-slate-500"}`} />
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: coachActif ? ST.greenSoft : "#f1efe8" }}>
+                  <Headphones className="w-6 h-6" style={{ color: coachActif ? ST.green : ST.textMuted }} />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">Mode Coach</h2>
-                  <p className="text-sm text-slate-500 mt-0.5 max-w-sm">
-                    Activez cette option pour proposer des sessions de coaching 1:1 et apparaître sur la page <span className="font-semibold text-emerald-700">Mentors</span> de Novakou.
+                  <h2 className="text-base font-extrabold" style={{ color: ST.text }}>Mode Coach</h2>
+                  <p className="text-sm mt-0.5 max-w-sm font-semibold" style={{ color: ST.textSecondary }}>
+                    Activez cette option pour proposer des sessions de coaching 1:1 et apparaître sur la page <span className="font-extrabold" style={{ color: ST.green }}>Mentors</span> de Novakou.
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className={`w-2 h-2 rounded-full ${coachActif ? "bg-emerald-500" : "bg-slate-300"}`} />
-                    <span className={`text-xs font-semibold ${coachActif ? "text-emerald-700" : "text-slate-500"}`}>
+                    <span className="w-2 h-2 rounded-full" style={{ background: coachActif ? ST.greenBright : "#cdd9d2" }} />
+                    <span className="text-xs font-extrabold" style={{ color: coachActif ? ST.green : ST.textMuted }}>
                       {coachActif ? "Actif — vous apparaissez sur la page Mentors" : "Inactif"}
                     </span>
                   </div>
@@ -529,13 +525,13 @@ export default function ParamaetresPage() {
                     <button
                       key={s}
                       onClick={() => toggleSpecialite(s)}
-                      className={`px-3 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
+                      className={`inline-flex items-center px-3 py-2 rounded-xl text-sm font-semibold border-2 transition-all ${
                         specialites.includes(s)
                           ? "border-[#006e2f] bg-[#006e2f]/8 text-[#006e2f]"
                           : "border-gray-200 text-[#5c647a] hover:border-gray-300"
                       }`}
                     >
-                      {specialites.includes(s) && <span className="mr-1">✓</span>}{s}
+                      {specialites.includes(s) && <Check className="w-3.5 h-3.5 mr-1" strokeWidth={3} />}{s}
                     </button>
                   ))}
                 </div>
@@ -557,13 +553,13 @@ export default function ParamaetresPage() {
               </div>
 
               {/* Aperçu fiche mentor */}
-              <div className="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6">
+              <div className="bg-white rounded-2xl shadow-sm p-6" style={{ border: `1px solid #d7ecde` }}>
                 <div className="flex items-center gap-2 mb-4">
-                  <Eye className="w-4 h-4 text-emerald-700" />
-                  <h2 className="text-sm font-bold text-emerald-700">Aperçu de votre fiche mentor</h2>
+                  <Eye className="w-4 h-4" style={{ color: ST.green }} />
+                  <h2 className="text-sm font-extrabold" style={{ color: ST.green }}>Aperçu de votre fiche mentor</h2>
                 </div>
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-[#f7f9fb] border border-gray-100">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                <div className="flex items-start gap-4 p-4 rounded-xl" style={{ background: ST.bg, border: `1px solid ${ST.cardBorder}` }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-lg flex-shrink-0" style={{ background: ST.gradient }}>
                     KA
                   </div>
                   <div className="flex-1 min-w-0">
@@ -594,22 +590,21 @@ export default function ParamaetresPage() {
                 </div>
               </div>
 
-              <KazaButton
-                variant="primary"
+              <StButton
                 icon={coachSaved ? CheckCircle2 : Save}
                 onClick={saveCoach}
                 className="w-full"
               >
                 {coachSaved ? "Profil coach sauvegardé !" : "Sauvegarder mon profil coach"}
-              </KazaButton>
+              </StButton>
             </>
           )}
 
           {!coachActif && (
-            <div className="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-8 text-center">
-              <Headphones className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm font-semibold text-slate-900 mb-1">Activez le mode coach pour configurer vos sessions</p>
-              <p className="text-xs text-slate-500">Une fois activé, vous apparaîtrez sur la page Mentors et les apprenants pourront réserver des sessions avec vous.</p>
+            <div className="rounded-2xl border-2 border-dashed p-8 text-center" style={{ background: "#fbfdfc", borderColor: "#bcd6c5" }}>
+              <Headphones className="w-12 h-12 mx-auto mb-3" style={{ color: "#bcd6c5" }} />
+              <p className="text-sm font-extrabold mb-1" style={{ color: ST.text }}>Activez le mode coach pour configurer vos sessions</p>
+              <p className="text-xs font-semibold" style={{ color: ST.textSecondary }}>Une fois activé, vous apparaîtrez sur la page Mentors et les apprenants pourront réserver des sessions avec vous.</p>
             </div>
           )}
         </div>
@@ -670,14 +665,13 @@ export default function ParamaetresPage() {
               </div>
             )}
 
-            <KazaButton
-              variant="primary"
+            <StButton
               icon={KeyRound}
               onClick={handleChangePassword}
               disabled={pwdSubmitting}
             >
               {pwdSubmitting ? "Mise à jour…" : "Mettre à jour le mot de passe"}
-            </KazaButton>
+            </StButton>
           </div>
 
           {/* 2FA — full setup flow (QR code + verification) */}

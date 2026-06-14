@@ -6,6 +6,7 @@ import Link from "next/link";
 import ShopDomainPanel from "@/components/formations/ShopDomainPanel";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { useToastStore } from "@/store/toast";
+import { Store, ArrowLeft, ExternalLink, Check, Pipette, Save } from "lucide-react";
 
 interface Shop {
   id: string;
@@ -111,7 +112,7 @@ export default function VendorShopDetailPage() {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center">
         <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-          <span className="material-symbols-outlined text-4xl text-gray-300">storefront</span>
+          <Store className="w-10 h-10 text-gray-300 mx-auto" />
           <p className="text-base font-bold text-[#191c1e] mt-3">Boutique introuvable</p>
           <Link
             href="/vendeur/boutiques"
@@ -130,7 +131,7 @@ export default function VendorShopDetailPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between gap-3">
           <Link href="/vendeur/boutiques" className="text-sm font-semibold text-[#5c647a] hover:text-[#191c1e] inline-flex items-center gap-1.5">
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+            <ArrowLeft className="w-[18px] h-[18px]" />
             Mes boutiques
           </Link>
           <a
@@ -140,7 +141,7 @@ export default function VendorShopDetailPage() {
             className="text-sm font-semibold text-[#006e2f] hover:underline inline-flex items-center gap-1.5"
           >
             Voir la boutique
-            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+            <ExternalLink className="w-4 h-4" />
           </a>
         </div>
 
@@ -270,8 +271,8 @@ export default function VendorShopDetailPage() {
                     style={{ background: c.hex }}
                   >
                     {isActive && (
-                      <span className="absolute inset-0 flex items-center justify-center material-symbols-outlined text-white text-[18px] drop-shadow">
-                        check
+                      <span className="absolute inset-0 flex items-center justify-center text-white drop-shadow">
+                        <Check className="w-[18px] h-[18px]" strokeWidth={3} />
                       </span>
                     )}
                   </button>
@@ -293,8 +294,8 @@ export default function VendorShopDetailPage() {
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   aria-label="Sélecteur de couleur personnalisée"
                 />
-                <span className="absolute bottom-0.5 right-0.5 bg-white/80 rounded-full p-0.5 material-symbols-outlined text-[10px] text-[#191c1e]">
-                  colorize
+                <span className="absolute bottom-0.5 right-0.5 bg-white/80 rounded-full p-0.5 text-[#191c1e]">
+                  <Pipette className="w-2.5 h-2.5" />
                 </span>
               </label>
               <input
@@ -315,7 +316,7 @@ export default function VendorShopDetailPage() {
               className="px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[16px]">save</span>
+              <Save className="w-4 h-4" />
               {saving ? "Enregistrement…" : "Enregistrer"}
             </button>
           </div>

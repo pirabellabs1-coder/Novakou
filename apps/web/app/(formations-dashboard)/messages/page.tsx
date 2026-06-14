@@ -1,17 +1,17 @@
-// Refonte style KAZA — messages liste — 2026-06-07
+// Refonte design "Stitch" — messages liste — vert Novakou — 2026-06-14
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import {
-  KazaHero,
-  KazaButton,
-  KazaInput,
-  KazaEmpty,
-} from "@/components/kaza";
+  StPageHeader,
+  StButton,
+  StCard,
+  StAvatar,
+  ST,
+} from "@/components/stitch";
 import {
-  MessageSquare,
   Search,
   RefreshCw,
   MessagesSquare,
@@ -48,11 +48,6 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
-function initials(name: string | null) {
-  if (!name) return "?";
-  return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
-}
-
 function LastMsgPreview({ msg }: { msg: ConversationItem["lastMessage"] }) {
   if (!msg) return <span>Démarrer la conversation</span>;
   if (msg.type === "FILE")
@@ -78,34 +73,41 @@ function ConvItem({ conv, onClick }: { conv: ConversationItem; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-slate-50 transition-colors text-left border-b border-slate-100 last:border-0 ${
-        isUnread ? "bg-emerald-50/40" : ""
-      }`}
+      className="w-full flex items-center gap-3 px-4 py-3.5 transition-colors text-left"
+      style={{
+        borderBottom: `1px solid ${ST.divider}`,
+        background: isUnread ? ST.greenSoft : undefined,
+      }}
     >
       <div className="relative flex-shrink-0">
-        <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[#0b2540] to-[#1a4a7d] flex items-center justify-center text-white text-sm font-bold">
-          {conv.otherUser?.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={conv.otherUser.image} alt="" className="w-full h-full object-cover" />
-          ) : (
-            initials(conv.otherUser?.name ?? null)
-          )}
-        </div>
+        <StAvatar name={conv.otherUser?.name ?? conv.otherUser?.email ?? "?"} src={conv.otherUser?.image} size={44} />
         {isUnread && (
-          <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
+          <span
+            className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white"
+            style={{ background: ST.greenBright }}
+          />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <p className={`text-sm truncate ${isUnread ? "font-bold text-[#0b2540]" : "font-semibold text-[#0b2540]"}`}>
+          <p
+            className="text-[13.5px] truncate font-extrabold"
+            style={{ color: ST.text, fontWeight: isUnread ? 800 : 700 }}
+          >
             {conv.otherUser?.name ?? conv.otherUser?.email ?? "Conversation"}
           </p>
-          <p className={`text-[10px] flex-shrink-0 ${isUnread ? "text-emerald-600 font-bold" : "text-slate-500"}`}>
+          <p
+            className="text-[10px] flex-shrink-0 font-bold"
+            style={{ color: isUnread ? ST.green : ST.textMuted }}
+          >
             {timeAgo(conv.updatedAt)}
           </p>
         </div>
-        <p className={`text-xs truncate mt-0.5 ${isUnread ? "text-[#0b2540] font-medium" : "text-slate-500"}`}>
+        <p
+          className="text-[12px] truncate mt-0.5 font-semibold"
+          style={{ color: isUnread ? ST.textSecondary : ST.textMuted }}
+        >
           <LastMsgPreview msg={conv.lastMessage} />
         </p>
       </div>
@@ -140,68 +142,96 @@ export default function MessagesPage() {
   });
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1000px] mx-auto space-y-6">
-      <KazaHero
-        badge={unreadCount > 0 ? `${unreadCount} non lu${unreadCount > 1 ? "s" : ""}` : "Messagerie"}
-        badgeColor="blue"
-        icon={MessageSquare}
-        title="Messages"
-        subtitle="Discutez avec vos vendeurs, mentors et le support Novakou"
-        actions={
-          <KazaButton variant="secondary" onClick={() => refetch()} icon={RefreshCw}>
-            Rafraîchir
-          </KazaButton>
-        }
-      />
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1000px] mx-auto">
+        <StPageHeader
+          title="Messages"
+          subtitle={
+            unreadCount > 0 ? (
+              <>
+                Discutez avec vos vendeurs, mentors et le support ·{" "}
+                <span className="font-extrabold" style={{ color: ST.green }}>
+                  {unreadCount} non lu{unreadCount > 1 ? "s" : ""}
+                </span>
+              </>
+            ) : (
+              "Discutez avec vos vendeurs, mentors et le support Novakou"
+            )
+          }
+          actions={
+            <StButton variant="secondary" onClick={() => refetch()} icon={RefreshCw}>
+              Rafraîchir
+            </StButton>
+          }
+        />
 
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100">
-          <KazaInput
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher une conversation…"
-            icon={Search}
-          />
-        </div>
+        <StCard noPadding className="overflow-hidden">
+          <div className="px-4 py-3" style={{ borderBottom: `1px solid ${ST.divider}` }}>
+            <div className="relative">
+              <Search
+                size={18}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                style={{ color: ST.textMuted }}
+              />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher une conversation…"
+                className="w-full rounded-[12px] bg-white pl-11 pr-4 py-[11px] text-[13.5px] font-semibold transition-all focus:outline-none"
+                style={{ color: ST.text, border: "1px solid #dde6e0" }}
+              />
+            </div>
+          </div>
 
-        <div>
-          {isLoading ? (
-            <div className="divide-y divide-slate-100">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3.5 animate-pulse">
-                  <div className="w-11 h-11 bg-slate-200 rounded-full flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3.5 bg-slate-200 rounded-lg w-36" />
-                    <div className="h-3 bg-slate-200 rounded-lg w-52" />
+          <div>
+            {isLoading ? (
+              <div>
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 px-4 py-3.5 animate-pulse"
+                    style={{ borderBottom: `1px solid ${ST.divider}` }}
+                  >
+                    <div className="w-11 h-11 rounded-full flex-shrink-0" style={{ background: "#f3f6f4" }} />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3.5 rounded-lg w-36" style={{ background: "#f3f6f4" }} />
+                      <div className="h-3 rounded-lg w-52" style={{ background: "#f3f6f4" }} />
+                    </div>
                   </div>
+                ))}
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="p-10 text-center">
+                <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-4" style={{ background: ST.greenSoft }}>
+                  <MessagesSquare size={32} style={{ color: ST.green }} strokeWidth={1.8} />
                 </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="p-6">
-              <KazaEmpty
-                icon={MessagesSquare}
-                title={search ? "Aucune conversation trouvée" : "Aucune conversation pour l'instant"}
-                description={
-                  search
+                <h3 className="text-[15px] font-extrabold mb-1.5" style={{ color: ST.text }}>
+                  {search ? "Aucune conversation trouvée" : "Aucune conversation pour l'instant"}
+                </h3>
+                <p className="text-[13px] font-semibold mb-5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+                  {search
                     ? "Essayez un autre terme de recherche, ou effacez le filtre."
-                    : "Achetez une formation et contactez directement votre instructeur depuis l'espace commandes."
-                }
-                action={search ? { label: "Effacer la recherche", onClick: () => setSearch("") } : undefined}
-              />
-            </div>
-          ) : (
-            filtered.map((conv) => (
-              <ConvItem
-                key={conv.id}
-                conv={conv}
-                onClick={() => router.push(`/messages/${conv.id}`)}
-              />
-            ))
-          )}
-        </div>
-      </div>
+                    : "Achetez une formation et contactez directement votre instructeur depuis l'espace commandes."}
+                </p>
+                {search && (
+                  <StButton variant="secondary" onClick={() => setSearch("")}>
+                    Effacer la recherche
+                  </StButton>
+                )}
+              </div>
+            ) : (
+              filtered.map((conv) => (
+                <ConvItem
+                  key={conv.id}
+                  conv={conv}
+                  onClick={() => router.push(`/messages/${conv.id}`)}
+                />
+              ))
+            )}
+          </div>
+        </StCard>
+      </main>
     </div>
   );
 }

@@ -4,6 +4,26 @@ import { safeFetch } from "@/lib/safe-fetch";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  ShoppingCart,
+  GraduationCap,
+  ShoppingBag,
+  Clock,
+  BadgeCheck,
+  UserPlus,
+  MousePointerClick,
+  Tag,
+  ChevronRight,
+  Plus,
+  MailCheck,
+  Users,
+  Zap,
+  Mail,
+  RefreshCw,
+  Pencil,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 type EmailSequence = {
   id: string;
@@ -17,15 +37,15 @@ type EmailSequence = {
   _count: { steps: number; enrollments: number };
 };
 
-const TRIGGERS: Record<string, { label: string; icon: string; color: string }> = {
-  PURCHASE: { label: "Après achat", icon: "shopping_cart", color: "text-[#006e2f]" },
-  ENROLLMENT: { label: "Inscription formation", icon: "school", color: "text-blue-600" },
-  ABANDONED_CART: { label: "Panier abandonné", icon: "remove_shopping_cart", color: "text-orange-500" },
-  USER_INACTIVITY: { label: "Inactivité utilisateur", icon: "schedule", color: "text-amber-600" },
-  COURSE_COMPLETION: { label: "Cours terminé", icon: "verified", color: "text-purple-600" },
-  SIGNUP: { label: "Nouvelle inscription liste", icon: "person_add", color: "text-indigo-600" },
-  MANUAL: { label: "Déclenchement manuel", icon: "touch_app", color: "text-gray-500" },
-  TAG_ADDED: { label: "Tag ajouté", icon: "label", color: "text-pink-500" },
+const TRIGGERS: Record<string, { label: string; icon: LucideIcon; color: string }> = {
+  PURCHASE: { label: "Après achat", icon: ShoppingCart, color: "text-[#006e2f]" },
+  ENROLLMENT: { label: "Inscription formation", icon: GraduationCap, color: "text-blue-600" },
+  ABANDONED_CART: { label: "Panier abandonné", icon: ShoppingBag, color: "text-orange-500" },
+  USER_INACTIVITY: { label: "Inactivité utilisateur", icon: Clock, color: "text-amber-600" },
+  COURSE_COMPLETION: { label: "Cours terminé", icon: BadgeCheck, color: "text-purple-600" },
+  SIGNUP: { label: "Nouvelle inscription liste", icon: UserPlus, color: "text-indigo-600" },
+  MANUAL: { label: "Déclenchement manuel", icon: MousePointerClick, color: "text-gray-500" },
+  TAG_ADDED: { label: "Tag ajouté", icon: Tag, color: "text-pink-500" },
 };
 
 type AutoData = { workflows: unknown[]; sequences: EmailSequence[] };
@@ -78,7 +98,7 @@ export default function SequencesPage() {
         <div>
           <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
             <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-            <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+            <ChevronRight className="w-3.5 h-3.5" />
             <span className="text-[#191c1e] font-medium">Séquences Email</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Séquences Email</h1>
@@ -89,7 +109,7 @@ export default function SequencesPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Plus className="w-[18px] h-[18px]" />
           Créer une séquence
         </button>
       </div>
@@ -97,18 +117,21 @@ export default function SequencesPage() {
       {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "Séquences actives", value: activeCount, icon: "mark_email_read", color: "text-orange-500", bg: "bg-orange-50" },
-          { label: "Abonnés totaux", value: totalEnrolled.toLocaleString("fr-FR"), icon: "group", color: "text-blue-600", bg: "bg-blue-50" },
-          { label: "Séquences complétées", value: totalCompleted.toLocaleString("fr-FR"), icon: "verified", color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
-        ].map((kpi, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
-              <span className={`material-symbols-outlined text-[20px] ${kpi.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{kpi.icon}</span>
+          { label: "Séquences actives", value: activeCount, icon: MailCheck, color: "text-orange-500", bg: "bg-orange-50" },
+          { label: "Abonnés totaux", value: totalEnrolled.toLocaleString("fr-FR"), icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: "Séquences complétées", value: totalCompleted.toLocaleString("fr-FR"), icon: BadgeCheck, color: "text-[#006e2f]", bg: "bg-[#006e2f]/10" },
+        ].map((kpi, i) => {
+          const KpiIcon = kpi.icon;
+          return (
+            <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-2 ${kpi.bg}`}>
+                <KpiIcon className={`w-5 h-5 ${kpi.color}`} />
+              </div>
+              <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
+              <p className="text-lg font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
             </div>
-            <p className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wide">{kpi.label}</p>
-            <p className="text-lg font-extrabold text-[#191c1e] mt-0.5">{isLoading ? "…" : kpi.value}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* How it works */}
@@ -116,21 +139,27 @@ export default function SequencesPage() {
         <h3 className="text-sm font-bold text-orange-800 mb-3">Comment fonctionnent les séquences ?</h3>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           {[
-            { step: "1", label: "Déclencheur", desc: "Achat, inscription, inactivité…", icon: "bolt" },
-            { step: "2", label: "Délai", desc: "Ex : attendre 1 jour", icon: "schedule" },
-            { step: "3", label: "Email envoyé", desc: "Message personnalisé", icon: "mail" },
-            { step: "4", label: "Répéter", desc: "Autant d'étapes que voulu", icon: "autorenew" },
-          ].map((s) => (
-            <div key={s.step} className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
-                {s.step}
+            { step: "1", label: "Déclencheur", desc: "Achat, inscription, inactivité…", icon: Zap },
+            { step: "2", label: "Délai", desc: "Ex : attendre 1 jour", icon: Clock },
+            { step: "3", label: "Email envoyé", desc: "Message personnalisé", icon: Mail },
+            { step: "4", label: "Répéter", desc: "Autant d'étapes que voulu", icon: RefreshCw },
+          ].map((s) => {
+            const StepIcon = s.icon;
+            return (
+              <div key={s.step} className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-full bg-orange-500 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+                  {s.step}
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-orange-900 inline-flex items-center gap-1">
+                    <StepIcon className="w-3 h-3" />
+                    {s.label}
+                  </p>
+                  <p className="text-[10px] text-orange-700">{s.desc}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold text-orange-900">{s.label}</p>
-                <p className="text-[10px] text-orange-700">{s.desc}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -148,7 +177,7 @@ export default function SequencesPage() {
         ) : sequences.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-16 text-center">
             <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-[28px] text-orange-500" style={{ fontVariationSettings: "'FILL' 1" }}>mark_email_read</span>
+              <MailCheck className="w-7 h-7 text-orange-500" />
             </div>
             <p className="font-semibold text-[#191c1e]">Aucune séquence email</p>
             <p className="text-sm text-[#5c647a] mt-1 mb-4">Créez votre première séquence automatique</p>
@@ -162,13 +191,14 @@ export default function SequencesPage() {
           </div>
         ) : (
           sequences.map((seq) => {
-            const trig = TRIGGERS[seq.trigger] ?? { label: seq.trigger, icon: "bolt", color: "text-gray-500" };
+            const trig = TRIGGERS[seq.trigger] ?? { label: seq.trigger, icon: Zap, color: "text-gray-500" };
+            const TrigIcon = trig.icon;
             return (
               <div key={seq.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-orange-50`}>
-                      <span className={`material-symbols-outlined text-[20px] ${trig.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>{trig.icon}</span>
+                      <TrigIcon className={`w-5 h-5 ${trig.color}`} />
                     </div>
                     <div className="min-w-0">
                       <p className="font-bold text-[#191c1e] text-sm truncate">{seq.name}</p>
@@ -189,7 +219,7 @@ export default function SequencesPage() {
                       className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#191c1e] transition-colors"
                       title="Éditer la séquence"
                     >
-                      <span className="material-symbols-outlined text-[16px]">edit</span>
+                      <Pencil className="w-4 h-4" />
                     </a>
                   </div>
                 </div>
@@ -218,7 +248,7 @@ export default function SequencesPage() {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-bold text-[#191c1e]">Nouvelle séquence</h2>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+                <X className="w-5 h-5 text-[#5c647a]" />
               </button>
             </div>
             <div className="space-y-4">

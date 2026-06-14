@@ -21,12 +21,12 @@ import { confirmAction } from "@/store/confirm";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import {
-  KazaHero,
-  KazaCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StPageHeader,
+  StCard,
+  StButton,
+  StChip,
+  ST,
+} from "@/components/stitch";
 
 interface BundleItem {
   id: string;
@@ -235,17 +235,13 @@ export default function VendorBundlesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
-        <KazaHero
-          badge="Pro"
-          badgeColor="orange"
-          icon={Package}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto space-y-6">
+        <StPageHeader
           title="Bundles produits"
           subtitle="Packagez plusieurs formations/produits à un prix réduit — augmentez votre panier moyen."
           actions={
-            <KazaButton
-              variant="primary"
+            <StButton
               icon={showForm ? X : Plus}
               onClick={() => {
                 if (showForm) resetForm();
@@ -253,29 +249,33 @@ export default function VendorBundlesPage() {
               }}
             >
               {showForm ? "Fermer" : "Nouveau bundle"}
-            </KazaButton>
+            </StButton>
           }
         />
 
         {showForm && (
-          <KazaCard title={editingId ? "Modifier le bundle" : "Créer un bundle"}>
+          <StCard>
+            <h3 className="text-[15px] font-extrabold mb-4" style={{ color: ST.text }}>
+              {editingId ? "Modifier le bundle" : "Créer un bundle"}
+            </h3>
             <form onSubmit={submit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">Titre</label>
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Titre</label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="ex. Pack Débutant — Marketing Digital"
                   maxLength={80}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all"
+                  className="w-full px-[14px] py-[11px] rounded-[12px] text-[13.5px] font-semibold focus:outline-none transition-all"
+                  style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>
                   Description
-                  <span className="ml-2 font-normal text-slate-500">(le bouton IA améliore le texte)</span>
+                  <span className="ml-2 font-semibold" style={{ color: ST.textMuted }}>(le bouton IA améliore le texte)</span>
                 </label>
                 <RichTextEditor
                   value={description}
@@ -286,7 +286,7 @@ export default function VendorBundlesPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Vignette (carte marketplace)</label>
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Vignette (carte marketplace)</label>
                   <ImageUploader
                     value={thumbnail}
                     onChange={setThumbnail}
@@ -295,7 +295,7 @@ export default function VendorBundlesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">Bannière de couverture</label>
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Bannière de couverture</label>
                   <ImageUploader
                     value={banner}
                     onChange={setBanner}
@@ -305,38 +305,38 @@ export default function VendorBundlesPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-2">
+                <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
                   Articles inclus ({selected.length})
                 </label>
                 {catalog.length === 0 ? (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                    <p className="text-xs font-bold text-amber-900">
+                  <div className="p-4 rounded-xl space-y-2" style={{ background: ST.amberSoft, border: "1px solid #f3e2bd" }}>
+                    <p className="text-xs font-extrabold" style={{ color: "#633806" }}>
                       Aucun produit publié pour cette boutique
                     </p>
-                    <p className="text-xs text-amber-800">
+                    <p className="text-xs font-semibold" style={{ color: ST.amberText }}>
                       Pour créer un bundle, vous devez d&apos;abord avoir au moins{" "}
-                      <span className="font-bold">2 produits ou formations publiés</span> (statut Actif). Les
+                      <span className="font-extrabold">2 produits ou formations publiés</span> (statut Actif). Les
                       brouillons ne sont pas inclus.
                     </p>
-                    <KazaButton variant="primary" size="sm" icon={Plus} href="/vendeur/produits/creer">
+                    <StButton size="sm" icon={Plus} href="/vendeur/produits/creer">
                       Créer un produit
-                    </KazaButton>
+                    </StButton>
                   </div>
                 ) : catalog.length < 2 ? (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
-                    <p className="text-xs font-bold text-amber-900">
+                  <div className="p-4 rounded-xl space-y-2" style={{ background: ST.amberSoft, border: "1px solid #f3e2bd" }}>
+                    <p className="text-xs font-extrabold" style={{ color: "#633806" }}>
                       {catalog.length} produit publié — il en faut au moins 2 pour un bundle
                     </p>
-                    <p className="text-xs text-amber-800">
-                      Vous avez actuellement <span className="font-bold">{catalog.length} produit publié</span>.
+                    <p className="text-xs font-semibold" style={{ color: ST.amberText }}>
+                      Vous avez actuellement <span className="font-extrabold">{catalog.length} produit publié</span>.
                       Publiez au moins un autre produit (formation ou produit digital) pour pouvoir créer un bundle.
                     </p>
-                    <KazaButton variant="primary" size="sm" icon={Plus} href="/vendeur/produits/creer">
+                    <StButton size="sm" icon={Plus} href="/vendeur/produits/creer">
                       Créer un autre produit
-                    </KazaButton>
+                    </StButton>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto border border-slate-100 rounded-xl p-3 bg-slate-50">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[280px] overflow-y-auto rounded-xl p-3" style={{ border: `1px solid ${ST.cardBorder}`, background: "#fbfdfc" }}>
                     {catalog.map((c) => {
                       const isSel = !!selected.find((s) => s.kind === c.kind && s.id === c.id);
                       return (
@@ -344,20 +344,23 @@ export default function VendorBundlesPage() {
                           type="button"
                           key={`${c.kind}-${c.id}`}
                           onClick={() => toggleItem(c.kind, c.id)}
-                          className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg border text-left transition-colors ${
-                            isSel ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200 hover:bg-slate-100"
-                          }`}
+                          className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg text-left transition-colors"
+                          style={
+                            isSel
+                              ? { background: ST.greenSoft, border: `1px solid #d7ecde` }
+                              : { background: "#fff", border: `1px solid ${ST.cardBorder}` }
+                          }
                         >
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-900 truncate">{c.title}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                            <p className="text-xs font-extrabold truncate" style={{ color: ST.text }}>{c.title}</p>
+                            <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: ST.textMuted }}>
                               {c.kind === "formation" ? "Formation" : "Produit"} · {fmtFCFA(c.price)}
                             </p>
                           </div>
                           {isSel ? (
-                            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                            <CheckCircle2 className="w-5 h-5 flex-shrink-0" style={{ color: ST.green }} />
                           ) : (
-                            <Circle className="w-5 h-5 text-slate-300 flex-shrink-0" />
+                            <Circle className="w-5 h-5 flex-shrink-0" style={{ color: "#cdd9d2" }} />
                           )}
                         </button>
                       );
@@ -366,102 +369,112 @@ export default function VendorBundlesPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 rounded-xl p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 rounded-xl p-4" style={{ background: "#fbfdfc", border: `1px solid ${ST.cardBorder}` }}>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Prix individuel total</p>
-                  <p className="text-lg font-extrabold text-slate-900 line-through opacity-60 tabular-nums">
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: ST.textMuted }}>Prix individuel total</p>
+                  <p className="text-lg font-extrabold line-through opacity-60 tabular-nums" style={{ color: ST.text }}>
                     {fmtFCFA(originalPrice)}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: ST.textMuted }}>
                     Prix du bundle
                   </label>
                   <input
                     type="number" min={500}
                     value={priceXof}
                     onChange={(e) => setPriceXof(Number(e.target.value))}
-                    className="w-full px-3 py-2 rounded-lg border-2 border-slate-200 text-base font-bold text-emerald-700 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 rounded-lg text-base font-extrabold focus:outline-none"
+                    style={{ color: ST.green, border: "1px solid #dde6e0" }}
                   />
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Économie</p>
-                  <p className="text-lg font-extrabold text-emerald-600 tabular-nums">
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: ST.textMuted }}>Économie</p>
+                  <p className="text-lg font-extrabold tabular-nums" style={{ color: ST.green }}>
                     {fmtFCFA(savings)} <span className="text-xs">({savingsPct}%)</span>
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                <KazaButton variant="primary" type="submit" disabled={saving || selected.length < 2}>
+              <div className="flex items-center gap-2 pt-2" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                <StButton type="submit" disabled={saving || selected.length < 2}>
                   {saving
                     ? (editingId ? "Mise à jour…" : "Création…")
                     : (editingId ? "Mettre à jour" : "Créer le bundle")}
-                </KazaButton>
-                <KazaButton variant="ghost" type="button" onClick={() => { resetForm(); setShowForm(false); }}>
+                </StButton>
+                <StButton variant="secondary" type="button" onClick={() => { resetForm(); setShowForm(false); }}>
                   Annuler
-                </KazaButton>
+                </StButton>
               </div>
             </form>
-          </KazaCard>
+          </StCard>
         )}
 
         {loading ? (
           <div className="space-y-3">
-            {[0, 1, 2].map((i) => <div key={i} className="h-32 bg-slate-100 rounded-2xl animate-pulse" />)}
+            {[0, 1, 2].map((i) => <div key={i} className="h-32 rounded-2xl animate-pulse" style={{ background: "#f3f6f4" }} />)}
           </div>
         ) : bundles.length === 0 ? (
-          <KazaEmpty
-            icon={Package}
-            title="Aucun bundle pour le moment"
-            description="Créez un bundle pour augmenter votre panier moyen en regroupant plusieurs produits."
-            action={!showForm ? { label: "Créer un bundle", onClick: () => setShowForm(true) } : undefined}
-          />
+          <StCard className="!p-10 text-center">
+            <div className="w-16 h-16 rounded-[16px] flex items-center justify-center mx-auto mb-4" style={{ background: ST.greenSoft }}>
+              <Package size={32} style={{ color: ST.green }} strokeWidth={1.8} />
+            </div>
+            <h3 className="text-[15px] font-extrabold mb-1.5" style={{ color: ST.text }}>
+              Aucun bundle pour le moment
+            </h3>
+            <p className="text-[13px] font-semibold mb-5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+              Créez un bundle pour augmenter votre panier moyen en regroupant plusieurs produits.
+            </p>
+            {!showForm && (
+              <StButton icon={Plus} onClick={() => setShowForm(true)}>Créer un bundle</StButton>
+            )}
+          </StCard>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {bundles.map((b) => (
-              <div key={b.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+              <StCard key={b.id} className="hover:-translate-y-0.5 transition-transform">
                 <div className="flex items-start justify-between mb-3 gap-2">
-                  <h3 className="text-base font-bold text-slate-900 leading-snug line-clamp-2">{b.title}</h3>
-                  <KazaBadge variant={b.isActive ? "green" : "slate"}>
+                  <h3 className="text-base font-extrabold leading-snug line-clamp-2" style={{ color: ST.text }}>{b.title}</h3>
+                  <StChip tone={b.isActive ? "green" : "neutral"}>
                     {b.isActive ? "Actif" : "Masqué"}
-                  </KazaBadge>
+                  </StChip>
                 </div>
                 {b.description && (
-                  <p className="text-xs text-slate-500 line-clamp-2 mb-3">{b.description}</p>
+                  <p className="text-xs line-clamp-2 mb-3 font-semibold" style={{ color: ST.textSecondary }}>{b.description}</p>
                 )}
                 <div className="space-y-1.5 mb-3">
                   {b.items.slice(0, 4).map((it) => {
                     const Icon = it.itemKind === "formation" ? PlayCircle : Download;
                     return (
-                      <div key={it.id} className="flex items-center gap-2 text-xs text-slate-700">
-                        <Icon className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                      <div key={it.id} className="flex items-center gap-2 text-xs font-semibold" style={{ color: ST.textLabel }}>
+                        <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: ST.green }} />
                         <span className="truncate">{it.formation?.title ?? it.product?.title}</span>
                       </div>
                     );
                   })}
                   {b.items.length > 4 && (
-                    <p className="text-[11px] text-slate-400">+{b.items.length - 4} autres</p>
+                    <p className="text-[11px] font-semibold" style={{ color: ST.textMuted }}>+{b.items.length - 4} autres</p>
                   )}
                 </div>
-                <div className="flex items-end justify-between pt-3 border-t border-slate-100">
+                <div className="flex items-end justify-between pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
                   <div>
                     {b.originalPriceXof && b.originalPriceXof > b.priceXof && (
-                      <p className="text-xs text-slate-400 line-through">{fmtFCFA(b.originalPriceXof)}</p>
+                      <p className="text-xs line-through font-semibold" style={{ color: ST.textMuted }}>{fmtFCFA(b.originalPriceXof)}</p>
                     )}
-                    <p className="text-lg font-extrabold text-emerald-700 tabular-nums">{fmtFCFA(b.priceXof)}</p>
+                    <p className="text-lg font-extrabold tabular-nums" style={{ color: ST.green }}>{fmtFCFA(b.priceXof)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-wider">Ventes</p>
-                    <p className="text-sm font-bold text-slate-900">{b._count?.purchases ?? 0}</p>
+                    <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: ST.textMuted }}>Ventes</p>
+                    <p className="text-sm font-extrabold" style={{ color: ST.text }}>{b._count?.purchases ?? 0}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
                   <Link
                     href={`/bundle/${b.slug}`}
                     target="_blank"
-                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-extrabold transition-colors"
+                    style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
                     aria-label="Voir publique"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -469,7 +482,8 @@ export default function VendorBundlesPage() {
                   <button
                     type="button"
                     onClick={() => openEdit(b)}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold transition-colors"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-extrabold transition-colors"
+                    style={{ background: ST.greenSoft, color: ST.green }}
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Modifier
@@ -477,11 +491,12 @@ export default function VendorBundlesPage() {
                   <button
                     type="button"
                     onClick={() => togglePause(b)}
-                    className={`flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-extrabold transition-colors"
+                    style={
                       b.isActive
-                        ? "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
-                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
-                    }`}
+                        ? { background: ST.amberSoft, color: ST.amberText }
+                        : { background: ST.greenSoft, color: ST.green }
+                    }
                   >
                     {b.isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                     {b.isActive ? "Pause" : "Reprendre"}
@@ -489,13 +504,14 @@ export default function VendorBundlesPage() {
                   <button
                     type="button"
                     onClick={() => deleteBundle(b)}
-                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 text-xs font-bold transition-colors"
+                    className="inline-flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg text-xs font-extrabold transition-colors"
+                    style={{ background: ST.roseSoft, color: ST.roseText }}
                     aria-label="Supprimer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
-              </div>
+              </StCard>
             ))}
           </div>
         )}

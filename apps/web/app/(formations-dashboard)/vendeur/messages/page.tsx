@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 /**
  * Redirect to the unified messages inbox.
@@ -17,7 +18,7 @@ export default function VendeurMessagesRedirect() {
   return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="flex items-center gap-2 text-[#5c647a] text-sm">
-        <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
+        <Loader2 className="w-5 h-5 animate-spin" />
         Redirection vers les messages…
       </div>
     </div>

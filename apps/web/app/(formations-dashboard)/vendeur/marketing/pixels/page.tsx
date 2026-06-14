@@ -4,6 +4,23 @@ import { useToastStore } from "@/store/toast";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import {
+  Facebook,
+  Chrome,
+  Music,
+  Info,
+  Pencil,
+  Trash2,
+  PlusCircle,
+  ChevronRight,
+  Eye,
+  ShoppingCart,
+  CreditCard,
+  UserPlus,
+  GraduationCap,
+  BadgeCheck,
+  type LucideIcon,
+} from "lucide-react";
 
 type Pixel = {
   id: string;
@@ -13,10 +30,10 @@ type Pixel = {
   createdAt: string;
 };
 
-const PIXEL_CONFIG: Record<string, { label: string; icon: string; bg: string; color: string; placeholder: string; description: string }> = {
+const PIXEL_CONFIG: Record<string, { label: string; icon: LucideIcon; bg: string; color: string; placeholder: string; description: string }> = {
   FACEBOOK: {
     label: "Facebook / Meta Pixel",
-    icon: "facebook",
+    icon: Facebook,
     bg: "bg-blue-50",
     color: "text-blue-600",
     placeholder: "123456789012345",
@@ -24,7 +41,7 @@ const PIXEL_CONFIG: Record<string, { label: string; icon: string; bg: string; co
   },
   GOOGLE: {
     label: "Google Analytics / Tag Manager",
-    icon: "g_mobiledata",
+    icon: Chrome,
     bg: "bg-red-50",
     color: "text-red-500",
     placeholder: "G-XXXXXXXXXX ou GTM-XXXXXXX",
@@ -32,7 +49,7 @@ const PIXEL_CONFIG: Record<string, { label: string; icon: string; bg: string; co
   },
   TIKTOK: {
     label: "TikTok Pixel",
-    icon: "music_note",
+    icon: Music,
     bg: "bg-[#010101]/5",
     color: "text-[#010101]",
     placeholder: "CXXXXXXXXXXXXXXXXX",
@@ -84,7 +101,7 @@ export default function PixelsPage() {
       <div className="mb-8">
         <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
           <a href="/vendeur/marketing" className="hover:text-[#006e2f] transition-colors">Marketing</a>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+          <ChevronRight className="w-3.5 h-3.5" />
           <span className="text-[#191c1e] font-medium">Pixels & Tracking</span>
         </div>
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Pixels & Tracking</h1>
@@ -95,7 +112,7 @@ export default function PixelsPage() {
 
       {/* Info banner */}
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl mb-8">
-        <span className="material-symbols-outlined text-[20px] text-blue-600 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+        <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
         <div>
           <p className="text-sm font-semibold text-blue-800">Comment ça fonctionne</p>
           <p className="text-[12px] text-blue-700 mt-0.5">
@@ -108,6 +125,7 @@ export default function PixelsPage() {
       <div className="space-y-4">
         {(["FACEBOOK", "GOOGLE", "TIKTOK"] as const).map((type) => {
           const cfg = PIXEL_CONFIG[type];
+          const CfgIcon = cfg.icon;
           const existing = pixelMap[type];
           const isEditing = editingType === type;
 
@@ -115,9 +133,7 @@ export default function PixelsPage() {
             <div key={type} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-start gap-4">
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg}`}>
-                  <span className={`material-symbols-outlined text-[22px] ${cfg.color}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                    {cfg.icon}
-                  </span>
+                  <CfgIcon className={`w-[22px] h-[22px] ${cfg.color}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-1">
@@ -144,7 +160,7 @@ export default function PixelsPage() {
                         onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: existing.pixelId })); }}
                         className="p-1.5 rounded-lg hover:bg-gray-100 text-[#5c647a] transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[16px]">edit</span>
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={async () => {
@@ -159,7 +175,7 @@ export default function PixelsPage() {
                         }}
                         className="p-1.5 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500 transition-colors"
                       >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   )}
@@ -192,7 +208,7 @@ export default function PixelsPage() {
                       onClick={() => { setEditingType(type); setPixelInputs((p) => ({ ...p, [type]: "" })); }}
                       className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold text-[#006e2f] hover:underline"
                     >
-                      <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                      <PlusCircle className="w-4 h-4" />
                       Connecter
                     </button>
                   )}
@@ -208,18 +224,21 @@ export default function PixelsPage() {
         <h3 className="text-sm font-bold text-[#191c1e] mb-3">Événements suivis automatiquement</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {[
-            { icon: "visibility", label: "Vue formation" },
-            { icon: "shopping_cart", label: "Ajout au panier" },
-            { icon: "payments", label: "Achat complété" },
-            { icon: "person_add", label: "Inscription" },
-            { icon: "school", label: "Leçon commencée" },
-            { icon: "verified", label: "Cours terminé" },
-          ].map((ev) => (
-            <div key={ev.label} className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2">
-              <span className="material-symbols-outlined text-[16px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{ev.icon}</span>
-              <span className="text-[11px] font-medium text-[#191c1e]">{ev.label}</span>
-            </div>
-          ))}
+            { icon: Eye, label: "Vue formation" },
+            { icon: ShoppingCart, label: "Ajout au panier" },
+            { icon: CreditCard, label: "Achat complété" },
+            { icon: UserPlus, label: "Inscription" },
+            { icon: GraduationCap, label: "Leçon commencée" },
+            { icon: BadgeCheck, label: "Cours terminé" },
+          ].map((ev) => {
+            const EvIcon = ev.icon;
+            return (
+              <div key={ev.label} className="flex items-center gap-2 bg-white rounded-xl border border-gray-100 px-3 py-2">
+                <EvIcon className="w-4 h-4 text-[#006e2f]" />
+                <span className="text-[11px] font-medium text-[#191c1e]">{ev.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

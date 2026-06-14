@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useToastStore } from "@/store/toast";
+import { AlertCircle, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 /**
  * Page "Salle Jitsi intégrée" — /formations/sessions/[id]/salle
@@ -138,7 +139,7 @@ export default function SalleJitsiPage() {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center p-6">
         <div className="max-w-md text-center bg-white p-8 rounded-2xl border border-gray-100">
-          <span className="material-symbols-outlined text-red-500 text-[40px] mb-3">error</span>
+          <AlertCircle className="w-10 h-10 text-red-500 mb-3 mx-auto" />
           <h1 className="text-lg font-bold text-[#191c1e]">Salle indisponible</h1>
           <p className="text-sm text-[#5c647a] mt-2">{error}</p>
           <Link
@@ -155,7 +156,7 @@ export default function SalleJitsiPage() {
   if (!booking) {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center">
-        <span className="material-symbols-outlined text-[32px] text-gray-400 animate-spin">progress_activity</span>
+        <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
       </div>
     );
   }
@@ -167,7 +168,7 @@ export default function SalleJitsiPage() {
         <div className="flex items-center gap-3 min-w-0">
           <Link href={booking.viewerRole === "student" ? "/apprenant/sessions" : "/mentor/rendez-vous"}
             className="flex items-center gap-1 text-xs text-white/70 hover:text-white">
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft className="w-4 h-4" />
             Quitter
           </Link>
           <div className="h-4 w-px bg-white/20" />
@@ -186,7 +187,7 @@ export default function SalleJitsiPage() {
           )}
           {otherJoined && (
             <span className="flex items-center gap-1 text-[#22c55e] ml-3">
-              <span className="material-symbols-outlined text-[14px]">check_circle</span>
+              <CheckCircle2 className="w-3.5 h-3.5" />
               L&apos;autre partie est là
             </span>
           )}
@@ -197,7 +198,7 @@ export default function SalleJitsiPage() {
       <div ref={containerRef} className="flex-1 w-full min-h-0">
         {!scriptLoaded && (
           <div className="h-full flex items-center justify-center text-white">
-            <span className="material-symbols-outlined text-[32px] text-white/50 animate-spin">progress_activity</span>
+            <Loader2 className="w-8 h-8 text-white/50 animate-spin" />
           </div>
         )}
       </div>
@@ -205,7 +206,7 @@ export default function SalleJitsiPage() {
       {leaving && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50 text-white">
           <div className="text-center">
-            <span className="material-symbols-outlined text-[48px] text-[#22c55e]">check_circle</span>
+            <CheckCircle2 className="w-12 h-12 text-[#22c55e] mx-auto" />
             <p className="text-lg font-bold mt-2">Session terminée</p>
             <p className="text-sm text-white/70 mt-1">Redirection en cours…</p>
           </div>

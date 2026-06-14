@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
+import { ArrowLeft, Plus, ShoppingCart, ToggleRight, ToggleLeft, Trash2 } from "lucide-react";
 
 type OrderBump = {
   id: string;
@@ -103,7 +104,7 @@ export default function OrderBumpsPage() {
       return j;
     },
     onSuccess: () => {
-      setToast("Order bump créé ✓");
+      setToast("Order bump créé");
       qc.invalidateQueries({ queryKey: ["vendeur-order-bumps"] });
       setShowCreate(false);
       // Reset form
@@ -167,7 +168,7 @@ export default function OrderBumpsPage() {
 
       {/* Header */}
       <Link href="/vendeur/marketing" className="text-xs font-semibold text-[#5c647a] hover:text-[#191c1e] inline-flex items-center gap-1 mb-6">
-        <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+        <ArrowLeft className="w-4 h-4" />
         Marketing
       </Link>
 
@@ -184,7 +185,7 @@ export default function OrderBumpsPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Plus className="w-[18px] h-[18px]" />
           Nouveau Order Bump
         </button>
       </div>
@@ -196,7 +197,7 @@ export default function OrderBumpsPage() {
         </div>
       ) : bumps.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">add_shopping_cart</span>
+          <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun order bump encore</h3>
           <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto">
             Créez votre premier bump pour booster vos paniers. Exemple : une formation principale
@@ -207,7 +208,7 @@ export default function OrderBumpsPage() {
             className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">add</span>
+            <Plus className="w-4 h-4" />
             Créer mon premier bump
           </button>
         </div>
@@ -222,7 +223,7 @@ export default function OrderBumpsPage() {
                     <img src={b.imageUrl} alt={b.title} className="w-16 h-16 rounded-xl object-cover flex-shrink-0" />
                   ) : (
                     <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white flex-shrink-0">
-                      <span className="material-symbols-outlined">add_shopping_cart</span>
+                      <ShoppingCart className="w-6 h-6" />
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
@@ -270,9 +271,7 @@ export default function OrderBumpsPage() {
                       className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a] hover:text-[#191c1e]"
                       title={b.isActive ? "Désactiver" : "Activer"}
                     >
-                      <span className="material-symbols-outlined text-[18px]">
-                        {b.isActive ? "toggle_on" : "toggle_off"}
-                      </span>
+                      {b.isActive ? <ToggleRight className="w-[18px] h-[18px]" /> : <ToggleLeft className="w-[18px] h-[18px]" />}
                     </button>
                     <button
                       onClick={() => handleDelete(b)}
@@ -280,7 +279,7 @@ export default function OrderBumpsPage() {
                       className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500"
                       title="Supprimer"
                     >
-                      <span className="material-symbols-outlined text-[18px]">delete</span>
+                      <Trash2 className="w-[18px] h-[18px]" />
                     </button>
                   </div>
                 </div>

@@ -3,6 +3,21 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastStore } from "@/store/toast";
+import {
+  BadgeCheck,
+  Clock,
+  AlertTriangle,
+  Award,
+  Medal,
+  Check,
+  CheckCircle2,
+  Trash2,
+  Loader2,
+  UploadCloud,
+  Images,
+  Camera,
+  Send,
+} from "lucide-react";
 
 type KycData = {
   currentLevel: number;
@@ -151,14 +166,18 @@ export default function KycPage() {
           <div className={`rounded-2xl p-5 border ${isIdentityVerified ? "border-[#006e2f]/20 bg-[#006e2f]/5" : hasPending ? "border-amber-200 bg-amber-50" : "border-red-200 bg-red-50"}`}>
             <div className="flex items-start gap-3">
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isIdentityVerified ? "bg-[#006e2f]" : hasPending ? "bg-amber-500" : "bg-red-500"}`}>
-                <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  {isIdentityVerified ? "verified" : hasPending ? "hourglass_top" : "warning"}
-                </span>
+                {isIdentityVerified ? (
+                  <BadgeCheck className="w-6 h-6 text-white" />
+                ) : hasPending ? (
+                  <Clock className="w-6 h-6 text-white" />
+                ) : (
+                  <AlertTriangle className="w-6 h-6 text-white" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a]">Étape 1 · Identité</p>
-                <h3 className="text-sm font-bold text-[#191c1e] mt-1">
-                  {isIdentityVerified ? "Identité vérifiée ✓" : hasPending ? "Demande en cours" : "Vérification requise"}
+                <h3 className="text-sm font-bold text-[#191c1e] mt-1 inline-flex items-center gap-1">
+                  {isIdentityVerified ? <>Identité vérifiée <Check className="w-4 h-4 text-[#006e2f]" strokeWidth={3} /></> : hasPending ? "Demande en cours" : "Vérification requise"}
                 </h3>
                 <p className="text-xs text-[#5c647a] mt-1">
                   {isIdentityVerified
@@ -175,14 +194,16 @@ export default function KycPage() {
           <div className={`rounded-2xl p-5 border ${isProCertified ? "border-blue-200 bg-blue-50" : canRequestPro ? "border-gray-200 bg-gray-50" : "border-gray-100 bg-white opacity-60"}`}>
             <div className="flex items-start gap-3">
               <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isProCertified ? "bg-blue-500" : canRequestPro ? "bg-[#5c647a]" : "bg-gray-300"}`}>
-                <span className="material-symbols-outlined text-white" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  {isProCertified ? "workspace_premium" : "military_tech"}
-                </span>
+                {isProCertified ? (
+                  <Award className="w-6 h-6 text-white" />
+                ) : (
+                  <Medal className="w-6 h-6 text-white" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a]">Étape 2 · Pro</p>
-                <h3 className="text-sm font-bold text-[#191c1e] mt-1">
-                  {isProCertified ? "Certifié pro ✓" : canRequestPro ? "Certification optionnelle" : "Verrouillé"}
+                <h3 className="text-sm font-bold text-[#191c1e] mt-1 inline-flex items-center gap-1">
+                  {isProCertified ? <>Certifié pro <Check className="w-4 h-4 text-blue-600" strokeWidth={3} /></> : canRequestPro ? "Certification optionnelle" : "Verrouillé"}
                 </h3>
                 <p className="text-xs text-[#5c647a] mt-1">
                   {isProCertified
@@ -211,7 +232,7 @@ export default function KycPage() {
                   className="p-3 rounded-xl border border-[#006e2f]/20 bg-[#006e2f]/5 text-[#006e2f] text-sm font-semibold relative"
                 >
                   Identité
-                  <span className="absolute top-1 right-2 material-symbols-outlined text-[14px]">check</span>
+                  <Check className="absolute top-1.5 right-2 w-3.5 h-3.5" strokeWidth={3} />
                 </button>
                 <button
                   type="button"
@@ -266,7 +287,7 @@ export default function KycPage() {
               {documentUrl ? (
                 <div className="flex items-center justify-between gap-3 p-4 rounded-xl border border-[#006e2f]/20 bg-[#006e2f]/5">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="material-symbols-outlined text-[24px] text-[#006e2f]">check_circle</span>
+                    <CheckCircle2 className="w-6 h-6 text-[#006e2f] flex-shrink-0" />
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-[#191c1e] truncate">{uploadedFileName ?? "Document uploadé"}</p>
                       <a href={documentPreviewUrl || documentUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] text-[#006e2f] hover:underline">
@@ -280,7 +301,7 @@ export default function KycPage() {
                     className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-600 flex-shrink-0"
                     title="Supprimer"
                   >
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    <Trash2 className="w-[18px] h-[18px]" />
                   </button>
                 </div>
               ) : (
@@ -299,12 +320,12 @@ export default function KycPage() {
                   >
                     {uploading ? (
                       <>
-                        <span className="material-symbols-outlined text-[32px] text-amber-500 animate-spin">progress_activity</span>
+                        <Loader2 className="w-8 h-8 text-amber-500 animate-spin mx-auto" />
                         <p className="text-sm text-[#5c647a] mt-2">Upload en cours…</p>
                       </>
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-[40px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>cloud_upload</span>
+                        <UploadCloud className="w-10 h-10 text-[#006e2f] mx-auto" />
                         <p className="text-sm font-semibold text-[#191c1e] mt-2">Choisir un fichier depuis votre galerie</p>
                         <p className="text-[11px] text-[#5c647a] mt-1">PDF, JPG, PNG, WEBP — max 25 MB</p>
                       </>
@@ -319,7 +340,7 @@ export default function KycPage() {
                       disabled={uploading}
                       className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 disabled:opacity-50"
                     >
-                      <span className="material-symbols-outlined text-[18px]">photo_library</span>
+                      <Images className="w-[18px] h-[18px]" />
                       Galerie
                     </button>
                     <button
@@ -328,7 +349,7 @@ export default function KycPage() {
                       disabled={uploading}
                       className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 disabled:opacity-50"
                     >
-                      <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+                      <Camera className="w-[18px] h-[18px]" />
                       Photo
                     </button>
                   </div>
@@ -369,7 +390,7 @@ export default function KycPage() {
               className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[18px]">send</span>
+              <Send className="w-[18px] h-[18px]" />
               {submitMutation.isPending ? "Envoi…" : "Soumettre pour vérification"}
             </button>
           </div>
