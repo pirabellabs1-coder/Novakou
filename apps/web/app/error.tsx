@@ -1,7 +1,6 @@
-import {
-  AlertCircle,
-} from "lucide-react";
 "use client";
+
+import { AlertCircle } from "lucide-react";
 
 /**
  * Segment-level error boundary. Never exposes raw error.message in production
