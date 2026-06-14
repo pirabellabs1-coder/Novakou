@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import CertificateView from "@/components/formations/CertificateView";
@@ -56,7 +57,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ co
           href="/"
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0d3b1f] hover:text-[#c9a961] transition-colors"
         >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <ArrowLeft size={16} />
           Retour à Novakou
         </Link>
       </div>

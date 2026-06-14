@@ -3,6 +3,33 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Star,
+  GraduationCap,
+  ArrowLeft,
+  ArrowRight,
+  LayoutGrid,
+  Award,
+  Flame,
+  Users,
+  PlayCircle,
+  Clock,
+  Globe,
+  CheckCircle2,
+  ChevronDown,
+  ChevronRight,
+  Lock,
+  MessageSquare,
+  BadgeCheck,
+  Play,
+  Zap,
+  Loader2,
+  Check,
+  ShoppingCart,
+  Infinity as InfinityIcon,
+  MonitorSmartphone,
+  CalendarCheck,
+} from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
@@ -114,17 +141,11 @@ function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
-        <span
+        <Star
           key={s}
-          className="material-symbols-outlined"
-          style={{
-            fontSize: `${size}px`,
-            color: s <= Math.round(rating) ? "#f59e0b" : "#d1d5db",
-            fontVariationSettings: "'FILL' 1",
-          }}
-        >
-          star
-        </span>
+          size={size}
+          className={s <= Math.round(rating) ? "fill-amber-500 text-amber-500" : "text-gray-300"}
+        />
       ))}
     </div>
   );
@@ -152,12 +173,11 @@ function SectionAccordion({ section, index }: { section: Section; index: number 
             </p>
           </div>
         </div>
-        <span
-          className="material-symbols-outlined text-[#5c647a] text-[20px] flex-shrink-0"
+        <ChevronDown
+          size={20}
+          className="text-[#5c647a] flex-shrink-0"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
-        >
-          expand_more
-        </span>
+        />
       </button>
       {open && (
         <div className="border-t border-gray-100 bg-[#f7f9fb]/50">
@@ -166,12 +186,11 @@ function SectionAccordion({ section, index }: { section: Section; index: number 
               key={l.id}
               className="flex items-center gap-3 px-5 py-2.5 border-b border-gray-50 last:border-0"
             >
-              <span
-                className="material-symbols-outlined text-[16px]"
-                style={{ color: l.isFree ? "#006e2f" : "#9ca3af", fontVariationSettings: l.isFree ? "'FILL' 1" : "" }}
-              >
-                {l.isFree ? "play_circle" : "lock"}
-              </span>
+              {l.isFree ? (
+                <PlayCircle size={16} className="fill-[#006e2f] text-white" />
+              ) : (
+                <Lock size={16} className="text-[#9ca3af]" />
+              )}
               <p className="text-xs text-[#191c1e] flex-1 min-w-0 truncate">{l.title}</p>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {l.isFree && (
@@ -259,7 +278,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <span className="material-symbols-outlined text-gray-300 text-5xl">school</span>
+          <GraduationCap size={48} className="text-gray-300 mx-auto" />
           <h2 className="text-lg font-bold text-[#191c1e] mt-3">Formation introuvable</h2>
           <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
             Cette formation n&apos;existe pas ou n&apos;est plus disponible.
@@ -269,7 +288,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Voir le catalogue
           </Link>
         </div>
@@ -308,14 +327,14 @@ export default function FormationPageClient({ slug }: { slug: string }) {
           }}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-[#5c647a] text-xs font-semibold hover:bg-gray-50 hover:text-[#191c1e] transition-colors"
         >
-          <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          <ArrowLeft size={14} />
           Retour
         </button>
         <Link
           href="/explorer"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[#5c647a] text-xs font-semibold hover:text-[#006e2f] transition-colors"
         >
-          <span className="material-symbols-outlined text-[14px]">grid_view</span>
+          <LayoutGrid size={14} />
           Catalogue
         </Link>
         {/* Mobile title */}
@@ -340,12 +359,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                   />
                 ) : (
                   <div className="text-center">
-                    <span
-                      className="material-symbols-outlined text-[#006e2f] text-[64px] opacity-40"
-                      style={{ fontVariationSettings: "'FILL' 1" }}
-                    >
-                      play_circle
-                    </span>
+                    <PlayCircle size={64} className="text-[#006e2f] opacity-40 mx-auto" />
                     <p className="text-xs text-[#5c647a] mt-2 font-semibold uppercase tracking-wide">
                       Formation vidéo
                     </p>
@@ -367,15 +381,13 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                 )}
                 {formation.hasCertificate && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700">
-                    <span className="material-symbols-outlined text-[13px]">workspace_premium</span>
+                    <Award size={13} />
                     Certificat
                   </span>
                 )}
                 {formation.studentsCount > 100 && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
-                    <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      local_fire_department
-                    </span>
+                    <Flame size={13} className="fill-amber-700" />
                     POPULAIRE
                   </span>
                 )}
@@ -403,21 +415,21 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                   </div>
                 )}
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">groups</span>
+                  <Users size={14} />
                   {fmt(formation.studentsCount)} apprenant{formation.studentsCount > 1 ? "s" : ""}
                 </span>
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">play_lesson</span>
+                  <PlayCircle size={14} />
                   {formation.totalLessons} leçon{formation.totalLessons > 1 ? "s" : ""}
                 </span>
                 {formation.duration > 0 && (
                   <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">schedule</span>
+                    <Clock size={14} />
                     {fmtDuration(formation.duration)}
                   </span>
                 )}
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">language</span>
+                  <Globe size={14} />
                   {formation.languages.map((l) => l.toUpperCase()).join(", ")}
                 </span>
               </div>
@@ -430,12 +442,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {formation.learnPoints.map((p, i) => (
                     <div key={i} className="flex items-start gap-2">
-                      <span
-                        className="material-symbols-outlined text-[#006e2f] text-[18px] flex-shrink-0 mt-0.5"
-                        style={{ fontVariationSettings: "'FILL' 1" }}
-                      >
-                        check_circle
-                      </span>
+                      <CheckCircle2 size={18} className="text-[#006e2f] flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-[#191c1e] leading-relaxed">{p}</p>
                     </div>
                   ))}
@@ -467,9 +474,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                 <ul className="space-y-2">
                   {formation.requirements.map((r, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="material-symbols-outlined text-[#5c647a] text-[18px] flex-shrink-0 mt-0.5">
-                        arrow_right
-                      </span>
+                      <ArrowRight size={18} className="text-[#5c647a] flex-shrink-0 mt-0.5" />
                       <p className="text-sm text-[#5c647a] leading-relaxed">{r}</p>
                     </li>
                   ))}
@@ -502,7 +507,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
               </h2>
               {formation.reviews.length === 0 ? (
                 <div className="text-center py-8">
-                  <span className="material-symbols-outlined text-gray-300 text-5xl">reviews</span>
+                  <MessageSquare size={48} className="text-gray-300 mx-auto" />
                   <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour cette formation pour l&apos;instant.</p>
                 </div>
               ) : (
@@ -529,7 +534,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                           {r.response && (
                             <div className="mt-3 ml-0 border-l-2 border-emerald-300 pl-4 py-2 bg-emerald-50/40 rounded-r-lg">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <span className="material-symbols-outlined text-[14px] text-emerald-600" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                                <BadgeCheck size={14} className="text-emerald-600" />
                                 <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-700">
                                   Réponse du créateur
                                 </p>
@@ -598,7 +603,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                     className="w-full py-3.5 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 flex items-center justify-center gap-2"
                     style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                   >
-                    <span className="material-symbols-outlined text-[18px]">{formation.isFree ? "play_arrow" : "bolt"}</span>
+                    {formation.isFree ? <Play size={18} className="fill-white" /> : <Zap size={18} />}
                     {formation.isFree ? "Commencer maintenant" : "Acheter maintenant"}
                   </button>
                   {!formation.isFree && (
@@ -608,15 +613,15 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                       className="w-full py-3 rounded-xl text-[#006e2f] font-bold text-sm border-2 border-[#006e2f]/20 hover:border-[#006e2f]/40 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {addingToCart ? (
-                        <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                        <Loader2 size={18} className="animate-spin" />
                       ) : addedToCart ? (
                         <>
-                          <span className="material-symbols-outlined text-[18px]">check</span>
+                          <Check size={18} />
                           Ajouté au panier
                         </>
                       ) : (
                         <>
-                          <span className="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                          <ShoppingCart size={18} />
                           Ajouter au panier
                         </>
                       )}
@@ -634,21 +639,21 @@ export default function FormationPageClient({ slug }: { slug: string }) {
 
                 <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">all_inclusive</span>
+                    <InfinityIcon size={16} className="text-[#006e2f]" />
                     Accès à vie
                   </div>
                   {formation.hasCertificate && (
                     <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                      <span className="material-symbols-outlined text-[#006e2f] text-[16px]">workspace_premium</span>
+                      <Award size={16} className="text-[#006e2f]" />
                       Certificat de complétion
                     </div>
                   )}
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">devices</span>
+                    <MonitorSmartphone size={16} className="text-[#006e2f]" />
                     Accessible sur mobile & desktop
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">event_available</span>
+                    <CalendarCheck size={16} className="text-[#006e2f]" />
                     Remboursement 14 jours
                   </div>
                 </div>
@@ -679,7 +684,7 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                       : "Nouveau formateur"}
                   </p>
                 </div>
-                <span className="material-symbols-outlined text-[#5c647a] text-[18px]">chevron_right</span>
+                <ChevronRight size={18} className="text-[#5c647a]" />
               </div>
               {formation.instructeur.bio && (
                 <p className="text-xs text-[#5c647a] mt-3 line-clamp-3 leading-relaxed">

@@ -3,6 +3,33 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  Star,
+  ShoppingBag,
+  ShoppingCart,
+  ArrowLeft,
+  ChevronRight,
+  Flame,
+  ThumbsUp,
+  FileText,
+  Eye,
+  MessageSquare,
+  Download,
+  Ban,
+  Infinity as InfinityIcon,
+  MonitorSmartphone,
+  ShieldCheck,
+  CalendarCheck,
+  FileType,
+  BookOpen,
+  PlayCircle,
+  Music,
+  LayoutDashboard,
+  GraduationCap,
+  Code,
+  Package,
+  type LucideIcon,
+} from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
@@ -75,32 +102,27 @@ function timeAgo(iso: string) {
   return `Il y a ${Math.floor(d / 365)} an(s)`;
 }
 
-const TYPE_LABELS: Record<string, { label: string; icon: string }> = {
-  PDF: { label: "PDF", icon: "picture_as_pdf" },
-  EBOOK: { label: "E-book", icon: "menu_book" },
-  VIDEO: { label: "Vidéo", icon: "play_circle" },
-  AUDIO: { label: "Audio", icon: "music_note" },
-  TEMPLATE: { label: "Template", icon: "dashboard_customize" },
-  COURSE: { label: "Cours digital", icon: "school" },
-  SOFTWARE: { label: "Logiciel", icon: "code" },
-  BUNDLE: { label: "Pack", icon: "inventory_2" },
-  OTHER: { label: "Produit digital", icon: "shopping_bag" },
+const TYPE_LABELS: Record<string, { label: string; icon: LucideIcon }> = {
+  PDF: { label: "PDF", icon: FileType },
+  EBOOK: { label: "E-book", icon: BookOpen },
+  VIDEO: { label: "Vidéo", icon: PlayCircle },
+  AUDIO: { label: "Audio", icon: Music },
+  TEMPLATE: { label: "Template", icon: LayoutDashboard },
+  COURSE: { label: "Cours digital", icon: GraduationCap },
+  SOFTWARE: { label: "Logiciel", icon: Code },
+  BUNDLE: { label: "Pack", icon: Package },
+  OTHER: { label: "Produit digital", icon: ShoppingBag },
 };
 
 function StarRating({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
-        <span
+        <Star
           key={s}
-          className="material-symbols-outlined text-yellow-400"
-          style={{
-            fontSize: `${size}px`,
-            fontVariationSettings: s <= Math.floor(rating) ? "'FILL' 1" : "'FILL' 0",
-          }}
-        >
-          star
-        </span>
+          size={size}
+          className={s <= Math.floor(rating) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
+        />
       ))}
     </div>
   );
@@ -154,7 +176,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
     return (
       <div className="min-h-screen bg-[#f7f9fb] flex items-center justify-center px-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center max-w-md">
-          <span className="material-symbols-outlined text-gray-300 text-5xl">shopping_bag</span>
+          <ShoppingBag size={48} className="text-gray-300 mx-auto" />
           <h2 className="text-lg font-bold text-[#191c1e] mt-3">Produit introuvable</h2>
           <p className="text-sm text-[#5c647a] mt-1.5 mb-4">
             Ce produit n&apos;existe pas ou n&apos;est plus disponible.
@@ -164,7 +186,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Voir le catalogue
           </Link>
         </div>
@@ -173,6 +195,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
   }
 
   const typeInfo = TYPE_LABELS[product.productType] ?? TYPE_LABELS.OTHER;
+  const TypeIcon = typeInfo.icon;
   const isFree = product.price === 0;
   const discount = product.originalPrice && product.originalPrice > product.price
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
@@ -213,14 +236,14 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             }}
             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:text-[#191c1e] font-semibold transition-colors"
           >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            <ArrowLeft size={14} />
             Retour
           </button>
           <span className="text-gray-300">·</span>
           <Link href="/" className="hover:text-[#006e2f] transition-colors">Accueil</Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <ChevronRight size={12} />
           <Link href="/explorer" className="hover:text-[#006e2f] transition-colors">Explorer</Link>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+          <ChevronRight size={12} />
           <span className="text-[#191c1e] font-medium truncate max-w-[200px]">{product.title}</span>
         </div>
       </div>
@@ -235,12 +258,12 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 <img src={product.banner ?? product.thumbnail ?? ""} alt={product.title} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-white/30 text-[100px]">{typeInfo.icon}</span>
+                  <TypeIcon size={100} className="text-white/30" />
                 </div>
               )}
               <div className="absolute top-4 left-4 flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white/95 text-[#191c1e] shadow-sm backdrop-blur-sm">
-                  <span className="material-symbols-outlined text-[12px] text-[#006e2f]">{typeInfo.icon}</span>
+                  <TypeIcon size={12} className="text-[#006e2f]" />
                   {typeInfo.label}
                 </span>
                 {product.category && (
@@ -261,7 +284,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 ))}
                 {product.salesCount > 50 && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-700">
-                    <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+                    <Flame size={13} className="fill-amber-700" />
                     POPULAIRE
                   </span>
                 )}
@@ -291,7 +314,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     <>
                       <span className="text-zinc-300">·</span>
                       <span className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-[14px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>thumb_up</span>
+                        <ThumbsUp size={14} className="fill-[#22c55e] text-[#22c55e]" />
                         <span className="font-semibold">{Math.min(99, 80 + Math.floor(product.salesCount / 5))}%</span>
                       </span>
                       <span className="text-zinc-300">·</span>
@@ -363,7 +386,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   </div>
                 ) : (
                   <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
-                    <span className="material-symbols-outlined text-gray-300 text-4xl">description</span>
+                    <FileText size={36} className="text-gray-300 mx-auto" />
                     <p className="text-sm text-[#5c647a] mt-2">Aucune description fournie pour ce produit.</p>
                   </div>
                 )}
@@ -401,7 +424,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                         </div>
                       )}
                     </div>
-                    <span className="material-symbols-outlined text-[#5c647a] text-[18px] group-hover:text-[#006e2f] transition-colors">chevron_right</span>
+                    <ChevronRight size={18} className="text-[#5c647a] group-hover:text-[#006e2f] transition-colors" />
                   </Link>
                 </div>
               </div>
@@ -411,7 +434,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             {activeTab === "apercu" && product.previewAvailable && (
               <div className="bg-white rounded-2xl border border-gray-100 p-4 md:p-6 space-y-4">
                 <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                  <span className="material-symbols-outlined text-amber-600 text-[20px] flex-shrink-0 mt-0.5">visibility</span>
+                  <Eye size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
                   <div className="text-xs text-amber-900 leading-relaxed">
                     <p className="font-bold mb-0.5">
                       Aperçu gratuit — {product.previewPages ?? 5} première{(product.previewPages ?? 5) > 1 ? "s" : ""} page{(product.previewPages ?? 5) > 1 ? "s" : ""}
@@ -448,7 +471,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
                 {product.reviews.length === 0 ? (
                   <div className="text-center py-8">
-                    <span className="material-symbols-outlined text-gray-300 text-5xl">reviews</span>
+                    <MessageSquare size={48} className="text-gray-300 mx-auto" />
                     <p className="text-sm text-[#5c647a] mt-3">Aucun avis pour ce produit pour l&apos;instant.</p>
                     <p className="text-xs text-[#5c647a] mt-1">Soyez le premier à laisser votre retour après l&apos;achat.</p>
                   </div>
@@ -519,9 +542,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                       : "linear-gradient(to right, #94a3b8, #64748b)",
                   }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {!canBuy ? "block" : isFree ? "download" : "shopping_cart"}
-                  </span>
+                  {!canBuy ? <Ban size={18} /> : isFree ? <Download size={18} /> : <ShoppingCart size={18} />}
                   {!canBuy
                     ? "Vente terminée"
                     : isFree
@@ -548,24 +569,24 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
 
                 <div className="mt-5 pt-5 border-t border-gray-100 space-y-2.5">
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">all_inclusive</span>
+                    <InfinityIcon size={16} className="text-[#006e2f]" />
                     Accès et téléchargement à vie
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">{typeInfo.icon}</span>
+                    <TypeIcon size={16} className="text-[#006e2f]" />
                     Format {typeInfo.label}
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">devices</span>
+                    <MonitorSmartphone size={16} className="text-[#006e2f]" />
                     Accessible sur mobile & desktop
                   </div>
                   <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[16px]">verified_user</span>
+                    <ShieldCheck size={16} className="text-[#006e2f]" />
                     Paiement 100% sécurisé
                   </div>
                   {!isFree && (
                     <div className="flex items-center gap-2 text-xs text-[#5c647a]">
-                      <span className="material-symbols-outlined text-[#006e2f] text-[16px]">event_available</span>
+                      <CalendarCheck size={16} className="text-[#006e2f]" />
                       Remboursement 14 jours
                     </div>
                   )}
@@ -596,7 +617,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                     </div>
                   )}
                 </div>
-                <span className="material-symbols-outlined text-[#5c647a] text-[18px]">chevron_right</span>
+                <ChevronRight size={18} className="text-[#5c647a]" />
               </div>
             </Link>
           </div>

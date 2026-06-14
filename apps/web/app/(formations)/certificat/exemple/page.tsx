@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Sparkles, BadgeCheck, Share2, ArrowLeft } from "lucide-react";
 import CertificateView from "@/components/formations/CertificateView";
 
 export const metadata: Metadata = {
@@ -38,17 +39,17 @@ export default function CertificateExamplePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
             {[
               {
-                icon: "auto_awesome",
+                icon: Sparkles,
                 title: "Délivré automatiquement",
                 text: "Quand l'apprenant atteint 100 % de progression, le certificat est généré et envoyé par email.",
               },
               {
-                icon: "verified",
+                icon: BadgeCheck,
                 title: "Vérifiable publiquement",
                 text: "Chaque certificat a un code unique consultable sur novakou.com/certificat/<code>.",
               },
               {
-                icon: "share",
+                icon: Share2,
                 title: "Partageable LinkedIn",
                 text: "Vos apprenants peuvent l'ajouter à leur profil LinkedIn en un clic.",
               },
@@ -58,12 +59,7 @@ export default function CertificateExamplePage() {
                 className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 border border-[#c9a961]/30"
               >
                 <div className="w-9 h-9 rounded-xl bg-[#0d3b1f]/10 flex items-center justify-center mb-3">
-                  <span
-                    className="material-symbols-outlined text-[18px] text-[#0d3b1f]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    {it.icon}
-                  </span>
+                  <it.icon size={18} className="text-[#0d3b1f]" />
                 </div>
                 <p
                   className="text-sm font-bold text-[#0d3b1f] mb-1"
@@ -83,9 +79,7 @@ export default function CertificateExamplePage() {
               href="/"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#0d3b1f] hover:text-[#c9a961] transition-colors"
             >
-              <span className="material-symbols-outlined text-[16px]">
-                arrow_back
-              </span>
+              <ArrowLeft size={16} />
               Retour à Novakou
             </Link>
           </div>

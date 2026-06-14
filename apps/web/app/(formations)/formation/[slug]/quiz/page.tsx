@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { Loader2, ArrowLeft, Award, Trophy } from "lucide-react";
 
 interface Choice { label: string }
 interface Question { id: string; question: string; choices: Choice[] }
@@ -78,7 +79,7 @@ export default function FormationQuizPage(
 
   if (loading) {
     return <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-      <span className="material-symbols-outlined text-3xl text-slate-400 animate-spin">progress_activity</span>
+      <Loader2 size={32} className="text-slate-400 animate-spin" />
     </div>;
   }
   if (!quiz) {
@@ -94,7 +95,7 @@ export default function FormationQuizPage(
     <div className="min-h-screen bg-slate-50 py-10" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <div className="max-w-2xl mx-auto px-5">
         <Link href={`/formation/${slug}`} className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 mb-4">
-          <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          <ArrowLeft size={14} />
           Retour à la formation
         </Link>
 
@@ -108,9 +109,11 @@ export default function FormationQuizPage(
           {result ? (
             <div className={`mt-6 p-6 rounded-2xl ${result.passed ? "bg-emerald-50 border border-emerald-200" : "bg-amber-50 border border-amber-200"}`}>
               <div className="flex items-center gap-3 mb-3">
-                <span className={`material-symbols-outlined text-3xl ${result.passed ? "text-emerald-600" : "text-amber-600"}`}>
-                  {result.passed ? "military_tech" : "emoji_events"}
-                </span>
+                {result.passed ? (
+                  <Award size={32} className="text-emerald-600" />
+                ) : (
+                  <Trophy size={32} className="text-amber-600" />
+                )}
                 <div>
                   <p className="text-lg font-extrabold text-slate-900">
                     {result.passed ? "Bravo, c'est validé !" : "Pas tout à fait…"}

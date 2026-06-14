@@ -2,6 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  Gift,
+  GraduationCap,
+  Package,
+  Sparkles,
+  Wallet,
+  Loader2,
+  ShoppingCart,
+  Infinity as InfinityIcon,
+  ShieldCheck,
+  CalendarCheck,
+} from "lucide-react";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
@@ -100,11 +112,11 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
               <img src={bundle.banner ?? bundle.thumbnail ?? ""} alt={bundle.title} className="w-full h-full object-cover" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="material-symbols-outlined text-white/30 text-[100px]">redeem</span>
+                <Gift size={100} className="text-white/30" />
               </div>
             )}
             <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full bg-white/95 text-[#191c1e] shadow-sm">
-              <span className="material-symbols-outlined text-[12px]" style={{ color: themeColor }}>redeem</span>
+              <Gift size={12} style={{ color: themeColor }} />
               Pack — {bundle.items.length} articles
             </div>
             {bundle.savingsPct > 0 && (
@@ -152,9 +164,11 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
                       <img src={it.image} alt={it.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-2xl text-white/60">
-                          {it.kind === "formation" ? "school" : "inventory_2"}
-                        </span>
+                        {it.kind === "formation" ? (
+                          <GraduationCap size={28} className="text-white/60" />
+                        ) : (
+                          <Package size={28} className="text-white/60" />
+                        )}
                       </div>
                     )}
                   </div>
@@ -213,11 +227,11 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
                     >
-                      <span
-                        className={`material-symbols-outlined text-[18px] ${provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"}`}
-                      >
-                        {p.id === "paygenius" ? "auto_awesome" : "account_balance_wallet"}
-                      </span>
+                      {p.id === "paygenius" ? (
+                        <Sparkles size={18} className={provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
+                      ) : (
+                        <Wallet size={18} className={provider === p.id ? "text-[#006e2f]" : "text-[#5c647a]"} />
+                      )}
                       <span className={`text-xs font-bold ${provider === p.id ? "text-[#006e2f]" : "text-[#191c1e]"}`}>
                         {p.label}
                       </span>
@@ -233,9 +247,7 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
               className="w-full mt-4 py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
               style={{ background: `linear-gradient(to right, ${themeColor}, #22c55e)` }}
             >
-              <span className="material-symbols-outlined text-[18px]">
-                {loading ? "progress_activity" : "shopping_cart"}
-              </span>
+              {loading ? <Loader2 size={18} className="animate-spin" /> : <ShoppingCart size={18} />}
               {loading ? "Initialisation…" : "Acheter le pack"}
             </button>
             {error && (
@@ -244,15 +256,15 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
 
             <div className="mt-5 pt-5 border-t border-gray-100 space-y-2 text-xs text-[#5c647a]">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: themeColor }}>all_inclusive</span>
+                <InfinityIcon size={16} style={{ color: themeColor }} />
                 Accès à vie aux {bundle.items.length} articles
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: themeColor }}>verified_user</span>
+                <ShieldCheck size={16} style={{ color: themeColor }} />
                 Paiement 100% sécurisé
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: themeColor }}>event_available</span>
+                <CalendarCheck size={16} style={{ color: themeColor }} />
                 Garantie 14 jours
               </div>
             </div>

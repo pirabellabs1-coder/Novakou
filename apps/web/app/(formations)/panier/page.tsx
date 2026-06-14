@@ -3,6 +3,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  ShoppingCart,
+  GraduationCap,
+  Trash2,
+  Lock,
+  ShieldCheck,
+  RefreshCw,
+} from "lucide-react";
 import { useToastStore } from "@/store/toast";
 import { trackEvents } from "@/lib/tracking/events";
 
@@ -84,7 +93,7 @@ export default function PanierPage() {
             href="/explorer"
             className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 mb-3"
           >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+            <ArrowLeft size={14} />
             Continuer mes achats
           </Link>
           <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -111,7 +120,7 @@ export default function PanierPage() {
               className="w-20 h-20 rounded-2xl mx-auto mb-5 flex items-center justify-center"
               style={{ background: "linear-gradient(135deg, #006e2f15, #22c55e15)" }}
             >
-              <span className="material-symbols-outlined text-4xl text-emerald-700">shopping_cart</span>
+              <ShoppingCart size={36} className="text-emerald-700" />
             </div>
             <h2 className="text-xl font-extrabold text-slate-900">Votre panier est vide</h2>
             <p className="text-sm text-slate-500 mt-2 max-w-md mx-auto">
@@ -142,7 +151,7 @@ export default function PanierPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <span className="material-symbols-outlined text-2xl text-slate-400">school</span>
+                        <GraduationCap size={28} className="text-slate-400" />
                       </div>
                     )}
                   </div>
@@ -169,7 +178,7 @@ export default function PanierPage() {
                     title="Retirer"
                     aria-label="Retirer du panier"
                   >
-                    <span className="material-symbols-outlined text-[20px]">delete_outline</span>
+                    <Trash2 size={20} />
                   </button>
                 </div>
               ))}
@@ -197,7 +206,7 @@ export default function PanierPage() {
                 className="block w-full text-center px-5 py-3.5 rounded-xl text-white font-bold text-sm shadow-md shadow-emerald-500/20 hover:shadow-lg"
                 style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
               >
-                <span className="material-symbols-outlined align-middle text-[18px] mr-1.5">lock</span>
+                <Lock size={16} className="inline-block align-middle mr-1.5" />
                 Passer au paiement
               </Link>
               {cart?.guest && (
@@ -207,11 +216,11 @@ export default function PanierPage() {
               )}
               <div className="pt-3 border-t border-slate-100 space-y-1.5 text-[11px] text-slate-500">
                 <div className="inline-flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-emerald-600">shield</span>
+                  <ShieldCheck size={14} className="text-emerald-600" />
                   Paiement sécurisé (SSL)
                 </div>
                 <div className="inline-flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[14px] text-emerald-600">refresh</span>
+                  <RefreshCw size={14} className="text-emerald-600" />
                   Garantie 14 jours satisfait ou remboursé
                 </div>
               </div>

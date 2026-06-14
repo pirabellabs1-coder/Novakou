@@ -19,6 +19,20 @@ import {
   Flame,
   ArrowLeft,
   ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  Search,
+  LayoutGrid,
+  Package,
+  ArrowDownUp,
+  Wallet,
+  RotateCcw,
+  SlidersHorizontal,
+  SearchX,
+  PlusCircle,
+  Gift,
+  X,
+  type LucideIcon,
 } from "lucide-react";
 
 type Item = {
@@ -71,13 +85,11 @@ function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((s) => (
-        <span
+        <Star
           key={s}
-          className="material-symbols-outlined text-[14px] text-yellow-400"
-          style={{ fontVariationSettings: s <= Math.floor(rating) ? "'FILL' 1" : "'FILL' 0" }}
-        >
-          star
-        </span>
+          size={14}
+          className={s <= Math.floor(rating) ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+        />
       ))}
     </div>
   );
@@ -294,9 +306,7 @@ function GiftModal({ item, onClose }: { item: Item | null; onClose: () => void }
         {success ? (
           <div className="text-center py-4">
             <div className="w-16 h-16 rounded-full bg-[#006e2f]/10 flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-[32px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                card_giftcard
-              </span>
+              <Gift size={32} className="text-[#006e2f]" />
             </div>
             <h2 className="text-lg font-bold text-[#191c1e] mb-2">Cadeau envoyé !</h2>
             <p className="text-sm text-[#5c647a] mb-4">
@@ -315,13 +325,13 @@ function GiftModal({ item, onClose }: { item: Item | null; onClose: () => void }
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-bold text-[#191c1e] flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[20px] text-pink-500" style={{ fontVariationSettings: "'FILL' 1" }}>card_giftcard</span>
+                  <Gift size={20} className="text-pink-500" />
                   Offrir ce {item.kind === "formation" ? "cours" : "produit"}
                 </h2>
                 <p className="text-xs text-[#5c647a] mt-1 line-clamp-1">« {item.title} »</p>
               </div>
               <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100">
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+                <X size={20} className="text-[#5c647a]" />
               </button>
             </div>
 
@@ -546,7 +556,7 @@ function ExplorerInner() {
           </p>
 
           <div className="relative max-w-2xl mx-auto mb-8">
-            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#5c647a] text-[22px]">search</span>
+            <Search size={22} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#5c647a]" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -583,11 +593,13 @@ function ExplorerInner() {
           {/* GROUPE 1 : Type tabs (icônes + label + count) */}
           <div className="inline-flex items-center bg-gray-100 p-1 rounded-xl">
             {([
-              { value: "all", label: "Tout", count: stats?.total ?? 0, icon: "apps" },
-              { value: "formations", label: "Formations", count: stats?.totalFormations ?? 0, icon: "school" },
-              { value: "products", label: "Produits", count: stats?.totalProducts ?? 0, icon: "shopping_bag" },
-              { value: "bundles", label: "Packs", count: stats?.totalBundles ?? 0, icon: "inventory_2" },
-            ] as const).map((tab) => (
+              { value: "all", label: "Tout", count: stats?.total ?? 0, icon: LayoutGrid },
+              { value: "formations", label: "Formations", count: stats?.totalFormations ?? 0, icon: GraduationCap },
+              { value: "products", label: "Produits", count: stats?.totalProducts ?? 0, icon: ShoppingBag },
+              { value: "bundles", label: "Packs", count: stats?.totalBundles ?? 0, icon: Package },
+            ] as { value: "all" | "formations" | "products" | "bundles"; label: string; count: number; icon: LucideIcon }[]).map((tab) => {
+              const TabIcon = tab.icon;
+              return (
               <button
                 key={tab.value}
                 onClick={() => setActiveTab(tab.value)}
@@ -597,7 +609,7 @@ function ExplorerInner() {
                     : "text-[#5c647a] hover:text-[#191c1e]"
                 }`}
               >
-                <span className={`material-symbols-outlined text-[15px] ${activeTab === tab.value ? "text-[#006e2f]" : ""}`}>{tab.icon}</span>
+                <TabIcon size={15} className={activeTab === tab.value ? "text-[#006e2f]" : ""} />
                 <span>{tab.label}</span>
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[22px] text-center ${
                   activeTab === tab.value ? "bg-[#006e2f] text-white" : "bg-gray-200 text-[#5c647a]"
@@ -605,7 +617,8 @@ function ExplorerInner() {
                   {tab.count}
                 </span>
               </button>
-            ))}
+              );
+            })}
           </div>
 
           {/* GROUPE 2 : Sort + Rating + Price (regroupés visuellement) */}
@@ -623,8 +636,8 @@ function ExplorerInner() {
                 <option value="price-desc">Prix décroissant</option>
                 <option value="rating">Mieux notés</option>
               </select>
-              <span className="material-symbols-outlined text-[16px] text-[#5c647a] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none">sort</span>
-              <span className="material-symbols-outlined text-[16px] text-[#5c647a] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+              <ArrowDownUp size={16} className="text-[#5c647a] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown size={16} className="text-[#5c647a] absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
             {/* Rating filter — pills with active state */}
@@ -644,7 +657,7 @@ function ExplorerInner() {
                   }`}
                 >
                   {r.icon && (
-                    <span className="material-symbols-outlined text-[13px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                    <Star size={13} className="fill-amber-400 text-amber-400" />
                   )}
                   {r.label}
                   {r.icon && <span className="text-[10px]">+</span>}
@@ -654,7 +667,7 @@ function ExplorerInner() {
 
             {/* Price slider — embedded compact */}
             <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:border-gray-300 transition-colors">
-              <span className="material-symbols-outlined text-[16px] text-[#5c647a]">payments</span>
+              <Wallet size={16} className="text-[#5c647a]" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a]">Prix max</span>
               <input
                 type="range"
@@ -680,12 +693,12 @@ function ExplorerInner() {
                 onClick={resetFilters}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
               >
-                <span className="material-symbols-outlined text-[14px]">restart_alt</span>
+                <RotateCcw size={14} />
                 Réinitialiser
               </button>
             )}
             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#006e2f]/5">
-              <span className="material-symbols-outlined text-[14px] text-[#006e2f]">filter_alt</span>
+              <SlidersHorizontal size={14} className="text-[#006e2f]" />
               <span className="text-xs text-[#5c647a]">
                 <span className="font-extrabold text-[#191c1e]">{displayedItems.length}</span>
                 {" "}résultat{displayedItems.length > 1 ? "s" : ""}
@@ -716,7 +729,7 @@ function ExplorerInner() {
         ) : displayedItems.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm py-24 text-center max-w-2xl mx-auto">
             <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-[32px] text-gray-300">search_off</span>
+              <SearchX size={32} className="text-gray-300" />
             </div>
             <p className="font-semibold text-[#191c1e] mb-1">
               {(stats?.total ?? 0) === 0 ? "Bientôt disponible" : "Aucun résultat"}
@@ -732,7 +745,7 @@ function ExplorerInner() {
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
-                <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                <PlusCircle size={18} />
                 Publier un produit
               </Link>
             ) : (
@@ -763,7 +776,7 @@ function ExplorerInner() {
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-gray-200 text-[#191c1e] text-sm font-semibold hover:bg-gray-50 hover:border-[#006e2f]/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     aria-label="Page précédente"
                   >
-                    <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+                    <ChevronLeft size={18} />
                     Précédent
                   </button>
 
@@ -797,7 +810,7 @@ function ExplorerInner() {
                     aria-label="Page suivante"
                   >
                     Suivant
-                    <span className="material-symbols-outlined text-[18px]">chevron_right</span>
+                    <ChevronRight size={18} />
                   </button>
                 </div>
                 <p className="text-[11px] text-[#5c647a] tabular-nums">

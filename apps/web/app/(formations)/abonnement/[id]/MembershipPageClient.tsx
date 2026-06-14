@@ -2,6 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  BadgeCheck,
+  CreditCard,
+  GraduationCap,
+  Package,
+  Sparkles,
+  Wallet,
+  Loader2,
+  Ban,
+  RefreshCw,
+  XCircle,
+  ShieldCheck,
+} from "lucide-react";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 
 const fmtFCFA = (n: number) => new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
@@ -96,11 +109,11 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
               <img src={plan.bannerUrl ?? plan.imageUrl ?? ""} alt={plan.name} className="w-full h-full object-cover" />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="material-symbols-outlined text-white/30 text-[100px]">card_membership</span>
+                <CreditCard size={100} className="text-white/30" />
               </div>
             )}
             <div className="absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase px-2.5 py-1 rounded-full bg-white/95 text-[#191c1e] shadow-sm">
-              <span className="material-symbols-outlined text-[12px]" style={{ color: themeColor }}>card_membership</span>
+              <CreditCard size={12} style={{ color: themeColor }} />
               Abonnement {plan.interval === "yearly" ? "annuel" : "mensuel"}
             </div>
             {plan.trialDays && plan.trialDays > 0 && (
@@ -132,7 +145,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
 
             {plan.activeCount > 0 && (
               <div className="mt-5 inline-flex items-center gap-2 text-xs text-[#5c647a] bg-slate-50 px-3 py-1.5 rounded-full">
-                <span className="material-symbols-outlined text-[14px] text-[#006e2f]">verified</span>
+                <BadgeCheck size={14} className="text-[#006e2f]" />
                 <strong className="text-[#191c1e]">{plan.activeCount}</strong> membre{plan.activeCount > 1 ? "s" : ""} actif{plan.activeCount > 1 ? "s" : ""}
                 {remaining !== null && remaining < 50 && (
                   <span className="text-amber-700 font-semibold">
@@ -156,7 +169,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center"><span className="material-symbols-outlined text-2xl text-slate-400">school</span></div>
+                        <div className="w-full h-full flex items-center justify-center"><GraduationCap size={28} className="text-slate-400" /></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -173,7 +186,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={p.banner} alt={p.title} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center"><span className="material-symbols-outlined text-2xl text-slate-400">inventory_2</span></div>
+                        <div className="w-full h-full flex items-center justify-center"><Package size={28} className="text-slate-400" /></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -215,11 +228,11 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                           : "border-gray-200 bg-white hover:border-gray-300"
                       }`}
                     >
-                      <span
-                        className={`material-symbols-outlined text-[18px] ${provider === p.id ? "text-purple-600" : "text-[#5c647a]"}`}
-                      >
-                        {p.id === "paygenius" ? "auto_awesome" : "account_balance_wallet"}
-                      </span>
+                      {p.id === "paygenius" ? (
+                        <Sparkles size={18} className={provider === p.id ? "text-purple-600" : "text-[#5c647a]"} />
+                      ) : (
+                        <Wallet size={18} className={provider === p.id ? "text-purple-600" : "text-[#5c647a]"} />
+                      )}
                       <span className={`text-xs font-bold ${provider === p.id ? "text-purple-700" : "text-[#191c1e]"}`}>
                         {p.label}
                       </span>
@@ -239,9 +252,7 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                   : `linear-gradient(to right, ${themeColor}, #22c55e)`,
               }}
             >
-              <span className="material-symbols-outlined text-[18px]">
-                {soldOut ? "block" : loading ? "progress_activity" : "card_membership"}
-              </span>
+              {soldOut ? <Ban size={18} /> : loading ? <Loader2 size={18} className="animate-spin" /> : <CreditCard size={18} />}
               {soldOut
                 ? "Plan complet"
                 : loading
@@ -256,15 +267,15 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
 
             <div className="mt-5 pt-5 border-t border-gray-100 space-y-2 text-xs text-[#5c647a]">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: themeColor }}>autorenew</span>
+                <RefreshCw size={16} style={{ color: themeColor }} />
                 Renouvellement automatique
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: themeColor }}>cancel</span>
+                <XCircle size={16} style={{ color: themeColor }} />
                 Annulez à tout moment
               </div>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[16px]" style={{ color: themeColor }}>verified_user</span>
+                <ShieldCheck size={16} style={{ color: themeColor }} />
                 Paiement 100% sécurisé
               </div>
             </div>
