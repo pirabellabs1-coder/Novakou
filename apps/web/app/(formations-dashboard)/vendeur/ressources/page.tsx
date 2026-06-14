@@ -2,6 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  type LucideIcon,
+  Clapperboard,
+  FileText,
+  Image as ImageIcon,
+  AudioLines,
+  Folder,
+  PlusCircle,
+  Search,
+  FolderOpen,
+  ExternalLink,
+} from "lucide-react";
 
 interface Resource {
   id: string;
@@ -14,12 +26,12 @@ interface Resource {
   updatedAt: string;
 }
 
-const KIND_ICON: Record<Resource["kind"], string> = {
-  video: "smart_display",
-  pdf: "picture_as_pdf",
-  image: "image",
-  audio: "graphic_eq",
-  other: "folder",
+const KIND_ICON: Record<Resource["kind"], LucideIcon> = {
+  video: Clapperboard,
+  pdf: FileText,
+  image: ImageIcon,
+  audio: AudioLines,
+  other: Folder,
 };
 
 const KIND_LABEL: Record<Resource["kind"], string> = {
@@ -81,7 +93,7 @@ export default function VendorResourcesPage() {
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20"
             style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            <PlusCircle size={18} />
             Gérer mes produits
           </Link>
         </header>
@@ -89,9 +101,7 @@ export default function VendorResourcesPage() {
         {/* Filters bar */}
         <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-6 flex flex-col md:flex-row gap-3 items-stretch md:items-center">
           <div className="flex-1 relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-slate-400 pointer-events-none">
-              search
-            </span>
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               type="search"
               value={query}
@@ -125,7 +135,7 @@ export default function VendorResourcesPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-            <span className="material-symbols-outlined text-5xl text-slate-300">folder_open</span>
+            <FolderOpen size={48} className="text-slate-300 mx-auto" strokeWidth={1.5} />
             <p className="text-base font-bold text-slate-700 mt-3">
               {resources.length === 0 ? "Aucun fichier encore" : "Aucun résultat"}
             </p>
@@ -150,7 +160,9 @@ export default function VendorResourcesPage() {
               <strong className="text-slate-700 tabular-nums">{filtered.length}</strong> ressource{filtered.length > 1 ? "s" : ""}
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((r) => (
+              {filtered.map((r) => {
+                const KindIcon = KIND_ICON[r.kind];
+                return (
                 <a
                   key={r.id}
                   href={r.url}
@@ -168,9 +180,7 @@ export default function VendorResourcesPage() {
                     </div>
                   ) : (
                     <div className="aspect-video relative bg-gradient-to-br from-emerald-50 to-slate-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-5xl text-emerald-600">
-                        {KIND_ICON[r.kind]}
-                      </span>
+                      <KindIcon size={48} className="text-emerald-600" strokeWidth={1.5} />
                       <span className="absolute top-2 left-2 text-[10px] font-bold uppercase tracking-wider bg-white/90 text-slate-700 px-2 py-0.5 rounded-full border border-slate-200">
                         {KIND_LABEL[r.kind]}
                       </span>
@@ -183,13 +193,12 @@ export default function VendorResourcesPage() {
                     </p>
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-[11px] text-slate-400">
                       <span className="font-mono truncate flex-1">{r.url.split("/").pop()?.slice(0, 30)}</span>
-                      <span className="material-symbols-outlined text-[14px] group-hover:text-emerald-600">
-                        open_in_new
-                      </span>
+                      <ExternalLink size={14} className="group-hover:text-emerald-600 flex-shrink-0" />
                     </div>
                   </div>
                 </a>
-              ))}
+                );
+              })}
             </div>
           </>
         )}

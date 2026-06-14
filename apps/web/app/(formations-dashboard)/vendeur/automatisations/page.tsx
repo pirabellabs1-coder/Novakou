@@ -36,13 +36,13 @@ import IntegrationModal from "@/components/automations/IntegrationModal";
 import { safeFetch } from "@/lib/safe-fetch";
 import { confirmAction } from "@/store/confirm";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StChip,
+  StKpiCompact,
+  ST,
+} from "@/components/stitch";
 
 type IntegrationRow = {
   id: string;
@@ -101,10 +101,10 @@ const SEQ_TRIGGER_LABELS: Record<string, string> = {
   TAG_ADDED: "Tag ajouté",
 };
 
-const STATUS_VARIANT: Record<string, "green" | "slate" | "orange" | "rose"> = {
+const STATUS_VARIANT: Record<string, "green" | "neutral" | "amber" | "rose"> = {
   ACTIVE: "green",
-  DRAFT: "slate",
-  PAUSED: "orange",
+  DRAFT: "neutral",
+  PAUSED: "amber",
   ARCHIVED: "rose",
 };
 const STATUS_LABELS: Record<string, string> = {
@@ -250,61 +250,58 @@ export default function AutomationsPage() {
   const totalExecutions = workflows.reduce((s, w) => s + w.totalExecutions, 0);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
-        <KazaHero
-          badge="Pro"
-          badgeColor="orange"
-          icon={Zap}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StPageHeader
           title="Automatisations"
           subtitle="Automatisez chaque étape du parcours apprenant"
           actions={
             activeTab === "workflows" ? (
-              <KazaButton variant="primary" icon={Plus} onClick={() => setShowForm(true)}>
+              <StButton icon={Plus} onClick={() => setShowForm(true)}>
                 Nouveau workflow
-              </KazaButton>
+              </StButton>
             ) : undefined
           }
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 mb-4">
+          <StKpiCompact
             label="Workflows actifs"
             value={isLoading ? "…" : activeWorkflows}
             icon={Zap}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Séquences actives"
             value={isLoading ? "…" : activeSequences}
             icon={MailCheck}
-            iconColor="orange"
+            tone="amber"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Exécutions totales"
             value={isLoading ? "…" : totalExecutions.toLocaleString("fr-FR")}
             icon={PlayCircle}
-            iconColor="sky"
+            tone="blue"
           />
         </div>
 
         {/* Tabs */}
-        <div className="-mx-1 overflow-x-auto">
-          <div className="inline-flex gap-1 bg-slate-100 p-1 rounded-xl mx-1">
+        <div className="-mx-1 overflow-x-auto mb-4">
+          <div className="inline-flex gap-1 bg-white p-1 rounded-[13px] mx-1" style={{ border: `1px solid ${ST.cardBorder}` }}>
             {([
               { value: "workflows", label: "Workflows", icon: Zap },
               { value: "sequences", label: "Séquences email", icon: MailCheck },
               { value: "integrations", label: "Intégrations", icon: Network },
             ] as const).map((tab) => {
               const TabIcon = tab.icon;
+              const on = activeTab === tab.value;
               return (
                 <button
                   key={tab.value}
                   onClick={() => setActiveTab(tab.value)}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${
-                    activeTab === tab.value ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
-                  }`}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                  style={on ? { background: ST.greenDark, color: "#fff" } : { color: ST.textSecondary }}
                 >
                   <TabIcon className="w-4 h-4" />
                   {tab.label}
@@ -319,33 +316,37 @@ export default function AutomationsPage() {
           <div className="space-y-3">
             {isLoading ? (
               [0, 1].map((i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 animate-pulse">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+                <StCard key={i} className="animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-[12px]" style={{ background: "#eef2ef" }} />
                     <div className="flex-1">
-                      <div className="h-4 bg-slate-100 rounded w-40 mb-1" />
-                      <div className="h-3 bg-slate-100 rounded w-24" />
+                      <div className="h-4 rounded w-40 mb-1" style={{ background: "#eef2ef" }} />
+                      <div className="h-3 rounded w-24" style={{ background: "#eef2ef" }} />
                     </div>
                   </div>
-                </div>
+                </StCard>
               ))
             ) : workflows.length === 0 ? (
-              <KazaEmpty
-                icon={Zap}
-                title="Aucun workflow"
-                description="Créez votre premier workflow pour automatiser vos actions."
-                action={{ label: "Créer un workflow", onClick: () => setShowForm(true) }}
-              />
+              <StCard className="text-center py-12">
+                <Zap size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
+                <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>Aucun workflow</h3>
+                <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+                  Créez votre premier workflow pour automatiser vos actions.
+                </p>
+                <div className="mt-4 flex justify-center">
+                  <StButton onClick={() => setShowForm(true)} icon={Plus}>Créer un workflow</StButton>
+                </div>
+              </StCard>
             ) : (
               workflows.map((wf) => {
                 const trig = TRIGGER_LABELS[wf.triggerType] ?? { label: wf.triggerType, icon: Zap, color: "text-slate-500" };
                 const TrigIcon = trig.icon;
                 return (
-                  <div key={wf.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <StCard key={wf.id}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                          <TrigIcon className={`w-5 h-5 ${trig.color}`} />
+                        <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0" style={{ background: ST.greenSoft }}>
+                          <TrigIcon className="w-5 h-5" style={{ color: ST.green }} />
                         </div>
                         <div className="min-w-0 flex-1">
                           {editingId === wf.id ? (
@@ -358,36 +359,38 @@ export default function AutomationsPage() {
                                 if (e.key === "Enter") commitEdit("workflow");
                                 if (e.key === "Escape") setEditingId(null);
                               }}
-                              className="font-bold text-slate-900 text-sm w-full bg-transparent border-b border-emerald-500 focus:outline-none px-1"
+                              className="font-extrabold text-[13px] w-full bg-transparent focus:outline-none px-1"
+                              style={{ color: ST.text, borderBottom: `1px solid ${ST.greenBright}` }}
                             />
                           ) : (
-                            <p className="font-bold text-slate-900 text-sm truncate">{wf.name}</p>
+                            <p className="font-extrabold text-[13px] truncate" style={{ color: ST.text }}>{wf.name}</p>
                           )}
                           <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[10px] text-slate-500">Déclencheur : {trig.label}</span>
-                            <span className="text-[10px] text-slate-500">·</span>
-                            <span className="text-[10px] text-slate-500">{Array.isArray(wf.actions) ? wf.actions.length : 0} action{Array.isArray(wf.actions) && wf.actions.length !== 1 ? "s" : ""}</span>
+                            <span className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>Déclencheur : {trig.label}</span>
+                            <span className="text-[10.5px]" style={{ color: ST.textFaint }}>·</span>
+                            <span className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>{Array.isArray(wf.actions) ? wf.actions.length : 0} action{Array.isArray(wf.actions) && wf.actions.length !== 1 ? "s" : ""}</span>
                           </div>
                         </div>
                       </div>
-                      <KazaBadge variant={STATUS_VARIANT[wf.status]}>{STATUS_LABELS[wf.status]}</KazaBadge>
+                      <StChip tone={STATUS_VARIANT[wf.status]}>{STATUS_LABELS[wf.status]}</StChip>
                     </div>
-                    <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50 flex-wrap">
+                    <div className="flex items-center gap-4 mt-4 pt-3 flex-wrap" style={{ borderTop: `1px solid ${ST.divider}` }}>
                       <div className="flex items-center gap-1.5">
-                        <PlayCircle className="w-3.5 h-3.5 text-slate-500" />
-                        <span className="text-xs text-slate-500">{wf.totalExecutions.toLocaleString("fr-FR")} exécutions</span>
+                        <PlayCircle className="w-3.5 h-3.5" style={{ color: ST.textMuted }} />
+                        <span className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>{wf.totalExecutions.toLocaleString("fr-FR")} exécutions</span>
                       </div>
                       {wf.lastExecutedAt && (
                         <div className="flex items-center gap-1.5">
-                          <History className="w-3.5 h-3.5 text-slate-500" />
-                          <span className="text-xs text-slate-500">Dernière : {new Date(wf.lastExecutedAt).toLocaleDateString("fr-FR")}</span>
+                          <History className="w-3.5 h-3.5" style={{ color: ST.textMuted }} />
+                          <span className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>Dernière : {new Date(wf.lastExecutedAt).toLocaleDateString("fr-FR")}</span>
                         </div>
                       )}
                       <div className="ml-auto flex items-center gap-1.5">
                         {wf.status === "ACTIVE" ? (
                           <button
                             onClick={() => workflowPatch.mutate({ id: wf.id, patch: { status: "PAUSED" } })}
-                            className="flex items-center gap-1 text-xs font-semibold text-amber-700 hover:bg-amber-50 px-2 py-1 rounded-lg transition-colors"
+                            className="flex items-center gap-1 text-[12px] font-extrabold hover:bg-[#fdf3df] px-2 py-1 rounded-lg transition-colors"
+                            style={{ color: ST.amberText }}
                           >
                             <Pause className="w-3.5 h-3.5" />
                             Pauser
@@ -395,7 +398,8 @@ export default function AutomationsPage() {
                         ) : (
                           <button
                             onClick={() => workflowPatch.mutate({ id: wf.id, patch: { status: "ACTIVE" } })}
-                            className="flex items-center gap-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 px-2 py-1 rounded-lg transition-colors"
+                            className="flex items-center gap-1 text-[12px] font-extrabold hover:bg-[#e6f5eb] px-2 py-1 rounded-lg transition-colors"
+                            style={{ color: ST.green }}
                           >
                             <Play className="w-3.5 h-3.5" />
                             Activer
@@ -403,7 +407,8 @@ export default function AutomationsPage() {
                         )}
                         <a
                           href={`/vendeur/automatisations/${wf.id}`}
-                          className="flex items-center gap-1 text-xs font-semibold text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-lg transition-colors"
+                          className="flex items-center gap-1 text-[12px] font-extrabold hover:bg-black/5 px-2 py-1 rounded-lg transition-colors"
+                          style={{ color: ST.text }}
                         >
                           <Pencil className="w-3.5 h-3.5" />
                           Éditer
@@ -419,13 +424,14 @@ export default function AutomationsPage() {
                             });
                             if (ok) workflowDelete.mutate(wf.id);
                           }}
-                          className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg transition-colors"
+                          className="flex items-center gap-1 text-[12px] font-extrabold hover:bg-[#fceef2] px-2 py-1 rounded-lg transition-colors"
+                          style={{ color: ST.roseText }}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </StCard>
                 );
               })
             )}
@@ -436,19 +442,23 @@ export default function AutomationsPage() {
         {activeTab === "sequences" && (
           <div className="space-y-3">
             {sequences.length === 0 ? (
-              <KazaEmpty
-                icon={MailCheck}
-                title="Aucune séquence email"
-                description="Créez des emails automatiques pour accompagner vos apprenants."
-                action={{ label: "Gérer les séquences", href: "/vendeur/marketing/sequences" }}
-              />
+              <StCard className="text-center py-12">
+                <MailCheck size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
+                <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune séquence email</h3>
+                <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+                  Créez des emails automatiques pour accompagner vos apprenants.
+                </p>
+                <div className="mt-4 flex justify-center">
+                  <StButton href="/vendeur/marketing/sequences">Gérer les séquences</StButton>
+                </div>
+              </StCard>
             ) : (
               sequences.map((seq) => (
-                <div key={seq.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <StCard key={seq.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
-                        <MailCheck className="w-5 h-5 text-orange-500" />
+                      <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0" style={{ background: ST.amberSoft }}>
+                        <MailCheck className="w-5 h-5" style={{ color: ST.amberText }} />
                       </div>
                       <div className="min-w-0 flex-1">
                         {editingId === seq.id ? (
@@ -461,38 +471,37 @@ export default function AutomationsPage() {
                               if (e.key === "Enter") commitEdit("sequence");
                               if (e.key === "Escape") setEditingId(null);
                             }}
-                            className="font-bold text-slate-900 text-sm w-full bg-transparent border-b border-emerald-500 focus:outline-none px-1"
+                            className="font-extrabold text-[13px] w-full bg-transparent focus:outline-none px-1"
+                            style={{ color: ST.text, borderBottom: `1px solid ${ST.greenBright}` }}
                           />
                         ) : (
-                          <p className="font-bold text-slate-900 text-sm truncate">{seq.name}</p>
+                          <p className="font-extrabold text-[13px] truncate" style={{ color: ST.text }}>{seq.name}</p>
                         )}
-                        <p className="text-[10px] text-slate-500">
+                        <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>
                           {seq._count.steps} étapes · Déclencheur : {SEQ_TRIGGER_LABELS[seq.trigger] ?? seq.trigger}
                         </p>
                       </div>
                     </div>
-                    <KazaBadge variant={seq.isActive ? "green" : "slate"}>
+                    <StChip tone={seq.isActive ? "green" : "neutral"}>
                       {seq.isActive ? "Active" : "Inactive"}
-                    </KazaBadge>
+                    </StChip>
                   </div>
-                  <div className="flex items-center gap-4 mt-4 pt-3 border-t border-slate-50 text-xs text-slate-500 flex-wrap">
+                  <div className="flex items-center gap-4 mt-4 pt-3 text-[12px] font-semibold flex-wrap" style={{ borderTop: `1px solid ${ST.divider}`, color: ST.textSecondary }}>
                     <span>{seq.totalEnrolled.toLocaleString("fr-FR")} abonnés</span>
                     <span>{seq.totalCompleted.toLocaleString("fr-FR")} complétées</span>
                     <div className="ml-auto flex items-center gap-1.5">
                       <button
                         onClick={() => sequencePatch.mutate({ id: seq.id, patch: { isActive: !seq.isActive } })}
-                        className={`flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-lg transition-colors ${
-                          seq.isActive
-                            ? "text-amber-700 hover:bg-amber-50"
-                            : "text-emerald-700 hover:bg-emerald-50"
-                        }`}
+                        className="flex items-center gap-1 text-[12px] font-extrabold px-2 py-1 rounded-lg transition-colors"
+                        style={seq.isActive ? { color: ST.amberText } : { color: ST.green }}
                       >
                         {seq.isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                         {seq.isActive ? "Désactiver" : "Activer"}
                       </button>
                       <button
                         onClick={() => startEdit(seq)}
-                        className="flex items-center gap-1 text-xs font-semibold text-slate-900 hover:bg-slate-100 px-2 py-1 rounded-lg transition-colors"
+                        className="flex items-center gap-1 text-[12px] font-extrabold hover:bg-black/5 px-2 py-1 rounded-lg transition-colors"
+                        style={{ color: ST.text }}
                       >
                         <Pencil className="w-3.5 h-3.5" />
                         Éditer
@@ -508,13 +517,14 @@ export default function AutomationsPage() {
                           });
                           if (ok) sequenceDelete.mutate(seq.id);
                         }}
-                        className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 px-2 py-1 rounded-lg transition-colors"
+                        className="flex items-center gap-1 text-[12px] font-extrabold hover:bg-[#fceef2] px-2 py-1 rounded-lg transition-colors"
+                        style={{ color: ST.roseText }}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
-                </div>
+                </StCard>
               ))
             )}
           </div>
@@ -523,7 +533,7 @@ export default function AutomationsPage() {
         {/* Integrations tab */}
         {activeTab === "integrations" && (
           <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
               {INTEGRATIONS.map((intg) => {
                 const providerKey = ({
                   Brevo: "brevo",
@@ -537,26 +547,23 @@ export default function AutomationsPage() {
                 const connected = !!row?.connected;
                 const Icon = intg.icon;
                 return (
-                  <div key={intg.name} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                  <StCard key={intg.name}>
                     <div className="flex items-start justify-between mb-3">
-                      <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${intg.bg}`}>
+                      <div className={`w-11 h-11 rounded-[12px] flex items-center justify-center ${intg.bg}`}>
                         <Icon className={`w-5 h-5 ${intg.color}`} />
                       </div>
-                      <KazaBadge variant={connected ? "green" : "slate"}>
+                      <StChip tone={connected ? "green" : "neutral"}>
                         {connected ? "Connecté" : "Non connecté"}
-                      </KazaBadge>
+                      </StChip>
                     </div>
-                    <h3 className="font-bold text-slate-900 text-sm mb-1">{intg.name}</h3>
-                    <p className="text-[11px] text-slate-500 mb-4">{intg.desc}</p>
+                    <h3 className="font-extrabold text-[13.5px] mb-1" style={{ color: ST.text }}>{intg.name}</h3>
+                    <p className="text-[11.5px] font-semibold mb-4" style={{ color: ST.textSecondary }}>{intg.desc}</p>
                     <div className="flex gap-2">
                       <button
                         onClick={() => providerKey && setIntegrationModal(providerKey)}
                         disabled={!providerKey}
-                        className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${
-                          connected
-                            ? "bg-emerald-700 text-white hover:bg-emerald-800"
-                            : "border border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-emerald-300 hover:text-emerald-700"
-                        }`}
+                        className="flex-1 py-2 rounded-[10px] text-[12px] font-extrabold transition-all"
+                        style={connected ? { background: ST.green, color: "#fff" } : { border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
                       >
                         {connected ? "Reconfigurer" : "Connecter"}
                       </button>
@@ -575,62 +582,65 @@ export default function AutomationsPage() {
                             }
                           }}
                           disabled={disconnectMutation.isPending}
-                          className="px-3 py-2 rounded-xl text-xs font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 disabled:opacity-50"
+                          className="px-3 py-2 rounded-[10px] text-[12px] font-extrabold disabled:opacity-50"
+                          style={{ background: ST.roseSoft, color: ST.roseText }}
                         >
                           <Link2Off className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
-                  </div>
+                  </StCard>
                 );
               })}
             </div>
 
-            <KazaCard className="mt-6" variant="ghost">
+            <StCard className="mt-4" style={{ background: "#f6f9f7" }}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                  <Webhook className="w-5 h-5 text-slate-900" />
+                <div className="w-10 h-10 rounded-[12px] bg-white shadow-sm flex items-center justify-center">
+                  <Webhook className="w-5 h-5" style={{ color: ST.text }} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-sm">Webhooks Temps Réel</h3>
-                  <p className="text-[11px] text-slate-500">Recevez les événements de votre boutique dans n&apos;importe quelle application</p>
+                  <h3 className="font-extrabold text-[13.5px]" style={{ color: ST.text }}>Webhooks Temps Réel</h3>
+                  <p className="text-[11.5px] font-semibold" style={{ color: ST.textSecondary }}>Recevez les événements de votre boutique dans n&apos;importe quelle application</p>
                 </div>
               </div>
-              <div className="bg-white rounded-xl border border-slate-200 p-4 tabular-nums text-xs text-slate-500 mb-4">
-                <span className="text-emerald-700">POST</span> https://votre-app.com/webhook<br />
-                <span className="text-slate-500">{"{"} event: &quot;sale.completed&quot;, amount: 25000, ... {"}"}</span>
+              <div className="bg-white rounded-[12px] p-4 tabular-nums text-[12px] font-semibold mb-4" style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}>
+                <span style={{ color: ST.green }}>POST</span> https://votre-app.com/webhook<br />
+                <span style={{ color: ST.textMuted }}>{"{"} event: &quot;sale.completed&quot;, amount: 25000, ... {"}"}</span>
               </div>
-              <KazaButton variant="primary" icon={Plus} href="/vendeur/api-keys">
+              <StButton icon={Plus} href="/vendeur/api-keys">
                 Configurer un webhook
-              </KazaButton>
-            </KazaCard>
+              </StButton>
+            </StCard>
           </div>
         )}
 
         {/* Create workflow modal */}
         {showForm && (
           <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div className="bg-white rounded-[18px] shadow-xl w-full max-w-md p-6" style={{ border: `1px solid ${ST.cardBorder}` }}>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-lg font-bold text-slate-900">Nouveau workflow</h2>
-                <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg hover:bg-slate-100">
-                  <X className="w-5 h-5 text-slate-500" />
+                <h2 className="text-[17px] font-extrabold" style={{ color: ST.text }}>Nouveau workflow</h2>
+                <button onClick={() => setShowForm(false)} className="p-1.5 rounded-[10px] hover:bg-black/5">
+                  <X className="w-5 h-5" style={{ color: ST.textSecondary }} />
                 </button>
               </div>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Nom du workflow *</label>
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Nom du workflow *</label>
                   <input
                     type="text" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                     placeholder="Ex: Email de bienvenue après achat"
-                    className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+                    className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Déclencheur *</label>
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Déclencheur *</label>
                   <select
                     value={form.triggerType} onChange={(e) => setForm((f) => ({ ...f, triggerType: e.target.value }))}
-                    className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 bg-white"
+                    className="w-full rounded-[12px] px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none bg-white"
+                    style={{ color: ST.text, border: "1px solid #dde6e0" }}
                   >
                     {Object.entries(TRIGGER_LABELS).map(([key, t]) => (
                       <option key={key} value={key}>{t.label}</option>
@@ -638,33 +648,33 @@ export default function AutomationsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Description (optionnel)</label>
+                  <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Description (optionnel)</label>
                   <textarea
                     value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     placeholder="Décrivez ce que fait ce workflow"
                     rows={2}
-                    className="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 resize-none"
+                    className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-medium focus:outline-none resize-none"
+                    style={{ color: "#33453b", border: "1px solid #dde6e0" }}
                   />
                 </div>
-                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3">
-                  <p className="text-xs font-semibold text-amber-800 mb-0.5">Note</p>
-                  <p className="text-[11px] text-amber-700">
+                <div className="rounded-[12px] p-3" style={{ background: ST.amberSoft, border: "1px solid #f3e2bd" }}>
+                  <p className="text-[12px] font-extrabold mb-0.5" style={{ color: "#633806" }}>Note</p>
+                  <p className="text-[11px] font-semibold" style={{ color: "#854f0b" }}>
                     Vous pourrez configurer les actions (envoyer email, ajouter tag, webhook…) après la création du workflow.
                   </p>
                 </div>
               </div>
               <div className="flex gap-3 mt-6">
-                <KazaButton variant="ghost" onClick={() => setShowForm(false)} className="flex-1">
+                <StButton variant="secondary" onClick={() => setShowForm(false)} className="flex-1">
                   Annuler
-                </KazaButton>
-                <KazaButton
-                  variant="primary"
+                </StButton>
+                <StButton
                   onClick={() => createMutation.mutate(form)}
                   disabled={!form.name || createMutation.isPending}
                   className="flex-1"
                 >
                   {createMutation.isPending ? "Création…" : "Créer le workflow"}
-                </KazaButton>
+                </StButton>
               </div>
             </div>
           </div>

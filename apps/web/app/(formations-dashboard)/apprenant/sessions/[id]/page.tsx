@@ -5,6 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { confirmAction } from "@/store/confirm";
 import { useToastStore } from "@/store/toast";
+import {
+  ArrowLeft,
+  X,
+  Star,
+  AlertCircle,
+  Hourglass,
+  CheckCircle2,
+  CheckCheck,
+  XCircle,
+  UserX,
+  Video,
+  Flag,
+  MessageSquare,
+  PenLine,
+  MessagesSquare,
+  type LucideIcon,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED" | "NO_SHOW";
@@ -59,12 +76,12 @@ function initials(name: string | null) {
   return name.split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
-const STATUS_CONFIG: Record<BookingStatus, { label: string; icon: string; cls: string; desc: string }> = {
-  PENDING:   { label: "En attente de confirmation", icon: "hourglass_top", cls: "bg-amber-50 text-amber-700 border-amber-200", desc: "Le mentor va examiner votre demande." },
-  CONFIRMED: { label: "Séance confirmée",           icon: "check_circle",  cls: "bg-green-50 text-green-700 border-green-200", desc: "À l'heure dite, rejoignez la salle Jitsi." },
-  COMPLETED: { label: "Séance terminée",            icon: "task_alt",      cls: "bg-blue-50 text-blue-700 border-blue-200", desc: "N'oubliez pas de laisser un avis." },
-  CANCELLED: { label: "Séance annulée",             icon: "cancel",        cls: "bg-red-50 text-red-600 border-red-200", desc: "Cette séance a été annulée." },
-  NO_SHOW:   { label: "Absent",                     icon: "person_off",    cls: "bg-gray-100 text-gray-500 border-gray-200", desc: "Vous avez été marqué absent." },
+const STATUS_CONFIG: Record<BookingStatus, { label: string; icon: LucideIcon; cls: string; desc: string }> = {
+  PENDING:   { label: "En attente de confirmation", icon: Hourglass,    cls: "bg-amber-50 text-amber-700 border-amber-200", desc: "Le mentor va examiner votre demande." },
+  CONFIRMED: { label: "Séance confirmée",           icon: CheckCircle2, cls: "bg-green-50 text-green-700 border-green-200", desc: "À l'heure dite, rejoignez la salle Jitsi." },
+  COMPLETED: { label: "Séance terminée",            icon: CheckCheck,   cls: "bg-blue-50 text-blue-700 border-blue-200", desc: "N'oubliez pas de laisser un avis." },
+  CANCELLED: { label: "Séance annulée",             icon: XCircle,      cls: "bg-red-50 text-red-600 border-red-200", desc: "Cette séance a été annulée." },
+  NO_SHOW:   { label: "Absent",                     icon: UserX,        cls: "bg-gray-100 text-gray-500 border-gray-200", desc: "Vous avez été marqué absent." },
 };
 
 // ─── Review modal ─────────────────────────────────────────────────────────────
@@ -110,29 +127,23 @@ function ReviewModal({
           onClick={onClose}
           className="absolute top-3 right-3 w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center"
         >
-          <span className="material-symbols-outlined text-[18px]">close</span>
+          <X size={18} />
         </button>
-        <h2 className="text-lg font-extrabold text-[#191c1e]">Évaluer {mentorName}</h2>
+        <h2 className="text-lg font-extrabold text-[#13241b]">Évaluer {mentorName}</h2>
 
         <div className="mt-5">
-          <p className="text-xs font-semibold text-[#191c1e] mb-2">Votre note</p>
+          <p className="text-xs font-semibold text-[#13241b] mb-2">Votre note</p>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((s) => (
               <button key={s} onClick={() => setRating(s)} className="p-1 hover:scale-110 transition-transform">
-                <span
-                  className="material-symbols-outlined text-[28px]"
-                  style={{
-                    color: s <= rating ? "#f59e0b" : "#d1d5db",
-                    fontVariationSettings: "'FILL' 1",
-                  }}
-                >star</span>
+                <Star size={28} className={s <= rating ? "text-amber-500 fill-amber-500" : "text-gray-300 fill-gray-300"} />
               </button>
             ))}
           </div>
         </div>
 
         <div className="mt-4">
-          <p className="text-xs font-semibold text-[#191c1e] mb-1.5">Commentaire (optionnel)</p>
+          <p className="text-xs font-semibold text-[#13241b] mb-1.5">Commentaire (optionnel)</p>
           <textarea
             value={review}
             onChange={(e) => setReview(e.target.value)}
@@ -224,13 +235,13 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
     return (
       <div className="p-6">
         <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-          <span className="material-symbols-outlined text-red-500 text-4xl">error</span>
+          <AlertCircle size={36} className="text-red-500 mx-auto" />
           <p className="text-sm font-bold text-red-700 mt-2">{error ?? "Erreur"}</p>
           <button
             onClick={() => router.push("/apprenant/sessions")}
-            className="mt-4 px-4 py-2 rounded-xl text-xs font-semibold bg-white text-red-700 border border-red-300"
+            className="mt-4 px-4 py-2 rounded-xl text-xs font-semibold bg-white text-red-700 border border-red-300 inline-flex items-center gap-1.5"
           >
-            ← Retour
+            <ArrowLeft size={14} /> Retour
           </button>
         </div>
       </div>
@@ -243,16 +254,16 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
     <div className="p-4 sm:p-6 space-y-6">
       <Link
         href="/apprenant/sessions"
-        className="inline-flex items-center gap-1 text-xs text-[#5c647a] hover:text-[#191c1e]"
+        className="inline-flex items-center gap-1 text-xs text-[#5d7166] hover:text-[#13241b]"
       >
-        <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+        <ArrowLeft size={14} />
         Toutes mes sessions
       </Link>
 
       {/* Status banner */}
       <div className={`rounded-2xl p-5 border ${cfg.cls}`}>
         <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined text-[28px]">{cfg.icon}</span>
+          {(() => { const CfgIcon = cfg.icon; return <CfgIcon size={28} />; })()}
           <div className="flex-1">
             <p className="text-sm font-bold">{cfg.label}</p>
             <p className="text-xs mt-0.5 opacity-80">{cfg.desc}</p>
@@ -268,7 +279,7 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
                   : "bg-white text-blue-700 border border-blue-200 hover:bg-blue-50"
               }`}
             >
-              <span className="material-symbols-outlined text-[16px]">videocam</span>
+              <Video size={16} />
               {data.isJoinable ? "Rejoindre" : "Ouvrir salle"}
             </a>
           )}
@@ -276,9 +287,9 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
       </div>
 
       {/* Session info */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-bold text-[#191c1e]">Informations de la séance</h2>
+      <div className="bg-white rounded-2xl border border-[#e4eae6] overflow-hidden">
+        <div className="px-5 py-4 border-b border-[#eef2ef]">
+          <h2 className="text-sm font-bold text-[#13241b]">Informations de la séance</h2>
         </div>
         <div className="p-5 space-y-3">
           <div className="flex items-start gap-3">
@@ -289,47 +300,47 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
               ) : initials(data.mentor.name)}
             </div>
             <div className="flex-1 min-w-0">
-              <Link href={`/mentors/${data.mentor.id}`} className="text-base font-bold text-[#191c1e] hover:underline">
+              <Link href={`/mentors/${data.mentor.id}`} className="text-base font-bold text-[#13241b] hover:underline">
                 {data.mentor.name}
               </Link>
-              <p className="text-xs text-[#5c647a]">{data.mentor.specialty}</p>
+              <p className="text-xs text-[#5d7166]">{data.mentor.specialty}</p>
               {data.mentor.domain && (
-                <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5c647a]">
+                <span className="inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-[#5d7166]">
                   {data.mentor.domain}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 text-xs pt-3 border-t border-gray-100">
+          <div className="grid grid-cols-2 gap-3 text-xs pt-3 border-t border-[#eef2ef]">
             <div>
-              <p className="text-[#5c647a]">Date</p>
-              <p className="font-bold text-[#191c1e] capitalize">{fmtDate(data.scheduledAt)}</p>
+              <p className="text-[#5d7166]">Date</p>
+              <p className="font-bold text-[#13241b] capitalize">{fmtDate(data.scheduledAt)}</p>
             </div>
             <div>
-              <p className="text-[#5c647a]">Heure</p>
-              <p className="font-bold text-[#191c1e]">{fmtTime(data.scheduledAt)}</p>
+              <p className="text-[#5d7166]">Heure</p>
+              <p className="font-bold text-[#13241b]">{fmtTime(data.scheduledAt)}</p>
             </div>
             <div>
-              <p className="text-[#5c647a]">Durée</p>
-              <p className="font-bold text-[#191c1e]">{data.durationMinutes} min</p>
+              <p className="text-[#5d7166]">Durée</p>
+              <p className="font-bold text-[#13241b]">{data.durationMinutes} min</p>
             </div>
             <div>
-              <p className="text-[#5c647a]">Prix payé</p>
+              <p className="text-[#5d7166]">Prix payé</p>
               <p className="font-bold text-[#006e2f]">{fmt(data.paidAmount)} FCFA</p>
             </div>
           </div>
 
           {(data.status === "CONFIRMED" || data.status === "COMPLETED") && (
-            <div className="pt-3 border-t border-gray-100">
-              <p className="text-xs text-[#5c647a] mb-1">Salle de visioconférence</p>
+            <div className="pt-3 border-t border-[#eef2ef]">
+              <p className="text-xs text-[#5d7166] mb-1">Salle de visioconférence</p>
               <a
                 href={data.meetingLink || data.meetingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-xs text-blue-600 hover:underline break-all"
               >
-                <span className="material-symbols-outlined text-[14px]">videocam</span>
+                <Video size={14} />
                 {data.meetingLink || data.meetingUrl}
               </a>
             </div>
@@ -339,12 +350,12 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
 
       {/* Student goals */}
       {data.studentGoals && (
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <p className="text-xs font-bold text-[#191c1e] mb-2 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">flag</span>
+        <div className="bg-white rounded-2xl border border-[#e4eae6] p-5">
+          <p className="text-xs font-bold text-[#13241b] mb-2 flex items-center gap-1">
+            <Flag size={14} />
             Vos objectifs soumis
           </p>
-          <p className="text-sm text-[#5c647a] whitespace-pre-wrap">{data.studentGoals}</p>
+          <p className="text-sm text-[#5d7166] whitespace-pre-wrap">{data.studentGoals}</p>
         </div>
       )}
 
@@ -352,7 +363,7 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
       {data.mentorFeedback && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
           <p className="text-xs font-bold text-blue-900 mb-2 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">comment</span>
+            <MessageSquare size={14} />
             Feedback du mentor
           </p>
           <p className="text-sm text-blue-900 whitespace-pre-wrap">{data.mentorFeedback}</p>
@@ -366,14 +377,7 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
             <p className="text-xs font-bold text-amber-900">Votre avis</p>
             <span className="flex items-center gap-0.5">
               {[1,2,3,4,5].map(s => (
-                <span
-                  key={s}
-                  className="material-symbols-outlined text-[14px]"
-                  style={{
-                    color: s <= data.studentRating! ? "#f59e0b" : "#d1d5db",
-                    fontVariationSettings: "'FILL' 1",
-                  }}
-                >star</span>
+                <Star key={s} size={14} className={s <= data.studentRating! ? "text-amber-500 fill-amber-500" : "text-gray-300 fill-gray-300"} />
               ))}
             </span>
           </div>
@@ -391,7 +395,7 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90"
             style={{ background: "linear-gradient(to right, #f59e0b, #eab308)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">rate_review</span>
+            <PenLine size={16} />
             Laisser un avis
           </button>
         )}
@@ -400,15 +404,15 @@ export default function ApprenantSessionDetailPage({ params }: { params: Promise
             onClick={cancelSession}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold bg-red-50 text-red-600 hover:bg-red-100"
           >
-            <span className="material-symbols-outlined text-[16px]">cancel</span>
+            <XCircle size={16} />
             Annuler la séance
           </button>
         )}
         <Link
           href={`/messages?to=${data.mentor.userId}`}
-          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 ml-auto"
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold bg-gray-100 text-[#13241b] hover:bg-gray-200 ml-auto"
         >
-          <span className="material-symbols-outlined text-[16px]">forum</span>
+          <MessagesSquare size={16} />
           Contacter le mentor
         </Link>
       </div>

@@ -3,6 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import { use } from "react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  Star,
+  Users,
+  Languages,
+  Headset,
+  Clock,
+  CalendarDays,
+  type LucideIcon,
+} from "lucide-react";
 
 function formatFcfa(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
@@ -80,23 +91,23 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
     return (
       <div className="p-5 md:p-8 max-w-lg mx-auto text-center py-16">
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-5">
-          <span className="material-symbols-outlined text-[40px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <CheckCircle2 size={40} className="text-[#006e2f]" />
         </div>
-        <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">Session réservée !</h2>
-        <p className="text-sm text-[#5c647a] mb-1">
+        <h2 className="text-xl font-extrabold text-[#13241b] mb-2">Session réservée !</h2>
+        <p className="text-sm text-[#5d7166] mb-1">
           Votre session avec <strong>{mentor.name}</strong> est confirmée.
         </p>
         {selectedSlot && (
-          <p className="text-sm font-semibold text-[#191c1e] mb-6">
+          <p className="text-sm font-semibold text-[#13241b] mb-6">
             {selectedSlot.date} à {selectedSlot.time} · {selectedDuration.duration}
           </p>
         )}
         <div className="bg-[#006e2f]/5 rounded-2xl p-4 mb-6 text-left">
-          <p className="text-xs text-[#5c647a] mb-1">Le lien de la session vous sera envoyé par email et apparaîtra dans :</p>
-          <p className="text-sm font-semibold text-[#191c1e]">Mes sessions → Mes mentors</p>
+          <p className="text-xs text-[#5d7166] mb-1">Le lien de la session vous sera envoyé par email et apparaîtra dans :</p>
+          <p className="text-sm font-semibold text-[#13241b]">Mes sessions → Mes mentors</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/apprenant/mentors" className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors bg-white">
+          <Link href="/apprenant/mentors" className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-[#e4eae6] text-sm font-semibold text-[#13241b] hover:bg-gray-50 transition-colors bg-white">
             Voir mes sessions
           </Link>
           <Link href="/explorer" className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold hover:opacity-90 transition-opacity" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
@@ -110,8 +121,8 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
   return (
     <div className="p-5 md:p-8 max-w-5xl mx-auto">
       {/* Back */}
-      <Link href="/apprenant/mentors" className="inline-flex items-center gap-1.5 text-sm text-[#5c647a] hover:text-[#006e2f] font-medium mb-6 transition-colors group">
-        <span className="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+      <Link href="/apprenant/mentors" className="inline-flex items-center gap-1.5 text-sm text-[#5d7166] hover:text-[#006e2f] font-medium mb-6 transition-colors group">
+        <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
         Retour aux mentors
       </Link>
 
@@ -119,7 +130,7 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
         {/* Left — Mentor profile */}
         <div className="flex-1 min-w-0">
           {/* Profile card */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-5">
+          <div className="bg-white rounded-2xl border border-[#e4eae6] shadow-sm overflow-hidden mb-5">
             <div className="h-24" style={{ background: `linear-gradient(135deg, ${mentor.gradientFrom}, ${mentor.gradientTo})` }} />
             <div className="px-6 pb-6">
               <div className="flex items-end gap-4 -mt-8 mb-4">
@@ -137,39 +148,39 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
               </div>
-              <h1 className="text-xl font-extrabold text-[#191c1e] mb-0.5">{mentor.name}</h1>
-              <p className="text-sm text-[#5c647a] mb-3">{mentor.specialty}</p>
+              <h1 className="text-xl font-extrabold text-[#13241b] mb-0.5">{mentor.name}</h1>
+              <p className="text-sm text-[#5d7166] mb-3">{mentor.specialty}</p>
 
               <div className="flex items-center gap-4 text-sm mb-4 flex-wrap">
                 <div className="flex items-center gap-1">
-                  <span className="material-symbols-outlined text-yellow-400 text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="font-bold text-[#191c1e]">{mentor.rating}</span>
-                  <span className="text-[#5c647a]">({mentor.reviews} avis)</span>
+                  <Star size={16} className="text-yellow-400 fill-yellow-400" />
+                  <span className="font-bold text-[#13241b]">{mentor.rating}</span>
+                  <span className="text-[#5d7166]">({mentor.reviews} avis)</span>
                 </div>
-                <span className="text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">group</span>
+                <span className="text-[#5d7166] flex items-center gap-1">
+                  <Users size={14} />
                   {mentor.students} élèves
                 </span>
-                <span className="text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">translate</span>
+                <span className="text-[#5d7166] flex items-center gap-1">
+                  <Languages size={14} />
                   {mentor.languages.join(", ")}
                 </span>
               </div>
 
-              <p className="text-sm text-[#5c647a] leading-relaxed mb-4">{mentor.longBio}</p>
+              <p className="text-sm text-[#5d7166] leading-relaxed mb-4">{mentor.longBio}</p>
 
               {/* Expertise tags */}
               <div className="flex flex-wrap gap-2">
                 {mentor.expertise.map((e) => (
-                  <span key={e} className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-[#5c647a]">{e}</span>
+                  <span key={e} className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-[#5d7166]">{e}</span>
                 ))}
               </div>
             </div>
           </div>
 
           {/* Reviews */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h2 className="font-bold text-[#191c1e] text-sm mb-4">Avis des élèves</h2>
+          <div className="bg-white rounded-2xl border border-[#e4eae6] shadow-sm p-6">
+            <h2 className="font-bold text-[#13241b] text-sm mb-4">Avis des élèves</h2>
             <div className="space-y-4">
               {mentor.reviewsList.map((r, i) => (
                 <div key={i} className="flex items-start gap-3">
@@ -178,15 +189,15 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold text-[#191c1e]">{r.author}</p>
-                      <span className="text-[10px] text-[#5c647a]">{r.date}</span>
+                      <p className="text-sm font-semibold text-[#13241b]">{r.author}</p>
+                      <span className="text-[10px] text-[#5d7166]">{r.date}</span>
                     </div>
                     <div className="flex items-center gap-0.5 mb-1">
                       {[1,2,3,4,5].map((s) => (
-                        <span key={s} className="material-symbols-outlined text-yellow-400 text-[12px]" style={{ fontVariationSettings: s <= r.rating ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                        <Star key={s} size={12} className={s <= r.rating ? "text-yellow-400 fill-yellow-400" : "text-gray-300"} />
                       ))}
                     </div>
-                    <p className="text-xs text-[#5c647a] leading-relaxed">{r.comment}</p>
+                    <p className="text-xs text-[#5d7166] leading-relaxed">{r.comment}</p>
                   </div>
                 </div>
               ))}
@@ -196,14 +207,14 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
 
         {/* Right — Booking widget */}
         <div className="lg:w-80 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-xl p-6 sticky top-24">
+          <div className="bg-white rounded-2xl border border-[#e4eae6] shadow-xl p-6 sticky top-24">
             {step === "booking" ? (
               <>
-                <h2 className="font-bold text-[#191c1e] mb-5">Réserver une session</h2>
+                <h2 className="font-bold text-[#13241b] mb-5">Réserver une session</h2>
 
                 {/* Duration */}
                 <div className="mb-5">
-                  <p className="text-xs font-bold text-[#191c1e] mb-2">Durée de la session</p>
+                  <p className="text-xs font-bold text-[#13241b] mb-2">Durée de la session</p>
                   <div className="space-y-2">
                     {mentor.sessionPrices.map((sp) => (
                       <button
@@ -212,7 +223,7 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
                         className={`w-full flex items-center justify-between p-3 rounded-xl border-2 text-sm font-semibold transition-all ${
                           selectedDuration.duration === sp.duration
                             ? "border-[#006e2f] bg-[#006e2f]/5 text-[#006e2f]"
-                            : "border-gray-200 text-[#191c1e] hover:border-gray-300"
+                            : "border-gray-200 text-[#13241b] hover:border-gray-300"
                         }`}
                       >
                         <span>{sp.duration}</span>
@@ -224,11 +235,11 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
 
                 {/* Slots */}
                 <div className="mb-5">
-                  <p className="text-xs font-bold text-[#191c1e] mb-2">Choisir un créneau</p>
+                  <p className="text-xs font-bold text-[#13241b] mb-2">Choisir un créneau</p>
                   <div className="space-y-3">
                     {mentor.slots.map((slot) => (
                       <div key={slot.date}>
-                        <p className="text-[10px] font-semibold text-[#5c647a] mb-1.5">{slot.date}</p>
+                        <p className="text-[10px] font-semibold text-[#5d7166] mb-1.5">{slot.date}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {slot.times.map((time) => (
                             <button
@@ -237,7 +248,7 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
                               className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all ${
                                 selectedSlot?.date === slot.date && selectedSlot?.time === time
                                   ? "bg-[#006e2f] text-white border-[#006e2f]"
-                                  : "border-gray-200 text-[#191c1e] hover:border-[#006e2f] hover:text-[#006e2f]"
+                                  : "border-gray-200 text-[#13241b] hover:border-[#006e2f] hover:text-[#006e2f]"
                               }`}
                             >
                               {time}
@@ -251,22 +262,22 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
 
                 {/* Topic */}
                 <div className="mb-5">
-                  <p className="text-xs font-bold text-[#191c1e] mb-2">Sujet de la session <span className="text-[#5c647a] font-normal">(optionnel)</span></p>
+                  <p className="text-xs font-bold text-[#13241b] mb-2">Sujet de la session <span className="text-[#5d7166] font-normal">(optionnel)</span></p>
                   <textarea
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
                     placeholder="Décrivez votre besoin pour que le mentor se prépare..."
-                    className="w-full border border-gray-200 rounded-xl p-3 text-xs text-[#191c1e] placeholder-[#5c647a]/60 resize-none focus:outline-none focus:border-[#006e2f] transition-colors"
+                    className="w-full border border-gray-200 rounded-xl p-3 text-xs text-[#13241b] placeholder-[#5d7166]/60 resize-none focus:outline-none focus:border-[#006e2f] transition-colors"
                     rows={3}
                   />
                 </div>
 
                 {/* Price summary */}
-                <div className="flex justify-between items-center py-3 border-t border-gray-100 mb-4">
-                  <span className="text-sm font-bold text-[#191c1e]">Total</span>
+                <div className="flex justify-between items-center py-3 border-t border-[#eef2ef] mb-4">
+                  <span className="text-sm font-bold text-[#13241b]">Total</span>
                   <div className="text-right">
                     <p className="font-extrabold text-[#006e2f] text-lg">{formatFcfa(selectedDuration.fcfa)}</p>
-                    <p className="text-[10px] text-[#5c647a]">≈ {toEur(selectedDuration.fcfa)} €</p>
+                    <p className="text-[10px] text-[#5d7166]">≈ {toEur(selectedDuration.fcfa)} €</p>
                   </div>
                 </div>
 
@@ -284,32 +295,35 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
             ) : (
               <>
                 {/* Confirmation step */}
-                <h2 className="font-bold text-[#191c1e] mb-5">Confirmer la réservation</h2>
+                <h2 className="font-bold text-[#13241b] mb-5">Confirmer la réservation</h2>
                 <div className="space-y-3 mb-5">
-                  {[
-                    { icon: "support_agent", label: "Mentor", value: mentor.name },
-                    { icon: "schedule", label: "Durée", value: selectedDuration.duration },
-                    { icon: "calendar_month", label: "Date", value: selectedSlot ? `${selectedSlot.date} à ${selectedSlot.time}` : "" },
-                  ].map((row) => (
-                    <div key={row.label} className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-[#006e2f] text-[18px]">{row.icon}</span>
-                      <div>
-                        <p className="text-[10px] text-[#5c647a]">{row.label}</p>
-                        <p className="text-sm font-semibold text-[#191c1e]">{row.value}</p>
+                  {([
+                    { icon: Headset, label: "Mentor", value: mentor.name },
+                    { icon: Clock, label: "Durée", value: selectedDuration.duration },
+                    { icon: CalendarDays, label: "Date", value: selectedSlot ? `${selectedSlot.date} à ${selectedSlot.time}` : "" },
+                  ] as { icon: LucideIcon; label: string; value: string }[]).map((row) => {
+                    const RowIcon = row.icon;
+                    return (
+                      <div key={row.label} className="flex items-center gap-3">
+                        <RowIcon size={18} className="text-[#006e2f]" />
+                        <div>
+                          <p className="text-[10px] text-[#5d7166]">{row.label}</p>
+                          <p className="text-sm font-semibold text-[#13241b]">{row.value}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-                <div className="border border-gray-100 rounded-xl p-4 mb-5">
-                  <p className="text-xs text-[#5c647a] mb-1">Méthode de paiement</p>
+                <div className="border border-[#e4eae6] rounded-xl p-4 mb-5">
+                  <p className="text-xs text-[#5d7166] mb-1">Méthode de paiement</p>
                   <div className="flex items-center gap-3 flex-wrap">
                     {["Orange Money", "Wave", "Carte"].map((m) => (
-                      <span key={m} className="text-[10px] font-semibold px-2 py-1 rounded bg-gray-50 text-[#5c647a] border border-gray-100">{m}</span>
+                      <span key={m} className="text-[10px] font-semibold px-2 py-1 rounded bg-gray-50 text-[#5d7166] border border-gray-100">{m}</span>
                     ))}
                   </div>
                 </div>
-                <div className="flex justify-between items-center py-3 border-t border-gray-100 mb-4">
-                  <span className="font-bold text-[#191c1e]">Total à payer</span>
+                <div className="flex justify-between items-center py-3 border-t border-[#eef2ef] mb-4">
+                  <span className="font-bold text-[#13241b]">Total à payer</span>
                   <p className="font-extrabold text-[#006e2f] text-lg">{formatFcfa(selectedDuration.fcfa)}</p>
                 </div>
                 <button
@@ -321,9 +335,9 @@ export default function MentorBookingPage({ params }: { params: Promise<{ id: st
                 </button>
                 <button
                   onClick={() => setStep("booking")}
-                  className="w-full py-2.5 text-sm text-[#5c647a] hover:text-[#191c1e] font-medium transition-colors"
+                  className="w-full py-2.5 text-sm text-[#5d7166] hover:text-[#13241b] font-medium transition-colors inline-flex items-center justify-center gap-1.5"
                 >
-                  ← Modifier
+                  <ArrowLeft size={14} /> Modifier
                 </button>
               </>
             )}

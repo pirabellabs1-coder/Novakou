@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2, CheckCircle2, ArrowRight, PlusCircle, Plus, Settings } from "lucide-react";
 
 interface Shop {
   id: string;
@@ -106,11 +107,11 @@ export default function ChoisirBoutiquePage() {
           >
             <span className="text-white font-extrabold text-sm">NK</span>
           </div>
-          <span className="font-bold text-[#191c1e] text-lg">Novakou</span>
+          <span className="font-bold text-[#13241b] text-lg">Novakou</span>
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-[#191c1e] tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-[#13241b] tracking-tight">
             Choisissez votre boutique
           </h1>
           <p className="text-sm md:text-base text-[#5c647a] mt-3 max-w-lg mx-auto">
@@ -148,7 +149,7 @@ export default function ChoisirBoutiquePage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="text-base font-extrabold text-[#191c1e] truncate">{s.name}</p>
+                          <p className="text-base font-extrabold text-[#13241b] truncate">{s.name}</p>
                           {s.isPrimary && (
                             <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#006e2f]/10 text-[#006e2f]">
                               Principale
@@ -162,17 +163,11 @@ export default function ChoisirBoutiquePage() {
                         </p>
                       </div>
                       {busy ? (
-                        <span className="material-symbols-outlined text-[18px] text-[#006e2f] animate-spin flex-shrink-0">
-                          progress_activity
-                        </span>
+                        <Loader2 size={18} className="text-[#006e2f] animate-spin flex-shrink-0" />
                       ) : isCurrent ? (
-                        <span className="material-symbols-outlined text-[20px] text-[#006e2f] flex-shrink-0">
-                          radio_button_checked
-                        </span>
+                        <CheckCircle2 size={20} className="text-[#006e2f] flex-shrink-0" />
                       ) : (
-                        <span className="material-symbols-outlined text-[20px] text-gray-300 group-hover:text-[#006e2f] flex-shrink-0">
-                          arrow_forward
-                        </span>
+                        <ArrowRight size={20} className="text-gray-300 group-hover:text-[#006e2f] flex-shrink-0" />
                       )}
                     </div>
                   </button>
@@ -186,9 +181,9 @@ export default function ChoisirBoutiquePage() {
                 {!showCreate ? (
                   <button
                     onClick={() => setShowCreate(true)}
-                    className="w-full bg-white rounded-2xl border-2 border-dashed border-gray-200 p-5 hover:border-[#006e2f]/40 transition-colors text-[#5c647a] hover:text-[#191c1e] inline-flex items-center justify-center gap-2"
+                    className="w-full bg-white rounded-2xl border-2 border-dashed border-gray-200 p-5 hover:border-[#006e2f]/40 transition-colors text-[#5c647a] hover:text-[#13241b] inline-flex items-center justify-center gap-2"
                   >
-                    <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                    <PlusCircle size={20} />
                     <span className="text-sm font-bold">Créer une nouvelle boutique vierge</span>
                   </button>
                 ) : (
@@ -230,7 +225,7 @@ export default function ChoisirBoutiquePage() {
                         className="px-6 py-3 rounded-xl text-white text-sm font-bold disabled:opacity-50 inline-flex items-center gap-2"
                         style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                       >
-                        <span className="material-symbols-outlined text-[16px]">add</span>
+                        <Plus size={16} />
                         {creating ? "Création…" : "Créer & ouvrir"}
                       </button>
                     </div>
@@ -242,9 +237,9 @@ export default function ChoisirBoutiquePage() {
             <div className="text-center mt-8">
               <Link
                 href="/vendeur/boutiques"
-                className="text-xs text-[#5c647a] hover:text-[#191c1e] font-semibold inline-flex items-center gap-1"
+                className="text-xs text-[#5c647a] hover:text-[#13241b] font-semibold inline-flex items-center gap-1"
               >
-                <span className="material-symbols-outlined text-[14px]">settings</span>
+                <Settings size={14} />
                 Gérer mes boutiques
               </Link>
             </div>

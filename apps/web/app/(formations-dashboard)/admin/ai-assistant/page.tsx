@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Script from "next/script";
+import { type LucideIcon, BrainCircuit, MessagesSquare, FileText, Bug, Brain, Send, Loader2, RefreshCw, Mail } from "lucide-react";
 
 // ─── Typage Puter ──────────────────────────────────────────────
 type PuterContentBlock = { type?: string; text?: string };
@@ -35,20 +36,20 @@ function md(text: string): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
   lines.forEach((line, i) => {
     // Headings
-    if (/^###\s/.test(line)) { nodes.push(<h3 key={i} className="text-base font-bold text-[#191c1e] mt-4 mb-2">{line.replace(/^###\s*/, "")}</h3>); return; }
-    if (/^##\s/.test(line)) { nodes.push(<h2 key={i} className="text-lg font-extrabold text-[#191c1e] mt-5 mb-2">{line.replace(/^##\s*/, "")}</h2>); return; }
-    if (/^#\s/.test(line)) { nodes.push(<h1 key={i} className="text-xl font-extrabold text-[#191c1e] mt-5 mb-3">{line.replace(/^#\s*/, "")}</h1>); return; }
+    if (/^###\s/.test(line)) { nodes.push(<h3 key={i} className="text-base font-bold text-[#13241b] mt-4 mb-2">{line.replace(/^###\s*/, "")}</h3>); return; }
+    if (/^##\s/.test(line)) { nodes.push(<h2 key={i} className="text-lg font-extrabold text-[#13241b] mt-5 mb-2">{line.replace(/^##\s*/, "")}</h2>); return; }
+    if (/^#\s/.test(line)) { nodes.push(<h1 key={i} className="text-xl font-extrabold text-[#13241b] mt-5 mb-3">{line.replace(/^#\s*/, "")}</h1>); return; }
     // List items
     if (/^[\-\*]\s/.test(line)) {
-      nodes.push(<li key={i} className="ml-5 list-disc text-sm text-[#191c1e]">{inline(line.replace(/^[\-\*]\s*/, ""), i)}</li>);
+      nodes.push(<li key={i} className="ml-5 list-disc text-sm text-[#13241b]">{inline(line.replace(/^[\-\*]\s*/, ""), i)}</li>);
       return;
     }
     if (/^\d+\.\s/.test(line)) {
-      nodes.push(<li key={i} className="ml-5 list-decimal text-sm text-[#191c1e]">{inline(line.replace(/^\d+\.\s*/, ""), i)}</li>);
+      nodes.push(<li key={i} className="ml-5 list-decimal text-sm text-[#13241b]">{inline(line.replace(/^\d+\.\s*/, ""), i)}</li>);
       return;
     }
     if (line.trim() === "") { nodes.push(<div key={i} className="h-2" />); return; }
-    nodes.push(<p key={i} className="text-sm text-[#191c1e] leading-relaxed">{inline(line, i)}</p>);
+    nodes.push(<p key={i} className="text-sm text-[#13241b] leading-relaxed">{inline(line, i)}</p>);
   });
   return nodes;
 }
@@ -108,11 +109,11 @@ export default function AIAssistantPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
-            <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>neurology</span>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}>
+            <BrainCircuit size={26} />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">IA Admin Assistant</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">IA Admin Assistant</h1>
             <p className="text-sm text-[#5c647a]">4 outils Claude Sonnet 4.6 pour diagnostiquer, analyser et coacher</p>
           </div>
         </div>
@@ -125,22 +126,25 @@ export default function AIAssistantPage() {
       {/* Tabs */}
       <div className="flex items-center gap-1 bg-white rounded-xl p-1 border border-gray-100 mb-6 overflow-x-auto">
         {([
-          { id: "copilot", icon: "forum", label: "Copilot (chat)" },
-          { id: "report", icon: "summarize", label: "Rapport du jour" },
-          { id: "bug", icon: "bug_report", label: "Debug & Erreurs" },
-          { id: "coach", icon: "psychology", label: "Coach vendeur" },
-        ] as const).map((t) => (
+          { id: "copilot", icon: MessagesSquare, label: "Copilot (chat)" },
+          { id: "report", icon: FileText, label: "Rapport du jour" },
+          { id: "bug", icon: Bug, label: "Debug & Erreurs" },
+          { id: "coach", icon: Brain, label: "Coach vendeur" },
+        ] as { id: Tab; icon: LucideIcon; label: string }[]).map((t) => {
+          const TabIcon = t.icon;
+          return (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex-1 min-w-max px-4 py-2.5 rounded-lg text-xs font-bold inline-flex items-center justify-center gap-2 transition-colors ${
-              tab === t.id ? "bg-[#191c1e] text-white" : "text-[#5c647a] hover:bg-gray-50"
+              tab === t.id ? "bg-[#0b3b20] text-white" : "text-[#5c647a] hover:bg-gray-50"
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">{t.icon}</span>
+            <TabIcon size={16} />
             {t.label}
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {tab === "copilot" && <CopilotTab puterReady={puterReady} />}
@@ -207,7 +211,7 @@ Reponds maintenant en francais.`;
         {!snapshot && <div className="text-xs text-[#5c647a]">Chargement du snapshot de la plateforme…</div>}
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] px-4 py-3 rounded-2xl ${m.role === "user" ? "bg-[#191c1e] text-white rounded-br-sm whitespace-pre-wrap" : "bg-gray-50 text-[#191c1e] rounded-bl-sm"}`}>
+            <div className={`max-w-[85%] px-4 py-3 rounded-2xl ${m.role === "user" ? "bg-[#0b3b20] text-white rounded-br-sm whitespace-pre-wrap" : "bg-gray-50 text-[#13241b] rounded-bl-sm"}`}>
               {m.role === "assistant" ? md(m.content) : m.content}
             </div>
           </div>
@@ -227,9 +231,10 @@ Reponds maintenant en francais.`;
         <button
           onClick={send}
           disabled={!input.trim() || sending || !puterReady || !snapshot}
-          className="px-4 py-2.5 rounded-xl bg-[#191c1e] text-white text-sm font-bold disabled:opacity-40 inline-flex items-center gap-2"
+          className="px-4 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-40 inline-flex items-center gap-2"
+          style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[16px]">send</span>
+          <Send size={16} />
           Envoyer
         </button>
       </div>
@@ -319,18 +324,18 @@ REGLES :
           disabled={loading || !snapshot || !puterReady}
           className="px-4 py-2 rounded-xl bg-[#006e2f] text-white text-xs font-bold disabled:opacity-50 inline-flex items-center gap-2"
         >
-          <span className={`material-symbols-outlined text-[16px] ${loading ? "animate-spin" : ""}`}>{loading ? "progress_activity" : "refresh"}</span>
+          {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
           {loading ? "Génération…" : "Régénérer"}
         </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-6">
         {loading && <div className="flex items-center gap-3 text-sm text-[#5c647a]">
-          <span className="material-symbols-outlined animate-spin">progress_activity</span>
+          <Loader2 size={24} className="animate-spin" />
           Claude analyse les données…
         </div>}
         {!loading && !report && <div className="text-center py-12 text-[#5c647a]">
-          <span className="material-symbols-outlined text-5xl text-gray-300">summarize</span>
+          <FileText size={44} className="text-gray-300 mx-auto" />
           <p className="text-sm mt-3">Rapport en cours de génération automatique…</p>
         </div>}
         {report && <div className="space-y-1">{md(report)}</div>}
@@ -412,9 +417,9 @@ REGLES STRICTES :
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="bg-white rounded-2xl border border-gray-100 p-5">
-        <h2 className="text-base font-bold text-[#191c1e] mb-3">Collez l&apos;erreur ou le bug</h2>
+        <h2 className="text-base font-bold text-[#13241b] mb-3">Collez l&apos;erreur ou le bug</h2>
 
-        <label className="block text-xs font-bold text-[#191c1e] mb-1">Contexte (optionnel)</label>
+        <label className="block text-xs font-bold text-[#13241b] mb-1">Contexte (optionnel)</label>
         <input
           value={context}
           onChange={(e) => setContext(e.target.value)}
@@ -422,7 +427,7 @@ REGLES STRICTES :
           className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm mb-3"
         />
 
-        <label className="block text-xs font-bold text-[#191c1e] mb-1">Erreur ou message *</label>
+        <label className="block text-xs font-bold text-[#13241b] mb-1">Erreur ou message *</label>
         <textarea
           value={errorLog}
           onChange={(e) => setErrorLog(e.target.value)}
@@ -437,23 +442,23 @@ REGLES STRICTES :
           className="w-full py-2.5 rounded-xl bg-rose-600 text-white text-sm font-bold disabled:opacity-50 inline-flex items-center justify-center gap-2"
         >
           {loading ? <>
-            <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+            <Loader2 size={16} className="animate-spin" />
             Claude analyse…
           </> : <>
-            <span className="material-symbols-outlined text-[16px]">bug_report</span>
+            <Bug size={16} />
             Analyser avec Claude
           </>}
         </button>
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 p-5 min-h-[400px]">
-        <h2 className="text-base font-bold text-[#191c1e] mb-3">Diagnostic IA</h2>
+        <h2 className="text-base font-bold text-[#13241b] mb-3">Diagnostic IA</h2>
         {loading && <div className="flex items-center gap-3 text-sm text-[#5c647a]">
-          <span className="material-symbols-outlined animate-spin">progress_activity</span>
+          <Loader2 size={24} className="animate-spin" />
           Analyse en cours…
         </div>}
         {!loading && !analysis && <div className="text-center py-12 text-[#5c647a]">
-          <span className="material-symbols-outlined text-5xl text-gray-300">bug_report</span>
+          <Bug size={44} className="text-gray-300 mx-auto" />
           <p className="text-sm mt-3">Collez une erreur à gauche pour un diagnostic instantané</p>
         </div>}
         {analysis && <div className="space-y-1">{md(analysis)}</div>}
@@ -582,7 +587,7 @@ REGLES :
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* Vendor list */}
       <div className="lg:col-span-4 bg-white rounded-2xl border border-gray-100 p-4 h-fit">
-        <h2 className="text-sm font-bold text-[#191c1e] mb-3">Choisir un vendeur</h2>
+        <h2 className="text-sm font-bold text-[#13241b] mb-3">Choisir un vendeur</h2>
         <input
           type="text"
           value={query}
@@ -600,7 +605,7 @@ REGLES :
                 selected?.id === v.id ? "border-[#006e2f] bg-[#006e2f]/5" : "border-transparent hover:bg-gray-50"
               }`}
             >
-              <p className="font-bold text-[#191c1e] truncate">{v.name}</p>
+              <p className="font-bold text-[#13241b] truncate">{v.name}</p>
               <p className="text-[10px] text-[#5c647a] truncate">{v.email}</p>
               <p className="text-[10px] mt-1">
                 <span className="inline-block px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-bold">
@@ -617,8 +622,8 @@ REGLES :
       <div className="lg:col-span-8 space-y-4">
         {!selected && (
           <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
-            <span className="material-symbols-outlined text-5xl text-gray-300">psychology</span>
-            <h3 className="text-base font-bold text-[#191c1e] mt-3">Sélectionnez un vendeur</h3>
+            <Brain size={44} className="text-gray-300 mx-auto" />
+            <h3 className="text-base font-bold text-[#13241b] mt-3">Sélectionnez un vendeur</h3>
             <p className="text-sm text-[#5c647a] mt-1">Claude analysera ses stats et vous donnera un plan d&apos;action personnalisé.</p>
           </div>
         )}
@@ -627,7 +632,7 @@ REGLES :
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
-                  <h2 className="text-lg font-extrabold text-[#191c1e]">{selected.name}</h2>
+                  <h2 className="text-lg font-extrabold text-[#13241b]">{selected.name}</h2>
                   <p className="text-xs text-[#5c647a]">{selected.email}</p>
                 </div>
                 <span className="text-xs font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
@@ -639,7 +644,7 @@ REGLES :
                   {Object.entries((vendorData as { stats: Record<string, unknown> }).stats).slice(0, 8).map(([k, v]) => (
                     <div key={k} className="bg-gray-50 rounded-xl p-2">
                       <p className="text-[10px] text-[#5c647a] uppercase">{k}</p>
-                      <p className="text-sm font-bold text-[#191c1e]">{String(v)}</p>
+                      <p className="text-sm font-bold text-[#13241b]">{String(v)}</p>
                     </div>
                   ))}
                 </div>
@@ -648,7 +653,7 @@ REGLES :
 
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               {loading && <div className="flex items-center gap-3 text-sm text-[#5c647a]">
-                <span className="material-symbols-outlined animate-spin">progress_activity</span>
+                <Loader2 size={24} className="animate-spin" />
                 Claude coache ce vendeur…
               </div>}
               {coaching && <div className="space-y-1">{md(coaching)}</div>}
@@ -658,8 +663,8 @@ REGLES :
             {messageDraft && (
               <div className="bg-gradient-to-br from-[#006e2f]/5 to-emerald-50 rounded-2xl border border-[#006e2f]/20 p-5">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="material-symbols-outlined text-[#006e2f]">mail</span>
-                  <h3 className="text-base font-bold text-[#191c1e]">Message à envoyer au vendeur</h3>
+                  <Mail size={20} className="text-[#006e2f]" />
+                  <h3 className="text-base font-bold text-[#13241b]">Message à envoyer au vendeur</h3>
                 </div>
                 <p className="text-xs text-[#5c647a] mb-3">
                   Claude a rédigé ce message. Tu peux le modifier avant envoi — il sera envoyé par email à <strong>{selected.email}</strong>.
@@ -679,12 +684,12 @@ REGLES :
                   >
                     {sendingEmail ? (
                       <>
-                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                        <Loader2 size={16} className="animate-spin" />
                         Envoi en cours…
                       </>
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-[16px]">send</span>
+                        <Send size={16} />
                         Envoyer à {selected.name}
                       </>
                     )}

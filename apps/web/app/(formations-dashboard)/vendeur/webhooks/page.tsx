@@ -2,6 +2,19 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Plus,
+  Webhook as WebhookIcon,
+  FlaskConical,
+  ToggleRight,
+  ToggleLeft,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  X,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { confirmAction } from "@/store/confirm";
 
 type Webhook = {
@@ -192,7 +205,7 @@ export default function VendorWebhooksPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Webhooks sortants</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Webhooks sortants</h1>
           <p className="text-sm text-[#5c647a] mt-1 max-w-2xl">
             Recevez une notification POST en temps réel dès qu'un événement se produit
             sur votre boutique (vente, avis, retrait…). Idéal pour brancher Zapier, Make,
@@ -204,7 +217,7 @@ export default function VendorWebhooksPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">add</span>
+          <Plus size={18} />
           Nouveau webhook
         </button>
       </div>
@@ -214,8 +227,8 @@ export default function VendorWebhooksPage() {
         <div className="space-y-3">{[0,1].map((i) => <div key={i} className="h-28 bg-white rounded-2xl border border-gray-100 animate-pulse" />)}</div>
       ) : webhooks.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">webhook</span>
-          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun webhook configuré</h3>
+          <WebhookIcon size={48} className="text-gray-300 mx-auto" strokeWidth={1.5} />
+          <h3 className="text-lg font-bold text-[#13241b] mt-3">Aucun webhook configuré</h3>
           <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto">
             Configurez une URL pour recevoir des notifications JSON en temps réel.
             Parfait pour automatiser avec Zapier, Make, ou votre CRM.
@@ -225,7 +238,7 @@ export default function VendorWebhooksPage() {
             className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">add</span>
+            <Plus size={16} />
             Créer mon premier webhook
           </button>
         </div>
@@ -246,7 +259,7 @@ export default function VendorWebhooksPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm font-mono font-bold text-[#191c1e] break-all mb-2">{wh.url}</p>
+                  <p className="text-sm font-mono font-bold text-[#13241b] break-all mb-2">{wh.url}</p>
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {wh.events.map((e) => (
                       <span key={e} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">

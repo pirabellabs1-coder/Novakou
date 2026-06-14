@@ -3,6 +3,18 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  ChevronRight,
+  BookOpen,
+  Plus,
+  Lightbulb,
+  AlertTriangle,
+  Copy,
+  KeyRound,
+  Trash2,
+  X,
+  Loader2,
+} from "lucide-react";
 import { safeFetch } from "@/lib/safe-fetch";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
@@ -133,13 +145,13 @@ export default function ApiKeysPage() {
         <Link href="/vendeur/dashboard" className="hover:text-[#006e2f] transition-colors">
           Espace vendeur
         </Link>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span className="text-[#191c1e] font-medium">Clés API</span>
+        <ChevronRight size={14} />
+        <span className="text-[#13241b] font-medium">Clés API</span>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Clés API Novakou</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Clés API Novakou</h1>
           <p className="text-sm text-[#5c647a] mt-1 max-w-xl">
             Générez des clés API pour connecter vos outils et automatisations à votre boutique Novakou.
           </p>
@@ -148,9 +160,9 @@ export default function ApiKeysPage() {
           <Link
             href="/vendeur/documentation-api"
             target="_blank"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#191c1e] hover:bg-gray-50"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#13241b] hover:bg-gray-50"
           >
-            <span className="material-symbols-outlined text-[18px]">menu_book</span>
+            <BookOpen size={18} />
             Documentation API
           </Link>
           <button
@@ -158,7 +170,7 @@ export default function ApiKeysPage() {
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold text-white hover:opacity-90"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Plus size={18} />
             Nouvelle clé
           </button>
         </div>
@@ -166,7 +178,7 @@ export default function ApiKeysPage() {
 
       {/* Info banner */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3 text-sm text-blue-900">
-        <span className="material-symbols-outlined text-[20px] mt-0.5">lightbulb</span>
+        <Lightbulb size={20} className="mt-0.5 flex-shrink-0" />
         <div>
           <p className="font-semibold">Comment utiliser votre clé API ?</p>
           <p className="text-xs mt-1">
@@ -179,7 +191,7 @@ export default function ApiKeysPage() {
       {createdKey && (
         <div className="bg-amber-50 border-2 border-amber-400 rounded-2xl p-5 mb-6">
           <div className="flex items-start gap-3">
-            <span className="material-symbols-outlined text-amber-600 text-[22px]">warning</span>
+            <AlertTriangle size={22} className="text-amber-600 flex-shrink-0" />
             <div className="flex-1">
               <p className="font-bold text-amber-900">
                 Votre clé &laquo; {createdKey.name} &raquo; est prête
@@ -198,7 +210,7 @@ export default function ApiKeysPage() {
                   }}
                   className="flex items-center gap-1 px-3 py-2 rounded-lg bg-amber-600 text-white text-xs font-bold hover:bg-amber-700"
                 >
-                  <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                  <Copy size={14} />
                   Copier
                 </button>
               </div>
@@ -222,9 +234,9 @@ export default function ApiKeysPage() {
       ) : keys.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
           <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[28px] text-gray-400">key_off</span>
+            <KeyRound size={28} className="text-gray-400" />
           </div>
-          <p className="font-semibold text-[#191c1e]">Aucune clé API générée</p>
+          <p className="font-semibold text-[#13241b]">Aucune clé API générée</p>
           <p className="text-sm text-[#5c647a] mt-1">Créez votre première clé pour commencer à utiliser l&apos;API</p>
           <button
             onClick={() => setShowForm(true)}
@@ -254,11 +266,11 @@ export default function ApiKeysPage() {
                 return (
                   <tr key={k.id} className={`border-b border-gray-50 last:border-0 ${isRevoked || isExpired ? "opacity-50" : ""}`}>
                     <td className="px-5 py-3">
-                      <p className="font-bold text-[#191c1e]">{k.name}</p>
+                      <p className="font-bold text-[#13241b]">{k.name}</p>
                       <p className="text-[11px] text-[#5c647a]">Créée le {fmtDate(k.createdAt)}</p>
                     </td>
                     <td className="px-5 py-3">
-                      <code className="tabular-nums text-xs bg-gray-50 px-2 py-1 rounded border border-gray-200 text-[#191c1e]">
+                      <code className="tabular-nums text-xs bg-gray-50 px-2 py-1 rounded border border-gray-200 text-[#13241b]">
                         {k.keyPrefix}...
                       </code>
                     </td>
@@ -305,7 +317,7 @@ export default function ApiKeysPage() {
                           className="text-red-600 hover:bg-red-50 p-1.5 rounded-lg"
                           title="Révoquer la clé"
                         >
-                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                          <Trash2 size={16} />
                         </button>
                       )}
                     </td>
@@ -330,12 +342,12 @@ export default function ApiKeysPage() {
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#006e2f]/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-[#006e2f]">key</span>
+                  <KeyRound size={20} className="text-[#006e2f]" />
                 </div>
                 <h2 className="text-lg font-bold text-gray-900">Nouvelle clé API</h2>
               </div>
               <button onClick={() => setShowForm(false)} className="p-2 rounded-lg hover:bg-gray-100">
-                <span className="material-symbols-outlined text-[20px] text-gray-500">close</span>
+                <X size={20} className="text-gray-500" />
               </button>
             </div>
 
@@ -405,7 +417,7 @@ export default function ApiKeysPage() {
                           className="w-3.5 h-3.5 rounded accent-[#006e2f] flex-shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <p className="tabular-nums font-bold text-[10px] text-[#191c1e] truncate">{s}</p>
+                          <p className="tabular-nums font-bold text-[10px] text-[#13241b] truncate">{s}</p>
                           <p className="text-[10px] text-[#5c647a] truncate">{SCOPE_LABELS[s].label}</p>
                         </div>
                       </label>
@@ -446,9 +458,9 @@ export default function ApiKeysPage() {
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
                 {createMut.isPending ? (
-                  <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                  <Loader2 size={14} className="animate-spin" />
                 ) : (
-                  <span className="material-symbols-outlined text-[14px]">key</span>
+                  <KeyRound size={14} />
                 )}
                 Générer la clé
               </button>

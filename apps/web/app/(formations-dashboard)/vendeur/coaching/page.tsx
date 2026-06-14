@@ -3,6 +3,26 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import {
+  type LucideIcon,
+  CheckCircle2,
+  Banknote,
+  Star,
+  ClipboardList,
+  ExternalLink,
+  Headset,
+  Plus,
+  BrainCircuit,
+  Clock,
+  Tag,
+  Users,
+  Pencil,
+  CalendarX,
+  User,
+  CalendarCheck,
+  CalendarDays,
+  Settings,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type MentorDashboardPayload = {
@@ -73,7 +93,7 @@ export default function CoachingPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
-          <h1 className="text-2xl font-extrabold text-[#191c1e]">Mon espace Coaching</h1>
+          <h1 className="text-2xl font-extrabold text-[#13241b]">Mon espace Coaching</h1>
           <p className="text-sm text-[#5c647a] mt-0.5">
             Gérez vos sessions 1:1 et vos demandes de coaching
           </p>
@@ -105,7 +125,7 @@ export default function CoachingPage() {
             href="/mentor/dashboard"
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006e2f] text-white text-sm font-bold hover:bg-[#005a26] transition-colors"
           >
-            <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+            <ExternalLink size={16} />
             Ouvrir mon espace mentor complet
           </Link>
         </div>
@@ -123,49 +143,47 @@ export default function CoachingPage() {
       {/* Stats */}
       {!isLoading && stats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
-          {[
+          {([
             {
               label: "Sessions complétées",
               value: stats.completedSessions.toString(),
-              icon: "check_circle",
+              icon: CheckCircle2,
               color: "text-[#006e2f]",
               bg: "bg-[#006e2f]/10",
             },
             {
               label: "Revenus coaching",
               value: fmtFCFA(stats.totalRevenue),
-              icon: "payments",
+              icon: Banknote,
               color: "text-amber-600",
               bg: "bg-amber-50",
             },
             {
               label: "Note moyenne",
               value: profile?.rating ? profile.rating.toFixed(1) : "—",
-              icon: "star",
+              icon: Star,
               color: "text-yellow-500",
               bg: "bg-yellow-50",
             },
             {
               label: "Demandes en attente",
               value: stats.pendingBookings.toString(),
-              icon: "pending_actions",
+              icon: ClipboardList,
               color: "text-blue-600",
               bg: "bg-blue-50",
             },
-          ].map((s) => (
+          ] as Array<{ label: string; value: string; icon: LucideIcon; color: string; bg: string }>).map((s) => {
+            const StatIcon = s.icon;
+            return (
             <div key={s.label} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
               <div className={`w-10 h-10 rounded-xl ${s.bg} flex items-center justify-center mb-3`}>
-                <span
-                  className={`material-symbols-outlined text-[20px] ${s.color}`}
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  {s.icon}
-                </span>
+                <StatIcon size={20} className={s.color} />
               </div>
-              <p className="text-xl font-extrabold text-[#191c1e] leading-tight">{s.value}</p>
+              <p className="text-xl font-extrabold text-[#13241b] leading-tight">{s.value}</p>
               <p className="text-xs text-[#5c647a] mt-0.5">{s.label}</p>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -173,14 +191,9 @@ export default function CoachingPage() {
       {!isLoading && !profile && (
         <div className="bg-gradient-to-br from-[#006e2f]/5 to-emerald-50 border border-[#006e2f]/10 rounded-2xl p-10 text-center">
           <div className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center mx-auto mb-4">
-            <span
-              className="material-symbols-outlined text-[32px] text-[#006e2f]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              support_agent
-            </span>
+            <Headset size={32} className="text-[#006e2f]" />
           </div>
-          <h2 className="text-xl font-extrabold text-[#191c1e] mb-2">
+          <h2 className="text-xl font-extrabold text-[#13241b] mb-2">
             Activez votre profil de mentor
           </h2>
           <p className="text-sm text-[#5c647a] max-w-xl mx-auto mb-6">
@@ -191,7 +204,7 @@ export default function CoachingPage() {
             href="/mentor/dashboard"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#006e2f] text-white text-sm font-bold hover:bg-[#005a26]"
           >
-            <span className="material-symbols-outlined text-[16px]">add</span>
+            <Plus size={16} />
             Devenir mentor
           </Link>
         </div>
@@ -205,24 +218,22 @@ export default function CoachingPage() {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-[240px]">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="material-symbols-outlined text-[20px] text-[#006e2f]">
-                    psychology
-                  </span>
-                  <h2 className="text-base font-extrabold text-[#191c1e]">
+                  <BrainCircuit size={20} className="text-[#006e2f]" />
+                  <h2 className="text-base font-extrabold text-[#13241b]">
                     {profile.specialty || "Spécialité non renseignée"}
                   </h2>
                 </div>
                 <div className="flex items-center gap-4 text-sm text-[#5c647a] flex-wrap">
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">schedule</span>
+                    <Clock size={14} />
                     {profile.sessionDuration} min / session
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">sell</span>
+                    <Tag size={14} />
                     {fmtFCFA(profile.sessionPrice)}
                   </span>
                   <span className="flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px]">groups</span>
+                    <Users size={14} />
                     {profile.totalStudents} apprenants accompagnés
                   </span>
                 </div>
@@ -231,7 +242,7 @@ export default function CoachingPage() {
                 href="/mentor/profil"
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-[#5c647a] hover:bg-gray-50 transition-colors"
               >
-                <span className="material-symbols-outlined text-[16px]">edit</span>
+                <Pencil size={16} />
                 Modifier mon profil
               </Link>
             </div>
@@ -240,7 +251,7 @@ export default function CoachingPage() {
           {/* Upcoming sessions */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-extrabold text-[#191c1e]">
+              <h2 className="text-base font-extrabold text-[#13241b]">
                 Prochaines sessions ({upcoming.length})
               </h2>
               <Link
@@ -253,11 +264,9 @@ export default function CoachingPage() {
             {upcoming.length === 0 ? (
               <div className="px-6 py-10 text-center">
                 <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-3">
-                  <span className="material-symbols-outlined text-[24px] text-[#5c647a]">
-                    event_busy
-                  </span>
+                  <CalendarX size={24} className="text-[#5c647a]" />
                 </div>
-                <p className="text-sm font-semibold text-[#191c1e]">
+                <p className="text-sm font-semibold text-[#13241b]">
                   Aucune session prévue pour le moment
                 </p>
                 <p className="text-xs text-[#5c647a] mt-1">
@@ -279,13 +288,11 @@ export default function CoachingPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="material-symbols-outlined text-[18px] text-[#006e2f]">
-                          person
-                        </span>
+                        <User size={18} className="text-[#006e2f]" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-[#191c1e] truncate">
+                      <p className="text-sm font-bold text-[#13241b] truncate">
                         {b.student.name ?? b.student.email}
                       </p>
                       <p className="text-xs text-[#5c647a]">
@@ -302,7 +309,7 @@ export default function CoachingPage() {
                       >
                         {b.status === "CONFIRMED" ? "Confirmée" : "En attente"}
                       </span>
-                      <span className="text-sm font-bold text-[#191c1e]">
+                      <span className="text-sm font-bold text-[#13241b]">
                         {fmtFCFA(b.paidAmount)}
                       </span>
                     </div>
@@ -314,43 +321,41 @@ export default function CoachingPage() {
 
           {/* Quick actions */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {[
+            {([
               {
-                icon: "event_available",
+                icon: CalendarCheck,
                 title: "Mes disponibilités",
                 desc: "Gérer mes créneaux",
                 href: "/mentor/calendrier",
               },
               {
-                icon: "calendar_month",
+                icon: CalendarDays,
                 title: "Mes rendez-vous",
                 desc: "Voir toutes mes sessions",
                 href: "/mentor/rendez-vous",
               },
               {
-                icon: "settings",
+                icon: Settings,
                 title: "Paramètres",
                 desc: "Tarif, durée, timezone",
                 href: "/mentor/profil",
               },
-            ].map((a) => (
+            ] as Array<{ icon: LucideIcon; title: string; desc: string; href: string }>).map((a) => {
+              const ActionIcon = a.icon;
+              return (
               <Link
                 key={a.title}
                 href={a.href}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-[#006e2f]/20 transition-all group"
               >
                 <div className="w-11 h-11 rounded-xl bg-[#006e2f]/10 flex items-center justify-center mb-3 group-hover:bg-[#006e2f]/20 transition-colors">
-                  <span
-                    className="material-symbols-outlined text-[22px] text-[#006e2f]"
-                    style={{ fontVariationSettings: "'FILL' 1" }}
-                  >
-                    {a.icon}
-                  </span>
+                  <ActionIcon size={22} className="text-[#006e2f]" />
                 </div>
-                <p className="text-sm font-bold text-[#191c1e]">{a.title}</p>
+                <p className="text-sm font-bold text-[#13241b]">{a.title}</p>
                 <p className="text-xs text-[#5c647a] mt-0.5">{a.desc}</p>
               </Link>
-            ))}
+              );
+            })}
           </div>
         </>
       )}

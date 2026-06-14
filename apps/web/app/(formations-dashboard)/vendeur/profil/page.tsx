@@ -3,6 +3,21 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type LucideIcon,
+  Linkedin,
+  Youtube,
+  Globe,
+  ExternalLink,
+  Hourglass,
+  Check,
+  Save,
+  Upload,
+  X,
+  Plus,
+  Star,
+  Info,
+} from "lucide-react";
 
 type ProfileData = {
   user: { id: string; name: string | null; email: string | null; image: string | null } | null;
@@ -26,10 +41,10 @@ function getInitials(name?: string | null): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-const socialLinkDefs = [
-  { key: "linkedin", icon: "link", platform: "LinkedIn", placeholder: "https://linkedin.com/in/votre-profil", color: "text-blue-600" },
-  { key: "youtube", icon: "smart_display", platform: "YouTube", placeholder: "https://youtube.com/@votre-chaine", color: "text-red-500" },
-  { key: "website", icon: "language", platform: "Site web", placeholder: "https://votre-site.com", color: "text-[#006e2f]" },
+const socialLinkDefs: Array<{ key: string; icon: LucideIcon; platform: string; placeholder: string; color: string }> = [
+  { key: "linkedin", icon: Linkedin, platform: "LinkedIn", placeholder: "https://linkedin.com/in/votre-profil", color: "text-blue-600" },
+  { key: "youtube", icon: Youtube, platform: "YouTube", placeholder: "https://youtube.com/@votre-chaine", color: "text-red-500" },
+  { key: "website", icon: Globe, platform: "Site web", placeholder: "https://votre-site.com", color: "text-[#006e2f]" },
 ];
 
 export default function ProfilPage() {
@@ -146,7 +161,7 @@ export default function ProfilPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Mon Profil Instructeur</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Mon Profil Instructeur</h1>
           <p className="text-sm text-[#5c647a] mt-1">Ces informations apparaissent sur votre page publique</p>
         </div>
         <div className="flex items-center gap-2">
@@ -154,9 +169,9 @@ export default function ProfilPage() {
             <Link
               href={`/instructeurs/${d.user.id}`}
               target="_blank"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#13241b] hover:bg-gray-50 transition-colors"
             >
-              <span className="material-symbols-outlined text-[18px] text-[#5c647a]">open_in_new</span>
+              <ExternalLink size={18} className="text-[#5c647a]" />
               Voir mon profil public
             </Link>
           )}
@@ -166,9 +181,7 @@ export default function ProfilPage() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 shadow-md shadow-[#006e2f]/20 disabled:opacity-60"
             style={{ background: saveSuccess ? "#16a34a" : "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[18px]">
-              {saveMutation.isPending ? "hourglass_empty" : saveSuccess ? "check" : "save"}
-            </span>
+            {saveMutation.isPending ? <Hourglass size={18} /> : saveSuccess ? <Check size={18} /> : <Save size={18} />}
             {saveMutation.isPending ? "Sauvegarde…" : saveSuccess ? "Enregistré !" : "Enregistrer"}
           </button>
         </div>
@@ -191,7 +204,7 @@ export default function ProfilPage() {
           <div className="lg:col-span-3 space-y-6">
             {/* Photo */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-base font-bold text-[#191c1e] mb-4">Photo de profil</h2>
+              <h2 className="text-base font-bold text-[#13241b] mb-4">Photo de profil</h2>
               <div className="flex items-center gap-5">
                 {avatarUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -212,9 +225,9 @@ export default function ProfilPage() {
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingPhoto}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#191c1e] hover:bg-gray-50 transition-colors mb-2 disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-[#13241b] hover:bg-gray-50 transition-colors mb-2 disabled:opacity-50"
                   >
-                    <span className="material-symbols-outlined text-[16px] text-[#5c647a]">upload</span>
+                    <Upload size={16} className="text-[#5c647a]" />
                     {uploadingPhoto ? "Envoi en cours…" : "Changer la photo"}
                   </button>
                   <p className="text-xs text-[#5c647a]">JPG, PNG · Max 5 MB · Recommandé : 400×400px</p>
@@ -227,20 +240,20 @@ export default function ProfilPage() {
 
             {/* General info */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
-              <h2 className="text-base font-bold text-[#191c1e]">Informations générales</h2>
+              <h2 className="text-base font-bold text-[#13241b]">Informations générales</h2>
 
               <div>
-                <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Nom affiché</label>
+                <label className="block text-sm font-semibold text-[#13241b] mb-1.5">Nom affiché</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#13241b] focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Email</label>
+                <label className="block text-sm font-semibold text-[#13241b] mb-1.5">Email</label>
                 <input
                   type="email"
                   value={d?.user?.email ?? ""}
@@ -250,12 +263,12 @@ export default function ProfilPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">Biographie</label>
+                <label className="block text-sm font-semibold text-[#13241b] mb-1.5">Biographie</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={5}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#191c1e] focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-[#13241b] focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all resize-none"
                   placeholder="Décrivez votre parcours, expertise et ce que vous apportez à vos apprenants…"
                 />
                 <div className="flex justify-between mt-1">
@@ -269,12 +282,14 @@ export default function ProfilPage() {
 
             {/* Social links */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-              <h2 className="text-base font-bold text-[#191c1e]">Réseaux sociaux & liens</h2>
-              {socialLinkDefs.map((link) => (
+              <h2 className="text-base font-bold text-[#13241b]">Réseaux sociaux & liens</h2>
+              {socialLinkDefs.map((link) => {
+                const LinkIcon = link.icon;
+                return (
                 <div key={link.key}>
-                  <label className="block text-sm font-semibold text-[#191c1e] mb-1.5">
+                  <label className="block text-sm font-semibold text-[#13241b] mb-1.5">
                     <span className="flex items-center gap-2">
-                      <span className={`material-symbols-outlined text-[16px] ${link.color}`}>{link.icon}</span>
+                      <LinkIcon size={16} className={link.color} />
                       {link.platform}
                     </span>
                   </label>
@@ -283,15 +298,16 @@ export default function ProfilPage() {
                     value={socialValues[link.key]}
                     onChange={(e) => socialSetters[link.key](e.target.value)}
                     placeholder={link.placeholder}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-[#13241b] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
                   />
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Skills */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h2 className="text-base font-bold text-[#191c1e] mb-4">Compétences & Expertises</h2>
+              <h2 className="text-base font-bold text-[#13241b] mb-4">Compétences & Expertises</h2>
               <div className="flex flex-wrap gap-2 mb-4">
                 {skills.map((skill) => (
                   <div key={skill} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#006e2f]/5 rounded-full border border-[#006e2f]/20">
@@ -300,7 +316,7 @@ export default function ProfilPage() {
                       onClick={() => handleRemoveSkill(skill)}
                       className="w-4 h-4 rounded-full bg-[#006e2f]/20 flex items-center justify-center hover:bg-red-100 hover:text-red-500 transition-colors text-[#006e2f]"
                     >
-                      <span className="material-symbols-outlined text-[12px]">close</span>
+                      <X size={12} />
                     </button>
                   </div>
                 ))}
@@ -315,14 +331,14 @@ export default function ProfilPage() {
                   onChange={(e) => setNewSkill(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAddSkill()}
                   placeholder="Ajouter une compétence…"
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-[#191c1e] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm text-[#13241b] placeholder:text-gray-400 focus:outline-none focus:border-[#006e2f] focus:ring-2 focus:ring-[#006e2f]/10 transition-all"
                 />
                 <button
                   onClick={handleAddSkill}
                   className="px-4 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                 >
-                  <span className="material-symbols-outlined text-[18px]">add</span>
+                  <Plus size={18} />
                 </button>
               </div>
             </div>
@@ -349,11 +365,11 @@ export default function ProfilPage() {
                 <div className="px-5 pt-12 pb-5">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h3 className="font-extrabold text-[#191c1e] text-lg leading-tight">{displayName || "Votre nom"}</h3>
+                      <h3 className="font-extrabold text-[#13241b] text-lg leading-tight">{displayName || "Votre nom"}</h3>
                       <p className="text-[11px] text-[#5c647a] mt-0.5">{d?.user?.email ?? ""}</p>
                     </div>
                     <div className="flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full flex-shrink-0 ml-2">
-                      <span className="material-symbols-outlined text-amber-500 text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                      <Star size={12} className="text-amber-500 fill-amber-500" />
                       <span className="text-[11px] font-bold text-amber-700">Certifié</span>
                     </div>
                   </div>
@@ -404,7 +420,7 @@ export default function ProfilPage() {
 
               {/* Preview notice */}
               <div className="mt-3 px-4 py-3 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-2">
-                <span className="material-symbols-outlined text-blue-500 text-[16px] flex-shrink-0 mt-0.5">info</span>
+                <Info size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
                 <p className="text-[11px] text-blue-600">Aperçu de votre profil tel qu&apos;il apparaît aux apprenants.</p>
               </div>
             </div>

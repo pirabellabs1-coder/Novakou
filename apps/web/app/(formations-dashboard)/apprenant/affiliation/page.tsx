@@ -1,4 +1,4 @@
-// Refonte style KAZA — apprenant affiliation — 2026-06-07
+// Refonte design "Stitch" — apprenant affiliation — vert Novakou — 2026-06-13
 "use client";
 
 import Link from "next/link";
@@ -6,12 +6,12 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  KazaHero,
-  KazaButton,
-  KazaBadge,
-  KazaCard,
-  KazaSection,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StSectionTitle,
+  ST,
+} from "@/components/stitch";
 import {
   Link2,
   Share2,
@@ -113,10 +113,10 @@ export default function DevenirAffilierPage() {
 
   if (checkLoading) {
     return (
-      <div className="p-5 md:p-8 max-w-3xl mx-auto flex items-center justify-center py-24">
+      <div className="min-h-screen flex items-center justify-center py-24" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-slate-500">Vérification de votre statut…</p>
+          <div className="w-10 h-10 border-4 rounded-full animate-spin" style={{ borderColor: ST.green, borderTopColor: "transparent" }} />
+          <p className="text-sm font-semibold" style={{ color: ST.textSecondary }}>Vérification de votre statut…</p>
         </div>
       </div>
     );
@@ -124,187 +124,192 @@ export default function DevenirAffilierPage() {
 
   if (joined) {
     return (
-      <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-        <KazaHero
-          badge="Affilié"
-          badgeColor="green"
-          icon={BadgeCheck}
-          title="Bienvenue dans le programme !"
-          subtitle={`Bonjour ${userName}, votre espace affilié est prêt. Commencez par ajouter des formations à promouvoir.`}
-          actions={
-            <KazaButton variant="primary" href="/affilie/dashboard" iconRight={ArrowRight}>
-              Mon espace affilié
-            </KazaButton>
-          }
-        />
+      <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+        <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+          <StPageHeader
+            title="Bienvenue dans le programme !"
+            subtitle={`Bonjour ${userName}, votre espace affilié est prêt. Commencez par ajouter des formations à promouvoir.`}
+            actions={
+              <StButton href="/affilie/dashboard" iconRight={ArrowRight} icon={BadgeCheck}>
+                Mon espace affilié
+              </StButton>
+            }
+          />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          <KazaCard title="Votre programme en bref">
-            <div className="space-y-3">
-              {[
-                { icon: Percent, label: "Commission sur chaque vente", value: `${COMMISSION_PCT}%` },
-                { icon: Calendar, label: "Versements", value: "Mensuel" },
-                { icon: Link2, label: "Formations disponibles", value: "Toutes" },
-                { icon: Wallet, label: "Retrait min.", value: "5 000 FCFA" },
-              ].map((row) => {
-                const Icon = row.icon;
-                return (
-                  <div key={row.label} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-4 h-4 text-emerald-600" />
-                      <span className="text-xs text-slate-600">{row.label}</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
+            <StCard>
+              <StSectionTitle>Votre programme en bref</StSectionTitle>
+              <div className="space-y-1">
+                {[
+                  { icon: Percent, label: "Commission sur chaque vente", value: `${COMMISSION_PCT}%` },
+                  { icon: Calendar, label: "Versements", value: "Mensuel" },
+                  { icon: Link2, label: "Formations disponibles", value: "Toutes" },
+                  { icon: Wallet, label: "Retrait min.", value: "5 000 FCFA" },
+                ].map((row) => {
+                  const Icon = row.icon;
+                  return (
+                    <div key={row.label} className="flex items-center justify-between py-2.5" style={{ borderBottom: `1px solid ${ST.divider}` }}>
+                      <div className="flex items-center gap-2">
+                        <Icon size={16} style={{ color: ST.green }} />
+                        <span className="text-[12.5px] font-semibold" style={{ color: ST.textSecondary }}>{row.label}</span>
+                      </div>
+                      <span className="text-[12.5px] font-extrabold" style={{ color: ST.text }}>{row.value}</span>
                     </div>
-                    <span className="text-xs font-bold text-[#0b2540]">{row.value}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </KazaCard>
+                  );
+                })}
+              </div>
+            </StCard>
 
-          {affiliateCode && (
-            <KazaCard title="Votre code affilié" variant="highlighted">
-              <p className="text-3xl font-extrabold text-emerald-600 tabular-nums">{affiliateCode}</p>
-              <p className="text-xs text-slate-500 mt-2">
-                Partagez ce code ou utilisez votre lien personnel pour tracker vos ventes.
-              </p>
-            </KazaCard>
-          )}
-        </div>
+            {affiliateCode && (
+              <StCard style={{ border: `1.5px solid ${ST.greenBright}`, background: "#f0faf3" }}>
+                <StSectionTitle>Votre code affilié</StSectionTitle>
+                <p className="text-[30px] font-extrabold tabular-nums" style={{ color: ST.green }}>{affiliateCode}</p>
+                <p className="text-[12px] font-semibold mt-2" style={{ color: ST.textSecondary }}>
+                  Partagez ce code ou utilisez votre lien personnel pour tracker vos ventes.
+                </p>
+              </StCard>
+            )}
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div className="px-5 md:px-10 py-8 md:py-10 max-w-[1400px] mx-auto space-y-6">
-      <KazaHero
-        badge="Apprenant"
-        badgeColor="blue"
-        icon={Sparkles}
-        title={`Gagnez ${COMMISSION_PCT}% sur chaque vente`}
-        subtitle="Partagez les formations Novakou. Commission créditée automatiquement, sans démarche manuelle."
-      >
-        <div className="flex flex-wrap items-center gap-4 text-white/90 text-xs">
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" />Gratuit</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" />Sans engagement</span>
-          <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" />Paiement mensuel</span>
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
+          title={`Gagnez ${COMMISSION_PCT}% sur chaque vente`}
+          subtitle="Partagez les formations Novakou. Commission créditée automatiquement, sans démarche manuelle."
+        />
+
+        <div className="flex flex-wrap items-center gap-4 mb-5 text-[12px] font-bold" style={{ color: ST.textSecondary }}>
+          <span className="flex items-center gap-1.5"><CheckCircle2 size={14} style={{ color: ST.green }} />Gratuit</span>
+          <span className="flex items-center gap-1.5"><CheckCircle2 size={14} style={{ color: ST.green }} />Sans engagement</span>
+          <span className="flex items-center gap-1.5"><CheckCircle2 size={14} style={{ color: ST.green }} />Paiement mensuel</span>
         </div>
-      </KazaHero>
 
-      {/* Stats */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { value: `${COMMISSION_PCT}%`, label: "Commission fixe par vente" },
-          { value: "17 pays", label: "Marchés accessibles" },
-          { value: "5 000+", label: "Formations disponibles" },
-        ].map((s, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-center">
-            <p className="text-3xl font-extrabold text-emerald-600 mb-1">{s.value}</p>
-            <p className="text-xs text-slate-500">{s.label}</p>
-          </div>
-        ))}
-      </section>
-
-      {/* Steps */}
-      <KazaSection label="Tutoriel" title="Comment ça fonctionne" description="3 étapes simples pour commencer à gagner">
-        <div className="space-y-4">
-          {steps.map((step) => {
-            const Icon = step.icon;
-            return (
-              <KazaCard key={step.num}>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-extrabold text-emerald-600">{step.num}</span>
-                      <h3 className="text-sm font-bold text-[#0b2540]">{step.title}</h3>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
-                  </div>
-                </div>
-              </KazaCard>
-            );
-          })}
-        </div>
-      </KazaSection>
-
-      {/* Info */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-        <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-bold text-amber-800 mb-1">Comment le prélèvement automatique fonctionne</p>
-            <p className="text-xs text-amber-700 leading-relaxed">
-              Lorsqu&apos;un acheteur clique sur votre lien affilié et finalise un achat, la plateforme identifie automatiquement votre contribution.
-              <strong> {COMMISSION_PCT}% du montant est immédiatement prélevé sur la vente et crédité sur votre solde affilié.</strong>{" "}
-              Le vendeur reçoit les {100 - COMMISSION_PCT}% restants. Vous n&apos;avez rien à faire.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ */}
-      <KazaSection label="FAQ" title="Questions fréquentes">
-        <div className="space-y-2">
-          {faqs.map((faq, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50/50 transition-colors"
-              >
-                <span className="text-sm font-semibold text-[#0b2540]">{faq.q}</span>
-                <ChevronDown
-                  className={`w-5 h-5 text-slate-500 transition-transform ${openFaq === i ? "rotate-180" : ""}`}
-                />
-              </button>
-              {openFaq === i && (
-                <div className="px-5 pb-4">
-                  <p className="text-xs text-slate-600 leading-relaxed">{faq.a}</p>
-                </div>
-              )}
-            </div>
+        {/* Stats */}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-6">
+          {[
+            { value: `${COMMISSION_PCT}%`, label: "Commission fixe par vente" },
+            { value: "17 pays", label: "Marchés accessibles" },
+            { value: "5 000+", label: "Formations disponibles" },
+          ].map((s, i) => (
+            <StCard key={i} className="text-center">
+              <p className="text-[28px] font-extrabold mb-1 tabular-nums" style={{ color: ST.green }}>{s.value}</p>
+              <p className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>{s.label}</p>
+            </StCard>
           ))}
+        </section>
+
+        {/* Steps */}
+        <section className="mb-6">
+          <StSectionTitle>Comment ça fonctionne</StSectionTitle>
+          <p className="text-[12.5px] font-semibold mb-4 -mt-2" style={{ color: ST.textSecondary }}>3 étapes simples pour commencer à gagner</p>
+          <div className="space-y-3.5">
+            {steps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <StCard key={step.num}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-[13px] flex items-center justify-center flex-shrink-0" style={{ background: ST.greenSoft }}>
+                      <Icon size={24} style={{ color: ST.green }} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-extrabold" style={{ color: ST.green }}>{step.num}</span>
+                        <h3 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>{step.title}</h3>
+                      </div>
+                      <p className="text-[12px] font-semibold leading-relaxed" style={{ color: ST.textSecondary }}>{step.desc}</p>
+                    </div>
+                  </div>
+                </StCard>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Info */}
+        <div className="rounded-[18px] p-5 mb-6" style={{ border: "1px solid #f3e2bd", background: "#fdf8ec" }}>
+          <div className="flex items-start gap-3">
+            <Info size={20} style={{ color: ST.amberText }} className="flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-[13.5px] font-extrabold mb-1" style={{ color: "#633806" }}>Comment le prélèvement automatique fonctionne</p>
+              <p className="text-[12px] font-semibold leading-relaxed" style={{ color: ST.amberText }}>
+                Lorsqu&apos;un acheteur clique sur votre lien affilié et finalise un achat, la plateforme identifie automatiquement votre contribution.
+                <strong> {COMMISSION_PCT}% du montant est immédiatement prélevé sur la vente et crédité sur votre solde affilié.</strong>{" "}
+                Le vendeur reçoit les {100 - COMMISSION_PCT}% restants. Vous n&apos;avez rien à faire.
+              </p>
+            </div>
+          </div>
         </div>
-      </KazaSection>
 
-      {/* Registration */}
-      <KazaCard title="Rejoindre le programme" subtitle="Gratuit · Immédiat · Aucun engagement" variant="highlighted">
-        {error && (
-          <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 mb-4">
-            <p className="text-xs text-rose-700 font-semibold">{error}</p>
+        {/* FAQ */}
+        <section className="mb-6">
+          <StSectionTitle>Questions fréquentes</StSectionTitle>
+          <div className="space-y-2">
+            {faqs.map((faq, i) => (
+              <StCard key={i} noPadding className="overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors hover:bg-[#f7faf8]"
+                >
+                  <span className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>{faq.q}</span>
+                  <ChevronDown
+                    size={20}
+                    className={`transition-transform ${openFaq === i ? "rotate-180" : ""}`}
+                    style={{ color: ST.textMuted }}
+                  />
+                </button>
+                {openFaq === i && (
+                  <div className="px-5 pb-4">
+                    <p className="text-[12.5px] font-semibold leading-relaxed" style={{ color: ST.textSecondary }}>{faq.a}</p>
+                  </div>
+                )}
+              </StCard>
+            ))}
           </div>
-        )}
+        </section>
 
-        <label className="flex items-start gap-3 mb-6 cursor-pointer group">
-          <div
-            onClick={() => setAgreed(!agreed)}
-            className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-              agreed ? "bg-emerald-500 border-emerald-500" : "border-slate-300 group-hover:border-emerald-500"
-            }`}
+        {/* Registration */}
+        <StCard style={{ border: `1.5px solid ${ST.greenBright}`, background: "#f0faf3" }} className="max-w-2xl">
+          <StSectionTitle>Rejoindre le programme</StSectionTitle>
+          <p className="text-[12px] font-semibold mb-4 -mt-2" style={{ color: ST.textSecondary }}>Gratuit · Immédiat · Aucun engagement</p>
+          {error && (
+            <div className="rounded-[12px] p-3 mb-4" style={{ background: ST.roseSoft, border: `1px solid ${ST.roseText}33` }}>
+              <p className="text-[12px] font-bold" style={{ color: ST.roseText }}>{error}</p>
+            </div>
+          )}
+
+          <label className="flex items-start gap-3 mb-6 cursor-pointer group">
+            <div
+              onClick={() => setAgreed(!agreed)}
+              className="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all"
+              style={agreed ? { background: ST.greenBright, borderColor: ST.greenBright } : { borderColor: "#cbd5cf" }}
+            >
+              {agreed && <CheckCircle2 size={14} className="text-white" />}
+            </div>
+            <span className="text-[12px] font-semibold leading-relaxed" style={{ color: ST.textSecondary }}>
+              J&apos;accepte les{" "}
+              <Link href="/cgu-affiliation" className="font-extrabold hover:underline" style={{ color: ST.green }}>
+                conditions du programme d&apos;affiliation
+              </Link>{" "}
+              et je comprends que {COMMISSION_PCT}% de chaque vente via mes liens sera automatiquement crédité sur mon solde affilié.
+            </span>
+          </label>
+
+          <StButton
+            size="lg"
+            onClick={() => agreed && !joinMutation.isPending && joinMutation.mutate()}
+            disabled={!agreed || joinMutation.isPending}
+            icon={joinMutation.isPending ? Sparkles : Link2}
+            className="w-full"
           >
-            {agreed && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
-          </div>
-          <span className="text-xs text-slate-600 leading-relaxed">
-            J&apos;accepte les{" "}
-            <Link href="/cgu-affiliation" className="text-emerald-600 hover:underline font-semibold">
-              conditions du programme d&apos;affiliation
-            </Link>{" "}
-            et je comprends que {COMMISSION_PCT}% de chaque vente via mes liens sera automatiquement crédité sur mon solde affilié.
-          </span>
-        </label>
-
-        <KazaButton
-          variant="primary"
-          size="lg"
-          onClick={() => agreed && !joinMutation.isPending && joinMutation.mutate()}
-          disabled={!agreed || joinMutation.isPending}
-          icon={Link2}
-          className="w-full"
-        >
-          {joinMutation.isPending ? "Inscription en cours…" : "Devenir affilié Novakou"}
-        </KazaButton>
-      </KazaCard>
+            {joinMutation.isPending ? "Inscription en cours…" : "Devenir affilié Novakou"}
+          </StButton>
+        </StCard>
+      </main>
     </div>
   );
 }

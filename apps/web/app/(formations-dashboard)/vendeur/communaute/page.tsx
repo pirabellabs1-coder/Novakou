@@ -15,11 +15,13 @@ import {
   MessagesSquare,
 } from "lucide-react";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StKpiCompact,
+  StSectionTitle,
+  StAvatar,
+  ST,
+} from "@/components/stitch";
 
 type Post = {
   id: string;
@@ -36,8 +38,6 @@ type Post = {
 };
 
 type Stats = { totalMembers: number; postsThisMonth: number; totalPosts: number; engagement: number };
-
-const GRADIENTS = ["from-violet-400 to-purple-600","from-blue-400 to-sky-600","from-pink-400 to-rose-500","from-amber-400 to-orange-500","from-teal-400 to-emerald-600"];
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -92,169 +92,141 @@ export default function CommunautePage() {
   const regular = posts.filter((p) => !p.isPinned);
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       {toast && (
-        <div className="fixed top-20 right-6 z-50 bg-slate-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl rounded-lg">
+        <div className="fixed top-20 right-6 z-50 text-white px-5 py-3 text-xs font-bold uppercase tracking-widest shadow-2xl rounded-lg" style={{ background: ST.greenDark }}>
           {toast}
         </div>
       )}
 
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
-        <KazaHero
-          badge="Pro"
-          badgeColor="orange"
-          icon={MessagesSquare}
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StPageHeader
           title="Ma Communauté"
           subtitle="Animez et modérez votre espace apprenant"
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <KazaKpiCard
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
+          <StKpiCompact
             label="Apprenants inscrits"
             value={isLoading ? "…" : stats?.totalMembers ?? 0}
-            delta="Tous produits confondus"
             icon={Users}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
-            label="Posts ce mois"
+          <StKpiCompact
+            label={`Posts ce mois · ${stats?.totalPosts ?? 0} au total`}
             value={isLoading ? "…" : stats?.postsThisMonth ?? 0}
-            delta={`${stats?.totalPosts ?? 0} posts au total`}
             icon={FileText}
-            iconColor="sky"
+            tone="blue"
           />
-          <KazaKpiCard
+          <StKpiCompact
             label="Taux d'engagement"
             value={isLoading ? "…" : `${stats?.engagement ?? 0}%`}
-            delta="Posts + réponses / apprenants"
             icon={ThumbsUp}
-            iconColor="violet"
+            tone="amber"
           />
         </div>
 
         {/* Pinned */}
         {pinned.length > 0 && (
-          <div>
+          <div className="mb-4">
             <div className="flex items-center gap-2 mb-3">
-              <Pin className="w-4 h-4 text-amber-500" />
-              <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wide">Épinglés</h2>
+              <Pin className="w-4 h-4" style={{ color: ST.amberText }} />
+              <h2 className="text-[13px] font-extrabold uppercase tracking-wide" style={{ color: ST.text }}>Épinglés</h2>
             </div>
             <div className="space-y-3">
-              {pinned.map((p, idx) => {
-                const initials = (p.user.name ?? p.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-                return (
-                  <div key={p.id} className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                    <div className="flex items-start gap-3">
-                      {p.user.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.user.image} alt="" className="w-9 h-9 rounded-full object-cover flex-shrink-0" />
-                      ) : (
-                        <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                          {initials}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{p.title}</p>
-                        <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">{p.content}</p>
-                        <div className="flex items-center gap-3 mt-2 text-[10px] text-slate-500">
-                          <span>{p.formation.title}</span>
-                          <span>·</span>
-                          <span>{timeAgo(p.createdAt)}</span>
-                          <span>·</span>
-                          <span>{p._count.replies} réponse{p._count.replies !== 1 ? "s" : ""}</span>
-                        </div>
-                        {p.status === "active" && (
-                          <ModerationActions
-                            post={p}
-                            isPending={moderateMut.isPending}
-                            onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
-                          />
-                        )}
+              {pinned.map((p) => (
+                <div key={p.id} className="rounded-[18px] p-4" style={{ background: "#fdf8ec", border: "1px solid #f3e2bd" }}>
+                  <div className="flex items-start gap-3">
+                    <StAvatar name={p.user.name ?? p.user.email} src={p.user.image} size={36} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13.5px] font-extrabold truncate" style={{ color: ST.text }}>{p.title}</p>
+                      <p className="text-[12px] font-medium line-clamp-2 mt-0.5" style={{ color: ST.textSecondary }}>{p.content}</p>
+                      <div className="flex items-center gap-3 mt-2 text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>
+                        <span>{p.formation.title}</span>
+                        <span>·</span>
+                        <span>{timeAgo(p.createdAt)}</span>
+                        <span>·</span>
+                        <span>{p._count.replies} réponse{p._count.replies !== 1 ? "s" : ""}</span>
                       </div>
+                      {p.status === "active" && (
+                        <ModerationActions
+                          post={p}
+                          isPending={moderateMut.isPending}
+                          onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
+                        />
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {/* All posts */}
-        <KazaCard
-          title="Discussions récentes"
-          subtitle={`${regular.length} post${regular.length !== 1 ? "s" : ""}`}
-          noPadding
-        >
+        <StCard noPadding>
+          <div className="px-5 pt-5 pb-3">
+            <StSectionTitle className="!mb-0">Discussions récentes</StSectionTitle>
+            <p className="text-[12px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>{regular.length} post{regular.length !== 1 ? "s" : ""}</p>
+          </div>
           {isLoading ? (
             <div className="p-6 space-y-3">
-              {[0, 1, 2].map((i) => <div key={i} className="h-20 bg-slate-50 rounded animate-pulse" />)}
+              {[0, 1, 2].map((i) => <div key={i} className="h-20 rounded animate-pulse" style={{ background: "#f3f6f4" }} />)}
             </div>
           ) : regular.length === 0 ? (
-            <div className="p-6">
-              <KazaEmpty
-                icon={MessagesSquare}
-                title="Aucune discussion pour l'instant"
-                description={
-                  stats?.totalMembers === 0
-                    ? "Publiez un produit pour attirer des apprenants et lancer la conversation."
-                    : "Vos apprenants n'ont pas encore posé de questions. Ouvrez la discussion !"
-                }
-              />
+            <div className="text-center py-12 px-6">
+              <MessagesSquare size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
+              <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune discussion pour l&apos;instant</h3>
+              <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+                {stats?.totalMembers === 0
+                  ? "Publiez un produit pour attirer des apprenants et lancer la conversation."
+                  : "Vos apprenants n'ont pas encore posé de questions. Ouvrez la discussion !"}
+              </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
-              {regular.map((p, idx) => {
-                const initials = (p.user.name ?? p.user.email).split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
-                return (
-                  <div key={p.id} className="p-5 hover:bg-slate-50/30 transition-colors">
-                    <div className="flex items-start gap-3">
-                      {p.user.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={p.user.image} alt="" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
-                      ) : (
-                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                          {initials}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <p className="text-sm font-semibold text-slate-900">{p.user.name ?? p.user.email}</p>
-                          <span className="text-[10px] text-slate-500">·</span>
-                          <span className="text-[10px] text-slate-500">{timeAgo(p.createdAt)}</span>
-                          {p.reportCount > 0 && (
-                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600">
-                              {p.reportCount} signal.
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm font-bold text-slate-900 mb-1">{p.title}</p>
-                        <p className="text-xs text-slate-500 line-clamp-2">{p.content}</p>
-                        <div className="flex items-center gap-4 mt-3 text-[11px]">
-                          <span className="text-slate-500 inline-flex items-center gap-1">
-                            <Book className="w-3 h-3" />
-                            {p.formation.title}
+            <div>
+              {regular.map((p, idx) => (
+                <div key={p.id} className="p-5" style={idx ? { borderTop: `1px solid ${ST.divider}` } : undefined}>
+                  <div className="flex items-start gap-3">
+                    <StAvatar name={p.user.name ?? p.user.email} src={p.user.image} size={40} />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>{p.user.name ?? p.user.email}</p>
+                        <span className="text-[10.5px]" style={{ color: ST.textFaint }}>·</span>
+                        <span className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>{timeAgo(p.createdAt)}</span>
+                        {p.reportCount > 0 && (
+                          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full" style={{ background: ST.roseSoft, color: ST.roseText }}>
+                            {p.reportCount} signal.
                           </span>
-                          <span className="text-slate-500 inline-flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3" />
-                            {p._count.replies}
-                          </span>
-                        </div>
-                        {p.status === "active" && (
-                          <ModerationActions
-                            post={p}
-                            isPending={moderateMut.isPending}
-                            onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
-                          />
                         )}
                       </div>
+                      <p className="text-[13.5px] font-extrabold mb-1" style={{ color: ST.text }}>{p.title}</p>
+                      <p className="text-[12px] font-medium line-clamp-2" style={{ color: ST.textSecondary }}>{p.content}</p>
+                      <div className="flex items-center gap-4 mt-3 text-[11px] font-semibold" style={{ color: ST.textSecondary }}>
+                        <span className="inline-flex items-center gap-1">
+                          <Book className="w-3 h-3" />
+                          {p.formation.title}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3" />
+                          {p._count.replies}
+                        </span>
+                      </div>
+                      {p.status === "active" && (
+                        <ModerationActions
+                          post={p}
+                          isPending={moderateMut.isPending}
+                          onAction={(action) => moderateMut.mutate({ discussionId: p.id, action })}
+                        />
+                      )}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
-        </KazaCard>
+        </StCard>
       </main>
     </div>
   );
@@ -270,12 +242,13 @@ function ModerationActions({
   onAction: (action: "pin" | "unpin" | "delete" | "report") => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-100">
+    <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
       <button
         type="button"
         disabled={isPending}
         onClick={() => onAction(post.isPinned ? "unpin" : "pin")}
-        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-slate-200 text-slate-500 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 text-[10.5px] font-extrabold px-2 py-1 rounded-md disabled:opacity-50 transition-colors hover:bg-[#fdf3df]"
+        style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
         title={post.isPinned ? "Désépingler ce post" : "Épingler ce post en haut"}
       >
         {post.isPinned ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
@@ -289,7 +262,8 @@ function ModerationActions({
             onAction("delete");
           }
         }}
-        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-slate-200 text-slate-500 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 text-[10.5px] font-extrabold px-2 py-1 rounded-md disabled:opacity-50 transition-colors hover:bg-[#fceef2]"
+        style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
         title="Supprimer ce post (soft-delete)"
       >
         <Trash2 className="w-3 h-3" />
@@ -299,7 +273,8 @@ function ModerationActions({
         type="button"
         disabled={isPending}
         onClick={() => onAction("report")}
-        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-md border border-slate-200 text-slate-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 disabled:opacity-50 transition-colors"
+        className="inline-flex items-center gap-1 text-[10.5px] font-extrabold px-2 py-1 rounded-md disabled:opacity-50 transition-colors hover:bg-[#fdf3df]"
+        style={{ border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
         title="Signaler ce post à l'admin Novakou"
       >
         <Flag className="w-3 h-3" />

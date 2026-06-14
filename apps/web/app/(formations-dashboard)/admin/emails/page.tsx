@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Plus, Mail } from "lucide-react";
 
 interface Campaign {
   id: string;
@@ -50,7 +51,7 @@ export default function AdminEmailsPage() {
             <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
               Communication
             </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">Campagnes email</h1>
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#13241b]">Campagnes email</h1>
             <p className="text-sm text-zinc-500 mt-2 max-w-xl">
               Envoyez des annonces, conseils ou offres à vos vendeurs, mentors
               ou apprenants. Éditeur riche · Signature automatique · Tests avant envoi.
@@ -61,7 +62,7 @@ export default function AdminEmailsPage() {
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20 transition-all hover:shadow-lg"
             style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[18px]">add</span>
+            <Plus size={18} />
             Nouvelle campagne
           </Link>
         </header>
@@ -74,8 +75,8 @@ export default function AdminEmailsPage() {
           </div>
         ) : campaigns.length === 0 ? (
           <div className="bg-white rounded-2xl border border-zinc-100 p-12 text-center">
-            <span className="material-symbols-outlined text-5xl text-zinc-300">mail</span>
-            <h3 className="text-lg font-bold text-zinc-900 mt-4">Aucune campagne pour l&apos;instant</h3>
+            <Mail size={44} className="text-zinc-300 mx-auto" />
+            <h3 className="text-lg font-bold text-[#13241b] mt-4">Aucune campagne pour l&apos;instant</h3>
             <p className="text-sm text-zinc-500 mt-2 max-w-md mx-auto">
               Envoyez votre première campagne pour communiquer avec vos vendeurs ou apprenants.
             </p>
@@ -84,7 +85,7 @@ export default function AdminEmailsPage() {
               className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl text-white text-sm font-bold"
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[16px]">add</span>
+              <Plus size={16} />
               Créer ma première campagne
             </Link>
           </div>
@@ -109,7 +110,7 @@ export default function AdminEmailsPage() {
                     onClick={() => { window.location.href = `/admin/emails/${c.id}`; }}
                   >
                     <td className="px-6 py-4">
-                      <p className="text-sm font-semibold text-zinc-900 truncate max-w-[320px] hover:text-[#006e2f]">{c.subject}</p>
+                      <p className="text-sm font-semibold text-[#13241b] truncate max-w-[320px] hover:text-[#006e2f]">{c.subject}</p>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-xs text-zinc-600">{c.segmentLabel}</span>

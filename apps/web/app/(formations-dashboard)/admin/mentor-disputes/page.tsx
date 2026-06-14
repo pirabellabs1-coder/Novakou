@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
+import { type LucideIcon, Gavel, History, Undo2, Banknote, Scale } from "lucide-react";
 
 type Dispute = {
   id: string;
@@ -33,10 +34,10 @@ function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-const OUTCOME_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  refund_student: { label: "Remboursé à l'apprenant", color: "bg-blue-100 text-blue-700", icon: "undo" },
-  release_to_mentor: { label: "Libéré au mentor", color: "bg-[#006e2f]/10 text-[#006e2f]", icon: "payments" },
-  split_50_50: { label: "Partage 50/50", color: "bg-amber-100 text-amber-700", icon: "balance" },
+const OUTCOME_LABELS: Record<string, { label: string; color: string; icon: LucideIcon }> = {
+  refund_student: { label: "Remboursé à l'apprenant", color: "bg-blue-100 text-blue-700", icon: Undo2 },
+  release_to_mentor: { label: "Libéré au mentor", color: "bg-[#006e2f]/10 text-[#006e2f]", icon: Banknote },
+  split_50_50: { label: "Partage 50/50", color: "bg-amber-100 text-amber-700", icon: Scale },
 };
 
 export default function MentorDisputesAdminPage() {
@@ -101,7 +102,7 @@ export default function MentorDisputesAdminPage() {
   return (
     <div className="p-5 md:p-8 max-w-7xl mx-auto" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       <header className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Disputes mentor</h1>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Disputes mentor</h1>
         <p className="text-sm text-[#5c647a] mt-1">
           Annulations de sessions. Chaque décision est archivée et consultable.
         </p>
@@ -110,9 +111,11 @@ export default function MentorDisputesAdminPage() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6 border-b border-gray-100">
         {[
-          { id: "open" as const, label: "En cours", count: counts.open, icon: "gavel" },
-          { id: "history" as const, label: "Historique", count: counts.history, icon: "history" },
-        ].map((t) => (
+          { id: "open" as const, label: "En cours", count: counts.open, icon: Gavel },
+          { id: "history" as const, label: "Historique", count: counts.history, icon: History },
+        ].map((t) => {
+          const TabIcon = t.icon;
+          return (
           <button
             key={t.id}
             onClick={() => { setTab(t.id); setSelected(null); }}
@@ -120,13 +123,14 @@ export default function MentorDisputesAdminPage() {
               tab === t.id ? "border-[#006e2f] text-[#006e2f]" : "border-transparent text-[#5c647a] hover:text-[#191c1e]"
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]">{t.icon}</span>
+            <TabIcon size={16} />
             {t.label}
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
               tab === t.id ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a]"
             }`}>{t.count}</span>
           </button>
-        ))}
+          );
+        })}
       </div>
 
       {isLoading ? (
@@ -137,10 +141,12 @@ export default function MentorDisputesAdminPage() {
         </div>
       ) : items.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
-          <span className="material-symbols-outlined text-[48px] text-gray-300 block mb-3">
-            {tab === "open" ? "gavel" : "history"}
-          </span>
-          <p className="font-semibold text-[#191c1e]">
+          {tab === "open" ? (
+            <Gavel size={48} className="text-gray-300 mx-auto mb-3" />
+          ) : (
+            <History size={48} className="text-gray-300 mx-auto mb-3" />
+          )}
+          <p className="font-semibold text-[#13241b]">
             {tab === "open" ? "Aucune dispute en cours" : "Aucune dispute archivée"}
           </p>
           <p className="text-sm text-[#5c647a] mt-1">
@@ -152,6 +158,7 @@ export default function MentorDisputesAdminPage() {
           {items.map((d) => {
             const isResolved = !!d.adminDecisionAt;
             const outcome = d.adminDecisionOutcome ? OUTCOME_LABELS[d.adminDecisionOutcome] : null;
+            const OutcomeIcon = outcome?.icon;
             return (
               <button
                 key={d.id}
@@ -159,19 +166,19 @@ export default function MentorDisputesAdminPage() {
                 className={`text-left bg-white border rounded-2xl p-5 transition-all hover:shadow-md ${selected?.id === d.id ? "border-[#006e2f] shadow-md" : "border-gray-100"}`}
               >
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${d.cancelledBy === "mentor" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${d.cancelledBy === "mentor" ? "bg-amber-100 text-amber-700" : "bg-rose-100 text-rose-700"}`}>
                     {d.cancelledBy === "mentor" ? "Annul. mentor" : "Annul. apprenant"}
                   </span>
-                  {isResolved && outcome ? (
+                  {isResolved && outcome && OutcomeIcon ? (
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${outcome.color}`}>
-                      <span className="material-symbols-outlined text-[12px]">{outcome.icon}</span>
+                      <OutcomeIcon size={12} />
                       {outcome.label}
                     </span>
                   ) : (
                     <span className="text-[10px] font-bold text-amber-600">ESCROW DISPUTED</span>
                   )}
                 </div>
-                <p className="text-sm font-bold text-[#191c1e]">{d.student.name ?? d.student.email}</p>
+                <p className="text-sm font-bold text-[#13241b]">{d.student.name ?? d.student.email}</p>
                 <p className="text-[11px] text-[#5c647a]">vs {d.mentor.user.name ?? d.mentor.user.email}</p>
                 <p className="text-sm font-extrabold text-[#006e2f] mt-3 tabular-nums">{formatFCFA(d.paidAmount)} FCFA</p>
                 <p className="text-[11px] text-[#5c647a] mt-0.5">Session : {formatDate(d.scheduledAt)}</p>
@@ -195,7 +202,7 @@ export default function MentorDisputesAdminPage() {
         <div className="mt-8 bg-white border border-gray-100 rounded-2xl p-6 md:p-8 shadow-sm">
           <div className="flex items-start justify-between mb-6 flex-wrap gap-4">
             <div>
-              <h2 className="text-lg font-extrabold text-[#191c1e]">
+              <h2 className="text-lg font-extrabold text-[#13241b]">
                 {selected.adminDecisionAt ? "Détail de la décision" : "Détail de la dispute"}
               </h2>
               <p className="text-sm text-[#5c647a]">
@@ -212,12 +219,12 @@ export default function MentorDisputesAdminPage() {
           <div className="grid md:grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">Apprenant</p>
-              <p className="text-sm font-bold text-[#191c1e]">{selected.student.name ?? "—"}</p>
+              <p className="text-sm font-bold text-[#13241b]">{selected.student.name ?? "—"}</p>
               <p className="text-xs text-[#5c647a]">{selected.student.email}</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">Mentor</p>
-              <p className="text-sm font-bold text-[#191c1e]">{selected.mentor.user.name ?? "—"}</p>
+              <p className="text-sm font-bold text-[#13241b]">{selected.mentor.user.name ?? "—"}</p>
               <p className="text-xs text-[#5c647a]">{selected.mentor.user.email}</p>
             </div>
           </div>
@@ -226,7 +233,7 @@ export default function MentorDisputesAdminPage() {
             <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">
               Motif d&apos;annulation ({selected.cancelledBy === "mentor" ? "du mentor" : "de l'apprenant"})
             </p>
-            <div className="bg-red-50/50 border border-red-100 rounded-xl p-4 text-sm text-[#191c1e] whitespace-pre-wrap">
+            <div className="bg-rose-50/50 border border-rose-100 rounded-xl p-4 text-sm text-[#13241b] whitespace-pre-wrap">
               {selected.cancellationReason ?? "Aucun motif fourni"}
             </div>
           </div>
@@ -245,17 +252,20 @@ export default function MentorDisputesAdminPage() {
             <div className="space-y-4">
               <div>
                 <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">Décision admin</p>
-                {selected.adminDecisionOutcome && OUTCOME_LABELS[selected.adminDecisionOutcome] && (
+                {selected.adminDecisionOutcome && OUTCOME_LABELS[selected.adminDecisionOutcome] && (() => {
+                  const DecidedIcon = OUTCOME_LABELS[selected.adminDecisionOutcome].icon;
+                  return (
                   <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full ${OUTCOME_LABELS[selected.adminDecisionOutcome].color}`}>
-                    <span className="material-symbols-outlined text-[16px]">{OUTCOME_LABELS[selected.adminDecisionOutcome].icon}</span>
+                    <DecidedIcon size={16} />
                     <span className="text-xs font-bold">{OUTCOME_LABELS[selected.adminDecisionOutcome].label}</span>
                   </div>
-                )}
+                  );
+                })()}
               </div>
               {selected.adminDecisionNote && (
                 <div>
                   <p className="text-[10px] font-bold uppercase text-[#5c647a] mb-2">Note admin (publique)</p>
-                  <div className="bg-blue-50/40 border border-blue-100 rounded-xl p-4 text-sm text-[#191c1e] whitespace-pre-wrap">
+                  <div className="bg-blue-50/40 border border-blue-100 rounded-xl p-4 text-sm text-[#13241b] whitespace-pre-wrap">
                     {selected.adminDecisionNote}
                   </div>
                 </div>
@@ -266,9 +276,9 @@ export default function MentorDisputesAdminPage() {
                 </p>
               )}
               <div className="bg-gray-50 rounded-xl p-4 text-xs text-[#5c647a]">
-                <p><span className="font-semibold text-[#191c1e]">Statut final :</span> {selected.status}</p>
-                <p><span className="font-semibold text-[#191c1e]">Escrow :</span> {selected.escrowStatus}</p>
-                <p><span className="font-semibold text-[#191c1e]">Montant :</span> {formatFCFA(selected.paidAmount)} FCFA</p>
+                <p><span className="font-semibold text-[#13241b]">Statut final :</span> {selected.status}</p>
+                <p><span className="font-semibold text-[#13241b]">Escrow :</span> {selected.escrowStatus}</p>
+                <p><span className="font-semibold text-[#13241b]">Montant :</span> {formatFCFA(selected.paidAmount)} FCFA</p>
               </div>
             </div>
           ) : (
@@ -291,8 +301,8 @@ export default function MentorDisputesAdminPage() {
                   disabled={decideMutation.isPending}
                   className="flex flex-col items-center gap-1 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/40 hover:bg-gray-50 transition-all disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[24px] text-[#006e2f]">undo</span>
-                  <span className="text-sm font-bold text-[#191c1e]">Rembourser l&apos;apprenant</span>
+                  <Undo2 size={24} className="text-[#006e2f]" />
+                  <span className="text-sm font-bold text-[#13241b]">Rembourser l&apos;apprenant</span>
                   <span className="text-[11px] text-[#5c647a] tabular-nums">{formatFCFA(selected.paidAmount)} FCFA remboursés</span>
                 </button>
                 <button
@@ -300,8 +310,8 @@ export default function MentorDisputesAdminPage() {
                   disabled={decideMutation.isPending}
                   className="flex flex-col items-center gap-1 p-4 rounded-xl border border-gray-200 hover:border-amber-400 hover:bg-amber-50 transition-all disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[24px] text-amber-500">balance</span>
-                  <span className="text-sm font-bold text-[#191c1e]">Partage 50/50</span>
+                  <Scale size={24} className="text-amber-500" />
+                  <span className="text-sm font-bold text-[#13241b]">Partage 50/50</span>
                   <span className="text-[11px] text-[#5c647a] tabular-nums">{formatFCFA(selected.paidAmount / 2)} FCFA chacun</span>
                 </button>
                 <button
@@ -309,8 +319,8 @@ export default function MentorDisputesAdminPage() {
                   disabled={decideMutation.isPending}
                   className="flex flex-col items-center gap-1 p-4 rounded-xl border border-gray-200 hover:border-[#006e2f]/40 hover:bg-gray-50 transition-all disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[24px] text-[#006e2f]">payments</span>
-                  <span className="text-sm font-bold text-[#191c1e]">Libérer au mentor</span>
+                  <Banknote size={24} className="text-[#006e2f]" />
+                  <span className="text-sm font-bold text-[#13241b]">Libérer au mentor</span>
                   <span className="text-[11px] text-[#5c647a] tabular-nums">{formatFCFA(selected.paidAmount * 0.90)} FCFA net</span>
                 </button>
               </div>

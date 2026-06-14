@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  ChevronRight,
+  Headset,
+  Lightbulb,
+  Loader2,
+  CheckCircle2,
+  Save,
+  Eye,
+  MessageCircle,
+} from "lucide-react";
 
 type Config = {
   enabled: boolean;
@@ -89,15 +99,15 @@ export default function SupportAIPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-[#5c647a] mb-2">
           <Link href="/vendeur/dashboard" className="hover:text-[#006e2f] transition-colors">Tableau de bord</Link>
-          <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-          <span className="text-[#191c1e] font-medium">Support client IA</span>
+          <ChevronRight size={14} />
+          <span className="text-[#13241b] font-medium">Support client IA</span>
         </div>
         <div className="flex items-center gap-3 mb-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg">
-            <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>support_agent</span>
+            <Headset size={26} />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Support client IA</h1>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Support client IA</h1>
             <p className="text-sm text-[#5c647a]">
               Un chatbot intelligent sur votre boutique, qui répond aux questions de vos clients 24/7 — propulsé par Claude Sonnet 4.6 via Puter.js.
             </p>
@@ -110,7 +120,7 @@ export default function SupportAIPage() {
         {/* Toggle */}
         <div className="flex items-start justify-between gap-4 pb-6 border-b border-gray-100">
           <div className="flex-1">
-            <h2 className="text-base font-bold text-[#191c1e]">Activer le chatbot sur ma boutique</h2>
+            <h2 className="text-base font-bold text-[#13241b]">Activer le chatbot sur ma boutique</h2>
             <p className="text-xs text-[#5c647a] mt-1">
               Une fois activé, un widget de chat apparaîtra en bas à droite de vos pages publiques (boutique, formations, produits).
             </p>
@@ -127,7 +137,7 @@ export default function SupportAIPage() {
 
         {/* Welcome message */}
         <div>
-          <label className="flex items-center justify-between text-sm font-bold text-[#191c1e] mb-2">
+          <label className="flex items-center justify-between text-sm font-bold text-[#13241b] mb-2">
             <span>Message d&apos;accueil</span>
             <span className={`text-xs font-normal ${welcomeLength > 300 ? "text-rose-600" : "text-[#5c647a]"}`}>
               {welcomeLength}/300
@@ -147,7 +157,7 @@ export default function SupportAIPage() {
 
         {/* Context — training */}
         <div>
-          <label className="flex items-center justify-between text-sm font-bold text-[#191c1e] mb-2">
+          <label className="flex items-center justify-between text-sm font-bold text-[#13241b] mb-2">
             <span>Contexte du chatbot (ses connaissances)</span>
             <span className={`text-xs font-normal ${ctxLength > 8000 ? "text-rose-600" : "text-[#5c647a]"}`}>
               {ctxLength}/8000
@@ -161,8 +171,8 @@ export default function SupportAIPage() {
             className="w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm font-mono leading-relaxed"
           />
           <div className="flex items-start gap-2 mt-2 p-3 bg-blue-50 border border-blue-100 rounded-xl">
-            <span className="material-symbols-outlined text-blue-600 text-[18px] flex-shrink-0 mt-0.5">tips_and_updates</span>
-            <div className="text-xs text-[#191c1e]">
+            <Lightbulb size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="text-xs text-[#13241b]">
               <p className="font-bold mb-1">Conseils pour un bon contexte :</p>
               <ul className="space-y-0.5 text-[#5c647a]">
                 <li>• Décrivez clairement vos produits et leurs prix</li>
@@ -177,7 +187,7 @@ export default function SupportAIPage() {
 
         {/* Color */}
         <div>
-          <label className="block text-sm font-bold text-[#191c1e] mb-2">Couleur du widget</label>
+          <label className="block text-sm font-bold text-[#13241b] mb-2">Couleur du widget</label>
           <div className="flex items-center gap-3">
             <input
               type="color"
@@ -217,17 +227,17 @@ export default function SupportAIPage() {
           >
             {saving ? (
               <>
-                <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <Loader2 size={16} className="animate-spin" />
                 Enregistrement…
               </>
             ) : saved ? (
               <>
-                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                <CheckCircle2 size={16} />
                 Enregistré !
               </>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[16px]">save</span>
+                <Save size={16} />
                 Enregistrer
               </>
             )}
@@ -244,8 +254,8 @@ export default function SupportAIPage() {
 
       {/* Preview section */}
       <div className="mt-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-2xl border border-blue-100 p-6">
-        <h3 className="text-base font-bold text-[#191c1e] mb-2 flex items-center gap-2">
-          <span className="material-symbols-outlined text-blue-600">visibility</span>
+        <h3 className="text-base font-bold text-[#13241b] mb-2 flex items-center gap-2">
+          <Eye size={20} className="text-blue-600" />
           Aperçu du widget
         </h3>
         <p className="text-sm text-[#5c647a] mb-4">
@@ -261,7 +271,7 @@ export default function SupportAIPage() {
               style={{ backgroundColor: config.color }}
               disabled
             >
-              <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>chat</span>
+              <MessageCircle size={26} />
             </button>
           </div>
         </div>

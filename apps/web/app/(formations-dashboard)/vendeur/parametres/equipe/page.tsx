@@ -17,6 +17,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, UserPlus, UserMinus, Mail, X } from "lucide-react";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
 
@@ -174,9 +175,9 @@ export default function VendorTeamPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         <Link
           href="/vendeur/parametres"
-          className="text-sm font-semibold text-[#5c647a] hover:text-[#191c1e] inline-flex items-center gap-1.5"
+          className="text-sm font-semibold text-[#5c647a] hover:text-[#13241b] inline-flex items-center gap-1.5"
         >
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          <ArrowLeft size={18} />
           Paramètres
         </Link>
 
@@ -184,7 +185,7 @@ export default function VendorTeamPage() {
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#006e2f] mb-1">
             Collaborateurs
           </p>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">
             Équipe de la boutique
           </h1>
           <p className="text-sm text-[#5c647a] mt-2">
@@ -200,7 +201,7 @@ export default function VendorTeamPage() {
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold shadow-md shadow-emerald-500/20"
               style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[18px]">person_add</span>
+              <UserPlus size={18} />
               Inviter un collaborateur
             </button>
             {!canInviteManager && (
@@ -221,7 +222,7 @@ export default function VendorTeamPage() {
               className="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-lg font-extrabold text-[#191c1e] mb-1">Inviter un collaborateur</h2>
+              <h2 className="text-lg font-extrabold text-[#13241b] mb-1">Inviter un collaborateur</h2>
               <p className="text-xs text-[#5c647a] mb-5">
                 Un email sera envoyé avec un lien sécurisé. Le lien expire dans 14 jours.
               </p>
@@ -253,7 +254,7 @@ export default function VendorTeamPage() {
                         className="mt-0.5"
                       />
                       <div>
-                        <p className="text-sm font-bold text-[#191c1e]">Éditeur</p>
+                        <p className="text-sm font-bold text-[#13241b]">Éditeur</p>
                         <p className="text-xs text-[#5c647a]">Gère les produits uniquement (création, édition, publication). Ne peut pas inviter ni retirer.</p>
                       </div>
                     </label>
@@ -266,7 +267,7 @@ export default function VendorTeamPage() {
                           className="mt-0.5"
                         />
                         <div>
-                          <p className="text-sm font-bold text-[#191c1e]">Manager</p>
+                          <p className="text-sm font-bold text-[#13241b]">Manager</p>
                           <p className="text-xs text-[#5c647a]">Gère l&apos;équipe et les produits. Peut inviter des Éditeurs. Ne peut pas retirer.</p>
                         </div>
                       </label>
@@ -305,7 +306,7 @@ export default function VendorTeamPage() {
         {/* Membres */}
         <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="font-extrabold text-[#191c1e]">Membres ({members.length})</h2>
+            <h2 className="font-extrabold text-[#13241b]">Membres ({members.length})</h2>
           </div>
           <div className="divide-y divide-gray-100">
             {members.map((m) => (
@@ -319,7 +320,7 @@ export default function VendorTeamPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-[#191c1e] truncate">{m.name ?? m.email}</p>
+                  <p className="text-sm font-bold text-[#13241b] truncate">{m.name ?? m.email}</p>
                   <p className="text-xs text-[#5c647a] truncate">{m.email}</p>
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${ROLE_COLOR[m.role]}`}>
@@ -331,7 +332,7 @@ export default function VendorTeamPage() {
                     className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-600 transition-colors"
                     title="Retirer"
                   >
-                    <span className="material-symbols-outlined text-[18px]">person_remove</span>
+                    <UserMinus size={18} />
                   </button>
                 )}
               </div>
@@ -346,7 +347,7 @@ export default function VendorTeamPage() {
         {invitations.length > 0 && (
           <section className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="font-extrabold text-[#191c1e]">
+              <h2 className="font-extrabold text-[#13241b]">
                 Invitations en attente ({invitations.length})
               </h2>
               <p className="text-xs text-[#5c647a] mt-0.5">
@@ -357,10 +358,10 @@ export default function VendorTeamPage() {
               {invitations.map((i) => (
                 <div key={i.id} className="px-6 py-4 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-[20px]">mail</span>
+                    <Mail size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-[#191c1e] truncate">{i.email}</p>
+                    <p className="text-sm font-bold text-[#13241b] truncate">{i.email}</p>
                     <p className="text-xs text-[#5c647a]">
                       Envoyée le {new Date(i.createdAt).toLocaleDateString("fr-FR")} · Expire le {new Date(i.expiresAt).toLocaleDateString("fr-FR")}
                     </p>
@@ -374,7 +375,7 @@ export default function VendorTeamPage() {
                       className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-600 transition-colors"
                       title="Annuler l'invitation"
                     >
-                      <span className="material-symbols-outlined text-[18px]">close</span>
+                      <X size={18} />
                     </button>
                   )}
                 </div>

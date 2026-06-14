@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { confirmAction } from "@/store/confirm";
+import { ArrowLeft, Send, FlaskConical, Mail, List } from "lucide-react";
 
 interface Recipient {
   id: string;
@@ -197,7 +198,7 @@ export default function AdminCampaignDetailPage() {
           href="/admin/emails"
           className="text-xs font-semibold text-zinc-500 hover:text-zinc-900 inline-flex items-center gap-1 mb-6"
         >
-          <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+          <ArrowLeft size={16} />
           Retour aux campagnes
         </Link>
 
@@ -209,7 +210,7 @@ export default function AdminCampaignDetailPage() {
               </span>
               <span className="text-xs text-zinc-500">· Segment : {campaign.segmentLabel}</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-zinc-900 break-words">
+            <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#13241b] break-words">
               {campaign.subject}
             </h1>
             <p className="text-xs text-zinc-500 mt-2">
@@ -226,7 +227,7 @@ export default function AdminCampaignDetailPage() {
                   disabled={!!busy}
                   className="px-5 py-2.5 bg-gradient-to-r from-[#006e2f] to-[#22c55e] text-white text-sm font-bold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
                 >
-                  <span className="material-symbols-outlined text-[18px]">send</span>
+                  <Send size={18} />
                   Envoyer maintenant
                 </button>
                 <button
@@ -259,7 +260,7 @@ export default function AdminCampaignDetailPage() {
           </div>
           <div className="bg-white rounded-2xl border border-zinc-100 p-5">
             <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">Clics</p>
-            <p className="text-2xl font-extrabold text-purple-600 tabular-nums">{clickRate}%</p>
+            <p className="text-2xl font-extrabold text-[#006e2f] tabular-nums">{clickRate}%</p>
             <p className="text-[10px] text-zinc-400 mt-1">{campaign.clickedCount.toLocaleString("fr-FR")} clics</p>
           </div>
         </div>
@@ -267,8 +268,8 @@ export default function AdminCampaignDetailPage() {
         {/* Test email */}
         {isDraft && (
           <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-8">
-            <h3 className="text-sm font-bold text-zinc-900 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-[#006e2f]">science</span>
+            <h3 className="text-sm font-bold text-[#13241b] mb-3 flex items-center gap-2">
+              <FlaskConical size={18} className="text-[#006e2f]" />
               Envoyer un test
             </h3>
             <p className="text-xs text-zinc-500 mb-4">
@@ -295,8 +296,8 @@ export default function AdminCampaignDetailPage() {
 
         {/* Preview */}
         <div className="bg-white rounded-2xl border border-zinc-100 p-6 mb-8">
-          <h3 className="text-sm font-bold text-zinc-900 mb-4 flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px] text-[#006e2f]">mail</span>
+          <h3 className="text-sm font-bold text-[#13241b] mb-4 flex items-center gap-2">
+            <Mail size={18} className="text-[#006e2f]" />
             Aperçu du contenu
           </h3>
           <div className="border border-zinc-100 rounded-xl overflow-hidden bg-zinc-50">
@@ -313,8 +314,8 @@ export default function AdminCampaignDetailPage() {
         {isSent && campaign.recipients.length > 0 && (
           <div className="bg-white rounded-2xl border border-zinc-100 overflow-hidden">
             <div className="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-zinc-900 flex items-center gap-2">
-                <span className="material-symbols-outlined text-[18px] text-[#006e2f]">list</span>
+              <h3 className="text-sm font-bold text-[#13241b] flex items-center gap-2">
+                <List size={18} className="text-[#006e2f]" />
                 Destinataires récents ({campaign.recipients.length})
               </h3>
             </div>
@@ -332,7 +333,7 @@ export default function AdminCampaignDetailPage() {
                 {campaign.recipients.map((r) => (
                   <tr key={r.id} className="border-b border-zinc-100 hover:bg-zinc-50 transition-colors">
                     <td className="px-6 py-3">
-                      <p className="text-sm font-semibold text-zinc-900 truncate max-w-[260px]">{r.email}</p>
+                      <p className="text-sm font-semibold text-[#13241b] truncate max-w-[260px]">{r.email}</p>
                     </td>
                     <td className="px-6 py-3">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${RECIPIENT_STATUS_COLOR[r.status]}`}>

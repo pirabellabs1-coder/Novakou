@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Star } from "lucide-react";
 
 type Review = {
   id: string;
@@ -37,15 +38,17 @@ function timeAgo(dateStr: string) {
 function Stars({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <span
-          key={n}
-          className={`material-symbols-outlined text-[14px] ${n <= Math.round(rating) ? "text-[#22c55e]" : "text-zinc-200"}`}
-          style={{ fontVariationSettings: "'FILL' 1" }}
-        >
-          star
-        </span>
-      ))}
+      {[1, 2, 3, 4, 5].map((n) => {
+        const on = n <= Math.round(rating);
+        return (
+          <Star
+            key={n}
+            size={14}
+            className={on ? "text-[#22c55e]" : "text-zinc-200"}
+            fill={on ? "#22c55e" : "transparent"}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -68,7 +71,7 @@ export default function AdminCommentairesPage() {
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
             Moderation Center
           </span>
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-zinc-900">Commentaires &amp; Avis</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-[#13241b]">Commentaires &amp; Avis</h1>
           <p className="text-sm text-zinc-500 mt-3">
             {isLoading ? "Chargement…" : `${summary?.total ?? 0} avis · Note moyenne ${summary?.avgRating.toFixed(2) ?? "0"}/5`}
           </p>
@@ -91,7 +94,7 @@ export default function AdminCommentairesPage() {
                     <div key={row.star} className="flex items-center gap-4">
                       <div className="flex items-center gap-1 w-12">
                         <span className="text-sm font-extrabold tabular-nums text-zinc-900">{row.star}</span>
-                        <span className="material-symbols-outlined text-[14px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                        <Star size={14} className="text-[#22c55e]" fill="#22c55e" />
                       </div>
                       <div className="flex-1 h-[2px] bg-zinc-100">
                         <div className="h-full bg-[#22c55e] transition-all" style={{ width: `${pct}%` }} />

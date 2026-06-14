@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { type LucideIcon, History, Ban, PauseCircle, CheckCircle2, BadgeCheck, XCircle, Package, Banknote, Settings, Flag, ArrowLeftRight, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 
 interface AuditEntry {
   id: string;
@@ -25,23 +26,23 @@ interface AuditResponse {
   actions: { action: string; count: number }[];
 }
 
-const ACTION_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  user_banned: { label: "Utilisateur banni", color: "bg-red-100 text-red-700", icon: "block" },
-  user_suspended: { label: "Utilisateur suspendu", color: "bg-orange-100 text-orange-700", icon: "pause_circle" },
-  user_activated: { label: "Utilisateur activé", color: "bg-green-100 text-green-700", icon: "check_circle" },
-  kyc_approved: { label: "KYC approuvé", color: "bg-green-100 text-green-700", icon: "verified" },
-  kyc_rejected: { label: "KYC rejeté", color: "bg-red-100 text-red-700", icon: "cancel" },
-  product_approved: { label: "Produit approuvé", color: "bg-green-100 text-green-700", icon: "inventory_2" },
-  product_rejected: { label: "Produit rejeté", color: "bg-red-100 text-red-700", icon: "inventory_2" },
-  withdrawal_approved: { label: "Retrait approuvé", color: "bg-blue-100 text-blue-700", icon: "payments" },
-  withdrawal_rejected: { label: "Retrait rejeté", color: "bg-red-100 text-red-700", icon: "payments" },
-  config_updated: { label: "Configuration modifiée", color: "bg-purple-100 text-purple-700", icon: "settings" },
-  report_resolved: { label: "Signalement résolu", color: "bg-teal-100 text-teal-700", icon: "flag" },
-  refund_processed: { label: "Remboursement traité", color: "bg-amber-100 text-amber-700", icon: "currency_exchange" },
+const ACTION_LABELS: Record<string, { label: string; color: string; icon: LucideIcon }> = {
+  user_banned: { label: "Utilisateur banni", color: "bg-rose-100 text-rose-700", icon: Ban },
+  user_suspended: { label: "Utilisateur suspendu", color: "bg-amber-100 text-amber-700", icon: PauseCircle },
+  user_activated: { label: "Utilisateur activé", color: "bg-green-100 text-green-700", icon: CheckCircle2 },
+  kyc_approved: { label: "KYC approuvé", color: "bg-green-100 text-green-700", icon: BadgeCheck },
+  kyc_rejected: { label: "KYC rejeté", color: "bg-rose-100 text-rose-700", icon: XCircle },
+  product_approved: { label: "Produit approuvé", color: "bg-green-100 text-green-700", icon: Package },
+  product_rejected: { label: "Produit rejeté", color: "bg-rose-100 text-rose-700", icon: Package },
+  withdrawal_approved: { label: "Retrait approuvé", color: "bg-blue-100 text-blue-700", icon: Banknote },
+  withdrawal_rejected: { label: "Retrait rejeté", color: "bg-rose-100 text-rose-700", icon: Banknote },
+  config_updated: { label: "Configuration modifiée", color: "bg-green-100 text-green-700", icon: Settings },
+  report_resolved: { label: "Signalement résolu", color: "bg-teal-100 text-teal-700", icon: Flag },
+  refund_processed: { label: "Remboursement traité", color: "bg-amber-100 text-amber-700", icon: ArrowLeftRight },
 };
 
 function getActionInfo(action: string) {
-  return ACTION_LABELS[action] || { label: action, color: "bg-gray-100 text-gray-700", icon: "history" };
+  return ACTION_LABELS[action] || { label: action, color: "bg-gray-100 text-gray-700", icon: History };
 }
 
 function formatDate(dateStr: string) {
@@ -71,8 +72,8 @@ export default function AdminAuditPage() {
     <div className="p-4 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-[#191c1e] flex items-center gap-2">
-          <span className="material-symbols-outlined text-[#006e2f]">history</span>
+        <h1 className="text-xl font-bold text-[#13241b] flex items-center gap-2">
+          <History size={22} className="text-[#006e2f]" />
           Journal d&apos;audit
         </h1>
         <p className="text-sm text-[#5c647a] mt-1">
@@ -131,11 +132,11 @@ export default function AdminAuditPage() {
       <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <span className="material-symbols-outlined text-[#006e2f] text-3xl animate-spin">progress_activity</span>
+            <Loader2 size={30} className="text-[#006e2f] animate-spin" />
           </div>
         ) : !data?.data?.length ? (
           <div className="flex flex-col items-center justify-center py-20 text-[#5c647a]">
-            <span className="material-symbols-outlined text-4xl mb-2">history</span>
+            <History size={36} className="mb-2" />
             <p className="text-sm font-medium">Aucune entrée d&apos;audit</p>
             <p className="text-xs mt-1">Les actions admin seront enregistrées ici</p>
           </div>
@@ -177,7 +178,7 @@ export default function AdminAuditPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold ${info.color}`}>
-                          <span className="material-symbols-outlined text-[12px]">{info.icon}</span>
+                          <info.icon size={12} />
                           {info.label}
                         </span>
                       </td>
@@ -198,9 +199,7 @@ export default function AdminAuditPage() {
                             className="p-1 text-[#5c647a] hover:text-[#191c1e] transition-colors"
                             title="Voir les détails"
                           >
-                            <span className="material-symbols-outlined text-[16px]">
-                              {isExpanded ? "expand_less" : "expand_more"}
-                            </span>
+                            {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                           </button>
                         )}
                       </td>

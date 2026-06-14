@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { type LucideIcon, BarChart3, Landmark, Users, ShoppingCart, Package, FileText, Plus, Loader2, Play, Download, ChevronDown, ChevronUp } from "lucide-react";
 
 interface SavedReport {
   id: string;
@@ -21,11 +22,11 @@ interface ReportsResponse {
   pages: number;
 }
 
-const REPORT_TYPES = [
-  { value: "financial", label: "Financier", icon: "account_balance", color: "bg-emerald-100 text-emerald-700" },
-  { value: "users", label: "Utilisateurs", icon: "people", color: "bg-blue-100 text-blue-700" },
-  { value: "sales", label: "Ventes", icon: "shopping_cart", color: "bg-purple-100 text-purple-700" },
-  { value: "products", label: "Produits", icon: "inventory_2", color: "bg-amber-100 text-amber-700" },
+const REPORT_TYPES: { value: string; label: string; icon: LucideIcon; color: string }[] = [
+  { value: "financial", label: "Financier", icon: Landmark, color: "bg-emerald-100 text-emerald-700" },
+  { value: "users", label: "Utilisateurs", icon: Users, color: "bg-blue-100 text-blue-700" },
+  { value: "sales", label: "Ventes", icon: ShoppingCart, color: "bg-green-100 text-green-700" },
+  { value: "products", label: "Produits", icon: Package, color: "bg-amber-100 text-amber-700" },
 ];
 
 function formatDate(dateStr: string | null) {
@@ -116,8 +117,8 @@ export default function AdminRapportsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-[#191c1e] flex items-center gap-2">
-            <span className="material-symbols-outlined text-[#006e2f]">assessment</span>
+          <h1 className="text-xl font-bold text-[#13241b] flex items-center gap-2">
+            <BarChart3 size={22} className="text-[#006e2f]" />
             Rapports
           </h1>
           <p className="text-sm text-[#5c647a] mt-1">
@@ -128,7 +129,7 @@ export default function AdminRapportsPage() {
           onClick={() => setShowGenerate(!showGenerate)}
           className="flex items-center gap-2 px-4 py-2.5 bg-[#006e2f] text-white text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-[#005a26] transition-colors"
         >
-          <span className="material-symbols-outlined text-[16px]">add</span>
+          <Plus size={16} />
           Nouveau rapport
         </button>
       </div>
@@ -136,7 +137,7 @@ export default function AdminRapportsPage() {
       {/* Generate form */}
       {showGenerate && (
         <div className="bg-white rounded-xl border border-gray-100 p-5 mb-4">
-          <h2 className="text-sm font-bold text-[#191c1e] mb-4">Générer un rapport</h2>
+          <h2 className="text-sm font-bold text-[#13241b] mb-4">Générer un rapport</h2>
           <div className="flex flex-wrap gap-4 items-end">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest text-[#5c647a] mb-1">Type</label>
@@ -174,9 +175,9 @@ export default function AdminRapportsPage() {
               className="flex items-center gap-2 px-4 py-2 bg-[#006e2f] text-white text-xs font-bold uppercase tracking-widest rounded-lg hover:bg-[#005a26] disabled:opacity-50 transition-colors"
             >
               {generateMutation.isPending ? (
-                <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <Loader2 size={16} className="animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-[16px]">play_arrow</span>
+                <Play size={16} />
               )}
               {generateMutation.isPending ? "Génération..." : "Générer"}
             </button>
@@ -202,18 +203,21 @@ export default function AdminRapportsPage() {
           >
             Tous
           </button>
-          {REPORT_TYPES.map((t) => (
-            <button
-              key={t.value}
-              onClick={() => { setTypeFilter(t.value); setPage(1); }}
-              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 ${
-                typeFilter === t.value ? "bg-[#006e2f] text-white" : "bg-gray-100 text-[#5c647a] hover:bg-gray-200"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
+          {REPORT_TYPES.map((t) => {
+            const TIcon = t.icon;
+            return (
+              <button
+                key={t.value}
+                onClick={() => { setTypeFilter(t.value); setPage(1); }}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors flex items-center gap-1 ${
+                  typeFilter === t.value ? "bg-[#006e2f] text-white" : "bg-gray-100 text-[#5c647a] hover:bg-gray-200"
+                }`}
+              >
+                <TIcon size={14} />
+                {t.label}
+              </button>
+            );
+          })}
         </div>
         <div className="flex-1" />
         <span className="text-xs text-[#5c647a]">{data?.total ?? 0} rapports</span>
@@ -223,27 +227,28 @@ export default function AdminRapportsPage() {
       <div className="space-y-3">
         {isLoading ? (
           <div className="bg-white rounded-xl border border-gray-100 flex items-center justify-center py-20">
-            <span className="material-symbols-outlined text-[#006e2f] text-3xl animate-spin">progress_activity</span>
+            <Loader2 size={30} className="text-[#006e2f] animate-spin" />
           </div>
         ) : !data?.data?.length ? (
           <div className="bg-white rounded-xl border border-gray-100 flex flex-col items-center justify-center py-20 text-[#5c647a]">
-            <span className="material-symbols-outlined text-4xl mb-2">assessment</span>
+            <BarChart3 size={36} className="mb-2" />
             <p className="text-sm font-medium">Aucun rapport</p>
             <p className="text-xs mt-1">Cliquez sur &quot;Nouveau rapport&quot; pour en générer un</p>
           </div>
         ) : (
           data.data.map((report) => {
             const typeInfo = REPORT_TYPES.find((t) => t.value === report.type);
+            const ReportIcon = typeInfo?.icon ?? FileText;
             const isExpanded = expandedId === report.id;
 
             return (
               <div key={report.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
                 <div className="flex items-center gap-4 p-4 hover:bg-gray-50/50 transition-colors">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${typeInfo?.color || "bg-gray-100 text-gray-700"}`}>
-                    <span className="material-symbols-outlined text-[20px]">{typeInfo?.icon || "description"}</span>
+                    <ReportIcon size={20} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#191c1e] truncate">{report.title}</p>
+                    <p className="text-sm font-semibold text-[#13241b] truncate">{report.title}</p>
                     <p className="text-[10px] text-[#5c647a] mt-0.5">
                       {formatDate(report.dateFrom)} → {formatDate(report.dateTo)}
                       {" · "}Généré par {report.generator.name || report.generator.email}
@@ -256,14 +261,14 @@ export default function AdminRapportsPage() {
                       className="p-2 text-[#5c647a] hover:text-[#006e2f] hover:bg-[#006e2f]/10 rounded-lg transition-colors"
                       title="Exporter CSV"
                     >
-                      <span className="material-symbols-outlined text-[18px]">download</span>
+                      <Download size={18} />
                     </button>
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : report.id)}
                       className="p-2 text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-100 rounded-lg transition-colors"
                       title="Voir les données"
                     >
-                      <span className="material-symbols-outlined text-[18px]">{isExpanded ? "expand_less" : "expand_more"}</span>
+                      {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
                   </div>
                 </div>
@@ -276,7 +281,7 @@ export default function AdminRapportsPage() {
                       {Object.entries(report.data).filter(([, v]) => typeof v === "number").map(([key, value]) => (
                         <div key={key} className="bg-white rounded-lg border border-gray-200 px-3 py-2 min-w-[120px]">
                           <p className="text-[10px] font-bold uppercase tracking-widest text-[#5c647a]">{key.replace(/([A-Z])/g, " $1").trim()}</p>
-                          <p className="text-lg font-bold text-[#191c1e]">
+                          <p className="text-lg font-bold text-[#13241b]">
                             {key.toLowerCase().includes("revenue") || key.toLowerCase().includes("amount") || key.toLowerCase().includes("withdrawal")
                               ? `${(value as number).toLocaleString("fr-FR")} FCFA`
                               : (value as number).toLocaleString("fr-FR")}

@@ -6,14 +6,15 @@ import Link from "next/link";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
 import { useToastStore } from "@/store/toast";
 import { confirmAction } from "@/store/confirm";
+import { type LucideIcon, ArrowLeft, Globe, Store, Headset, GraduationCap, CheckCircle2, Users, Send, Loader2, Megaphone } from "lucide-react";
 
 type Segment = "all" | "vendors" | "mentors" | "learners";
 
-const SEGMENTS: { value: Segment; label: string; description: string; icon: string }[] = [
-  { value: "all", label: "Tous les utilisateurs", description: "Vendeurs, mentors, apprenants, admins — tous les comptes actifs", icon: "public" },
-  { value: "vendors", label: "Tous les vendeurs", description: "Utilisateurs ayant un profil instructeur (peuvent vendre des formations/produits)", icon: "storefront" },
-  { value: "mentors", label: "Tous les mentors", description: "Utilisateurs ayant un profil mentor (séances 1-to-1)", icon: "support_agent" },
-  { value: "learners", label: "Tous les apprenants", description: "Utilisateurs ayant acheté au moins une formation ou un produit", icon: "school" },
+const SEGMENTS: { value: Segment; label: string; description: string; icon: LucideIcon }[] = [
+  { value: "all", label: "Tous les utilisateurs", description: "Vendeurs, mentors, apprenants, admins — tous les comptes actifs", icon: Globe },
+  { value: "vendors", label: "Tous les vendeurs", description: "Utilisateurs ayant un profil instructeur (peuvent vendre des formations/produits)", icon: Store },
+  { value: "mentors", label: "Tous les mentors", description: "Utilisateurs ayant un profil mentor (séances 1-to-1)", icon: Headset },
+  { value: "learners", label: "Tous les apprenants", description: "Utilisateurs ayant acheté au moins une formation ou un produit", icon: GraduationCap },
 ];
 
 export default function NouvelleCampagnePage() {
@@ -136,7 +137,7 @@ export default function NouvelleCampagnePage() {
           href="/admin/emails"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 mb-6"
         >
-          <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          <ArrowLeft size={14} />
           Retour aux campagnes
         </Link>
 
@@ -144,7 +145,7 @@ export default function NouvelleCampagnePage() {
           <span className="font-sans text-[10px] uppercase tracking-[0.2em] font-bold text-[#006e2f] mb-2 block">
             Communication
           </span>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-zinc-900">
+          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#13241b]">
             Nouvelle campagne
           </h1>
         </header>
@@ -154,11 +155,13 @@ export default function NouvelleCampagnePage() {
           <section className="bg-white rounded-2xl border border-zinc-100 p-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-7 h-7 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">1</span>
-              <h2 className="text-base font-extrabold text-zinc-900">Destinataires</h2>
+              <h2 className="text-base font-extrabold text-[#13241b]">Destinataires</h2>
             </div>
             <p className="text-sm text-zinc-500 mb-4">Choisissez le groupe qui recevra cette campagne.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {SEGMENTS.map((s) => (
+              {SEGMENTS.map((s) => {
+                const SegIcon = s.icon;
+                return (
                 <button
                   key={s.value}
                   type="button"
@@ -173,23 +176,24 @@ export default function NouvelleCampagnePage() {
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                       segment === s.value ? "bg-[#006e2f] text-white" : "bg-zinc-100 text-zinc-600"
                     }`}>
-                      <span className="material-symbols-outlined text-[20px]">{s.icon}</span>
+                      <SegIcon size={20} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-bold ${segment === s.value ? "text-[#006e2f]" : "text-zinc-900"}`}>
+                      <p className={`text-sm font-bold ${segment === s.value ? "text-[#006e2f]" : "text-[#13241b]"}`}>
                         {s.label}
                       </p>
                       <p className="text-xs text-zinc-500 mt-0.5">{s.description}</p>
                     </div>
                     {segment === s.value && (
-                      <span className="material-symbols-outlined text-[#006e2f] text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                      <CheckCircle2 size={20} className="text-[#006e2f] flex-shrink-0" />
                     )}
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
             <div className="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-2">
-              <span className="material-symbols-outlined text-[#006e2f] text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>group</span>
+              <Users size={18} className="text-[#006e2f]" />
               <p className="text-sm text-emerald-900 font-semibold">
                 {loadingCount
                   ? "Calcul en cours…"
@@ -202,7 +206,7 @@ export default function NouvelleCampagnePage() {
           <section className="bg-white rounded-2xl border border-zinc-100 p-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-7 h-7 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">2</span>
-              <h2 className="text-base font-extrabold text-zinc-900">Objet de l&apos;email</h2>
+              <h2 className="text-base font-extrabold text-[#13241b]">Objet de l&apos;email</h2>
             </div>
             <input
               type="text"
@@ -221,7 +225,7 @@ export default function NouvelleCampagnePage() {
           <section className="bg-white rounded-2xl border border-zinc-100 p-6">
             <div className="flex items-center gap-2 mb-4">
               <span className="w-7 h-7 rounded-full bg-[#006e2f] text-white text-xs flex items-center justify-center font-bold">3</span>
-              <h2 className="text-base font-extrabold text-zinc-900">Contenu du message</h2>
+              <h2 className="text-base font-extrabold text-[#13241b]">Contenu du message</h2>
             </div>
             <p className="text-xs text-zinc-500 mb-3">
               Utilisez l&apos;éditeur pour mettre en forme votre message.
@@ -246,7 +250,7 @@ export default function NouvelleCampagnePage() {
               disabled={saving || sending}
               className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-zinc-200 bg-white text-sm font-bold text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[18px]">send</span>
+              <Send size={18} />
               Envoyer un test à moi-même
             </button>
             <button
@@ -258,12 +262,12 @@ export default function NouvelleCampagnePage() {
             >
               {sending ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                  <Loader2 size={18} className="animate-spin" />
                   Envoi en cours…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">campaign</span>
+                  <Megaphone size={18} />
                   Envoyer à {(recipientCount ?? 0).toLocaleString("fr-FR")} destinataire{(recipientCount ?? 0) > 1 ? "s" : ""}
                 </>
               )}

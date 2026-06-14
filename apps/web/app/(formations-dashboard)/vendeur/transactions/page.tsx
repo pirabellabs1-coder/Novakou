@@ -13,14 +13,15 @@ import {
   LineChart,
 } from "lucide-react";
 import {
-  KazaHero,
-  KazaCard,
-  KazaKpiCard,
-  KazaButton,
-  KazaBadge,
-  KazaSection,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StStatusPill,
+  StKpiCompact,
+  StSectionTitle,
+  StAvatar,
+  ST,
+} from "@/components/stitch";
 
 type Txn = {
   id: string;
@@ -44,42 +45,38 @@ type Summary = {
 
 type StatusFilter = "all" | "completed" | "refunded" | "pending_refund";
 
-const statusBadge: Record<string, { label: string; variant: "green" | "orange" | "rose" | "slate" }> = {
-  completed: { label: "Complété", variant: "green" },
-  pending_refund: { label: "Remboursement", variant: "orange" },
-  refunded: { label: "Remboursé", variant: "rose" },
+const statusBadge: Record<string, { label: string; tone: "green" | "amber" | "rose" }> = {
+  completed: { label: "Complété", tone: "green" },
+  pending_refund: { label: "Remboursement", tone: "amber" },
+  refunded: { label: "Remboursé", tone: "rose" },
+};
+
+const STATUS_PILL: Record<string, "TRAITE" | "EN_ATTENTE" | "REFUSE"> = {
+  completed: "TRAITE",
+  pending_refund: "EN_ATTENTE",
+  refunded: "REFUSE",
 };
 
 function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
-const GRADIENTS = [
-  "from-violet-400 to-purple-600",
-  "from-blue-400 to-sky-600",
-  "from-pink-400 to-rose-500",
-  "from-amber-400 to-orange-500",
-  "from-teal-400 to-emerald-600",
-  "from-indigo-400 to-indigo-600",
-  "from-green-400 to-emerald-600",
-];
-
 function SkeletonRow() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr_1fr] gap-4 px-6 py-4 animate-pulse items-center">
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-slate-100 flex-shrink-0" />
+        <div className="w-9 h-9 rounded-full flex-shrink-0" style={{ background: "#eef2ef" }} />
         <div className="space-y-1.5">
-          <div className="h-3 bg-slate-100 rounded w-24" />
-          <div className="h-2 bg-slate-100 rounded w-16" />
+          <div className="h-3 rounded w-24" style={{ background: "#eef2ef" }} />
+          <div className="h-2 rounded w-16" style={{ background: "#eef2ef" }} />
         </div>
       </div>
       <div className="space-y-1.5">
-        <div className="h-3 bg-slate-100 rounded w-40" />
-        <div className="h-2 bg-slate-100 rounded w-24" />
+        <div className="h-3 rounded w-40" style={{ background: "#eef2ef" }} />
+        <div className="h-2 rounded w-24" style={{ background: "#eef2ef" }} />
       </div>
-      <div className="h-4 bg-slate-100 rounded w-20" />
-      <div className="h-5 bg-slate-100 rounded-full w-16" />
+      <div className="h-4 rounded w-20" style={{ background: "#eef2ef" }} />
+      <div className="h-5 rounded-full w-16" style={{ background: "#eef2ef" }} />
     </div>
   );
 }
@@ -170,12 +167,9 @@ export default function TransactionsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1400px] mx-auto space-y-8">
-        <KazaHero
-          badge="Pro"
-          badgeColor="orange"
-          icon={Receipt}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto">
+        <StPageHeader
           title="Transactions"
           subtitle={
             isLoading
@@ -183,62 +177,60 @@ export default function TransactionsPage() {
               : `${summary?.total ?? 0} transaction${(summary?.total ?? 0) !== 1 ? "s" : ""} · Historique complet de vos ventes`
           }
           actions={
-            <KazaButton
+            <StButton
               variant="secondary"
               icon={Download}
               onClick={exportCSV}
               disabled={allTxns.length === 0}
             >
               Exporter CSV
-            </KazaButton>
+            </StButton>
           }
         />
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <KazaKpiCard
-            label="Revenus filtrés"
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 mb-4">
+          <StKpiCompact
+            label={`Revenus filtrés · ≈ ${Math.round(filteredRevenue / 655.957).toLocaleString("fr-FR")} €`}
             value={isLoading ? "…" : `${formatFCFA(filteredRevenue)} FCFA`}
-            delta={`≈ ${Math.round(filteredRevenue / 655.957).toLocaleString("fr-FR")} €`}
             icon={Wallet}
-            iconColor="emerald"
+            tone="green"
           />
-          <KazaKpiCard
-            label="Transactions"
+          <StKpiCompact
+            label={`Transactions · ${filtered.filter((t) => t.status === "completed").length} complétée${filtered.filter((t) => t.status === "completed").length !== 1 ? "s" : ""}`}
             value={filtered.length}
-            delta={`${filtered.filter((t) => t.status === "completed").length} complétée${filtered.filter((t) => t.status === "completed").length !== 1 ? "s" : ""}`}
             icon={ShoppingBag}
-            iconColor="sky"
+            tone="blue"
           />
-          <KazaKpiCard
-            label="Remboursements"
+          <StKpiCompact
+            label={`Remboursements · ${summary?.refunded ?? 0} remb.`}
             value={isLoading ? "…" : `${formatFCFA(summary?.pendingRevenue ?? 0)} FCFA`}
-            delta={`${summary?.refunded ?? 0} remboursement${(summary?.refunded ?? 0) !== 1 ? "s" : ""}`}
             icon={Undo2}
-            iconColor="rose"
+            tone="rose"
           />
         </div>
 
         {/* Revenue trend */}
-        <KazaCard
-          title="Évolution des revenus"
-          subtitle="Tendance 30 jours"
-          action={
+        <StCard className="!p-[18px_20px] mb-4">
+          <div className="flex justify-between items-start mb-2">
+            <div>
+              <StSectionTitle className="!mb-0">Évolution des revenus</StSectionTitle>
+              <p className="text-[11.5px] font-semibold mt-0.5" style={{ color: ST.textSecondary }}>Tendance 30 jours</p>
+            </div>
             <div className="text-right">
-              <p className="text-lg font-extrabold text-emerald-700 tabular-nums">
+              <p className="text-[18px] font-extrabold tabular-nums" style={{ color: ST.green }}>
                 {formatFCFA(dailyChart.reduce((s, x) => s + x.amount, 0))} FCFA
               </p>
-              <p className="text-[10px] text-slate-500">cumul 30 j</p>
+              <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>cumul 30 j</p>
             </div>
-          }
-        >
+          </div>
           {isLoading ? (
-            <div className="h-[200px] bg-slate-50 rounded-xl animate-pulse" />
+            <div className="h-[200px] rounded-xl animate-pulse" style={{ background: "#f3f6f4" }} />
           ) : !hasDailyData ? (
             <div className="h-[200px] flex items-center justify-center">
               <div className="text-center">
-                <LineChart className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">Aucune vente sur les 30 derniers jours</p>
+                <LineChart className="w-8 h-8 mx-auto mb-2" style={{ color: "#d6e0da" }} />
+                <p className="text-[13px] font-bold" style={{ color: ST.textSecondary }}>Aucune vente sur les 30 derniers jours</p>
               </div>
             </div>
           ) : (
@@ -250,124 +242,129 @@ export default function TransactionsPage() {
                     <stop offset="100%" stopColor="#22c55e" stopOpacity={0.02} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} interval={3} />
-                <YAxis tick={{ fontSize: 10, fill: "#5c647a" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke={ST.divider} vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: ST.textFaint, fontWeight: 600 }} axisLine={false} tickLine={false} interval={3} />
+                <YAxis tick={{ fontSize: 10, fill: ST.textFaint, fontWeight: 600 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid #eef0f3", fontSize: 12, padding: "8px 12px" }}
+                  contentStyle={{ borderRadius: 12, border: `1px solid ${ST.cardBorder}`, fontSize: 12, fontWeight: 600, padding: "8px 12px" }}
                   formatter={(v: number) => [`${formatFCFA(v)} FCFA`, "Revenus"]}
                 />
-                <Area type="monotone" dataKey="amount" stroke="#006e2f" strokeWidth={2.5} fill="url(#txnRevGrad)" />
+                <Area type="monotone" dataKey="amount" stroke={ST.green} strokeWidth={2.5} fill="url(#txnRevGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           )}
-        </KazaCard>
+        </StCard>
 
         {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: ST.textMuted }} />
             <input
               type="text"
               placeholder="Rechercher par nom, produit, ID…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all"
+              className="w-full pl-9 pr-4 py-2.5 rounded-[12px] bg-white text-[13.5px] font-semibold focus:outline-none"
+              style={{ color: ST.text, border: "1px solid #dde6e0" }}
             />
           </div>
           <div className="flex gap-2 flex-wrap">
-            {statusTabs.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setStatusFilter(tab.value)}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                  statusFilter === tab.value
-                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
-                    : "bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700"
-                }`}
-              >
-                {tab.label}
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                    statusFilter === tab.value ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500"
-                  }`}
+            {statusTabs.map((tab) => {
+              const on = statusFilter === tab.value;
+              return (
+                <button
+                  key={tab.value}
+                  onClick={() => setStatusFilter(tab.value)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-[12.5px] font-extrabold transition-all"
+                  style={on ? { background: ST.gradient, color: "#fff" } : { background: "#fff", color: ST.textSecondary, border: `1px solid ${ST.cardBorder}` }}
                 >
-                  {tab.count}
-                </span>
-              </button>
-            ))}
+                  {tab.label}
+                  <span
+                    className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-full"
+                    style={on ? { background: "rgba(255,255,255,.25)", color: "#fff" } : { background: "#f1efe8", color: ST.textMuted }}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Table */}
-        <KazaCard noPadding>
-          <div className="hidden md:grid grid-cols-[2fr_2fr_1fr_1fr] gap-4 px-6 py-3.5 bg-slate-50 border-b border-slate-100 rounded-t-2xl">
+        <StCard noPadding>
+          <div className="hidden md:grid grid-cols-[2fr_2fr_1fr_1fr] gap-4 px-6 py-3.5" style={{ borderBottom: `1px solid ${ST.divider}` }}>
             {["Acheteur", "Produit", "Montant", "Statut"].map((h) => (
-              <span key={h} className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">{h}</span>
+              <span key={h} className="text-[10.5px] font-extrabold uppercase tracking-[.06em]" style={{ color: ST.textMuted }}>{h}</span>
             ))}
           </div>
 
           {isLoading ? (
-            <div className="divide-y divide-slate-50">
-              {[0, 1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
+            <div>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} style={i ? { borderTop: `1px solid ${ST.divider}` } : undefined}>
+                  <SkeletonRow />
+                </div>
+              ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="p-6">
-              <KazaEmpty
-                icon={Receipt}
-                title={allTxns.length === 0 ? "Aucune vente pour l'instant" : "Aucune transaction trouvée"}
-                description={
-                  allTxns.length === 0
-                    ? "Publiez un produit pour commencer à vendre."
-                    : "Essayez de modifier vos filtres de recherche."
-                }
-                action={allTxns.length === 0 ? { label: "Créer un produit", href: "/vendeur/produits/creer" } : undefined}
-              />
+            <div className="text-center py-12 px-6">
+              <Receipt size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
+              <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>
+                {allTxns.length === 0 ? "Aucune vente pour l'instant" : "Aucune transaction trouvée"}
+              </h3>
+              <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+                {allTxns.length === 0
+                  ? "Publiez un produit pour commencer à vendre."
+                  : "Essayez de modifier vos filtres de recherche."}
+              </p>
+              {allTxns.length === 0 && (
+                <div className="mt-4 flex justify-center">
+                  <StButton href="/vendeur/produits/creer">Créer un produit</StButton>
+                </div>
+              )}
             </div>
           ) : (
-            <div className="divide-y divide-slate-50">
+            <div>
               {filtered.map((txn, idx) => {
-                const sc = statusBadge[txn.status] ?? statusBadge.completed;
-                const initials = txn.buyerName.split(" ").map((w: string) => w[0]).join("").slice(0, 2).toUpperCase();
                 const date = new Date(txn.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
                 const time = new Date(txn.createdAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
                 return (
                   <div
                     key={txn.id}
-                    className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr_1fr] gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors items-center"
+                    className="grid grid-cols-1 md:grid-cols-[2fr_2fr_1fr_1fr] gap-4 px-6 py-4 items-center"
+                    style={idx ? { borderTop: `1px solid ${ST.divider}` } : undefined}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${GRADIENTS[idx % GRADIENTS.length]} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                        {initials}
-                      </div>
+                      <StAvatar name={txn.buyerName} size={36} />
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{txn.buyerName}</p>
+                        <p className="text-[13px] font-extrabold truncate" style={{ color: ST.text }}>{txn.buyerName}</p>
                         {txn.buyerEmail && (
-                          <p className="text-[10px] text-slate-500 truncate">{txn.buyerEmail}</p>
+                          <p className="text-[10.5px] font-semibold truncate" style={{ color: ST.textFaint }}>{txn.buyerEmail}</p>
                         )}
-                        <p className="text-[10px] text-slate-500 tabular-nums">{txn.id.slice(0, 12)}…</p>
+                        <p className="text-[10.5px] font-semibold tabular-nums" style={{ color: ST.textFaint }}>{txn.id.slice(0, 12)}…</p>
                       </div>
                     </div>
 
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-slate-900 line-clamp-1">{txn.productTitle}</p>
+                      <p className="text-[13px] font-extrabold line-clamp-1" style={{ color: ST.text }}>{txn.productTitle}</p>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-[10px] text-slate-500">{txn.productType}</span>
-                        <span className="text-[10px] text-slate-500">·</span>
-                        <span className="text-[10px] text-slate-500">{date} · {time}</span>
+                        <span className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>{txn.productType}</span>
+                        <span className="text-[10.5px]" style={{ color: ST.textFaint }}>·</span>
+                        <span className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>{date} · {time}</span>
                       </div>
                     </div>
 
                     <div>
-                      <p className={`text-sm font-bold ${txn.status === "refunded" ? "text-rose-500 line-through" : "text-emerald-700"}`}>
+                      <p className="text-[13px] font-extrabold tabular-nums" style={{ color: txn.status === "refunded" ? ST.roseText : ST.green, textDecoration: txn.status === "refunded" ? "line-through" : undefined }}>
                         {txn.status === "refunded" ? "-" : "+"}{formatFCFA(txn.amount)}
                       </p>
-                      <p className="text-[10px] text-slate-500">FCFA</p>
-                      <p className="text-[10px] text-slate-500">≈ {Math.round(txn.amount / 655.957)} €</p>
+                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>FCFA</p>
+                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>≈ {Math.round(txn.amount / 655.957)} €</p>
                     </div>
 
                     <div>
-                      <KazaBadge variant={sc.variant}>{sc.label}</KazaBadge>
+                      <StStatusPill status={STATUS_PILL[txn.status] ?? "TRAITE"} label={statusBadge[txn.status]?.label} />
                     </div>
                   </div>
                 );
@@ -376,13 +373,13 @@ export default function TransactionsPage() {
           )}
 
           {!isLoading && filtered.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
-              <p className="text-xs text-slate-500">
-                <span className="font-semibold text-slate-900">{filtered.length}</span> transaction{filtered.length !== 1 ? "s" : ""}
+            <div className="flex items-center justify-between px-6 py-4" style={{ borderTop: `1px solid ${ST.divider}` }}>
+              <p className="text-[12px] font-semibold" style={{ color: ST.textSecondary }}>
+                <span className="font-extrabold" style={{ color: ST.text }}>{filtered.length}</span> transaction{filtered.length !== 1 ? "s" : ""}
               </p>
             </div>
           )}
-        </KazaCard>
+        </StCard>
       </main>
     </div>
   );

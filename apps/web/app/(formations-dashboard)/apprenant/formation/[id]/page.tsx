@@ -5,6 +5,33 @@ import { useEffect, useMemo, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import LessonVideoPlayer from "@/components/formations/LessonVideoPlayer";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
+import {
+  ArrowLeft,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  FileText,
+  Headphones,
+  HelpCircle,
+  MonitorPlay,
+  BookOpen,
+  ExternalLink,
+  Download,
+  ChevronDown,
+  Clock,
+  Play,
+  PlayCircle,
+  SkipForward,
+  Award,
+  FileType,
+  Table2,
+  FolderArchive,
+  Image as ImageIcon,
+  Film,
+  Link2,
+  Paperclip,
+  type LucideIcon,
+} from "lucide-react";
 
 // ── Types ────────────────────────────────────────────────────────────────
 interface ApiResource {
@@ -68,17 +95,17 @@ function formatFileSize(bytes: number | null): string | null {
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 }
 
-function resourceIcon(mime: string | null, name: string): string {
+function resourceIcon(mime: string | null, name: string): LucideIcon {
   const lower = (mime || name || "").toLowerCase();
-  if (lower.includes("pdf")) return "picture_as_pdf";
-  if (lower.includes("sheet") || lower.includes("excel") || /\.xlsx?$/.test(lower)) return "table_chart";
-  if (lower.includes("word") || /\.docx?$/.test(lower)) return "description";
-  if (lower.includes("zip") || lower.includes("archive")) return "folder_zip";
-  if (lower.startsWith("image/")) return "image";
-  if (lower.startsWith("video/")) return "movie";
-  if (lower.startsWith("audio/")) return "headphones";
-  if (lower.startsWith("http")) return "link";
-  return "attach_file";
+  if (lower.includes("pdf")) return FileType;
+  if (lower.includes("sheet") || lower.includes("excel") || /\.xlsx?$/.test(lower)) return Table2;
+  if (lower.includes("word") || /\.docx?$/.test(lower)) return FileText;
+  if (lower.includes("zip") || lower.includes("archive")) return FolderArchive;
+  if (lower.startsWith("image/")) return ImageIcon;
+  if (lower.startsWith("video/")) return Film;
+  if (lower.startsWith("audio/")) return Headphones;
+  if (lower.startsWith("http")) return Link2;
+  return Paperclip;
 }
 
 // ── Page ─────────────────────────────────────────────────────────────────
@@ -271,7 +298,7 @@ export default function FormationPlayerPage({
     return (
       <div className="min-h-screen bg-[#0f1117] flex items-center justify-center">
         <div className="text-center text-white/60">
-          <span className="material-symbols-outlined text-[40px] animate-spin">progress_activity</span>
+          <Loader2 size={40} className="animate-spin mx-auto" />
           <p className="text-sm mt-3">Chargement de la formation…</p>
         </div>
       </div>
@@ -282,7 +309,7 @@ export default function FormationPlayerPage({
     return (
       <div className="min-h-screen bg-[#0f1117] flex items-center justify-center px-4">
         <div className="text-center text-white/80 max-w-sm">
-          <span className="material-symbols-outlined text-[40px] text-white/40">error</span>
+          <AlertCircle size={40} className="text-white/40 mx-auto" />
           <h2 className="text-lg font-bold mt-3 mb-1">Formation introuvable</h2>
           <p className="text-sm text-white/60 mb-5">Cette formation n&apos;existe plus ou vous n&apos;y avez pas accès.</p>
           <Link
@@ -290,7 +317,7 @@ export default function FormationPlayerPage({
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-white text-sm font-bold"
             style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
           >
-            <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+            <ArrowLeft size={16} />
             Mes formations
           </Link>
         </div>
@@ -308,7 +335,7 @@ export default function FormationPlayerPage({
           href="/apprenant/mes-formations"
           className="flex items-center gap-1.5 text-white/60 hover:text-white text-sm font-medium transition-colors"
         >
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+          <ArrowLeft size={18} />
           <span className="hidden sm:inline">Mes formations</span>
         </Link>
 
@@ -367,12 +394,14 @@ export default function FormationPlayerPage({
                   style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #1a2e1a 100%)" }}
                 />
                 <div className="relative z-10 text-center text-white/90 px-6">
-                  <span className="material-symbols-outlined text-[64px] mb-3 block">
-                    {activeLesson.type === "PDF" ? "picture_as_pdf"
-                      : activeLesson.type === "AUDIO" ? "headphones"
-                      : activeLesson.type === "QUIZ" ? "quiz"
-                      : "article"}
-                  </span>
+                  {(() => {
+                    const PlaceholderIcon =
+                      activeLesson.type === "PDF" ? FileType
+                        : activeLesson.type === "AUDIO" ? Headphones
+                        : activeLesson.type === "QUIZ" ? HelpCircle
+                        : FileText;
+                    return <PlaceholderIcon size={64} className="mb-3 mx-auto" />;
+                  })()}
                   <p className="text-base font-bold mb-1">{activeLesson.title}</p>
                   <p className="text-sm text-white/70">
                     {activeLesson.type === "PDF" ? "Leçon PDF — voir l'onglet Ressources"
@@ -392,7 +421,7 @@ export default function FormationPlayerPage({
                   style={{ background: "linear-gradient(135deg, #003d1a 0%, #006e2f 50%, #1a2e1a 100%)" }}
                 />
                 <div className="relative z-10 text-center text-white/80">
-                  <span className="material-symbols-outlined text-5xl mb-2">smart_display</span>
+                  <MonitorPlay size={48} className="mb-2 mx-auto" />
                   <p className="text-sm font-semibold">Sélectionnez une leçon</p>
                 </div>
               </div>
@@ -406,7 +435,7 @@ export default function FormationPlayerPage({
                 </span>
                 {activeLesson.completed && (
                   <span className="bg-[#006e2f] text-white text-[10px] font-bold px-2.5 py-1 rounded-full inline-flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    <CheckCircle2 size={12} />
                     Terminée
                   </span>
                 )}
@@ -439,9 +468,7 @@ export default function FormationPlayerPage({
                           : "bg-[#006e2f]/10 text-[#006e2f] hover:bg-[#006e2f]/20 disabled:opacity-50"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[15px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                        {marking ? "progress_activity" : activeLesson.completed ? "check_circle" : "check_circle"}
-                      </span>
+                      {marking ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                       {activeLesson.completed ? "Terminée" : marking ? "..." : "Marquer terminée"}
                     </button>
                   </div>
@@ -493,9 +520,7 @@ export default function FormationPlayerPage({
                       {activeSection?.desc && (
                         <div className="bg-[#006e2f]/5 rounded-xl p-4 border border-[#006e2f]/10 mt-4">
                           <p className="text-xs font-bold text-[#006e2f] mb-1.5 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                              menu_book
-                            </span>
+                            <BookOpen size={14} />
                             À propos du chapitre
                           </p>
                           <p className="text-sm text-[#191c1e]">{activeSection.desc}</p>
@@ -537,15 +562,13 @@ export default function FormationPlayerPage({
                           className="flex items-center gap-3 p-3.5 bg-white rounded-xl border border-gray-100 hover:border-[#006e2f]/20 hover:bg-[#006e2f]/5 transition-all cursor-pointer group"
                         >
                           <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
-                            <span className="material-symbols-outlined text-red-600 text-[18px]">picture_as_pdf</span>
+                            <FileType size={18} className="text-red-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-[#191c1e] truncate">Document PDF de la leçon</p>
-                            <p className="text-[10px] text-[#5c647a]">PDF · Cliquez pour ouvrir</p>
+                            <p className="text-sm font-semibold text-[#13241b] truncate">Document PDF de la leçon</p>
+                            <p className="text-[10px] text-[#5d7166]">PDF · Cliquez pour ouvrir</p>
                           </div>
-                          <span className="material-symbols-outlined text-[#5c647a] text-[18px] group-hover:text-[#006e2f] transition-colors">
-                            open_in_new
-                          </span>
+                          <ExternalLink size={18} className="text-[#5d7166] group-hover:text-[#006e2f] transition-colors" />
                         </a>
                       )}
                       {activeLesson.audioUrl && (
@@ -556,15 +579,13 @@ export default function FormationPlayerPage({
                           className="flex items-center gap-3 p-3.5 bg-white rounded-xl border border-gray-100 hover:border-[#006e2f]/20 hover:bg-[#006e2f]/5 transition-all cursor-pointer group"
                         >
                           <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                            <span className="material-symbols-outlined text-blue-600 text-[18px]">headphones</span>
+                            <Headphones size={18} className="text-blue-600" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-[#191c1e] truncate">Audio de la leçon</p>
-                            <p className="text-[10px] text-[#5c647a]">MP3 · Cliquez pour écouter</p>
+                            <p className="text-sm font-semibold text-[#13241b] truncate">Audio de la leçon</p>
+                            <p className="text-[10px] text-[#5d7166]">MP3 · Cliquez pour écouter</p>
                           </div>
-                          <span className="material-symbols-outlined text-[#5c647a] text-[18px] group-hover:text-[#006e2f] transition-colors">
-                            open_in_new
-                          </span>
+                          <ExternalLink size={18} className="text-[#5d7166] group-hover:text-[#006e2f] transition-colors" />
                         </a>
                       )}
                       {activeLesson.resources.length === 0 && !activeLesson.pdfUrl && !activeLesson.audioUrl ? (
@@ -572,28 +593,34 @@ export default function FormationPlayerPage({
                           Aucune ressource attachée à cette leçon.
                         </p>
                       ) : (
-                        activeLesson.resources.map((res) => (
-                          <a
-                            key={res.id}
-                            href={res.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 p-3.5 bg-white rounded-xl border border-gray-100 hover:border-[#006e2f]/20 hover:bg-[#006e2f]/5 transition-all cursor-pointer group"
-                          >
-                            <div className="w-9 h-9 rounded-lg bg-[#006e2f]/10 flex items-center justify-center flex-shrink-0">
-                              <span className="material-symbols-outlined text-[#006e2f] text-[18px]">{resourceIcon(res.mimeType, res.name)}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-[#191c1e] truncate">{res.name}</p>
-                              <p className="text-[10px] text-[#5c647a]">
-                                {res.mimeType ?? "Fichier"}{formatFileSize(res.fileSize) ? ` · ${formatFileSize(res.fileSize)}` : ""}
-                              </p>
-                            </div>
-                            <span className="material-symbols-outlined text-[#5c647a] text-[18px] group-hover:text-[#006e2f] transition-colors">
-                              {res.url.startsWith("http") && !res.mimeType ? "open_in_new" : "download"}
-                            </span>
-                          </a>
-                        ))
+                        activeLesson.resources.map((res) => {
+                          const ResIcon = resourceIcon(res.mimeType, res.name);
+                          const isExternal = res.url.startsWith("http") && !res.mimeType;
+                          return (
+                            <a
+                              key={res.id}
+                              href={res.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-3 p-3.5 bg-white rounded-xl border border-gray-100 hover:border-[#006e2f]/20 hover:bg-[#006e2f]/5 transition-all cursor-pointer group"
+                            >
+                              <div className="w-9 h-9 rounded-lg bg-[#006e2f]/10 flex items-center justify-center flex-shrink-0">
+                                <ResIcon size={18} className="text-[#006e2f]" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold text-[#13241b] truncate">{res.name}</p>
+                                <p className="text-[10px] text-[#5d7166]">
+                                  {res.mimeType ?? "Fichier"}{formatFileSize(res.fileSize) ? ` · ${formatFileSize(res.fileSize)}` : ""}
+                                </p>
+                              </div>
+                              {isExternal ? (
+                                <ExternalLink size={18} className="text-[#5d7166] group-hover:text-[#006e2f] transition-colors" />
+                              ) : (
+                                <Download size={18} className="text-[#5d7166] group-hover:text-[#006e2f] transition-colors" />
+                              )}
+                            </a>
+                          );
+                        })
                       )}
                     </div>
                   )}
@@ -604,9 +631,9 @@ export default function FormationPlayerPage({
                   <button
                     onClick={handlePrev}
                     disabled={!prevLesson}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold text-[#191c1e] hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-gray-200 text-sm font-bold text-[#13241b] hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                    <ArrowLeft size={16} />
                     <span className="hidden sm:inline">Leçon précédente</span>
                     <span className="sm:hidden">Préc.</span>
                   </button>
@@ -618,7 +645,7 @@ export default function FormationPlayerPage({
                   >
                     <span className="hidden sm:inline">Leçon suivante</span>
                     <span className="sm:hidden">Suiv.</span>
-                    <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>skip_next</span>
+                    <SkipForward size={16} />
                   </button>
                 </div>
               </>
@@ -671,10 +698,8 @@ export default function FormationPlayerPage({
                           {section.title}
                         </span>
                       </div>
-                      <span className="material-symbols-outlined text-[18px] text-[#5c647a] flex-shrink-0 ml-2 transition-transform duration-200"
-                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
-                        expand_more
-                      </span>
+                      <ChevronDown size={18} className="text-[#5d7166] flex-shrink-0 ml-2 transition-transform duration-200"
+                        style={{ transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }} />
                     </button>
 
                     {/* Lessons */}
@@ -706,18 +731,22 @@ export default function FormationPlayerPage({
                                       : "bg-gray-100"
                                   }`}
                                 >
-                                  <span
-                                    className={`material-symbols-outlined text-[14px] ${
-                                      isCurrent
-                                        ? "text-white"
-                                        : isDone
-                                        ? "text-[#006e2f]"
-                                        : "text-[#5c647a]"
-                                    }`}
-                                    style={{ fontVariationSettings: isDone || isCurrent ? "'FILL' 1" : "'FILL' 0" }}
-                                  >
-                                    {isDone ? "check_circle" : isCurrent ? "play_arrow" : "play_circle"}
-                                  </span>
+                                  {(() => {
+                                    const StatusIcon = isDone ? CheckCircle2 : isCurrent ? Play : PlayCircle;
+                                    return (
+                                      <StatusIcon
+                                        size={14}
+                                        className={
+                                          isCurrent
+                                            ? "text-white"
+                                            : isDone
+                                            ? "text-[#006e2f]"
+                                            : "text-[#5d7166]"
+                                        }
+                                        {...(isCurrent ? { fill: "currentColor" } : {})}
+                                      />
+                                    );
+                                  })()}
                                 </div>
 
                                 {/* Lesson info */}
@@ -729,8 +758,8 @@ export default function FormationPlayerPage({
                                   >
                                     {lesson.title}
                                   </p>
-                                  <p className="text-[10px] text-[#5c647a] flex items-center gap-1 mt-0.5">
-                                    <span className="material-symbols-outlined text-[10px]">schedule</span>
+                                  <p className="text-[10px] text-[#5d7166] flex items-center gap-1 mt-0.5">
+                                    <Clock size={10} />
                                     {formatDuration(lesson.duration)}
                                     {lesson.isFree && (
                                       <span className="ml-1.5 text-[8px] font-bold text-amber-600 uppercase tracking-wide">Gratuit</span>
@@ -764,9 +793,7 @@ export default function FormationPlayerPage({
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  workspace_premium
-                </span>
+                <Award size={18} />
                 Voir mon certificat
               </Link>
             ) : (
@@ -776,9 +803,7 @@ export default function FormationPlayerPage({
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
               >
-                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  skip_next
-                </span>
+                <SkipForward size={18} />
                 {nextLesson ? "Leçon suivante" : "Toutes les leçons sont vues"}
               </button>
             )}

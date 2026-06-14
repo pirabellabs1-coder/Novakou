@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useToastStore } from "@/store/toast";
+import { StCard, StPageHeader, StButton, StChip, ST } from "@/components/stitch";
+import { Inbox } from "lucide-react";
 
 type Status = "PENDING_COOLDOWN" | "AWAITING_REVIEW" | "APPROVED" | "REJECTED" | "CANCELLED" | "ALL";
 
@@ -24,12 +26,12 @@ interface DeletionRequest {
   };
 }
 
-const STATUS_LABEL: Record<Exclude<Status, "ALL">, { label: string; cls: string }> = {
-  PENDING_COOLDOWN: { label: "Cooldown 72h", cls: "bg-amber-100 text-amber-700" },
-  AWAITING_REVIEW: { label: "À traiter", cls: "bg-blue-100 text-blue-700" },
-  APPROVED: { label: "Approuvée", cls: "bg-red-100 text-red-700" },
-  REJECTED: { label: "Refusée", cls: "bg-gray-100 text-gray-700" },
-  CANCELLED: { label: "Annulée", cls: "bg-gray-100 text-gray-500" },
+const STATUS_LABEL: Record<Exclude<Status, "ALL">, { label: string; tone: "green" | "amber" | "blue" | "rose" | "neutral" }> = {
+  PENDING_COOLDOWN: { label: "Cooldown 72h", tone: "amber" },
+  AWAITING_REVIEW: { label: "À traiter", tone: "blue" },
+  APPROVED: { label: "Approuvée", tone: "rose" },
+  REJECTED: { label: "Refusée", tone: "neutral" },
+  CANCELLED: { label: "Annulée", tone: "neutral" },
 };
 
 function fmt(iso: string) {
@@ -86,42 +88,45 @@ export default function AdminSuppressionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f9fb] p-5 md:p-8" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Demandes de suppression de compte</h1>
-          <p className="text-sm text-[#5c647a] mt-1">
-            Validez les demandes après le cooldown de 72h. Toute suppression est définitive.
-          </p>
-        </div>
+    <div
+      className="min-h-screen"
+      style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}
+    >
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1400px] mx-auto space-y-5">
+        <StPageHeader
+          title="Demandes de suppression de compte"
+          subtitle="Validez les demandes après le cooldown de 72h. Toute suppression est définitive."
+        />
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {(["AWAITING_REVIEW", "PENDING_COOLDOWN", "APPROVED", "REJECTED", "CANCELLED", "ALL"] as Status[]).map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${
-                filter === s ? "bg-[#191c1e] text-white" : "bg-white border border-gray-200 text-[#5c647a] hover:bg-gray-50"
-              }`}
-            >
-              {s === "ALL" ? "Tout" : STATUS_LABEL[s as Exclude<Status, "ALL">].label}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-1.5">
+          {(["AWAITING_REVIEW", "PENDING_COOLDOWN", "APPROVED", "REJECTED", "CANCELLED", "ALL"] as Status[]).map((s) => {
+            const on = filter === s;
+            return (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className="px-3.5 py-2 rounded-[10px] text-[12.5px] font-extrabold transition-colors whitespace-nowrap"
+                style={on ? { background: ST.greenDark, color: "#fff" } : { background: "#fff", border: `1px solid ${ST.cardBorder}`, color: ST.textSecondary }}
+              >
+                {s === "ALL" ? "Tout" : STATUS_LABEL[s as Exclude<Status, "ALL">].label}
+              </button>
+            );
+          })}
         </div>
 
         {/* List */}
         {loading ? (
-          <div className="space-y-3 animate-pulse">
-            <div className="h-32 bg-white rounded-2xl border border-gray-100" />
-            <div className="h-32 bg-white rounded-2xl border border-gray-100" />
+          <div className="space-y-3">
+            <div className="h-32 animate-pulse rounded-[18px]" style={{ background: ST.divider }} />
+            <div className="h-32 animate-pulse rounded-[18px]" style={{ background: ST.divider }} />
           </div>
         ) : items.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <span className="material-symbols-outlined text-5xl text-gray-300">inbox</span>
-            <p className="text-base font-bold text-[#191c1e] mt-3">Aucune demande</p>
-            <p className="text-sm text-[#5c647a] mt-1">Aucune demande ne correspond à ce filtre.</p>
-          </div>
+          <StCard className="!p-16 text-center flex flex-col items-center">
+            <Inbox size={40} style={{ color: "#d6e0da" }} />
+            <p className="text-[14px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune demande</p>
+            <p className="text-[12.5px] font-semibold mt-1" style={{ color: ST.textSecondary }}>Aucune demande ne correspond à ce filtre.</p>
+          </StCard>
         ) : (
           <div className="space-y-3">
             {items.map((it) => {
@@ -130,78 +135,76 @@ export default function AdminSuppressionsPage() {
               const canApprove = it.status === "AWAITING_REVIEW" || (it.status === "PENDING_COOLDOWN" && cooldownDone);
               const canReject = it.status === "AWAITING_REVIEW" || it.status === "PENDING_COOLDOWN";
               return (
-                <div key={it.id} className="bg-white rounded-2xl border border-gray-100 p-5">
+                <StCard key={it.id}>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-base font-extrabold text-[#191c1e]">
+                        <p className="text-[15px] font-extrabold" style={{ color: ST.text }}>
                           {it.user.name ?? it.user.email}
                         </p>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${meta.cls}`}>
-                          {meta.label}
-                        </span>
+                        <StChip tone={meta.tone}>{meta.label}</StChip>
                         {it.user.formationsRole && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                            {it.user.formationsRole}
-                          </span>
+                          <StChip tone="neutral">{it.user.formationsRole}</StChip>
                         )}
                       </div>
-                      <p className="text-xs text-[#5c647a] mt-1">{it.user.email}</p>
-                      <p className="text-[11px] text-[#5c647a] mt-1">
+                      <p className="text-[12px] mt-1" style={{ color: ST.textSecondary }}>{it.user.email}</p>
+                      <p className="text-[11px] mt-1" style={{ color: ST.textMuted }}>
                         Compte créé le {fmt(it.user.createdAt)} · KYC niveau {it.user.kyc}
                       </p>
                     </div>
-                    <div className="text-right text-[11px] text-[#5c647a] flex-shrink-0">
-                      <p>Demande : <strong>{fmt(it.requestedAt)}</strong></p>
+                    <div className="text-right text-[11px] flex-shrink-0" style={{ color: ST.textSecondary }}>
+                      <p>Demande : <strong style={{ color: ST.text }}>{fmt(it.requestedAt)}</strong></p>
                       <p>
                         Fin cooldown :{" "}
-                        <strong className={cooldownDone ? "text-blue-700" : "text-amber-700"}>
+                        <strong style={{ color: cooldownDone ? ST.blueText : ST.amberText }}>
                           {fmt(it.cooldownUntil)}
                         </strong>
                       </p>
                     </div>
                   </div>
 
-                  <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 mb-3">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#5c647a] mb-1">Raison</p>
-                    <p className="text-sm text-[#191c1e] leading-relaxed">{it.reason}</p>
+                  <div className="rounded-[12px] p-3 mb-3" style={{ background: ST.bg, border: `1px solid ${ST.divider}` }}>
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider mb-1" style={{ color: ST.textMuted }}>Raison</p>
+                    <p className="text-[13.5px] leading-relaxed" style={{ color: ST.text }}>{it.reason}</p>
                   </div>
 
                   {it.adminNote && (
-                    <div className="rounded-xl bg-blue-50 border border-blue-100 p-3 mb-3">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700 mb-1">Note admin</p>
-                      <p className="text-sm text-blue-900 leading-relaxed">{it.adminNote}</p>
+                    <div className="rounded-[12px] p-3 mb-3" style={{ background: ST.blueSoft, border: "1px solid #cfe3f5" }}>
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider mb-1" style={{ color: ST.blueText }}>Note admin</p>
+                      <p className="text-[13.5px] leading-relaxed" style={{ color: "#0c447c" }}>{it.adminNote}</p>
                     </div>
                   )}
 
                   {(canApprove || canReject) && (
                     <div className="flex gap-2 justify-end">
                       {canReject && (
-                        <button
+                        <StButton
+                          variant="secondary"
+                          size="sm"
                           onClick={() => decide(it.id, "reject", it.user.email)}
                           disabled={acting === it.id}
-                          className="px-4 py-2 rounded-xl bg-gray-100 text-[#5c647a] text-sm font-bold hover:bg-gray-200 disabled:opacity-50"
                         >
                           Refuser
-                        </button>
+                        </StButton>
                       )}
                       {canApprove && (
                         <button
                           onClick={() => decide(it.id, "approve", it.user.email)}
                           disabled={acting === it.id}
-                          className="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 disabled:opacity-50"
+                          className="inline-flex items-center justify-center px-4 py-2.5 rounded-[12px] text-[13px] font-extrabold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+                          style={{ background: ST.roseText }}
                         >
                           {acting === it.id ? "…" : "Supprimer le compte"}
                         </button>
                       )}
                     </div>
                   )}
-                </div>
+                </StCard>
               );
             })}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

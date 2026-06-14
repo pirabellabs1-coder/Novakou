@@ -7,6 +7,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Loader2, BarChart3 } from "lucide-react";
 
 type Period = "7d" | "30d" | "90d";
 
@@ -78,7 +79,7 @@ export default function AdminAnalyticsFunnelPage() {
               href="/admin/dashboard"
               className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 mb-3"
             >
-              <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+              <ArrowLeft size={14} />
               Retour au dashboard
             </Link>
             <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -110,7 +111,7 @@ export default function AdminAnalyticsFunnelPage() {
         {/* Loading / Error */}
         {isLoading && (
           <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center">
-            <span className="material-symbols-outlined text-3xl text-slate-300 animate-spin">progress_activity</span>
+            <Loader2 size={30} className="text-slate-300 animate-spin mx-auto" />
             <p className="text-sm text-slate-500 mt-2">Chargement du funnel…</p>
           </div>
         )}
@@ -131,7 +132,7 @@ export default function AdminAnalyticsFunnelPage() {
 
               {topCount === 0 ? (
                 <div className="py-12 text-center">
-                  <span className="material-symbols-outlined text-4xl text-slate-300">analytics</span>
+                  <BarChart3 size={36} className="text-slate-300 mx-auto" />
                   <p className="text-sm text-slate-500 mt-2">
                     Aucun événement collecté sur cette période. Le tracking vient d&apos;être activé — les chiffres apparaîtront avec le trafic.
                   </p>

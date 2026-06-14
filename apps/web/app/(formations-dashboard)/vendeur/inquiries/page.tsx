@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { MessagesSquare, Reply } from "lucide-react";
 import { confirmAction } from "@/store/confirm";
 
 type Inquiry = {
@@ -129,7 +130,7 @@ export default function VendorInquiriesPage() {
         <div className="space-y-3">{[0,1,2].map((i) => <div key={i} className="h-28 bg-white rounded-2xl animate-pulse" />)}</div>
       ) : inquiries.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">forum</span>
+          <MessagesSquare size={48} className="text-gray-300 mx-auto" strokeWidth={1.5} />
           <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucune question {filter === "pending" ? "à traiter" : ""}</h3>
           <p className="text-sm text-[#5c647a] mt-2">
             Les questions apparaissent ici quand des visiteurs utilisent le bouton « Une question ? » sur vos pages produit.
@@ -184,9 +185,9 @@ export default function VendorInquiriesPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => { setReplyingId(inq.id); setReplyText(""); }}
-                      className="px-4 py-2 bg-[#006e2f] text-white text-xs font-bold rounded-xl hover:bg-[#005a26]"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#006e2f] text-white text-xs font-bold rounded-xl hover:bg-[#005a26]"
                     >
-                      <span className="material-symbols-outlined text-[14px] align-middle mr-1">reply</span>
+                      <Reply size={14} />
                       Répondre
                     </button>
                     <button

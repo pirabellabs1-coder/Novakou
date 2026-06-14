@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
+import { type LucideIcon, ShoppingCart, MessageSquare, Banknote, Info, BadgeCheck, ShieldCheck, Package, GraduationCap, Star, Tag, ChevronRight, CheckCheck, BellOff, Check } from "lucide-react";
 
 interface Notification {
   id: string;
@@ -14,27 +15,27 @@ interface Notification {
   createdAt: string;
 }
 
-const TYPE_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
-  order: { icon: "shopping_cart", color: "text-emerald-600", bg: "bg-emerald-50" },
-  ORDER: { icon: "shopping_cart", color: "text-emerald-600", bg: "bg-emerald-50" },
-  message: { icon: "chat", color: "text-blue-600", bg: "bg-blue-50" },
-  MESSAGE: { icon: "chat", color: "text-blue-600", bg: "bg-blue-50" },
-  payment: { icon: "payments", color: "text-emerald-700", bg: "bg-emerald-50" },
-  PAYMENT: { icon: "payments", color: "text-emerald-700", bg: "bg-emerald-50" },
-  system: { icon: "info", color: "text-slate-600", bg: "bg-slate-50" },
-  SYSTEM: { icon: "info", color: "text-slate-600", bg: "bg-slate-50" },
-  kyc: { icon: "verified", color: "text-purple-600", bg: "bg-purple-50" },
-  KYC: { icon: "verified", color: "text-purple-600", bg: "bg-purple-50" },
-  admin_action: { icon: "admin_panel_settings", color: "text-amber-600", bg: "bg-amber-50" },
-  ADMIN_ACTION: { icon: "admin_panel_settings", color: "text-amber-600", bg: "bg-amber-50" },
-  product: { icon: "inventory_2", color: "text-indigo-600", bg: "bg-indigo-50" },
-  PRODUCT: { icon: "inventory_2", color: "text-indigo-600", bg: "bg-indigo-50" },
-  course: { icon: "school", color: "text-teal-600", bg: "bg-teal-50" },
-  COURSE: { icon: "school", color: "text-teal-600", bg: "bg-teal-50" },
-  review: { icon: "star", color: "text-yellow-600", bg: "bg-yellow-50" },
-  REVIEW: { icon: "star", color: "text-yellow-600", bg: "bg-yellow-50" },
-  offer: { icon: "local_offer", color: "text-pink-600", bg: "bg-pink-50" },
-  OFFER: { icon: "local_offer", color: "text-pink-600", bg: "bg-pink-50" },
+const TYPE_ICONS: Record<string, { icon: LucideIcon; color: string; bg: string }> = {
+  order: { icon: ShoppingCart, color: "text-emerald-600", bg: "bg-emerald-50" },
+  ORDER: { icon: ShoppingCart, color: "text-emerald-600", bg: "bg-emerald-50" },
+  message: { icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
+  MESSAGE: { icon: MessageSquare, color: "text-blue-600", bg: "bg-blue-50" },
+  payment: { icon: Banknote, color: "text-emerald-700", bg: "bg-emerald-50" },
+  PAYMENT: { icon: Banknote, color: "text-emerald-700", bg: "bg-emerald-50" },
+  system: { icon: Info, color: "text-slate-600", bg: "bg-slate-50" },
+  SYSTEM: { icon: Info, color: "text-slate-600", bg: "bg-slate-50" },
+  kyc: { icon: BadgeCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
+  KYC: { icon: BadgeCheck, color: "text-emerald-600", bg: "bg-emerald-50" },
+  admin_action: { icon: ShieldCheck, color: "text-amber-600", bg: "bg-amber-50" },
+  ADMIN_ACTION: { icon: ShieldCheck, color: "text-amber-600", bg: "bg-amber-50" },
+  product: { icon: Package, color: "text-emerald-700", bg: "bg-emerald-50" },
+  PRODUCT: { icon: Package, color: "text-emerald-700", bg: "bg-emerald-50" },
+  course: { icon: GraduationCap, color: "text-teal-600", bg: "bg-teal-50" },
+  COURSE: { icon: GraduationCap, color: "text-teal-600", bg: "bg-teal-50" },
+  review: { icon: Star, color: "text-yellow-600", bg: "bg-yellow-50" },
+  REVIEW: { icon: Star, color: "text-yellow-600", bg: "bg-yellow-50" },
+  offer: { icon: Tag, color: "text-rose-600", bg: "bg-rose-50" },
+  OFFER: { icon: Tag, color: "text-rose-600", bg: "bg-rose-50" },
 };
 
 function timeAgo(dateStr: string): string {
@@ -115,13 +116,13 @@ export default function NotificationsPage() {
         <Link href="/admin/dashboard" className="hover:text-[#006e2f] transition-colors">
           Administration
         </Link>
-        <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-        <span className="text-[#191c1e] font-medium">Notifications</span>
+        <ChevronRight size={14} />
+        <span className="text-[#13241b] font-medium">Notifications</span>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Notifications</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Notifications</h1>
           <p className="text-sm text-[#5c647a] mt-1">
             {unreadCount > 0
               ? `${unreadCount} notification${unreadCount > 1 ? "s" : ""} non lue${unreadCount > 1 ? "s" : ""}`
@@ -131,9 +132,9 @@ export default function NotificationsPage() {
         {unreadCount > 0 && (
           <button
             onClick={markAllRead}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#191c1e] hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold border border-gray-200 text-[#13241b] hover:bg-gray-50 transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">done_all</span>
+            <CheckCheck size={18} />
             Tout marquer comme lu
           </button>
         )}
@@ -185,9 +186,9 @@ export default function NotificationsPage() {
       ) : filtered.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 py-16 text-center">
           <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[28px] text-gray-400">notifications_off</span>
+            <BellOff size={28} className="text-gray-400" />
           </div>
-          <p className="font-semibold text-[#191c1e]">
+          <p className="font-semibold text-[#13241b]">
             {filter === "unread" ? "Aucune notification non lue" : "Aucune notification"}
           </p>
           <p className="text-sm text-[#5c647a] mt-1">
@@ -200,6 +201,7 @@ export default function NotificationsPage() {
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden divide-y divide-gray-50">
           {filtered.map((notif) => {
             const typeInfo = TYPE_ICONS[notif.type] ?? TYPE_ICONS.system;
+            const TypeIcon = typeInfo.icon;
             const content = (
               <div
                 className={`flex gap-4 px-5 py-4 transition-colors ${
@@ -209,13 +211,11 @@ export default function NotificationsPage() {
                 }`}
               >
                 <div className={`w-10 h-10 rounded-xl ${typeInfo.bg} flex items-center justify-center flex-shrink-0`}>
-                  <span className={`material-symbols-outlined text-[20px] ${typeInfo.color}`}>
-                    {typeInfo.icon}
-                  </span>
+                  <TypeIcon size={20} className={typeInfo.color} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className={`text-sm font-bold truncate ${notif.read ? "text-[#5c647a]" : "text-[#191c1e]"}`}>
+                    <p className={`text-sm font-bold truncate ${notif.read ? "text-[#5c647a]" : "text-[#13241b]"}`}>
                       {notif.title}
                     </p>
                     {!notif.read && (
@@ -235,7 +235,7 @@ export default function NotificationsPage() {
                     className="flex-shrink-0 p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 hover:text-[#006e2f] transition-colors self-center"
                     title="Marquer comme lue"
                   >
-                    <span className="material-symbols-outlined text-[16px]">done</span>
+                    <Check size={16} />
                   </button>
                 )}
               </div>

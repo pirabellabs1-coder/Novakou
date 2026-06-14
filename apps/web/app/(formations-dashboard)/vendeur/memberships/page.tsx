@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, X, BadgePercent, ExternalLink, Pencil, Pause, Play, Trash2 } from "lucide-react";
 import { confirmAction } from "@/store/confirm";
 import { ImageUploader } from "@/components/formations/ImageUploader";
 import { RichTextEditor } from "@/components/formations/RichTextEditor";
@@ -189,7 +190,7 @@ export default function MembershipsPage() {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#191c1e]">Abonnements / Memberships</h1>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#13241b]">Abonnements / Memberships</h1>
           <p className="text-sm text-[#5c647a] mt-1 max-w-2xl">
             Créez des plans d'accès récurrent à vos formations. Les abonnés payent chaque mois (ou année)
             et gardent l'accès tant qu'ils sont à jour. MRR garanti, rétention maximale.
@@ -204,7 +205,7 @@ export default function MembershipsPage() {
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold hover:opacity-90"
           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
         >
-          <span className="material-symbols-outlined text-[18px]">{showCreate ? "close" : "add"}</span>
+          {showCreate ? <X size={18} /> : <Plus size={18} />}
           {showCreate ? "Fermer" : "Nouveau plan"}
         </button>
       </div>
@@ -215,8 +216,8 @@ export default function MembershipsPage() {
         </div>
       ) : plans.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
-          <span className="material-symbols-outlined text-5xl text-gray-300">card_membership</span>
-          <h3 className="text-lg font-bold text-[#191c1e] mt-3">Aucun plan d'abonnement</h3>
+          <BadgePercent size={48} className="text-gray-300 mx-auto" strokeWidth={1.5} />
+          <h3 className="text-lg font-bold text-[#13241b] mt-3">Aucun plan d'abonnement</h3>
           <p className="text-sm text-[#5c647a] mt-2 max-w-md mx-auto">
             Créez votre premier plan pour commencer à générer du revenu récurrent (MRR).
             Exemple : « Membre Elite — 15 000 F/mois — accès à toutes mes formations ».
@@ -229,7 +230,7 @@ export default function MembershipsPage() {
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h3 className="text-lg font-extrabold text-[#191c1e]">{p.name}</h3>
+                    <h3 className="text-lg font-extrabold text-[#13241b]">{p.name}</h3>
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${p.isActive ? "bg-[#006e2f]/10 text-[#006e2f]" : "bg-gray-100 text-[#5c647a]"}`}>
                       {p.isActive ? "Actif" : "Inactif"}
                     </span>
@@ -243,22 +244,22 @@ export default function MembershipsPage() {
                     className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a]"
                     title="Voir la page publique"
                   >
-                    <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                    <ExternalLink size={18} />
                   </Link>
                   <button
                     onClick={() => openEdit(p)}
                     className="p-2 rounded-lg hover:bg-blue-50 text-[#5c647a] hover:text-blue-600"
                     title="Modifier"
                   >
-                    <span className="material-symbols-outlined text-[18px]">edit</span>
+                    <Pencil size={18} />
                   </button>
                   <button onClick={() => toggleMut.mutate({ id: p.id, isActive: !p.isActive })}
                     className="p-2 rounded-lg hover:bg-gray-100 text-[#5c647a]" title={p.isActive ? "Mettre en pause" : "Réactiver"}>
-                    <span className="material-symbols-outlined text-[18px]">{p.isActive ? "pause" : "play_arrow"}</span>
+                    {p.isActive ? <Pause size={18} /> : <Play size={18} />}
                   </button>
                   <button onClick={() => handleDelete(p)}
                     className="p-2 rounded-lg hover:bg-red-50 text-[#5c647a] hover:text-red-500" title="Supprimer">
-                    <span className="material-symbols-outlined text-[18px]">delete</span>
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
@@ -271,7 +272,7 @@ export default function MembershipsPage() {
               <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-100">
                 <div>
                   <p className="text-[10px] font-bold text-[#5c647a] uppercase">Abonnés</p>
-                  <p className="text-base font-bold text-[#191c1e]">{p._count?.subscriptions ?? p.activeCount}</p>
+                  <p className="text-base font-bold text-[#13241b]">{p._count?.subscriptions ?? p.activeCount}</p>
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-[#5c647a] uppercase">Revenus</p>
@@ -279,7 +280,7 @@ export default function MembershipsPage() {
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-[#5c647a] uppercase">Contenu</p>
-                  <p className="text-base font-bold text-[#191c1e]">{p.linkedFormationIds.length + p.linkedProductIds.length}</p>
+                  <p className="text-base font-bold text-[#13241b]">{p.linkedFormationIds.length + p.linkedProductIds.length}</p>
                 </div>
               </div>
             </div>
@@ -291,7 +292,7 @@ export default function MembershipsPage() {
           page (plus de modal popup tronqué). Mêmes principes que bundles. */}
       {showCreate && (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 mb-6 space-y-4">
-          <h2 className="text-base font-extrabold text-[#191c1e]">
+          <h2 className="text-base font-extrabold text-[#13241b]">
             {editingId ? "Modifier le plan d'abonnement" : "Nouveau plan d'abonnement"}
           </h2>
           <p className="text-sm text-[#5c647a]">
@@ -301,7 +302,7 @@ export default function MembershipsPage() {
 
           <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Nom du plan</label>
+                <label className="block text-xs font-bold text-[#13241b] mb-1.5">Nom du plan</label>
                 <input type="text" value={name} onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Membre Elite, Mentorat Mensuel"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm" />
@@ -309,7 +310,7 @@ export default function MembershipsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Vignette (carte marketplace)</label>
+                  <label className="block text-xs font-bold text-[#13241b] mb-1.5">Vignette (carte marketplace)</label>
                   <ImageUploader
                     value={imageUrl}
                     onChange={setImageUrl}
@@ -318,7 +319,7 @@ export default function MembershipsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Bannière de couverture</label>
+                  <label className="block text-xs font-bold text-[#13241b] mb-1.5">Bannière de couverture</label>
                   <ImageUploader
                     value={bannerUrl}
                     onChange={setBannerUrl}
@@ -329,7 +330,7 @@ export default function MembershipsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
+                <label className="block text-xs font-bold text-[#13241b] mb-1.5">
                   Description (pitch valeur)
                   <span className="ml-2 font-normal text-[#5c647a]">(le bouton ✨ IA améliore le texte)</span>
                 </label>
@@ -341,12 +342,12 @@ export default function MembershipsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Prix</label>
+                  <label className="block text-xs font-bold text-[#13241b] mb-1.5">Prix</label>
                   <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))}
                     min={500} className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">Intervalle</label>
+                  <label className="block text-xs font-bold text-[#13241b] mb-1.5">Intervalle</label>
                   <select value={interval} onChange={(e) => setInterval(e.target.value as "monthly" | "yearly")}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm">
                     <option value="monthly">Mensuel</option>
@@ -357,7 +358,7 @@ export default function MembershipsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
+                  <label className="block text-xs font-bold text-[#13241b] mb-1.5">
                     Jours d'essai <span className="font-normal text-[#5c647a]">(optionnel)</span>
                   </label>
                   <input type="number" value={trialDays}
@@ -366,7 +367,7 @@ export default function MembershipsPage() {
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#191c1e] mb-1.5">
+                  <label className="block text-xs font-bold text-[#13241b] mb-1.5">
                     Max membres <span className="font-normal text-[#5c647a]">(optionnel)</span>
                   </label>
                   <input type="number" value={maxMembers}
@@ -377,7 +378,7 @@ export default function MembershipsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#191c1e] mb-2">
+                <label className="block text-xs font-bold text-[#13241b] mb-2">
                   Formations incluses ({selectedFormationIds.length} sélectionnées)
                 </label>
                 <div className="max-h-36 overflow-y-auto border border-gray-200 rounded-xl p-2 space-y-1">
@@ -392,14 +393,14 @@ export default function MembershipsPage() {
                           else setSelectedFormationIds((p) => p.filter((id) => id !== f.id));
                         }}
                         className="w-4 h-4 accent-[#006e2f]" />
-                      <span className="text-sm text-[#191c1e]">{f.title}</span>
+                      <span className="text-sm text-[#13241b]">{f.title}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#191c1e] mb-2">
+                <label className="block text-xs font-bold text-[#13241b] mb-2">
                   Produits digitaux inclus ({selectedProductIds.length} sélectionnés)
                 </label>
                 <div className="max-h-36 overflow-y-auto border border-gray-200 rounded-xl p-2 space-y-1">
@@ -414,7 +415,7 @@ export default function MembershipsPage() {
                           else setSelectedProductIds((prev) => prev.filter((id) => id !== p.id));
                         }}
                         className="w-4 h-4 accent-[#006e2f]" />
-                      <span className="text-sm text-[#191c1e]">{p.title}</span>
+                      <span className="text-sm text-[#13241b]">{p.title}</span>
                     </label>
                   ))}
                 </div>
@@ -432,7 +433,7 @@ export default function MembershipsPage() {
                     : (editingId ? "Mettre à jour" : "Créer le plan")}
                 </button>
                 <button onClick={() => { setShowCreate(false); resetForm(); }} disabled={createMut.isPending}
-                  className="px-5 py-2.5 rounded-xl bg-gray-100 text-[#191c1e] text-sm font-bold">
+                  className="px-5 py-2.5 rounded-xl bg-gray-100 text-[#13241b] text-sm font-bold">
                   Annuler
                 </button>
               </div>

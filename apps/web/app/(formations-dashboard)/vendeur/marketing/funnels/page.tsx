@@ -14,12 +14,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 import {
-  KazaHero,
-  KazaCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StChip,
+  ST,
+} from "@/components/stitch";
 
 interface FunnelStep {
   id: string;
@@ -98,155 +98,161 @@ export default function FunnelsListPage() {
   }
 
   return (
-    <div className="p-5 md:p-8 max-w-5xl mx-auto space-y-6">
-      <KazaHero
-        badge="Pro"
-        badgeColor="orange"
-        title="Mes funnels de vente"
-        subtitle="Tunnels complets : landing, checkout, upsell et page de remerciement"
-        icon={Network}
-        actions={
-          <>
-            <KazaButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>
-              Générer avec l&apos;IA
-            </KazaButton>
-            <KazaButton variant="primary" onClick={() => setShowCreate(true)} icon={Plus}>
-              Nouveau funnel
-            </KazaButton>
-          </>
-        }
-      />
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-40 bg-slate-100 rounded-2xl" />
-          ))}
-        </div>
-      ) : funnels.length === 0 ? (
-        <KazaEmpty
-          icon={Network}
-          title="Lancez votre premier funnel"
-          description="Un funnel de vente guide vos visiteurs depuis la découverte jusqu'à l'achat avec upsells et page de remerciement personnalisée."
-          action={{ label: "Générer avec l'IA", href: "/vendeur/marketing/funnels/nouveau-ai" }}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StPageHeader
+          title="Mes funnels de vente"
+          subtitle="Tunnels complets : landing, checkout, upsell et page de remerciement"
+          actions={
+            <>
+              <StButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>
+                Générer avec l&apos;IA
+              </StButton>
+              <StButton onClick={() => setShowCreate(true)} icon={Plus}>
+                Nouveau funnel
+              </StButton>
+            </>
+          }
         />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {funnels.map((f) => {
-            const conversionRate = f.totalViews > 0 ? (f.totalConversions / f.totalViews) * 100 : 0;
-            return (
-              <Link
-                key={f.id}
-                href={`/vendeur/marketing/funnels/${f.id}`}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md hover:border-emerald-200 transition-all group"
-              >
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <h3 className="text-base font-extrabold text-[#0b2540] truncate">{f.name}</h3>
-                      {f.isActive ? (
-                        <KazaBadge variant="green">Actif</KazaBadge>
-                      ) : (
-                        <KazaBadge variant="slate">Brouillon</KazaBadge>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 truncate">/{f.slug}</p>
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-emerald-500 transition-colors flex-shrink-0" />
-                </div>
 
-                <div className="flex items-center gap-1 mb-4 overflow-x-auto">
-                  {f.steps.map((s, i) => (
-                    <div key={s.id} className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 whitespace-nowrap">
-                        {s.title}
-                      </span>
-                      {i < f.steps.length - 1 && (
-                        <ArrowRight className="w-3 h-3 text-slate-300" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-semibold uppercase">Vues</p>
-                    <p className="text-sm font-extrabold text-[#0b2540]">{fmt(f.totalViews)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-semibold uppercase">Conv.</p>
-                    <p className="text-sm font-extrabold text-[#0b2540]">{fmt(f.totalConversions)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-slate-500 font-semibold uppercase">Taux</p>
-                    <p className="text-sm font-extrabold text-emerald-600">{conversionRate.toFixed(1)}%</p>
-                  </div>
-                </div>
-
-                <p className="text-[10px] text-slate-500 mt-3">Modifié {timeAgo(f.updatedAt)}</p>
-              </Link>
-            );
-          })}
-        </div>
-      )}
-
-      {showCreate && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
-          onClick={() => !creating && setShowCreate(false)}
-        >
-          <div
-            className="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-xl font-extrabold text-[#0b2540] mb-2">Nouveau funnel de vente</h2>
-            <p className="text-sm text-slate-500 mb-5">
-              Donnez un nom à votre funnel. Vous pourrez tout configurer ensuite (design, blocks, produits).
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-40 rounded-[18px]" style={{ background: "#f3f6f4" }} />
+            ))}
+          </div>
+        ) : funnels.length === 0 ? (
+          <StCard className="text-center py-12">
+            <Network size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
+            <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>Lancez votre premier funnel</h3>
+            <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+              Un funnel de vente guide vos visiteurs depuis la découverte jusqu&apos;à l&apos;achat avec upsells et page de remerciement personnalisée.
             </p>
-
-            {error && (
-              <div className="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
-                <AlertCircle size={18} className="text-rose-500" />
-                <p className="text-sm text-rose-700">{error}</p>
-              </div>
-            )}
-
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Nom du funnel</label>
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="ex: Lancement formation marketing 2026"
-              autoFocus
-              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              className="w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 text-sm text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500"
-            />
-
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 mt-4 mb-5 flex items-start gap-2">
-              <Info size={16} className="text-emerald-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-emerald-700">
-                Votre funnel sera créé avec 4 étapes par défaut :{" "}
-                <strong>Landing → Checkout → Upsell → Merci</strong>. Vous pourrez tout personnaliser.
-              </p>
+            <div className="mt-4 flex justify-center">
+              <StButton href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>Générer avec l&apos;IA</StButton>
             </div>
+          </StCard>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {funnels.map((f) => {
+              const conversionRate = f.totalViews > 0 ? (f.totalConversions / f.totalViews) * 100 : 0;
+              return (
+                <Link
+                  key={f.id}
+                  href={`/vendeur/marketing/funnels/${f.id}`}
+                  className="block group"
+                >
+                  <StCard className="transition-transform hover:-translate-y-0.5 h-full">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <h3 className="text-[15px] font-extrabold truncate" style={{ color: ST.text }}>{f.name}</h3>
+                          {f.isActive ? (
+                            <StChip tone="green">Actif</StChip>
+                          ) : (
+                            <StChip tone="neutral">Brouillon</StChip>
+                          )}
+                        </div>
+                        <p className="text-[12px] font-semibold truncate" style={{ color: ST.textSecondary }}>/{f.slug}</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 transition-colors flex-shrink-0" style={{ color: ST.textFaint }} />
+                    </div>
 
-            <div className="flex gap-2">
-              <KazaButton variant="ghost" className="flex-1" onClick={() => setShowCreate(false)} disabled={creating}>
-                Annuler
-              </KazaButton>
-              <KazaButton
-                variant="primary"
-                className="flex-1"
-                onClick={handleCreate}
-                disabled={!newName.trim() || creating}
-                icon={creating ? Loader2 : PlusCircle}
-              >
-                {creating ? "Création…" : "Créer"}
-              </KazaButton>
+                    <div className="flex items-center gap-1 mb-4 overflow-x-auto">
+                      {f.steps.map((s, i) => (
+                        <div key={s.id} className="flex items-center gap-1 flex-shrink-0">
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full whitespace-nowrap" style={{ background: ST.greenSoft, color: ST.green }}>
+                            {s.title}
+                          </span>
+                          {i < f.steps.length - 1 && (
+                            <ArrowRight className="w-3 h-3" style={{ color: "#cdd9d1" }} />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 pt-3" style={{ borderTop: `1px solid ${ST.divider}` }}>
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase" style={{ color: ST.textMuted }}>Vues</p>
+                        <p className="text-[13.5px] font-extrabold tabular-nums" style={{ color: ST.text }}>{fmt(f.totalViews)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase" style={{ color: ST.textMuted }}>Conv.</p>
+                        <p className="text-[13.5px] font-extrabold tabular-nums" style={{ color: ST.text }}>{fmt(f.totalConversions)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-extrabold uppercase" style={{ color: ST.textMuted }}>Taux</p>
+                        <p className="text-[13.5px] font-extrabold tabular-nums" style={{ color: ST.green }}>{conversionRate.toFixed(1)}%</p>
+                      </div>
+                    </div>
+
+                    <p className="text-[10.5px] font-semibold mt-3" style={{ color: ST.textFaint }}>Modifié {timeAgo(f.updatedAt)}</p>
+                  </StCard>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {showCreate && (
+          <div
+            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4"
+            onClick={() => !creating && setShowCreate(false)}
+          >
+            <div
+              className="bg-white rounded-[20px] max-w-md w-full p-7 shadow-2xl"
+              style={{ border: `1px solid ${ST.cardBorder}` }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-[19px] font-extrabold mb-2" style={{ color: ST.text }}>Nouveau funnel de vente</h2>
+              <p className="text-[13px] font-semibold mb-5" style={{ color: ST.textSecondary }}>
+                Donnez un nom à votre funnel. Vous pourrez tout configurer ensuite (design, blocks, produits).
+              </p>
+
+              {error && (
+                <div className="rounded-[12px] px-4 py-3 mb-4 flex items-center gap-2" style={{ background: ST.roseSoft, border: "1px solid #f4d4de" }}>
+                  <AlertCircle size={18} style={{ color: ST.roseText }} />
+                  <p className="text-[13px] font-semibold" style={{ color: ST.roseText }}>{error}</p>
+                </div>
+              )}
+
+              <label className="block text-[12px] font-extrabold mb-[7px]" style={{ color: ST.textLabel }}>Nom du funnel</label>
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="ex: Lancement formation marketing 2026"
+                autoFocus
+                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                className="w-full rounded-[12px] bg-white px-[14px] py-[11px] text-[13.5px] font-semibold focus:outline-none"
+                style={{ color: ST.text, border: "1px solid #dde6e0" }}
+              />
+
+              <div className="rounded-[12px] p-3 mt-4 mb-5 flex items-start gap-2" style={{ background: ST.greenSoft, border: "1px solid #d7ecde" }}>
+                <Info size={16} className="mt-0.5 flex-shrink-0" style={{ color: ST.green }} />
+                <p className="text-[12px] font-semibold" style={{ color: "#2f7a4c" }}>
+                  Votre funnel sera créé avec 4 étapes par défaut :{" "}
+                  <strong>Landing → Checkout → Upsell → Merci</strong>. Vous pourrez tout personnaliser.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <StButton variant="secondary" className="flex-1" onClick={() => setShowCreate(false)} disabled={creating}>
+                  Annuler
+                </StButton>
+                <StButton
+                  className="flex-1"
+                  onClick={handleCreate}
+                  disabled={!newName.trim() || creating}
+                  icon={creating ? Loader2 : PlusCircle}
+                >
+                  {creating ? "Création…" : "Créer"}
+                </StButton>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 }

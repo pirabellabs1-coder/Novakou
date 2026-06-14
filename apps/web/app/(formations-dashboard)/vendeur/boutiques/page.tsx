@@ -13,12 +13,14 @@ import {
 } from "lucide-react";
 import { useToastStore } from "@/store/toast";
 import {
-  KazaHero,
-  KazaCard,
-  KazaButton,
-  KazaBadge,
-  KazaEmpty,
-} from "@/components/kaza";
+  StCard,
+  StPageHeader,
+  StButton,
+  StChip,
+  StInput,
+  StSectionTitle,
+  ST,
+} from "@/components/stitch";
 
 interface Shop {
   id: string;
@@ -111,84 +113,83 @@ export default function VendorShopsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
-      <main className="px-5 md:px-10 py-8 md:py-12 max-w-[1200px] mx-auto space-y-8">
-        <KazaHero
-          badge="Pro"
-          badgeColor="orange"
-          icon={Store}
+    <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
+      <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
+        <StPageHeader
           title="Mes boutiques"
           subtitle={`Créez jusqu'à ${max} boutiques avec leur propre nom de domaine. Vos produits apparaissent dans toutes vos boutiques.`}
         />
 
         {/* Create form */}
         {shops.length < max && (
-          <KazaCard title="Nouvelle boutique" subtitle="Donnez-lui un nom mémorable">
+          <StCard className="mb-4">
+            <StSectionTitle>Nouvelle boutique</StSectionTitle>
+            <p className="text-[12px] font-semibold -mt-2 mb-3" style={{ color: ST.textSecondary }}>Donnez-lui un nom mémorable</p>
             <form onSubmit={handleCreate} className="flex flex-col md:flex-row gap-3 items-stretch md:items-end">
               <div className="flex-1">
-                <input
+                <StInput
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="Ex: Tools IA Pro"
                   maxLength={80}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-slate-200 bg-white text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 transition-all"
                 />
               </div>
-              <KazaButton
+              <StButton
                 type="submit"
-                variant="primary"
                 icon={Plus}
                 disabled={creating || newName.trim().length < 2}
               >
                 {creating ? "Création…" : "Créer la boutique"}
-              </KazaButton>
+              </StButton>
             </form>
-          </KazaCard>
+          </StCard>
         )}
 
         {/* Shops list */}
         {loading ? (
           <div className="space-y-3 animate-pulse">
-            <div className="h-24 bg-white rounded-2xl border border-slate-100" />
-            <div className="h-24 bg-white rounded-2xl border border-slate-100" />
+            <div className="h-24 rounded-[18px]" style={{ background: "#f3f6f4" }} />
+            <div className="h-24 rounded-[18px]" style={{ background: "#f3f6f4" }} />
           </div>
         ) : shops.length === 0 ? (
-          <KazaEmpty
-            icon={Store}
-            title="Aucune boutique encore"
-            description="Créez votre première boutique pour publier votre catalogue sous votre propre marque."
-          />
+          <StCard className="text-center py-12">
+            <Store size={44} style={{ color: "#d6e0da" }} className="mx-auto" />
+            <h3 className="text-[15px] font-extrabold mt-3" style={{ color: ST.text }}>Aucune boutique encore</h3>
+            <p className="text-[12.5px] font-semibold mt-1.5 max-w-md mx-auto" style={{ color: ST.textSecondary }}>
+              Créez votre première boutique pour publier votre catalogue sous votre propre marque.
+            </p>
+          </StCard>
         ) : (
           <div className="grid grid-cols-1 gap-3">
             {shops.map((s) => (
-              <div
+              <StCard
                 key={s.id}
-                className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex flex-col md:flex-row md:items-center gap-4 hover:shadow-md transition-shadow"
+                className="flex flex-col md:flex-row md:items-center gap-4"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-extrabold text-base flex-shrink-0"
-                    style={{ background: s.themeColor || "linear-gradient(135deg, #006e2f, #22c55e)" }}
+                    className="w-12 h-12 rounded-[12px] flex items-center justify-center text-white font-extrabold text-base flex-shrink-0"
+                    style={{ background: s.themeColor || ST.gradient }}
                   >
                     {s.name[0]?.toUpperCase() ?? "?"}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-base font-extrabold text-slate-900 truncate">{s.name}</p>
+                      <p className="text-[15px] font-extrabold truncate" style={{ color: ST.text }}>{s.name}</p>
                       {s.isPrimary && (
-                        <KazaBadge variant="green" icon={Star}>Principale</KazaBadge>
+                        <StChip tone="green" icon={Star}>Principale</StChip>
                       )}
                       {s.customDomainVerified && (
-                        <KazaBadge variant="blue" icon={BadgeCheck}>Domaine vérifié</KazaBadge>
+                        <StChip tone="blue" icon={BadgeCheck}>Domaine vérifié</StChip>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                    <div className="flex items-center gap-3 text-[12px] font-semibold mt-1 flex-wrap" style={{ color: ST.textSecondary }}>
                       <a
                         href={`https://novakou.com/boutique/${s.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hover:text-emerald-700 inline-flex items-center gap-1"
+                        className="inline-flex items-center gap-1 hover:underline"
                       >
                         <LinkIcon className="w-3 h-3" />
                         novakou.com/boutique/{s.slug}
@@ -198,7 +199,7 @@ export default function VendorShopsPage() {
                           href={`https://${s.customDomain}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="hover:text-emerald-700 inline-flex items-center gap-1"
+                          className="inline-flex items-center gap-1 hover:underline"
                         >
                           <Globe className="w-3 h-3" />
                           {s.customDomain}
@@ -208,26 +209,26 @@ export default function VendorShopsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <KazaButton variant="ghost" size="sm" icon={Settings} href={`/vendeur/boutiques/${s.id}`}>
+                  <StButton variant="secondary" size="sm" icon={Settings} href={`/vendeur/boutiques/${s.id}`}>
                     Gérer
-                  </KazaButton>
+                  </StButton>
                   {!s.isPrimary && (
                     <>
-                      <KazaButton variant="ghost" size="sm" icon={Star} onClick={() => handleSetPrimary(s.id)}>
+                      <StButton variant="secondary" size="sm" icon={Star} onClick={() => handleSetPrimary(s.id)}>
                         Principale
-                      </KazaButton>
-                      <KazaButton variant="danger" size="sm" icon={Trash2} onClick={() => handleDelete(s.id, s.name)}>
+                      </StButton>
+                      <StButton variant="secondary" size="sm" icon={Trash2} onClick={() => handleDelete(s.id, s.name)} className="!text-[#993556]">
                         Supprimer
-                      </KazaButton>
+                      </StButton>
                     </>
                   )}
                 </div>
-              </div>
+              </StCard>
             ))}
           </div>
         )}
 
-        <p className="text-xs text-slate-500 text-center">
+        <p className="text-[12px] font-semibold text-center mt-4" style={{ color: ST.textSecondary }}>
           {shops.length}/{max} boutiques utilisées
         </p>
       </main>
