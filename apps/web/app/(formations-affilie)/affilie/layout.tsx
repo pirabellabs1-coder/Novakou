@@ -1,6 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ArrowLeft,
+  ArrowLeftRight,
+  Bell,
+  LogOut,
+  Menu,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -61,7 +68,7 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
           className="md:hidden p-2 rounded-lg hover:bg-[#1e3a2f] text-white"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
-          <span className="material-symbols-outlined text-[22px]">menu</span>
+          <Menu size={22} />
         </button>
 
         <Link href="/affilie/dashboard" className="flex items-center gap-2 flex-shrink-0">
@@ -82,12 +89,12 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
           href="/apprenant/dashboard"
           className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#1e3a2f] text-xs font-semibold text-[#5c9e7a] hover:text-white hover:border-[#22c55e]/40 transition-all"
         >
-          <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+          <ArrowLeft size={14} />
           Mon espace apprenant
         </Link>
 
         <button className="relative p-2 rounded-full hover:bg-[#1e3a2f] text-[#5c9e7a]">
-          <span className="material-symbols-outlined text-[22px]">notifications</span>
+          <Bell size={22} />
         </button>
 
         {userImage ? (
@@ -163,7 +170,7 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
             onClick={() => setSidebarOpen(false)}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#5c9e7a] hover:bg-[#1e3a2f] hover:text-white transition-all"
           >
-            <span className="material-symbols-outlined text-[20px] flex-shrink-0">switch_account</span>
+            <ArrowLeftRight size={20} className="flex-shrink-0" />
             Espace apprenant
           </Link>
         </nav>
@@ -174,7 +181,7 @@ function AffiliéLayoutInner({ children }: { children: React.ReactNode }) {
             onClick={() => signOut({ callbackUrl: "/" })}
             className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-400 text-xs font-semibold hover:bg-red-500/10 transition-colors border border-red-500/20"
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
+            <LogOut size={16} />
             Se déconnecter
           </button>
         </div>

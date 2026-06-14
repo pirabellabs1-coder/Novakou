@@ -1,6 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import {
+  Receipt,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import { CommunityBanner } from "@/components/formations/CommunityBanner";
@@ -267,7 +270,7 @@ export default function AffilieDashboardPage() {
           <div className="space-y-3">{[0,1,2,3].map((i) => <SkeletonBlock key={i} className="h-14" />)}</div>
         ) : recentCommissions.length === 0 ? (
           <div className="py-10 text-center">
-            <span className="material-symbols-outlined text-[32px] text-[#1e3a2f] mb-2 block" style={{ fontVariationSettings: "'FILL' 1" }}>receipt_long</span>
+            <Receipt size={32} className="text-[#1e3a2f] mb-2 block" />
             <p className="text-sm text-[#5c9e7a]">Aucune conversion pour le moment.</p>
             <Link href="/affilie/liens" className="text-xs text-[#22c55e] font-semibold hover:underline mt-2 inline-block">
               Générer des liens →

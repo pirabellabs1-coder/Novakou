@@ -12,6 +12,9 @@
  */
 
 import { useEffect, useState, use } from "react";
+import {
+  Ban,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -93,7 +96,7 @@ export default function InvitationAcceptPage({ params }: { params: Promise<{ cod
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-white p-5">
         <div className="max-w-md bg-white rounded-2xl border border-gray-100 shadow-xl p-8 text-center">
           <div className="w-16 h-16 mx-auto rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-4">
-            <span className="material-symbols-outlined text-[32px]">block</span>
+            <Ban size={32} />
           </div>
           <h1 className="text-xl font-extrabold text-[#191c1e] mb-2">Invitation invalide</h1>
           <p className="text-sm text-[#5c647a] mb-6">{error}</p>

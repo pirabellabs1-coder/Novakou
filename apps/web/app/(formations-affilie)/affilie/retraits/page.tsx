@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import {
+  CheckCircle2,
+} from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDraftField, clearDrafts } from "@/lib/hooks/use-draft-storage";
 
@@ -118,7 +121,7 @@ export default function RetraitsPage() {
       {step === "success" ? (
         <div className="bg-[#0d1f17] rounded-2xl border border-[#22c55e]/30 p-10 text-center">
           <div className="w-16 h-16 rounded-full bg-[#22c55e]/20 flex items-center justify-center mx-auto mb-4">
-            <span className="material-symbols-outlined text-[32px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+            <CheckCircle2 size={32} className="text-[#22c55e]" />
           </div>
           <h2 className="text-lg font-extrabold text-white mb-2">Retrait initié !</h2>
           <p className="text-sm text-[#5c9e7a] mb-1">
@@ -214,9 +217,7 @@ export default function RetraitsPage() {
                           <p className="text-[10px] text-[#5c9e7a]">{m.desc}</p>
                         </div>
                         {selectedMethod === m.id && (
-                          <span className="material-symbols-outlined text-[18px] text-[#22c55e] flex-shrink-0" style={{ fontVariationSettings: "'FILL' 1" }}>
-                            check_circle
-                          </span>
+                          <CheckCircle2 size={18} className="text-[#22c55e] flex-shrink-0" />
                         )}
                       </button>
                     ))}

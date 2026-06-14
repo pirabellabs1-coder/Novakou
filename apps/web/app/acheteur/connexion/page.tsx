@@ -1,6 +1,19 @@
 "use client";
 
 import { Suspense, useEffect, useState, useRef } from "react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  Info,
+  Loader2,
+  Lock,
+  LogIn,
+  LogOut,
+  Mail,
+  MailCheck,
+  Send,
+  ShieldCheck,
+} from "lucide-react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
@@ -153,7 +166,7 @@ function ConnexionInner() {
         <div className="relative z-10 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <span className="material-symbols-outlined text-white text-[18px]">shield</span>
+              <ShieldCheck size={18} className="text-white" />
             </div>
             <div>
               <p className="text-white text-sm font-bold">100 % sécurisé</p>
@@ -179,7 +192,7 @@ function ConnexionInner() {
                 {wrongPortal && (
                   <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3.5">
                     <div className="flex items-start gap-2.5">
-                      <span className="material-symbols-outlined text-amber-600 text-[18px] mt-0.5 flex-shrink-0">info</span>
+                      <Info size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
                         <p className="text-sm font-bold text-amber-900 mb-1">Mauvaise page de connexion</p>
                         <p className="text-xs text-amber-800 leading-relaxed">
@@ -191,7 +204,7 @@ function ConnexionInner() {
                             onClick={() => signOut({ callbackUrl: "/acheteur/connexion" })}
                             className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 underline hover:no-underline"
                           >
-                            <span className="material-symbols-outlined text-[14px]">logout</span>
+                            <LogOut size={14} />
                             Se déconnecter pour continuer
                           </button>
                         )}
@@ -215,7 +228,7 @@ function ConnexionInner() {
                   <div>
                     <label className="block text-sm font-bold text-[#191c1e] mb-1.5">Adresse email</label>
                     <div className="relative">
-                      <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-[#5c647a]">mail</span>
+                      <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5c647a]" />
                       <input
                         type="email"
                         required
@@ -230,7 +243,7 @@ function ConnexionInner() {
 
                   {error && (
                     <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-start gap-2">
-                      <span className="material-symbols-outlined text-red-500 text-[16px] mt-0.5">error</span>
+                      <AlertCircle size={16} className="text-red-500 mt-0.5" />
                       <p className="text-xs text-red-700 font-medium">{error}</p>
                     </div>
                   )}
@@ -242,10 +255,10 @@ function ConnexionInner() {
                     style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
                   >
                     {loading ? (
-                      <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                      <Loader2 size={18} className="animate-spin" />
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-[18px]">send</span>
+                        <Send size={18} />
                         Recevoir mon code
                       </>
                     )}
@@ -265,7 +278,7 @@ function ConnexionInner() {
               <>
                 <div className="mb-7">
                   <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-emerald-50 mb-4">
-                    <span className="material-symbols-outlined text-[#006e2f] text-[24px]">mark_email_read</span>
+                    <MailCheck size={24} className="text-[#006e2f]" />
                   </div>
                   <h2 className="text-2xl font-extrabold text-[#191c1e] mb-1.5">Vérifiez votre email</h2>
                   <p className="text-sm text-[#5c647a]">
@@ -292,7 +305,7 @@ function ConnexionInner() {
 
                   {error && (
                     <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-start gap-2">
-                      <span className="material-symbols-outlined text-red-500 text-[16px] mt-0.5">error</span>
+                      <AlertCircle size={16} className="text-red-500 mt-0.5" />
                       <p className="text-xs text-red-700 font-medium">{error}</p>
                     </div>
                   )}
@@ -304,10 +317,10 @@ function ConnexionInner() {
                     style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
                   >
                     {loading ? (
-                      <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                      <Loader2 size={18} className="animate-spin" />
                     ) : (
                       <>
-                        <span className="material-symbols-outlined text-[18px]">login</span>
+                        <LogIn size={18} />
                         Accéder à mon espace
                       </>
                     )}
@@ -320,7 +333,7 @@ function ConnexionInner() {
                     onClick={() => { setStep(1); setCode(""); setError(null); }}
                     className="font-semibold text-[#5c647a] hover:text-[#191c1e] inline-flex items-center gap-1"
                   >
-                    <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                    <ArrowLeft size={16} />
                     Changer d&apos;email
                   </button>
                   <button
@@ -337,7 +350,7 @@ function ConnexionInner() {
           </div>
 
           <div className="mt-6 flex items-center justify-center gap-2 text-xs text-[#5c647a]">
-            <span className="material-symbols-outlined text-[14px]">lock</span>
+            <Lock size={14} />
             Connexion sécurisée SSL 256-bit
           </div>
         </div>

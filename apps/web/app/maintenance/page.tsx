@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  HardHat,
+  Loader2,
+  RefreshCw,
+  Rocket,
+} from "lucide-react";
 
 export default function MaintenancePage() {
   const [message, setMessage] = useState("La plateforme est en maintenance. Nous serons de retour bientot.");
@@ -60,13 +66,13 @@ export default function MaintenancePage() {
       <div className="max-w-lg w-full text-center">
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <span className="material-symbols-outlined text-[#6C2BD9] text-3xl">rocket_launch</span>
+          <Rocket size={30} className="text-[#6C2BD9]" />
           <span className="font-bold text-2xl text-white">Novakou</span>
         </div>
 
         {/* Maintenance icon */}
         <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-amber-500/10 flex items-center justify-center animate-pulse">
-          <span className="material-symbols-outlined text-4xl text-amber-400">engineering</span>
+          <HardHat size={36} className="text-amber-400" />
         </div>
 
         <h1 className="text-3xl font-bold text-white mb-4">Maintenance en cours</h1>
@@ -79,9 +85,9 @@ export default function MaintenancePage() {
           className="inline-flex items-center gap-2 px-6 py-3 bg-[#6C2BD9] text-white font-bold rounded-xl hover:bg-[#5B21B6] transition-all disabled:opacity-50"
         >
           {checking ? (
-            <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>
+            <Loader2 size={18} className="animate-spin" />
           ) : (
-            <span className="material-symbols-outlined text-lg">refresh</span>
+            <RefreshCw size={18} />
           )}
           {checking ? "Verification..." : "Verifier le statut"}
         </button>

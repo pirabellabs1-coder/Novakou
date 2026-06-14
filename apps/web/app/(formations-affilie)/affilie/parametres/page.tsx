@@ -1,6 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import {
+  CheckCircle2,
+  Save,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import CountrySelect from "@/components/account/CountrySelect";
 import TwoFactorSetup from "@/components/account/TwoFactorSetup";
@@ -292,7 +296,7 @@ export default function AffilieParametresPage() {
                       <span className="material-symbols-outlined text-[20px] text-white">{m.icon}</span>
                     </span>
                     <span className="text-sm font-semibold text-white flex-1">{m.label}</span>
-                    {payoutMethod === m.id && <span className="material-symbols-outlined text-[18px] text-[#22c55e]">check_circle</span>}
+                    {payoutMethod === m.id && <CheckCircle2 size={18} className="text-[#22c55e]" />}
                   </button>
                 ))}
               </div>
@@ -320,7 +324,7 @@ export default function AffilieParametresPage() {
                 <button onClick={savePayout}
                   className="flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
                   style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                  <span className="material-symbols-outlined text-[17px]">save</span>
+                  <Save size={17} />
                   Sauvegarder la méthode
                 </button>
                 {payoutSaved && <span className="text-sm text-[#22c55e] font-semibold">✓ Sauvegardé</span>}
@@ -364,7 +368,7 @@ export default function AffilieParametresPage() {
 
               <button className="mt-7 flex items-center gap-2 px-6 py-3 rounded-xl text-white font-bold text-sm transition-opacity hover:opacity-90"
                 style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                <span className="material-symbols-outlined text-[17px]">save</span>
+                <Save size={17} />
                 Sauvegarder
               </button>
             </div>

@@ -1,6 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  AlertCircle,
+  ShieldCheck,
+  Store,
+} from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 
@@ -155,7 +160,7 @@ export default function AdminMarketplaceLoginPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
             <div className="text-center mb-6">
               <div className="w-14 h-14 rounded-xl bg-red-600/10 flex items-center justify-center mx-auto mb-4">
-                <span className="material-symbols-outlined text-2xl text-red-500">verified_user</span>
+                <ShieldCheck size={24} className="text-red-500" />
               </div>
               <h2 className="text-xl font-bold text-white">Verification 2FA</h2>
               <p className="text-slate-400 text-sm mt-1">Code authenticator requis</p>
@@ -192,7 +197,7 @@ export default function AdminMarketplaceLoginPage() {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
           <div className="text-center mb-8">
             <div className="w-14 h-14 rounded-xl bg-red-600/10 flex items-center justify-center mx-auto mb-4">
-              <span className="material-symbols-outlined text-2xl text-red-500">store</span>
+              <Store size={24} className="text-red-500" />
             </div>
             <h1 className="text-xl font-bold text-white">Admin Marketplace</h1>
             <p className="text-slate-500 text-xs mt-1">Novakou — Acces restreint</p>
@@ -200,7 +205,7 @@ export default function AdminMarketplaceLoginPage() {
 
           {error && (
             <div className="mb-4 p-3 rounded-lg bg-red-900/30 border border-red-800/50 text-red-400 text-sm flex items-center gap-2">
-              <span className="material-symbols-outlined text-base">error</span>
+              <AlertCircle size={16} />
               {error}
             </div>
           )}

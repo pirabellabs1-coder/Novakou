@@ -1,3 +1,6 @@
+import {
+  AlertCircle,
+} from "lucide-react";
 "use client";
 
 /**
@@ -18,7 +21,7 @@ export default function Error({
     <div className="flex min-h-screen items-center justify-center px-6 bg-[#f7f9fb]">
       <div className="max-w-md text-center">
         <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-red-50 flex items-center justify-center">
-          <span className="material-symbols-outlined text-red-500 text-[36px]">error_outline</span>
+          <AlertCircle size={36} className="text-red-500" />
         </div>
         <h2 className="text-2xl font-extrabold text-[#191c1e] mb-2">Une erreur est survenue</h2>
         <p className="text-[#5c647a] mb-1">

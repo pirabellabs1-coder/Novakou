@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import {
+  AlertCircle,
+  History,
+  Loader2,
+  LockOpen,
+  ShieldCheck,
+} from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -85,12 +92,7 @@ export default function AdminLoginClient() {
         <div className="bg-[#0f1420] rounded-3xl border border-white/10 p-8 shadow-2xl">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
-              <span
-                className="material-symbols-outlined text-amber-400 text-[22px]"
-                style={{ fontVariationSettings: "'FILL' 1" }}
-              >
-                shield_lock
-              </span>
+              <ShieldCheck size={22} className="text-amber-400" />
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-white">Accès administrateur</h2>
@@ -100,7 +102,7 @@ export default function AdminLoginClient() {
 
           {error && (
             <div className="mb-5 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-red-400 text-[18px]">error</span>
+              <AlertCircle size={18} className="text-red-400" />
               <p className="text-sm text-red-300 font-medium">{error}</p>
             </div>
           )}
@@ -160,14 +162,12 @@ export default function AdminLoginClient() {
             >
               {loading ? (
                 <>
-                  <span className="material-symbols-outlined text-[18px] animate-spin">
-                    progress_activity
-                  </span>
+                  <Loader2 size={18} className="animate-spin" />
                   Authentification…
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-[18px]">lock_open</span>
+                  <LockOpen size={18} />
                   Accéder au panneau
                 </>
               )}
@@ -176,11 +176,11 @@ export default function AdminLoginClient() {
 
           <div className="mt-6 pt-6 border-t border-white/10 space-y-2">
             <div className="flex items-center gap-2 text-[11px] text-white/50">
-              <span className="material-symbols-outlined text-[14px]">verified_user</span>
+              <ShieldCheck size={14} />
               URL secrète validée — connexion chiffrée TLS
             </div>
             <div className="flex items-center gap-2 text-[11px] text-white/50">
-              <span className="material-symbols-outlined text-[14px]">history</span>
+              <History size={14} />
               Toutes les connexions sont journalisées
             </div>
           </div>

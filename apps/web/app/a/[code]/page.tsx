@@ -1,4 +1,10 @@
 import type { Metadata } from "next";
+import {
+  Download,
+  Package,
+  PlayCircle,
+  ShoppingBag,
+} from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -195,7 +201,7 @@ export default async function AffiliateBoutiquePage({
       <section className="max-w-6xl mx-auto px-5 md:px-8 py-12 md:py-16">
         {formations.length === 0 && products.length === 0 ? (
           <div className="bg-white border border-gray-100 rounded-2xl p-12 text-center">
-            <span className="material-symbols-outlined text-gray-300 text-5xl">inventory_2</span>
+            <Package size={48} className="text-gray-300" />
             <p className="text-base font-bold text-[#191c1e] mt-3">Catalogue bientôt disponible</p>
             <p className="text-sm text-[#5c647a] mt-1">{name} n&apos;a pas encore sélectionné de produits à recommander.</p>
           </div>
@@ -224,7 +230,7 @@ export default async function AffiliateBoutiquePage({
                               <img src={f.thumbnail} alt={f.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <span className="material-symbols-outlined text-white/60 text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
+                                <PlayCircle size={48} className="text-white/60" />
                               </div>
                             )}
                             {discount > 0 && (
@@ -248,7 +254,7 @@ export default async function AffiliateBoutiquePage({
                             href={`/checkout?fids=${f.id}&ref=${code}`}
                             className="mt-auto inline-flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl bg-zinc-900 text-white text-xs font-bold hover:bg-zinc-700 transition-colors"
                           >
-                            <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                            <ShoppingBag size={16} />
                             Acheter maintenant
                           </Link>
                         </div>
@@ -282,7 +288,7 @@ export default async function AffiliateBoutiquePage({
                               <img src={p.thumbnail ?? p.banner ?? ""} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <span className="material-symbols-outlined text-white/60 text-[48px]" style={{ fontVariationSettings: "'FILL' 1" }}>download</span>
+                                <Download size={48} className="text-white/60" />
                               </div>
                             )}
                             <span className="absolute top-3 left-3 bg-white/95 text-violet-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
@@ -309,7 +315,7 @@ export default async function AffiliateBoutiquePage({
                             href={`/checkout?pids=${p.id}&ref=${code}`}
                             className="mt-auto inline-flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors"
                           >
-                            <span className="material-symbols-outlined text-[16px]">shopping_bag</span>
+                            <ShoppingBag size={16} />
                             Acheter maintenant
                           </Link>
                         </div>

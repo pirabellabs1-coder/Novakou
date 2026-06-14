@@ -1,6 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import {
+  BookmarkMinus,
+  CheckCircle2,
+  Download,
+  Info,
+  Link2,
+  MousePointerClick,
+  Percent,
+  QrCode,
+  Search,
+  ShoppingBag,
+  Wallet,
+  X,
+  Zap,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 type Formation = {
@@ -157,7 +172,7 @@ export default function LiensPage() {
       {/* Just-added banner */}
       {justAdded && (
         <div className="mb-5 bg-[#22c55e]/15 border border-[#22c55e]/30 rounded-xl px-4 py-3 flex items-center gap-3">
-          <span className="material-symbols-outlined text-[18px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+          <CheckCircle2 size={18} className="text-[#22c55e]" />
           <div className="flex-1">
             <p className="text-xs font-bold text-[#22c55e]">Lien épinglé avec succès !</p>
             <p className="text-[10px] text-[#5c9e7a]">
@@ -176,7 +191,7 @@ export default function LiensPage() {
             tab === "mes-liens" ? "bg-[#22c55e] text-white" : "text-[#5c9e7a] hover:text-white"
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">link</span>
+          <Link2 size={16} />
           Mes liens
           {myFormations.length > 0 && (
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tab === "mes-liens" ? "bg-white/20 text-white" : "bg-[#1e3a2f] text-[#5c9e7a]"}`}>
@@ -190,7 +205,7 @@ export default function LiensPage() {
             tab === "ajouter" ? "bg-[#22c55e] text-white" : "text-[#5c9e7a] hover:text-white"
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">add_link</span>
+          <Link2 size={16} />
           Explorer le catalogue
           {formations.length > 0 && (
             <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${tab === "ajouter" ? "bg-white/20 text-white" : "bg-amber-500/30 text-amber-400"}`}>
@@ -220,7 +235,7 @@ export default function LiensPage() {
 
           {myFormations.length === 0 ? (
             <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-12 text-center">
-              <span className="material-symbols-outlined text-[40px] text-[#1e3a2f] mb-3 block" style={{ fontVariationSettings: "'FILL' 1" }}>add_link</span>
+              <Link2 size={40} className="text-[#1e3a2f] mb-3 block" />
               <p className="text-sm font-bold text-white mb-1">Aucun lien actif pour l&apos;instant</p>
               <p className="text-xs text-[#5c9e7a] mb-4">
                 Parcourez le catalogue et épinglez des formations pour générer vos liens affiliés.
@@ -271,7 +286,7 @@ export default function LiensPage() {
                           className="p-1.5 rounded-lg text-[#5c9e7a] hover:text-red-400 hover:bg-red-500/10 transition-all flex-shrink-0"
                           title="Retirer de mes liens"
                         >
-                          <span className="material-symbols-outlined text-[16px]">bookmark_remove</span>
+                          <BookmarkMinus size={16} />
                         </button>
                       </div>
 
@@ -279,7 +294,7 @@ export default function LiensPage() {
                       {affiliateCode ? (
                         <div className="flex items-center gap-2 mb-4 flex-wrap">
                           <div className="flex-1 min-w-[200px] bg-[#1e3a2f] rounded-lg px-3 py-2.5 flex items-center gap-2 min-w-0">
-                            <span className="material-symbols-outlined text-[13px] text-[#5c9e7a] flex-shrink-0">link</span>
+                            <Link2 size={13} className="text-[#5c9e7a] flex-shrink-0" />
                             <span className="text-xs text-[#5c9e7a] truncate font-mono">{link}</span>
                           </div>
                           <button
@@ -296,7 +311,7 @@ export default function LiensPage() {
                             title="Voir QR code"
                             className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-bold bg-[#22c55e]/20 text-[#22c55e] hover:bg-[#22c55e]/30 transition-all"
                           >
-                            <span className="material-symbols-outlined text-[13px]">qr_code_2</span>
+                            <QrCode size={13} />
                             QR
                           </button>
                         </div>
@@ -306,7 +321,7 @@ export default function LiensPage() {
 
                       {/* Commission notice */}
                       <div className="bg-[#22c55e]/8 border border-[#22c55e]/15 rounded-lg px-3 py-2 mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[14px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>bolt</span>
+                        <Zap size={14} className="text-[#22c55e]" />
                         <p className="text-[10px] text-[#5c9e7a]">
                           Chaque achat via ce lien vous crédite automatiquement{" "}
                           <strong className="text-[#22c55e]">{formatFcfa(commission)}</strong>
@@ -317,20 +332,20 @@ export default function LiensPage() {
                       {/* Real stats */}
                       <div className="flex items-center gap-5 text-[10px] text-[#5c9e7a] flex-wrap">
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">ads_click</span>
+                          <MousePointerClick size={12} />
                           {perf?.clicks ?? 0} clics
                         </span>
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">shopping_bag</span>
+                          <ShoppingBag size={12} />
                           {perf?.conversions ?? 0} ventes
                         </span>
                         <span className="flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">payments</span>
+                          <Wallet size={12} />
                           {formatFcfa(perf?.earnings ?? 0)} gagnés
                         </span>
                         {(perf?.clicks ?? 0) > 0 && (
                           <span className="flex items-center gap-1 text-[#22c55e]">
-                            <span className="material-symbols-outlined text-[12px]">percent</span>
+                            <Percent size={12} />
                             {(((perf?.conversions ?? 0) / (perf?.clicks ?? 1)) * 100).toFixed(1)}% conv.
                           </span>
                         )}
@@ -349,7 +364,7 @@ export default function LiensPage() {
         <div>
           {/* Explanation banner */}
           <div className="bg-[#0d1f17] border border-[#22c55e]/20 rounded-xl p-4 mb-5 flex items-start gap-3">
-            <span className="material-symbols-outlined text-[20px] text-[#22c55e] flex-shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+            <Info size={20} className="text-[#22c55e] flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-xs font-bold text-white mb-0.5">Comment générer un lien</p>
               <p className="text-[11px] text-[#5c9e7a] leading-relaxed">
@@ -364,7 +379,7 @@ export default function LiensPage() {
           {/* Search + filters */}
           <div className="flex items-center gap-3 mb-5 flex-wrap">
             <div className="flex-1 min-w-[200px] bg-[#0d1f17] border border-[#1e3a2f] rounded-xl px-4 py-2.5 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-[#5c9e7a]">search</span>
+              <Search size={16} className="text-[#5c9e7a]" />
               <input
                 type="text"
                 placeholder="Rechercher une formation..."
@@ -439,7 +454,7 @@ export default function LiensPage() {
                       {(isPinned || hasActivity) ? (
                         <div className="space-y-2">
                           <div className="flex items-center gap-2 bg-[#1e3a2f] rounded-lg px-3 py-2.5">
-                            <span className="material-symbols-outlined text-[13px] text-[#5c9e7a] flex-shrink-0">link</span>
+                            <Link2 size={13} className="text-[#5c9e7a] flex-shrink-0" />
                             <span className="text-xs text-[#5c9e7a] truncate font-mono flex-1">{link}</span>
                           </div>
                           <button
@@ -458,7 +473,7 @@ export default function LiensPage() {
                           className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90"
                           style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
                         >
-                          <span className="material-symbols-outlined text-[16px]">add_link</span>
+                          <Link2 size={16} />
                           Épingler &amp; générer mon lien
                         </button>
                       )}
@@ -487,7 +502,7 @@ export default function LiensPage() {
                 onClick={() => setQrLinkOpen(null)}
                 className="p-1 rounded-lg hover:bg-gray-100"
               >
-                <span className="material-symbols-outlined text-[20px] text-[#5c647a]">close</span>
+                <X size={20} className="text-[#5c647a]" />
               </button>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 p-4 flex items-center justify-center mb-4">
@@ -510,7 +525,7 @@ export default function LiensPage() {
               className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-sm font-bold transition-opacity hover:opacity-90"
               style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}
             >
-              <span className="material-symbols-outlined text-[16px]">download</span>
+              <Download size={16} />
               Télécharger le QR
             </a>
           </div>

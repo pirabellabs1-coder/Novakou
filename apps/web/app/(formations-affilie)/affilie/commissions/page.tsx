@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import {
+  Info,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 type FilterStatus = "tous" | "PENDING" | "APPROVED" | "PAID" | "CANCELLED";
@@ -113,7 +116,7 @@ export default function CommissionsPage() {
 
       {/* Info banner */}
       <div className="bg-[#22c55e]/10 border border-[#22c55e]/20 rounded-xl p-4 mb-6 flex items-start gap-3">
-        <span className="material-symbols-outlined text-[18px] text-[#22c55e] flex-shrink-0 mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>info</span>
+        <Info size={18} className="text-[#22c55e] flex-shrink-0 mt-0.5" />
         <p className="text-xs text-[#5c9e7a] leading-relaxed">
           Les commissions <strong className="text-white">confirmées</strong> sont versées <strong className="text-white">automatiquement le 5 de chaque mois</strong> sur la méthode de retrait configurée dans vos paramètres.
           Les commissions <strong className="text-amber-400">en attente</strong> sont soumises à un délai de rétractation de 14 jours après l&apos;achat.
