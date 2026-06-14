@@ -7,6 +7,19 @@ import { useState, useMemo, useEffect, useCallback, useRef, Suspense } from "rea
 import { useSearchParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { trackEvents, debounce } from "@/lib/tracking/events";
+import {
+  GraduationCap,
+  BookOpen,
+  PlayCircle,
+  Download,
+  Star,
+  ShoppingBag,
+  CheckCircle2,
+  Loader2,
+  Flame,
+  ArrowLeft,
+  ChevronRight,
+} from "lucide-react";
 
 type Item = {
   id: string;
@@ -129,24 +142,17 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
             className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <span
-              className="material-symbols-outlined text-white text-[72px] opacity-60"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              {item.kind === "formation" ? "school" : "book"}
-            </span>
+          <div className="w-full h-full flex items-center justify-center text-white opacity-70">
+            {item.kind === "formation" ? <GraduationCap size={68} /> : <BookOpen size={68} />}
           </div>
         )}
 
         {/* Top-left: type badge */}
         <div className="absolute top-3 left-3">
-          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full backdrop-blur ${
-            item.kind === "formation" ? "bg-white/95 text-[#006e2f]" : "bg-white/95 text-violet-600"
+          <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-sm backdrop-blur ${
+            item.kind === "formation" ? "bg-white/95 text-[#006e2f]" : "bg-white/95 text-[#006e2f]"
           }`}>
-            <span className="material-symbols-outlined text-[12px]">
-              {item.kind === "formation" ? "play_circle" : "download"}
-            </span>
+            {item.kind === "formation" ? <PlayCircle size={12} /> : <Download size={12} />}
             {item.type}
           </span>
         </div>
@@ -164,7 +170,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
         {item.salesCount >= 50 && (
           <div className="absolute bottom-3 left-3">
             <span className="inline-flex items-center gap-1 bg-amber-400 text-amber-950 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md">
-              <span className="material-symbols-outlined text-[12px]" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+              <Flame size={12} />
               Bestseller
             </span>
           </div>
@@ -185,7 +191,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
           {item.title}
         </h3>
 
-        {/* Author row */}
+        {/* Author row (sans préfixe « par » — juste l'avatar + le nom) */}
         <div className="flex items-center gap-2 mb-3">
           {item.sellerAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -195,25 +201,30 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
               {item.seller.charAt(0).toUpperCase()}
             </div>
           )}
-          <p className="text-xs text-[#5c647a] truncate">
-            par <span className="font-semibold text-[#191c1e]">{item.seller}</span>
-          </p>
+          <p className="text-xs font-semibold text-[#191c1e] truncate">{item.seller}</p>
         </div>
 
-        {/* Rating + sales row */}
-        <div className="flex items-center gap-3 mb-4 text-xs text-[#5c647a]">
-          <div className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px] text-amber-400" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-            <span className="font-bold text-[#191c1e]">{item.rating > 0 ? item.rating.toFixed(1) : "Nouveau"}</span>
-            {item.reviewsCount > 0 && <span className="text-[#5c647a]">({item.reviewsCount})</span>}
+        {/* Note + ventes — affichées uniquement si elles existent (pas de
+            « Nouveau » ni de « 0 vente » qui font vide sur les nouveaux produits) */}
+        {(item.rating > 0 || item.salesCount > 0) && (
+          <div className="flex items-center gap-3 mb-4 text-xs text-[#5c647a]">
+            {item.rating > 0 && (
+              <span className="flex items-center gap-1">
+                <Star size={14} className="text-amber-400 fill-amber-400" />
+                <span className="font-bold text-[#191c1e]">{item.rating.toFixed(1)}</span>
+                {item.reviewsCount > 0 && <span className="text-[#5c647a]">({item.reviewsCount})</span>}
+              </span>
+            )}
+            {item.rating > 0 && item.salesCount > 0 && <span className="text-zinc-300">·</span>}
+            {item.salesCount > 0 && (
+              <span className="flex items-center gap-1">
+                <ShoppingBag size={12} />
+                <span className="font-semibold text-[#191c1e]">{item.salesCount}</span>
+                {item.kind === "formation" ? "élève" : "vente"}{item.salesCount !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
-          <span className="text-zinc-300">·</span>
-          <span className="flex items-center gap-1">
-            <span className="material-symbols-outlined text-[12px]">shopping_bag</span>
-            <span className="font-semibold text-[#191c1e]">{item.salesCount}</span>
-            {item.kind === "formation" ? "élève" : "vente"}{item.salesCount !== 1 ? "s" : ""}
-          </span>
-        </div>
+        )}
 
         {/* Price block — pushed to bottom */}
         <div className="mt-auto pt-4 border-t border-gray-100">
@@ -249,9 +260,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
                 : "bg-[#191c1e] text-white hover:bg-[#006e2f] hover:shadow-md"
             }`}
           >
-            <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-              {added ? "check_circle" : adding ? "progress_activity" : item.price === 0 ? "download" : "shopping_bag"}
-            </span>
+            {added ? <CheckCircle2 size={16} /> : adding ? <Loader2 size={16} className="animate-spin" /> : item.price === 0 ? <Download size={16} /> : <ShoppingBag size={16} />}
             {added ? "Achat confirmé" : adding ? "Patientez…" : item.price === 0 ? "Télécharger" : "Acheter maintenant"}
           </button>
         </div>
@@ -692,7 +701,7 @@ function ExplorerInner() {
       {/* Full-width grid — sidebar removed */}
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-8 pb-16">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
               <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
                 <div className="aspect-[4/5] bg-gray-100 animate-pulse" />
@@ -734,7 +743,7 @@ function ExplorerInner() {
           </div>
         ) : (
           <>
-            <div id="explorer-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 scroll-mt-24">
+            <div id="explorer-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 scroll-mt-24">
               {visibleItems.map((item, idx) => (
                 <ProductCard key={`${item.kind}-${item.id}`} item={item} idx={idx} />
               ))}

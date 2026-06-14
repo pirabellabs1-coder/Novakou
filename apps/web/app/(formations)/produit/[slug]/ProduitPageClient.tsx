@@ -294,13 +294,13 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                         <span className="material-symbols-outlined text-[14px] text-[#22c55e]" style={{ fontVariationSettings: "'FILL' 1" }}>thumb_up</span>
                         <span className="font-semibold">{Math.min(99, 80 + Math.floor(product.salesCount / 5))}%</span>
                       </span>
+                      <span className="text-zinc-300">·</span>
+                      <span>
+                        <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
+                        {" "}vente{product.salesCount !== 1 ? "s" : ""}
+                      </span>
                     </>
                   )}
-                  <span className="text-zinc-300">·</span>
-                  <span>
-                    <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
-                    {" "}vente{product.salesCount !== 1 ? "s" : ""}
-                  </span>
                   <span className="text-zinc-300">·</span>
                   <span>
                     Listé le {new Date(product.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" })}
@@ -308,28 +308,26 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 </div>
               </Link>
 
-              {/* Stats */}
-              <div className="flex items-center gap-4 mt-4 flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <StarRating rating={product.rating} size={16} />
-                  <span className="text-sm font-bold text-[#191c1e]">
-                    {product.rating > 0 ? product.rating.toFixed(1) : "Nouveau"}
-                  </span>
-                  {product.reviewsCount > 0 && (
-                    <span className="text-xs text-[#5c647a]">({product.reviewsCount} avis)</span>
+              {/* Stats — note affichée uniquement si le produit a déjà des avis
+                  (pas de « Nouveau » ni de second compteur de ventes en doublon) */}
+              {product.rating > 0 && (
+                <div className="flex items-center gap-4 mt-4 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <StarRating rating={product.rating} size={16} />
+                    <span className="text-sm font-bold text-[#191c1e]">
+                      {product.rating.toFixed(1)}
+                    </span>
+                    {product.reviewsCount > 0 && (
+                      <span className="text-xs text-[#5c647a]">({product.reviewsCount} avis)</span>
+                    )}
+                  </div>
+                  {remaining !== null && remaining < 50 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700">
+                      Plus que {remaining} {remaining > 1 ? "places" : "place"}
+                    </span>
                   )}
                 </div>
-                <span className="text-xs text-[#5c647a] flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[14px]">shopping_bag</span>
-                  <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
-                  vente{product.salesCount !== 1 ? "s" : ""}
-                </span>
-                {remaining !== null && remaining < 50 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700">
-                    Plus que {remaining} {remaining > 1 ? "places" : "place"}
-                  </span>
-                )}
-              </div>
+              )}
             </div>
 
             {/* Tabs */}
@@ -360,7 +358,6 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               <div className="space-y-5">
                 {product.description ? (
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8">
-                    <h2 className="text-lg font-extrabold text-[#191c1e] mb-3">À propos de ce produit</h2>
                     {/* Rendu unifié HTML/Markdown — identique à l'éditeur (nk-rich) */}
                     <TiptapRenderer content={product.description} />
                   </div>

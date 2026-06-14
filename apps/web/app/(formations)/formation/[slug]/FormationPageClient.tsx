@@ -388,17 +388,20 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                 <p className="text-sm text-[#5c647a] mt-3 leading-relaxed">{formation.shortDesc}</p>
               )}
 
-              {/* Stats */}
+              {/* Stats — note affichée seulement si la formation a des avis
+                  (pas de « Nouveau » qui fait vide sur les nouvelles formations) */}
               <div className="flex items-center gap-4 mt-4 flex-wrap">
-                <div className="flex items-center gap-1.5">
-                  <StarRating rating={formation.rating} size={16} />
-                  <span className="text-sm font-bold text-[#191c1e]">
-                    {formation.rating > 0 ? formation.rating.toFixed(1) : "Nouveau"}
-                  </span>
-                  {formation.reviewsCount > 0 && (
-                    <span className="text-xs text-[#5c647a]">({formation.reviewsCount})</span>
-                  )}
-                </div>
+                {formation.rating > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <StarRating rating={formation.rating} size={16} />
+                    <span className="text-sm font-bold text-[#191c1e]">
+                      {formation.rating.toFixed(1)}
+                    </span>
+                    {formation.reviewsCount > 0 && (
+                      <span className="text-xs text-[#5c647a]">({formation.reviewsCount})</span>
+                    )}
+                  </div>
+                )}
                 <span className="text-xs text-[#5c647a] flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]">groups</span>
                   {fmt(formation.studentsCount)} apprenant{formation.studentsCount > 1 ? "s" : ""}
