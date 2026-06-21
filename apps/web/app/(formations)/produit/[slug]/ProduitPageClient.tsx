@@ -35,6 +35,7 @@ import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 import { SaleAvailability } from "@/components/formations/SaleAvailability";
+import { RelatedProducts } from "@/components/formations/RelatedProducts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Review {
@@ -621,6 +622,11 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               </div>
             </Link>
           </div>
+        </div>
+
+        {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
+        <div className="mt-6">
+          <RelatedProducts categoryId={product.category?.id} excludeId={product.id} />
         </div>
       </div>
     </div>

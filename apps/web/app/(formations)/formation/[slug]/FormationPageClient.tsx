@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { PixelInjector } from "@/components/formations/PixelInjector";
 import { TiptapRenderer } from "@/components/formations/TiptapRenderer";
+import { RelatedProducts } from "@/components/formations/RelatedProducts";
 import { InquiryWidget } from "@/components/formations/InquiryWidget";
 import AISupportWidget from "@/components/formations/AISupportWidget";
 
@@ -693,6 +694,11 @@ export default function FormationPageClient({ slug }: { slug: string }) {
               )}
             </Link>
           </div>
+        </div>
+
+        {/* Recommandations « Vous aimerez aussi » (v2 Phase 2) */}
+        <div className="mt-6">
+          <RelatedProducts categoryId={formation.category?.id} excludeId={formation.id} />
         </div>
       </div>
     </div>
