@@ -17,13 +17,18 @@ export async function GET(request: Request) {
     const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
 
     if (search) {
+      // Recherche élargie (v2 Phase 2) : titre, description ET nom du vendeur
+      // → on trouve aussi en cherchant le nom d'un créateur.
       formationWhere.OR = [
         { title: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
+        { customCategory: { contains: search, mode: "insensitive" } },
+        { instructeur: { user: { name: { contains: search, mode: "insensitive" } } } },
       ];
       productWhere.OR = [
         { title: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
+        { instructeur: { user: { name: { contains: search, mode: "insensitive" } } } },
       ];
     }
 
