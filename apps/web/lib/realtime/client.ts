@@ -37,6 +37,7 @@ export function subscribeToChannel(
     onMessage?: (payload: unknown) => void;
     onTyping?: (payload: unknown) => void;
     onRead?: (payload: unknown) => void;
+    onNotification?: (payload: unknown) => void;
     onPresence?: (online: string[]) => void;
   },
   presenceKey?: string,
@@ -54,6 +55,8 @@ export function subscribeToChannel(
     channel.on("broadcast", { event: "typing" }, ({ payload }) => handlers.onTyping!(payload));
   if (handlers.onRead)
     channel.on("broadcast", { event: "message-read" }, ({ payload }) => handlers.onRead!(payload));
+  if (handlers.onNotification)
+    channel.on("broadcast", { event: "notification" }, ({ payload }) => handlers.onNotification!(payload));
 
   if (handlers.onPresence && presenceKey) {
     channel.on("presence", { event: "sync" }, () => {

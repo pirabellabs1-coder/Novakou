@@ -26,6 +26,7 @@ import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/cons
 import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
 import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 import { resolveStorageFileUrl } from "@/lib/supabase-storage";
+import { broadcast } from "@/lib/realtime/broadcast";
 
 // Signed URLs Supabase expirent par défaut en 1h. Pour un email transactionnel
 // qui peut rester non-lu plusieurs jours, on prend 7 jours. Au-delà, l'utilisateur
@@ -460,6 +461,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           link: "/vendeur/dashboard",
         },
       }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+      // Temps réel : la cloche du vendeur s'allume en direct sur la vente
+      broadcast(`user:${vendorUserId}`, "notification", { type: "ORDER", title: "Nouvelle vente !", link: "/vendeur/dashboard" });
     }
   }
 
@@ -517,6 +520,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           link: "/vendeur/dashboard",
         },
       }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+      // Temps réel : la cloche du vendeur s'allume en direct sur la vente
+      broadcast(`user:${vendorUserId}`, "notification", { type: "ORDER", title: "Nouvelle vente !", link: "/vendeur/dashboard" });
     }
   }
 

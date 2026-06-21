@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { subscribeToChannel } from "@/lib/realtime/client";
 
 interface Notification {
   id: string;
@@ -59,6 +61,8 @@ export function NovakouNotificationBell({ tone = "slate", viewAllHref }: Novakou
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { data: session } = useSession();
+  const myId = session?.user?.id;
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -73,13 +77,23 @@ export function NovakouNotificationBell({ tone = "slate", viewAllHref }: Novakou
     }
   }, []);
 
-  // Initial fetch
+  // Initial fetch + polling de SECOURS (90 s, le temps réel prend le relais)
   useEffect(() => {
     fetchNotifications();
-    // Poll every 60s
-    const interval = setInterval(fetchNotifications, 60_000);
+    const interval = setInterval(fetchNotifications, 90_000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
+
+  // Temps réel (v2 Phase 1) : à la réception d'un broadcast sur le canal
+  // personnel `user:{id}`, on rafraîchit la liste + le compteur sans attendre
+  // le prochain poll. Le badge cloche se met à jour en direct.
+  useEffect(() => {
+    if (!myId) return;
+    const unsub = subscribeToChannel(`user:${myId}`, {
+      onNotification: () => fetchNotifications(),
+    });
+    return () => unsub();
+  }, [myId, fetchNotifications]);
 
   // Close on outside click
   useEffect(() => {
