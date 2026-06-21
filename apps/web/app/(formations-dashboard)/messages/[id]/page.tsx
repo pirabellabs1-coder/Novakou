@@ -4,6 +4,7 @@
 import { use, useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { subscribeToChannel, sendTyping } from "@/lib/realtime/client";
 import {
   ArrowLeft,
   Send,
@@ -169,6 +170,9 @@ export default function ConversationPage({
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [typingName, setTypingName] = useState<string | null>(null);
+  const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastTypingSentRef = useRef(0);
 
   const myId = session?.user?.id;
 
@@ -206,6 +210,36 @@ export default function ConversationPage({
     }
   }, [loading]);
 
+  // ── Temps réel (Phase 2.0) : réception instantanée via Supabase
+  //    Realtime Broadcast. Le message envoyé par l'autre participant
+  //    arrive sans attendre le prochain poll. ──────────────────────────
+  useEffect(() => {
+    const unsub = subscribeToChannel(`conv:${conversationId}`, {
+      onMessage: (payload) => {
+        const msg = payload as Message;
+        if (!msg?.id) return;
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+          return [...prev, msg];
+        });
+      },
+      onTyping: (payload) => {
+        const p = payload as { userId: string; name?: string };
+        if (!p || p.userId === myId) return;
+        setTypingName(p.name ?? "Votre interlocuteur");
+        if (typingClearRef.current) clearTimeout(typingClearRef.current);
+        typingClearRef.current = setTimeout(() => setTypingName(null), 3000);
+      },
+    });
+    return () => {
+      unsub();
+      if (typingClearRef.current) clearTimeout(typingClearRef.current);
+    };
+  }, [conversationId, myId]);
+
+  // ── Polling de SECOURS (30 s) : garantit la livraison même si le
+  //    broadcast temps réel échoue (réseau, onglet en veille). ──────────
   useEffect(() => {
     pollingRef.current = setInterval(async () => {
       const data = await load();
@@ -220,7 +254,7 @@ export default function ConversationPage({
           return prev;
         });
       }
-    }, 5000);
+    }, 30000);
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
@@ -400,6 +434,16 @@ export default function ConversationPage({
             );
           })
         )}
+        {typingName && (
+          <div className="flex items-center gap-2 px-1 pb-1 text-xs font-semibold" style={{ color: ST.textMuted }}>
+            <span className="flex gap-1">
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: ST.green, animationDelay: "0ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: ST.green, animationDelay: "150ms" }} />
+              <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: ST.green, animationDelay: "300ms" }} />
+            </span>
+            {typingName} écrit…
+          </div>
+        )}
         <div ref={bottomRef} />
       </div>
 
@@ -410,7 +454,15 @@ export default function ConversationPage({
             <textarea
               ref={textareaRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+                // Émet « en train d'écrire » au plus une fois toutes les 2 s
+                const now = Date.now();
+                if (myId && now - lastTypingSentRef.current > 2000) {
+                  lastTypingSentRef.current = now;
+                  sendTyping(`conv:${conversationId}`, { userId: myId, name: session?.user?.name ?? undefined });
+                }
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Écrivez un message… (Entrée pour envoyer)"
               rows={1}

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { broadcast } from "@/lib/realtime/broadcast";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -172,6 +173,11 @@ export async function POST(request: Request, { params }: Params) {
       data: { updatedAt: new Date() },
     });
 
+    // ── Temps réel : diffuse le message aux participants abonnés ──────
+    // Best-effort — le polling de secours garantit la livraison si le
+    // broadcast échoue.
+    await broadcast(`conv:${id}`, "new-message", message);
+
     // Notify recipient(s)
     const recipientIds = conv.users
       .map((u) => u.userId)
@@ -187,6 +193,12 @@ export async function POST(request: Request, { params }: Params) {
           link: `/messages/${id}`,
         },
       }).catch(() => null);
+      // Notif live sur le canal personnel du destinataire (badge cloche)
+      await broadcast(`user:${recipientId}`, "notification", {
+        type: "MESSAGE",
+        conversationId: id,
+        preview: content?.length > 60 ? content.slice(0, 60) + "…" : content,
+      });
     }
 
     return NextResponse.json({ data: message });
