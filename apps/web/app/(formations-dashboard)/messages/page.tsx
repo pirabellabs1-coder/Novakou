@@ -1,9 +1,11 @@
 // Refonte design "Stitch" — messages liste — vert Novakou — 2026-06-14
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
+import { subscribeToChannel } from "@/lib/realtime/client";
 import {
   StPageHeader,
   StButton,
@@ -118,6 +120,8 @@ function ConvItem({ conv, onClick }: { conv: ConversationItem; onClick: () => vo
 export default function MessagesPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const { data: session } = useSession();
+  const myId = session?.user?.id;
 
   const { data, isLoading, refetch } = useQuery<{
     data: { conversations: ConversationItem[]; unreadCount: number };
@@ -125,8 +129,19 @@ export default function MessagesPage() {
     queryKey: ["messages-inbox"],
     queryFn: () => fetch("/api/formations/messages/conversations").then((r) => r.json()),
     staleTime: 15_000,
-    refetchInterval: 15_000,
+    // Polling ralenti à 45s : le temps réel (ci-dessous) gère la fraîcheur
+    refetchInterval: 45_000,
   });
+
+  // Temps réel (v2 Phase 1) : la liste se rafraîchit dès qu'un nouveau
+  // message arrive (broadcast sur le canal personnel).
+  useEffect(() => {
+    if (!myId) return;
+    const unsub = subscribeToChannel(`user:${myId}`, {
+      onNotification: () => refetch(),
+    });
+    return () => unsub();
+  }, [myId, refetch]);
 
   const conversations = data?.data?.conversations ?? [];
   const unreadCount = data?.data?.unreadCount ?? 0;

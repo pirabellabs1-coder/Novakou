@@ -171,6 +171,7 @@ export default function ConversationPage({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [typingName, setTypingName] = useState<string | null>(null);
+  const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const typingClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingSentRef = useRef(0);
 
@@ -231,12 +232,15 @@ export default function ConversationPage({
         if (typingClearRef.current) clearTimeout(typingClearRef.current);
         typingClearRef.current = setTimeout(() => setTypingName(null), 3000);
       },
-    });
+      onPresence: (online) => setOnlineIds(online),
+    }, myId);
     return () => {
       unsub();
       if (typingClearRef.current) clearTimeout(typingClearRef.current);
     };
   }, [conversationId, myId]);
+
+  const otherOnline = !!otherUser && onlineIds.includes(otherUser.id);
 
   // ── Polling de SECOURS (30 s) : garantit la livraison même si le
   //    broadcast temps réel échoue (réseau, onglet en veille). ──────────
@@ -357,12 +361,18 @@ export default function ConversationPage({
             <ArrowLeft className="w-5 h-5" />
           </Link>
 
-          <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-sm font-extrabold flex-shrink-0 overflow-hidden">
-            {otherUser?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={otherUser.image} alt="" className="w-full h-full object-cover" />
-            ) : (
-              initials(otherUser?.name ?? null)
+          <div className="relative flex-shrink-0">
+            <div className="w-11 h-11 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 flex items-center justify-center text-white text-sm font-extrabold overflow-hidden">
+              {otherUser?.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={otherUser.image} alt="" className="w-full h-full object-cover" />
+              ) : (
+                initials(otherUser?.name ?? null)
+              )}
+            </div>
+            {/* Pastille de présence temps réel */}
+            {otherOnline && (
+              <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 ring-2 ring-[#0b3b20]" />
             )}
           </div>
 
@@ -371,7 +381,7 @@ export default function ConversationPage({
               {otherUser?.name ?? otherUser?.email ?? "Conversation"}
             </p>
             <p className="text-[11px] text-white/70 truncate">
-              {otherUser?.email}
+              {otherOnline ? "En ligne" : otherUser?.email}
             </p>
           </div>
         </div>
