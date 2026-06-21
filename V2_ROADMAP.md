@@ -99,4 +99,43 @@ La v1 couvre un périmètre large et fonctionnel :
 
 ---
 
+---
+
+## 5. Journal d'avancement
+
+### Nuit du 14 juin 2026 — premiers incréments v2 (livrés et déployés)
+
+**Phase 1 — Temps réel** ✅
+- Chat temps réel via Supabase Realtime Broadcast (réception instantanée,
+  dédup) — `338ad882`
+- Indicateur « écrit… » (frappe en direct)
+- Présence « en ligne » (pastille verte dans l'en-tête) — `135f6781`
+- Notifications live : la cloche s'allume sans rafraîchir, et **le vendeur
+  est notifié EN DIRECT de chaque vente** — `5316f7ea`
+- Liste des conversations rafraîchie en temps réel
+- Polling de secours conservé partout (robustesse)
+
+**Phase 4 — PWA** ✅ (installable + offline)
+- Manifest enrichi (raccourcis), service worker conservateur manuel
+  (offline, network-first, jamais d'API/auth en cache) — `b78eb17a`
+- « Ajouter à l'écran d'accueil » fonctionnel
+- Reste à faire : notifications push natives (besoin de clés VAPID)
+
+**Phase 2 — Découverte** ✅ (premiers pas, sans infra)
+- Section « Vous aimerez aussi » (recos par catégorie) sur les fiches
+  produit + formation — `a5aab75e`
+- Recherche élargie (titre + description + nom du vendeur + catégorie)
+  — `e5ac997d`
+- « Recommandé pour toi » PERSONNALISÉ sur le dashboard apprenant (selon
+  l'historique d'achat) — `b3aaefeb`
+- Reste à faire : moteur Meilisearch puis recherche sémantique pgvector
+
+**Prochaines étapes**
+- Phase 1 : badge « Vendeur vérifié » (KYC ≥ 3) sur fiches + annuaire
+- Phase 4 : push natif (générer les clés VAPID)
+- Phase 2 : Meilisearch → embeddings sémantiques
+- Phase 3 : assistant d'achat IA (recherche en langage naturel)
+
+---
+
 *© 2026 Novakou. Document maintenu par le fondateur.*
