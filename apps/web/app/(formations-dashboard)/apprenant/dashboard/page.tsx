@@ -61,6 +61,7 @@ type Enrollment = {
 
 type RecommendedFormation = {
   id: string;
+  slug?: string;
   title: string;
   thumbnail?: string;
   category?: string;
@@ -411,7 +412,7 @@ export default function ApprenantDashboardPage() {
               {recommendations.map((reco) => (
                 <Link
                   key={reco.id}
-                  href={`/formations/${reco.id}`}
+                  href={`/formation/${reco.slug ?? reco.id}`}
                   className="rounded-[18px] overflow-hidden hover:-translate-y-1 transition-all duration-300 group flex flex-col bg-white"
                   style={{ border: `1px solid ${ST.cardBorder}`, boxShadow: "0 1px 3px rgba(16,52,32,.05)" }}
                 >
