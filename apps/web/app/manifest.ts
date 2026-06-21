@@ -21,5 +21,10 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icon?size=512", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icon?size=512", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
+    shortcuts: [
+      { name: "Explorer le catalogue", short_name: "Explorer", url: "/explorer" },
+      { name: "Mes formations", short_name: "Apprendre", url: "/apprenant/mes-formations" },
+      { name: "Tableau de bord vendeur", short_name: "Vendre", url: "/vendeur/dashboard" },
+    ],
   };
 }

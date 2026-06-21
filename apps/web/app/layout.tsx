@@ -9,6 +9,7 @@ import { CookieConsent } from "@/components/CookieConsent";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import PromptDialog from "@/components/ui/PromptDialog";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { MATERIAL_SYMBOLS_URL } from "@/lib/material-symbols-subset";
 import "./globals.css";
 
@@ -313,6 +314,7 @@ export default async function RootLayout({
           </Providers>
         </NextIntlClientProvider>
         {gaId && <GoogleAnalytics measurementId={gaId} />}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );
