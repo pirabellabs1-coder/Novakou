@@ -192,6 +192,16 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
             </span>
           </div>
         )}
+
+        {/* Bottom-right: badge « Bien noté » (note ≥ 4,5 sur ≥ 3 avis réels) */}
+        {item.rating >= 4.5 && item.reviewsCount >= 3 && (
+          <div className="absolute bottom-3 right-3">
+            <span className="inline-flex items-center gap-1 bg-white/95 text-[#006e2f] text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shadow-md backdrop-blur">
+              <Star size={11} className="fill-amber-400 text-amber-400" />
+              Bien noté
+            </span>
+          </div>
+        )}
       </div>
 
       {/* CARD BODY */}

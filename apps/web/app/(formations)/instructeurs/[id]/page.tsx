@@ -11,6 +11,7 @@ import {
   Quote,
   ShoppingBag,
   Star,
+  Trophy,
   UserSearch,
   Users,
 } from "lucide-react";
@@ -146,6 +147,13 @@ export default function InstructeurPublicPage() {
   }
 
   const { profile, formations, products, stats, reviews } = response.data;
+
+  // Badge « Top vendeur » : basé sur les VENTES réelles cumulées (élèves de
+  // formations + ventes de produits). N'apparaît qu'à partir de 50 ventes →
+  // jamais trompeur, seulement les vendeurs réellement performants.
+  const totalSales =
+    stats.totalStudents + products.reduce((s: number, p: Product) => s + (p.salesCount ?? 0), 0);
+  const isTopSeller = totalSales >= 50;
   const memberSince = new Date(profile.joinedAt).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
 
   return (
@@ -178,9 +186,23 @@ export default function InstructeurPublicPage() {
             <span className="text-[#006e2f] text-xs uppercase tracking-[0.15em] mb-2 font-bold">
               {profile.status === "ACTIF" ? "Instructeur certifié" : "Instructeur"}
             </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 leading-[1.05] text-[#191c1e]">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-3 leading-[1.05] text-[#191c1e]">
               {profile.name}
             </h1>
+
+            {/* Badges de performance (basés sur des stats réelles) */}
+            <div className="flex flex-wrap items-center gap-2 mb-5">
+              {isTopSeller && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-amber-950">
+                  <Trophy size={13} /> Top vendeur
+                </span>
+              )}
+              {stats.avgRating >= 4.5 && stats.totalReviews >= 3 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#006e2f]/10 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide text-[#006e2f]">
+                  <Star size={12} className="fill-amber-400 text-amber-400" /> Bien noté
+                </span>
+              )}
+            </div>
 
             {profile.bio ? (
               <p className="text-base md:text-lg text-[#5c647a] leading-relaxed mb-6 max-w-xl">
