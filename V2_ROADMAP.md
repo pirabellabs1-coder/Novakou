@@ -143,11 +143,20 @@ La v1 couvre un périmètre large et fonctionnel :
   langage naturel, l'IA (Puter.ai/Claude, gratuit) extrait les mots-clés et
   lance la recherche — repli robuste sur la requête brute — `ad27a688`
 
+**Phase 4 — Notifications push natives** ✅ (de bout en bout)
+- Table `PushSubscription` (migration prod appliquée), clés VAPID (local +
+  Vercel), dépendance `web-push` — `1c1abfe8`
+- Envoi serveur branché sur toutes les notifs in-app + sur « Nouvelle vente »
+  (le vendeur est prévenu app fermée 🎉)
+- SW : handlers push + clic ; bouton « Activer les notifications » dans la
+  cloche ; resync silencieux si déjà accordé
+- Bouton « Installer l'app » (`beforeinstallprompt`) + lazy-loading images
+
 **Prochaines étapes**
-- Phase 4 : push natif (générer les clés VAPID — décision fondateur)
 - Phase 2 : Meilisearch (~15 $/mois) → embeddings sémantiques pgvector
 - Phase 3 : étendre l'IA (matching acheteur↔produit, suggestions de vendeurs)
 - Badges enrichis : « Top vendeur », « Réactif » (basés sur stats)
+- Push : notifications aux acheteurs (nouveau message, commande livrée…)
 
 ---
 
