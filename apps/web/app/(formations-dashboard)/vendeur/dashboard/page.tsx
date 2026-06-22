@@ -298,6 +298,41 @@ export default function VendeurDashboard() {
           </StCard>
         )}
 
+        {/* ── Conseil pub : produits en ligne mais aucune vente encore ──
+            On pousse le vendeur à lancer une publicité pour générer ses
+            premières ventes (demande fondateur). Masqué dès qu'il y a du CA. */}
+        {!hasNoProducts && (d?.current?.revenue ?? 0) === 0 && (
+          <StCard className="mb-4 !p-5">
+            <div className="flex items-start gap-4">
+              <div
+                className="w-11 h-11 rounded-[11px] flex items-center justify-center flex-shrink-0"
+                style={{ background: ST.greenSoft ?? "#e7f5ec", color: ST.green }}
+              >
+                <Megaphone size={20} />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-[13.5px] font-extrabold" style={{ color: ST.text }}>
+                  Vos produits sont en ligne — faites-les connaître pour vendre 🚀
+                </h3>
+                <p className="text-[12px] font-semibold mt-1" style={{ color: ST.textSecondary }}>
+                  Un bon produit ne suffit pas : pour générer vos premières ventes et
+                  des revenus, commencez par <strong>lancer une publicité</strong>.
+                  Diffusez une annonce sponsorisée, créez une promo ou partagez votre
+                  lien sur vos réseaux. C&apos;est l&apos;étape qui transforme vos visiteurs en acheteurs.
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  <StButton size="sm" href="/vendeur/marketing" icon={Megaphone}>
+                    Lancer une publicité
+                  </StButton>
+                  <StButton size="sm" variant="secondary" href="/vendeur/ai-coach" icon={Sparkles}>
+                    Demander conseil à l&apos;IA
+                  </StButton>
+                </div>
+              </div>
+            </div>
+          </StCard>
+        )}
+
         {/* ── Empty state premier produit ── */}
         {hasNoProducts && (
           <div
