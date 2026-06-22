@@ -16,20 +16,36 @@ export async function GET(request: Request) {
     const formationWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
     const productWhere: Record<string, unknown> = { status: "ACTIF", hiddenFromMarketplace: false };
 
-    if (search) {
-      // Recherche élargie (v2 Phase 2) : titre, description ET nom du vendeur
-      // → on trouve aussi en cherchant le nom d'un créateur.
-      formationWhere.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { customCategory: { contains: search, mode: "insensitive" } },
-        { instructeur: { user: { name: { contains: search, mode: "insensitive" } } } },
-      ];
-      productWhere.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { instructeur: { user: { name: { contains: search, mode: "insensitive" } } } },
-      ];
+    // Découpe la recherche en MOTS (tokens). Avant on cherchait la phrase
+    // entière en `contains` → une recherche multi-mots (ex. l'assistant IA qui
+    // renvoie « vendre whatsapp marketing ») ne matchait aucun titre et
+    // n'affichait rien. Maintenant chaque mot est cherché séparément (OR) :
+    // un produit dont le titre/description/catégorie/vendeur contient AU MOINS
+    // un des mots remonte. On garde aussi la phrase entière (match exact mieux
+    // classé). Mots < 2 caractères ignorés, max 6 mots.
+    const terms = search
+      ? Array.from(
+          new Set(
+            [search.trim(), ...search.trim().split(/\s+/)]
+              .map((t) => t.trim())
+              .filter((t) => t.length >= 2),
+          ),
+        ).slice(0, 7)
+      : [];
+
+    if (terms.length) {
+      // Recherche élargie (v2 Phase 2) : titre, description, catégorie ET vendeur.
+      formationWhere.OR = terms.flatMap((t) => [
+        { title: { contains: t, mode: "insensitive" } },
+        { description: { contains: t, mode: "insensitive" } },
+        { customCategory: { contains: t, mode: "insensitive" } },
+        { instructeur: { user: { name: { contains: t, mode: "insensitive" } } } },
+      ]);
+      productWhere.OR = terms.flatMap((t) => [
+        { title: { contains: t, mode: "insensitive" } },
+        { description: { contains: t, mode: "insensitive" } },
+        { instructeur: { user: { name: { contains: t, mode: "insensitive" } } } },
+      ]);
     }
 
     if (category) {
@@ -56,11 +72,11 @@ export async function GET(request: Request) {
     // Bundles : on applique les mêmes filtres search/maxPrice/minRating
     // que les formations/produits. Pas de `category` (les bundles n'en ont pas).
     const bundleWhere: Record<string, unknown> = { isActive: true };
-    if (search) {
-      bundleWhere.OR = [
-        { title: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-      ];
+    if (terms.length) {
+      bundleWhere.OR = terms.flatMap((t) => [
+        { title: { contains: t, mode: "insensitive" } },
+        { description: { contains: t, mode: "insensitive" } },
+      ]);
     }
     if (maxPrice !== null) bundleWhere.priceXof = { lte: Math.round(maxPrice) };
     if (minRating > 0) bundleWhere.rating = { gte: minRating };
