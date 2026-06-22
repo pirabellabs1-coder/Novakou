@@ -154,6 +154,8 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
           <img
             src={item.thumbnail}
             alt={item.title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-500"
           />
         ) : (
@@ -210,7 +212,7 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
         <div className="flex items-center gap-2 mb-3">
           {item.sellerAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.sellerAvatar} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
+            <img src={item.sellerAvatar} alt="" loading="lazy" decoding="async" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />
           ) : (
             <div className="w-6 h-6 rounded-full bg-gradient-to-br from-[#006e2f] to-emerald-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
               {item.seller.charAt(0).toUpperCase()}
