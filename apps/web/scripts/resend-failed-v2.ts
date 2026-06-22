@@ -57,7 +57,23 @@ async function main() {
     }
     await sleep(600);
   }
+  // Resynchroniser les compteurs agrégés de la campagne (affichés dans la
+  // liste admin) à partir des statuts réels des destinataires.
+  const grouped = await prisma.adminCampaignRecipient.groupBy({
+    by: ["status"],
+    where: { campaignId: campaign.id },
+    _count: true,
+  });
+  const counts = Object.fromEntries(grouped.map((x) => [x.status, x._count])) as Record<string, number>;
+  const sentTotal = counts.sent ?? 0;
+  const failedTotal = (counts.failed ?? 0) + (counts.bounced ?? 0);
+  await prisma.adminCampaign.update({
+    where: { id: campaign.id },
+    data: { recipientCount: sentTotal, failedCount: failedTotal },
+  });
+
   console.log(`\nRenvoi terminé : ${ok} envoyés, ${ko} échecs restants.`);
+  console.log(`Compteurs campagne resynchronisés → Envoyés:${sentTotal} Échecs:${failedTotal}`);
 }
 
 main()
