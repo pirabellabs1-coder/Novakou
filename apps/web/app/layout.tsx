@@ -63,6 +63,14 @@ export async function generateMetadata(): Promise<Metadata> {
       ],
       apple: { url: "/apple-icon", sizes: "180x180" },
     },
+    // iOS : permet l'ajout à l'écran d'accueil en mode standalone (sans la
+    // barre Safari) avec le bon titre. Sans ça, « Sur l'écran d'accueil »
+    // rouvrait le site dans Safari → impression que l'install ne marche pas.
+    appleWebApp: {
+      capable: true,
+      title: "Novakou",
+      statusBarStyle: "default",
+    },
     openGraph: {
       type: "website",
       locale: "fr_FR",

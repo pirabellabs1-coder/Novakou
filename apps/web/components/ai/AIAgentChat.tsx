@@ -167,7 +167,9 @@ export default function AIAgentChat({
       .map((m) => `${m.role === "user" ? "Utilisateur" : "Assistant"}: ${m.content}`)
       .join("\n");
 
-    const fullPrompt = `${systemPrompt}\n\nHistorique de la conversation :\n${history}\n\nAssistant:`;
+    // Règle de politesse globale : l'assistant vouvoie TOUJOURS l'utilisateur.
+    const VOUVOIEMENT = `\n\nRÈGLE IMPÉRATIVE : tu t'adresses à l'utilisateur en le VOUVOYANT (emploie « vous », « votre », « vos »). N'emploie JAMAIS « tu », « ton », « ta », « tes ». Reste chaleureux mais professionnel.`;
+    const fullPrompt = `${systemPrompt}${VOUVOIEMENT}\n\nHistorique de la conversation :\n${history}\n\nAssistant:`;
 
     try {
       const response = await window.puter.ai.chat(fullPrompt, {
@@ -273,7 +275,7 @@ export default function AIAgentChat({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); } }}
-            placeholder={puterReady ? "Pose ta question ou décris ton besoin…" : "Chargement…"}
+            placeholder={puterReady ? "Posez votre question ou décrivez votre besoin…" : "Chargement…"}
             disabled={!puterReady || sending}
             className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm disabled:bg-gray-50"
           />

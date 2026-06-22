@@ -38,20 +38,20 @@ export default function ApprenantAICoachPage() {
       role="apprenant"
       icon="school"
       title="Coach IA Apprenant"
-      subtitle="Ton mentor virtuel pour progresser, rester motive et mettre en pratique"
+      subtitle="Votre assistant pour progresser, rester motivé et mettre en pratique"
       gradientFrom="#3b82f6"
       gradientTo="#06b6d4"
       systemPrompt={SYSTEM_PROMPT}
-      welcomeMessage={`Salut ! 👋 Je suis ton coach IA apprenant.
+      welcomeMessage={`Bonjour ! 👋 Je suis votre coach IA apprenant.
 
-Je peux t'aider a :
+Je peux vous aider à :
 - **Comprendre** un concept difficile avec des analogies simples
-- **Planifier** ton apprentissage (30 jours, 6 mois, objectif clair)
-- **Rester motive** quand tu doutes ou procrastinnes
-- **Passer a l'action** : premier projet, portfolio, premier client
-- **Reussir ta reconversion** vers le freelance ou l'entrepreneuriat
+- **Planifier** votre apprentissage (30 jours, 6 mois, objectif clair)
+- **Rester motivé** quand vous doutez ou procrastinez
+- **Passer à l'action** : premier projet, portfolio, premier client
+- **Réussir votre reconversion** vers le freelance ou l'entrepreneuriat
 
-Qu'est-ce qui te bloque aujourd'hui ? Clique un raccourci ou pose directement ta question.`}
+Qu'est-ce qui vous bloque aujourd'hui ? Cliquez un raccourci ou posez directement votre question.`}
       quickActions={QUICK_ACTIONS}
     />
   );

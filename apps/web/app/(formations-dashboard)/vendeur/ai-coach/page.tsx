@@ -40,20 +40,20 @@ export default function VendeurAICoachPage() {
       role="vendeur"
       icon="storefront"
       title="Coach IA Vendeur"
-      subtitle="Ton assistant personnel pour scaler ta boutique"
+      subtitle="Votre assistant personnel pour développer votre boutique"
       gradientFrom="#006e2f"
       gradientTo="#22c55e"
       systemPrompt={SYSTEM_PROMPT}
-      welcomeMessage={`Salut ! 👋 Je suis ton coach IA vendeur.
+      welcomeMessage={`Bonjour ! 👋 Je suis votre coach IA vendeur.
 
-Je peux t'aider a :
-- **Rediger** des sequences d'emails (relance, onboarding, lancement)
-- **Optimiser** tes descriptions de produits
-- **Planifier** ta strategie de vente (100 ventes ce mois ?)
-- **Automatiser** tes workflows (panier abandonne, post-achat...)
-- **Analyser** ton business et proposer des pistes d'amelioration
+Je peux vous aider à :
+- **Rédiger** des séquences d'emails (relance, onboarding, lancement)
+- **Optimiser** vos descriptions de produits
+- **Planifier** votre stratégie de vente (100 ventes ce mois ?)
+- **Automatiser** vos workflows (panier abandonné, post-achat...)
+- **Analyser** votre business et proposer des pistes d'amélioration
 
-Dis-moi ce qui bloque ou ce que tu veux lancer, je m'occupe du reste. Les boutons ci-dessus sont des raccourcis pour demarrer.`}
+Dites-moi ce qui bloque ou ce que vous voulez lancer, je m'occupe du reste. Les boutons ci-dessus sont des raccourcis pour démarrer.`}
       quickActions={QUICK_ACTIONS}
     />
   );

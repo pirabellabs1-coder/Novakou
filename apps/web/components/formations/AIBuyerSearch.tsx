@@ -110,7 +110,7 @@ Mots-clés :`;
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Décris ton besoin, l'IA trouve… (ex : monter mes vidéos TikTok)"
+            placeholder="Décrivez votre besoin, l'IA trouve… (ex : monter mes vidéos TikTok)"
             className="flex-1 min-w-0 bg-transparent text-sm text-[#191c1e] placeholder:text-[#8aa092] outline-none"
             disabled={loading}
           />

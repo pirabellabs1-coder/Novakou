@@ -40,21 +40,21 @@ export default function MentorAICoachPage() {
       role="mentor"
       icon="self_improvement"
       title="Coach IA Mentor"
-      subtitle="Structure ton offre, attire plus d'apprenants, delivre plus de valeur"
+      subtitle="Structurez votre offre, attirez plus d'apprenants, délivrez plus de valeur"
       gradientFrom="#a855f7"
       gradientTo="#ec4899"
       systemPrompt={SYSTEM_PROMPT}
-      welcomeMessage={`Salut ! 👋 Je suis ton coach IA mentor.
+      welcomeMessage={`Bonjour ! 👋 Je suis votre coach IA mentor.
 
-Je peux t'aider a :
-- **Clarifier** ton positionnement et ta bio
-- **Structurer** tes sessions (premiere, recurrente, bilan)
-- **Creer** tes packs et grilles tarifaires
-- **Rediger** tes emails de vente et suivi
-- **Outiller** tes apprenants (templates, frameworks, ressources)
-- **Gerer** ta pratique (boundaries, productivite, syndrome de l'imposteur)
+Je peux vous aider à :
+- **Clarifier** votre positionnement et votre bio
+- **Structurer** vos sessions (première, récurrente, bilan)
+- **Créer** vos packs et grilles tarifaires
+- **Rédiger** vos emails de vente et suivi
+- **Outiller** vos apprenants (templates, frameworks, ressources)
+- **Gérer** votre pratique (limites, productivité, syndrome de l'imposteur)
 
-Dis-moi sur quoi tu veux progresser ou clique un raccourci pour demarrer.`}
+Dites-moi sur quoi vous voulez progresser ou cliquez un raccourci pour démarrer.`}
       quickActions={QUICK_ACTIONS}
     />
   );

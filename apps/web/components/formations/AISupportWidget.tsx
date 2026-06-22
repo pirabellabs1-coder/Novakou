@@ -227,6 +227,7 @@ ${pageContext ? `\nPage visitee : ${pageContext}\n` : ""}
 
 REGLES STRICTES :
 - Reponds UNIQUEMENT en francais
+- VOUVOIE TOUJOURS le visiteur (« vous », « votre »). Jamais de « tu »/« ton »/« ta »/« tes ».
 - Reponses courtes (2-4 phrases max, sauf question complexe)
 - Si tu ne connais pas la reponse : "Je ne suis pas sur, je vous conseille de contacter directement ${config.vendorName} via le formulaire."
 - Jamais d'invention (pas de prix, pas de delai, pas de promesse qui ne figure pas dans le contexte)

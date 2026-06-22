@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Download, X } from "lucide-react";
+import { Download, X, Share, Plus } from "lucide-react";
 
 /**
  * Bannière d'installation PWA (v2 Phase 4).
  *
- * Capture l'événement `beforeinstallprompt` (Chrome/Edge/Android) et propose
- * un bouton « Installer ». Discrète et non intrusive :
- *  - n'apparaît que si le navigateur le permet ET que l'app n'est pas déjà
- *    installée (display-mode: standalone) ;
- *  - mémorise le refus dans localStorage (ne re-sollicite pas pendant 30 j) ;
- *  - aucune dépendance, échec silencieux.
+ * Deux cas :
+ *  - Android/Chrome/Edge : capture `beforeinstallprompt` → bouton « Installer ».
+ *  - iOS Safari : aucun événement d'install n'existe (limite Apple). On détecte
+ *    iPhone/iPad et on affiche les instructions « Partager → Sur l'écran
+ *    d'accueil », sinon l'utilisateur croit que l'install est impossible.
  *
- * iOS Safari ne supporte pas `beforeinstallprompt` → la bannière ne s'affiche
- * pas (l'install s'y fait via Partager → « Sur l'écran d'accueil »).
+ * Discrète : masquée si déjà installée (standalone), refus mémorisé 30 j.
  */
 
 const DISMISS_KEY = "nk-pwa-install-dismissed";
@@ -25,13 +23,29 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+function isIosSafari(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent;
+  const isIos = /iphone|ipad|ipod/i.test(ua) ||
+    // iPad iOS 13+ se présente comme un Mac tactile
+    (/macintosh/i.test(ua) && typeof document !== "undefined" && "ontouchend" in document);
+  // Exclure les navigateurs in-app (Chrome iOS = CriOS, etc. ne peuvent pas installer)
+  const isSafari = isIos && !/crios|fxios|edgios|opios/i.test(ua);
+  return isSafari;
+}
+
 export function PWAInstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
+  const [ios, setIos] = useState(false);
 
   useEffect(() => {
     // Déjà installé → ne rien faire
-    if (window.matchMedia?.("(display-mode: standalone)").matches) return;
+    const standalone =
+      window.matchMedia?.("(display-mode: standalone)").matches ||
+      // iOS expose navigator.standalone
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    if (standalone) return;
 
     // Refus récent → on respecte
     try {
@@ -39,6 +53,13 @@ export function PWAInstallPrompt() {
       if (ts && Date.now() - Number(ts) < DISMISS_DAYS * 86_400_000) return;
     } catch {
       /* localStorage indisponible — on continue */
+    }
+
+    // iOS Safari : pas d'événement, on affiche directement les instructions
+    if (isIosSafari()) {
+      setIos(true);
+      setVisible(true);
+      return;
     }
 
     const onPrompt = (e: Event) => {
@@ -73,6 +94,39 @@ export function PWAInstallPrompt() {
 
   if (!visible) return null;
 
+  // ── iOS : instructions manuelles (pas de bouton d'install possible) ──────
+  if (ios) {
+    return (
+      <div className="fixed bottom-4 inset-x-4 z-[9998] sm:left-auto sm:right-4 sm:max-w-sm">
+        <div className="rounded-2xl border border-[#e4eae6] bg-white p-4 shadow-xl shadow-black/10">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#006e2f] to-[#22c55e] text-white">
+              <Download size={18} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-extrabold text-[#191c1e]">Installer Novakou sur votre iPhone</p>
+              <p className="mt-1 text-[12px] leading-relaxed text-[#5c647a]">
+                Appuyez sur{" "}
+                <Share size={13} className="inline -mt-0.5 text-[#006e2f]" /> <strong>Partager</strong> en bas
+                de Safari, puis sur{" "}
+                <Plus size={13} className="inline -mt-0.5 text-[#006e2f]" />{" "}
+                <strong>« Sur l'écran d'accueil »</strong>.
+              </p>
+            </div>
+            <button
+              onClick={dismiss}
+              aria-label="Fermer"
+              className="flex-shrink-0 rounded-lg p-1.5 text-[#8aa092] hover:bg-gray-100"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Android / Chrome / Edge : bouton d'install natif ─────────────────────
   return (
     <div className="fixed bottom-4 inset-x-4 z-[9998] sm:left-auto sm:right-4 sm:max-w-sm">
       <div className="flex items-center gap-3 rounded-2xl border border-[#e4eae6] bg-white p-3 shadow-xl shadow-black/10">

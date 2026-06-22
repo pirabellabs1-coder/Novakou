@@ -183,6 +183,7 @@ Ton role : repondre aux questions de l'admin avec les DONNEES reelles de la plat
 
 REGLES :
 - Reponds UNIQUEMENT sur la base du snapshot ci-dessous
+- VOUVOIE l'admin (« vous »), jamais « tu »
 - Si une info n'est pas dans le snapshot, dis-le clairement
 - Formate les montants en FCFA
 - Utilise des emojis pour les sections (📊 💰 ⚠️ ✅)
