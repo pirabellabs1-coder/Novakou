@@ -130,11 +130,24 @@ La v1 couvre un périmètre large et fonctionnel :
   l'historique d'achat) — `b3aaefeb`
 - Reste à faire : moteur Meilisearch puis recherche sémantique pgvector
 
+### 22 juin 2026 — confiance + IA
+
+**Phase 1 — Confiance** ✅
+- Badge « Vendeur vérifié » (KYC ≥ 3, identité confirmée) sur les fiches
+  produit + formation — `ba4c82a2`
+- Même badge dans le **catalogue** (cartes de l'explorer) — cohérence sur
+  tout le parcours d'achat
+
+**Phase 3 — IA qui vend** ✅ (premier pas)
+- **Assistant d'achat IA** sur l'explorer : l'acheteur décrit son besoin en
+  langage naturel, l'IA (Puter.ai/Claude, gratuit) extrait les mots-clés et
+  lance la recherche — repli robuste sur la requête brute — `ad27a688`
+
 **Prochaines étapes**
-- Phase 1 : badge « Vendeur vérifié » (KYC ≥ 3) sur fiches + annuaire
-- Phase 4 : push natif (générer les clés VAPID)
-- Phase 2 : Meilisearch → embeddings sémantiques
-- Phase 3 : assistant d'achat IA (recherche en langage naturel)
+- Phase 4 : push natif (générer les clés VAPID — décision fondateur)
+- Phase 2 : Meilisearch (~15 $/mois) → embeddings sémantiques pgvector
+- Phase 3 : étendre l'IA (matching acheteur↔produit, suggestions de vendeurs)
+- Badges enrichis : « Top vendeur », « Réactif » (basés sur stats)
 
 ---
 
