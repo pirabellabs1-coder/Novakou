@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { broadcast } from "@/lib/realtime/broadcast";
+import { sendPushToUser } from "@/lib/push/web-push";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -198,6 +199,14 @@ export async function POST(request: Request, { params }: Params) {
         type: "MESSAGE",
         conversationId: id,
         preview: content?.length > 60 ? content.slice(0, 60) + "…" : content,
+      });
+      // Push natif : le destinataire (acheteur ou vendeur) est prévenu même
+      // l'application fermée. Tag par conversation → les messages se regroupent.
+      sendPushToUser(recipientId, {
+        title: "Nouveau message 💬",
+        body: content?.length > 80 ? content.slice(0, 80) + "…" : content,
+        url: `/messages/${id}`,
+        tag: `msg-${id}`,
       });
     }
 

@@ -413,15 +413,23 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     const itemTitles = all.map((i) => i.title).slice(0, 3).join(", ");
     const more = all.length - 3;
     const summary = more > 0 ? `${itemTitles} et ${more} autre(s)` : itemTitles;
+    const buyerLink = createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits";
     await prisma.notification.create({
       data: {
         userId,
         type: "ORDER",
         title: "Achat confirmé",
         message: `Votre achat est confirmé : ${summary}.`,
-        link: createdEnrollments.length > 0 ? "/apprenant/mes-formations" : "/apprenant/mes-produits",
+        link: buyerLink,
       },
     }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
+    // Push natif : l'acheteur est prévenu que son accès est disponible
+    sendPushToUser(userId, {
+      title: "Achat confirmé ✅",
+      body: `Votre accès est prêt : ${summary}.`,
+      url: buyerLink,
+      tag: "purchase",
+    });
   }
 
   // ── Emails (best-effort) ────────────────────────────────────────────
