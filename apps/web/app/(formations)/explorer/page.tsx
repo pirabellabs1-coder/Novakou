@@ -20,6 +20,7 @@ import {
   ArrowLeft,
   ChevronRight,
   ChevronLeft,
+  BadgeCheck,
   ChevronDown,
   Search,
   LayoutGrid,
@@ -50,6 +51,7 @@ type Item = {
   type: string;
   seller: string;
   sellerAvatar: string | null;
+  verified?: boolean;
   shortDesc?: string | null;
   createdAt: string;
 };
@@ -213,7 +215,12 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
               {item.seller.charAt(0).toUpperCase()}
             </div>
           )}
-          <p className="text-xs font-semibold text-[#191c1e] truncate">{item.seller}</p>
+          <p className="text-xs font-semibold text-[#191c1e] truncate flex items-center gap-1 min-w-0">
+            <span className="truncate">{item.seller}</span>
+            {item.verified && (
+              <BadgeCheck size={13} className="text-[#006e2f] fill-[#e6f5eb] flex-shrink-0" />
+            )}
+          </p>
         </div>
 
         {/* Note + ventes — affichées uniquement si elles existent (pas de

@@ -82,7 +82,7 @@ export async function GET(request: Request) {
           createdAt: true,
           instructeur: {
             select: {
-              user: { select: { name: true, image: true } },
+              user: { select: { name: true, image: true, kyc: true } },
             },
           },
         },
@@ -98,7 +98,7 @@ export async function GET(request: Request) {
           createdAt: true,
           instructeur: {
             select: {
-              user: { select: { name: true, image: true } },
+              user: { select: { name: true, image: true, kyc: true } },
             },
           },
         },
@@ -157,6 +157,7 @@ export async function GET(request: Request) {
       type: "Formation vidéo",
       seller: f.instructeur.user.name ?? "—",
       sellerAvatar: f.instructeur.user.image,
+      verified: (f.instructeur.user.kyc ?? 1) >= 3,
       createdAt: f.createdAt,
     }));
 
@@ -178,6 +179,7 @@ export async function GET(request: Request) {
       type: p.productType,
       seller: p.instructeur.user.name ?? "—",
       sellerAvatar: p.instructeur.user.image,
+      verified: (p.instructeur.user.kyc ?? 1) >= 3,
       createdAt: p.createdAt,
     }));
 
