@@ -20,7 +20,7 @@ export async function GET(_req: Request, { params }: Params) {
             yearsExp: true,
             expertise: true,
             bioFr: true,
-            user: { select: { id: true, name: true, image: true } },
+            user: { select: { id: true, name: true, image: true, kyc: true } },
             marketingPixels: {
               where: { isActive: true },
               select: { type: true, pixelId: true },
@@ -106,6 +106,7 @@ export async function GET(_req: Request, { params }: Params) {
         userId: formation.instructeur.user.id,
         name: formation.instructeur.user.name,
         image: formation.instructeur.user.image,
+        verified: (formation.instructeur.user.kyc ?? 1) >= 3,
         bio: formation.instructeur.bioFr,
         expertise: formation.instructeur.expertise,
         yearsExp: formation.instructeur.yearsExp,

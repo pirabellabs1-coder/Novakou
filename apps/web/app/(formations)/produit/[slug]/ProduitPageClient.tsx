@@ -19,6 +19,7 @@ import {
   Infinity as InfinityIcon,
   MonitorSmartphone,
   ShieldCheck,
+  BadgeCheck,
   CalendarCheck,
   FileType,
   BookOpen,
@@ -51,6 +52,7 @@ interface Instructeur {
   userId: string;
   name: string | null;
   image: string | null;
+  verified?: boolean;
   bio: string | null;
   expertise: string[];
   yearsExp: number;
@@ -610,7 +612,14 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#191c1e] truncate">{product.instructeur.name ?? "Créateur"}</p>
+                  <p className="text-sm font-bold text-[#191c1e] truncate flex items-center gap-1">
+                    {product.instructeur.name ?? "Créateur"}
+                    {product.instructeur.verified && (
+                      <span title="Vendeur vérifié (identité confirmée)">
+                        <BadgeCheck size={15} className="text-[#006e2f] fill-[#e6f5eb]" />
+                      </span>
+                    )}
+                  </p>
                   {product.rating > 0 && (
                     <div className="flex items-center gap-1 mt-0.5">
                       <StarRating rating={product.rating} size={12} />

@@ -69,6 +69,7 @@ interface Instructeur {
   userId: string;
   name: string | null;
   image: string | null;
+  verified?: boolean;
   bio: string | null;
   expertise: string[];
   yearsExp: number;
@@ -676,8 +677,13 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-[#191c1e] truncate">
+                  <p className="text-sm font-bold text-[#191c1e] truncate flex items-center gap-1">
                     {formation.instructeur.name ?? "Formateur"}
+                    {formation.instructeur.verified && (
+                      <span title="Formateur vérifié (identité confirmée)">
+                        <BadgeCheck size={15} className="text-[#006e2f] fill-[#e6f5eb]" />
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-[#5c647a]">
                     {formation.instructeur.yearsExp > 0
