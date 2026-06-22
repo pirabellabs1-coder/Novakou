@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { confirmAction } from "@/store/confirm";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -37,7 +36,6 @@ import {
   ShieldCheck,
   AlertTriangle,
   TrendingUp,
-  Trash2,
   CalendarCheck,
   UserPlus,
   CheckCircle,
@@ -49,124 +47,6 @@ import {
   Flag as FlagIcon,
   Wallet,
 } from "lucide-react";
-
-/* ───────────────────────── Wipe menu ────────────────────────────────── */
-
-function WipeMenu() {
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [working, setWorking] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
-
-  async function runWipe(mode: string, label: string) {
-    const ok = await confirmAction({
-      title: `Voulez-vous vraiment ${label.toLowerCase()} ?`,
-      message: "Cette action est irréversible.",
-      confirmLabel: label,
-      confirmVariant: "danger",
-      icon: "delete_forever",
-    });
-    if (!ok) return;
-    setWorking(mode);
-    setResult(null);
-    try {
-      const res = await fetch("/api/formations/admin/wipe-demo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        const summary = Object.entries(json.deleted)
-          .map(([k, v]) => `${v} ${k}`)
-          .join(", ");
-        setResult(summary || "Aucun élément à supprimer");
-        qc.invalidateQueries();
-      } else {
-        setResult(json.error ?? "Erreur");
-      }
-    } catch {
-      setResult("Erreur réseau");
-    } finally {
-      setWorking(null);
-      setTimeout(() => {
-        setResult(null);
-        setOpen(false);
-      }, 4000);
-    }
-  }
-
-  return (
-    <div className="relative">
-      <StButton
-        variant="secondary"
-        icon={Trash2}
-        onClick={() => setOpen(!open)}
-      >
-        Nettoyer la plateforme
-      </StButton>
-      {open && (
-        <div
-          className="absolute right-0 top-full mt-2 z-30 bg-white rounded-2xl shadow-xl min-w-[300px] overflow-hidden"
-          style={{ border: `1px solid ${ST.cardBorder}` }}
-        >
-          <div className="px-4 py-3" style={{ borderBottom: `1px solid ${ST.divider}`, background: ST.bg }}>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest" style={{ color: ST.textMuted }}>
-              Mode de nettoyage
-            </p>
-          </div>
-          {[
-            {
-              mode: "demo-only",
-              label: "Données démo seulement (dev-instructeur)",
-              danger: false,
-            },
-            {
-              mode: "products",
-              label: "Tous les produits & formations",
-              danger: true,
-            },
-            {
-              mode: "purchases",
-              label: "Toutes les ventes & inscriptions",
-              danger: true,
-            },
-            { mode: "reviews", label: "Tous les avis", danger: true },
-            {
-              mode: "marketing",
-              label: "Toutes les données marketing",
-              danger: true,
-            },
-            {
-              mode: "all",
-              label: "TOUT (catalogue + ventes + avis)",
-              danger: true,
-            },
-          ].map((opt) => (
-            <button
-              key={opt.mode}
-              onClick={() => runWipe(opt.mode, opt.label)}
-              disabled={working !== null}
-              className={`w-full text-left px-4 py-3 text-xs font-bold transition-colors disabled:opacity-50 last:border-0 ${
-                opt.danger
-                  ? "text-rose-700 hover:bg-rose-50"
-                  : "hover:bg-[#f7faf8]"
-              }`}
-              style={{ borderBottom: `1px solid ${ST.divider}`, color: opt.danger ? undefined : ST.text }}
-            >
-              {working === opt.mode ? "Nettoyage..." : opt.label}
-            </button>
-          ))}
-          {result && (
-            <div className="px-4 py-3 text-white text-xs tabular-nums" style={{ background: ST.greenDark }}>
-              {result}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
 
 /* ───────────────────────── Types ────────────────────────────────────── */
 
@@ -310,7 +190,6 @@ export default function AdminDashboardPage() {
               >
                 Rapports
               </StButton>
-              <WipeMenu />
             </>
           }
         />
