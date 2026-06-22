@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Script from "next/script";
 import { Sparkles, Loader2, ArrowRight } from "lucide-react";
 
@@ -44,6 +44,17 @@ function extractText(res: PuterChatResponse): string {
 export function AIBuyerSearch({ onKeywords }: { onKeywords: (keywords: string) => void }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  // Catalogue réel (titres + catégories) pour ancrer l'IA
+  const catalogRef = useRef<{ titles: string[]; categories: string[] }>({ titles: [], categories: [] });
+
+  useEffect(() => {
+    fetch("/api/formations/public/catalog-terms")
+      .then((r) => r.json())
+      .then((j) => {
+        catalogRef.current = { titles: j.titles ?? [], categories: j.categories ?? [] };
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,11 +63,18 @@ export function AIBuyerSearch({ onKeywords }: { onKeywords: (keywords: string) =
     setLoading(true);
     try {
       const puter = getPuter();
+      const { titles, categories } = catalogRef.current;
       if (puter?.ai) {
-        const prompt = `Tu es un assistant de recherche pour une marketplace de formations et produits digitaux (Afrique francophone).
-Un acheteur décrit son besoin. Renvoie UNIQUEMENT 2 à 5 mots-clés de recherche pertinents, séparés par des espaces, sans phrase, sans ponctuation, sans guillemets, en français.
-
-Besoin : "${q}"
+        // On donne à l'IA le catalogue RÉEL : elle choisit des mots-clés qui
+        // existent vraiment dans les titres/catégories disponibles.
+        const catalogBlock =
+          titles.length || categories.length
+            ? `\n\nProduits réellement disponibles (titres) :\n- ${titles.slice(0, 60).join("\n- ")}\n\nCatégories disponibles : ${categories.join(", ")}\n`
+            : "";
+        const prompt = `Tu es l'assistant d'achat d'une marketplace de formations et produits digitaux (Afrique francophone).
+Un acheteur décrit son besoin en langage naturel. En t'appuyant UNIQUEMENT sur le catalogue réel ci-dessous, déduis les 2 à 4 mots-clés de recherche les plus pertinents qui apparaissent dans les titres ou catégories disponibles (mots du domaine, pas la phrase de l'acheteur). Si rien ne correspond vraiment, renvoie les mots-clés les plus proches du besoin.
+Réponds UNIQUEMENT par les mots-clés séparés par des espaces, sans phrase, sans ponctuation, sans guillemets.${catalogBlock}
+Besoin de l'acheteur : "${q}"
 
 Mots-clés :`;
         const res = await puter.ai.chat(prompt, {
