@@ -10,6 +10,7 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import PromptDialog from "@/components/ui/PromptDialog";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+import { PWAInstallPrompt } from "@/components/pwa/PWAInstallPrompt";
 import { MATERIAL_SYMBOLS_URL } from "@/lib/material-symbols-subset";
 import "./globals.css";
 
@@ -315,6 +316,7 @@ export default async function RootLayout({
         </NextIntlClientProvider>
         {gaId && <GoogleAnalytics measurementId={gaId} />}
         <ServiceWorkerRegister />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
