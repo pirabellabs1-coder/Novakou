@@ -16,6 +16,7 @@ import {
   CheckCircle,
   XCircle,
   ExternalLink,
+  Trash2,
   BookOpen,
   BookText,
   Clock,
@@ -101,6 +102,32 @@ export default function AdminProduitsPage() {
       qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
     },
   });
+
+  // Suppression avec motif obligatoire (le vendeur est notifié du motif).
+  const deleteMutation = useMutation({
+    mutationFn: ({ id, kind, reason }: { id: string; kind: string; reason: string }) =>
+      fetch(`/api/formations/admin/produits/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind, reason }),
+      }).then((r) => r.json()),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-produits"] });
+      qc.invalidateQueries({ queryKey: ["admin-dashboard"] });
+    },
+  });
+
+  function handleDelete(id: string, kind: string, title: string) {
+    const reason = window.prompt(
+      `Supprimer « ${title} » ?\n\nIndiquez le MOTIF de suppression (le vendeur en sera informé) :`,
+    );
+    if (reason === null) return; // annulé
+    if (reason.trim().length < 3) {
+      window.alert("Le motif est obligatoire (au moins 3 caractères).");
+      return;
+    }
+    deleteMutation.mutate({ id, kind, reason: reason.trim() });
+  }
 
   const tabs = [
     { value: "all", label: "Tous", count: summary?.total ?? 0 },
@@ -359,6 +386,16 @@ export default function AdminProduitsPage() {
                           ) : (
                             <span className="text-xs" style={{ color: ST.textFaint }}>—</span>
                           )}
+                          {/* Suppression avec motif (vendeur notifié) */}
+                          <StButton
+                            variant="secondary"
+                            size="sm"
+                            icon={Trash2}
+                            onClick={() => handleDelete(p.id, p.kind, p.title)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            Supprimer
+                          </StButton>
                         </div>
                       </td>
                     </tr>
