@@ -3681,3 +3681,18 @@ enum SupportTicketStatus {
   HUMAN_REPLIED // Admin a répondu manuellement
   CLOSED       // Fermé
 }
+
+/// Abonnements Web Push (notifications push natives PWA — v2 Phase 4).
+/// `userId` est un champ simple indexé (pas de FK) : un abonnement est
+/// éphémère et lié à un appareil/navigateur, pas une donnée métier critique.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { syncPushIfGranted } from "@/lib/push/client";
 
 /**
  * Enregistre le service worker `/sw.js` (PWA v2.0) côté client, après
@@ -17,9 +18,16 @@ export function ServiceWorkerRegister() {
       return;
     }
     const register = () => {
-      navigator.serviceWorker.register("/sw.js").catch(() => {
-        /* silencieux — le site reste fonctionnel sans SW */
-      });
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then(() => {
+          // Si l'utilisateur a déjà accordé les notifications, on re-synchronise
+          // silencieusement son abonnement (nouvel appareil, abonnement expiré…).
+          syncPushIfGranted();
+        })
+        .catch(() => {
+          /* silencieux — le site reste fonctionnel sans SW */
+        });
     };
     // Attendre l'événement load pour ne pas concurrencer le rendu initial
     if (document.readyState === "complete") register();

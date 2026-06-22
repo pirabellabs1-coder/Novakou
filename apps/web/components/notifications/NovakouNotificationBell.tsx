@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { subscribeToChannel } from "@/lib/realtime/client";
+import { PushEnableBanner } from "@/components/notifications/PushEnableBanner";
 
 interface Notification {
   id: string;
@@ -167,6 +168,8 @@ export function NovakouNotificationBell({ tone = "slate", viewAllHref }: Novakou
               </button>
             )}
           </div>
+
+          <PushEnableBanner />
 
           <div className="max-h-[380px] overflow-y-auto">
             {loading && notifications.length === 0 ? (

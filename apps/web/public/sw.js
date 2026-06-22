@@ -11,7 +11,7 @@
  * purger l'ancien cache et éviter tout contenu obsolète.
  */
 
-const CACHE_VERSION = "novakou-v1";
+const CACHE_VERSION = "novakou-v2";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const PAGE_CACHE = `${CACHE_VERSION}-pages`;
 const OFFLINE_URL = "/";
@@ -95,4 +95,43 @@ self.addEventListener("fetch", (event) => {
         }),
     );
   }
+});
+
+/* ── Notifications push (v2 Phase 4) ───────────────────────────────────────
+ * Le serveur envoie un payload JSON { title, body, url, tag }. On affiche la
+ * notification ; au clic, on ouvre/focus l'URL associée. */
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { title: "Novakou", body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "Novakou";
+  const options = {
+    body: data.body || "",
+    icon: "/icon?size=192",
+    badge: "/icon?size=192",
+    tag: data.tag || undefined,
+    data: { url: data.url || "/" },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      for (const client of all) {
+        if (client.url.includes(self.location.origin)) {
+          await client.focus();
+          if ("navigate" in client) client.navigate(target).catch(() => {});
+          return;
+        }
+      }
+      await self.clients.openWindow(target);
+    })(),
+  );
 });

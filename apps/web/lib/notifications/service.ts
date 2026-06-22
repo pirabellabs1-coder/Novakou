@@ -10,6 +10,7 @@ import { IS_DEV } from "@/lib/env";
 import type { NotificationOutput } from "@/lib/events/types";
 import type { NotificationType } from "@prisma/client";
 import { broadcast } from "@/lib/realtime/broadcast";
+import { sendPushToUser } from "@/lib/push/web-push";
 
 interface CreateNotificationInput {
   userId: string;
@@ -50,6 +51,8 @@ export async function createNotification(input: CreateNotificationInput): Promis
   });
   // Temps réel (v2 Phase 1) : la cloche du destinataire se met à jour en direct
   await broadcast(`user:${input.userId}`, "notification", { title: input.title, type: input.type, link: input.link });
+  // Push natif (v2 Phase 4) : notification même app fermée (best-effort)
+  await sendPushToUser(input.userId, { title: input.title, body: input.message, url: input.link });
 }
 
 /**
@@ -90,6 +93,7 @@ export async function createNotifications(inputs: CreateNotificationInput[]): Pr
     if (seen.has(input.userId)) continue;
     seen.add(input.userId);
     await broadcast(`user:${input.userId}`, "notification", { title: input.title, type: input.type, link: input.link });
+    await sendPushToUser(input.userId, { title: input.title, body: input.message, url: input.link });
   }
 }
 
