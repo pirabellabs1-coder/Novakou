@@ -10,8 +10,12 @@ import { resolveSegmentRecipients, isValidSegment } from "@/lib/formations/admin
  * Envoie la campagne à tous les destinataires du segment.
  *
  * Idempotent : si status=sending ou sent, on rejette (éviter double envoi).
- * Envoie par lots de 10 avec delay 1.2s (rate-limit Resend Free tier).
+ * Envoi SÉQUENTIEL cadencé (~1,6/s) pour respecter la limite Resend Free tier
+ * (2 req/s) — voir sendAdminCampaignBatch. D'où un temps d'envoi plus long :
+ * on relève maxDuration pour ne pas couper l'envoi en cours de route.
  */
+export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }

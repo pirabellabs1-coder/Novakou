@@ -50,7 +50,7 @@ const INNER_HTML = `
 
 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 auto 8px;">
   <tr><td style="border-radius:12px;background:linear-gradient(to right,#006e2f,#22c55e);">
-    <a href="https://novakou.com/explorer" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:800;color:#ffffff;text-decoration:none;">Découvrir Novakou 2.0 →</a>
+    <a href="https://novakou.com/nouveautes" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:800;color:#ffffff;text-decoration:none;">Découvrir Novakou 2.0 →</a>
   </td></tr>
 </table>
 

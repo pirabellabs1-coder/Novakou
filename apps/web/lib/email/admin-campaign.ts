@@ -106,28 +106,25 @@ export async function sendAdminCampaignBatch(params: {
   const results: { email: string; ok: boolean; id?: string; error?: string }[] = [];
   let sent = 0, failed = 0;
 
-  const BATCH_SIZE = 10;
-  const DELAY_MS = 1200;
+  // Resend Free tier = 2 requêtes/seconde. AVANT : on envoyait 10 emails en
+  // parallèle (Promise.all) toutes les 1,2 s → ~8 sur 10 prenaient un 429
+  // « Too many requests » (d'où ~45 % d'échecs observés). Maintenant : envoi
+  // SÉQUENTIEL cadencé (~1,6/s, sous la limite) + 1 retry après pause si échec
+  // (la plupart des échecs sont des 429 transitoires).
+  const DELAY_MS = 600;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-  for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
-    const batch = recipients.slice(i, i + BATCH_SIZE);
-    const batchResults = await Promise.all(
-      batch.map(async (r) => {
-        const res = await sendAdminCampaignEmail({
-          to: r.email,
-          firstName: r.firstName,
-          subject,
-          htmlBody,
-        });
-        if (res.ok) sent++; else failed++;
-        return { email: r.email, ...res };
-      })
-    );
-    results.push(...batchResults);
-    onProgress?.(Math.min(i + BATCH_SIZE, recipients.length), recipients.length);
-    if (i + BATCH_SIZE < recipients.length) {
-      await new Promise((r) => setTimeout(r, DELAY_MS));
+  for (let i = 0; i < recipients.length; i++) {
+    const r = recipients[i];
+    let res = await sendAdminCampaignEmail({ to: r.email, firstName: r.firstName, subject, htmlBody });
+    if (!res.ok) {
+      await sleep(1100);
+      res = await sendAdminCampaignEmail({ to: r.email, firstName: r.firstName, subject, htmlBody });
     }
+    if (res.ok) sent++; else failed++;
+    results.push({ email: r.email, ...res });
+    onProgress?.(i + 1, recipients.length);
+    if (i < recipients.length - 1) await sleep(DELAY_MS);
   }
 
   return { sent, failed, results };
