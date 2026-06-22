@@ -35,6 +35,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { AIBuyerSearch } from "@/components/formations/AIBuyerSearch";
 
 type Item = {
   id: string;
@@ -569,6 +570,16 @@ function ExplorerInner() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Rechercher une formation, un e-book, un template..."
               className="w-full pl-12 pr-6 py-4 rounded-full border border-gray-200 bg-white shadow-lg text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 text-sm md:text-base"
+            />
+          </div>
+
+          {/* Assistant d'achat IA (v2 Phase 3) — recherche en langage naturel */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <AIBuyerSearch
+              onKeywords={(kw) => {
+                setSearch(kw);
+                setActiveTab("all");
+              }}
             />
           </div>
 
