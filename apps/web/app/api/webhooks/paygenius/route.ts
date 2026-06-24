@@ -33,7 +33,7 @@ import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
-import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
+import { getCommissionRate } from "@/lib/formations/platform-settings";
 
 interface PayGeniusWebhookPayload {
   id?: string;
@@ -308,7 +308,8 @@ export async function POST(req: Request) {
       // Bureau session 4 (P0 Karim/Amélie) — comptabilité subscription.
       // Sans ça, l'incrément `subscriptionPlan.totalEarned` (champ analytics)
       // existe mais le wallet vendeur (basé sur PlatformRevenue) reste à 0.
-      const subPlatform = Math.round(plan.price * PLATFORM_COMMISSION_RATE);
+      const subCommissionRate = await getCommissionRate();
+      const subPlatform = Math.round(plan.price * subCommissionRate);
       const subVendorNet = Math.max(0, plan.price - subPlatform);
       await prisma.platformRevenue
         .create({
@@ -316,7 +317,7 @@ export async function POST(req: Request) {
             orderId: invoice.id,
             orderType: "subscription",
             grossAmount: plan.price,
-            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionRate: subCommissionRate,
             commissionAmount: subPlatform,
             vendorAmount: subVendorNet,
             affiliateId: null,
@@ -404,7 +405,8 @@ export async function POST(req: Request) {
 
       // Bureau session 4 (P0 Karim/Marcus) — comptabilité bundle PayGenius.
       // Cf. webhook Moneroo : sans ça, vendeur de bundles a un wallet à 0.
-      const bundlePlatform = Math.round(paidAmount * PLATFORM_COMMISSION_RATE);
+      const bundleCommissionRate = await getCommissionRate();
+      const bundlePlatform = Math.round(paidAmount * bundleCommissionRate);
       const bundleVendorNet = Math.max(0, paidAmount - bundlePlatform);
       await prisma.platformRevenue
         .create({
@@ -412,7 +414,7 @@ export async function POST(req: Request) {
             orderId: purchase.id,
             orderType: "bundle",
             grossAmount: paidAmount,
-            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionRate: bundleCommissionRate,
             commissionAmount: bundlePlatform,
             vendorAmount: bundleVendorNet,
             affiliateId: null,
