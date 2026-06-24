@@ -43,6 +43,7 @@ export async function GET() {
           rating: true,
           studentsCount: true,
           status: true,
+          refuseReason: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -58,6 +59,7 @@ export async function GET() {
           rating: true,
           salesCount: true,
           status: true,
+          refuseReason: true,
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -104,6 +106,7 @@ export async function GET() {
         rating: f.rating,
         count: f.studentsCount,
         status: f.status,
+        refuseReason: f.refuseReason,
       })),
       ...products.map((p) => ({
         kind: "product" as const,
@@ -116,6 +119,7 @@ export async function GET() {
         rating: p.rating,
         count: p.salesCount,
         status: p.status,
+        refuseReason: p.refuseReason,
       })),
       ...bundles.map((b) => ({
         kind: "bundle" as const,

@@ -125,50 +125,45 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       return NextResponse.json({ error: "kind invalide" }, { status: 400 });
     }
 
-    // Notifie le vendeur AVANT toute suppression (sinon cascade possible)
+    // Notifie le vendeur : le produit n'est PAS détruit, il est remis en
+    // brouillon pour qu'il puisse corriger le problème et le resoumettre.
     if (vendorUserId) {
       await createNotification({
         userId: vendorUserId,
         type: "system",
-        title: hasPurchases ? "Produit retiré par la modération" : "Produit supprimé par la modération",
-        message: `« ${title} » a été retiré par l'équipe Novakou. Motif : ${reason}`,
+        title: "Produit remis en brouillon par la modération",
+        message: `« ${title} » a été retiré du marketplace et remis en brouillon. Motif : ${reason}. Corrigez-le puis resoumettez-le à la validation.`,
         link: "/vendeur/produits",
       }).catch(() => null);
     }
 
-    const mode: "hard" | "soft" = hasPurchases ? "soft" : "hard";
-
+    // On ne supprime JAMAIS : on repasse en BROUILLON + masqué du marketplace,
+    // et on stocke le motif dans refuseReason (visible par le vendeur à
+    // l'édition). Les acheteurs existants conservent leur accès (via leur
+    // inscription/achat, indépendant du statut produit).
     if (kind === "formation") {
-      if (mode === "hard") {
-        await prisma.formation.delete({ where: { id } });
-      } else {
-        await prisma.formation.update({
-          where: { id },
-          data: { status: "ARCHIVE", hiddenFromMarketplace: true },
-        });
-      }
+      await prisma.formation.update({
+        where: { id },
+        data: { status: "BROUILLON", hiddenFromMarketplace: true, refuseReason: reason },
+      });
     } else {
-      if (mode === "hard") {
-        await prisma.digitalProduct.delete({ where: { id } });
-      } else {
-        await prisma.digitalProduct.update({
-          where: { id },
-          data: { status: "ARCHIVE", hiddenFromMarketplace: true },
-        });
-      }
+      await prisma.digitalProduct.update({
+        where: { id },
+        data: { status: "BROUILLON", hiddenFromMarketplace: true, refuseReason: reason },
+      });
     }
 
     if (actorId) {
       await createAuditLog({
         actorId,
-        action: kind === "formation" ? "formation.deleted" : "product.deleted",
+        action: kind === "formation" ? "formation.unpublished" : "product.unpublished",
         targetType: kind,
         targetId: id,
-        details: { reason, mode, hasPurchases },
+        details: { reason, mode: "draft", hasPurchases },
       }).catch(() => null);
     }
 
-    return NextResponse.json({ success: true, mode });
+    return NextResponse.json({ success: true, mode: "draft" });
   } catch (err) {
     console.error("[admin/produits DELETE]", err);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

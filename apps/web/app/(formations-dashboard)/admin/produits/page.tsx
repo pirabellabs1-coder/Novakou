@@ -120,12 +120,12 @@ export default function AdminProduitsPage() {
 
   async function handleDelete(id: string, kind: string, title: string) {
     const reason = await promptAction({
-      title: `Supprimer « ${title} » ?`,
-      message: "Indiquez le motif de suppression (le vendeur en sera informé).",
+      title: `Retirer « ${title} » du marketplace ?`,
+      message: "Le produit n'est pas supprimé : il repasse en brouillon chez le vendeur, qui pourra le corriger et le resoumettre. Indiquez le motif (le vendeur en sera informé).",
       placeholder: "Ex : contenu non conforme aux conditions d'utilisation…",
-      confirmLabel: "Supprimer",
+      confirmLabel: "Remettre en brouillon",
       cancelLabel: "Annuler",
-      icon: "delete",
+      icon: "drafts",
       multiline: true,
       validate: (v) => (v.trim().length < 3 ? "Le motif est obligatoire (au moins 3 caractères)." : null),
     });
@@ -390,7 +390,7 @@ export default function AdminProduitsPage() {
                           ) : (
                             <span className="text-xs" style={{ color: ST.textFaint }}>—</span>
                           )}
-                          {/* Suppression avec motif (vendeur notifié) */}
+                          {/* Retrait avec motif → repasse en brouillon (vendeur notifié) */}
                           <StButton
                             variant="secondary"
                             size="sm"
@@ -398,7 +398,7 @@ export default function AdminProduitsPage() {
                             onClick={() => handleDelete(p.id, p.kind, p.title)}
                             disabled={deleteMutation.isPending}
                           >
-                            Supprimer
+                            Retirer
                           </StButton>
                         </div>
                       </td>

@@ -50,6 +50,7 @@ type Product = {
   studentsCount: number;
   publishedAt: string | null;
   createdAt: string;
+  refuseReason: string | null;
   productKind: string;
   revenue: number;
   sales: number;
@@ -402,6 +403,17 @@ export default function ProduitsPage() {
                       {formatFCFA(product.price)}{" "}
                       <span className="text-[11px]" style={{ color: ST.textMuted }}>FCFA</span>
                     </div>
+
+                    {/* Motif de retrait par la modération (produit remis en brouillon) */}
+                    {product.refuseReason && statusKey(product.status) === "BROUILLON" && (
+                      <div className="mb-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
+                        <p className="text-[10px] font-extrabold uppercase tracking-wide text-rose-700">
+                          Retiré par la modération
+                        </p>
+                        <p className="mt-0.5 text-[11px] leading-snug text-rose-900">{product.refuseReason}</p>
+                        <p className="mt-1 text-[10px] text-rose-700/80">Corrigez puis resoumettez à la validation.</p>
+                      </div>
+                    )}
                     <div
                       className="flex items-center justify-between pt-[11px]"
                       style={{ borderTop: `1px solid ${ST.divider}` }}

@@ -42,6 +42,7 @@ export async function GET() {
             studentsCount: true,
             publishedAt: true,
             createdAt: true,
+            refuseReason: true,
             enrollments: {
               select: { paidAmount: true, refundedAt: true },
             },
@@ -61,6 +62,7 @@ export async function GET() {
             reviewsCount: true,
             salesCount: true,
             createdAt: true,
+            refuseReason: true,
             purchases: {
               select: { paidAmount: true },
             },
@@ -87,6 +89,7 @@ export async function GET() {
         studentsCount: f.studentsCount,
         publishedAt: f.publishedAt,
         createdAt: f.createdAt,
+        refuseReason: f.refuseReason,
         productKind: "formation",
         revenue: active.reduce((s, e) => s + e.paidAmount, 0),
         sales: active.length,
@@ -105,6 +108,7 @@ export async function GET() {
       studentsCount: p.salesCount,
       publishedAt: null,
       createdAt: p.createdAt,
+      refuseReason: p.refuseReason,
       productKind: p.productType,
       revenue: p.purchases.reduce((s, pu) => s + pu.paidAmount, 0),
       sales: p.purchases.length,
