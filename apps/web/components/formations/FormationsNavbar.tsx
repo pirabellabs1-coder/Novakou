@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { href: "/fonctionnalites", label: "Fonctionnalités", mega: true },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/affiliation", label: "Affiliation" },
+  { href: "/guides", label: "Blog" },
 ];
 
 const FEATURE_CATEGORIES = [
@@ -170,22 +171,21 @@ function UserMenu({
               </>
             )}
 
-            {/* Passerelles inter-espaces — un créateur est à la fois vendeur,
-                mentor et apprenant. Permet de basculer entre les espaces
-                (l'espace mentor était introuvable depuis l'espace vendeur). */}
-            {!isAdmin && !isAffilie && (
-              <>
-                <div className="my-1 border-t border-gray-100" />
-                <p className="px-4 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#8a93a6]">Mes espaces</p>
-                {!isVendor && (
-                  <Link href="/vendeur/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">storefront</span>Espace vendeur</Link>
-                )}
-                {!isMentor && (
-                  <Link href="/mentor/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">support_agent</span>Espace mentor</Link>
-                )}
-                <Link href="/apprenant/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Espace apprenant</Link>
-              </>
+            {/* Passerelles inter-espaces — un créateur (et l'admin) peut être à
+                la fois vendeur, mentor et apprenant. Permet de basculer entre
+                les espaces (l'espace mentor était introuvable autrement). */}
+            <div className="my-1 border-t border-gray-100" />
+            <p className="px-4 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-[#8a93a6]">Mes espaces</p>
+            {isAdmin && (
+              <Link href="/admin/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">admin_panel_settings</span>Espace admin</Link>
             )}
+            {!isVendor && (
+              <Link href="/vendeur/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">storefront</span>Espace vendeur</Link>
+            )}
+            {!isMentor && (
+              <Link href="/mentor/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">support_agent</span>Espace mentor</Link>
+            )}
+            <Link href="/apprenant/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Espace apprenant</Link>
 
             <div className="my-1 border-t border-gray-100" />
             <Link href={isAdmin ? "/admin/configuration" : isVendor ? "/vendeur/parametres" : "/apprenant/parametres"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">settings</span>Paramètres</Link>
