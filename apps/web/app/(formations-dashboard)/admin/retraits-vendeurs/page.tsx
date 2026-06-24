@@ -8,6 +8,7 @@
  */
 
 import { useState } from "react";
+import { promptAction } from "@/store/prompt";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { confirmAction } from "@/store/confirm";
 import {
@@ -232,7 +233,17 @@ export default function AdminRetraitsVendeursPage() {
   async function bulkReject() {
     const ids = [...bulkIds].filter((id) => pendingIds.includes(id));
     if (ids.length === 0) return;
-    const reason = window.prompt(`Refuser ${ids.length} retrait(s). Motif (visible par les vendeurs) :`, "Demande non conforme — vérifiez vos coordonnées de réception.");
+    const reason = await promptAction({
+      title: `Refuser ${ids.length} retrait(s)`,
+      message: "Motif du refus (visible par les vendeurs) :",
+      defaultValue: "Demande non conforme — vérifiez vos coordonnées de réception.",
+      placeholder: "Motif du refus…",
+      confirmLabel: "Refuser",
+      cancelLabel: "Annuler",
+      icon: "block",
+      multiline: true,
+      validate: (v) => (v.trim().length < 3 ? "Le motif est obligatoire." : null),
+    });
     if (!reason || !reason.trim()) return;
     setBulkRunning(true);
     try {

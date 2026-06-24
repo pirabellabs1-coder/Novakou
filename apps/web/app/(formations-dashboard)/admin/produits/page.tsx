@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { promptAction } from "@/store/prompt";
 import {
   StCard,
   StPageHeader,
@@ -117,15 +118,18 @@ export default function AdminProduitsPage() {
     },
   });
 
-  function handleDelete(id: string, kind: string, title: string) {
-    const reason = window.prompt(
-      `Supprimer « ${title} » ?\n\nIndiquez le MOTIF de suppression (le vendeur en sera informé) :`,
-    );
+  async function handleDelete(id: string, kind: string, title: string) {
+    const reason = await promptAction({
+      title: `Supprimer « ${title} » ?`,
+      message: "Indiquez le motif de suppression (le vendeur en sera informé).",
+      placeholder: "Ex : contenu non conforme aux conditions d'utilisation…",
+      confirmLabel: "Supprimer",
+      cancelLabel: "Annuler",
+      icon: "delete",
+      multiline: true,
+      validate: (v) => (v.trim().length < 3 ? "Le motif est obligatoire (au moins 3 caractères)." : null),
+    });
     if (reason === null) return; // annulé
-    if (reason.trim().length < 3) {
-      window.alert("Le motif est obligatoire (au moins 3 caractères).");
-      return;
-    }
     deleteMutation.mutate({ id, kind, reason: reason.trim() });
   }
 

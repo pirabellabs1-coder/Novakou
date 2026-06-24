@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash2, AlertTriangle } from "lucide-react";
 import { confirmAction } from "@/store/confirm";
+import { promptAction } from "@/store/prompt";
 import { StButton, ST } from "@/components/stitch";
 
 /**
@@ -34,10 +35,16 @@ export function WipeMenu() {
 
     // Garde-fou supplémentaire pour les modes destructifs : saisie manuelle.
     if (danger) {
-      const typed = window.prompt(
-        `⚠️ Suppression définitive.\n\nPour confirmer « ${label} », tapez SUPPRIMER en majuscules :`,
-      );
-      if (typed !== "SUPPRIMER") {
+      const typed = await promptAction({
+        title: "Suppression définitive",
+        message: `Pour confirmer « ${label} », tapez SUPPRIMER en majuscules :`,
+        placeholder: "SUPPRIMER",
+        confirmLabel: "Confirmer la suppression",
+        cancelLabel: "Annuler",
+        icon: "delete_forever",
+        validate: (v) => (v.trim() !== "SUPPRIMER" ? "Tapez SUPPRIMER pour confirmer." : null),
+      });
+      if (typed?.trim() !== "SUPPRIMER") {
         setResult("Annulé — confirmation incorrecte.");
         setTimeout(() => setResult(null), 4000);
         return;
