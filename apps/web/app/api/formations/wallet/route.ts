@@ -278,6 +278,15 @@ export async function POST(request: Request) {
     if (!amount || amount < 1000) {
       return NextResponse.json({ error: "Montant minimum : 1 000 FCFA" }, { status: 400 });
     }
+    // Seuil de retrait minimum configurable par l'admin (FormationsConfig).
+    const { getMinPayoutAmount } = await import("@/lib/formations/platform-settings");
+    const minPayout = await getMinPayoutAmount();
+    if (amount < minPayout) {
+      return NextResponse.json(
+        { error: `Montant minimum de retrait : ${minPayout.toLocaleString("fr-FR")} FCFA` },
+        { status: 400 },
+      );
+    }
 
     // Si la méthode ou les détails ne sont pas fournis, on utilise le compte
     // marqué « principal » dans les paramètres de paiement du vendeur

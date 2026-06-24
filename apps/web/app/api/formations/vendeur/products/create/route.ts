@@ -53,6 +53,29 @@ export async function POST(request: Request) {
     const userId = ctx.userId;
     const profile = { id: ctx.instructeurId };
 
+    // Limite du plan GRATUIT : nombre max de produits+formations (configurable
+    // par l'admin, FormationsConfig.max_products_free_tier). Les plans payants
+    // ne sont pas limités.
+    const planUser = await prisma.user.findUnique({ where: { id: userId }, select: { plan: true } });
+    if (planUser?.plan === "GRATUIT") {
+      const { getMaxProductsFreeTier } = await import("@/lib/formations/platform-settings");
+      const maxFree = await getMaxProductsFreeTier();
+      const [nbFormations, nbProducts] = await Promise.all([
+        prisma.formation.count({ where: { instructeurId: profile.id } }),
+        prisma.digitalProduct.count({ where: { instructeurId: profile.id } }),
+      ]);
+      if (nbFormations + nbProducts >= maxFree) {
+        return NextResponse.json(
+          {
+            error: `Le plan Gratuit est limité à ${maxFree} produits. Passez à un plan supérieur pour en publier davantage.`,
+            code: "FREE_TIER_LIMIT",
+            limit: maxFree,
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     // Multi-shop : tag the new product with the active shop
     const activeShopId = await getActiveShopId(session, {
       devFallback: IS_DEV ? "dev-instructeur-001" : undefined,

@@ -35,8 +35,9 @@ const CONFIG_SECTIONS = [
     title: "Publication de produits",
     eyebrow: "Content Policy",
     items: [
-      { key: "require_approval", label: "Validation obligatoire", hint: "Sinon publication automatique", type: "toggle" as const, default: "true" },
-      { key: "max_products_free_tier", label: "Max produits tier gratuit", hint: "Limite pour le plan gratuit", type: "number" as const, default: "3" },
+      // « Validation obligatoire » retiré : Novakou n'a pas de workflow
+      // d'approbation produit (les vendeurs publient immédiatement).
+      { key: "max_products_free_tier", label: "Max produits tier gratuit", hint: "Limite pour le plan gratuit (appliquée à la création)", type: "number" as const, default: "3" },
     ],
   },
   {

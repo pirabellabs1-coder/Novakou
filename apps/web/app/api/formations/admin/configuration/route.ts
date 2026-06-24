@@ -17,7 +17,6 @@ const ALLOWED_CONFIG_KEYS = new Set<string>([
   "max_refunds_per_buyer_30d",
   "mentor_cancel_hours",
   "auto_approve_refunds",
-  "require_approval",
   "max_products_free_tier",
   "support_email",
   "admin_notifications_email",
@@ -88,8 +87,11 @@ export async function PATCH(request: Request) {
       ),
     );
 
-    // Bust refund-policy cache so new values are read on next eligibility check
+    // Bust caches so new values (commission, min payout, refund policy) sont
+    // lues immédiatement au prochain appel.
     invalidateRefundConfigCache();
+    const { invalidatePlatformSettingsCache } = await import("@/lib/formations/platform-settings");
+    invalidatePlatformSettingsCache();
 
     return NextResponse.json({
       success: true,

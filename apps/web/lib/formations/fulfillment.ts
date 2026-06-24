@@ -22,7 +22,7 @@ import {
   sendDigitalProductDeliveryEmail,
   sendNewStudentNotificationEmail,
 } from "@/lib/email/formations";
-import { PLATFORM_COMMISSION_RATE, VENDOR_NET_RATE } from "@/lib/formations/constants";
+import { getCommissionRate } from "@/lib/formations/platform-settings";
 import { dispatchVendorEvent } from "@/lib/formations/vendor-webhooks";
 import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 import { resolveStorageFileUrl } from "@/lib/supabase-storage";
@@ -178,6 +178,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
   const createdPurchases: { id: string; title: string; price: number }[] = [];
   const skipped: string[] = [];
 
+  // Commission plateforme configurable par l'admin (FormationsConfig). Le taux
+  // est lu une fois ici et STOCKÉ par vente dans PlatformRevenue → changer la
+  // commission n'affecte que les nouvelles ventes (jamais rétroactif).
+  const commissionRate = await getCommissionRate();
+  const vendorNetRate = 1 - commissionRate;
+
   // ── Formations ──────────────────────────────────────────────────────
   for (const f of formations) {
     // Stock re-check (vote 23) : on refuse de fulfill un item dont le stock
@@ -190,7 +196,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     }
 
     const finalPrice = applyDiscount(f.price);
-    const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+    const platformAmount = Math.round(finalPrice * commissionRate);
     const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
     const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
@@ -224,7 +230,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             orderId: created.id,
             orderType: "formation",
             grossAmount: finalPrice,
-            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionRate: commissionRate,
             commissionAmount: platformAmount,
             vendorAmount: vendorNet,
             affiliateId: affiliate?.profileId ?? null,
@@ -288,7 +294,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     }
 
     const finalPrice = applyDiscount(p.price);
-    const platformAmount = Math.round(finalPrice * PLATFORM_COMMISSION_RATE);
+    const platformAmount = Math.round(finalPrice * commissionRate);
     const clampedAffRate = affiliate ? Math.min(affiliate.commissionRate, 0.40) : 0;
     const affAmount = affiliate ? Math.round(finalPrice * clampedAffRate) : 0;
     const vendorNet = Math.max(0, finalPrice - platformAmount - affAmount);
@@ -321,7 +327,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
             orderId: created.id,
             orderType: "product",
             grossAmount: finalPrice,
-            commissionRate: PLATFORM_COMMISSION_RATE,
+            commissionRate: commissionRate,
             commissionAmount: platformAmount,
             vendorAmount: vendorNet,
             affiliateId: affiliate?.profileId ?? null,
@@ -466,7 +472,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           userId: vendorUserId,
           type: "ORDER",
           title: "Nouvelle vente !",
-          message: `${fName} vient d'acheter votre formation « ${f.title} » pour ${Math.round(created.price * VENDOR_NET_RATE)} FCFA nets.`,
+          message: `${fName} vient d'acheter votre formation « ${f.title} » pour ${Math.round(created.price * vendorNetRate)} FCFA nets.`,
           link: "/vendeur/dashboard",
         },
       }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
@@ -527,7 +533,7 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
           userId: vendorUserId,
           type: "ORDER",
           title: "Nouvelle vente !",
-          message: `${fName} vient d'acheter votre produit « ${p.title} » pour ${Math.round(created.price * VENDOR_NET_RATE)} FCFA nets.`,
+          message: `${fName} vient d'acheter votre produit « ${p.title} » pour ${Math.round(created.price * vendorNetRate)} FCFA nets.`,
           link: "/vendeur/dashboard",
         },
       }).catch((e) => console.error("[fulfillment email]", e?.message ?? e));
@@ -594,8 +600,8 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
     subTotal,
     discountAmount,
     totalAmount,
-    netToInstructor: totalAmount * VENDOR_NET_RATE,
-    commission: totalAmount * PLATFORM_COMMISSION_RATE,
+    netToInstructor: totalAmount * vendorNetRate,
+    commission: totalAmount * commissionRate,
     appliedCode: appliedCode?.code ?? null,
     enrollments: createdEnrollments,
     purchases: createdPurchases,
