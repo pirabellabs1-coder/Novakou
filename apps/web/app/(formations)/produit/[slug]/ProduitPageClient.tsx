@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   ChevronRight,
   Flame,
-  ThumbsUp,
   FileText,
   Eye,
   MessageSquare,
@@ -315,11 +314,6 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   </span>
                   {product.salesCount > 0 && (
                     <>
-                      <span className="text-zinc-300">·</span>
-                      <span className="flex items-center gap-1">
-                        <ThumbsUp size={14} className="fill-[#22c55e] text-[#22c55e]" />
-                        <span className="font-semibold">{Math.min(99, 80 + Math.floor(product.salesCount / 5))}%</span>
-                      </span>
                       <span className="text-zinc-300">·</span>
                       <span>
                         <span className="font-semibold text-[#191c1e]">{fmt(product.salesCount)}</span>
