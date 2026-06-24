@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Save } from "lucide-react";
 import { StCard, StPageHeader, StButton, ST } from "@/components/stitch";
-import { WipeMenu } from "@/components/admin/WipeMenu";
 
 type ConfigData = {
   configs: { id: string; key: string; value: string; label: string | null }[];
@@ -12,6 +11,14 @@ type ConfigData = {
 };
 
 const CONFIG_SECTIONS = [
+  {
+    title: "Maintenance du site",
+    eyebrow: "Disponibilité",
+    items: [
+      { key: "site.maintenance.enabled", label: "Mettre le site en maintenance", hint: "Bascule TOUT le site sur la page de maintenance. Les admins gardent l'accès ; les paiements en cours continuent.", type: "toggle" as const, default: "false" },
+      { key: "site.maintenance.message", label: "Message affiché aux visiteurs", hint: "Ex : Maintenance en cours, retour dans 1h.", type: "text" as const, default: "" },
+    ],
+  },
   {
     title: "Commission plateforme",
     eyebrow: "Financial",
@@ -180,31 +187,6 @@ export default function AdminConfigurationPage() {
               </StCard>
             ))}
 
-            {/* Zone maintenance — outil destructif déplacé hors du dashboard
-                (il y était trop accessible). Réservé à la maintenance. */}
-            <StCard noPadding>
-              <div className="px-6 py-5" style={{ borderBottom: `1px solid ${ST.divider}` }}>
-                <span className="text-[10px] font-extrabold uppercase tracking-widest mb-1 block text-rose-600">
-                  Zone dangereuse
-                </span>
-                <h3 className="text-[17px] font-extrabold tracking-tight" style={{ color: ST.text }}>
-                  Maintenance
-                </h3>
-              </div>
-              <div className="px-6 py-5 flex items-center justify-between gap-6">
-                <div className="flex-1 min-w-0">
-                  <p className="block text-[13.5px] font-extrabold mb-1" style={{ color: ST.text }}>
-                    Nettoyer la plateforme
-                  </p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: ST.textMuted }}>
-                    Purge de données — irréversible, double confirmation
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <WipeMenu />
-                </div>
-              </div>
-            </StCard>
           </div>
         )}
       </main>

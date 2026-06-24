@@ -10,6 +10,8 @@ import { invalidateRefundConfigCache } from "@/lib/formations/refund-policy";
 // Whitelist of allowed config keys to prevent injection of arbitrary settings.
 // Any update to a key not in this set is silently dropped (with a warning log).
 const ALLOWED_CONFIG_KEYS = new Set<string>([
+  "site.maintenance.enabled",
+  "site.maintenance.message",
   "commission_rate",
   "min_payout_amount",
   "refund_window_days",
