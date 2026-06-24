@@ -65,16 +65,20 @@ const steps = [
 
 const faqs = [
   {
-    q: "Quand est-ce que je suis payé ?",
-    a: "Les commissions sont versées le 1er de chaque mois pour toutes les ventes validées du mois précédent (après la période de remboursement de 30 jours).",
+    q: "Comment et quand suis-je payé ?",
+    a: "Chaque commission est d'abord « en validation » pendant 14 jours (le temps de la période de remboursement de l'acheteur). Passé ce délai, elle devient « validée » et apparaît dans votre solde retirable. Vous pouvez alors demander un retrait à tout moment depuis votre espace affilié → Retraits.",
   },
   {
     q: "Quelles sont les méthodes de paiement ?",
-    a: "Nous versons les commissions via Orange Money, Wave, MTN MoMo, virement bancaire SEPA et PayPal selon votre pays de résidence.",
+    a: "Vous recevez vos commissions via Orange Money, Wave, MTN MoMo ou virement bancaire (SEPA), selon votre pays.",
   },
   {
     q: "Y a-t-il un montant minimum de retrait ?",
-    a: "Oui, le minimum est de 10 000 FCFA (≈ 15 €). En dessous, votre solde est reporté au mois suivant.",
+    a: "Oui, le minimum est de 5 000 FCFA (≈ 8 €) par retrait. En dessous, votre solde validé reste disponible et continue de s'accumuler.",
+  },
+  {
+    q: "Que se passe-t-il si l'acheteur se fait rembourser ?",
+    a: "Si une vente que vous avez référée est remboursée pendant les 14 jours de validation, la commission correspondante est annulée. C'est pourquoi nous attendons la fin de cette période avant de rendre vos gains retirables — pour que votre solde validé soit 100 % sûr.",
   },
   {
     q: "Puis-je être affilié et vendeur en même temps ?",
@@ -150,7 +154,7 @@ export default function AffiliationPage() {
           </h1>
           <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto">
             Partagez votre lien unique. Touchez{" "}
-            <span className="text-[#86efac] font-bold">{COMMISSION_PCT}% de commission</span> sur chaque vente générée. Payé chaque mois via Mobile Money.
+            <span className="text-[#86efac] font-bold">{COMMISSION_PCT}% de commission</span> sur chaque vente générée. Retirable via Mobile Money dès validation.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -222,6 +226,49 @@ export default function AffiliationPage() {
                 <p className="text-sm text-[#5c647a] leading-relaxed">{step.desc}</p>
               </div>
             ))}
+          </div>
+
+          {/* Parcours des commissions — comment vous êtes payé, concrètement */}
+          <div className="mt-12 max-w-3xl mx-auto">
+            <h3 className="text-center text-lg font-extrabold text-[#191c1e] mb-6">
+              Le parcours de vos commissions
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  n: "1",
+                  t: "En validation",
+                  d: "Dès qu'une vente est réalisée via votre lien, la commission est enregistrée et bloquée pendant 14 jours (période de remboursement de l'acheteur).",
+                  c: "#b45309",
+                  bg: "#fef3c7",
+                },
+                {
+                  n: "2",
+                  t: "Validée — retirable",
+                  d: "Passé les 14 jours sans remboursement, la commission devient sûre et s'ajoute à votre solde retirable.",
+                  c: "#006e2f",
+                  bg: "#e8f5e9",
+                },
+                {
+                  n: "3",
+                  t: "Payée",
+                  d: "Vous demandez un retrait (dès 5 000 FCFA) via Mobile Money ou virement, depuis votre espace affilié.",
+                  c: "#1565c0",
+                  bg: "#e3f2fd",
+                },
+              ].map((s) => (
+                <div key={s.n} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                  <div
+                    className="mb-3 flex h-8 w-8 items-center justify-center rounded-full text-sm font-extrabold"
+                    style={{ background: s.bg, color: s.c }}
+                  >
+                    {s.n}
+                  </div>
+                  <p className="mb-1 text-sm font-bold text-[#191c1e]">{s.t}</p>
+                  <p className="text-xs leading-relaxed text-[#5c647a]">{s.d}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
