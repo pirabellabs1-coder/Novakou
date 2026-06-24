@@ -46,6 +46,18 @@ function CategoryPill({ children }: { children: React.ReactNode }) {
 /* ─── Données des guides ──────────────────────────────────── */
 const GUIDES = [
   {
+    href: "/guides/devenir-affilie-gagner-argent",
+    gradient: "linear-gradient(135deg, #006e2f, #22c55e)",
+    icon: "group",
+    time: "8 min",
+    level: "Débutant",
+    levelColor: "#006e2f",
+    chapters: "7 sections",
+    title: "Devenir affilié Novakou : gagner en recommandant",
+    desc: "Touchez 40 % de commission sur chaque vente générée, sans rien créer. Lien unique, où le partager, validation 14 j, retrait Mobile Money dès 5 000 FCFA.",
+    category: "Gagner",
+  },
+  {
     href: "/guides/creer-son-produit",
     gradient: "linear-gradient(135deg, #006e2f, #22c55e)",
     icon: "package_2",
@@ -288,7 +300,7 @@ const GUIDES = [
   },
 ];
 
-const CATEGORIES = ["Tous", "Créer", "Vendre", "Promouvoir", "Automatiser", "Technique"];
+const CATEGORIES = ["Tous", "Gagner", "Créer", "Vendre", "Promouvoir", "Automatiser", "Technique"];
 
 const FAQ = [
   {

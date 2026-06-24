@@ -29,7 +29,7 @@ export interface GuideMeta {
   slug: string;
   title: string;
   subtitle: string;
-  category: "Créer" | "Vendre" | "Promouvoir" | "Automatiser" | "Technique";
+  category: "Gagner" | "Créer" | "Vendre" | "Promouvoir" | "Automatiser" | "Technique";
   level: "Débutant" | "Intermédiaire" | "Avancé" | "Complet";
   levelColor: string;
   /** Gradient CSS pour le hero (background) */
