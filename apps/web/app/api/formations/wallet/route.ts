@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
-import { computeHoldStatus, HOLD_PERIOD_HOURS } from "@/lib/formations/escrow";
+import { HOLD_PERIOD_HOURS } from "@/lib/formations/escrow";
+import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { getActiveShopId } from "@/lib/formations/active-shop";
@@ -71,44 +72,11 @@ export async function GET() {
         devFallback: IS_DEV ? "dev-instructeur-001" : undefined,
       });
 
-      // Multi-shop wallet :
-      // On lit PlatformRevenue (qui contient déjà vendorAmount = brut - 10% - commission affilié)
-      // → la part vendeur est exacte même quand un affilié est intervenu.
-      const revenueRows = await prisma.platformRevenue.findMany({
-        where: {
-          instructeurId: inst.id,
-          orderType: { in: ["formation", "product"] },
-          ...(activeShopId ? { shopId: activeShopId } : {}),
-        },
-        select: {
-          vendorAmount: true,
-          grossAmount: true,
-          affiliateAmount: true,
-          createdAt: true,
-        },
-      });
+      // Solde via la source UNIQUE (wallet-balance) : mêmes règles que le
+      // gate de retrait et le cron auto-payout (4 types, réversions immédiates).
+      const bal = await computeVendorBalance(inst.id, { shopId: activeShopId });
 
-      // computeHoldStatus s'applique sur le NET vendeur (vendorAmount), pas sur le brut
-      // car le brut inclut la commission affilié qui ne revient pas au vendeur.
-      const allSales = revenueRows.map((r) => ({
-        paidAmount: r.vendorAmount, // déjà net pour le vendeur
-        timestamp: r.createdAt,
-      }));
-      // computeHoldStatus retourne netReleased/netPending = paidAmount × VENDOR_NET_RATE (interne)
-      // Or paidAmount EST DÉJÀ le net vendeur. On override le calcul.
-      const HOLD_MS = 24 * 3_600_000;
-      let grossReleased = 0;
-      let grossPending = 0;
-      const now = Date.now();
-      for (const s of allSales) {
-        const age = now - new Date(s.timestamp).getTime();
-        if (age >= HOLD_MS) grossReleased += s.paidAmount;
-        else grossPending += s.paidAmount;
-      }
-      const netReleased = grossReleased;
-      const netPending = grossPending;
-
-      // Subtract withdrawals — also filtered to the active shop
+      // Liste des 20 derniers retraits (affichage seulement)
       const allVendorW = await prisma.instructorWithdrawal.findMany({
         where: {
           instructeurId: inst.id,
@@ -116,6 +84,7 @@ export async function GET() {
           ...(activeShopId ? { shopId: activeShopId } : {}),
         },
         orderBy: { createdAt: "desc" },
+        take: 20,
         select: {
           id: true,
           amount: true,
@@ -126,31 +95,19 @@ export async function GET() {
           refusedReason: true,
         },
       });
-      vendorWithdrawals = allVendorW.slice(0, 20);
-      const withdrawnPending = allVendorW
-        .filter((w) => w.status === "EN_ATTENTE")
-        .reduce((s, w) => s + w.amount, 0);
-      const withdrawnTreated = allVendorW
-        .filter((w) => w.status === "TRAITE")
-        .reduce((s, w) => s + w.amount, 0);
-      const withdrawn = withdrawnPending + withdrawnTreated;
-
-      // Only released funds can be withdrawn
-      const available = Math.max(0, netReleased - withdrawn);
+      vendorWithdrawals = allVendorW;
 
       vendor = {
         instructeurId: inst.id,
-        // Historical cumulative field kept for compatibility
         totalEarned: inst.totalEarned,
-        // New escrow-aware fields
-        gross: grossReleased + grossPending,
-        netEarned: netReleased + netPending,
-        available,                         // retirable maintenant
-        pendingHold: netPending,           // en attente 24h (net)
-        holdPeriodHours: HOLD_PERIOD_HOURS, // pour afficher dans l'UI
-        withdrawnPending,
-        withdrawnTreated,
-        withdrawn,                         // legacy alias = pending+treated
+        gross: bal.releasedNet + bal.pendingNet,
+        netEarned: bal.releasedNet + bal.pendingNet,
+        available: bal.available,            // retirable maintenant
+        pendingHold: bal.pendingNet,         // en attente 24h (net)
+        holdPeriodHours: HOLD_PERIOD_HOURS,
+        withdrawnPending: bal.withdrawnPending,
+        withdrawnTreated: bal.withdrawnTreated,
+        withdrawn: bal.withdrawnPending + bal.withdrawnTreated,
         currency: "XOF",
       };
     }
@@ -456,36 +413,10 @@ export async function POST(request: Request) {
         }
       }
 
-      // Lecture sur PlatformRevenue (vendorAmount = exact, déjà - 10% - affilié)
-      // Bureau session 4 — bug P0 Karim/Marcus : on inclut maintenant bundle
-      // et subscription dans le calcul du solde. Sans ça, un vendeur qui
-      // vendait UNIQUEMENT des bundles/abonnements voyait disponible = 0.
-      const revenueRows = await prisma.platformRevenue.findMany({
-        where: {
-          instructeurId: inst.id,
-          orderType: { in: ["formation", "product", "bundle", "subscription"] },
-          ...(activeShopId ? { shopId: activeShopId } : {}),
-        },
-        select: { vendorAmount: true, createdAt: true },
-      });
-      const HOLD_MS = 24 * 3_600_000;
-      const now = Date.now();
-      let netReleased = 0;
-      for (const r of revenueRows) {
-        if (now - new Date(r.createdAt).getTime() >= HOLD_MS) netReleased += r.vendorAmount;
-      }
-
-      // Subtract previous withdrawals scoped to active shop
-      const wAgg = await prisma.instructorWithdrawal.aggregate({
-        where: {
-          instructeurId: inst.id,
-          NOT: { method: { endsWith: "_mentor" } },
-          ...(activeShopId ? { shopId: activeShopId } : {}),
-          status: { in: ["EN_ATTENTE", "TRAITE"] },
-        },
-        _sum: { amount: true },
-      });
-      const available = Math.max(0, netReleased - (wAgg._sum.amount ?? 0));
+      // Solde via la source UNIQUE (wallet-balance) : 4 types vendables,
+      // réversions de remboursement déduites immédiatement, scopé boutique.
+      const bal = await computeVendorBalance(inst.id, { shopId: activeShopId });
+      const available = bal.available;
       if (amount > available) {
         return NextResponse.json(
           { error: `Solde insuffisant. Disponible : ${Math.round(available)} FCFA (les ventes de moins de ${HOLD_PERIOD_HOURS}h sont en attente).` },
@@ -550,32 +481,14 @@ export async function POST(request: Request) {
         });
       }
 
-      // 24h escrow hold: only sessions completed >24h ago are withdrawable.
-      const completed = await prisma.mentorBooking.findMany({
-        where: { mentorId: mentor.id, status: "COMPLETED" },
-        select: { paidAmount: true, completedAt: true, updatedAt: true },
-      });
-      const { netReleased: available } = computeHoldStatus(
-        completed.map((b) => ({
-          paidAmount: b.paidAmount,
-          timestamp: b.completedAt ?? b.updatedAt,
-        }))
-      );
-
-      // Subtract previous mentor withdrawals (tagged with method having `_mentor` suffix)
-      const wAgg = await prisma.instructorWithdrawal.aggregate({
-        where: {
-          instructeurId: inst.id,
-          method: { endsWith: "_mentor" },
-          status: { in: ["EN_ATTENTE", "TRAITE"] },
-        },
-        _sum: { amount: true },
-      });
-      const remaining = available - (wAgg._sum.amount ?? 0);
+      // Solde mentor via la source UNIQUE (escrowStatus=RELEASED), cohérent
+      // avec l'affichage du wallet et le cron auto-payout.
+      const mbal = await computeMentorBalance(mentor.id, inst.id);
+      const remaining = mbal.available;
 
       if (amount > remaining) {
         return NextResponse.json(
-          { error: `Solde mentor insuffisant. Disponible : ${remaining} FCFA (les séances terminées depuis moins de ${HOLD_PERIOD_HOURS}h sont en attente).` },
+          { error: `Solde mentor insuffisant. Disponible : ${remaining} FCFA (les séances non encore libérées de l'escrow sont en attente).` },
           { status: 400 }
         );
       }

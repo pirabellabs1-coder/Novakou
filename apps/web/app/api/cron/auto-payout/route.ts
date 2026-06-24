@@ -8,6 +8,7 @@ import {
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
 import { requireCronAuth } from "@/lib/cron/auth";
+import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
 
 /**
  * GET /api/cron/auto-payout
@@ -76,27 +77,32 @@ export async function GET(request: NextRequest) {
   for (const w of pending) {
     const isMentor = w.method.endsWith("_mentor");
 
-    // ── Valider le solde disponible ──────────────────────────────────────
-    const revenueRows = await prisma.platformRevenue.findMany({
-      where: { instructeurId: w.instructeurId, orderType: { in: ["formation", "product"] } },
-      select: { vendorAmount: true, createdAt: true },
-    });
-    const HOLD_MS = 24 * 3_600_000;
-    const nowMs = Date.now();
-    let netReleased = 0;
-    for (const r of revenueRows) {
-      if (nowMs - new Date(r.createdAt).getTime() >= HOLD_MS) netReleased += r.vendorAmount;
+    // ── Valider le solde disponible (source unique : wallet-balance) ──────
+    // Mentor : solde calculé sur mentorBooking (les revenus mentor n'ont pas
+    // d'instructeurId en base → introuvables via PlatformRevenue). Vendeur :
+    // PlatformRevenue des 4 types vendables, scopé à la boutique du retrait.
+    let availableForThis: number;
+    if (isMentor) {
+      const mentorProfile = await prisma.mentorProfile.findUnique({
+        where: { userId: w.instructeur.user.id },
+        select: { id: true },
+      });
+      if (!mentorProfile) {
+        await prisma.instructorWithdrawal.update({
+          where: { id: w.id },
+          data: { errorMessage: "Auto-payout : profil mentor introuvable" },
+        }).catch(() => null);
+        results.push({ id: w.id, status: "SKIP", error: "mentor_introuvable" });
+        continue;
+      }
+      const bal = await computeMentorBalance(mentorProfile.id, w.instructeurId);
+      // Exclure le retrait courant (déjà compté en EN_ATTENTE) du déjà-engagé.
+      availableForThis = bal.netReleased - (bal.withdrawnPending + bal.withdrawnTreated - w.amount);
+    } else {
+      const bal = await computeVendorBalance(w.instructeurId, { shopId: w.shopId });
+      availableForThis = bal.releasedNet - (bal.withdrawnPending + bal.withdrawnTreated - w.amount);
     }
-    const otherWithdrawals = await prisma.instructorWithdrawal.aggregate({
-      where: {
-        instructeurId: w.instructeurId,
-        ...(isMentor ? { method: { endsWith: "_mentor" } } : { NOT: { method: { endsWith: "_mentor" } } }),
-        status: { in: ["EN_ATTENTE", "TRAITE"] },
-        id: { not: w.id },
-      },
-      _sum: { amount: true },
-    });
-    const available = Math.max(0, netReleased - (otherWithdrawals._sum.amount ?? 0));
+    const available = Math.max(0, availableForThis);
 
     if (w.amount > available) {
       await prisma.instructorWithdrawal.update({
