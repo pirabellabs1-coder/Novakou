@@ -17,6 +17,7 @@ const NAV_LINKS = [
   { href: "/fonctionnalites", label: "Fonctionnalités", mega: true },
   { href: "/tarifs", label: "Tarifs" },
   { href: "/affiliation", label: "Affiliation" },
+  { href: "/mentors", label: "Mentorat" },
   { href: "/guides", label: "Blog" },
 ];
 
