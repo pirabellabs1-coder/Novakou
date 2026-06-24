@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Star, ShoppingBag, Sparkles } from "lucide-react";
+import { productImageSrc } from "@/lib/utils/image-url";
 
 interface Reco {
   id: string;
@@ -74,7 +75,7 @@ export function RelatedProducts({
                 {it.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={it.thumbnail}
+                    src={productImageSrc(it.thumbnail, 500) || it.thumbnail}
                     alt={it.title}
                     loading="lazy"
                     decoding="async"

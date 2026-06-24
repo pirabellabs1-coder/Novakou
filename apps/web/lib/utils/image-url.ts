@@ -47,3 +47,23 @@ export function avatarSrc(url: string | null | undefined, size: number = 512): s
 
   return url;
 }
+
+/**
+ * Optimise une image de PRODUIT (vignette de carte, bannière de fiche) servie
+ * via <img> brut. Sur Cloudinary, injecte `c_limit,w_<width>,q_auto,f_auto` :
+ *  - `q_auto` : compression intelligente ;
+ *  - `f_auto` : format moderne (WebP/AVIF) selon le navigateur ;
+ *  - `c_limit,w_` : ne sert jamais plus grand que nécessaire (pas de crop).
+ * Gros gain de poids (souvent -70 à -90 %) sans changement visuel. Laisse les
+ * URLs déjà transformées et les hôtes non-Cloudinary inchangés.
+ */
+export function productImageSrc(url: string | null | undefined, width: number = 800): string | null {
+  if (!url) return null;
+  if (url.includes(CLOUDINARY_HOST) && url.includes(CLOUDINARY_UPLOAD_MARKER)) {
+    const [head, tail] = url.split(CLOUDINARY_UPLOAD_MARKER);
+    const firstSegment = tail.split("/")[0] ?? "";
+    if (/(^|,)([a-z]_)/.test(firstSegment)) return url; // déjà transformée
+    return `${head}${CLOUDINARY_UPLOAD_MARKER}c_limit,w_${width},q_auto,f_auto/${tail}`;
+  }
+  return url;
+}
