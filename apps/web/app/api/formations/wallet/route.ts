@@ -386,6 +386,30 @@ export async function POST(request: Request) {
       );
     }
 
+    // ── CONFIRMATION OTP PAR E-MAIL : obligatoire pour tout retrait ──
+    // Défense contre les retraits depuis un compte compromis : le code est
+    // envoyé via /api/formations/wallet/withdrawal-otp. Sans le code, aucun
+    // retrait n'est créé, même avec une session valide.
+    const otp = typeof body.otp === "string" ? body.otp.trim() : "";
+    if (!/^\d{6}$/.test(otp)) {
+      return NextResponse.json(
+        { error: "Code de confirmation requis", code: "OTP_REQUIRED" },
+        { status: 403 },
+      );
+    }
+    const otpUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+    if (!otpUser?.email) {
+      return NextResponse.json({ error: "Aucune adresse e-mail sur le compte" }, { status: 400 });
+    }
+    const { verifyOTP } = await import("@/lib/auth/otp");
+    const otpCheck = await verifyOTP(otpUser.email, otp);
+    if (!otpCheck.valid) {
+      return NextResponse.json(
+        { error: otpCheck.error ?? "Code de confirmation invalide", code: "OTP_INVALID" },
+        { status: 403 },
+      );
+    }
+
     if (source === "vendor") {
       const inst = await getOrCreateInstructeur(userId);
       if (!inst)

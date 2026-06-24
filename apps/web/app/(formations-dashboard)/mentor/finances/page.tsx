@@ -95,6 +95,25 @@ export default function MentorFinancesPage() {
   const [wIban, setWIban] = useState<string>("");
   const [wHolder, setWHolder] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  // Confirmation OTP par e-mail (sécurité retrait)
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+
+  async function sendWithdrawalOtp() {
+    setSendingOtp(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/formations/wallet/withdrawal-otp", { method: "POST" });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Envoi du code échoué");
+      setOtpSent(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Envoi du code échoué");
+    } finally {
+      setSendingOtp(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -162,11 +181,14 @@ export default function MentorFinancesPage() {
           amount: wAmount,
           method: wMethod,
           accountDetails,
+          otp: otp.trim(),
         }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Erreur serveur");
       setModalOpen(false);
+      setOtp("");
+      setOtpSent(false);
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur");
@@ -508,7 +530,38 @@ export default function MentorFinancesPage() {
                 </>
               )}
 
-              <StButton type="submit" disabled={submitting} className="w-full">
+              {/* Confirmation par e-mail (sécurité) */}
+              <div className="rounded-xl border p-3" style={{ borderColor: ST.cardBorder, background: ST.bg }}>
+                <p className="text-[12px] font-extrabold mb-2" style={{ color: ST.text }}>Confirmation par e-mail</p>
+                {!otpSent ? (
+                  <button
+                    type="button"
+                    onClick={sendWithdrawalOtp}
+                    disabled={sendingOtp}
+                    className="w-full rounded-lg border px-3 py-2.5 text-[13px] font-bold disabled:opacity-50"
+                    style={{ borderColor: ST.cardBorder, color: ST.green }}
+                  >
+                    {sendingOtp ? "Envoi du code…" : "Recevoir le code par e-mail"}
+                  </button>
+                ) : (
+                  <>
+                    <input
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      placeholder="Code à 6 chiffres"
+                      className="w-full rounded-lg border px-3 py-2.5 text-center text-lg font-extrabold tracking-[0.4em] tabular-nums outline-none"
+                      style={{ borderColor: ST.cardBorder, color: ST.text }}
+                    />
+                    <button type="button" onClick={sendWithdrawalOtp} disabled={sendingOtp} className="mt-1.5 text-[11px] font-bold hover:underline" style={{ color: ST.green }}>
+                      {sendingOtp ? "Renvoi…" : "Renvoyer le code"}
+                    </button>
+                  </>
+                )}
+              </div>
+
+              <StButton type="submit" disabled={submitting || otp.trim().length !== 6} className="w-full">
                 {submitting ? "Envoi…" : "Confirmer la demande"}
               </StButton>
               <p className="text-center text-[10.5px] font-semibold" style={{ color: ST.textMuted }}>
