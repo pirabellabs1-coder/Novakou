@@ -2,18 +2,26 @@
 
 import Link from "next/link";
 import {
+  BadgeCheck,
+  BookOpen,
   Check,
   ChevronDown,
   Copy,
+  Globe,
   Info,
+  MessageCircle,
   Percent,
   Rocket,
   Share2,
+  ShieldCheck,
+  Sparkles,
   Timer,
+  TrendingUp,
   Trophy,
   UserPlus,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -353,8 +361,175 @@ export default function AffiliationPage() {
         </div>
       </section>
 
-      {/* Get your link CTA */}
+      {/* Pourquoi devenir affilié */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#191c1e] mb-3">
+              Pourquoi devenir affilié Novakou ?
+            </h2>
+            <p className="text-[#5c647a] text-base max-w-2xl mx-auto">
+              Le moyen le plus simple de générer un revenu en ligne en Afrique francophone : sans rien créer, sans stock, sans risque.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[
+              { icon: Percent, title: `Jusqu'à ${COMMISSION_PCT}% par vente`, desc: "L'un des taux de commission les plus élevés du marché, sur chaque vente que vous générez." },
+              { icon: Wallet, title: "Zéro investissement", desc: "Pas de produit à créer, pas de stock, pas de pub à payer. Vous partagez, vous gagnez." },
+              { icon: Sparkles, title: "Paiement Mobile Money", desc: "Retirez vos gains via Orange Money, Wave, MTN MoMo ou virement bancaire, dès 5 000 FCFA." },
+              { icon: TrendingUp, title: "Suivi en temps réel", desc: "Clics, ventes, commissions, taux de conversion : tout est visible dans votre tableau de bord affilié." },
+              { icon: ShieldCheck, title: "Commissions sécurisées", desc: "Une fois validée (14 jours), votre commission est garantie — votre solde ne bouge plus." },
+              { icon: BadgeCheck, title: "Cumulable", desc: "Vous pouvez être affilié ET vendeur en même temps. Les deux revenus s'additionnent." },
+            ].map((b) => {
+              const I = b.icon;
+              return (
+                <div key={b.title} className="bg-[#f7f9fb] rounded-2xl p-6 border border-gray-100">
+                  <div className="w-12 h-12 rounded-xl bg-[#006e2f]/10 flex items-center justify-center mb-4">
+                    <I size={24} className="text-[#006e2f]" />
+                  </div>
+                  <h3 className="font-bold text-[#191c1e] text-base mb-1.5">{b.title}</h3>
+                  <p className="text-sm text-[#5c647a] leading-relaxed">{b.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Qui peut + Que promouvoir */}
       <section className="py-16 px-4 bg-[#f7f9fb]">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-white rounded-3xl p-8 border border-gray-100">
+            <div className="flex items-center gap-2 mb-5">
+              <Users size={22} className="text-[#006e2f]" />
+              <h2 className="text-xl font-extrabold text-[#191c1e]">Qui peut devenir affilié ?</h2>
+            </div>
+            <p className="text-sm text-[#5c647a] mb-4">Tout le monde — pas besoin d'une grande audience. Il suffit de connaître des personnes intéressées :</p>
+            <ul className="space-y-2.5">
+              {[
+                "Créateurs de contenu (TikTok, Instagram, YouTube)",
+                "Animateurs de groupes ou communautés WhatsApp",
+                "Blogueurs et newsletters",
+                "Étudiants et jeunes entrepreneurs",
+                "Coachs, formateurs, consultants",
+                "Toute personne avec un réseau motivé",
+              ].map((p) => (
+                <li key={p} className="flex items-start gap-2.5">
+                  <Check size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[#191c1e]">{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-white rounded-3xl p-8 border border-gray-100">
+            <div className="flex items-center gap-2 mb-5">
+              <BookOpen size={22} className="text-[#006e2f]" />
+              <h2 className="text-xl font-extrabold text-[#191c1e]">Que pouvez-vous promouvoir ?</h2>
+            </div>
+            <p className="text-sm text-[#5c647a] mb-4">Tout le catalogue Novakou. Choisissez ce qui parle le plus à votre audience :</p>
+            <ul className="space-y-2.5">
+              {[
+                "Formations vidéo (développement, design, marketing…)",
+                "Produits digitaux (e-books, templates, presets)",
+                "Packs et bundles à prix réduit",
+                "Abonnements aux espaces des créateurs",
+                "Sessions de mentorat",
+              ].map((p) => (
+                <li key={p} className="flex items-start gap-2.5">
+                  <Check size={18} className="text-[#006e2f] mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-[#191c1e]">{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* Où partager */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#191c1e] mb-3">Où partager votre lien</h2>
+            <p className="text-[#5c647a] text-base max-w-2xl mx-auto">
+              Visez les endroits où se trouvent des gens vraiment intéressés. 10 personnes ciblées valent mieux que 1 000 indifférentes.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            {[
+              { icon: MessageCircle, label: "WhatsApp", desc: "Statuts & groupes" },
+              { icon: Sparkles, label: "TikTok", desc: "Vidéos courtes" },
+              { icon: Share2, label: "Instagram", desc: "Posts & stories" },
+              { icon: Globe, label: "Facebook", desc: "Groupes ciblés" },
+              { icon: BookOpen, label: "Blog / Email", desc: "Articles & newsletter" },
+              { icon: Users, label: "Votre réseau", desc: "Bouche-à-oreille" },
+            ].map((c) => {
+              const I = c.icon;
+              return (
+                <div key={c.label} className="bg-[#f7f9fb] rounded-2xl p-5 border border-gray-100 text-center">
+                  <I size={26} className="text-[#006e2f] mx-auto mb-2.5" />
+                  <p className="font-bold text-[#191c1e] text-sm">{c.label}</p>
+                  <p className="text-[11px] text-[#5c647a] mt-0.5">{c.desc}</p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-8 text-center">
+            <Link href="/guides/devenir-affilie-gagner-argent" className="inline-flex items-center gap-2 text-[#006e2f] font-bold text-sm hover:underline">
+              <BookOpen size={16} /> Lire le guide complet : devenir affilié et gagner
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Les règles */}
+      <section className="py-16 px-4 bg-[#f7f9fb]">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#191c1e] mb-3">Les règles du jeu</h2>
+            <p className="text-[#5c647a] text-base">Quelques principes simples pour un programme sain et durable.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white rounded-2xl p-6 border border-green-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><Check size={18} className="text-[#006e2f]" /></div>
+                <h3 className="font-bold text-[#191c1e]">Autorisé</h3>
+              </div>
+              <ul className="space-y-2.5">
+                {[
+                  "Recommander sincèrement ce que vous trouvez utile",
+                  "Créer du contenu (avis, démos, tutos) avec votre lien",
+                  "Partager dans vos groupes et à votre communauté",
+                  "Offrir des conseils honnêtes pour aider à décider",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2 text-sm text-[#191c1e]"><Check size={16} className="text-[#006e2f] mt-0.5 flex-shrink-0" />{t}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="bg-white rounded-2xl p-6 border border-rose-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center"><X size={18} className="text-rose-600" /></div>
+                <h3 className="font-bold text-[#191c1e]">Interdit</h3>
+              </div>
+              <ul className="space-y-2.5">
+                {[
+                  "Spammer des inconnus ou des groupes publics",
+                  "S'acheter à soi-même via son propre lien (détecté & annulé)",
+                  "Promettre des résultats irréalistes",
+                  "Usurper la marque Novakou en publicité payante",
+                ].map((t) => (
+                  <li key={t} className="flex items-start gap-2 text-sm text-[#191c1e]"><X size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />{t}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <p className="text-center text-xs text-[#5c647a] mt-6">
+            En cas de non-respect, les commissions concernées peuvent être annulées. Détails dans les <Link href="/cgu-affiliation" className="text-[#006e2f] font-semibold hover:underline">conditions du programme</Link>.
+          </p>
+        </div>
+      </section>
+
+      {/* Get your link CTA */}
+      <section className="py-16 px-4 bg-white">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-extrabold text-[#191c1e] mb-3">
             Prêt à commencer ?
