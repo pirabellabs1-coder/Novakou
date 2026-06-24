@@ -19,6 +19,7 @@ import {
   resolveLegacyMethod,
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
+import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
 import {
   getPayGeniusPayoutMethod,
   normalizePayGeniusMsisdn,
@@ -188,29 +189,25 @@ export async function PATCH(request: Request, { params }: Params) {
         return NextResponse.json({ data: { id, status: "TRAITE", role, mode: "manual" } });
       }
 
-      // Mode Moneroo OU PayGenius : déclencher un vrai payout
-      // Re-validate balance before payout (prevent negative balance if refund happened since request)
-      const revenueRows = await prisma.platformRevenue.findMany({
-        where: { instructeurId: w.instructeurId, orderType: { in: ["formation", "product"] } },
-        select: { vendorAmount: true, createdAt: true },
-      });
-      const HOLD_MS = 24 * 3_600_000;
-      const nowMs = Date.now();
-      let netReleased = 0;
-      for (const r of revenueRows) {
-        if (nowMs - new Date(r.createdAt).getTime() >= HOLD_MS) netReleased += r.vendorAmount;
+      // Mode Moneroo OU PayGenius : déclencher un vrai payout.
+      // Re-validation du solde via la SOURCE UNIQUE (wallet-balance) — évite de
+      // payer si un remboursement est survenu depuis la demande, et calcule
+      // correctement le solde mentor (via bookings, pas PlatformRevenue).
+      let currentAvailable: number;
+      if (isMentor) {
+        const mentorProfile = await prisma.mentorProfile.findUnique({
+          where: { userId: w.instructeur.user.id },
+          select: { id: true },
+        });
+        if (!mentorProfile) {
+          return NextResponse.json({ error: "Profil mentor introuvable." }, { status: 400 });
+        }
+        const mb = await computeMentorBalance(mentorProfile.id, w.instructeurId);
+        currentAvailable = Math.max(0, mb.netReleased - (mb.withdrawnPending + mb.withdrawnTreated - w.amount));
+      } else {
+        const vb = await computeVendorBalance(w.instructeurId, { shopId: w.shopId });
+        currentAvailable = Math.max(0, vb.releasedNet - (vb.withdrawnPending + vb.withdrawnTreated - w.amount));
       }
-      const allWithdrawals = await prisma.instructorWithdrawal.aggregate({
-        where: {
-          instructeurId: w.instructeurId,
-          NOT: isMentor ? undefined : { method: { endsWith: "_mentor" } },
-          ...(isMentor ? { method: { endsWith: "_mentor" } } : {}),
-          status: { in: ["EN_ATTENTE", "TRAITE"] },
-          id: { not: id }, // exclude current withdrawal from calculation
-        },
-        _sum: { amount: true },
-      });
-      const currentAvailable = Math.max(0, netReleased - (allWithdrawals._sum.amount ?? 0));
       if (w.amount > currentAvailable) {
         await prisma.instructorWithdrawal.update({
           where: { id },
