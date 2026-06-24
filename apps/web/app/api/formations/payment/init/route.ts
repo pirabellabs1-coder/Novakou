@@ -11,10 +11,9 @@ import crypto from "crypto";
 
 type PaymentProvider = "moneroo" | "paygenius";
 
-function resolveProvider(raw: unknown): PaymentProvider {
-  const v = String(raw ?? "").toLowerCase().trim();
-  if (v === "paygenius") return "paygenius";
-  return "moneroo"; // défaut — rétro-compatible avec le code existant
+function resolveProvider(_raw: unknown): PaymentProvider {
+  // PayGenius = fournisseur de paiement UNIQUE (Moneroo = repli dormant).
+  return isPayGeniusConfigured() ? "paygenius" : "moneroo";
 }
 
 /**

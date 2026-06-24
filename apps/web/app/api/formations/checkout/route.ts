@@ -15,8 +15,10 @@ import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 
 type PaymentProvider = "moneroo" | "paygenius";
-function resolveProvider(raw: unknown): PaymentProvider {
-  return String(raw ?? "").toLowerCase() === "paygenius" ? "paygenius" : "moneroo";
+function resolveProvider(_raw: unknown): PaymentProvider {
+  // PayGenius = fournisseur de paiement UNIQUE. Le provider entrant est ignoré ;
+  // Moneroo ne reste qu'un repli dormant si PayGenius n'est pas configuré.
+  return isPayGeniusConfigured() ? "paygenius" : "moneroo";
 }
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 

@@ -16,8 +16,9 @@ import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 
 type Provider = "moneroo" | "paygenius";
-function resolveProvider(raw: unknown): Provider {
-  return String(raw ?? "").toLowerCase() === "paygenius" ? "paygenius" : "moneroo";
+function resolveProvider(_raw: unknown): Provider {
+  // PayGenius = fournisseur de paiement UNIQUE (Moneroo = repli dormant).
+  return isPayGeniusConfigured() ? "paygenius" : "moneroo";
 }
 
 type Params = { params: Promise<{ id: string }> };

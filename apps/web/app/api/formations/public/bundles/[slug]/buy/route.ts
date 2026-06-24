@@ -9,8 +9,9 @@ import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 
 type PaymentProvider = "moneroo" | "paygenius";
-function resolveProvider(raw: unknown): PaymentProvider {
-  return String(raw ?? "").toLowerCase() === "paygenius" ? "paygenius" : "moneroo";
+function resolveProvider(_raw: unknown): PaymentProvider {
+  // PayGenius = fournisseur de paiement UNIQUE (Moneroo = repli dormant).
+  return isPayGeniusConfigured() ? "paygenius" : "moneroo";
 }
 
 /**

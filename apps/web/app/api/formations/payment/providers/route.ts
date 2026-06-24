@@ -11,31 +11,35 @@ import { isPayGeniusConfigured } from "@/lib/paygenius";
  * Sécurité : on n'expose AUCUNE clé. Juste des booléens.
  */
 export async function GET() {
-  const providers = [
-    {
-      id: "moneroo",
-      label: "Moneroo",
-      available: isMonerooConfigured(),
-      description: "Paiement Mobile Money / carte via Moneroo",
-    },
-    {
-      id: "paygenius",
-      label: "PayGenius",
-      available: isPayGeniusConfigured(),
-      description: "Paiement Mobile Money / carte via GeniusPay",
-    },
-  ].filter((p) => p.available);
-
-  // En dev sans aucun provider configuré, on ajoute un faux entry pour que
-  // le checkout affiche quand même l'option (le backend tombera en mode mock)
-  if (providers.length === 0) {
-    providers.push({
-      id: "moneroo",
-      label: "Moneroo (mock)",
-      available: false,
-      description: "Mode développement — aucune vraie passerelle configurée",
-    });
-  }
+  // PayGenius = passerelle de paiement UNIQUE. On n'annonce que PayGenius ;
+  // Moneroo n'apparaît qu'en repli si PayGenius n'est pas configuré.
+  const providers = isPayGeniusConfigured()
+    ? [
+        {
+          id: "paygenius",
+          label: "GeniusPay",
+          available: true,
+          description: "Paiement Mobile Money / carte via GeniusPay",
+        },
+      ]
+    : isMonerooConfigured()
+      ? [
+          {
+            id: "moneroo",
+            label: "Moneroo",
+            available: true,
+            description: "Paiement Mobile Money / carte (repli)",
+          },
+        ]
+      : [
+          {
+            // Dev sans passerelle : entrée factice pour que le checkout s'affiche
+            id: "paygenius",
+            label: "GeniusPay (mock)",
+            available: false,
+            description: "Mode développement — aucune vraie passerelle configurée",
+          },
+        ];
 
   return NextResponse.json({ data: providers });
 }

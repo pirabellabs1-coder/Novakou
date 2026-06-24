@@ -60,8 +60,9 @@ type PayoutMode = "moneroo" | "paygenius" | "manual";
 function resolvePayoutMode(raw: unknown): PayoutMode {
   const v = String(raw ?? "").toLowerCase();
   if (v === "manual") return "manual";
-  if (v === "paygenius") return "paygenius";
-  return "moneroo";
+  if (v === "moneroo") return "moneroo"; // repli explicite uniquement
+  // PayGenius = fournisseur de versement par défaut (gateway unique).
+  return "paygenius";
 }
 
 export async function PATCH(request: Request, { params }: Params) {

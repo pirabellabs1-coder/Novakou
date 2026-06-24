@@ -45,6 +45,17 @@ export async function GET(request: NextRequest) {
   const authError = requireCronAuth(request);
   if (authError) return authError;
 
+  // PayGenius = gateway unique. L'auto-payout Moneroo est désactivé par défaut :
+  // les versements passent par l'approbation admin → PayGenius (un humain valide
+  // chaque payout, plus sûr). Pour réactiver l'ancien auto-payout Moneroo,
+  // poser explicitement MONEROO_AUTO_PAYOUT=true.
+  if (process.env.MONEROO_AUTO_PAYOUT !== "true") {
+    return NextResponse.json({
+      skipped: true,
+      reason: "Auto-payout Moneroo désactivé (PayGenius = gateway unique ; versements via approbation admin)",
+    });
+  }
+
   if (!isMonerooConfigured()) {
     return NextResponse.json({ skipped: true, reason: "MONEROO_SECRET_KEY non configurée" });
   }
