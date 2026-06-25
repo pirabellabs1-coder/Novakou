@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { promptAction } from "@/store/prompt";
 import {
   Network,
   Sparkles,
   Plus,
+  Download,
   ArrowRight,
   Loader2,
   PlusCircle,
@@ -97,6 +99,31 @@ export default function FunnelsListPage() {
     }
   }
 
+  async function importFromSysteme() {
+    const url = await promptAction({
+      title: "Importer depuis Systeme.io",
+      message: "Collez l'URL publique de votre tunnel/page Systeme.io. On importe le titre, le texte et l'image en brouillon ; vous attachez ensuite votre produit.",
+      placeholder: "https://votre-funnel.systeme.io/...",
+      confirmLabel: "Importer",
+      cancelLabel: "Annuler",
+      icon: "download",
+      validate: (s) => (!/^https?:\/\/.+/.test(s.trim()) ? "Entrez une URL complète (https://…)." : null),
+    });
+    if (url === null) return;
+    try {
+      const res = await fetch("/api/marketing/funnels/import-systeme", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: url.trim() }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || "Import échoué");
+      router.push(`/vendeur/marketing/funnels/${j.funnelId}`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Import échoué");
+    }
+  }
+
   return (
     <div className="min-h-screen" style={{ background: ST.bg, fontFamily: "var(--font-manrope), Manrope, Inter, sans-serif" }}>
       <main className="px-5 md:px-7 py-6 md:py-7 max-w-[1200px] mx-auto">
@@ -105,6 +132,9 @@ export default function FunnelsListPage() {
           subtitle="Tunnels complets : landing, checkout, upsell et page de remerciement"
           actions={
             <>
+              <StButton variant="secondary" onClick={importFromSysteme} icon={Download}>
+                Importer Systeme.io
+              </StButton>
               <StButton variant="secondary" href="/vendeur/marketing/funnels/nouveau-ai" icon={Sparkles}>
                 Générer avec l&apos;IA
               </StButton>
