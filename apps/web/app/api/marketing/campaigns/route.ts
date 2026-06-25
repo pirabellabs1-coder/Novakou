@@ -85,25 +85,25 @@ export async function GET(req: NextRequest) {
 
     const campaigns = await prisma.campaignTracker.findMany({
       where: { instructeurId: instructeur.id },
-      include: {
-        _count: { select: { events: true } },
-      },
       orderBy: { createdAt: "desc" },
     });
 
     const origin = new URL(req.url).origin;
+    // On s'appuie sur les compteurs stockés (totalClicks/totalConversions/
+    // totalRevenue), incrémentés par l'endpoint de clic et par les webhooks de
+    // paiement — plus fiables que _count.events qui mélange clics et conversions.
     const enriched = campaigns.map((c) => ({
       ...c,
-      clicks: c._count.events,
+      clicks: c.totalClicks,
       trackingUrl: buildTrackingUrl(origin, c.slug),
     }));
 
     const stats = {
       totalCampaigns: campaigns.length,
       activeCampaigns: campaigns.filter((c) => c.isActive).length,
-      totalClicks: enriched.reduce((sum, c) => sum + c.clicks, 0),
-      totalConversions: 0, // TODO: calculate from conversion events
-      totalRevenue: 0, // TODO: calculate from attributed revenue
+      totalClicks: campaigns.reduce((sum, c) => sum + c.totalClicks, 0),
+      totalConversions: campaigns.reduce((sum, c) => sum + c.totalConversions, 0),
+      totalRevenue: campaigns.reduce((sum, c) => sum + c.totalRevenue, 0),
     };
 
     return NextResponse.json({ campaigns: enriched, stats });

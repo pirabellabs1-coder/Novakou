@@ -232,6 +232,7 @@ export async function GET(req: NextRequest) {
       },
       include: {
         formation: { select: { title: true, price: true } },
+        user: { select: { country: true } },
       },
     });
 
@@ -243,23 +244,32 @@ export async function GET(req: NextRequest) {
       },
       include: {
         product: { select: { title: true, price: true } },
+        user: { select: { country: true } },
       },
     });
 
-    // Previous period counts for comparison
-    const prevEnrollmentCount = await prisma.enrollment.count({
+    // Previous period (with prices) for revenue/avg-order comparison
+    const prevEnrollments = await prisma.enrollment.findMany({
       where: {
         formationId: { in: formationIds },
         createdAt: { gte: prevStartDate, lt: startDate },
       },
+      include: { formation: { select: { price: true } } },
     });
 
-    const prevPurchaseCount = await prisma.digitalProductPurchase.count({
+    const prevPurchases = await prisma.digitalProductPurchase.findMany({
       where: {
         productId: { in: productIds },
         createdAt: { gte: prevStartDate, lt: startDate },
       },
+      include: { product: { select: { price: true } } },
     });
+
+    const prevEnrollmentCount = prevEnrollments.length;
+    const prevPurchaseCount = prevPurchases.length;
+    const prevRevenue =
+      prevEnrollments.reduce((s, e) => s + (e.formation?.price ?? 0), 0) +
+      prevPurchases.reduce((s, p) => s + (p.product?.price ?? 0), 0);
 
     // Calculate overview metrics
     const formationRevenue = currentEnrollments.reduce(
@@ -276,18 +286,33 @@ export async function GET(req: NextRequest) {
     const avgOrder = totalSales > 0 ? Math.round((totalRevenue / totalSales) * 100) / 100 : 0;
     const salesChange = prevTotalSales > 0 ? Math.round(((totalSales - prevTotalSales) / prevTotalSales) * 1000) / 10 : 0;
 
-    // Get funnel events
+    // Funnel events — scopés aux tunnels de CE vendeur (sinon on comptait toute
+    // la plateforme). Le tracker n'écrit que "view" et "click" (cf.
+    // /api/marketing/funnels/[id]/events). On construit donc le tunnel réel :
+    // vues → clics CTA → ventes effectives de la période.
     const funnelEvents = await prisma.funnelEvent.findMany({
       where: {
+        funnel: { instructeurId: instructeur.id },
         createdAt: { gte: startDate, lte: now },
+      },
+      select: { eventType: true },
+    });
+    const prevFunnelViews = await prisma.funnelEvent.count({
+      where: {
+        funnel: { instructeurId: instructeur.id },
+        eventType: "view",
+        createdAt: { gte: prevStartDate, lt: startDate },
       },
     });
 
-    const pageViews = funnelEvents.filter((e) => e.eventType === "PAGE_VIEW").length;
-    const addToCart = funnelEvents.filter((e) => e.eventType === "ADD_TO_CART").length;
-    const checkout = funnelEvents.filter((e) => e.eventType === "CHECKOUT_START").length;
-    const purchased = funnelEvents.filter((e) => e.eventType === "PURCHASE").length;
+    const pageViews = funnelEvents.filter((e) => e.eventType === "view").length;
+    const ctaClicks = funnelEvents.filter((e) => e.eventType === "click").length;
+    const purchased = totalSales;
+    const addToCart = ctaClicks;
+    const checkout = ctaClicks;
     const conversionRate = pageViews > 0 ? Math.round((purchased / pageViews) * 1000) / 10 : 0;
+    const prevConversionRate = prevFunnelViews > 0 ? Math.round((prevTotalSales / prevFunnelViews) * 1000) / 10 : 0;
+    const conversionChange = prevConversionRate > 0 ? Math.round((conversionRate - prevConversionRate) * 10) / 10 : 0;
 
     // Build sales by product
     const salesMap = new Map<string, SalesByProduct>();
@@ -314,23 +339,92 @@ export async function GET(req: NextRequest) {
 
     const salesByProduct = Array.from(salesMap.values()).sort((a, b) => b.revenue - a.revenue);
 
+    // ── Deltas réels vs période précédente ───────────────────────────────────
+    const revenueChange = prevRevenue > 0 ? Math.round(((totalRevenue - prevRevenue) / prevRevenue) * 1000) / 10 : 0;
+    const prevAvgOrder = prevTotalSales > 0 ? prevRevenue / prevTotalSales : 0;
+    const avgOrderChange = prevAvgOrder > 0 ? Math.round(((avgOrder - prevAvgOrder) / prevAvgOrder) * 1000) / 10 : 0;
+
+    // ── Revenus par mois (formations + produits) ─────────────────────────────
+    const monthMap = new Map<string, MonthlyRevenue>();
+    const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    for (const e of currentEnrollments) {
+      const k = monthKey(new Date(e.createdAt));
+      const m = monthMap.get(k) ?? { month: k, formations: 0, products: 0 };
+      m.formations += e.formation?.price ?? 0;
+      monthMap.set(k, m);
+    }
+    for (const p of currentPurchases) {
+      const k = monthKey(new Date(p.createdAt));
+      const m = monthMap.get(k) ?? { month: k, formations: 0, products: 0 };
+      m.products += p.product?.price ?? 0;
+      monthMap.set(k, m);
+    }
+    const revenueByMonth = Array.from(monthMap.values()).sort((a, b) => a.month.localeCompare(b.month));
+
+    // ── Sources de trafic depuis les campagnes UTM du vendeur ────────────────
+    const campaigns = await prisma.campaignTracker.findMany({
+      where: { instructeurId: instructeur.id },
+      select: { utmSource: true, totalClicks: true, totalConversions: true, totalRevenue: true },
+    });
+    const sourceMap = new Map<string, TrafficSource>();
+    for (const c of campaigns) {
+      const source = c.utmSource || "Direct";
+      const s = sourceMap.get(source) ?? { source, visits: 0, conversions: 0, revenue: 0 };
+      s.visits += c.totalClicks;
+      s.conversions += c.totalConversions;
+      s.revenue += c.totalRevenue;
+      sourceMap.set(source, s);
+    }
+    const trafficSources = Array.from(sourceMap.values()).sort((a, b) => b.visits - a.visits);
+
+    // ── Répartition géographique (pays des acheteurs) ────────────────────────
+    const geoMap = new Map<string, GeographicEntry>();
+    for (const e of currentEnrollments) {
+      const country = e.user?.country || "Inconnu";
+      const g = geoMap.get(country) ?? { country, revenue: 0, sales: 0 };
+      g.revenue += e.formation?.price ?? 0;
+      g.sales += 1;
+      geoMap.set(country, g);
+    }
+    for (const p of currentPurchases) {
+      const country = p.user?.country || "Inconnu";
+      const g = geoMap.get(country) ?? { country, revenue: 0, sales: 0 };
+      g.revenue += p.product?.price ?? 0;
+      g.sales += 1;
+      geoMap.set(country, g);
+    }
+    const geographicData = Array.from(geoMap.values()).sort((a, b) => b.revenue - a.revenue);
+
+    // ── Top pages = tunnels du vendeur (vues / conversions stockées) ─────────
+    const funnels = await prisma.salesFunnel.findMany({
+      where: { instructeurId: instructeur.id },
+      select: { slug: true, totalViews: true, totalConversions: true },
+      orderBy: { totalViews: "desc" },
+      take: 10,
+    });
+    const topPages: TopPage[] = funnels.map((f) => ({
+      path: `/f/${f.slug}`,
+      views: f.totalViews,
+      conversions: f.totalConversions,
+    }));
+
     const data: AnalyticsResponse = {
       overview: {
         totalRevenue,
-        revenueChange: 14.2, // TODO: calculate from previous period
+        revenueChange,
         totalSales,
         salesChange,
         conversionRate,
-        conversionChange: -0.5, // TODO: calculate from previous period
+        conversionChange,
         averageOrderValue: avgOrder,
-        avgOrderChange: 5.8, // TODO: calculate from previous period
+        avgOrderChange,
       },
-      revenueByMonth: [], // TODO: group by month from enrollments + purchases
+      revenueByMonth,
       salesByProduct,
-      trafficSources: [], // TODO: from campaign clicks / UTM tracking
+      trafficSources,
       conversionFunnel: { pageViews, addToCart, checkout, purchased },
-      topPages: [], // TODO: from page view tracking
-      geographicData: [], // TODO: from user country data
+      topPages,
+      geographicData,
     };
 
     return NextResponse.json(data);

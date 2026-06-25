@@ -426,14 +426,18 @@ export async function GET(req: NextRequest) {
     // Campaign stats
     const activeCampaignCount = (campaigns as { isActive: boolean }[]).filter((c: { isActive: boolean }) => c.isActive).length;
 
-    // Get funnel events for conversion rate
-    const funnelEvents = await prisma.funnelEvent.findMany({
-      where: { createdAt: { gte: startDate, lte: now } },
+    // Taux de conversion : vues des tunnels DE CE VENDEUR (le tracker écrit
+    // "view"/"click" en minuscules) rapportées aux ventes réelles de la période.
+    const funnelViewCount = await prisma.funnelEvent.count({
+      where: {
+        funnel: { instructeurId: instructeur.id },
+        eventType: "view",
+        createdAt: { gte: startDate, lte: now },
+      },
     });
-    const pageViews = funnelEvents.filter((e) => e.eventType === "PAGE_VIEW").length;
-    const purchased = funnelEvents.filter((e) => e.eventType === "PURCHASE").length;
+    const pageViews = funnelViewCount;
     const conversionRate = pageViews > 0
-      ? Math.round((purchased / pageViews) * 1000) / 10
+      ? Math.round((totalSales / pageViews) * 1000) / 10
       : 0;
 
     const kpis: OverviewKPIs = {
@@ -467,15 +471,33 @@ export async function GET(req: NextRequest) {
       totalPopupImpressions: totalImpressions,
       totalPopupConversions,
       activeCampaigns: activeCampaignCount,
-      totalCampaignClicks: 0,
-      totalCampaignRevenue: 0,
+      totalCampaignClicks: (campaigns as { totalClicks: number }[]).reduce((s, c) => s + (c.totalClicks || 0), 0),
+      totalCampaignRevenue: (campaigns as { totalRevenue: number }[]).reduce((s, c) => s + (c.totalRevenue || 0), 0),
     };
+
+    // Revenu par jour (ventes directes formations + produits) sur la période.
+    const dayMap = new Map<string, RevenueBySource>();
+    const dayKey = (d: Date) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    for (const e of enrollments) {
+      const k = dayKey(new Date(e.createdAt));
+      const x = dayMap.get(k) ?? { date: k, direct: 0, affiliate: 0, discount: 0, funnel: 0 };
+      x.direct += e.formation?.price ?? 0;
+      dayMap.set(k, x);
+    }
+    for (const p of purchases) {
+      const k = dayKey(new Date(p.createdAt));
+      const x = dayMap.get(k) ?? { date: k, direct: 0, affiliate: 0, discount: 0, funnel: 0 };
+      x.direct += p.product?.price ?? 0;
+      dayMap.set(k, x);
+    }
+    const revenueByDay = Array.from(dayMap.values()).sort((a, b) => a.date.localeCompare(b.date));
 
     const data: OverviewResponse = {
       kpis,
       subsystems,
-      recentActivity: [], // TODO: build from recent events across subsystems
-      revenueByDay: [], // TODO: group enrollments/purchases by day
+      recentActivity: [], // feed cross-subsystème : laissé vide tant que non agrégé (pas de données fictives)
+      revenueByDay,
     };
 
     return NextResponse.json(data);
