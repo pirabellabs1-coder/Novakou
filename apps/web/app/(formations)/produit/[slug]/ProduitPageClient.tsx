@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { productImageSrc, avatarSrc } from "@/lib/utils/image-url";
 import {
   Star,
   ShoppingBag,
@@ -257,7 +258,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
             {/* Banner */}
             <div className="relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-[#003d1a] to-[#22c55e]">
               {(product.banner || product.thumbnail) ? (
-                <img src={product.banner ?? product.thumbnail ?? ""} alt={product.title} className="w-full h-full object-cover" />
+                <img src={productImageSrc(product.banner ?? product.thumbnail, 1000) ?? ""} alt={product.title} loading="lazy" decoding="async" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <TypeIcon size={100} className="text-white/30" />
@@ -303,7 +304,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                   {product.instructeur.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={product.instructeur.image} alt="" className="w-full h-full object-cover" />
+                    <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     initials(product.instructeur.name)
                   )}
@@ -394,7 +395,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   <Link href={`/instructeurs/${product.instructeur.userId}`} className="flex items-start gap-4 group">
                     <div className="w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                       {product.instructeur.image ? (
-                        <img src={product.instructeur.image} alt="" className="w-full h-full object-cover" />
+                        <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                       ) : (
                         initials(product.instructeur.name)
                       )}
@@ -479,7 +480,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                         <div className="flex items-start gap-3">
                           <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-600 text-xs font-bold flex-shrink-0">
                             {r.user.image ? (
-                              <img src={r.user.image} alt="" className="w-full h-full object-cover" />
+                              <img src={avatarSrc(r.user.image, 64) ?? r.user.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                             ) : (
                               initials(r.user.name)
                             )}
@@ -600,7 +601,7 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
               <div className="flex items-center gap-3">
                 <div className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center text-white font-bold flex-shrink-0">
                   {product.instructeur.image ? (
-                    <img src={product.instructeur.image} alt="" className="w-full h-full object-cover" />
+                    <img src={avatarSrc(product.instructeur.image, 96) ?? product.instructeur.image ?? ""} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                   ) : (
                     initials(product.instructeur.name)
                   )}

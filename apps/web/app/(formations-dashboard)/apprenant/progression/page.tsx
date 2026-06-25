@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { productImageSrc } from "@/lib/utils/image-url";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -120,7 +121,7 @@ export default async function ProgressionPage() {
               <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-[#006e2f] to-[#22c55e] flex items-center justify-center">
                 {r.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.thumbnail} alt="" className="w-full h-full object-cover" />
+                  <img src={productImageSrc(r.thumbnail, 160) ?? r.thumbnail} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 ) : (
                   <PlayCircle size={24} className="text-white" />
                 )}

@@ -63,7 +63,9 @@ export function productImageSrc(url: string | null | undefined, width: number = 
     const [head, tail] = url.split(CLOUDINARY_UPLOAD_MARKER);
     const firstSegment = tail.split("/")[0] ?? "";
     if (/(^|,)([a-z]_)/.test(firstSegment)) return url; // déjà transformée
-    return `${head}${CLOUDINARY_UPLOAD_MARKER}c_limit,w_${width},q_auto,f_auto/${tail}`;
+    // q_auto:eco = compression agressive (fichiers ~30-40 % plus légers que
+    // q_auto) → chargement plus rapide, qualité réduite mais correcte.
+    return `${head}${CLOUDINARY_UPLOAD_MARKER}c_limit,w_${width},q_auto:eco,f_auto/${tail}`;
   }
   return url;
 }

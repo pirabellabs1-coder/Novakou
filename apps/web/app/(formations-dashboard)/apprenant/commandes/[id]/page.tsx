@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { productImageSrc } from "@/lib/utils/image-url";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
@@ -265,7 +266,7 @@ export default async function CommandeDetailPage({
           <div className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden bg-gradient-to-br from-[#006e2f] to-[#22c55e]">
             {order.thumbnail ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={order.thumbnail} alt="" className="w-full h-full object-cover" />
+              <img src={productImageSrc(order.thumbnail, 160) ?? order.thumbnail} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
             ) : (
               <PlayCircle size={26} className="text-white" />
             )}
