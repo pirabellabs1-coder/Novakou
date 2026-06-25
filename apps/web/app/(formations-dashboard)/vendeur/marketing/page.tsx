@@ -20,6 +20,7 @@ import {
   MousePointerClick,
   Headphones,
   Zap,
+  BarChart3,
 } from "lucide-react";
 import {
   StPageHeader,
@@ -166,6 +167,13 @@ export default function MarketingPage() {
             title="Campagnes"
             description="Liens UTM trackés pour mesurer chaque source de ventes."
             href="/vendeur/marketing/campagnes"
+            tone="blue"
+          />
+          <StToolCard
+            icon={BarChart3}
+            title="Analytics marketing"
+            description="Revenus, conversions, canaux d'acquisition et géographie de vos ventes."
+            href="/vendeur/marketing/analytics"
             tone="blue"
           />
           <StToolCard
