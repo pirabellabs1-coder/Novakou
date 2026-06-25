@@ -152,7 +152,7 @@ export default async function RootLayout({
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={`dark ${manrope.variable}`} suppressHydrationWarning>
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className={manrope.variable} suppressHydrationWarning>
       <head>
         {/* Préconnexion aux CDN fonts utilisés. On retire fonts.googleapis.com
             et fonts.gstatic.com — Manrope passe désormais par next/font (self-
@@ -216,8 +216,12 @@ export default async function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
             try {
+              // Défaut = clair (le site est conçu en clair). On n'active le
+              // mode sombre QUE si l'utilisateur l'a explicitement choisi.
               var t = localStorage.getItem('theme');
-              if (t === 'light') {
+              if (t === 'dark') {
+                document.documentElement.classList.add('dark');
+              } else {
                 document.documentElement.classList.remove('dark');
               }
             } catch(e){}
