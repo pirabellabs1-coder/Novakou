@@ -525,9 +525,6 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                   {product.originalPrice && product.originalPrice > product.price && (
                     <p className="text-sm text-gray-400 line-through mt-1">{fmt(product.originalPrice)} FCFA</p>
                   )}
-                  {!isFree && (
-                    <p className="text-xs text-[#5c647a] mt-1">≈ {Math.round(product.price / 655.957)} EUR</p>
-                  )}
                 </div>
 
                 <button

@@ -44,9 +44,6 @@ type FilterValue = "all" | OrderType;
 function formatFcfa(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
 }
-function toEur(n: number) {
-  return Math.round(n / 655.957);
-}
 
 const typeBadgeTone: Record<OrderType, "blue" | "amber" | "green"> = {
   formation: "blue",
@@ -317,7 +314,6 @@ export default function CommandesPage() {
                             <p className="font-extrabold text-[13.5px] whitespace-nowrap tabular-nums" style={{ color: ST.text }}>
                               {formatFcfa(order.amount)}
                             </p>
-                            <p className="text-[10px] font-semibold" style={{ color: ST.textMuted }}>≈ {toEur(order.amount)} €</p>
                           </div>
                           <StStatusPill status={statusKey} label={status.label} />
                         </div>

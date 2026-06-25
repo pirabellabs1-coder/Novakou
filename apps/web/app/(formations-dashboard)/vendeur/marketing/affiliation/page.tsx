@@ -227,7 +227,7 @@ export default function AffiliationPage() {
             <div>
               <p className="text-xs font-semibold text-[#5c647a] uppercase tracking-wide mb-1">Commissions en attente</p>
               <p className="text-3xl font-extrabold text-[#006e2f]">{formatFCFA(stats?.pendingEarnings ?? 0)} <span className="text-lg">FCFA</span></p>
-              <p className="text-xs text-[#5c647a] mt-1">≈ {Math.round((stats?.pendingEarnings ?? 0) / 655.957)} € · Versement à 20 affiliés validés</p>
+              <p className="text-xs text-[#5c647a] mt-1">Versement à 20 affiliés validés</p>
             </div>
             <div className="flex gap-3 mt-4">
               <div className="flex-1 bg-white rounded-xl p-3 text-center border border-[#006e2f]/10">

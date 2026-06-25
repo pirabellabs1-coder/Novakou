@@ -14,7 +14,6 @@ type PerfData = {
 };
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number)      { return Math.round(n / 655.957); }
 
 function SkeletonBlock({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-[#1e3a2f]/60 rounded-xl ${className ?? ""}`} />;
@@ -92,7 +91,7 @@ export default function PerformancesPage() {
             icon: "payments",
             color: "text-amber-400",
             bg: "bg-amber-500/10",
-            sub: `≈ ${toEur(totals.earnings)} €`,
+            sub: "",
           },
         ].map((kpi, i) => (
           <div key={i} className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-5">

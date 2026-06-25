@@ -109,7 +109,6 @@ export default function AffiliationPage() {
   const publicStats = statsResponse?.data;
 
   const estimatedFcfa = referrals * avgPrice * (COMMISSION_PCT / 100);
-  const estimatedEur = Math.round((estimatedFcfa / 655.957) * 10) / 10;
 
   function copyLink() {
     navigator.clipboard.writeText("https://novakou.com/ref/MONCODE123");
@@ -360,7 +359,6 @@ export default function AffiliationPage() {
             <div className="bg-gradient-to-br from-[#006e2f] to-[#005a26] rounded-2xl p-6 text-center">
               <p className="text-white/70 text-sm mb-2">Vos gains estimés / mois</p>
               <p className="text-3xl sm:text-4xl font-extrabold text-white mb-1">{Math.round(estimatedFcfa).toLocaleString("fr-FR")} FCFA</p>
-              <p className="text-[#86efac] text-base font-semibold">≈ {estimatedEur} €</p>
               <p className="text-white/50 text-xs mt-3">{referrals} ventes × {avgPrice.toLocaleString("fr-FR")} FCFA × {COMMISSION_PCT}%</p>
             </div>
           </div>

@@ -207,7 +207,6 @@ export default function BundlePageClient({ bundle }: { bundle: Bundle }) {
             {bundle.itemsSum > bundle.priceXof && (
               <p className="text-sm text-gray-400 line-through mt-1">{fmtFCFA(bundle.itemsSum)}</p>
             )}
-            <p className="text-[11px] text-[#5c647a] mt-1">≈ {Math.round(bundle.priceXof / 655.957)} EUR</p>
 
             {/* Sélecteur de provider de paiement — visible si ≥ 2 dispo */}
             {availableProviders.length > 1 && (

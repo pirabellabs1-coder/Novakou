@@ -209,7 +209,6 @@ export default function MembershipPageClient({ plan }: { plan: Plan }) {
                 / {plan.interval === "yearly" ? "an" : "mois"}
               </span>
             </div>
-            <p className="text-[11px] text-[#5c647a] mt-1">≈ {Math.round(plan.price / 655.957)} EUR / {plan.interval === "yearly" ? "an" : "mois"}</p>
 
             {availableProviders.length > 1 && !soldOut && (
               <div className="mt-5">

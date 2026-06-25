@@ -58,9 +58,6 @@ type CartItem = {
 function formatFCFA(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
 }
-function toEur(fcfa: number) {
-  return (fcfa / 655.957).toFixed(0);
-}
 
 export default function CheckoutInner() {
   const { data: session } = useSession();
@@ -963,7 +960,6 @@ export default function CheckoutInner() {
               <span className="font-bold text-[#191c1e]">Total</span>
               <div className="text-right">
                 <p className="text-xl font-extrabold text-[#006e2f] tracking-tight">{formatFCFA(totalAmount)}</p>
-                <p className="text-xs text-[#5c647a]">≈ {toEur(totalAmount)} €</p>
               </div>
             </div>
 

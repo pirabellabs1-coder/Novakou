@@ -34,10 +34,6 @@ import {
 function formatFcfa(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
 }
-function toEur(n: number) {
-  return Math.round(n / 655.957);
-}
-
 function SkeletonBlock({ className }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl ${className ?? ""}`} style={{ background: "#f3f6f4" }} />;
 }
@@ -494,7 +490,6 @@ export default function ApprenantDashboardPage() {
                   <div className="text-[16px] md:text-[18px] font-extrabold tabular-nums truncate" style={{ color: ST.text }}>
                     {formatFcfa(stats.totalSpentXof ?? 0)}
                   </div>
-                  <div className="text-[11px] font-semibold" style={{ color: ST.textFaint }}>≈ {toEur(stats.totalSpentXof ?? 0)} €</div>
                 </>
               )}
               <div className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>Total investi</div>

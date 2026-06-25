@@ -9,7 +9,6 @@ import { useQuery } from "@tanstack/react-query";
 import { CommunityBanner } from "@/components/formations/CommunityBanner";
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number)      { return Math.round(n / 655.957); }
 
 type WeeklyClick = { day: string; clicks: number };
 type RecentCommission = {
@@ -94,7 +93,7 @@ export default function AffilieDashboardPage() {
             icon: "payments",
             label: "Commissions totales",
             value: formatFcfa(summary.total),
-            sub: `≈ ${toEur(summary.total)} €`,
+            sub: "",
             badge: `${profile?.totalConversions ?? 0} ventes`,
             color: "text-[#22c55e]",
             bg: "bg-[#22c55e]/10",
@@ -121,7 +120,7 @@ export default function AffilieDashboardPage() {
             icon: "account_balance_wallet",
             label: "Solde disponible",
             value: formatFcfa(profile?.pendingEarnings ?? 0),
-            sub: `≈ ${toEur(profile?.pendingEarnings ?? 0)} €`,
+            sub: "",
             badge: "Retirer",
             color: "text-amber-400",
             bg: "bg-amber-500/10",

@@ -30,7 +30,6 @@ type Summary = {
 };
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number)      { return Math.round(n / 655.957); }
 
 const statusConfig: Record<string, { label: string; cls: string }> = {
   APPROVED: { label: "confirmé",  cls: "bg-[#22c55e]/20 text-[#22c55e]" },
@@ -84,7 +83,7 @@ export default function CommissionsPage() {
           {
             label: "Total cumulé",
             value: formatFcfa(summary.total),
-            sub: `≈ ${toEur(summary.total)} €`,
+            sub: "",
             color: "text-white",
           },
           {
@@ -102,7 +101,7 @@ export default function CommissionsPage() {
           {
             label: "Versées",
             value: formatFcfa(summary.paid),
-            sub: `≈ ${toEur(summary.paid)} €`,
+            sub: "",
             color: "text-blue-400",
           },
         ].map((s, i) => (

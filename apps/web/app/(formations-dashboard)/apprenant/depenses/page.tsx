@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number) { return Math.round(n / 655.957); }
 
 type MonthlyPoint = { month: string; totalXof: number };
 type ByType = { formation: number; product: number; mentor: number };
@@ -192,7 +191,6 @@ export default function DepensesPage() {
                       <span className="flex-1 text-[13px] font-semibold" style={{ color: ST.textSecondary }}>{row.label}</span>
                       <div className="text-right">
                         <p className="text-[13px] font-extrabold" style={{ color: ST.green }}>{formatFcfa(row.value)}</p>
-                        <p className="text-[10px] font-semibold" style={{ color: ST.textMuted }}>≈ {toEur(row.value)} €</p>
                       </div>
                     </div>
                   );
@@ -207,7 +205,6 @@ export default function DepensesPage() {
             <span className="font-extrabold" style={{ color: ST.text }}>Total global</span>
             <div className="text-right">
               <p className="font-extrabold" style={{ color: ST.green }}>{isLoading ? "…" : formatFcfa(totalXof)}</p>
-              <p className="text-[10px] font-semibold" style={{ color: ST.textMuted }}>≈ {isLoading ? "…" : toEur(totalXof)} €</p>
             </div>
           </div>
 

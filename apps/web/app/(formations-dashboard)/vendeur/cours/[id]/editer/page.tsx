@@ -503,7 +503,6 @@ export default function CourseEditorPage({ params }: { params: Promise<{ id: str
                           onChange={(e) => onFieldChange(setPrice, Number(e.target.value))}
                           className="w-full bg-transparent border-b border-[#bccbb9] py-2 focus:border-[#22c55e] outline-none tabular-nums text-lg font-bold transition-colors"
                         />
-                        <p className="text-[10px] text-zinc-400 tabular-nums">≈ {formatFCFA(price / 655.957)} €</p>
                       </div>
                     )}
                   </div>

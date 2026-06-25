@@ -592,11 +592,6 @@ export default function FormationPageClient({ slug }: { slug: string }) {
                   {formation.originalPrice && formation.originalPrice > formation.price && (
                     <p className="text-sm text-gray-400 line-through">{fmt(formation.originalPrice)} FCFA</p>
                   )}
-                  {!formation.isFree && (
-                    <p className="text-xs text-[#5c647a] mt-1">
-                      ≈ {Math.round(formation.price / 655.957)} EUR
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-2">

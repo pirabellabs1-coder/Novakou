@@ -23,9 +23,6 @@ import {
 function formatFcfa(n: number) {
   return Math.round(n).toLocaleString("fr-FR") + " FCFA";
 }
-function toEur(fcfa: number) {
-  return Math.round(fcfa / 655.957);
-}
 function formatDateFr(d: Date) {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
@@ -291,7 +288,6 @@ export default async function CommandeDetailPage({
           </div>
           <div className="text-right flex-shrink-0">
             <p className="font-extrabold text-[#13241b] text-base">{formatFcfa(order.amountFcfa)}</p>
-            <p className="text-xs text-[#5d7166]">≈ {toEur(order.amountFcfa)} €</p>
           </div>
         </div>
       </div>
@@ -315,7 +311,6 @@ export default async function CommandeDetailPage({
             <span className="text-sm font-bold text-[#13241b]">Total payé</span>
             <div className="text-right">
               <p className="text-base font-extrabold text-[#006e2f]">{formatFcfa(order.amountFcfa)}</p>
-              <p className="text-[11px] text-[#5d7166]">≈ {toEur(order.amountFcfa)} €</p>
             </div>
           </div>
         </div>

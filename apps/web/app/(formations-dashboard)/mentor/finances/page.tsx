@@ -305,7 +305,6 @@ export default function MentorFinancesPage() {
                 <p className="text-[32px] md:text-[38px] font-extrabold tracking-[-0.02em] mt-1.5 tabular-nums">
                   {fmt(available)} <span className="text-[17px] font-bold opacity-85">FCFA</span>
                 </p>
-                <p className="text-[11.5px] font-semibold opacity-80 mt-1">≈ {fmt(available / 655.957)} EUR</p>
                 <div className="mt-4">
                   <StButton
                     variant="white"

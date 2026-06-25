@@ -366,9 +366,6 @@ export default function MentorProfilPage() {
                     FCFA
                   </span>
                 </div>
-                <p className="text-[10px] font-semibold mt-1" style={{ color: ST.textMuted }}>
-                  ≈ {(form.sessionPrice / 655.957).toFixed(0)} EUR
-                </p>
               </div>
 
               <div>

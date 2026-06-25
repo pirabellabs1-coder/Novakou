@@ -228,11 +228,6 @@ export async function BestSellers() {
                 <div className="text-lg md:text-xl font-extrabold text-[#191c1e]">
                   {item.isFree ? "Gratuit" : `${new Intl.NumberFormat("fr-FR").format(item.priceFcfa)} FCFA`}
                 </div>
-                {!item.isFree && (
-                  <div className="text-xs text-[#5c647a] font-medium mt-0.5">
-                    ≈ {Math.round(item.priceFcfa / 655.957)} €
-                  </div>
-                )}
               </div>
               <span className="flex items-center justify-center gap-1.5 w-full px-3 py-2.5 rounded-xl text-white text-xs font-bold bg-gradient-to-r from-[#006e2f] to-[#22c55e] group-hover:shadow-lg transition-shadow">
                 <span className="material-symbols-outlined text-[16px]">

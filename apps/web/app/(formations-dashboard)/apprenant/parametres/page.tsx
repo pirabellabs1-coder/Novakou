@@ -635,7 +635,6 @@ export default function ParametresPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <div className="text-right">
                             <p className="text-[13px] font-extrabold tabular-nums" style={{ color: ST.text }}>{inv.amount.toLocaleString("fr-FR")} FCFA</p>
-                            <p className="text-[10px] font-semibold" style={{ color: ST.textFaint }}>≈ {Math.round(inv.amount / 655.957)} €</p>
                           </div>
                           <button className="p-1.5 rounded-lg transition-colors" style={{ color: ST.textMuted }}>
                             <Download size={16} />

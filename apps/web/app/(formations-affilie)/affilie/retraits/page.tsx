@@ -23,7 +23,6 @@ type RetraitsData = {
 };
 
 function formatFcfa(n: number) { return n.toLocaleString("fr-FR") + " FCFA"; }
-function toEur(n: number)      { return Math.round(n / 655.957); }
 
 function SkeletonBlock({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-[#1e3a2f]/60 rounded-xl ${className ?? ""}`} />;
@@ -145,12 +144,10 @@ export default function RetraitsPage() {
               <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-4">
                 <p className="text-[10px] text-[#5c9e7a] mb-1">Solde disponible</p>
                 <p className="text-xl font-extrabold text-white">{formatFcfa(available)}</p>
-                <p className="text-[10px] text-[#22c55e]">≈ {toEur(available)} €</p>
               </div>
               <div className="bg-[#0d1f17] rounded-2xl border border-[#1e3a2f] p-4">
                 <p className="text-[10px] text-[#5c9e7a] mb-1">Total versé</p>
                 <p className="text-xl font-extrabold text-blue-400">{formatFcfa(paidEarnings)}</p>
-                <p className="text-[10px] text-[#5c9e7a]">≈ {toEur(paidEarnings)} €</p>
               </div>
             </div>
 
@@ -187,11 +184,6 @@ export default function RetraitsPage() {
                       Tout retirer ({formatFcfa(available)})
                     </button>
                   </div>
-                  {amountNum > 0 && (
-                    <p className="text-xs text-[#5c9e7a] mt-2">
-                      ≈ <strong className="text-white">{toEur(amountNum)} €</strong>
-                    </p>
-                  )}
                   {amountNum > available && (
                     <p className="text-xs text-red-400 mt-2">Montant supérieur au solde disponible.</p>
                   )}
@@ -231,7 +223,6 @@ export default function RetraitsPage() {
                 <div className="space-y-3 mb-6">
                   {[
                     { label: "Montant",    value: formatFcfa(amountNum) },
-                    { label: "Équivalent", value: `≈ ${toEur(amountNum)} €` },
                     { label: "Méthode",    value: method.label },
                     { label: "Frais",      value: "0 FCFA" },
                     { label: "Délai",      value: method.desc.split("·")[0].trim() },

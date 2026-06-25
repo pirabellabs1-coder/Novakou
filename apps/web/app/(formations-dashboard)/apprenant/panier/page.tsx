@@ -30,9 +30,6 @@ type CartItem = {
 function formatFcfa(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
 }
-function toEur(n: number) {
-  return Math.round(n / 655.957);
-}
 
 function SkeletonItem() {
   return (
@@ -185,7 +182,6 @@ export default function PanierPage() {
                         <p className="font-extrabold text-[15px] tabular-nums" style={{ color: ST.green }}>
                           {formatFcfa(price)}
                         </p>
-                        <p className="text-[10px] font-semibold" style={{ color: ST.textMuted }}>≈ {toEur(price)} €</p>
                       </div>
                       <Link
                         href={`/formation/${item.formationId}`}
@@ -248,7 +244,6 @@ export default function PanierPage() {
                     <p className="font-extrabold text-[18px] tabular-nums" style={{ color: ST.green }}>
                       {formatFcfa(total)}
                     </p>
-                    <p className="text-[12px] font-semibold" style={{ color: ST.textMuted }}>≈ {toEur(total)} €</p>
                   </div>
                 </div>
               </div>

@@ -231,7 +231,6 @@ export default function CreerProduitPage() {
 
   const selected = productTypes.find((p) => p.value === selectedType);
   const isFormation = selected?.kind === "formation";
-  const euroEquiv = Math.round(price / 655.957);
 
   // Dynamic step list based on type. `optional` marque les étapes que l'on
   // peut sauter via le bouton "Sauter pour l'instant" (étape Fichiers seulement —
@@ -1288,7 +1287,6 @@ export default function CreerProduitPage() {
                       <CheckCircle2 className="w-5 h-5 text-emerald-500 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                     )}
                   </div>
-                  <p className={`${helperClass} tabular-nums`}>≈ {formatFCFA(euroEquiv)} €</p>
                   {!isFree && price === 0 && (
                     <p className="mt-1.5 text-xs text-rose-600 font-semibold flex items-center gap-1">
                       <AlertCircle className="w-3 h-3" />
@@ -1422,7 +1420,7 @@ export default function CreerProduitPage() {
                         ]),
                     {
                       label: "Prix",
-                      value: isFree ? "Gratuit" : `${formatFCFA(price)} FCFA · ≈ ${formatFCFA(euroEquiv)} €`,
+                      value: isFree ? "Gratuit" : `${formatFCFA(price)} FCFA`,
                     },
                   ].map((row) => (
                     <div key={row.label} className="rounded-xl bg-slate-50 border border-slate-200 p-4">

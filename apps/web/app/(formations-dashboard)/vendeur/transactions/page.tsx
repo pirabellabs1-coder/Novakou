@@ -191,7 +191,7 @@ export default function TransactionsPage() {
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 mb-4">
           <StKpiCompact
-            label={`Revenus filtrés · ≈ ${Math.round(filteredRevenue / 655.957).toLocaleString("fr-FR")} €`}
+            label="Revenus filtrés"
             value={isLoading ? "…" : `${formatFCFA(filteredRevenue)} FCFA`}
             icon={Wallet}
             tone="green"
@@ -360,7 +360,6 @@ export default function TransactionsPage() {
                         {txn.status === "refunded" ? "-" : "+"}{formatFCFA(txn.amount)}
                       </p>
                       <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>FCFA</p>
-                      <p className="text-[10.5px] font-semibold" style={{ color: ST.textFaint }}>≈ {Math.round(txn.amount / 655.957)} €</p>
                     </div>
 
                     <div>

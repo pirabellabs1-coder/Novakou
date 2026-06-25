@@ -714,7 +714,7 @@ export default function MentorPublicProfilePage({ params }: { params: Promise<{ 
                     <span className="text-sm font-bold text-[#5c647a]">FCFA</span>
                   </div>
                   <p className="text-xs text-[#5c647a] mt-1">
-                    {mentor.sessionDuration} min · ≈ {Math.round(mentor.sessionPrice / 655.957)} EUR
+                    {mentor.sessionDuration} min
                   </p>
                 </div>
 

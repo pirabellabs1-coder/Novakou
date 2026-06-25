@@ -213,7 +213,7 @@ export default function TarifsPage() {
                   {formatFCFA(vendorShare)}
                 </p>
                 <p className="text-xs text-[#5c647a] mt-1">
-                  FCFA · ≈ {Math.round(vendorShare / 655.957)} €
+                  FCFA
                 </p>
               </div>
               <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5">

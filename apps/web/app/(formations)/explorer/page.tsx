@@ -70,9 +70,6 @@ function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
 }
 
-function toEur(fcfa: number) {
-  return Math.round(fcfa / 655.957);
-}
 
 const GRADIENTS = [
   "from-violet-400 to-purple-600",
@@ -279,9 +276,6 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
               </>
             )}
           </div>
-          {item.price > 0 && (
-            <p className="text-[10px] text-[#5c647a] -mt-2 mb-3">≈ {toEur(item.price)} EUR</p>
-          )}
 
           {/* Full-width CTA button */}
           <button

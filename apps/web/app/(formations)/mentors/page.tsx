@@ -395,9 +395,6 @@ function MentorCard({ mentor }: { mentor: Mentor }) {
               {mentor.sessionPrice.toLocaleString("fr-FR")}{" "}
               <span className="text-[10px] font-bold text-[#5c647a]">FCFA</span>
             </p>
-            <p className="text-[10px] text-[#5c647a]">
-              ≈ {Math.round(mentor.sessionPrice / 655.957)} €
-            </p>
           </div>
           <div className="flex items-center gap-1 text-xs text-[#5c647a] font-medium">
             <Clock size={14} />
