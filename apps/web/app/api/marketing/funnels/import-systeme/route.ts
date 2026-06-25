@@ -109,15 +109,43 @@ export async function POST(request: Request) {
               headlineFr: headline,
               descriptionFr: subheadline,
               ctaTextFr: "Je commence maintenant",
+              // Page de départ complète (pas seulement un hero) avec le contenu
+              // récupéré : hero + bénéfices + CTA. Le vendeur enrichit ensuite,
+              // ou ouvre la galerie de templates pour repartir d'un design pro.
               blocks: [
                 {
                   type: "hero",
-                  id: `hero_${Math.random().toString(36).slice(2, 9)}`,
+                  id: `imp_hero_${Math.random().toString(36).slice(2, 9)}`,
                   data: {
+                    badge: "IMPORTÉ DE SYSTEME.IO",
                     headline,
                     subheadline: subheadline ?? "",
                     ctaText: "Je commence maintenant",
+                    ctaLink: "",
                     ...(imageUrl ? { imageUrl } : {}),
+                  },
+                },
+                {
+                  type: "features",
+                  id: `imp_feat_${Math.random().toString(36).slice(2, 9)}`,
+                  data: {
+                    title: "Ce que vous allez obtenir",
+                    columns: 3,
+                    items: [
+                      { icon: "check_circle", title: "Bénéfice 1", desc: "Décrivez ici le premier bénéfice clé de votre offre." },
+                      { icon: "check_circle", title: "Bénéfice 2", desc: "Décrivez ici le deuxième bénéfice clé de votre offre." },
+                      { icon: "check_circle", title: "Bénéfice 3", desc: "Décrivez ici le troisième bénéfice clé de votre offre." },
+                    ],
+                  },
+                },
+                {
+                  type: "cta",
+                  id: `imp_cta_${Math.random().toString(36).slice(2, 9)}`,
+                  data: {
+                    headline: "Prêt à commencer ?",
+                    subheadline: "Attachez votre produit à ce tunnel, puis activez-le.",
+                    ctaText: "Je commence maintenant",
+                    ctaLink: "",
                   },
                 },
               ],
