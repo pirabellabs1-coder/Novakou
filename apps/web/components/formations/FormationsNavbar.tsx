@@ -209,7 +209,7 @@ export function FormationsNavbar() {
   const megaTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   return (
-    <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(15,23,42,0.06)]">
+    <nav className="fixed top-0 w-full z-50 bg-white md:bg-white/70 backdrop-blur-xl shadow-[0_20px_40px_rgba(15,23,42,0.06)]">
       <div className="flex justify-between items-center px-4 md:px-8 py-3 md:py-4 max-w-7xl mx-auto">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0">

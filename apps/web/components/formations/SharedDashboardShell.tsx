@@ -105,7 +105,7 @@ export function SharedDashboardShell({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
       {/* Top bar — same chrome as vendor layout */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 h-16 flex items-center px-4 md:px-6 gap-3">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white md:bg-white/80 backdrop-blur-xl border-b border-slate-200/60 h-16 flex items-center px-4 md:px-6 gap-3">
         <button
           className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-700"
           onClick={() => setMobileOpen(true)}
