@@ -811,11 +811,28 @@ async function executeStep(
       const personalizedSubject = interpolateTemplate(subject, context);
       const personalizedBody = interpolateTemplate(body, context);
 
-      console.log(
-        `[Sequence] SEND EMAIL: to=${context.email || context.userId}, subject="${personalizedSubject}"`
-      );
-      // In production, call the actual email service:
-      // await sendSequenceEmail(context.email, personalizedSubject, personalizedBody);
+      const seqTo = typeof context.email === "string" ? context.email : null;
+      if (seqTo) {
+        const { sendAdminCampaignEmail } = await import("@/lib/email/admin-campaign");
+        const firstName =
+          typeof context.firstName === "string"
+            ? context.firstName
+            : typeof context.name === "string"
+              ? context.name.split(" ")[0]
+              : null;
+        const res = await sendAdminCampaignEmail({
+          to: seqTo,
+          firstName,
+          subject: personalizedSubject,
+          htmlBody: personalizedBody,
+        }).catch((e) => {
+          console.error("[Sequence] email send failed", e);
+          return { ok: false };
+        });
+        if (!res.ok) console.error(`[Sequence] email non envoyé à ${seqTo}`);
+      } else {
+        console.warn("[Sequence] EMAIL step ignoré — pas d'e-mail destinataire dans le contexte");
+      }
       break;
     }
 
