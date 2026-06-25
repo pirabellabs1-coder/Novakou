@@ -1403,13 +1403,17 @@ model FormationReview {
 model CartItem {
   id          String   @id @default(cuid())
   userId      String
-  formationId String
+  // Un article de panier référence SOIT une formation, SOIT un produit digital.
+  formationId String?
+  productId   String?
   createdAt   DateTime @default(now())
 
-  user      User      @relation("UserCartItems", fields: [userId], references: [id], onDelete: Cascade)
-  formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  user      User            @relation("UserCartItems", fields: [userId], references: [id], onDelete: Cascade)
+  formation Formation?      @relation(fields: [formationId], references: [id], onDelete: Cascade)
+  product   DigitalProduct? @relation("DigitalProductCartItems", fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, formationId])
+  @@unique([userId, productId])
   @@index([userId])
 }
 
@@ -1591,6 +1595,7 @@ model DigitalProduct {
   flashPromotions FlashPromotion[]         @relation("ProductFlashPromos")
   marketingEvents MarketingEvent[]         @relation("ProductMarketingEvents")
   bundleItems     ProductBundleItem[]
+  cartItems       CartItem[]               @relation("DigitalProductCartItems")
   orderBumpsAsBump OrderBump[]             @relation("BumpProduct")
   inquiries       ProductInquiry[]
   checkoutAttempts CheckoutAttempt[]       @relation("ProductCheckoutAttempts")

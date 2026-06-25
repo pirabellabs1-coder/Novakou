@@ -12,6 +12,8 @@ import {
   BookOpen,
   PlayCircle,
   Download,
+  ShoppingCart,
+  Check,
   Star,
   ShoppingBag,
   CheckCircle2,
@@ -107,6 +109,37 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
     : null;
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [carting, setCarting] = useState(false);
+  const [carted, setCarted] = useState(false);
+
+  // Le panier gère formations + produits digitaux (pas les bundles/abonnements,
+  // qui ont leur propre flux d'achat).
+  const canAddToCart = item.kind === "formation" || item.kind === "product";
+
+  async function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (carting || carted || !canAddToCart) return;
+    setCarting(true);
+    try {
+      const body = item.kind === "formation" ? { formationId: item.id } : { productId: item.id };
+      const res = await fetch("/api/formations/apprenant/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setCarted(true);
+        trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
+        window.dispatchEvent(new Event("nk:cart-change"));
+        setTimeout(() => setCarted(false), 2200);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCarting(false);
+    }
+  }
 
   async function handleBuy(e: React.MouseEvent) {
     e.preventDefault();
@@ -277,19 +310,36 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
             )}
           </div>
 
-          {/* Full-width CTA button */}
-          <button
-            onClick={handleBuy}
-            disabled={adding}
-            className={`w-full flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 ${
-              added
-                ? "bg-[#22c55e] text-white"
-                : "bg-[#191c1e] text-white hover:bg-[#006e2f] hover:shadow-md"
-            }`}
-          >
-            {added ? <CheckCircle2 size={16} /> : adding ? <Loader2 size={16} className="animate-spin" /> : item.price === 0 ? <Download size={16} /> : <ShoppingBag size={16} />}
-            {added ? "Achat confirmé" : adding ? "Patientez…" : item.price === 0 ? "Télécharger" : "Acheter maintenant"}
-          </button>
+          {/* CTA : bouton panier (formation/produit payant) + bouton acheter */}
+          <div className="flex items-center gap-2">
+            {canAddToCart && item.price > 0 && (
+              <button
+                onClick={handleAddToCart}
+                disabled={carting}
+                aria-label="Ajouter au panier"
+                title="Ajouter au panier"
+                className={`flex items-center justify-center w-10 h-10 flex-shrink-0 rounded-xl border transition-all disabled:opacity-50 ${
+                  carted
+                    ? "bg-[#22c55e] border-[#22c55e] text-white"
+                    : "bg-white border-gray-200 text-[#006e2f] hover:border-[#006e2f] hover:bg-[#006e2f]/5"
+                }`}
+              >
+                {carting ? <Loader2 size={17} className="animate-spin" /> : carted ? <Check size={17} /> : <ShoppingCart size={17} />}
+              </button>
+            )}
+            <button
+              onClick={handleBuy}
+              disabled={adding}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all disabled:opacity-50 ${
+                added
+                  ? "bg-[#22c55e] text-white"
+                  : "bg-[#191c1e] text-white hover:bg-[#006e2f] hover:shadow-md"
+              }`}
+            >
+              {added ? <CheckCircle2 size={16} /> : adding ? <Loader2 size={16} className="animate-spin" /> : item.price === 0 ? <Download size={16} /> : <ShoppingBag size={16} />}
+              {added ? "Achat confirmé" : adding ? "Patientez…" : item.price === 0 ? "Télécharger" : "Acheter"}
+            </button>
+          </div>
         </div>
       </div>
     </Link>

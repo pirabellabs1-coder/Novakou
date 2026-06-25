@@ -23,6 +23,9 @@ export async function GET(req: NextRequest) {
     // Filter out cart items where the user already has an enrollment for that formation
     const abandonedCarts = [];
     for (const item of oldCartItems) {
+      // Le panier peut contenir des produits (productId) : ce cron legacy ne
+      // traite que les formations.
+      if (!item.formationId) continue;
       const enrollment = await prisma.enrollment.findFirst({
         where: { userId: item.userId, formationId: item.formationId },
       });

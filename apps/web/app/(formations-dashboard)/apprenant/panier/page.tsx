@@ -15,17 +15,38 @@ import {
   ArrowLeft,
 } from "lucide-react";
 
+type CartProductRef = {
+  id: string;
+  slug?: string | null;
+  title: string;
+  thumbnail: string | null;
+  level?: string | null;
+  price: number;
+};
+
 type CartItem = {
   id: string;
-  formationId: string;
-  formation?: {
-    id: string;
-    title: string;
-    thumbnail: string | null;
-    level: string | null;
-    price: number;
-  } | null;
+  formationId?: string | null;
+  productId?: string | null;
+  formation?: CartProductRef | null;
+  product?: CartProductRef | null;
 };
+
+// Données d'affichage normalisées (formation OU produit).
+function itemView(item: CartItem) {
+  const ref = item.formation ?? item.product ?? null;
+  const isProduct = !!item.product;
+  return {
+    title: ref?.title ?? (isProduct ? "Produit" : "Formation"),
+    price: ref?.price ?? 0,
+    thumbnail: ref?.thumbnail ?? null,
+    level: ref?.level ?? null,
+    kindLabel: isProduct ? "Produit" : "Formation",
+    href: isProduct
+      ? `/produit/${ref?.slug ?? item.productId}`
+      : `/formation/${ref?.slug ?? item.formationId}`,
+  };
+}
 
 function formatFcfa(n: number) {
   return n.toLocaleString("fr-FR") + " FCFA";
@@ -63,7 +84,7 @@ export default function PanierPage() {
   });
 
   const items: CartItem[] = data?.data ?? [];
-  const total = items.reduce((s, item) => s + (item.formation?.price ?? 0), 0);
+  const total = items.reduce((s, item) => s + (item.formation?.price ?? item.product?.price ?? 0), 0);
 
   if (isLoading) {
     return (
@@ -128,8 +149,7 @@ export default function PanierPage() {
           {/* Cart items */}
           <div className="flex-1 space-y-4">
             {items.map((item) => {
-              const title = item.formation?.title ?? "Formation";
-              const price = item.formation?.price ?? 0;
+              const v = itemView(item);
               const isRemoving =
                 removeMutation.isPending && removeMutation.variables === item.id;
 
@@ -139,11 +159,11 @@ export default function PanierPage() {
                     className="w-20 h-20 rounded-[13px] flex items-center justify-center flex-shrink-0 text-white overflow-hidden"
                     style={{ background: ST.gradient }}
                   >
-                    {item.formation?.thumbnail ? (
+                    {v.thumbnail ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={item.formation.thumbnail}
-                        alt={title}
+                        src={v.thumbnail}
+                        alt={v.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -154,13 +174,13 @@ export default function PanierPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <StChip tone="blue">Formation vidéo</StChip>
-                          {item.formation?.level && (
-                            <StChip tone="amber">{item.formation.level}</StChip>
+                          <StChip tone="blue">{v.kindLabel}</StChip>
+                          {v.level && (
+                            <StChip tone="amber">{v.level}</StChip>
                           )}
                         </div>
                         <h3 className="font-extrabold text-[13.5px] leading-snug mb-1" style={{ color: ST.text }}>
-                          {title}
+                          {v.title}
                         </h3>
                       </div>
                       <button
@@ -180,11 +200,11 @@ export default function PanierPage() {
                     <div className="flex items-center justify-between mt-3">
                       <div>
                         <p className="font-extrabold text-[15px] tabular-nums" style={{ color: ST.green }}>
-                          {formatFcfa(price)}
+                          {formatFcfa(v.price)}
                         </p>
                       </div>
                       <Link
-                        href={`/formation/${item.formationId}`}
+                        href={v.href}
                         className="text-[12px] font-extrabold hover:underline"
                         style={{ color: ST.green }}
                       >
@@ -212,8 +232,9 @@ export default function PanierPage() {
               <StSectionTitle>Récapitulatif</StSectionTitle>
               <div className="space-y-3 mb-5">
                 {items.map((item) => {
-                  const title = item.formation?.title ?? "Formation";
-                  const price = item.formation?.price ?? 0;
+                  const v = itemView(item);
+                  const title = v.title;
+                  const price = v.price;
                   return (
                     <div key={item.id} className="flex justify-between text-[13px]">
                       <span className="truncate flex-1 mr-2" style={{ color: ST.textSecondary }}>

@@ -229,14 +229,26 @@ export default function CheckoutInner() {
         const json = await res.json();
         const items: CartItem[] = (json.data ?? []).map((item: {
           id: string;
-          formation?: { id: string; title: string; price: number; thumbnail?: string | null };
-        }) => ({
-          id: item.formation?.id ?? item.id,
-          kind: "formation" as const,
-          title: item.formation?.title ?? "Formation",
-          price: item.formation?.price ?? 0,
-          thumbnail: item.formation?.thumbnail,
-        }));
+          formation?: { id: string; title: string; price: number; thumbnail?: string | null } | null;
+          product?: { id: string; title: string; price: number; thumbnail?: string | null } | null;
+        }) => {
+          if (item.product) {
+            return {
+              id: item.product.id,
+              kind: "product" as const,
+              title: item.product.title ?? "Produit",
+              price: item.product.price ?? 0,
+              thumbnail: item.product.thumbnail,
+            };
+          }
+          return {
+            id: item.formation?.id ?? item.id,
+            kind: "formation" as const,
+            title: item.formation?.title ?? "Formation",
+            price: item.formation?.price ?? 0,
+            thumbnail: item.formation?.thumbnail,
+          };
+        });
         setCartItems(items);
       } catch {
         setCartItems([]);
