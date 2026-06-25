@@ -6,7 +6,8 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { promptAction } from "@/store/prompt";
 import {
   ResponsiveContainer,
   Tooltip,
@@ -148,6 +149,7 @@ export default function VendeurDashboard() {
   const needsKyc = kycLevel < 2;
 
   const d = response?.data;
+  const qc = useQueryClient();
 
   // Bannière conseil pub : masquable à volonté (mémorisé dans le navigateur).
   const [adBannerDismissed, setAdBannerDismissed] = useState(true);
@@ -171,11 +173,33 @@ export default function VendeurDashboard() {
   const revenueToday = salesTodayList.reduce((s, x) => s + x.amount, 0);
   const hasSales = (d?.current?.sales ?? 0) > 0 || (d?.recentSales ?? []).length > 0;
 
-  // ── Objectif mensuel : max(50 000, revenus mois précédent × 1.2) ───
+  // ── Objectif mensuel : fixé par le vendeur, sinon auto (max 50k / mois-1 ×1.2) ───
   const prevRevenue = d?.previous?.revenue ?? 0;
   const currentRevenue = d?.current?.revenue ?? 0;
-  const monthlyGoal = Math.max(50_000, Math.round(prevRevenue * 1.2));
+  const savedGoal = (d as { monthlyGoal?: number | null } | undefined)?.monthlyGoal ?? null;
+  const monthlyGoal = savedGoal && savedGoal > 0 ? savedGoal : Math.max(50_000, Math.round(prevRevenue * 1.2));
   const goalPct = monthlyGoal > 0 ? Math.min(100, (currentRevenue / monthlyGoal) * 100) : 0;
+
+  async function editMonthlyGoal() {
+    const v = await promptAction({
+      title: "Votre objectif mensuel",
+      message: "Montant à atteindre ce mois-ci (en FCFA). Laissez vide pour un objectif automatique.",
+      placeholder: "Ex : 100000",
+      confirmLabel: "Enregistrer",
+      cancelLabel: "Annuler",
+      icon: "flag",
+      defaultValue: savedGoal ? String(savedGoal) : "",
+      validate: (s) => (s.trim() !== "" && !/^\d+$/.test(s.trim()) ? "Entrez un nombre en FCFA." : null),
+    });
+    if (v === null) return;
+    const goal = v.trim() === "" ? null : Number(v.trim());
+    await fetch("/api/formations/vendeur/goal", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ monthlyGoal: goal }),
+    }).catch(() => null);
+    qc.invalidateQueries({ queryKey: ["vendeur-dashboard"] });
+  }
 
   // ── Suggestions "Que faire maintenant ?" selon l'état ──────────────
   const suggestions = hasNoProducts
@@ -404,8 +428,17 @@ export default function VendeurDashboard() {
               <span className="text-[13px] font-extrabold" style={{ color: ST.green }}>{Math.round(goalPct)} %</span>
             </div>
             <StProgressBar percent={goalPct} className="my-[14px]" />
-            <div className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
-              {formatFCFA(currentRevenue)} / {formatFCFA(monthlyGoal)} FCFA
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11.5px] font-bold" style={{ color: ST.textSecondary }}>
+                {formatFCFA(currentRevenue)} / {formatFCFA(monthlyGoal)} FCFA
+              </span>
+              <button
+                onClick={editMonthlyGoal}
+                className="text-[11px] font-extrabold hover:underline flex-shrink-0"
+                style={{ color: ST.green }}
+              >
+                {savedGoal ? "Modifier" : "Définir"}
+              </button>
             </div>
           </StCard>
         </div>

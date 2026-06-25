@@ -37,6 +37,7 @@ export async function GET() {
         id: true,
         totalEarned: true,
         status: true,
+        monthlyGoal: true,
         formations: {
           where: shopFilter,
           select: {
@@ -442,6 +443,7 @@ export async function GET() {
           avgRating: Math.round(avgRating * 100) / 100,
           totalReviews,
         },
+        monthlyGoal: profile.monthlyGoal ?? null,
         monthlyChart,
         recentSales,
         topProducts,
