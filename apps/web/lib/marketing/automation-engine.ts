@@ -142,7 +142,7 @@ function writeJson<T>(filePath: string, data: T): void {
 const SEED_WORKFLOWS: WorkflowDefinition[] = [
   {
     id: "wf-welcome-email",
-    name: "Email de bienvenue apres inscription",
+    name: "Email de bienvenue après inscription",
     triggerType: "USER_SIGNUP",
     isActive: true,
     actions: [
@@ -155,14 +155,14 @@ const SEED_WORKFLOWS: WorkflowDefinition[] = [
   },
   {
     id: "wf-purchase-followup",
-    name: "Suivi apres achat de formation",
+    name: "Suivi après achat de formation",
     triggerType: "PURCHASE",
     isActive: true,
     conditions: [
       { field: "metadata.orderType", operator: "eq", value: "formation" },
     ],
     actions: [
-      { type: "SEND_EMAIL", config: { template: "purchase_confirmation", subject: "Votre formation est prete !" } },
+      { type: "SEND_EMAIL", config: { template: "purchase_confirmation", subject: "Votre formation est prête !" } },
       { type: "ADD_TAG", config: { tag: "buyer" } },
       { type: "ENROLL_SEQUENCE", config: { sequenceId: "seq-post-purchase" } },
     ],
@@ -171,26 +171,26 @@ const SEED_WORKFLOWS: WorkflowDefinition[] = [
   },
   {
     id: "wf-cart-abandoned",
-    name: "Relance panier abandonne",
+    name: "Relance panier abandonné",
     triggerType: "CART_ABANDONED",
     isActive: true,
     actions: [
       { type: "DELAY", config: { delayMinutes: 60 } },
-      { type: "SEND_EMAIL", config: { template: "cart_abandoned", subject: "Vous avez oublie quelque chose !" } },
+      { type: "SEND_EMAIL", config: { template: "cart_abandoned", subject: "Vous avez oublié quelque chose !" } },
       { type: "DELAY", config: { delayMinutes: 1440 } },
       { type: "CREATE_DISCOUNT", config: { discountPct: 10, validityHours: 48, reason: "cart_recovery" } },
-      { type: "SEND_EMAIL", config: { template: "cart_abandoned_discount", subject: "-10% pour finaliser votre achat" } },
+      { type: "SEND_EMAIL", config: { template: "cart_abandoned_discount", subject: "-10 % pour finaliser votre achat" } },
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
   {
     id: "wf-course-completed",
-    name: "Upsell apres fin de formation",
+    name: "Upsell après fin de formation",
     triggerType: "COURSE_COMPLETED",
     isActive: true,
     actions: [
-      { type: "SEND_EMAIL", config: { template: "course_completed", subject: "Felicitations ! Vous avez termine votre formation" } },
+      { type: "SEND_EMAIL", config: { template: "course_completed", subject: "Félicitations ! Vous avez terminé votre formation" } },
       { type: "ADD_TAG", config: { tag: "course_completer" } },
       { type: "TRIGGER_UPSELL", config: { strategy: "related_courses" } },
     ],
@@ -199,12 +199,12 @@ const SEED_WORKFLOWS: WorkflowDefinition[] = [
   },
   {
     id: "wf-affiliate-sale",
-    name: "Notification vente affilie",
+    name: "Notification vente affilié",
     triggerType: "AFFILIATE_SALE",
     isActive: true,
     actions: [
-      { type: "SEND_NOTIFICATION", config: { title: "Nouvelle vente affiliee !", message: "Vous avez gagne une commission." } },
-      { type: "SEND_EMAIL", config: { template: "affiliate_sale", subject: "Nouvelle commission gagnee !" } },
+      { type: "SEND_NOTIFICATION", config: { title: "Nouvelle vente affiliée !", message: "Vous avez gagné une commission." } },
+      { type: "SEND_EMAIL", config: { template: "affiliate_sale", subject: "Nouvelle commission gagnée !" } },
     ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

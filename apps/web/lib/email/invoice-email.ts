@@ -27,11 +27,11 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
           <h2 style="color: #fff; margin: 0 0 16px;">Votre facture ${invoice.id}</h2>
           <p style="color: #94a3b8; margin: 0 0 8px;">Bonjour ${userName},</p>
           <p style="color: #94a3b8; margin: 0 0 24px;">
-            Votre paiement de <strong style="color: #fff;">${amountFormatted} EUR</strong> a ete traite avec succes.
+            Votre paiement de <strong style="color: #fff;">${amountFormatted} EUR</strong> a été traité avec succès.
           </p>
           <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
             <tr style="border-bottom: 1px solid #2d2d3d;">
-              <td style="padding: 8px 0; color: #94a3b8;">Reference</td>
+              <td style="padding: 8px 0; color: #94a3b8;">Référence</td>
               <td style="padding: 8px 0; text-align: right; color: #fff; font-weight: 600;">${invoice.id}</td>
             </tr>
             <tr style="border-bottom: 1px solid #2d2d3d;">
@@ -44,7 +44,7 @@ export async function sendInvoiceEmail({ to, userName, invoice }: SendInvoicePar
             </tr>
           </table>
           <p style="color: #64748b; font-size: 12px; margin: 16px 0 0;">
-            La facture PDF est jointe a cet email. Vous pouvez egalement la telecharger depuis votre espace :
+            La facture PDF est jointe à cet e-mail. Vous pouvez également la télécharger depuis votre espace&nbsp;:
             <a href="${appUrl}/vendeur/finances" style="color: #006e2f;">Mes factures</a>
           </p>
         </div>
