@@ -4,6 +4,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -36,6 +37,7 @@ import {
   ShoppingCart,
   RefreshCw,
   Megaphone,
+  X,
 } from "lucide-react";
 import { countryName } from "@/lib/tracking/geo";
 import { Flag } from "@/components/ui/Flag";
@@ -146,6 +148,16 @@ export default function VendeurDashboard() {
   const needsKyc = kycLevel < 2;
 
   const d = response?.data;
+
+  // Bannière conseil pub : masquable à volonté (mémorisé dans le navigateur).
+  const [adBannerDismissed, setAdBannerDismissed] = useState(true);
+  useEffect(() => {
+    setAdBannerDismissed(localStorage.getItem("nk-vendor-ad-banner-dismissed") === "1");
+  }, []);
+  function dismissAdBanner() {
+    setAdBannerDismissed(true);
+    try { localStorage.setItem("nk-vendor-ad-banner-dismissed", "1"); } catch { /* ignore */ }
+  }
   const monthly = d?.monthlyChart ?? [];
   const hasNoProducts = !isLoading && (d?.topProducts ?? []).length === 0 && (d?.kpis.totalProducts ?? 0) === 0;
 
@@ -301,9 +313,16 @@ export default function VendeurDashboard() {
         {/* ── Conseil pub : produits en ligne mais aucune vente encore ──
             On pousse le vendeur à lancer une publicité pour générer ses
             premières ventes (demande fondateur). Masqué dès qu'il y a du CA. */}
-        {!hasNoProducts && (d?.current?.revenue ?? 0) === 0 && (
-          <StCard className="mb-4 !p-5">
-            <div className="flex items-start gap-4">
+        {!hasNoProducts && (d?.current?.revenue ?? 0) === 0 && !adBannerDismissed && (
+          <StCard className="mb-4 !p-5 relative">
+            <button
+              onClick={dismissAdBanner}
+              aria-label="Masquer ce conseil"
+              className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center text-[#8aa092] hover:bg-gray-100 hover:text-[#13241b] transition-colors"
+            >
+              <X size={16} />
+            </button>
+            <div className="flex items-start gap-4 pr-6">
               <div
                 className="w-11 h-11 rounded-[11px] flex items-center justify-center flex-shrink-0"
                 style={{ background: ST.greenSoft ?? "#e7f5ec", color: ST.green }}
