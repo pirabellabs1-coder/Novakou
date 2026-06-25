@@ -84,8 +84,12 @@ export default function ActionTagModal({
   }, [action]);
 
   useEffect(() => {
-    // Tag suggestions endpoint not implemented yet — leave empty for now.
-    // (Previously hit /api/formations/vendeur/marketing/tags which doesn't exist.)
+    // Suggestions d'autocomplétion : tags déjà utilisés par le vendeur dans ses
+    // workflows (sinon une liste de tags courants par défaut).
+    fetch("/api/formations/vendeur/marketing/tags")
+      .then((r) => r.json())
+      .then((j) => setTagSuggestions(Array.isArray(j.tags) ? j.tags : []))
+      .catch(() => setTagSuggestions([]));
   }, []);
 
   useEffect(() => {
