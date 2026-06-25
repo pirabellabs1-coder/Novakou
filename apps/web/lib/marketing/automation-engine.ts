@@ -341,15 +341,40 @@ export async function executeAction(
 
   switch (type) {
     case "SEND_EMAIL": {
-      const template = config.template as string;
-      const subject = config.subject as string;
-      console.log(
-        `[Marketing] SEND_EMAIL: template=${template}, subject="${subject}", userId=${context.userId}`
-      );
-      // In production, call the email service:
-      // await sendMarketingEmail(context.userId, template, subject, context.metadata);
-      // For now, log the intent
-      context.results[`email_${template}`] = { sent: true, timestamp: new Date().toISOString() };
+      const template = (config.template as string) || "custom";
+      const subject = (config.subject as string) || "Un message de votre formateur";
+      // Corps : priorité au contenu fourni dans le workflow, sinon le sujet.
+      const rawBody =
+        (config.body as string) ||
+        (config.message as string) ||
+        (config.html as string) ||
+        `<p>${subject}</p>`;
+
+      // Destinataire : metadata.email si présent, sinon lookup DB par userId.
+      let to = typeof context.metadata.email === "string" ? (context.metadata.email as string) : null;
+      let firstName =
+        typeof context.metadata.firstName === "string" ? (context.metadata.firstName as string) : null;
+      try {
+        const { prisma } = await import("@/lib/prisma");
+        if (!to && context.userId) {
+          const u = await prisma.user.findUnique({
+            where: { id: context.userId },
+            select: { email: true, name: true },
+          });
+          to = u?.email ?? null;
+          if (!firstName && u?.name) firstName = u.name.split(" ")[0];
+        }
+        if (to) {
+          const { sendAdminCampaignEmail } = await import("@/lib/email/admin-campaign");
+          const res = await sendAdminCampaignEmail({ to, firstName, subject, htmlBody: rawBody });
+          context.results[`email_${template}`] = { sent: res.ok, to, timestamp: new Date().toISOString() };
+        } else {
+          context.results[`email_${template}`] = { sent: false, reason: "no_recipient" };
+        }
+      } catch (err) {
+        console.error("[Marketing] SEND_EMAIL failed:", err);
+        context.results[`email_${template}`] = { sent: false, error: true };
+      }
       break;
     }
 
