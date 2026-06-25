@@ -5,6 +5,41 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import crypto from "crypto";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
+
+/** Notifie le destinataire d'un cadeau par e-mail (connexion acheteur par OTP). */
+async function notifyGiftRecipient(opts: {
+  to: string;
+  recipientName: string | null;
+  itemTitle: string;
+  gifterName: string;
+  message?: string | null;
+}) {
+  try {
+    const { sendAdminCampaignEmail } = await import("@/lib/email/admin-campaign");
+    const loginUrl = `${APP_URL}/acheteur/connexion`;
+    const personalMsg = opts.message?.trim()
+      ? `<p style="background:#f6fbf2;border-radius:8px;padding:12px 16px;font-style:italic;color:#374151">« ${opts.message.trim()} »</p>`
+      : "";
+    const html = `
+      <p>Bonne nouvelle 🎉</p>
+      <p><strong>${opts.gifterName}</strong> vous a offert <strong>« ${opts.itemTitle} »</strong> sur Novakou.</p>
+      ${personalMsg}
+      <p>Pour y accéder, connectez-vous à votre espace acheteur avec cette adresse e-mail. Un code de connexion vous sera envoyé — aucun mot de passe nécessaire :</p>
+      <p><a href="${loginUrl}" style="display:inline-block;background:#006e2f;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:700">Accéder à mon cadeau</a></p>
+      <p style="color:#6b7280;font-size:13px">Ou rendez-vous sur ${loginUrl}</p>
+    `;
+    await sendAdminCampaignEmail({
+      to: opts.to,
+      firstName: opts.recipientName,
+      subject: `🎁 ${opts.gifterName} vous a offert « ${opts.itemTitle} »`,
+      htmlBody: html,
+    });
+  } catch (err) {
+    console.warn("[gift] notification e-mail échouée:", err);
+  }
+}
+
 /**
  * POST /api/formations/gift
  * Body: { kind: "formation" | "product", itemId: string, recipientEmail: string, recipientName?: string, message?: string }
@@ -58,6 +93,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Impossible de s'offrir à soi-même" }, { status: 400 });
     }
 
+    const gifter = await prisma.user.findUnique({ where: { id: gifterId }, select: { name: true } });
+    const gifterName = gifter?.name?.trim() || "Un formateur";
+
     if (kind === "formation") {
       const formation = await prisma.formation.findUnique({
         where: { id: itemId },
@@ -106,6 +144,14 @@ export async function POST(request: Request) {
       await prisma.formation.update({
         where: { id: formation.id },
         data: { studentsCount: { increment: 1 } },
+      });
+
+      await notifyGiftRecipient({
+        to: recipient.email,
+        recipientName: recipient.name,
+        itemTitle: formation.title,
+        gifterName,
+        message,
       });
 
       return NextResponse.json({
@@ -162,6 +208,14 @@ export async function POST(request: Request) {
         where: { id: product.id },
         // Audit 2026-05-26 : sync salesCount + currentBuyers (cf. checkout).
         data: { salesCount: { increment: 1 }, currentBuyers: { increment: 1 } },
+      });
+
+      await notifyGiftRecipient({
+        to: recipient.email,
+        recipientName: recipient.name,
+        itemTitle: product.title,
+        gifterName,
+        message,
       });
 
       return NextResponse.json({
