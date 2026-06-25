@@ -129,10 +129,11 @@ function ProductCard({ item, idx }: { item: Item; idx: number }) {
         body: JSON.stringify(body),
       });
       if (res.ok) {
+        // Reste coloré : l'article est dans le panier, on garde l'état "ajouté"
+        // (plus de réinitialisation après 2,2 s).
         setCarted(true);
         trackEvents.addToCart({ id: item.id, kind: item.kind, price: item.price, title: item.title });
         window.dispatchEvent(new Event("nk:cart-change"));
-        setTimeout(() => setCarted(false), 2200);
       }
     } catch (err) {
       console.error(err);

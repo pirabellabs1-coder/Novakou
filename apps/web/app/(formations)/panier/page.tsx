@@ -15,16 +15,35 @@ import {
 import { useToastStore } from "@/store/toast";
 import { trackEvents } from "@/lib/tracking/events";
 
+interface CartRef {
+  id: string;
+  slug: string;
+  title: string;
+  price: number;
+  thumbnail: string | null;
+  level?: string | null;
+}
 interface CartItem {
   id: string;
-  formationId: string;
-  formation: {
-    id: string;
-    slug: string;
-    title: string;
-    price: number;
-    thumbnail: string | null;
-    level?: string;
+  formationId?: string | null;
+  productId?: string | null;
+  formation?: CartRef | null;
+  product?: CartRef | null;
+}
+
+// Vue normalisée d'un article (formation OU produit digital).
+function itemView(item: CartItem) {
+  const isProduct = !!item.product;
+  const ref = item.formation ?? item.product ?? null;
+  return {
+    isProduct,
+    title: ref?.title ?? (isProduct ? "Produit" : "Formation"),
+    price: ref?.price ?? 0,
+    thumbnail: ref?.thumbnail ?? null,
+    level: ref?.level ?? null,
+    href: isProduct
+      ? `/produit/${ref?.slug ?? item.productId}`
+      : `/formation/${ref?.slug ?? item.formationId}`,
   };
 }
 
@@ -63,9 +82,13 @@ export default function PanierPage() {
     setRemoving(item.id);
     try {
       const isGuest = cart?.guest;
-      const url = isGuest
-        ? `/api/formations/apprenant/cart?formationId=${encodeURIComponent(item.formationId)}`
-        : `/api/formations/apprenant/cart?id=${encodeURIComponent(item.id)}`;
+      const v = itemView(item);
+      let url = `/api/formations/apprenant/cart?id=${encodeURIComponent(item.id)}`;
+      if (isGuest) {
+        url = item.productId
+          ? `/api/formations/apprenant/cart?productId=${encodeURIComponent(item.productId)}`
+          : `/api/formations/apprenant/cart?formationId=${encodeURIComponent(item.formationId ?? "")}`;
+      }
       const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) {
         const j = await res.json();
@@ -73,9 +96,9 @@ export default function PanierPage() {
         return;
       }
       trackEvents.removeFromCart({
-        id: item.formationId,
-        kind: "formation",
-        price: item.formation.price,
+        id: item.productId ?? item.formationId ?? item.id,
+        kind: v.isProduct ? "product" : "formation",
+        price: v.price,
       });
       window.dispatchEvent(new CustomEvent("nk:cart-change"));
       load();
@@ -138,13 +161,15 @@ export default function PanierPage() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-6 items-start">
             {/* Items */}
             <div className="space-y-3">
-              {items.map((item) => (
+              {items.map((item) => {
+                const v = itemView(item);
+                return (
                 <div key={item.id} className="flex items-center gap-4 p-4 bg-white rounded-2xl border border-slate-200">
                   <div className="w-20 h-20 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 relative">
-                    {item.formation.thumbnail ? (
+                    {v.thumbnail ? (
                       <Image
-                        src={item.formation.thumbnail}
-                        alt={item.formation.title}
+                        src={v.thumbnail}
+                        alt={v.title}
                         fill
                         sizes="80px"
                         className="object-cover"
@@ -157,18 +182,18 @@ export default function PanierPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <Link
-                      href={`/formation/${item.formation.slug}`}
+                      href={v.href}
                       className="text-sm font-bold text-slate-900 hover:text-emerald-700 line-clamp-2"
                     >
-                      {item.formation.title}
+                      {v.title}
                     </Link>
-                    {item.formation.level && (
+                    {v.level && (
                       <p className="text-[11px] text-slate-500 uppercase tracking-wider mt-0.5">
-                        {item.formation.level}
+                        {v.level}
                       </p>
                     )}
                     <p className="text-base font-extrabold text-emerald-700 tabular-nums mt-1">
-                      {fmtFCFA(item.formation.price)}
+                      {fmtFCFA(v.price)}
                     </p>
                   </div>
                   <button
@@ -181,7 +206,8 @@ export default function PanierPage() {
                     <Trash2 size={20} />
                   </button>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Summary */}
@@ -202,7 +228,7 @@ export default function PanierPage() {
                 <span className="text-xl font-extrabold text-emerald-700 tabular-nums">{fmtFCFA(cart?.total ?? 0)}</span>
               </div>
               <Link
-                href={items.length === 1 ? `/checkout?formationId=${items[0].formationId}` : "/checkout?cart=1"}
+                href="/checkout"
                 className="block w-full text-center px-5 py-3.5 rounded-xl text-white font-bold text-sm shadow-md shadow-emerald-500/20 hover:shadow-lg"
                 style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
               >
