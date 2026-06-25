@@ -5,6 +5,15 @@
   "installCommand": "pnpm install",
   "outputDirectory": "apps/web/.next",
   "regions": ["cdg1"],
+  "crons": [
+    { "path": "/api/cron/send-abandon-reminders", "schedule": "*/10 * * * *" },
+    { "path": "/api/cron/abandon-stale-checkouts", "schedule": "*/30 * * * *" },
+    { "path": "/api/cron/mentor-escrow", "schedule": "0 * * * *" },
+    { "path": "/api/cron/payout-reconcile", "schedule": "0 * * * *" },
+    { "path": "/api/cron/approve-affiliate-commissions", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/subscription-renewal", "schedule": "0 4 * * *" },
+    { "path": "/api/cron/mentor-reminders", "schedule": "0 8 * * *" }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",

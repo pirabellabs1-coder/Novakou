@@ -8,8 +8,12 @@ import { requireCronAuth } from "@/lib/cron/auth";
  *
  * Cron Vercel qui envoie les emails de relance aux abandons/echecs.
  *
- * - Email #1 : 30 min apres tentative ABANDONED/FAILED, jamais envoye
- * - Email #2 : 24h apres reminder1, jamais envoye, toujours pas RECOVERED
+ * - Email #1 : 20 min apres la tentative (STARTED/FAILED/ABANDONED), jamais envoye
+ * - Email #2 : 1h apres la tentative, reminder1 envoye, toujours pas RECOVERED
+ *
+ * Cible aussi les paniers STARTED (paiement jamais confirme par webhook) car
+ * un achat reussi passe l'attempt en COMPLETED + recoveredAt → exclu via
+ * recoveredAt:null : on ne relance JAMAIS un acheteur qui a fini par payer.
  *
  * Protection :
  *  - Appele par Vercel Cron avec Authorization: Bearer CRON_SECRET ou
@@ -33,17 +37,18 @@ async function handle(request: NextRequest) {
   if (authError) return authError;
 
   const now = new Date();
-  const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
-  const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const twentyMinutesAgo = new Date(now.getTime() - 20 * 60 * 1000);
+  const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
   const log = { reminder1Sent: 0, reminder2Sent: 0, errors: [] as string[] };
 
-  // ─── Email #1 : 30 min+ depuis l'abandon, pas encore envoye ───
+  // ─── Email #1 : 20 min+ depuis la tentative, pas encore envoye ───
   const pendingR1 = await prisma.checkoutAttempt.findMany({
     where: {
-      status: { in: ["FAILED", "ABANDONED"] },
+      status: { in: ["STARTED", "FAILED", "ABANDONED"] },
       reminder1SentAt: null,
-      createdAt: { lte: thirtyMinutesAgo },
+      recoveredAt: null,
+      createdAt: { lte: twentyMinutesAgo },
       visitorEmail: { not: null },
     },
     take: 50,
@@ -81,13 +86,14 @@ async function handle(request: NextRequest) {
     }
   }
 
-  // ─── Email #2 : 24h+ depuis R1, pas encore envoye, toujours pas recovered ─
+  // ─── Email #2 : 1h+ depuis la tentative, R1 envoye, pas encore recovered ─
   const pendingR2 = await prisma.checkoutAttempt.findMany({
     where: {
-      status: { in: ["FAILED", "ABANDONED"] },
-      reminder1SentAt: { not: null, lte: oneDayAgo },
+      status: { in: ["STARTED", "FAILED", "ABANDONED"] },
+      reminder1SentAt: { not: null },
       reminder2SentAt: null,
       recoveredAt: null,
+      createdAt: { lte: oneHourAgo },
       visitorEmail: { not: null },
     },
     take: 50,
