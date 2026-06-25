@@ -222,6 +222,22 @@ export async function POST(request: Request) {
       console.warn("[checkout affiliate cookie]", err);
     }
 
+    // ── Campaign attribution ──────────────────────────────────────────────
+    // Lit le cookie `fh_campaign` posé par /api/marketing/campaigns/[slug]
+    // quand le visiteur arrive via un lien de campagne tracké. On garde juste
+    // le slug ; le webhook créditera conversions + revenu après paiement.
+    let campaignSlug = "";
+    try {
+      const cookieStore = await cookies();
+      const raw = cookieStore.get("fh_campaign")?.value;
+      if (raw) {
+        const parsed = JSON.parse(raw) as { slug?: string };
+        if (parsed?.slug) campaignSlug = String(parsed.slug);
+      }
+    } catch {
+      /* cookie absent ou illisible : pas d'attribution campagne */
+    }
+
     // ─── Payment processing ──────────────────────────────────────
     // Si Moneroo est configuré ET commande payante, on redirige vers Moneroo.
     // Le fulfillment (création enrollments + crédit wallet + emails) se fera
@@ -250,6 +266,7 @@ export async function POST(request: Request) {
         discountCode: discountCodeStr ?? "",
         affiliateProfileId: affiliateProfile?.id ?? "",
         affiliateCommissionRate: String(affiliateCommissionRate),
+        campaignSlug,
         paymentMethod,
         paymentProvider: requestedProvider,
       };

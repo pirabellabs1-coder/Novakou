@@ -285,6 +285,14 @@ export async function POST(req: Request) {
         // côté serveur. Double rempart en plus de assertAmountMatches.
         expectedAmountReceived: verified.amount ?? undefined,
       });
+      // Attribution conversion campagne (idempotent : seulement si fulfillment frais).
+      if (result.enrollments.length + result.purchases.length > 0) {
+        const { creditCampaignConversion } = await import("@/lib/marketing/campaign-conversion");
+        await creditCampaignConversion(String(metadata.campaignSlug ?? ""), {
+          revenue: verified.amount ?? 0,
+          userId,
+        });
+      }
       return NextResponse.json({ ok: true, fulfilled: true, result });
     } catch (err) {
       // AmountMismatchError → on retourne 200 pour ne pas faire re-trigger

@@ -191,6 +191,15 @@ export async function POST(req: Request) {
         // Defense-in-depth (vote 19).
         expectedAmountReceived: verified.amount ?? undefined,
       });
+      // Attribution conversion campagne (lien UTM tracké). Idempotent : on ne
+      // crédite que si le fulfillment a créé de nouveaux enregistrements.
+      if (result.enrollments.length + result.purchases.length > 0) {
+        const { creditCampaignConversion } = await import("@/lib/marketing/campaign-conversion");
+        await creditCampaignConversion(String(metadata.campaignSlug ?? ""), {
+          revenue: verified.amount ?? 0,
+          userId,
+        });
+      }
       return NextResponse.json({ ok: true, fulfilled: true, result });
     } catch (err) {
       if (err instanceof Error && err.name === "AmountMismatchError") {
