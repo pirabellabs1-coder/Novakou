@@ -6,9 +6,10 @@ import { requireCronAuth } from "@/lib/cron/auth";
  * GET /api/cron/approve-affiliate-commissions
  *
  * Daily at 03:00 UTC. Promotes PENDING affiliate commissions to APPROVED
- * once they're past the refund window (default 14 days). After APPROVED,
- * the monthly /api/cron/affiliate-payout cron flips them to PAID and
- * triggers the actual Mobile Money / Bank payout.
+ * once they're past the refund window (default 14 days). Once APPROVED, le
+ * montant devient RETIRABLE : l'affilié déclenche lui-même son virement via
+ * /affilie/retraits (POST /api/formations/affilie/retraits), qui crée le
+ * retrait réel. Pas de payout automatique côté plateforme.
  *
  * Auth: Bearer CRON_SECRET (or x-vercel-cron header from Vercel).
  */

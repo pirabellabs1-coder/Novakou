@@ -127,8 +127,8 @@ export async function GET(req: NextRequest) {
         ],
       },
       include: {
-        formation: { select: { title: true } },
-        digitalProduct: { select: { title: true } },
+        formation: { select: { title: true, price: true } },
+        digitalProduct: { select: { title: true, price: true } },
       },
       orderBy: { createdAt: "desc" },
     });
@@ -139,6 +139,16 @@ export async function GET(req: NextRequest) {
     const scheduled = offers.filter((o) => o.isActive && o.startsAt > now);
     const past = offers.filter((o) => !o.isActive || o.endsAt <= now);
 
+    // Revenu estimé généré par les offres flash : pour chaque offre, nombre
+    // d'utilisations × prix réduit (prix du produit/formation lié − discountPct).
+    const totalRevenue = Math.round(
+      offers.reduce((sum, o) => {
+        const basePrice = o.formation?.price ?? o.digitalProduct?.price ?? 0;
+        const discounted = basePrice * (1 - o.discountPct / 100);
+        return sum + discounted * o.usageCount;
+      }, 0),
+    );
+
     return NextResponse.json({
       active,
       scheduled,
@@ -146,7 +156,7 @@ export async function GET(req: NextRequest) {
       stats: {
         totalOffers: offers.length,
         activeNow: active.length,
-        totalRevenue: 0, // TODO: calculate from related enrollments/purchases
+        totalRevenue,
         totalUsages: offers.reduce((sum, o) => sum + o.usageCount, 0),
       },
     });
