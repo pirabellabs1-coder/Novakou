@@ -45,7 +45,15 @@ export async function GET() {
           studentId: userId,
           status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] },
         },
-        select: { status: true, paidAmount: true },
+        select: {
+          id: true,
+          status: true,
+          paidAmount: true,
+          scheduledAt: true,
+          durationMinutes: true,
+          studentGoals: true,
+          mentor: { select: { user: { select: { name: true, image: true } } } },
+        },
       }),
       // FIX : avant `totalSpent` n'incluait pas les bundles ni les
       // abonnements → user qui dépense 30 000 FCFA en abos voit "0".
@@ -76,6 +84,27 @@ export async function GET() {
 
     const inProgress = enrollmentList.filter((e) => e.progress > 0 && e.progress < 100).length;
     const completed  = enrollmentList.filter((e) => e.completedAt !== null).length;
+
+    // Séances mentor à venir : PENDING/CONFIRMED dont l'horaire est dans le futur,
+    // triées par date, mappées au format attendu par le dashboard acheteur.
+    const nowTs = Date.now();
+    const upcomingMentorSessions = mentorBookingList
+      .filter(
+        (b) =>
+          (b.status === "PENDING" || b.status === "CONFIRMED") &&
+          b.scheduledAt &&
+          new Date(b.scheduledAt).getTime() >= nowTs,
+      )
+      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+      .slice(0, 5)
+      .map((b) => ({
+        id: b.id,
+        mentorName: b.mentor?.user?.name ?? "Votre mentor",
+        mentorAvatar: b.mentor?.user?.image ?? undefined,
+        topic: b.studentGoals ?? undefined,
+        startsAt: new Date(b.scheduledAt).toISOString(),
+        minutesUntil: Math.max(0, Math.round((new Date(b.scheduledAt).getTime() - nowTs) / 60000)),
+      }));
 
     // Weekly activity — last 7 days, count completed lessons per day
     let weeklyActivity: { day: string; minutesStudied: number }[] = [];
@@ -136,6 +165,7 @@ export async function GET() {
       },
       recentEnrollments: enrollmentList.slice(0, 3),
       weeklyActivity,
+      upcomingMentorSessions,
     });
   } catch (err) {
     console.error("[dashboard/route]", err);

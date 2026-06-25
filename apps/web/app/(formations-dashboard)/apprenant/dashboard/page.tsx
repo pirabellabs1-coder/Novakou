@@ -113,7 +113,7 @@ export default function ApprenantDashboardPage() {
       ? Math.round(inProgress.reduce((s, e) => s + (e.progress || 0), 0) / inProgress.length)
       : 0;
 
-  // Mentor sessions à venir (mock data — endpoint dédié à venir)
+  // Séances mentor à venir — réelles (API dashboard : réservations PENDING/CONFIRMED futures)
   const upcomingSessions = (data?.upcomingMentorSessions ?? []) as Array<{
     id: string;
     mentorName: string;
