@@ -38,15 +38,26 @@ function formatFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
 
+// On partage le LIEN TRACKÉ (et non l'URL brute) : c'est l'endpoint
+// /api/marketing/campaigns/[slug] qui compte le clic, pose le cookie
+// d'attribution `fh_campaign`, puis redirige vers la destination avec les UTM.
+// Partager l'URL brute (ancien comportement) contournait le tracker → 0 clic.
 function buildUtmUrl(campaign: Campaign): string {
-  const base = campaign.destinationUrl;
-  const params = new URLSearchParams();
-  if (campaign.utmSource) params.set("utm_source", campaign.utmSource);
-  if (campaign.utmMedium) params.set("utm_medium", campaign.utmMedium);
-  if (campaign.utmCampaign) params.set("utm_campaign", campaign.utmCampaign);
-  if (campaign.utmContent) params.set("utm_content", campaign.utmContent);
-  const qs = params.toString();
-  return qs ? `${base}${base.includes("?") ? "&" : "?"}${qs}` : base;
+  const origin =
+    process.env.NEXT_PUBLIC_APP_URL ||
+    (typeof window !== "undefined" ? window.location.origin : "https://novakou.com");
+  if (!campaign.slug) {
+    // Avant l'enregistrement (aperçu live) : on montre l'URL brute + UTM.
+    const base = campaign.destinationUrl;
+    const params = new URLSearchParams();
+    if (campaign.utmSource) params.set("utm_source", campaign.utmSource);
+    if (campaign.utmMedium) params.set("utm_medium", campaign.utmMedium);
+    if (campaign.utmCampaign) params.set("utm_campaign", campaign.utmCampaign);
+    if (campaign.utmContent) params.set("utm_content", campaign.utmContent);
+    const qs = params.toString();
+    return qs ? `${base}${base.includes("?") ? "&" : "?"}${qs}` : base;
+  }
+  return `${origin}/api/marketing/campaigns/${campaign.slug}`;
 }
 
 const SOURCE_OPTIONS = ["facebook", "instagram", "tiktok", "youtube", "email", "whatsapp", "twitter", "linkedin", "google", "autre"];
