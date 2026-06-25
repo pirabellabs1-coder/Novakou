@@ -1466,7 +1466,7 @@ export default function CreerSonProduitPage() {
         </p>
 
         <ProTip>
-          <strong>Strategie de pricing avancee :</strong> Proposez plusieurs
+          <strong>Stratégie de pricing avancée&nbsp;:</strong> Proposez plusieurs
           niveaux de votre produit. Par exemple, pour une formation : le cours
           video seul a 25 000 FCFA, le cours + les templates a 40 000 FCFA, le
           cours + les templates + une session de coaching individuel a 100 000

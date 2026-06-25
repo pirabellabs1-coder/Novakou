@@ -357,7 +357,7 @@ Retourne UNIQUEMENT le texte de la réponse suggérée, sans guillemets ni expli
           <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <span className="material-symbols-outlined text-3xl md:text-4xl text-primary/40">forum</span>
           </div>
-          <p className="font-medium text-slate-400 text-sm md:text-base">Selectionnez une conversation</p>
+          <p className="font-medium text-slate-400 text-sm md:text-base">Sélectionnez une conversation</p>
           <p className="text-xs mt-2 text-slate-600">Vos messages apparaitront ici</p>
         </div>
       </div>

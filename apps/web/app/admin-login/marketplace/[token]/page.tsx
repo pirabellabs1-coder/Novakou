@@ -164,7 +164,7 @@ export default function AdminMarketplaceLoginPage() {
               <div className="w-14 h-14 rounded-xl bg-red-600/10 flex items-center justify-center mx-auto mb-4">
                 <ShieldCheck size={24} className="text-red-500" />
               </div>
-              <h2 className="text-xl font-bold text-white">Verification 2FA</h2>
+              <h2 className="text-xl font-bold text-white">Vérification 2FA</h2>
               <p className="text-slate-400 text-sm mt-1">Code authenticator requis</p>
             </div>
             {error && (

@@ -112,7 +112,7 @@ export function KycUploadCard({ currentLevel, requests, onRefresh }: KycUploadCa
     try {
       const docType = selectedDocType;
       if (!docType) {
-        setError("Selectionnez un type de document");
+        setError("Sélectionnez un type de document");
         setSubmitting(false);
         return;
       }
@@ -271,7 +271,7 @@ export function KycUploadCard({ currentLevel, requests, onRefresh }: KycUploadCa
                       onChange={(e) => setSelectedDocType(e.target.value)}
                       className="w-full bg-background-dark border border-border-dark rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary"
                     >
-                      <option value="">-- Selectionnez --</option>
+                      <option value="">-- Sélectionnez --</option>
                       {DOC_TYPES_BY_LEVEL[lvl.level]?.map((dt) => (
                         <option key={dt.value} value={dt.value}>
                           {dt.label}

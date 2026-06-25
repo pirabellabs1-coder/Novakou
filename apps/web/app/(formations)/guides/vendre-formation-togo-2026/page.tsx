@@ -937,7 +937,7 @@ export default function VendreFormationTogoPage() {
         >
           <li>Eligible au regime du forfait (declaration simplifiee)</li>
           <li>Exonere de TVA (pas besoin de la facturer ni de la reverser)</li>
-          <li>Soumis a l&apos;AIB (Acompte sur Impot sur les Benefices) calcule sur ton CA</li>
+          <li>Soumis à l&apos;AIB (Acompte sur Impôt sur les Bénéfices) calculé sur ton CA</li>
           <li>Dispense de tenir une comptabilite complete (registre simplifie)</li>
           <li>Autorise a emettre des factures simplifiees</li>
         </ul>

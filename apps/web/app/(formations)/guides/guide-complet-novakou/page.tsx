@@ -742,7 +742,7 @@ export default function GuideCompletNovakou() {
         </Step>
 
         <Step n={3}>
-          <strong>Verifiez votre email :</strong> Un code de verification a 6 chiffres sera envoye a
+          <strong>Vérifiez votre e-mail&nbsp;:</strong> Un code de vérification à 6 chiffres sera envoyé à
           l&apos;adresse email que vous avez fournie. Copiez-le et collez-le dans le champ de verification.
           Le code expire apres 10 minutes.
         </Step>
@@ -1022,7 +1022,7 @@ export default function GuideCompletNovakou() {
         </div>
 
         <Step n={1}>
-          <strong>Allez dans Parametres &gt; Paiements :</strong> Depuis votre tableau de bord,
+          <strong>Allez dans Paramètres &gt; Paiements&nbsp;:</strong> Depuis votre tableau de bord,
           ouvrez les parametres et selectionnez l&apos;onglet &quot;Paiements&quot;.
         </Step>
 
@@ -1033,7 +1033,7 @@ export default function GuideCompletNovakou() {
         </Step>
 
         <Step n={3}>
-          <strong>Verifiez votre identite :</strong> Pour recevoir des paiements, vous devez
+          <strong>Vérifiez votre identité&nbsp;:</strong> Pour recevoir des paiements, vous devez
           completer la verification d&apos;identite (KYC). Uploadez une photo de votre carte d&apos;identite
           ou passeport. La verification prend generalement moins de 24 heures.
         </Step>
@@ -1403,7 +1403,7 @@ export default function GuideCompletNovakou() {
         <MockWithdrawal />
 
         <Step n={1}>
-          <strong>Verifiez votre solde disponible :</strong> Dans votre tableau de bord, consultez
+          <strong>Vérifiez votre solde disponible&nbsp;:</strong> Dans votre tableau de bord, consultez
           votre portefeuille. Le &quot;solde disponible&quot; est le montant que vous pouvez retirer
           immediatement. Le &quot;solde en attente&quot; correspond aux ventes recentes dont le delai de
           securite (48 heures) n&apos;est pas encore ecoule.
@@ -1453,7 +1453,7 @@ export default function GuideCompletNovakou() {
               </tbody>
             </table>
           </div>
-          <p className="text-[11px] mt-2" style={{ color: C.muted }}>* Instantane apres validation du retrait (24-48h ouvrees)</p>
+          <p className="text-[11px] mt-2" style={{ color: C.muted }}>* Instantané après validation du retrait (24-48 h ouvrées)</p>
         </div>
 
         <Tip>

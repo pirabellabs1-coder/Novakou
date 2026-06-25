@@ -254,7 +254,7 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
               onChange={(e) => updateField("country", e.target.value)}
               className={inputClass("country")}
             >
-              <option value="">-- Selectionnez un pays --</option>
+              <option value="">-- Sélectionnez un pays --</option>
               {COUNTRIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -329,7 +329,7 @@ export function KycIndividualForm({ onSuccess }: KycIndividualFormProps) {
               onChange={(e) => updateField("documentType", e.target.value)}
               className={inputClass("documentType")}
             >
-              <option value="">-- Selectionnez --</option>
+              <option value="">-- Sélectionnez --</option>
               {DOC_TYPES.map((dt) => (
                 <option key={dt.value} value={dt.value}>
                   {dt.label}
