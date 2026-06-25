@@ -252,12 +252,12 @@ export default function FormationPageClient({ slug }: { slug: string }) {
         body: JSON.stringify({ formationId: formation.id }),
       });
       if (res.ok) {
+        // Reste « Ajouté au panier » (coloré) : on ne réinitialise plus.
         setAddedToCart(true);
         // Notify the navbar cart badge to refresh
         try {
           window.dispatchEvent(new CustomEvent("nk:cart-change"));
         } catch { /* ignore */ }
-        setTimeout(() => setAddedToCart(false), 2500);
       }
     } finally {
       setAddingToCart(false);

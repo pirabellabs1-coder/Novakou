@@ -141,6 +141,8 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
   // Mis à jour par <SaleAvailability> à chaque tick (deadline ou stock atteint).
   // Permet de désactiver le bouton "Acheter" en temps réel sans recharger la page.
   const [canBuy, setCanBuy] = useState(true);
+  const [addingCart, setAddingCart] = useState(false);
+  const [addedCart, setAddedCart] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -161,6 +163,24 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
   function handleBuyNow() {
     if (!product) return;
     router.push(`/checkout?pids=${product.id}`);
+  }
+
+  async function handleAddToCart() {
+    if (!product || addingCart || addedCart) return;
+    setAddingCart(true);
+    try {
+      const res = await fetch("/api/formations/apprenant/cart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      });
+      if (res.ok) {
+        setAddedCart(true); // reste coloré
+        try { window.dispatchEvent(new CustomEvent("nk:cart-change")); } catch { /* ignore */ }
+      }
+    } finally {
+      setAddingCart(false);
+    }
   }
 
   if (loading) {
@@ -544,6 +564,22 @@ export default function ProduitPageClient({ slug }: { slug: string }) {
                       ? "Télécharger maintenant"
                       : "Acheter maintenant"}
                 </button>
+
+                {!isFree && canBuy && (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={addingCart || addedCart}
+                    className="w-full mt-2.5 py-3 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-colors disabled:cursor-default"
+                    style={
+                      addedCart
+                        ? { background: "#e6f5eb", color: "#006e2f", borderColor: "#006e2f" }
+                        : { background: "#fff", color: "#191c1e", borderColor: "#e4eae6" }
+                    }
+                  >
+                    <ShoppingCart size={17} />
+                    {addedCart ? "Ajouté au panier ✓" : addingCart ? "Ajout…" : "Ajouter au panier"}
+                  </button>
+                )}
 
                 {/* Compte à rebours + barre de progression — affichés uniquement
                     si le vendeur a configuré une deadline ou un stock max. */}
