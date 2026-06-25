@@ -46,6 +46,18 @@ function CategoryPill({ children }: { children: React.ReactNode }) {
 /* ─── Données des guides ──────────────────────────────────── */
 const GUIDES = [
   {
+    href: "/guides/importer-systeme-io",
+    gradient: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+    icon: "download",
+    time: "9 min",
+    level: "Débutant",
+    levelColor: "#0ea5e9",
+    chapters: "6 sections",
+    title: "Importer son tunnel Systeme.io sur Novakou",
+    desc: "Vous venez de Systeme.io ? Collez l'URL de votre tunnel : titre, texte et image sont importés automatiquement en brouillon. Migration en 30 secondes, captures à l'appui.",
+    category: "Technique",
+  },
+  {
     href: "/guides/devenir-affilie-gagner-argent",
     gradient: "linear-gradient(135deg, #006e2f, #22c55e)",
     icon: "group",

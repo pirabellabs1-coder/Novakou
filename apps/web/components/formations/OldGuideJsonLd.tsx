@@ -23,6 +23,21 @@ const OLD_GUIDES_META: Record<
     keywords: string[];
   }
 > = {
+  "importer-systeme-io": {
+    title: "Importer son tunnel Systeme.io sur Novakou",
+    description:
+      "Migrez votre tunnel de vente Systeme.io vers votre boutique Novakou en quelques secondes : collez l'URL, le titre, le texte et l'image sont importés automatiquement. Guide pas à pas avec captures.",
+    category: "Technique",
+    datePublished: "2026-06-25",
+    dateModified: "2026-06-25",
+    keywords: [
+      "importer Systeme.io Novakou",
+      "migrer tunnel Systeme.io",
+      "alternative Systeme.io Afrique",
+      "passer de Systeme.io à Novakou",
+      "tunnel de vente Mobile Money",
+    ],
+  },
   "creer-son-produit": {
     title: "Comment créer son premier produit digital en Afrique",
     description:
