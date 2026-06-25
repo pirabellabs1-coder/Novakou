@@ -13,6 +13,8 @@
  *   { msisdn: "221771234567" }   // digits only, international format, SANS le +
  */
 
+import { COUNTRIES } from "@/lib/countries";
+
 export type PayoutField = "msisdn" | "account_number";
 
 export interface PayoutMethodDef {
@@ -345,8 +347,30 @@ export const PAYOUT_METHODS: PayoutMethodDef[] = [
  */
 export function getAvailablePayoutMethods(country: string | null | undefined): PayoutMethodDef[] {
   if (!country) return PAYOUT_METHODS;
-  const upper = country.toUpperCase();
-  return PAYOUT_METHODS.filter((m) => m.countries.includes(upper));
+  const code = resolveCountryCode(country);
+  // Pays non reconnu (libellé inconnu) → on montre tout, l'utilisateur choisit.
+  if (!code) return PAYOUT_METHODS;
+  // Pays reconnu → uniquement ses méthodes (peut être vide = pays non couvert).
+  return PAYOUT_METHODS.filter((m) => m.countries.includes(code));
+}
+
+/**
+ * Normalise un pays en code ISO-2. Accepte un code ISO-2 ("BJ") OU un libellé
+ * ("Bénin", "benin", "Côte d'Ivoire") — le profil utilisateur stocke le NOM du
+ * pays (CountrySelect valueKey="name"), pas le code, d'où la nécessité de
+ * résoudre avant de filtrer les méthodes (sinon « Aucune méthode disponible »
+ * alors que le pays est bien couvert).
+ */
+function resolveCountryCode(country: string): string | null {
+  const raw = (country ?? "").trim();
+  if (!raw) return null;
+  const upper = raw.toUpperCase();
+  if (upper.length === 2 && COUNTRIES.some((c) => c.code === upper)) return upper;
+  const norm = (s: string) =>
+    s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+  const target = norm(raw);
+  const match = COUNTRIES.find((c) => norm(c.name) === target);
+  return match?.code ?? null;
 }
 
 /** Retourne la définition d'une méthode par son id. */
