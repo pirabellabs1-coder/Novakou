@@ -3,7 +3,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -1848,6 +1848,17 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Funnel vide (fraîchement créé) → ouvre la galerie de templates une seule fois,
+  // pour que le vendeur parte d'un design pro au lieu d'une page blanche.
+  const autoGalleryRef = useRef(false);
+  useEffect(() => {
+    if (!funnel || autoGalleryRef.current) return;
+    autoGalleryRef.current = true;
+    const first = funnel.steps[0];
+    const blocks = (first?.blocks as unknown[]) ?? [];
+    if (blocks.length === 0) setShowGallery(true);
+  }, [funnel]);
 
   async function save(patch: Omit<Partial<Funnel>, "steps"> & { steps?: Partial<Step>[] }) {
     if (!funnel) return;
