@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { ensureAgentsSeeded } from "@/lib/agents/runtime";
 import { runAssistant } from "@/lib/agents/impl/assistant";
 import { runModeration, runKyc, runRetention, runSupport } from "@/lib/agents/impl/rules-agents";
+import { runFinance, runReviews, runOnboarding, runContent } from "@/lib/agents/impl/extra-agents";
 
 function isAdmin(session: { user?: ({ email?: string | null } & Record<string, unknown>) } | null): boolean {
   if (!session?.user) return false;
@@ -20,6 +21,10 @@ const RUNNERS: Record<string, () => Promise<unknown>> = {
   moderation: runModeration,
   kyc: runKyc,
   retention: runRetention,
+  finance: runFinance,
+  reviews: runReviews,
+  onboarding: runOnboarding,
+  content: runContent,
 };
 
 // POST — exécuter un agent immédiatement (bouton « Lancer maintenant »).

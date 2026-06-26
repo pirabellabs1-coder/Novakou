@@ -3,6 +3,7 @@ import { requireCronAuth } from "@/lib/cron/auth";
 import { ensureAgentsSeeded } from "@/lib/agents/runtime";
 import { runAssistant } from "@/lib/agents/impl/assistant";
 import { runModeration, runKyc, runRetention, runSupport } from "@/lib/agents/impl/rules-agents";
+import { runFinance, runReviews, runOnboarding, runContent } from "@/lib/agents/impl/extra-agents";
 
 /**
  * GET /api/cron/agents
@@ -19,6 +20,10 @@ const RUNNERS: Record<string, () => Promise<unknown>> = {
   moderation: runModeration,
   kyc: runKyc,
   retention: runRetention,
+  finance: runFinance,
+  reviews: runReviews,
+  onboarding: runOnboarding,
+  content: runContent,
 };
 
 export async function GET(req: NextRequest) {
