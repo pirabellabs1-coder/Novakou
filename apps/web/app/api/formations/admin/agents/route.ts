@@ -50,7 +50,35 @@ export async function GET() {
     take: 50,
   });
 
-  return NextResponse.json({ agents, actions, llmConfigured: !!(process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY) });
+  // Résumé « centrale » (live) : ce qui tourne, ce qui a été fait sur 24 h.
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const [runsToday, actionsToday, pending, lastRun] = await Promise.all([
+    prisma.agentRun.count({ where: { startedAt: { gte: since24h } } }),
+    prisma.agentAction.count({ where: { createdAt: { gte: since24h } } }),
+    prisma.agentAction.count({ where: { status: "proposed" } }),
+    prisma.agentRun.findFirst({ orderBy: { startedAt: "desc" }, select: { startedAt: true } }),
+  ]);
+  const activeAgents = agents.filter((a) => a.enabled).length;
+  // Le cron tourne en haut de chaque heure (vercel.json: 0 * * * *).
+  const next = new Date();
+  next.setUTCMinutes(0, 0, 0);
+  next.setUTCHours(next.getUTCHours() + 1);
+
+  return NextResponse.json({
+    agents,
+    actions,
+    llmConfigured: !!(process.env.GROQ_API_KEY || process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY),
+    live: {
+      activeAgents,
+      totalAgents: agents.length,
+      runsToday,
+      actionsToday,
+      pending,
+      lastRunAt: lastRun?.startedAt ? lastRun.startedAt.toISOString() : null,
+      nextRunAt: next.toISOString(),
+      serverTime: new Date().toISOString(),
+    },
+  });
 }
 
 // PATCH — activer/désactiver ou changer l'autonomie d'un agent

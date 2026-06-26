@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { ST, StPageHeader, StCard, StButton, StChip } from "@/components/stitch";
-import { ArrowLeft, Bot, Play, Check, X, AlertTriangle, Loader2, BarChart3, SlidersHorizontal, Save } from "lucide-react";
+import { ArrowLeft, Bot, Play, Check, X, AlertTriangle, Loader2, BarChart3, SlidersHorizontal, Save, Activity, Radio, Zap, Clock } from "lucide-react";
 
 interface ConfigField {
   key: string; label: string; type: "number" | "text" | "textarea";
@@ -19,6 +19,14 @@ interface ActionRow {
   id: string; agentKey: string; type: string; status: string; risk: string;
   title: string; reasoning: string | null; createdAt: string;
 }
+interface Live {
+  activeAgents: number; totalAgents: number; runsToday: number; actionsToday: number;
+  pending: number; lastRunAt: string | null; nextRunAt: string | null; serverTime: string;
+}
+interface FeedEv {
+  kind: "run" | "action"; id: string; emoji: string; agentName: string; at: string;
+  status: string; summary?: string | null; title?: string;
+}
 
 const AUTONOMY_LABEL: Record<string, string> = {
   mixed: "Mixte (auto + validation)", approval: "Validation totale", auto: "Full auto", off: "Désactivé",
@@ -32,6 +40,12 @@ function timeAgo(d: string | null): string {
   if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
   return `il y a ${Math.floor(s / 86400)} j`;
 }
+function countdown(iso: string | null, nowMs: number): string {
+  if (!iso) return "—";
+  let s = Math.max(0, Math.floor((new Date(iso).getTime() - nowMs) / 1000));
+  const m = Math.floor(s / 60); s = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
 
 export default function AdminAgentsPage() {
   const [agents, setAgents] = useState<AgentRow[]>([]);
@@ -42,18 +56,40 @@ export default function AdminAgentsPage() {
   const [configOpen, setConfigOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, string | number>>({});
   const [saved, setSaved] = useState<string | null>(null);
+  const [live, setLive] = useState<Live | null>(null);
+  const [feed, setFeed] = useState<FeedEv[]>([]);
+  const [nowMs, setNowMs] = useState<number>(0);
 
   const load = useCallback(async () => {
-    const res = await fetch("/api/formations/admin/agents");
-    if (res.ok) {
-      const j = await res.json();
+    const [r1, r2] = await Promise.all([
+      fetch("/api/formations/admin/agents"),
+      fetch("/api/formations/admin/agents/activity?limit=6"),
+    ]);
+    if (r1.ok) {
+      const j = await r1.json();
       setAgents(j.agents ?? []);
       setActions(j.actions ?? []);
       setLlm(!!j.llmConfigured);
+      setLive(j.live ?? null);
+    }
+    if (r2.ok) {
+      const j = await r2.json();
+      setFeed(j.events ?? []);
     }
     setLoading(false);
   }, []);
   useEffect(() => { load(); }, [load]);
+  // Polling « centrale » : rafraîchit l'état toutes les 8 s.
+  useEffect(() => {
+    const id = setInterval(load, 8000);
+    return () => clearInterval(id);
+  }, [load]);
+  // Tic chaque seconde pour le compte à rebours.
+  useEffect(() => {
+    setNowMs(Date.now());
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   async function patchAgent(key: string, body: Record<string, unknown>) {
     setBusy(key);
@@ -127,6 +163,85 @@ export default function AdminAgentsPage() {
           }
         />
 
+        {/* ───────── CENTRALE (poste de commande, en direct) ───────── */}
+        <div
+          className="rounded-[18px] p-5 mb-5 relative overflow-hidden"
+          style={{ background: "linear-gradient(135deg,#06231a,#0c3a26 60%,#0a5132)", color: "#fff" }}
+        >
+          {/* halo animé */}
+          <div className="absolute -right-10 -top-10 w-44 h-44 rounded-full opacity-20" style={{ background: "radial-gradient(circle,#34d399,transparent 70%)" }} />
+          <div className="flex items-start justify-between gap-3 relative">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-70" style={{ background: "#34d399" }} />
+                  <span className="relative inline-flex rounded-full h-3 w-3" style={{ background: "#34d399" }} />
+                </span>
+                <span className="text-[12px] font-extrabold uppercase tracking-[0.14em]" style={{ color: "#9ef0c4" }}>
+                  Centrale · en service 24/7
+                </span>
+              </div>
+              <h2 className="text-[19px] font-extrabold mt-1.5 flex items-center gap-2">
+                <Radio size={18} className="animate-pulse" style={{ color: "#34d399" }} />
+                {live ? `${live.activeAgents}/${live.totalAgents} agents tournent en boucle` : "Initialisation…"}
+              </h2>
+              <p className="text-[12.5px] mt-1" style={{ color: "#bfe8d2" }}>
+                Cycle automatique toutes les heures · dernier passage {timeAgo(live?.lastRunAt ?? null)}
+              </p>
+            </div>
+            {/* compte à rebours prochain cycle */}
+            <div className="text-right flex-shrink-0">
+              <p className="text-[10.5px] font-bold uppercase tracking-wide flex items-center justify-end gap-1" style={{ color: "#9ef0c4" }}>
+                <Clock size={12} /> Prochain cycle
+              </p>
+              <p className="text-[30px] font-extrabold tabular-nums leading-none mt-1" style={{ color: "#fff" }}>
+                {countdown(live?.nextRunAt ?? null, nowMs)}
+              </p>
+            </div>
+          </div>
+
+          {/* compteurs live */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 relative">
+            {[
+              { icon: Bot, label: "Agents actifs", val: live ? `${live.activeAgents}` : "—" },
+              { icon: Play, label: "Exécutions (24 h)", val: live ? `${live.runsToday}` : "—" },
+              { icon: Zap, label: "Actions (24 h)", val: live ? `${live.actionsToday}` : "—" },
+              { icon: AlertTriangle, label: "À valider", val: live ? `${live.pending}` : "—" },
+            ].map((s) => (
+              <div key={s.label} className="rounded-[13px] px-3 py-2.5" style={{ background: "rgba(255,255,255,0.09)" }}>
+                <p className="text-[10.5px] font-bold flex items-center gap-1" style={{ color: "#bfe8d2" }}>
+                  <s.icon size={12} /> {s.label}
+                </p>
+                <p className="text-[22px] font-extrabold tabular-nums mt-0.5">{s.val}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* mini-flux en direct */}
+          <div className="mt-4 relative">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[11px] font-extrabold uppercase tracking-wide flex items-center gap-1.5" style={{ color: "#9ef0c4" }}>
+                <Activity size={13} /> Flux en direct
+              </p>
+              <Link href="/admin/agents/activite" className="text-[11px] font-bold underline" style={{ color: "#9ef0c4" }}>
+                Tout voir →
+              </Link>
+            </div>
+            <div className="space-y-1">
+              {feed.length === 0 ? (
+                <p className="text-[12px]" style={{ color: "#bfe8d2" }}>En attente du premier passage des agents…</p>
+              ) : feed.slice(0, 5).map((e) => (
+                <div key={`${e.kind}-${e.id}`} className="flex items-center gap-2 text-[12px] rounded-lg px-2.5 py-1.5" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <span className="text-[14px] leading-none">{e.emoji}</span>
+                  <span className="font-bold" style={{ color: "#fff" }}>{e.agentName.split("—")[0].trim()}</span>
+                  <span className="truncate flex-1" style={{ color: "#cdeeda" }}>{e.kind === "run" ? (e.summary || "exécution") : e.title}</span>
+                  <span className="whitespace-nowrap" style={{ color: "#8fd3ac" }}>{timeAgo(e.at)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {!llm && (
           <div className="rounded-[14px] p-4 mb-5 flex items-start gap-3" style={{ background: ST.amberSoft }}>
             <AlertTriangle size={18} style={{ color: ST.amberText }} className="flex-shrink-0 mt-0.5" />
@@ -149,6 +264,20 @@ export default function AdminAgentsPage() {
                   <div className="min-w-0">
                     <p className="font-extrabold text-[15px]" style={{ color: ST.text }}>{a.name}</p>
                     <p className="text-[12.5px] mt-0.5" style={{ color: ST.textSecondary }}>{a.description}</p>
+                    <p className="text-[11px] font-bold mt-1.5 inline-flex items-center gap-1.5">
+                      {a.enabled ? (
+                        <>
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-70" style={{ background: ST.green }} />
+                            <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: ST.green }} />
+                          </span>
+                          <span style={{ color: ST.green }}>En activité</span>
+                          <span style={{ color: ST.textMuted }}>· prochain cycle {countdown(live?.nextRunAt ?? null, nowMs)}</span>
+                        </>
+                      ) : (
+                        <span style={{ color: ST.textMuted }}>⏸ En veille</span>
+                      )}
+                    </p>
                   </div>
                 </div>
                 <button
