@@ -77,6 +77,27 @@ export async function POST(req: Request) {
 
   // Simple ticket reference for correspondence
   const ticketRef = `NK-${Date.now().toString(36).toUpperCase()}`;
+  const ipAddress = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || null;
+  const userAgent = req.headers.get("user-agent") ?? null;
+
+  // 0. Persiste le ticket en base → visible dans l'admin « Tickets support » + répondable.
+  //    La catégorie est préfixée à l'objet (le modèle SupportTicket n'a pas de champ catégorie).
+  try {
+    await prisma.supportTicket.create({
+      data: {
+        reference: ticketRef,
+        name,
+        email,
+        subject: `[${category}] ${subject}`,
+        message,
+        status: "NEW",
+        ipAddress,
+        userAgent,
+      },
+    });
+  } catch (err) {
+    console.error("[support/ticket] supportTicket create failed:", err);
+  }
 
   // 1. Audit log (durable trace)
   try {
