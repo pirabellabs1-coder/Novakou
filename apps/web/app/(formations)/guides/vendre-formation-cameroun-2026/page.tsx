@@ -227,7 +227,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation au Cameroun ?",
-    a: "Non. Au Cameroun en 2026, un compte MTN MoMo ou Orange Money suffit largement pour demarrer. Novakou verse directement tes gains sur ton numero Mobile Money. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a Afriland First Bank, UBA Cameroun, SGBC ou Ecobank pour structurer ta tresorerie et facturer en B2B.",
+    a: "Non. Au Cameroun en 2026, un compte MTN MoMo ou Orange Money suffit largement pour demarrer. Novakou verse directement tes gains sur ton numéro Mobile Money. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a Afriland First Bank, UBA Cameroun, SGBC ou Ecobank pour structurer ta tresorerie et facturer en B2B.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue au Cameroun ?",
@@ -235,23 +235,23 @@ const FAQ_ITEMS = [
   },
   {
     q: "Est-ce que je dois declarer mes revenus a la DGI camerounaise ?",
-    a: "Oui, des le premier FCFA encaisse. Le statut le plus simple au Cameroun est le regime micro-fiscal de la DGI (Direction Generale des Impots). Tu te declares en agence DGI (ou en ligne via le portail) avec ta CNI et tu obtiens un Numero d'Identifiant Unique (NIU). Tant que tu restes sous le seuil de 10 millions FCFA de CA annuel, tu paies un impot synthetique liberatoire (taux fixe selon la tranche), tu es exonere de TVA et dispense de comptabilite reelle. Cet article est informatif - consulte un expert-comptable agree OEC Cameroun pour ta situation precise.",
+    a: "Oui, des le premier FCFA encaisse. Le statut le plus simple au Cameroun est le regime micro-fiscal de la DGI (Direction Generale des Impots). Tu te declares en agence DGI (ou en ligne via le portail) avec ta CNI et tu obtiens un Numéro d'Identifiant Unique (NIU). Tant que tu restes sous le seuil de 10 millions FCFA de CA annuel, tu paies un impot synthetique liberatoire (taux fixe selon la tranche), tu es exonere de TVA et dispense de comptabilite reelle. Cet article est informatif - consulte un expert-comptable agree OEC Cameroun pour ta situation precise.",
   },
   {
     q: "MTN MoMo ou Orange Money, lequel choisir pour encaisser ?",
-    a: "Les deux, sans hesiter. MTN MoMo domine au Cameroun avec environ 60 pourcent du marche Mobile Money (forte penetration a Douala, Bafoussam, Buea, Bamenda), Orange Money est tres present a Yaounde et dans le Centre-Sud. Novakou integre les deux par defaut : ton acheteur choisit, tu encaisses, tu recois ton solde en fin de cycle. Refuser l'un des deux, c'est se priver d'environ 35 a 45 pourcent du marche camerounais. Express Union Mobile complete utilement pour la diaspora et l'Ouest.",
+    a: "Les deux, sans hesiter. MTN MoMo domine au Cameroun avec environ 60 pourcent du marche Mobile Money (forte penetration a Douala, Bafoussam, Buea, Bamenda), Orange Money est très present a Yaounde et dans le Centre-Sud. Novakou integre les deux par defaut : ton acheteur choisit, tu encaisses, tu recois ton solde en fin de cycle. Refuser l'un des deux, c'est se priver d'environ 35 a 45 pourcent du marche camerounais. Express Union Mobile complete utilement pour la diaspora et l'Ouest.",
   },
   {
     q: "Combien de temps avant ma premiere vente au Cameroun ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 12 et 20 jours pour la premiere vente si tu as deja une petite audience WhatsApp (50 - 200 contacts a Douala, Yaounde, Bafoussam ou la diaspora). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Facebook ou TikTok. Les formateurs qui vont le plus vite sont ceux qui pre-vendent avant meme d'enregistrer le contenu, en s'appuyant sur leur reseau Buea/Silicon Mountain ou leur communaute professionnelle.",
+    a: "Avec la methode 30 jours decrite plus haut : entre 12 et 20 jours pour la premiere vente si tu as déjà une petite audience WhatsApp (50 - 200 contacts a Douala, Yaounde, Bafoussam ou la diaspora). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Facebook ou TikTok. Les formateurs qui vont le plus vite sont ceux qui pre-vendent avant meme d'enregistrer le contenu, en s'appuyant sur leur reseau Buea/Silicon Mountain ou leur communaute professionnelle.",
   },
   {
     q: "Faut-il un site web pour vendre une formation au Cameroun ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs camerounais sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs) ou si tu vises des appels d'offres B2B avec des entreprises etablies a Douala, mais cela vient plus tard.",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs camerounais sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs) ou si tu vises des appels d'offres B2B avec des entreprises etablies a Douala, mais cela vient plus tard.",
   },
   {
     q: "Puis-je vendre une formation depuis Bafoussam, Bamenda, Buea ou Garoua ?",
-    a: "Bien sur. La vente de formation en ligne au Cameroun n'est pas reservee a Douala et Yaounde. Avec une connexion 4G correcte (MTN, Orange ou Camtel), un smartphone recent et un micro-cravate a 6 000 FCFA, tu produis la meme qualite qu'a Bonanjo. Plusieurs formateurs Novakou bases a Buea (Silicon Mountain) et Bafoussam depassent 900 000 FCFA mensuels. Leur avantage : couts de vie plus bas, donc rentabilite superieure. Prevoir simplement un onduleur ou un power bank robuste : les coupures electriques restent un risque metier reel a integrer dans ton planning de tournage.",
+    a: "Bien sur. La vente de formation en ligne au Cameroun n'est pas reservee a Douala et Yaounde. Avec une connexion 4G correcte (MTN, Orange ou Camtel), un smartphone recent et un micro-cravate a 6 000 FCFA, tu produis la meme qualité qu'a Bonanjo. Plusieurs formateurs Novakou bases a Buea (Silicon Mountain) et Bafoussam depassent 900 000 FCFA mensuels. Leur avantage : couts de vie plus bas, donc rentabilite superieure. Prevoir simplement un onduleur ou un power bank robuste : les coupures electriques restent un risque metier reel a intégrer dans ton planning de tournage.",
   },
   {
     q: "Comment eviter que ma formation soit piratee et partagee gratuitement ? 🔒",
@@ -514,11 +514,11 @@ export default function VendreFormationCamerounPage() {
           vend a <strong>Douala formation digitale</strong> et dans tout le
           pays, encaisser via <strong>MTN MoMo Cameroun</strong>,{" "}
           <strong>Orange Money Cameroun</strong> ou{" "}
-          <strong>Yango Pay Cameroun</strong>, gerer ta fiscalite freelance
+          <strong>Yango Pay Cameroun</strong>, gérer ta fiscalite freelance
           dans le cadre du <strong>regime micro-fiscal Cameroun</strong>,
           promouvoir sans budget pub, lancer en 30 jours et comprendre les
           revenus realistes. Tout est aligne sur le terrain camerounais de
-          2026, pas sur des recettes copiees du marche francais.
+          2026, pas sur des recettes copiees du marche français.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale au Cameroun en 2026">
@@ -551,11 +551,11 @@ export default function VendreFormationCamerounPage() {
 
         <TipBox>
           <strong>Atout bilingue camerounais :</strong> le Cameroun est le
-          seul pays d&apos;Afrique avec le francais ET l&apos;anglais comme
+          seul pays d&apos;Afrique avec le français ET l&apos;anglais comme
           langues officielles (80 pourcent francophones, 20 pourcent
           anglophones dans le Nord-Ouest et le Sud-Ouest). Une formation
           publiee en versions FR + EN double naturellement ton marche
-          adressable, sans concurrent supplementaire significatif. Tres peu
+          adressable, sans concurrent supplementaire significatif. Très peu
           de formateurs exploitent ce levier en 2026 - c&apos;est un
           avantage competitif gratuit.
         </TipBox>
@@ -572,7 +572,7 @@ export default function VendreFormationCamerounPage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Douala. Le marche camerounais
-          a ses preferences propres, structurees par la demographie jeune,
+          a ses préférences propres, structurees par la demographie jeune,
           la culture entrepreneuriale du Mungo et de l&apos;Ouest, et la
           presence du <strong>Yaounde tech hub</strong> qui forme une
           nouvelle classe de talents techniques. Voici les six niches qui
@@ -591,7 +591,7 @@ export default function VendreFormationCamerounPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          La niche n°1 au Cameroun. La culture entrepreneuriale est tres
+          La niche n°1 au Cameroun. La culture entrepreneuriale est très
           forte, notamment a Douala et a Bafoussam. Sujets qui marchent :
           import-export Chine-Cameroun, lancer son commerce a Mboppi,
           immobilier locatif Douala-Yaounde, e-commerce avec MTN MoMo,
@@ -650,7 +650,7 @@ export default function VendreFormationCamerounPage() {
         >
           Logo design, identite visuelle pour PME camerounaises, motion
           design pour reseaux sociaux, retouche photo, montage video CapCut
-          et Premiere Pro. Audience tres engagee, fortement portee par la
+          et Premiere Pro. Audience très engagee, fortement portee par la
           communaute creative de Douala et Yaounde. Ticket moyen : 20 000
           a 75 000 FCFA, excellente recurrence si tu proposes des
           templates ou une communaute privee.
@@ -685,10 +685,10 @@ export default function VendreFormationCamerounPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Christianisme tres present (catholiques, protestants,
+          Christianisme très present (catholiques, protestants,
           evangeliques pentecotistes), avec une demande forte pour la
           predication, l&apos;enseignement biblique, le leadership
-          chretien et le mariage. Audience tres loyale, faible churn.
+          chretien et le mariage. Audience très loyale, faible churn.
           Communaute musulmane importante au Nord (Garoua, Maroua) avec
           besoins propres : tajwid, sciences islamiques, finance halal.
         </p>
@@ -779,12 +779,12 @@ export default function VendreFormationCamerounPage() {
           style={{ color: C.dark }}
         >
           <strong>MTN MoMo Cameroun</strong> domine le marche avec environ
-          60 pourcent des transactions Mobile Money. Tres forte penetration
+          60 pourcent des transactions Mobile Money. Très forte penetration
           a Douala, Bafoussam, Buea, Bamenda et chez les jeunes. Pour un
           vendeur de formation, c&apos;est le moyen de paiement prefere
           des moins de 35 ans urbains. L&apos;integration MTN MoMo sur
           Novakou est native : ton acheteur clique sur &quot;Payer avec
-          MTN MoMo&quot;, saisit son numero, valide via USSD ou app, et la
+          MTN MoMo&quot;, saisit son numéro, valide via USSD ou app, et la
           transaction se confirme en quelques secondes.
         </p>
 
@@ -798,8 +798,8 @@ export default function VendreFormationCamerounPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          <strong>Orange Money Cameroun</strong> est tres present a
-          Yaounde, dans le Centre, le Sud et l&apos;Est. Tres fort aussi
+          <strong>Orange Money Cameroun</strong> est très present a
+          Yaounde, dans le Centre, le Sud et l&apos;Est. Très fort aussi
           aupres de la diaspora europeenne (France, Belgique, Allemagne)
           via Orange Money International qui permet a un cousin parisien
           d&apos;acheter la formation pour son neveu de Yaounde en
@@ -820,8 +820,8 @@ export default function VendreFormationCamerounPage() {
         >
           <strong>Yango Pay Cameroun</strong> est arrive en 2024 dans le
           sillage de Yango (VTC) et gagne du terrain chez les 20 - 30 ans
-          urbains de Douala et Yaounde. Frais souvent plus bas, experience
-          utilisateur tres moderne. Encore minoritaire en volume mais en
+          urbains de Douala et Yaounde. Frais souvent plus bas, expérience
+          utilisateur très moderne. Encore minoritaire en volume mais en
           forte croissance - inclure Yango Pay positionne ta boutique
           comme moderne et accessible a la jeunesse hyper-connectee.
         </p>
@@ -936,7 +936,7 @@ export default function VendreFormationCamerounPage() {
           d&apos;une comptabilite allegee. Inscription en agence DGI
           (Direction Generale des Impots) avec ta CNI, ton justificatif
           d&apos;adresse et l&apos;ouverture d&apos;un dossier
-          contribuable. Tu obtiens un <strong>NIU</strong> (Numero
+          contribuable. Tu obtiens un <strong>NIU</strong> (Numéro
           d&apos;Identifiant Unique) en quelques jours, indispensable
           pour toute facturation B2B.
         </p>
@@ -992,7 +992,7 @@ export default function VendreFormationCamerounPage() {
           que le regime classique du reel. A ne pas oublier : la patente
           locale (mairie de Douala, Yaounde, Bafoussam...) et la CFPB
           (contribution forfaitaire) qui peuvent s&apos;ajouter selon ton
-          activite et ta commune. La CNPS (securite sociale) est
+          activité et ta commune. La CNPS (sécurité sociale) est
           fortement conseillee en adhesion volontaire pour la couverture
           maladie et retraite.
         </p>
@@ -1079,7 +1079,7 @@ export default function VendreFormationCamerounPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          Facebook - tres fort au Cameroun
+          Facebook - très fort au Cameroun
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -1129,7 +1129,7 @@ export default function VendreFormationCamerounPage() {
           conseil), LinkedIn est ton terrain. Public plus reduit mais
           ticket moyen beaucoup plus eleve (souvent 80 000 - 350 000
           FCFA). Le pole tech camerounais (anciens d&apos;ActivSpaces,
-          de Mountain Hub, de Jangolo) est tres actif sur LinkedIn.
+          de Mountain Hub, de Jangolo) est très actif sur LinkedIn.
         </p>
 
         <WarnBox>
@@ -1137,7 +1137,7 @@ export default function VendreFormationCamerounPage() {
           encheres publicitaires Facebook Ads au Cameroun restent moins
           cheres qu&apos;en Europe, mais pour un freelance debutant
           sans tunnel de vente teste, le ROI est negatif 7 fois sur 10.
-          Reserve ce canal pour une phase 2, quand tu as deja vendu
+          Reserve ce canal pour une phase 2, quand tu as déjà vendu
           naturellement au moins 30 fois et compris ton message qui
           convertit. Le guide{" "}
           <Link
@@ -1170,7 +1170,7 @@ export default function VendreFormationCamerounPage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone (prevoir power bank pour les coupures), montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1346,7 +1346,7 @@ export default function VendreFormationCamerounPage() {
           1 500 000 FCFA. Repartition : 58 pourcent ventes de la
           formation principale (boostees par sa double cible FR + EN),
           22 pourcent ebook/mini-formation (souvent upsell), 20 pourcent
-          abonnements communaute. Apres impot synthetique et commissions
+          abonnements communaute. Après impot synthetique et commissions
           Novakou, il lui reste environ 1 180 000 FCFA nets - presque 3
           fois son salaire precedent, pour 25 heures de travail
           hebdomadaires. Profil fictif mais entierement aligne sur les

@@ -226,7 +226,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation au Benin ?",
-    a: "Non. Au Benin en 2026, un compte MTN MoMo, Moov Money ou Celtiis Cash suffit largement pour commencer. Novakou verse directement tes gains sur ton numero Mobile Money beninois. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a Bank of Africa, Ecobank Benin, NSIA Banque ou BSIC pour structurer ta tresorerie.",
+    a: "Non. Au Benin en 2026, un compte MTN MoMo, Moov Money ou Celtiis Cash suffit largement pour commencer. Novakou verse directement tes gains sur ton numéro Mobile Money beninois. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a Bank of Africa, Ecobank Benin, NSIA Banque ou BSIC pour structurer ta tresorerie.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue au Benin ?",
@@ -238,19 +238,19 @@ const FAQ_ITEMS = [
   },
   {
     q: "MTN MoMo ou Moov Money, lequel choisir pour encaisser au Benin ?",
-    a: "Les deux, sans hesiter. MTN MoMo domine Cotonou, Porto-Novo et Abomey-Calavi (frais bas, app moderne, base utilisateurs massive). Moov Money est tres fort dans le nord (Parakou, Natitingou, Djougou) et dans les villes secondaires. Celtiis Cash (operateur Celtiis lance 2024) gagne du terrain chez les 18-30 ans urbains. Novakou integre les trois par defaut : ton acheteur choisit, tu encaisses sur ton numero prefere. Refuser un operateur, c'est se priver d'environ 25 a 35 pourcent du marche beninois.",
+    a: "Les deux, sans hesiter. MTN MoMo domine Cotonou, Porto-Novo et Abomey-Calavi (frais bas, app moderne, base utilisateurs massive). Moov Money est très fort dans le nord (Parakou, Natitingou, Djougou) et dans les villes secondaires. Celtiis Cash (operateur Celtiis lance 2024) gagne du terrain chez les 18-30 ans urbains. Novakou integre les trois par defaut : ton acheteur choisit, tu encaisses sur ton numéro prefere. Refuser un operateur, c'est se priver d'environ 25 a 35 pourcent du marche beninois.",
   },
   {
     q: "Combien de temps avant ma premiere vente au Benin ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as deja une petite audience WhatsApp (50 - 200 contacts) a Cotonou ou en region. Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram ou TikTok. Les formateurs beninois qui vont le plus vite sont ceux qui pre-vendent dans leur entourage immediat (eglise, mosquee, ecole, association de quartier).",
+    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as déjà une petite audience WhatsApp (50 - 200 contacts) a Cotonou ou en region. Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram ou TikTok. Les formateurs beninois qui vont le plus vite sont ceux qui pre-vendent dans leur entourage immediat (eglise, mosquee, ecole, association de quartier).",
   },
   {
     q: "Faut-il un site web pour vendre une formation au Benin ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs beninois sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand ton catalogue depasse 3 a 4 produits.",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs beninois sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand ton catalogue depasse 3 a 4 produits.",
   },
   {
     q: "Puis-je vendre une formation depuis Porto-Novo, Parakou ou Abomey ?",
-    a: "Bien sur. La vente de formation en ligne au Benin n'est pas reservee a Cotonou. Avec une connexion 4G correcte (MTN ou Moov), un smartphone recent et un micro-cravate a 5 000 FCFA, tu produis la meme qualite qu'aux Cocotiers. Plusieurs formateurs Novakou bases a Porto-Novo, Parakou ou Bohicon depassent 700 000 FCFA mensuels - leur avantage : couts de vie plus bas qu'a Cotonou, donc rentabilite nette superieure.",
+    a: "Bien sur. La vente de formation en ligne au Benin n'est pas reservee a Cotonou. Avec une connexion 4G correcte (MTN ou Moov), un smartphone recent et un micro-cravate a 5 000 FCFA, tu produis la meme qualité qu'aux Cocotiers. Plusieurs formateurs Novakou bases a Porto-Novo, Parakou ou Bohicon depassent 700 000 FCFA mensuels - leur avantage : couts de vie plus bas qu'a Cotonou, donc rentabilite nette superieure.",
   },
   {
     q: "Comment eviter que ma formation soit piratee et partagee gratuitement ? 🔒",
@@ -508,13 +508,13 @@ export default function VendreFormationBeninPage() {
         >
           Avec Sème City (le campus tech-savoir-faire), Etrilabs, le CIPCRE
           et une diaspora beninoise structuree en France, en Belgique et au
-          Canada, le pays a deja un ecosysteme digital qui ne demande
+          Canada, le pays a déjà un ecosysteme digital qui ne demande
           qu&apos;a accueillir ton expertise. Ce guide te donne la methode
           integrale : choisir un sujet qui se vend a Cotonou et en region,
-          encaisser via MTN MoMo Benin, gerer ta fiscalite micro-entreprise,
+          encaisser via MTN MoMo Benin, gérer ta fiscalite micro-entreprise,
           promouvoir sans budget pub, lancer en 30 jours et comprendre les
           revenus realistes. Tout est aligne sur le terrain beninois de 2026,
-          pas sur des recettes copiees du marche francais ou ivoirien.
+          pas sur des recettes copiees du marche français ou ivoirien.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale au Benin en 2026">
@@ -557,8 +557,8 @@ export default function VendreFormationBeninPage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Cotonou. Le marche beninois a
-          ses preferences propres, structurees par la demographie jeune, la
-          culture entrepreneuriale tres active (le Benin est un hub portuaire
+          ses préférences propres, structurees par la demographie jeune, la
+          culture entrepreneuriale très active (le Benin est un hub portuaire
           ouest-africain), la dimension religieuse plurielle (christianisme,
           islam, vodun) et la diaspora structuree. Voici les six niches qui
           generent le plus de{" "}
@@ -633,8 +633,8 @@ export default function VendreFormationBeninPage() {
           Comment lancer son business depuis zero, comment trouver des
           clients freelance internationaux, comment encaisser en devises
           etrangeres via Wise ou Payoneer, comment structurer son entreprise
-          individuelle beninoise. Ces sujets convertissent tres bien car le
-          resultat est mesurable - et la jeunesse beninoise est tres
+          individuelle beninoise. Ces sujets convertissent très bien car le
+          resultat est mesurable - et la jeunesse beninoise est très
           entrepreneuriale par culture.
         </p>
 
@@ -651,8 +651,8 @@ export default function VendreFormationBeninPage() {
           Cheveux afro, ongles, maquillage, soins de la peau noire,
           melanotique, fabrication de cosmetiques naturels (karite, neem),
           perte de poids, salle de sport a la maison. Audience massivement
-          feminine, tres engagee sur Instagram et TikTok. Ticket moyen :
-          10 000 a 30 000 FCFA, tres bonne recurrence et upsell vers
+          feminine, très engagee sur Instagram et TikTok. Ticket moyen :
+          10 000 a 30 000 FCFA, très bonne recurrence et upsell vers
           coaching individuel.
         </p>
 
@@ -669,7 +669,7 @@ export default function VendreFormationBeninPage() {
           Anglais business pour expatriation et freelance international,
           allemand (visa etudiant Allemagne), espagnol, mandarin (lien avec
           le commerce Cotonou-Asie). La diaspora francophone beninoise est
-          aussi tres demandeuse de cours d&apos;anglais en ligne pour ses
+          aussi très demandeuse de cours d&apos;anglais en ligne pour ses
           enfants. Ticket eleve quand combine avec un objectif precis (TOEFL,
           DELE, embauche internationale).
         </p>
@@ -755,13 +755,13 @@ export default function VendreFormationBeninPage() {
         >
           MTN MoMo Benin domine Cotonou, Porto-Novo, Abomey-Calavi, Ouidah et
           toutes les villes du sud. L&apos;application est gratuite, les
-          transferts entre particuliers sont quasi sans frais, l&apos;experience
+          transferts entre particuliers sont quasi sans frais, l&apos;expérience
           utilisateur est moderne. Pour un vendeur de formation, c&apos;est
           le moyen de paiement prefere des moins de 35 ans urbains beninois.
           L&apos;integration{" "}
           <strong>MTN MoMo Benin paiement</strong> sur Novakou est native :
           ton acheteur clique sur &quot;Payer avec MTN MoMo&quot;, scanne le
-          QR ou saisit son numero, valide avec son code PIN MoMo, et la
+          QR ou saisit son numéro, valide avec son code PIN MoMo, et la
           transaction se boucle en quelques secondes.
         </p>
 
@@ -775,7 +775,7 @@ export default function VendreFormationBeninPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Moov Money reste tres fort dans le nord du pays (Parakou, Djougou,
+          Moov Money reste très fort dans le nord du pays (Parakou, Djougou,
           Natitingou, Kandi) et dans les villes secondaires ou Moov a une
           meilleure couverture reseau que MTN. Les transferts internationaux
           entrants via Moov Money permettent aussi a un membre de la diaspora
@@ -946,7 +946,7 @@ export default function VendreFormationBeninPage() {
           Au-dela de 30 millions FCFA, tu passes au regime du reel simplifie
           (RRS) puis au regime du reel normal (RRN). A ce stade, un expert-
           comptable inscrit a l&apos;ONECCA Benin devient indispensable pour
-          gerer ta TVA, ta CGA et ton IS.
+          gérer ta TVA, ta CGA et ton IS.
         </p>
 
         <h3
@@ -1118,7 +1118,7 @@ export default function VendreFormationBeninPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Contrairement a la France, Facebook reste tres utilise au Benin
+          Contrairement a la France, Facebook reste très utilise au Benin
           (notamment via Facebook Lite). Les groupes Facebook locaux (par
           ville, par profession, par sujet) sont des mines d&apos;or pour
           le bouche-a-oreille. Publie de la valeur reelle dans 5-10 groupes
@@ -1130,7 +1130,7 @@ export default function VendreFormationBeninPage() {
           encheres publicitaires Facebook Ads au Benin ont monte
           significativement depuis 2024. Pour un freelance debutant sans
           tunnel de vente teste, le ROI est negatif 7 fois sur 10. Reserve
-          ce canal pour une phase 2, quand tu as deja vendu naturellement
+          ce canal pour une phase 2, quand tu as déjà vendu naturellement
           au moins 30 fois et compris ton message qui convertit. Le guide{" "}
           <Link
             href="/guides/publicite-facebook"
@@ -1162,7 +1162,7 @@ export default function VendreFormationBeninPage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone (Galaxy A ou iPhone d'occasion), montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1335,9 +1335,9 @@ export default function VendreFormationBeninPage() {
         >
           En octobre 2026, son chiffre d&apos;affaires mensuel atteint 1 180
           000 FCFA. Repartition : 58 pourcent ventes de la formation Campus
-          France (sa periode est mars-avril et septembre-octobre), 22
+          France (sa période est mars-avril et septembre-octobre), 22
           pourcent guide PEQ Quebec (transactions diaspora), 20 pourcent
-          abonnements Visa Club (recurrence formidable). Apres TPS et
+          abonnements Visa Club (recurrence formidable). Après TPS et
           commissions Novakou, il lui reste environ 900 000 FCFA nets -
           presque 3 fois son salaire de cabinet precedent, pour 30 heures
           de travail hebdomadaires. Profil fictif mais entierement aligne

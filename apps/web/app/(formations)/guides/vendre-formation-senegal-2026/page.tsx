@@ -227,7 +227,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation au Senegal ?",
-    a: "Non. Au Senegal en 2026, un compte Wave ou Orange Money suffit largement pour commencer. Novakou verse directement tes gains sur ton numero Mobile Money. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a la SGBS, Ecobank ou BICIS pour structurer ta tresorerie.",
+    a: "Non. Au Senegal en 2026, un compte Wave ou Orange Money suffit largement pour commencer. Novakou verse directement tes gains sur ton numéro Mobile Money. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a la SGBS, Ecobank ou BICIS pour structurer ta tresorerie.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue au Senegal ?",
@@ -239,19 +239,19 @@ const FAQ_ITEMS = [
   },
   {
     q: "Wave ou Orange Money, lequel choisir pour encaisser ?",
-    a: "Les deux, sans hesiter. Wave domine Dakar et les villes (frais zero ou tres bas, app moderne, transferts instantanes), Orange Money couvre mieux les zones rurales et la diaspora francophone. Novakou integre les deux par defaut : ton acheteur choisit, tu encaisses, tu recois ton solde en fin de cycle. Refuser l'un des deux, c'est se priver d'environ 30 a 40 pourcent du marche senegalais.",
+    a: "Les deux, sans hesiter. Wave domine Dakar et les villes (frais zero ou très bas, app moderne, transferts instantanes), Orange Money couvre mieux les zones rurales et la diaspora francophone. Novakou integre les deux par defaut : ton acheteur choisit, tu encaisses, tu recois ton solde en fin de cycle. Refuser l'un des deux, c'est se priver d'environ 30 a 40 pourcent du marche senegalais.",
   },
   {
     q: "Combien de temps avant ma premiere vente ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as deja une petite audience WhatsApp (50 - 200 contacts). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram ou TikTok. Les formateurs qui vont le plus vite sont ceux qui pre-vendent avant meme d'enregistrer le contenu.",
+    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as déjà une petite audience WhatsApp (50 - 200 contacts). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram ou TikTok. Les formateurs qui vont le plus vite sont ceux qui pre-vendent avant meme d'enregistrer le contenu.",
   },
   {
     q: "Faut-il un site web pour vendre une formation au Senegal ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs senegalais sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard.",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs senegalais sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard.",
   },
   {
     q: "Puis-je vendre une formation depuis Thies, Saint-Louis ou Ziguinchor ?",
-    a: "Bien sur. La vente de formation en ligne au Senegal n'est pas reservee a Dakar. Avec une connexion 4G correcte (Orange ou Free), un smartphone recent et un micro-cravate a 5 000 FCFA, tu produis la meme qualite qu'a Almadies. Plusieurs formateurs Novakou bases en region depassent 800 000 FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite superieure.",
+    a: "Bien sur. La vente de formation en ligne au Senegal n'est pas reservee a Dakar. Avec une connexion 4G correcte (Orange ou Free), un smartphone recent et un micro-cravate a 5 000 FCFA, tu produis la meme qualité qu'a Almadies. Plusieurs formateurs Novakou bases en region depassent 800 000 FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite superieure.",
   },
   {
     q: "Comment eviter que ma formation soit piratee et partagee gratuitement ? 🔒",
@@ -506,11 +506,11 @@ export default function VendreFormationSenegalPage() {
           style={{ color: C.dark }}
         >
           Ce guide te donne la methode integrale : choisir un sujet qui se
-          vend a Dakar et en region, encaisser via Wave Senegal, gerer ta
+          vend a Dakar et en region, encaisser via Wave Senegal, gérer ta
           fiscalite freelance, promouvoir sans budget pub, lancer en 30
           jours et comprendre les revenus realistes. Tout est aligne sur le
           terrain senegalais de 2026, pas sur des recettes copiees du
-          marche francais.
+          marche français.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale au Senegal en 2026">
@@ -553,7 +553,7 @@ export default function VendreFormationSenegalPage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Dakar. Le marche senegalais a
-          ses preferences propres, structurees par la demographie jeune, la
+          ses préférences propres, structurees par la demographie jeune, la
           culture entrepreneuriale et la dimension religieuse. Voici les six
           niches qui generent le plus de{" "}
           <strong>vente formation digitale Dakar</strong> en 2026, classees
@@ -607,7 +607,7 @@ export default function VendreFormationSenegalPage() {
           Comment lancer son business depuis zero, comment trouver des
           clients freelance, comment encaisser en devises etrangeres, comment
           structurer son auto-entreprise senegalaise. Ces sujets convertissent
-          tres bien car le resultat est mesurable.
+          très bien car le resultat est mesurable.
         </p>
 
         <h3
@@ -622,8 +622,8 @@ export default function VendreFormationSenegalPage() {
         >
           Cheveux afro, ongles, maquillage, soins de la peau noire, perte
           de poids, salle de sport a la maison. Audience massivement
-          feminine, tres engagee sur Instagram et TikTok. Ticket moyen :
-          12 000 a 35 000 FCFA, tres bonne recurrence.
+          feminine, très engagee sur Instagram et TikTok. Ticket moyen :
+          12 000 a 35 000 FCFA, très bonne recurrence.
         </p>
 
         <h3
@@ -639,7 +639,7 @@ export default function VendreFormationSenegalPage() {
           Apprentissage de la lecture du Coran, tajwid, hadiths, sciences
           islamiques, mais aussi predication chretienne pour les communautes
           minoritaires, developpement personnel inspire de la spiritualite
-          locale. Audience tres loyale, faible churn.
+          locale. Audience très loyale, faible churn.
         </p>
 
         <h3
@@ -654,7 +654,7 @@ export default function VendreFormationSenegalPage() {
         >
           Anglais business pour expatriation et freelance international,
           arabe litteraire, espagnol (visa et migration), turc, mandarin.
-          La diaspora francophone est aussi tres demandeuse de cours en
+          La diaspora francophone est aussi très demandeuse de cours en
           ligne pour ses enfants. Ticket eleve quand combine avec un
           objectif precis (TOEFL, embauche).
         </p>
@@ -738,13 +738,13 @@ export default function VendreFormationSenegalPage() {
         >
           Wave domine Dakar, Thies, Saint-Louis et toutes les villes
           intermediaires. L&apos;application est gratuite, les transferts
-          entre particuliers sont quasi sans frais, l&apos;experience
+          entre particuliers sont quasi sans frais, l&apos;expérience
           utilisateur est moderne. Pour un vendeur de formation, c&apos;est
           le moyen de paiement prefere des moins de 35 ans urbains.
           L&apos;integration{" "}
           <strong>Wave Senegal paiement</strong> sur Novakou est native :
           ton acheteur clique sur &quot;Payer avec Wave&quot;, scanne le QR
-          ou saisit son numero, et la transaction se valide en quelques
+          ou saisit son numéro, et la transaction se valide en quelques
           secondes.
         </p>
 
@@ -932,7 +932,7 @@ export default function VendreFormationSenegalPage() {
           de CA annuel paie en general autour de 250 000 a 400 000 FCFA
           d&apos;impot total (selon ses charges deductibles). C&apos;est
           significativement moins que le regime classique de l&apos;IS.
-          Reste a payer la CSS (Caisse de Securite Sociale) si tu y
+          Reste a payer la CSS (Caisse de Sécurité Sociale) si tu y
           adheres volontairement - fortement conseille pour la protection.
         </p>
 
@@ -1069,7 +1069,7 @@ export default function VendreFormationSenegalPage() {
           enchères publicitaires Facebook Ads au Senegal ont monte
           significativement depuis 2024. Pour un freelance debutant sans
           tunnel de vente teste, le ROI est negatif 7 fois sur 10. Reserve
-          ce canal pour une phase 2, quand tu as deja vendu naturellement
+          ce canal pour une phase 2, quand tu as déjà vendu naturellement
           au moins 30 fois et compris ton message qui convertit. Le guide{" "}
           <Link
             href="/guides/publicite-facebook"
@@ -1101,7 +1101,7 @@ export default function VendreFormationSenegalPage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone, montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1269,7 +1269,7 @@ export default function VendreFormationSenegalPage() {
           En septembre 2026, son chiffre d&apos;affaires mensuel atteint
           1 230 000 FCFA. Repartition : 65 pourcent ventes de la formation
           principale, 18 pourcent ebook (souvent upsell), 17 pourcent
-          abonnements communaute. Apres impot synthetique et commissions
+          abonnements communaute. Après impot synthetique et commissions
           Novakou, il lui reste environ 950 000 FCFA nets - presque 3 fois
           son salaire d&apos;agence precedent, pour 25 heures de travail
           hebdomadaires. Profil fictif mais entierement aligne sur les

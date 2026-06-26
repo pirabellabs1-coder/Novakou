@@ -56,7 +56,7 @@ const C = { primary: "#006e2f", accent: "#22c55e", dark: "#191c1e", muted: "#5c6
 const TOC = [
   { id: "marche", num: "01", label: "Le marche des formations en Afrique francophone" },
   { id: "page-vente", num: "02", label: "Preparer sa page de vente qui convertit" },
-  { id: "tunnel", num: "03", label: "Creer un tunnel de vente efficace" },
+  { id: "tunnel", num: "03", label: "Créer un tunnel de vente efficace" },
   { id: "psychologie", num: "04", label: "Les 7 leviers psychologiques de vente" },
   { id: "pricing", num: "05", label: "Fixer son prix en FCFA : la methode des 3 paliers" },
   { id: "reseaux", num: "06", label: "Promouvoir sur les reseaux sociaux africains" },
@@ -65,7 +65,7 @@ const TOC = [
   { id: "analytics", num: "09", label: "Analyser ses resultats et optimiser" },
   { id: "erreurs", num: "10", label: "Les 5 erreurs qui tuent vos ventes" },
   { id: "etude-cas", num: "11", label: "Etude de cas : Aminata, de 0 a 500 000 FCFA/mois" },
-  { id: "conclusion", num: "12", label: "Conclusion et prochaine etape" },
+  { id: "conclusion", num: "12", label: "Conclusion et prochaine étape" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -274,9 +274,9 @@ export default function VendreEnLignePage() {
           </h1>
 
           <p style={{ ...S, fontSize: 18, lineHeight: 1.7, color: C.muted, maxWidth: 640, margin: "0 0 28px" }}>
-            Le guide etape par etape pour transformer votre expertise en revenus recurrents.
-            Du positionnement au tunnel de vente, du pricing en FCFA aux strategies de promotion
-            sur WhatsApp et Facebook : tout ce qu&apos;il faut savoir pour reussir en Afrique francophone.
+            Le guide étape par étape pour transformer votre expertise en revenus recurrents.
+            Du positionnement au tunnel de vente, du pricing en FCFA aux stratégies de promotion
+            sur WhatsApp et Facebook : tout ce qu&apos;il faut savoir pour réussir en Afrique francophone.
           </p>
 
           {/* Meta info */}
@@ -387,7 +387,7 @@ export default function VendreEnLignePage() {
         <Paragraph>
           L&apos;Afrique francophone vit une revolution silencieuse. Avec plus de 400 millions de francophones
           projetes d&apos;ici 2050, dont 85 % en Afrique, le continent est le plus grand bassin de croissance
-          pour l&apos;education numerique au monde. Et ce n&apos;est pas une promesse lointaine : c&apos;est deja
+          pour l&apos;education numerique au monde. Et ce n&apos;est pas une promesse lointaine : c&apos;est déjà
           en train de se produire.
         </Paragraph>
 
@@ -398,12 +398,12 @@ export default function VendreEnLignePage() {
         </div>
 
         <Paragraph>
-          Plusieurs facteurs convergent pour creer une fenetre d&apos;opportunite unique. La penetration du
+          Plusieurs facteurs convergent pour créer une fenetre d&apos;opportunite unique. La penetration du
           smartphone explose : au Senegal, en Cote d&apos;Ivoire, au Cameroun, au Benin, plus de 70 % de la
           population a acces a un telephone connecte. Le Mobile Money (Orange Money, Wave, MTN MoMo) a
           democratise le paiement numerique bien avant que les cartes bancaires ne se generalisent.
           Les jeunes diplomes cherchent des competences pratiques que l&apos;universite ne fournit pas. Les
-          professionnels en activite veulent se former le soir, a leur rythme.
+          professionnels en activité veulent se former le soir, a leur rythme.
         </Paragraph>
 
         <Paragraph>
@@ -452,16 +452,16 @@ export default function VendreEnLignePage() {
         <Paragraph>
           Un bon titre repond a une seule question : &laquo; Qu&apos;est-ce que je vais obtenir ? &raquo; Il ne
           decrit pas votre formation, il decrit la transformation. Pas &laquo; Formation en marketing digital &raquo;
-          mais &laquo; Doublez vos ventes en 30 jours avec le marketing digital &raquo;. Le benefice doit etre
+          mais &laquo; Doublez vos ventes en 30 jours avec le marketing digital &raquo;. Le bénéfice doit etre
           concret, mesurable, et limite dans le temps.
         </Paragraph>
 
-        <SubHeading>La liste des benefices, pas des modules</SubHeading>
+        <SubHeading>La liste des bénéfices, pas des modules</SubHeading>
 
         <Paragraph>
-          Vos prospects ne veulent pas savoir que le module 3 contient 12 videos. Ils veulent savoir qu&apos;apres
-          votre formation, ils sauront creer une campagne publicitaire Facebook rentable en moins d&apos;une heure.
-          Transformez chaque module en benefice tangible. &laquo; Module 5 : SEO &raquo; devient
+          Vos prospects ne veulent pas savoir que le module 3 contient 12 videos. Ils veulent savoir qu&apos;après
+          votre formation, ils sauront créer une campagne publicitaire Facebook rentable en moins d&apos;une heure.
+          Transformez chaque module en bénéfice tangible. &laquo; Module 5 : SEO &raquo; devient
           &laquo; Apparaitre en premiere page Google sans payer de publicite &raquo;.
         </Paragraph>
 
@@ -497,21 +497,21 @@ export default function VendreEnLignePage() {
         {/* ============================================================== */}
         {/*  03 — TUNNEL DE VENTE                                           */}
         {/* ============================================================== */}
-        <SectionHeading id="tunnel" num="03" title="Creer un tunnel de vente efficace" />
+        <SectionHeading id="tunnel" num="03" title="Créer un tunnel de vente efficace" />
 
         <Paragraph>
           Un tunnel de vente (ou funnel) est le parcours que suit votre prospect, du premier contact jusqu&apos;a
-          l&apos;achat. Chaque etape a un seul objectif : faire avancer le visiteur vers l&apos;etape suivante. Pas
+          l&apos;achat. Chaque étape a un seul objectif : faire avancer le visiteur vers l&apos;étape suivante. Pas
           de distraction, pas de lien externe, pas de menu de navigation complexe.
         </Paragraph>
 
-        <SubHeading>La structure ideale en 4 etapes</SubHeading>
+        <SubHeading>La structure ideale en 4 étapes</SubHeading>
 
         {/* Funnel visualization */}
         <div style={{ margin: "28px 0" }}>
           {[
-            { step: "1", label: "Page d atterrissage", desc: "Capturer l attention + collecter l email. Un titre percutant, un benefice clair, un formulaire.", color: C.primary },
-            { step: "2", label: "Page de vente", desc: "Presenter la formation, les benefices, les temoignages, la garantie. Un seul CTA : acheter.", color: C.accent },
+            { step: "1", label: "Page d atterrissage", desc: "Capturer l attention + collecter l email. Un titre percutant, un bénéfice clair, un formulaire.", color: C.primary },
+            { step: "2", label: "Page de vente", desc: "Presenter la formation, les bénéfices, les temoignages, la garantie. Un seul CTA : acheter.", color: C.accent },
             { step: "3", label: "Page de paiement", desc: "Formulaire simple. Mobile Money + carte. Order bump (produit complementaire a petit prix).", color: "#0ea5e9" },
             { step: "4", label: "Page de remerciement", desc: "Confirmation + upsell. Proposer un coaching, un pack premium, un abonnement.", color: "#8b5cf6" },
           ].map((item, i) => (
@@ -552,7 +552,7 @@ export default function VendreEnLignePage() {
 
         <Paragraph>
           Sur Novakou, vous pouvez construire ce tunnel complet sans aucun outil externe. Le builder de
-          funnel integre vous permet de creer chaque page, de configurer l&apos;order bump et l&apos;upsell, et de
+          funnel integre vous permet de créer chaque page, de configurer l&apos;order bump et l&apos;upsell, et de
           connecter votre passerelle de paiement (Mobile Money ou carte) en quelques clics.
         </Paragraph>
 
@@ -578,11 +578,11 @@ export default function VendreEnLignePage() {
           {[
             { num: "1", title: "Urgence", desc: "Une offre limitee dans le temps. L inscription ferme vendredi soir a 23h59. Les gens agissent quand le temps presse, pas quand c est confortable.", example: "Exemple : Compte a rebours sur votre page de vente." },
             { num: "2", title: "Rarete", desc: "Places limitees a 50 apprenants pour garantir un suivi personnalise. La rarete rend votre offre plus desirable et cree une perception de valeur elevee.", example: "Exemple : Jauge de places restantes en temps reel." },
-            { num: "3", title: "Preuve sociale", desc: "127 personnes ont deja rejoint cette formation. Quand les gens voient que d autres ont pris la decision, ils se sentent rassures.", example: "Exemple : Temoignages + nombre d inscrits affiches." },
+            { num: "3", title: "Preuve sociale", desc: "127 personnes ont déjà rejoint cette formation. Quand les gens voient que d autres ont pris la decision, ils se sentent rassures.", example: "Exemple : Temoignages + nombre d inscrits affiches." },
             { num: "4", title: "Garantie", desc: "Satisfait ou rembourse sous 14 jours, sans question. Retirer le risque de l acheteur est le levier le plus puissant et le moins utilise.", example: "Exemple : Badge garantie visible pres du bouton d achat." },
             { num: "5", title: "Autorite", desc: "Montrez vos credentials, vos resultats, vos clients. Pourquoi devrait-on vous ecouter ? Affichez votre expertise avec des preuves concretes.", example: "Exemple : Section A propos du formateur avec parcours." },
             { num: "6", title: "Reciprocite", desc: "Donnez avant de demander. Un module gratuit, un PDF, un webinaire. Les gens qui recoivent veulent rendre la pareille.", example: "Exemple : Lead magnet gratuit avant la vente." },
-            { num: "7", title: "FOMO", desc: "La peur de rater quelque chose. Montrez les resultats de ceux qui ont deja rejoint. Ce n est pas de la manipulation, c est de l information.", example: "Exemple : Captures de resultats d apprenants." },
+            { num: "7", title: "FOMO", desc: "La peur de rater quelque chose. Montrez les resultats de ceux qui ont déjà rejoint. Ce n est pas de la manipulation, c est de l information.", example: "Exemple : Captures de resultats d apprenants." },
           ].map((item) => (
             <div
               key={item.num}
@@ -633,7 +633,7 @@ export default function VendreEnLignePage() {
         <Paragraph>
           Le pricing est l&apos;un des exercices les plus difficiles pour les formateurs africains. Trop cher,
           vous excluez votre audience. Trop peu cher, vous devaluez votre expertise et ne pouvez pas
-          reinvestir dans la qualite. La methode des 3 paliers resout ce dilemme en offrant un choix
+          reinvestir dans la qualité. La methode des 3 paliers resout ce dilemme en offrant un choix
           qui satisfait tous les profils.
         </Paragraph>
 
@@ -722,7 +722,7 @@ export default function VendreEnLignePage() {
         <WarningBox>
           <strong>Ne sous-estimez pas votre prix.</strong> L&apos;erreur la plus courante des formateurs africains
           est de brader leur expertise. Une formation a 2 000 FCFA envoie le signal que le contenu
-          a peu de valeur. Positionnez-vous sur la qualite, pas sur le volume.
+          a peu de valeur. Positionnez-vous sur la qualité, pas sur le volume.
         </WarningBox>
 
         {/* ============================================================== */}
@@ -737,12 +737,12 @@ export default function VendreEnLignePage() {
           pour vendre vos formations.
         </Paragraph>
 
-        <SubHeading>WhatsApp : votre canal numero 1</SubHeading>
+        <SubHeading>WhatsApp : votre canal numéro 1</SubHeading>
 
         <Paragraph>
           WhatsApp est l&apos;application la plus utilisee en Afrique de l&apos;Ouest. C&apos;est la ou les gens
           communiquent, font du commerce, et partagent du contenu. Pour un formateur, c&apos;est une mine d&apos;or.
-          Creez un statut WhatsApp quotidien avec un conseil gratuit lie a votre expertise. Partagez des
+          Créez un statut WhatsApp quotidien avec un conseil gratuit lie a votre expertise. Partagez des
           temoignages de vos apprenants. Utilisez les listes de diffusion (pas les groupes) pour envoyer
           vos offres sans spammer. Novakou genere des liens de vente partageables sur WhatsApp en un clic.
         </Paragraph>
@@ -753,7 +753,7 @@ export default function VendreEnLignePage() {
           Les groupes Facebook thematiques sont extremement actifs en Afrique francophone. &laquo; Marketing
           Digital Afrique &raquo;, &laquo; Entrepreneurs du Cameroun &raquo;, &laquo; Formation en ligne Senegal &raquo; :
           ces communautes comptent des dizaines de milliers de membres actifs. Apportez de la valeur gratuite
-          pendant 2 semaines avant de presenter votre formation. La strategie &laquo; 80/20 &raquo; fonctionne :
+          pendant 2 semaines avant de presenter votre formation. La stratégie &laquo; 80/20 &raquo; fonctionne :
           80 % de contenu utile, 20 % de promotion.
         </Paragraph>
 
@@ -780,7 +780,7 @@ export default function VendreEnLignePage() {
           Publiez 3 a 5 fois par semaine pour construire une audience reguliere.
         </Paragraph>
 
-        <MockupBox title="Strategie reseaux sociaux — calendrier type">
+        <MockupBox title="Stratégie reseaux sociaux — calendrier type">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
             {[
               { jour: "Lun", action: "Conseil gratuit", canal: "WhatsApp Status" },
@@ -821,7 +821,7 @@ export default function VendreEnLignePage() {
           {[
             { jour: "J+0", objet: "Votre [ressource] est prete", desc: "Livrer le lead magnet + se presenter brievement. Installer la confiance." },
             { jour: "J+1", objet: "Mon parcours (et pourquoi ca vous concerne)", desc: "Raconter votre histoire. Montrer que vous comprenez les defis de votre audience." },
-            { jour: "J+3", objet: "La plus grosse erreur en [domaine]", desc: "Apporter de la valeur. Pointer un probleme que votre formation resout." },
+            { jour: "J+3", objet: "La plus grosse erreur en [domaine]", desc: "Apporter de la valeur. Pointer un problème que votre formation resout." },
             { jour: "J+5", objet: "Comment [resultat] en [delai]", desc: "Etude de cas ou temoignage d un apprenant. Preuve sociale." },
             { jour: "J+7", objet: "Offre speciale (expire dimanche)", desc: "Presenter votre formation avec un avantage temporaire. CTA clair." },
           ].map((email, i) => (
@@ -860,7 +860,7 @@ export default function VendreEnLignePage() {
 
         <TipBox>
           <strong>Automatisation Novakou :</strong> Le module de sequences email integre vous permet de
-          creer cette sequence en 10 minutes. Chaque email se declenche automatiquement apres l&apos;inscription.
+          créer cette sequence en 10 minutes. Chaque email se declenche automatiquement après l&apos;inscription.
           Vous pouvez aussi segmenter par pays, par interet, ou par comportement d&apos;achat.
         </TipBox>
 
@@ -943,9 +943,9 @@ export default function VendreEnLignePage() {
 
         <Paragraph>
           Novakou affiche toutes ces metriques dans votre tableau de bord vendeur, en temps reel. Vous
-          pouvez filtrer par periode, par produit, par source de trafic. Le dashboard identifie aussi
+          pouvez filtrer par période, par produit, par source de trafic. Le dashboard identifie aussi
           automatiquement les points de friction de votre tunnel : si beaucoup de visiteurs quittent
-          la page de paiement, c&apos;est peut-etre un probleme de methode de paiement ou de prix.
+          la page de paiement, c&apos;est peut-etre un problème de methode de paiement ou de prix.
         </Paragraph>
 
         <TipBox>
@@ -960,7 +960,7 @@ export default function VendreEnLignePage() {
         <SectionHeading id="erreurs" num="10" title="Les 5 erreurs qui tuent vos ventes (et comment les eviter)" />
 
         <Paragraph>
-          Apres avoir accompagne des centaines de formateurs africains, nous avons identifie 5 erreurs
+          Après avoir accompagne des centaines de formateurs africains, nous avons identifie 5 erreurs
           recurrentes qui empechent de vendre. Les voici, avec les solutions concretes pour les eviter.
         </Paragraph>
 
@@ -968,7 +968,7 @@ export default function VendreEnLignePage() {
           {[
             {
               num: "1",
-              title: "Creer la formation AVANT de la vendre",
+              title: "Créer la formation AVANT de la vendre",
               desc: "Beaucoup de formateurs passent 3 mois a filmer 40 heures de video avant de savoir si quelqu un veut les acheter. Validez la demande d abord : faites une pre-vente avec un plan de cours, une promesse, et un delai de livraison. Si personne n achete, vous avez economise 3 mois.",
               fix: "Pre-vendez votre formation avant de la produire. 10 pre-ventes = signal vert pour produire.",
             },
@@ -976,7 +976,7 @@ export default function VendreEnLignePage() {
               num: "2",
               title: "Vendre a tout le monde (ne cibler personne)",
               desc: "Formation en marketing pour tous les entrepreneurs d Afrique ? Trop vague. Formation en marketing Instagram pour les coachs fitness francophones ? Parfait. Plus votre niche est precise, plus votre message resonne et plus votre taux de conversion est eleve.",
-              fix: "Definissez votre avatar client ideal : age, pays, probleme precis, pouvoir d achat.",
+              fix: "Definissez votre avatar client ideal : age, pays, problème precis, pouvoir d achat.",
             },
             {
               num: "3",
@@ -1147,7 +1147,7 @@ export default function VendreEnLignePage() {
         </div>
 
         <TipBox>
-          <strong>Ce qu&apos;Aminata a fait differemment :</strong> Elle a valide la demande AVANT de creer
+          <strong>Ce qu&apos;Aminata a fait differemment :</strong> Elle a valide la demande AVANT de créer
           le contenu. Elle a commence avec un telephone portable, pas du materiel professionnel. Elle a
           active l&apos;affiliation des le mois 3. Et surtout, elle a choisi une niche ultra-precise :
           Excel pour comptables — pas &laquo; Excel pour tout le monde &raquo;.
@@ -1162,7 +1162,7 @@ export default function VendreEnLignePage() {
         {/* ============================================================== */}
         {/*  12 — CONCLUSION + CTA                                          */}
         {/* ============================================================== */}
-        <SectionHeading id="conclusion" num="12" title="Conclusion : votre prochaine etape" />
+        <SectionHeading id="conclusion" num="12" title="Conclusion : votre prochaine étape" />
 
         <Paragraph>
           Vendre des formations en ligne en Afrique francophone n&apos;est plus une utopie reservee aux
@@ -1172,8 +1172,8 @@ export default function VendreEnLignePage() {
         </Paragraph>
 
         <Paragraph>
-          Recapitulons les etapes cles : validez la demande avec une pre-vente, construisez une page
-          de vente centree sur les benefices, creez un tunnel simple en 4 etapes, fixez vos prix avec
+          Recapitulons les étapes cles : validez la demande avec une pre-vente, construisez une page
+          de vente centree sur les bénéfices, créez un tunnel simple en 4 étapes, fixez vos prix avec
           la methode des 3 paliers, promouvez d&apos;abord sur WhatsApp et Facebook, automatisez vos emails,
           activez l&apos;affiliation, et mesurez tout pour optimiser.
         </Paragraph>
@@ -1241,7 +1241,7 @@ export default function VendreEnLignePage() {
               position: "relative" as const,
             }}
           >
-            Creez votre compte vendeur gratuitement. Page de vente, tunnel, paiement Mobile Money,
+            Créez votre compte vendeur gratuitement. Page de vente, tunnel, paiement Mobile Money,
             affiliation, sequences email : tout est inclus. Pas de carte bancaire requise.
           </p>
 
@@ -1261,7 +1261,7 @@ export default function VendreEnLignePage() {
               boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
             }}
           >
-            Creer mon compte vendeur — C&apos;est gratuit
+            Créer mon compte vendeur — C&apos;est gratuit
           </Link>
 
           <div style={{ ...S, fontSize: 13, color: "rgba(255,255,255,0.6)", marginTop: 16, position: "relative" as const }}>

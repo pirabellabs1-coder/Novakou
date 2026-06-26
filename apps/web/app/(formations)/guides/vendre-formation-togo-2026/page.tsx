@@ -227,7 +227,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation au Togo ?",
-    a: "Non. Au Togo en 2026, un compte T-Money, Flooz ou Mixx suffit largement pour demarrer. Novakou verse directement tes gains sur ton numero Mobile Money. Le compte bancaire pro (Ecobank Togo, UTB, Orabank, BTCI) devient pertinent a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux structurer ta tresorerie et acceder aux financements PME.",
+    a: "Non. Au Togo en 2026, un compte T-Money, Flooz ou Mixx suffit largement pour demarrer. Novakou verse directement tes gains sur ton numéro Mobile Money. Le compte bancaire pro (Ecobank Togo, UTB, Orabank, BTCI) devient pertinent a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux structurer ta tresorerie et acceder aux financements PME.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue au Togo ?",
@@ -235,23 +235,23 @@ const FAQ_ITEMS = [
   },
   {
     q: "Est-ce que je dois declarer mes revenus a la DGI togolaise ?",
-    a: "Oui, des le premier FCFA encaisse. Au Togo, le statut le plus simple pour un formateur digital qui demarre est le regime du forfait pour les TPE (tres petites entreprises). Tu te declares en ligne via e-services OTR (Office Togolais des Recettes) ou en agence, tu obtiens un NIF (Numero d'Identification Fiscale), et tu paies l'AIB (Acompte sur Impot sur les Benefices) selon ton CA estime. Tant que tu restes sous le seuil de 30 millions FCFA de CA annuel, tu beneficies du regime du forfait simplifie. Cet article est informatif - consulte un expert-comptable agree par l'ONECCA-Togo pour ta situation precise.",
+    a: "Oui, des le premier FCFA encaisse. Au Togo, le statut le plus simple pour un formateur digital qui demarre est le regime du forfait pour les TPE (très petites entreprises). Tu te declares en ligne via e-services OTR (Office Togolais des Recettes) ou en agence, tu obtiens un NIF (Numéro d'Identification Fiscale), et tu paies l'AIB (Acompte sur Impot sur les Bénéfices) selon ton CA estime. Tant que tu restes sous le seuil de 30 millions FCFA de CA annuel, tu beneficies du regime du forfait simplifie. Cet article est informatif - consulte un expert-comptable agree par l'ONECCA-Togo pour ta situation precise.",
   },
   {
     q: "T-Money, Flooz ou Mixx, lequel privilegier pour encaisser ?",
-    a: "Les trois, sans exception. T-Money (operateur Togocom, ex-Togocel) domine la couverture nationale et la base d'utilisateurs. Flooz (Moov Africa Togo) est tres fort chez les jeunes urbains et la diaspora togolaise en Cote d'Ivoire et au Benin. Mixx by Yas (anciennement Mixx, lance par Yas / ex-Moov dans certaines zones) gagne du terrain a Lome. Refuser un operateur, c'est se priver de 25 a 35 pourcent du marche togolais. Novakou integre les trois nativement.",
+    a: "Les trois, sans exception. T-Money (operateur Togocom, ex-Togocel) domine la couverture nationale et la base d'utilisateurs. Flooz (Moov Africa Togo) est très fort chez les jeunes urbains et la diaspora togolaise en Cote d'Ivoire et au Benin. Mixx by Yas (anciennement Mixx, lance par Yas / ex-Moov dans certaines zones) gagne du terrain a Lome. Refuser un operateur, c'est se priver de 25 a 35 pourcent du marche togolais. Novakou integre les trois nativement.",
   },
   {
     q: "Combien de temps avant ma premiere vente ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as deja un petit reseau WhatsApp (50 - 200 contacts a Lome ou Kara). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram, TikTok ou Facebook. Les formateurs togolais qui vont le plus vite sont ceux qui pre-vendent a leurs contacts d'Innov'Up, d'Africa Lab ou des incubateurs de Lome avant meme d'enregistrer le contenu.",
+    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as déjà un petit reseau WhatsApp (50 - 200 contacts a Lome ou Kara). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram, TikTok ou Facebook. Les formateurs togolais qui vont le plus vite sont ceux qui pre-vendent a leurs contacts d'Innov'Up, d'Africa Lab ou des incubateurs de Lome avant meme d'enregistrer le contenu.",
   },
   {
     q: "Faut-il un site web pour vendre une formation au Togo ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. Environ 85 pourcent des vendeurs togolais sur Novakou ne possedent aucun site separe. Un site dedie devient utile uniquement si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand tu as deja un catalogue actif.",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. Environ 85 pourcent des vendeurs togolais sur Novakou ne possedent aucun site separe. Un site dedie devient utile uniquement si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand tu as déjà un catalogue actif.",
   },
   {
     q: "Puis-je vendre une formation depuis Kara, Kpalime ou Sokode ?",
-    a: "Bien sur. La vente de formation en ligne au Togo n'est pas reservee a Lome. Avec une connexion 4G correcte (Togocom ou Moov Africa Togo), un smartphone recent et un micro-cravate a 4 000 FCFA, tu produis la meme qualite qu'au Boulevard du Mono. Plusieurs formateurs Novakou bases a Kara, Atakpame ou Kpalime depassent 550 000 FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite nette superieure.",
+    a: "Bien sur. La vente de formation en ligne au Togo n'est pas reservee a Lome. Avec une connexion 4G correcte (Togocom ou Moov Africa Togo), un smartphone recent et un micro-cravate a 4 000 FCFA, tu produis la meme qualité qu'au Boulevard du Mono. Plusieurs formateurs Novakou bases a Kara, Atakpame ou Kpalime depassent 550 000 FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite nette superieure.",
   },
   {
     q: "Comment proteger ma formation contre le piratage et le partage gratuit ? 🔒",
@@ -498,7 +498,7 @@ export default function VendreFormationTogoPage() {
           Particularite togolaise : le pays est un carrefour logistique
           regional grace au Port Autonome de Lome, premier port en eaux
           profondes de la sous-region. Cette position genere une culture
-          tres forte du commerce, de l&apos;import-export et de la
+          très forte du commerce, de l&apos;import-export et de la
           revente. Couple a une jeunesse hyperconnectee, cela cree un
           marche unique pour les formations e-commerce, Alibaba, Amazon,
           dropshipping et logistique digitale. Les ecoles classiques
@@ -512,10 +512,10 @@ export default function VendreFormationTogoPage() {
         >
           Ce guide te donne la methode integrale : choisir un sujet qui
           se vend a Lome et en region, encaisser via T-Money, Flooz ou
-          Mixx, gerer ta fiscalite forfait, promouvoir sans budget pub,
+          Mixx, gérer ta fiscalite forfait, promouvoir sans budget pub,
           lancer en 30 jours et comprendre les revenus realistes. Tout
           est aligne sur le terrain togolais de 2026, pas sur des
-          recettes copiees du marche francais.
+          recettes copiees du marche français.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale au Togo en 2026">
@@ -559,7 +559,7 @@ export default function VendreFormationTogoPage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Lome. Le marche togolais a
-          ses preferences propres, structurees par la demographie jeune,
+          ses préférences propres, structurees par la demographie jeune,
           la culture commerciale heritee du port et l&apos;ecosysteme
           startup naissant. Voici les six niches qui generent le plus de{" "}
           <strong>vente formation digitale Lome</strong> en 2026, classees
@@ -634,7 +634,7 @@ export default function VendreFormationTogoPage() {
           Comment lancer son business depuis zero, comment trouver des
           clients freelance, comment encaisser en devises etrangeres,
           comment structurer son entreprise individuelle togolaise. Ces
-          sujets convertissent tres bien car le resultat est mesurable
+          sujets convertissent très bien car le resultat est mesurable
           et la diaspora togolaise (France, USA, Canada) finance souvent
           la formation pour ses jeunes au pays.
         </p>
@@ -651,8 +651,8 @@ export default function VendreFormationTogoPage() {
         >
           Cheveux afro, ongles, maquillage, soins de la peau noire en
           climat humide, perte de poids, salle de sport a la maison.
-          Audience massivement feminine, tres engagee sur Instagram et
-          TikTok. Ticket moyen : 10 000 a 28 000 FCFA, tres bonne
+          Audience massivement feminine, très engagee sur Instagram et
+          TikTok. Ticket moyen : 10 000 a 28 000 FCFA, très bonne
           recurrence avec communautes privees.
         </p>
 
@@ -723,7 +723,7 @@ export default function VendreFormationTogoPage() {
           formation &quot;decouverte&quot; e-commerce plafonne autour de
           15 000 FCFA, mais une formation &quot;Importer un container de
           Shenzhen a Lome et revendre&quot; atteint 100 000 - 250 000
-          FCFA sans probleme.
+          FCFA sans problème.
         </TipBox>
 
         {/* ════════════════════════════════════════════════════════ */}
@@ -801,7 +801,7 @@ export default function VendreFormationTogoPage() {
           Yas) gagne du terrain depuis 2024 - 2025, particulierement
           chez les moins de 30 ans urbains. En 2026, l&apos;adoption
           reste plus contenue que T-Money ou Flooz mais grandit vite.
-          Pour un formateur, c&apos;est un canal a integrer des le
+          Pour un formateur, c&apos;est un canal a intégrer des le
           depart pour ne rater aucun acheteur. Novakou supporte Mixx
           nativement.
         </p>
@@ -909,12 +909,12 @@ export default function VendreFormationTogoPage() {
         >
           C&apos;est le statut adapte pour 90 pourcent des formateurs
           digitaux qui demarrent au Togo. Le regime du forfait pour les
-          tres petites entreprises permet une declaration simplifiee, un
+          très petites entreprises permet une declaration simplifiee, un
           impot synthetique unique remplaçant en grande partie
           l&apos;IRPP et la patente, et une comptabilite allegee.
           Inscription possible en ligne via le portail e-services OTR ou
           en agence (avec ta CNI et un justificatif d&apos;adresse). Tu
-          obtiens un NIF (Numero d&apos;Identification Fiscale) et un
+          obtiens un NIF (Numéro d&apos;Identification Fiscale) et un
           recepisse d&apos;inscription en quelques jours.
         </p>
 
@@ -964,7 +964,7 @@ export default function VendreFormationTogoPage() {
           du CA declare. Pour donner un ordre d&apos;idee : un formateur
           qui realise 5 millions FCFA de CA annuel paie en general autour
           de 200 000 a 350 000 FCFA d&apos;impot total annuel (selon ses
-          charges deductibles et activites). C&apos;est nettement moins
+          charges deductibles et activités). C&apos;est nettement moins
           que le regime classique de l&apos;IS. Reste a envisager une
           CNSS volontaire pour la protection sociale - fortement
           conseille pour la retraite et la maladie.
@@ -1050,7 +1050,7 @@ export default function VendreFormationTogoPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          Facebook - tres dominant au Togo
+          Facebook - très dominant au Togo
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -1105,7 +1105,7 @@ export default function VendreFormationTogoPage() {
           encheres publicitaires Facebook Ads sur le Togo ont monte en
           2024 - 2025. Pour un freelance debutant sans tunnel de vente
           teste, le ROI est negatif 7 fois sur 10. Reserve ce canal pour
-          une phase 2, quand tu as deja vendu naturellement au moins 30
+          une phase 2, quand tu as déjà vendu naturellement au moins 30
           fois et compris ton message qui convertit. Le guide{" "}
           <Link
             href="/guides/publicite-facebook"
@@ -1137,7 +1137,7 @@ export default function VendreFormationTogoPage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone, montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1212,7 +1212,7 @@ export default function VendreFormationTogoPage() {
           tous tes canaux en meme temps. A Lome, beaucoup d&apos;acheteurs
           regardent leur telephone le dimanche soir entre la sortie du
           temple ou de la messe et le repas familial - timing optimal
-          pour creer l&apos;effet de masse.
+          pour créer l&apos;effet de masse.
         </TipBox>
 
         {/* ════════════════════════════════════════════════════════ */}
@@ -1310,7 +1310,7 @@ export default function VendreFormationTogoPage() {
           En octobre 2026, son chiffre d&apos;affaires mensuel atteint
           870 000 FCFA. Repartition : 62 pourcent ventes de la formation
           principale, 13 pourcent ebook (souvent upsell), 25 pourcent
-          abonnements communaute. Apres impot forfait et commissions
+          abonnements communaute. Après impot forfait et commissions
           Novakou, il lui reste environ 680 000 FCFA nets - presque 3,5
           fois son salaire de transitaire precedent, pour 25 heures de
           travail hebdomadaires. Profil fictif mais entierement aligne

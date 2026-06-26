@@ -363,7 +363,7 @@ export default function PubliciteFacebookPage() {
         </p>
         <p className="text-[16px] leading-[1.8] mb-5" style={{ color: C.dark }}>
           Cependant, Facebook Ads reste complexe pour les débutants. Il existe
-          des dizaines de paramètres à configurer, et une mauvaise configuration
+          des dizaines de paramètrès à configurer, et une mauvaise configuration
           peut faire disparaître votre budget sans générer une seule vente. Ce
           guide vous donne une méthode claire, étape par étape, pour créer vos
           premières campagnes rentables avec un budget de départ aussi faible
@@ -603,7 +603,7 @@ export default function PubliciteFacebookPage() {
         </p>
         <p className="text-[16px] leading-[1.8] mb-5" style={{ color: C.dark }}>
           Sur Novakou, l&apos;intégration du Pixel Meta est native. Dans votre
-          tableau de bord, accédez à Paramètres &rarr; Intégrations &rarr; Meta Pixel.
+          tableau de bord, accédez à Paramètrès &rarr; Intégrations &rarr; Meta Pixel.
           Copiez votre ID de Pixel depuis votre Gestionnaire d&apos;événements
           Meta et collez-le dans le champ correspondant. Novakou configurera
           automatiquement les événements standards : PageView (chaque visite),

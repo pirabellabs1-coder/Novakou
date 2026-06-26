@@ -227,7 +227,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation au Burkina Faso ?",
-    a: "Non. Au Burkina Faso en 2026, un compte Orange Money ou Moov Money suffit largement pour demarrer. Novakou verse directement tes gains sur ton numero Mobile Money. Le compte bancaire pro (Coris Bank, Bank of Africa, Ecobank Burkina) devient pertinent a partir d'environ 600 000 FCFA de chiffre d'affaires mensuel, quand tu veux structurer ta tresorerie et beneficier du financement TPE.",
+    a: "Non. Au Burkina Faso en 2026, un compte Orange Money ou Moov Money suffit largement pour demarrer. Novakou verse directement tes gains sur ton numéro Mobile Money. Le compte bancaire pro (Coris Bank, Bank of Africa, Ecobank Burkina) devient pertinent a partir d'environ 600 000 FCFA de chiffre d'affaires mensuel, quand tu veux structurer ta tresorerie et beneficier du financement TPE.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue au Burkina Faso ?",
@@ -239,19 +239,19 @@ const FAQ_ITEMS = [
   },
   {
     q: "Orange Money ou Moov Money, lequel privilegier pour encaisser ?",
-    a: "Les deux, sans exception. Orange Money est historiquement dominant au Burkina (couverture nationale, base d'utilisateurs massive a Ouagadougou et en province), Moov Money capte une part importante des jeunes urbains et de la diaspora Cote d'Ivoire. Wave arrive aussi progressivement en 2026 avec son modele de frais zero. Novakou integre les trois par defaut. Refuser un operateur, c'est se priver de 25 a 35 pourcent des paiements potentiels.",
+    a: "Les deux, sans exception. Orange Money est historiquement dominant au Burkina (couverture nationale, base d'utilisateurs massive a Ouagadougou et en province), Moov Money capte une part importante des jeunes urbains et de la diaspora Cote d'Ivoire. Wave arrive aussi progressivement en 2026 avec son modèle de frais zero. Novakou integre les trois par defaut. Refuser un operateur, c'est se priver de 25 a 35 pourcent des paiements potentiels.",
   },
   {
     q: "Combien de temps avant ma premiere vente ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as deja un petit reseau WhatsApp (50 - 200 contacts a Ouaga ou Bobo). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram, TikTok ou Facebook. Les formateurs burkinabes qui vont le plus vite sont ceux qui pre-vendent a leurs contacts FESPACO, FasoHub ou les communautes universitaires de l'Universite Joseph Ki-Zerbo avant meme d'enregistrer le contenu.",
+    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as déjà un petit reseau WhatsApp (50 - 200 contacts a Ouaga ou Bobo). Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram, TikTok ou Facebook. Les formateurs burkinabes qui vont le plus vite sont ceux qui pre-vendent a leurs contacts FESPACO, FasoHub ou les communautes universitaires de l'Universite Joseph Ki-Zerbo avant meme d'enregistrer le contenu.",
   },
   {
     q: "Faut-il un site web pour vendre une formation au Burkina Faso ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. Environ 85 pourcent des vendeurs burkinabes sur Novakou ne possedent aucun site separe. Un site dedie devient utile uniquement si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand tu as deja un catalogue actif.",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. Environ 85 pourcent des vendeurs burkinabes sur Novakou ne possedent aucun site separe. Un site dedie devient utile uniquement si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand tu as déjà un catalogue actif.",
   },
   {
     q: "Puis-je vendre une formation depuis Bobo-Dioulasso, Koudougou ou Ouahigouya ?",
-    a: "Bien sur. La vente de formation en ligne au Burkina Faso n'est pas reservee a Ouagadougou. Avec une connexion 4G correcte (Orange ou Telecel) ou la fibre la ou elle est deployee, un smartphone recent et un micro-cravate a 4 000 FCFA, tu produis la meme qualite qu'a Ouaga 2000. Plusieurs formateurs Novakou bases a Bobo-Dioulasso ou Koudougou depassent 600 000 FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite nette superieure.",
+    a: "Bien sur. La vente de formation en ligne au Burkina Faso n'est pas reservee a Ouagadougou. Avec une connexion 4G correcte (Orange ou Telecel) ou la fibre la ou elle est deployee, un smartphone recent et un micro-cravate a 4 000 FCFA, tu produis la meme qualité qu'a Ouaga 2000. Plusieurs formateurs Novakou bases a Bobo-Dioulasso ou Koudougou depassent 600 000 FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite nette superieure.",
   },
   {
     q: "Comment proteger ma formation contre le piratage et le partage gratuit ? 🔒",
@@ -511,10 +511,10 @@ export default function VendreFormationBurkinaFasoPage() {
         >
           Ce guide te donne la methode integrale : choisir un sujet qui se
           vend a Ouaga, Bobo et en province, encaisser via Orange Money
-          Burkina ou Moov Money, gerer ta fiscalite CME, promouvoir sans
+          Burkina ou Moov Money, gérer ta fiscalite CME, promouvoir sans
           budget pub, lancer en 30 jours et comprendre les revenus
           realistes. Tout est aligne sur le terrain burkinabe de 2026, pas
-          sur des recettes copiees du marche francais.
+          sur des recettes copiees du marche français.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale au Burkina Faso en 2026">
@@ -557,8 +557,8 @@ export default function VendreFormationBurkinaFasoPage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Ouagadougou. Le marche
-          burkinabe a ses preferences propres, structurees par la
-          demographie jeune, la culture entrepreneuriale tres forte du pays
+          burkinabe a ses préférences propres, structurees par la
+          demographie jeune, la culture entrepreneuriale très forte du pays
           des hommes integres, et l&apos;heritage cinematographique unique
           (le FESPACO etant le plus grand festival du cinema africain).
           Voici les six niches qui generent le plus de{" "}
@@ -598,7 +598,7 @@ export default function VendreFormationBurkinaFasoPage() {
           extraordinairement forte grace au FESPACO. Cette tradition se
           transpose en 2026 dans le digital. Sujets qui marchent : Adobe
           Premiere, CapCut Pro, motion design After Effects, montage
-          mariages et evenements, creation de pubs Mobile Money pour
+          mariages et événements, creation de pubs Mobile Money pour
           commerces. Demande en hausse continue.
         </p>
 
@@ -650,8 +650,8 @@ export default function VendreFormationBurkinaFasoPage() {
         >
           Cheveux afro, ongles, maquillage mariage traditionnel, soins de
           la peau noire en climat sahelien, perte de poids, salle de sport
-          a la maison. Audience massivement feminine, tres engagee sur
-          Instagram et TikTok. Ticket moyen : 10 000 a 30 000 FCFA, tres
+          a la maison. Audience massivement feminine, très engagee sur
+          Instagram et TikTok. Ticket moyen : 10 000 a 30 000 FCFA, très
           bonne recurrence avec des communautes privees recurrentes.
         </p>
 
@@ -668,7 +668,7 @@ export default function VendreFormationBurkinaFasoPage() {
           Apprentissage de la lecture du Coran, tajwid, hadiths, sciences
           islamiques (majoritaire au Burkina), predication chretienne pour
           les communautes, developpement personnel inspire de la
-          spiritualite locale. Audience tres loyale, faible churn,
+          spiritualite locale. Audience très loyale, faible churn,
           recommandations fortes au sein des familles.
         </p>
 
@@ -793,10 +793,10 @@ export default function VendreFormationBurkinaFasoPage() {
           style={{ color: C.dark }}
         >
           <strong>Wave Burkina</strong> deploie progressivement son
-          modele &quot;frais zero entre particuliers&quot; depuis 2024 -
+          modèle &quot;frais zero entre particuliers&quot; depuis 2024 -
           2025. En 2026, l&apos;adoption reste plus contenue qu&apos;au
           Senegal mais grandit vite chez les moins de 30 ans urbains. Pour
-          un formateur, c&apos;est un canal a integrer des le depart car
+          un formateur, c&apos;est un canal a intégrer des le depart car
           les transferts sont gratuits cote acheteur, ce qui reduit la
           friction au paiement. Novakou supporte Wave Burkina nativement.
         </p>
@@ -903,7 +903,7 @@ export default function VendreFormationBurkinaFasoPage() {
           C&apos;est le statut adapte pour 90 pourcent des formateurs
           digitaux qui demarrent au Burkina. La CME (Contribution
           Micro-Entreprise) regroupe en un seul versement annuel
-          l&apos;essentiel des charges fiscales du tres petit
+          l&apos;essentiel des charges fiscales du très petit
           professionnel : IUTS (Impot Unique sur les Traitements et
           Salaires) pour la partie revenus du gerant, patente, et
           contribution forfaitaire. Inscription possible en ligne via
@@ -958,7 +958,7 @@ export default function VendreFormationBurkinaFasoPage() {
           declare. Pour donner un ordre d&apos;idee : un formateur qui
           realise 4 millions FCFA de CA annuel paie en general autour de
           180 000 a 300 000 FCFA d&apos;impot total annuel (selon ses
-          charges deductibles et activites). C&apos;est significativement
+          charges deductibles et activités). C&apos;est significativement
           moins que le regime classique. Reste a payer la CSB
           (Contribution du Secteur Burkinabe) si tu y adheres et a
           envisager une CNSS volontaire pour la protection sociale -
@@ -1045,7 +1045,7 @@ export default function VendreFormationBurkinaFasoPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          Facebook - encore tres dominant au Burkina
+          Facebook - encore très dominant au Burkina
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -1073,7 +1073,7 @@ export default function VendreFormationBurkinaFasoPage() {
           depuis 2024. Sous-utilise par les vendeurs locaux, donc enorme
           opportunite. L&apos;algorithme TikTok est genereux pour les
           comptes debutants. Cible ton contenu sur des micro-niches
-          precises (par exemple &quot;montage video pour evenements
+          precises (par exemple &quot;montage video pour événements
           Ouagadougou&quot; plutot que &quot;montage video&quot;).
         </p>
 
@@ -1099,7 +1099,7 @@ export default function VendreFormationBurkinaFasoPage() {
           encheres publicitaires Facebook Ads sur le Burkina ont monte en
           2024 - 2025. Pour un freelance debutant sans tunnel de vente
           teste, le ROI est negatif 7 fois sur 10. Reserve ce canal pour
-          une phase 2, quand tu as deja vendu naturellement au moins 30
+          une phase 2, quand tu as déjà vendu naturellement au moins 30
           fois et compris ton message qui convertit. Le guide{" "}
           <Link
             href="/guides/publicite-facebook"
@@ -1131,7 +1131,7 @@ export default function VendreFormationBurkinaFasoPage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone, montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1206,7 +1206,7 @@ export default function VendreFormationBurkinaFasoPage() {
           moment precis que tu envoies ton message d&apos;ouverture sur
           tous tes canaux en meme temps. Au Burkina, beaucoup
           d&apos;acheteurs regardent leur telephone le dimanche soir
-          apres les visites familiales - timing optimal.
+          après les visites familiales - timing optimal.
         </TipBox>
 
         {/* ════════════════════════════════════════════════════════ */}
@@ -1292,7 +1292,7 @@ export default function VendreFormationBurkinaFasoPage() {
           monteur passe par l&apos;ecosysteme FESPACO et plusieurs
           longs-metrages burkinabe, il a basculle formateur en fevrier
           2026. Son catalogue : une formation cle &quot;Monter ses videos
-          mariage et evenements comme un pro&quot; a 30 000 FCFA, un
+          mariage et événements comme un pro&quot; a 30 000 FCFA, un
           pack-presets Premiere Pro a 8 000 FCFA, une communaute
           WhatsApp Premium &quot;Montage Faso&quot; a 4 500 FCFA/mois.
         </p>
@@ -1303,7 +1303,7 @@ export default function VendreFormationBurkinaFasoPage() {
           En octobre 2026, son chiffre d&apos;affaires mensuel atteint
           950 000 FCFA. Repartition : 60 pourcent ventes de la formation
           principale, 15 pourcent pack-presets (souvent upsell), 25
-          pourcent abonnements communaute. Apres CME et commissions
+          pourcent abonnements communaute. Après CME et commissions
           Novakou, il lui reste environ 750 000 FCFA nets - presque 4
           fois son salaire d&apos;assistant precedent, pour 25 heures de
           travail hebdomadaires. Profil fictif mais entierement aligne

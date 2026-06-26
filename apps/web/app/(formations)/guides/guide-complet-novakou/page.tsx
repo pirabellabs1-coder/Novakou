@@ -514,7 +514,7 @@ function MockAIAssistant() {
             <div className="rounded-xl rounded-tl-none p-3 text-xs leading-relaxed" style={{ backgroundColor: C.surface, color: C.dark, ...S }}>
               <p className="font-bold mb-1">Voici un plan en 5 modules :</p>
               <p>Module 1 : Les fondamentaux du marketing digital</p>
-              <p>Module 2 : Creer sa presence sur les reseaux sociaux</p>
+              <p>Module 2 : Créer sa presence sur les reseaux sociaux</p>
               <p>Module 3 : Publicite Facebook & Instagram</p>
               <p>Module 4 : Email marketing et funnels</p>
               <p>Module 5 : Monetiser son audience</p>
@@ -581,20 +581,20 @@ function MockAnalytics() {
 /* ------------------------------------------------------------------ */
 const TOC = [
   { id: "introduction", n: 1, title: "Qu'est-ce que Novakou et pourquoi cette plateforme", time: "2 min" },
-  { id: "creer-compte", n: 2, title: "Creer son compte vendeur", time: "3 min" },
+  { id: "creer-compte", n: 2, title: "Créer son compte vendeur", time: "3 min" },
   { id: "configurer-boutique", n: 3, title: "Configurer sa boutique", time: "5 min" },
-  { id: "creer-formation", n: 4, title: "Creer sa premiere formation video", time: "10 min" },
-  { id: "creer-ebook", n: 5, title: "Creer un ebook ou template", time: "5 min" },
+  { id: "creer-formation", n: 4, title: "Créer sa premiere formation video", time: "10 min" },
+  { id: "creer-ebook", n: 5, title: "Créer un ebook ou template", time: "5 min" },
   { id: "paiements", n: 6, title: "Configurer les moyens de paiement", time: "5 min" },
-  { id: "tunnel-vente", n: 7, title: "Creer son premier tunnel de vente", time: "8 min" },
-  { id: "ia", n: 8, title: "Utiliser l'IA pour generer du contenu", time: "5 min" },
+  { id: "tunnel-vente", n: 7, title: "Créer son premier tunnel de vente", time: "8 min" },
+  { id: "ia", n: 8, title: "Utiliser l'IA pour générer du contenu", time: "5 min" },
   { id: "emails", n: 9, title: "Configurer les emails automatiques", time: "5 min" },
   { id: "affiliation", n: 10, title: "Mettre en place le programme d'affiliation", time: "5 min" },
   { id: "analytics", n: 11, title: "Analyser son tableau de bord", time: "5 min" },
   { id: "optimiser", n: 12, title: "10 astuces pour multiplier ses ventes par 3", time: "8 min" },
   { id: "retraits", n: 13, title: "Configurer les retraits et recevoir son argent", time: "3 min" },
   { id: "faq", n: 14, title: "FAQ : 15 questions les plus posees", time: "5 min" },
-  { id: "conclusion", n: 15, title: "Conclusion et prochaines etapes", time: "2 min" },
+  { id: "conclusion", n: 15, title: "Conclusion et prochaines étapes", time: "2 min" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -613,7 +613,7 @@ export default function GuideCompletNovakou() {
             Le guide complet Novakou : de l&apos;inscription a votre premiere vente
           </h1>
           <p className="text-base md:text-lg leading-relaxed mb-6" style={{ color: C.muted, ...S }}>
-            Tout ce que vous devez savoir pour creer votre boutique, publier vos formations et ebooks,
+            Tout ce que vous devez savoir pour créer votre boutique, publier vos formations et ebooks,
             configurer vos paiements Mobile Money, construire des tunnels de vente qui convertissent,
             et commencer a gagner de l&apos;argent avec vos savoirs. Pas a pas. Sans jargon technique.
           </p>
@@ -691,9 +691,9 @@ export default function GuideCompletNovakou() {
         <div className="grid gap-3 my-6">
           {[
             { title: "Paiements Mobile Money natifs", desc: "Orange Money, Wave, MTN MoMo integres nativement. Vos clients paient comme ils en ont l'habitude." },
-            { title: "Hebergement video securise", desc: "Vos videos sont hebergees directement sur Novakou, protegees contre le telechargement, avec streaming adaptatif meme en 3G." },
+            { title: "Hebergement video sécurisé", desc: "Vos videos sont hebergees directement sur Novakou, protegees contre le téléchargement, avec streaming adaptatif meme en 3G." },
             { title: "Tunnels de vente integres", desc: "Plus besoin de Systeme.io ou ClickFunnels. Construisez vos pages de vente et de capture directement dans Novakou." },
-            { title: "Assistant IA", desc: "L'IA vous aide a creer vos plans de cours, rediger vos pages de vente, et generer des quiz en quelques clics." },
+            { title: "Assistant IA", desc: "L'IA vous aide a créer vos plans de cours, rediger vos pages de vente, et générer des quiz en quelques clics." },
             { title: "Programme d'affiliation", desc: "Activez le bouche-a-oreille en offrant des commissions a ceux qui recommandent vos produits." },
             { title: "Zero frais caches", desc: "Pas d'abonnement obligatoire pour demarrer. Vous ne payez qu'une commission sur vos ventes reelles." },
           ].map((item) => (
@@ -710,7 +710,7 @@ export default function GuideCompletNovakou() {
         <P>
           Que vous soyez formateur, coach, auteur, consultant, artisan ou entrepreneur, ce guide
           vous accompagne de A a Z. A la fin, vous aurez une boutique en ligne fonctionnelle, un
-          premier produit publie, et tous les outils pour realiser votre premiere vente.
+          premier produit publie, et tous les outils pour réaliser votre premiere vente.
         </P>
 
         <Tip>
@@ -719,9 +719,9 @@ export default function GuideCompletNovakou() {
         </Tip>
 
         {/* ============================================================ */}
-        {/*  SECTION 2 — Creer son compte                                */}
+        {/*  SECTION 2 — Créer son compte                                */}
         {/* ============================================================ */}
-        <SectionAnchor id="creer-compte" number={2} title="Creer son compte vendeur (etape par etape)" time="3 min" />
+        <SectionAnchor id="creer-compte" number={2} title="Créer son compte vendeur (étape par étape)" time="3 min" />
 
         <P>
           La creation de votre compte vendeur est la porte d&apos;entree vers Novakou. Le processus est
@@ -743,12 +743,12 @@ export default function GuideCompletNovakou() {
 
         <Step n={3}>
           <strong>Vérifiez votre e-mail&nbsp;:</strong> Un code de vérification à 6 chiffres sera envoyé à
-          l&apos;adresse email que vous avez fournie. Copiez-le et collez-le dans le champ de verification.
-          Le code expire apres 10 minutes.
+          l&apos;adresse email que vous avez fournie. Copiez-le et collez-le dans le champ de vérification.
+          Le code expire après 10 minutes.
         </Step>
 
         <Step n={4}>
-          <strong>Completez votre profil :</strong> Ajoutez une photo de profil, une biographie courte
+          <strong>Complétez votre profil :</strong> Ajoutez une photo de profil, une biographie courte
           et votre domaine d&apos;expertise. Ces informations apparaitront sur votre boutique publique.
         </Step>
 
@@ -759,7 +759,7 @@ export default function GuideCompletNovakou() {
         </Warning>
 
         <ProTip>
-          <p>Si vous comptez creer une marque, utilisez un email professionnel (ex: contact@votre-marque.com).
+          <p>Si vous comptez créer une marque, utilisez un email professionnel (ex: contact@votre-marque.com).
           Cela renforce la confiance de vos futurs clients.</p>
         </ProTip>
 
@@ -785,7 +785,7 @@ export default function GuideCompletNovakou() {
         <Step n={2}>
           <strong>Logo :</strong> Uploadez un logo au format PNG ou JPG, idealement sur fond
           transparent. Taille recommandee : 400x400 pixels minimum. Si vous n&apos;avez pas de logo,
-          utilisez Canva pour en creer un gratuitement en 5 minutes.
+          utilisez Canva pour en créer un gratuitement en 5 minutes.
         </Step>
 
         <Step n={3}>
@@ -797,8 +797,8 @@ export default function GuideCompletNovakou() {
 
         <Step n={4}>
           <strong>Couleurs :</strong> Choisissez une couleur principale qui represente votre marque.
-          Novakou adapte automatiquement les teintes secondaires. Si vous n&apos;avez pas de preference,
-          la couleur par defaut fonctionne tres bien.
+          Novakou adapte automatiquement les teintes secondaires. Si vous n&apos;avez pas de préférence,
+          la couleur par defaut fonctionne très bien.
         </Step>
 
         <Step n={5}>
@@ -832,14 +832,14 @@ export default function GuideCompletNovakou() {
         </div>
 
         {/* ============================================================ */}
-        {/*  SECTION 4 — Creer sa premiere formation                     */}
+        {/*  SECTION 4 — Créer sa premiere formation                     */}
         {/* ============================================================ */}
-        <SectionAnchor id="creer-formation" number={4} title="Creer sa premiere formation video" time="10 min" />
+        <SectionAnchor id="creer-formation" number={4} title="Créer sa premiere formation video" time="10 min" />
 
         <P>
-          C&apos;est le coeur de votre activite sur Novakou. Une formation bien structuree avec des videos
-          de qualite est le moyen le plus efficace de monetiser vos connaissances. Voici comment
-          proceder, etape par etape.
+          C&apos;est le coeur de votre activité sur Novakou. Une formation bien structuree avec des videos
+          de qualité est le moyen le plus efficace de monetiser vos connaissances. Voici comment
+          proceder, étape par étape.
         </P>
 
         <MockFormationEditor />
@@ -871,18 +871,18 @@ export default function GuideCompletNovakou() {
         </div>
 
         <Step n={1}>
-          <strong>Creez un nouveau produit :</strong> Dans votre tableau de bord, cliquez sur
+          <strong>Créez un nouveau produit :</strong> Dans votre tableau de bord, cliquez sur
           <strong> &quot;Nouveau produit&quot;</strong> puis selectionnez <strong>&quot;Formation video&quot;</strong>.
         </Step>
 
         <Step n={2}>
-          <strong>Donnez un titre accrocheur :</strong> Votre titre doit contenir le benefice principal.
+          <strong>Donnez un titre accrocheur :</strong> Votre titre doit contenir le bénéfice principal.
           Par exemple : &quot;Maitriser Instagram : de 0 a 10 000 abonnes en 60 jours&quot; est bien meilleur
           que &quot;Cours Instagram&quot;.
         </Step>
 
         <Step n={3}>
-          <strong>Ajoutez vos modules :</strong> Cliquez sur &quot;+ Ajouter un module&quot; pour creer chaque grande
+          <strong>Ajoutez vos modules :</strong> Cliquez sur &quot;+ Ajouter un module&quot; pour créer chaque grande
           section de votre formation. Renommez-les avec des titres clairs.
         </Step>
 
@@ -899,17 +899,17 @@ export default function GuideCompletNovakou() {
 
         <Step n={6}>
           <strong>Ajoutez des quiz (optionnel) :</strong> Pour chaque module, vous pouvez ajouter un quiz de
-          validation. L&apos;IA peut vous aider a generer des questions pertinentes automatiquement.
+          validation. L&apos;IA peut vous aider a générer des questions pertinentes automatiquement.
         </Step>
 
         <Step n={7}>
-          <strong>Fixez votre prix :</strong> Definissez le prix en FCFA. Vous pouvez aussi creer
+          <strong>Fixez votre prix :</strong> Definissez le prix en FCFA. Vous pouvez aussi créer
           plusieurs paliers de prix (Basique, Standard, Premium) avec des contenus differents pour
           chaque niveau.
         </Step>
 
         <Step n={8}>
-          <strong>Publiez :</strong> Relisez tout, verifiez que les videos se lancent correctement,
+          <strong>Publiez :</strong> Relisez tout, vérifiez que les videos se lancent correctement,
           puis cliquez sur &quot;Publier&quot;. Votre formation est immediatement disponible a la vente.
         </Step>
 
@@ -943,13 +943,13 @@ export default function GuideCompletNovakou() {
         </Warning>
 
         {/* ============================================================ */}
-        {/*  SECTION 5 — Creer un ebook                                  */}
+        {/*  SECTION 5 — Créer un ebook                                  */}
         {/* ============================================================ */}
-        <SectionAnchor id="creer-ebook" number={5} title="Creer un ebook ou template" time="5 min" />
+        <SectionAnchor id="creer-ebook" number={5} title="Créer un ebook ou template" time="5 min" />
 
         <P>
           Les ebooks, templates et guides PDF sont un excellent complement a vos formations. Ils sont
-          rapides a creer, ne necessitent pas de video, et peuvent servir de produit d&apos;appel a petit
+          rapides a créer, ne necessitent pas de video, et peuvent servir de produit d&apos;appel a petit
           prix pour attirer de nouveaux clients vers vos formations premium.
         </P>
 
@@ -962,8 +962,8 @@ export default function GuideCompletNovakou() {
 
         <Step n={2}>
           <strong>Redigez un titre et une description vendeuse :</strong> Votre description doit
-          expliquer clairement ce que le client va obtenir, le probleme que cela resout, et pour
-          qui c&apos;est fait. Utilisez des bullet points pour les benefices principaux.
+          expliquer clairement ce que le client va obtenir, le problème que cela resout, et pour
+          qui c&apos;est fait. Utilisez des bullet points pour les bénéfices principaux.
         </Step>
 
         <Step n={3}>
@@ -973,19 +973,19 @@ export default function GuideCompletNovakou() {
         </Step>
 
         <Step n={4}>
-          <strong>Ajoutez une image de couverture :</strong> C&apos;est crucial. Creez un visuel attrayant
+          <strong>Ajoutez une image de couverture :</strong> C&apos;est crucial. Créez un visuel attrayant
           sur Canva avec un mockup de livre. Les produits avec une belle couverture vendent 3 fois plus.
         </Step>
 
         <Step n={5}>
-          <strong>Activez l&apos;apercu (optionnel) :</strong> Vous pouvez permettre aux visiteurs de
+          <strong>Activez l&apos;aperçu (optionnel) :</strong> Vous pouvez permettre aux visiteurs de
           lire les premieres pages avant d&apos;acheter. Cela augmente la confiance et les conversions.
         </Step>
 
         <Tip>
           <p>Un ebook a 2 000 FCFA est un excellent &quot;produit d&apos;entree&quot;. Une fois que le client l&apos;a
           achete et apprecie, proposez-lui votre formation complete a 25 000 FCFA via un email
-          automatique. C&apos;est la strategie du &quot;tripwire&quot;.</p>
+          automatique. C&apos;est la stratégie du &quot;tripwire&quot;.</p>
         </Tip>
 
         {/* ============================================================ */}
@@ -1008,8 +1008,8 @@ export default function GuideCompletNovakou() {
             { name: "Orange Money", details: "Disponible au Senegal, en Cote d'Ivoire, au Mali, au Cameroun, en Guinee, au Burkina Faso et dans 11 autres pays. Activation automatique." },
             { name: "Wave", details: "Disponible au Senegal et en Cote d'Ivoire. Frais de transaction parmi les plus bas du marche." },
             { name: "MTN Mobile Money", details: "Disponible au Cameroun, en Cote d'Ivoire, au Congo et dans plusieurs pays d'Afrique de l'Ouest et Centrale." },
-            { name: "Carte bancaire (Visa/Mastercard)", details: "Pour les clients internationaux et la diaspora. Integre via Stripe, securise par 3D Secure." },
-            { name: "PayPal", details: "Option complementaire pour les clients qui preferent PayPal, tres utilise par la diaspora." },
+            { name: "Carte bancaire (Visa/Mastercard)", details: "Pour les clients internationaux et la diaspora. Integre via Stripe, sécurisé par 3D Secure." },
+            { name: "PayPal", details: "Option complementaire pour les clients qui preferent PayPal, très utilise par la diaspora." },
           ].map((pm) => (
             <div key={pm.name} className="flex items-start gap-3 p-3 rounded-xl border" style={{ borderColor: "#e5eae1" }}>
               <span className="text-base mt-0.5" style={{ color: C.accent }}>&#x1F4B3;</span>
@@ -1022,8 +1022,8 @@ export default function GuideCompletNovakou() {
         </div>
 
         <Step n={1}>
-          <strong>Allez dans Paramètres &gt; Paiements&nbsp;:</strong> Depuis votre tableau de bord,
-          ouvrez les parametres et selectionnez l&apos;onglet &quot;Paiements&quot;.
+          <strong>Allez dans Paramètrès &gt; Paiements&nbsp;:</strong> Depuis votre tableau de bord,
+          ouvrez les paramètres et selectionnez l&apos;onglet &quot;Paiements&quot;.
         </Step>
 
         <Step n={2}>
@@ -1034,12 +1034,12 @@ export default function GuideCompletNovakou() {
 
         <Step n={3}>
           <strong>Vérifiez votre identité&nbsp;:</strong> Pour recevoir des paiements, vous devez
-          completer la verification d&apos;identite (KYC). Uploadez une photo de votre carte d&apos;identite
-          ou passeport. La verification prend generalement moins de 24 heures.
+          compléter la vérification d&apos;identite (KYC). Uploadez une photo de votre carte d&apos;identite
+          ou passeport. La vérification prend generalement moins de 24 heures.
         </Step>
 
         <Warning>
-          <p>La verification d&apos;identite est obligatoire avant de pouvoir retirer vos fonds. Faites-la
+          <p>La vérification d&apos;identite est obligatoire avant de pouvoir retirer vos fonds. Faites-la
           des le debut pour eviter d&apos;etre bloque au moment de votre premiere vente. Les documents
           acceptes : carte nationale d&apos;identite, passeport, permis de conduire.</p>
         </Warning>
@@ -1053,11 +1053,11 @@ export default function GuideCompletNovakou() {
         {/* ============================================================ */}
         {/*  SECTION 7 — Tunnel de vente                                 */}
         {/* ============================================================ */}
-        <SectionAnchor id="tunnel-vente" number={7} title="Creer son premier tunnel de vente avec le builder" time="8 min" />
+        <SectionAnchor id="tunnel-vente" number={7} title="Créer son premier tunnel de vente avec le builder" time="8 min" />
 
         <P>
           Un tunnel de vente (ou &quot;funnel&quot;) est une serie de pages concues pour guider votre visiteur
-          de la decouverte de votre offre jusqu&apos;a l&apos;achat. C&apos;est l&apos;outil le plus puissant pour
+          de la découverte de votre offre jusqu&apos;a l&apos;achat. C&apos;est l&apos;outil le plus puissant pour
           maximiser vos conversions. Novakou inclut un builder visuel complet — vous n&apos;avez pas besoin
           d&apos;outils externes.
         </P>
@@ -1069,8 +1069,8 @@ export default function GuideCompletNovakou() {
         <div className="grid gap-3 my-4">
           {[
             { title: "1. Page de capture", desc: "Objectif : collecter l'email du visiteur en echange d'un contenu gratuit (ebook, checklist, video). C'est la porte d'entree de votre tunnel." },
-            { title: "2. Page de vente", desc: "Objectif : convaincre le visiteur d'acheter. Structure : probleme, solution, benefices, temoignages, garantie, prix, CTA." },
-            { title: "3. Page de checkout", desc: "Objectif : finaliser la transaction. Formulaire de paiement simplifie, rappel de l'offre, badges de securite." },
+            { title: "2. Page de vente", desc: "Objectif : convaincre le visiteur d'acheter. Structure : problème, solution, bénéfices, temoignages, garantie, prix, CTA." },
+            { title: "3. Page de checkout", desc: "Objectif : finaliser la transaction. Formulaire de paiement simplifie, rappel de l'offre, badges de sécurité." },
             { title: "4. Page de remerciement", desc: "Objectif : confirmer l'achat, donner les acces, proposer un upsell (produit complementaire a prix reduit)." },
           ].map((page) => (
             <div key={page.title} className="p-4 rounded-xl border" style={{ borderColor: "#e5eae1" }}>
@@ -1081,8 +1081,8 @@ export default function GuideCompletNovakou() {
         </div>
 
         <Step n={1}>
-          <strong>Creez un nouveau tunnel :</strong> Dans le menu lateral, allez dans &quot;Tunnels de vente&quot;
-          puis cliquez sur &quot;Creer un tunnel&quot;. Donnez-lui un nom interne (ex: &quot;Tunnel Formation Instagram&quot;).
+          <strong>Créez un nouveau tunnel :</strong> Dans le menu lateral, allez dans &quot;Tunnels de vente&quot;
+          puis cliquez sur &quot;Créer un tunnel&quot;. Donnez-lui un nom interne (ex: &quot;Tunnel Formation Instagram&quot;).
         </Step>
 
         <Step n={2}>
@@ -1117,7 +1117,7 @@ export default function GuideCompletNovakou() {
         {/* ============================================================ */}
         {/*  SECTION 8 — IA                                              */}
         {/* ============================================================ */}
-        <SectionAnchor id="ia" number={8} title="Utiliser l'IA pour generer du contenu" time="5 min" />
+        <SectionAnchor id="ia" number={8} title="Utiliser l'IA pour générer du contenu" time="5 min" />
 
         <P>
           L&apos;assistant IA de Novakou est integre directement dans votre espace vendeur. Il comprend
@@ -1131,14 +1131,14 @@ export default function GuideCompletNovakou() {
 
         <div className="grid gap-2 my-4">
           {[
-            "Generer un plan de cours structure (modules, lecons, objectifs)",
+            "Générer un plan de cours structure (modules, lecons, objectifs)",
             "Rediger une page de vente complete avec arguments et temoignages",
-            "Creer des quiz et des exercices pour chaque module",
+            "Créer des quiz et des exercices pour chaque module",
             "Ecrire vos emails de bienvenue, de relance et de suivi",
             "Suggerer des titres accrocheurs pour vos formations",
             "Rediger des descriptions de produits optimisees pour le SEO",
-            "Generer des idees de contenu gratuit pour attirer des prospects",
-            "Creer un script pour vos videos de presentation",
+            "Générer des idees de contenu gratuit pour attirer des prospects",
+            "Créer un script pour vos videos de presentation",
           ].map((item) => (
             <div key={item} className="flex items-start gap-2 text-[13px]" style={{ color: C.dark, ...S }}>
               <span style={{ color: "#7c3aed" }}>&#x2728;</span>
@@ -1149,7 +1149,7 @@ export default function GuideCompletNovakou() {
 
         <Step n={1}>
           <strong>Ouvrez l&apos;assistant IA :</strong> Cliquez sur l&apos;icone IA dans le menu lateral ou
-          directement dans l&apos;editeur de formation (bouton &quot;Generer avec l&apos;IA&quot;).
+          directement dans l&apos;editeur de formation (bouton &quot;Générer avec l&apos;IA&quot;).
         </Step>
 
         <Step n={2}>
@@ -1160,7 +1160,7 @@ export default function GuideCompletNovakou() {
 
         <Step n={3}>
           <strong>Affinez le resultat :</strong> L&apos;IA genere une premiere version que vous pouvez
-          modifier, completer ou regenerer. Demandez des ajustements : &quot;Ajoute un module sur la
+          modifier, compléter ou regenerer. Demandez des ajustements : &quot;Ajoute un module sur la
           creation de groupes WhatsApp Business&quot;.
         </Step>
 
@@ -1188,8 +1188,8 @@ export default function GuideCompletNovakou() {
 
         <div className="grid gap-3 my-4">
           {[
-            { title: "Sequence de bienvenue", desc: "Envoyee immediatement apres l'achat. Contient les acces a la formation, un message de bienvenue chaleureux, et les premieres etapes pour commencer.", emails: 3 },
-            { title: "Sequence de suivi", desc: "Envoyee a J+1, J+3 et J+7 apres l'achat. Encourage l'apprenant a progresser dans sa formation. Reduit le taux d'abandon.", emails: 3 },
+            { title: "Sequence de bienvenue", desc: "Envoyee immediatement après l'achat. Contient les acces a la formation, un message de bienvenue chaleureux, et les premieres étapes pour commencer.", emails: 3 },
+            { title: "Sequence de suivi", desc: "Envoyee a J+1, J+3 et J+7 après l'achat. Encourage l'apprenant a progresser dans sa formation. Reduit le taux d'abandon.", emails: 3 },
             { title: "Sequence de relance panier abandonne", desc: "Envoyee quand un visiteur commence le checkout mais ne finalise pas. Rappel de l'offre avec urgence. Recupere jusqu'a 15% des ventes perdues.", emails: 2 },
             { title: "Sequence de certificat", desc: "Envoyee automatiquement quand l'apprenant a termine tous les modules et reussi les quiz. Contient le certificat PDF telechargeable.", emails: 1 },
           ].map((seq) => (
@@ -1221,7 +1221,7 @@ export default function GuideCompletNovakou() {
 
         <ProTip>
           <p>L&apos;email de bienvenue a le taux d&apos;ouverture le plus eleve (80%+). Profitez-en pour
-          creer un lien fort avec votre nouveau client. Racontez une anecdote personnelle, partagez
+          créer un lien fort avec votre nouveau client. Racontez une anecdote personnelle, partagez
           votre &quot;pourquoi&quot;, et donnez-lui un objectif pour sa premiere semaine.</p>
         </ProTip>
 
@@ -1239,7 +1239,7 @@ export default function GuideCompletNovakou() {
         <MockAffiliation />
 
         <Step n={1}>
-          <strong>Activez l&apos;affiliation :</strong> Dans Parametres &gt; Affiliation, activez le
+          <strong>Activez l&apos;affiliation :</strong> Dans Paramètres &gt; Affiliation, activez le
           programme pour vos produits. Vous pouvez l&apos;activer pour tous vos produits ou
           selectionner uniquement certains.
         </Step>
@@ -1262,7 +1262,7 @@ export default function GuideCompletNovakou() {
         </Step>
 
         <Tip>
-          <p>Vos meilleurs affilies sont vos clients satisfaits. Apres qu&apos;un client a termine votre
+          <p>Vos meilleurs affilies sont vos clients satisfaits. Après qu&apos;un client a termine votre
           formation avec succes, envoyez-lui un email pour lui proposer de devenir affilie. Il connait
           votre produit et peut en parler avec authenticite.</p>
         </Tip>
@@ -1285,10 +1285,10 @@ export default function GuideCompletNovakou() {
 
         <div className="grid gap-3 my-4">
           {[
-            { kpi: "Nombre de visiteurs", desc: "Combien de personnes visitent votre boutique ou vos tunnels. Si ce chiffre est bas, c'est un probleme de trafic (reseaux sociaux, publicite, SEO)." },
-            { kpi: "Taux de conversion", desc: "Le pourcentage de visiteurs qui achevent. Un bon taux est entre 2% et 5%. En dessous de 1%, votre page de vente a un probleme." },
+            { kpi: "Nombre de visiteurs", desc: "Combien de personnes visitent votre boutique ou vos tunnels. Si ce chiffre est bas, c'est un problème de trafic (reseaux sociaux, publicite, SEO)." },
+            { kpi: "Taux de conversion", desc: "Le pourcentage de visiteurs qui achevent. Un bon taux est entre 2% et 5%. En dessous de 1%, votre page de vente a un problème." },
             { kpi: "Panier moyen", desc: "Le montant moyen depense par client. Augmentez-le avec des upsells, des bundles et des offres complementaires." },
-            { kpi: "Taux de completion", desc: "Le pourcentage d'apprenants qui terminent votre formation. Un taux eleve signifie un contenu de qualite." },
+            { kpi: "Taux de completion", desc: "Le pourcentage d'apprenants qui terminent votre formation. Un taux eleve signifie un contenu de qualité." },
             { kpi: "Sources de trafic", desc: "D'ou viennent vos visiteurs (Facebook, WhatsApp, Google, direct). Concentrez vos efforts sur ce qui fonctionne." },
             { kpi: "Revenus par produit", desc: "Quel produit genere le plus de revenus. Double les efforts sur vos best-sellers." },
           ].map((item) => (
@@ -1316,7 +1316,7 @@ export default function GuideCompletNovakou() {
 
         <P>
           Vous avez votre boutique, vos produits, vos tunnels. Maintenant, comment passer de quelques
-          ventes par semaine a un flux regulier et croissant ? Voici les 10 strategies qui font la
+          ventes par semaine a un flux regulier et croissant ? Voici les 10 stratégies qui font la
           difference, testees et validees par les meilleurs vendeurs Novakou.
         </P>
 
@@ -1324,7 +1324,7 @@ export default function GuideCompletNovakou() {
           {
             n: 1,
             title: "Offrez un lead magnet irresistible",
-            text: "Creez un ebook gratuit, une checklist ou un mini-cours de 3 lecons. Offrez-le en echange de l'email du visiteur via votre page de capture. Cet email vaut de l'or : vous pouvez relancer ce prospect autant de fois que necessaire.",
+            text: "Créez un ebook gratuit, une checklist ou un mini-cours de 3 lecons. Offrez-le en echange de l'email du visiteur via votre page de capture. Cet email vaut de l'or : vous pouvez relancer ce prospect autant de fois que nécessaire.",
           },
           {
             n: 2,
@@ -1333,7 +1333,7 @@ export default function GuideCompletNovakou() {
           },
           {
             n: 3,
-            title: "Creez l'urgence avec les offres flash",
+            title: "Créez l'urgence avec les offres flash",
             text: "Proposez des reductions limitees dans le temps (72 heures). Le compteur a rebours dans votre tunnel de vente augmente les conversions de 30 a 50%. Utilisez-le avec parcimonie pour ne pas perdre en credibilite.",
           },
           {
@@ -1343,18 +1343,18 @@ export default function GuideCompletNovakou() {
           },
           {
             n: 5,
-            title: "Creez un bundle (offre groupee)",
+            title: "Créez un bundle (offre groupee)",
             text: "Regroupez 2-3 produits complementaires a un prix inferieur a la somme individuelle. Les bundles augmentent le panier moyen de 40% en moyenne.",
           },
           {
             n: 6,
             title: "Mettez en place un upsell sur la page de remerciement",
-            text: "Apres un achat, proposez un produit complementaire a prix reduit. Le client est dans un etat d'achat, le taux de conversion sur les upsells peut atteindre 10-15%.",
+            text: "Après un achat, proposez un produit complementaire a prix reduit. Le client est dans un etat d'achat, le taux de conversion sur les upsells peut atteindre 10-15%.",
           },
           {
             n: 7,
             title: "Activez les emails de relance de panier abandonne",
-            text: "60% des acheteurs qui commencent un checkout ne finalisent pas. Un email de relance envoye 1 heure apres, puis 24 heures apres, recupere 10 a 15% de ces ventes perdues. C'est de l'argent gratuit.",
+            text: "60% des acheteurs qui commencent un checkout ne finalisent pas. Un email de relance envoye 1 heure après, puis 24 heures après, recupere 10 a 15% de ces ventes perdues. C'est de l'argent gratuit.",
           },
           {
             n: 8,
@@ -1369,7 +1369,7 @@ export default function GuideCompletNovakou() {
           {
             n: 10,
             title: "Demandez des avis et ameliorez constamment",
-            text: "Envoyez un sondage a vos clients apres leur formation. Demandez ce qu'ils ont aime, ce qui manque, ce qu'ils aimeraient voir ensuite. Chaque amelioration augmente la satisfaction, les temoignages positifs et le bouche-a-oreille.",
+            text: "Envoyez un sondage a vos clients après leur formation. Demandez ce qu'ils ont aime, ce qui manque, ce qu'ils aimeraient voir ensuite. Chaque amelioration augmente la satisfaction, les temoignages positifs et le bouche-a-oreille.",
           },
         ].map((tip) => (
           <div key={tip.n} className="mb-6">
@@ -1385,7 +1385,7 @@ export default function GuideCompletNovakou() {
 
         <Warning>
           <p>N&apos;essayez pas d&apos;appliquer les 10 astuces en meme temps. Choisissez-en 2 ou 3 et
-          executez-les a fond avant de passer aux suivantes. La dispersion est l&apos;ennemi numero 1
+          executez-les a fond avant de passer aux suivantes. La dispersion est l&apos;ennemi numéro 1
           des createurs de contenu.</p>
         </Warning>
 
@@ -1397,7 +1397,7 @@ export default function GuideCompletNovakou() {
         <P>
           Vous avez fait des ventes — felicitations ! Maintenant, voyons comment recuperer votre
           argent. Novakou propose plusieurs methodes de retrait adaptees a votre pays et a vos
-          preferences.
+          préférences.
         </P>
 
         <MockWithdrawal />
@@ -1406,13 +1406,13 @@ export default function GuideCompletNovakou() {
           <strong>Vérifiez votre solde disponible&nbsp;:</strong> Dans votre tableau de bord, consultez
           votre portefeuille. Le &quot;solde disponible&quot; est le montant que vous pouvez retirer
           immediatement. Le &quot;solde en attente&quot; correspond aux ventes recentes dont le delai de
-          securite (48 heures) n&apos;est pas encore ecoule.
+          sécurité (48 heures) n&apos;est pas encore ecoule.
         </Step>
 
         <Step n={2}>
           <strong>Choisissez votre methode de retrait :</strong> Orange Money, Wave, MTN MoMo ou
-          virement bancaire. Ajoutez votre numero de telephone Mobile Money ou vos coordonnees
-          bancaires si ce n&apos;est pas deja fait.
+          virement bancaire. Ajoutez votre numéro de telephone Mobile Money ou vos coordonnees
+          bancaires si ce n&apos;est pas déjà fait.
         </Step>
 
         <Step n={3}>
@@ -1479,7 +1479,7 @@ export default function GuideCompletNovakou() {
             },
             {
               q: "Quels types de produits puis-je vendre ?",
-              a: "Formations video, ebooks, templates, coachings, masterclass, packs de ressources, guides PDF, fichiers audio. Tout produit numerique est accepte, tant qu'il est legal et de qualite.",
+              a: "Formations video, ebooks, templates, coachings, masterclass, packs de ressources, guides PDF, fichiers audio. Tout produit numerique est accepte, tant qu'il est legal et de qualité.",
             },
             {
               q: "Puis-je vendre en FCFA et en euros ?",
@@ -1491,15 +1491,15 @@ export default function GuideCompletNovakou() {
             },
             {
               q: "Combien de temps faut-il pour recevoir mon argent ?",
-              a: "Les fonds sont disponibles 48 heures apres la vente. Le retrait est ensuite traite sous 24 a 48 heures ouvrees. Mobile Money est quasi-instantane apres validation.",
+              a: "Les fonds sont disponibles 48 heures après la vente. Le retrait est ensuite traite sous 24 a 48 heures ouvrees. Mobile Money est quasi-instantane après validation.",
             },
             {
               q: "Puis-je avoir plusieurs produits ?",
-              a: "Oui, il n'y a pas de limite. Vous pouvez creer autant de formations, ebooks et templates que vous le souhaitez.",
+              a: "Oui, il n'y a pas de limite. Vous pouvez créer autant de formations, ebooks et templates que vous le souhaitez.",
             },
             {
               q: "Comment faire la promotion de mes produits ?",
-              a: "Utilisez vos reseaux sociaux (Facebook, Instagram, TikTok, WhatsApp), les tunnels de vente integres, l'email marketing, et le programme d'affiliation. Le guide ci-dessus couvre toutes ces strategies.",
+              a: "Utilisez vos reseaux sociaux (Facebook, Instagram, TikTok, WhatsApp), les tunnels de vente integres, l'email marketing, et le programme d'affiliation. Le guide ci-dessus couvre toutes ces stratégies.",
             },
             {
               q: "Novakou gere-t-il les certificats de formation ?",
@@ -1515,7 +1515,7 @@ export default function GuideCompletNovakou() {
             },
             {
               q: "Puis-je offrir des codes de reduction ?",
-              a: "Oui. Vous pouvez creer des codes promo avec un pourcentage ou un montant fixe de reduction, une date d'expiration, et un nombre maximum d'utilisations.",
+              a: "Oui. Vous pouvez créer des codes promo avec un pourcentage ou un montant fixe de reduction, une date d'expiration, et un nombre maximum d'utilisations.",
             },
             {
               q: "Les emails sont-ils vraiment automatiques ?",
@@ -1527,7 +1527,7 @@ export default function GuideCompletNovakou() {
             },
             {
               q: "Que se passe-t-il si un client demande un remboursement ?",
-              a: "Novakou propose une politique de remboursement sous 14 jours. Si un client demande un remboursement, vous etes notifie. Les fonds en escrow sont restitues au client. Cela n'arrive presque jamais quand le contenu est de qualite.",
+              a: "Novakou propose une politique de remboursement sous 14 jours. Si un client demande un remboursement, vous etes notifie. Les fonds en escrow sont restitues au client. Cela n'arrive presque jamais quand le contenu est de qualité.",
             },
           ].map((faq, i) => (
             <div key={i} className="rounded-xl border p-4" style={{ borderColor: "#e5eae1" }}>
@@ -1547,20 +1547,20 @@ export default function GuideCompletNovakou() {
         {/* ============================================================ */}
         {/*  SECTION 15 — Conclusion                                     */}
         {/* ============================================================ */}
-        <SectionAnchor id="conclusion" number={15} title="Conclusion et prochaines etapes" time="2 min" />
+        <SectionAnchor id="conclusion" number={15} title="Conclusion et prochaines étapes" time="2 min" />
 
         <P>
-          Felicitations ! Vous avez maintenant toutes les cles pour reussir sur Novakou. Recapitulons
-          les etapes que vous avez couvertes dans ce guide :
+          Felicitations ! Vous avez maintenant toutes les cles pour réussir sur Novakou. Recapitulons
+          les étapes que vous avez couvertes dans ce guide :
         </P>
 
         <div className="grid gap-2 my-6">
           {[
             "Comprendre ce que Novakou peut faire pour vous",
-            "Creer votre compte vendeur en 3 minutes",
+            "Créer votre compte vendeur en 3 minutes",
             "Configurer votre boutique avec votre marque",
             "Publier votre premiere formation video",
-            "Creer des ebooks et templates complementaires",
+            "Créer des ebooks et templates complementaires",
             "Activer tous les moyens de paiement (Mobile Money + carte)",
             "Construire un tunnel de vente qui convertit",
             "Utiliser l'IA pour accelerer votre creation de contenu",
@@ -1587,7 +1587,7 @@ export default function GuideCompletNovakou() {
 
         <P>
           Votre premier produit ne sera pas votre meilleur. Et c&apos;est parfaitement normal. Chaque
-          formation, chaque ebook, chaque tunnel de vente que vous creez vous rend meilleur. Vos
+          formation, chaque ebook, chaque tunnel de vente que vous créez vous rend meilleur. Vos
           clients vous donneront des retours, vous ameliorerez, et votre deuxieme produit sera
           deux fois meilleur que le premier.
         </P>
@@ -1608,7 +1608,7 @@ export default function GuideCompletNovakou() {
             Pret a lancer votre premiere vente ?
           </h2>
           <p className="text-base mb-6 opacity-90" style={{ color: C.white, ...S }}>
-            Creez votre compte vendeur gratuitement en moins de 3 minutes.
+            Créez votre compte vendeur gratuitement en moins de 3 minutes.
             <br />Pas de carte bancaire requise. Pas d&apos;engagement.
           </p>
           <Link
@@ -1616,10 +1616,10 @@ export default function GuideCompletNovakou() {
             className="inline-block px-8 py-4 rounded-xl text-base font-bold transition-opacity hover:opacity-90"
             style={{ backgroundColor: C.white, color: C.primary, ...SH }}
           >
-            Creer mon compte vendeur gratuitement
+            Créer mon compte vendeur gratuitement
           </Link>
           <p className="text-sm mt-4 opacity-70" style={{ color: C.white, ...S }}>
-            Deja inscrit ?{" "}
+            Déjà inscrit ?{" "}
             <Link href="/connexion" className="underline" style={{ color: C.white }}>
               Connectez-vous
             </Link>
@@ -1631,8 +1631,8 @@ export default function GuideCompletNovakou() {
           <h3 className="text-lg mb-4" style={{ ...SH, color: C.dark }}>Guides complementaires</h3>
           <div className="grid gap-3">
             {[
-              { title: "Creer son produit : le guide du debutant", href: "/guides/creer-son-produit", time: "12 min" },
-              { title: "Vendre en ligne en Afrique : strategies qui fonctionnent", href: "/guides/vendre-en-ligne", time: "15 min" },
+              { title: "Créer son produit : le guide du debutant", href: "/guides/creer-son-produit", time: "12 min" },
+              { title: "Vendre en ligne en Afrique : stratégies qui fonctionnent", href: "/guides/vendre-en-ligne", time: "15 min" },
             ].map((guide) => (
               <Link key={guide.href} href={guide.href} className="flex items-center justify-between p-3 rounded-xl border hover:border-green-300 transition-colors" style={{ borderColor: "#e5eae1" }}>
                 <span className="text-sm font-semibold" style={{ color: C.dark, ...S }}>{guide.title}</span>

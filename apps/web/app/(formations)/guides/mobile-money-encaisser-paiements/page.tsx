@@ -152,7 +152,7 @@ const sections: GuideSection[] = [
         </GP>
         <GH3>Étape 1 — Activer les méthodes de paiement</GH3>
         <GP>
-          Tableau de bord vendeur → <GStrong>Paramètres → Méthodes de paiement</GStrong>. Toutes les méthodes Mobile Money sont actives par défaut. Vous pouvez en désactiver si vous ne ciblez qu'un pays précis.
+          Tableau de bord vendeur → <GStrong>Paramètrès → Méthodes de paiement</GStrong>. Toutes les méthodes Mobile Money sont actives par défaut. Vous pouvez en désactiver si vous ne ciblez qu'un pays précis.
         </GP>
         <GH3>Étape 2 — Configurer votre numéro de retrait</GH3>
         <GP>

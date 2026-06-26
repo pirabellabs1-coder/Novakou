@@ -227,7 +227,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation en Côte d'Ivoire ?",
-    a: "Non. En Côte d'Ivoire en 2026, un compte Wave, Orange Money, MTN MoMo ou Moov Money suffit largement pour commencer. Novakou verse directement tes gains sur ton numero Mobile Money. Le compte bancaire devient utile a partir d'environ 1 million FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a la SGBCI, NSIA Banque, Ecobank ou Orabank Abidjan pour structurer ta tresorerie et acceder a des services entreprises.",
+    a: "Non. En Côte d'Ivoire en 2026, un compte Wave, Orange Money, MTN MoMo ou Moov Money suffit largement pour commencer. Novakou verse directement tes gains sur ton numéro Mobile Money. Le compte bancaire devient utile a partir d'environ 1 million FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a la SGBCI, NSIA Banque, Ecobank ou Orabank Abidjan pour structurer ta tresorerie et acceder a des services entreprises.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue en Côte d'Ivoire ?",
@@ -239,19 +239,19 @@ const FAQ_ITEMS = [
   },
   {
     q: "Wave, Orange Money, MTN ou Moov : lequel choisir pour encaisser ?",
-    a: "Les quatre, sans hesiter. Wave domine Abidjan urbain (Cocody, Plateau, Marcory) avec des frais quasi-zero et une UX moderne. Orange Money est massif dans l'interieur (Bouake, Korhogo, Yamoussoukro) et garde une base utilisateurs enorme. MTN MoMo est tres solide notamment chez les jeunes Abobo-Yopougon et la classe moyenne. Moov Money monte en puissance avec des partenariats commerciaux interessants. Novakou integre les quatre par defaut : ton acheteur choisit, tu encaisses, tu recois ton solde en fin de cycle. Refuser un de ces quatre canaux, c'est se priver de 15 a 25 pourcent du marche ivoirien.",
+    a: "Les quatre, sans hesiter. Wave domine Abidjan urbain (Cocody, Plateau, Marcory) avec des frais quasi-zero et une UX moderne. Orange Money est massif dans l'interieur (Bouake, Korhogo, Yamoussoukro) et garde une base utilisateurs enorme. MTN MoMo est très solide notamment chez les jeunes Abobo-Yopougon et la classe moyenne. Moov Money monte en puissance avec des partenariats commerciaux interessants. Novakou integre les quatre par defaut : ton acheteur choisit, tu encaisses, tu recois ton solde en fin de cycle. Refuser un de ces quatre canaux, c'est se priver de 15 a 25 pourcent du marche ivoirien.",
   },
   {
     q: "Combien de temps avant ma premiere vente ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 10 et 18 jours pour la premiere vente si tu as deja une petite audience WhatsApp (50 - 200 contacts). Sans audience, compte 35 a 50 jours - le temps de construire 500 abonnes TikTok ou Instagram. Le marche abidjanais reagit souvent plus vite que les autres capitales UEMOA car la consommation digitale y est plus mature et le pouvoir d'achat plus eleve. Les formateurs qui vont le plus vite sont ceux qui pre-vendent avant meme d'enregistrer le contenu.",
+    a: "Avec la methode 30 jours decrite plus haut : entre 10 et 18 jours pour la premiere vente si tu as déjà une petite audience WhatsApp (50 - 200 contacts). Sans audience, compte 35 a 50 jours - le temps de construire 500 abonnes TikTok ou Instagram. Le marche abidjanais reagit souvent plus vite que les autres capitales UEMOA car la consommation digitale y est plus mature et le pouvoir d'achat plus eleve. Les formateurs qui vont le plus vite sont ceux qui pre-vendent avant meme d'enregistrer le contenu.",
   },
   {
     q: "Faut-il un site web pour vendre une formation en Côte d'Ivoire ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs ivoiriens sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs) ou si tu cibles des B2B grands comptes a Abidjan Plateau, mais cela vient plus tard.",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs ivoiriens sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs) ou si tu cibles des B2B grands comptes a Abidjan Plateau, mais cela vient plus tard.",
   },
   {
     q: "Puis-je vendre une formation depuis Bouake, Yamoussoukro ou San Pedro ?",
-    a: "Bien sur. La vente de formation en ligne en Côte d'Ivoire n'est pas reservee a Abidjan. Avec une connexion 4G correcte (Orange, MTN, Moov), un smartphone recent et un micro-cravate a 6 000 FCFA, tu produis la meme qualite qu'a Cocody. Plusieurs formateurs Novakou bases en region (Bouake, Daloa, Korhogo) depassent 1 million FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite superieure. Et la connexion fibre arrive desormais dans toutes les capitales regionales.",
+    a: "Bien sur. La vente de formation en ligne en Côte d'Ivoire n'est pas reservee a Abidjan. Avec une connexion 4G correcte (Orange, MTN, Moov), un smartphone recent et un micro-cravate a 6 000 FCFA, tu produis la meme qualité qu'a Cocody. Plusieurs formateurs Novakou bases en region (Bouake, Daloa, Korhogo) depassent 1 million FCFA mensuels - leur avantage : couts de vie plus bas, donc rentabilite superieure. Et la connexion fibre arrive desormais dans toutes les capitales regionales.",
   },
   {
     q: "Comment eviter que ma formation soit piratee et partagee gratuitement ? 🔒",
@@ -485,7 +485,7 @@ export default function VendreFormationCoteDIvoirePage() {
           La Côte d&apos;Ivoire de 2026 vit une fenetre d&apos;opportunite
           historique. Avec pres de 30 millions d&apos;habitants, un Abidjan
           metropolitain de plus de 6 millions d&apos;ames (deuxieme plus
-          grande ville francophone d&apos;Afrique apres Kinshasa), un PIB par
+          grande ville francophone d&apos;Afrique après Kinshasa), un PIB par
           habitant le plus eleve de l&apos;UEMOA et un taux d&apos;equipement
           smartphone qui depasse 75 pourcent dans le Grand Abidjan, le
           terrain pour <strong>vendre une formation en ligne en Côte
@@ -514,10 +514,10 @@ export default function VendreFormationCoteDIvoirePage() {
         >
           Ce guide te donne la methode integrale : choisir un sujet qui se
           vend a Abidjan et en region, encaisser via Wave Côte d&apos;Ivoire,
-          gerer ta fiscalite freelance via un CGA, promouvoir sans budget
+          gérer ta fiscalite freelance via un CGA, promouvoir sans budget
           pub, lancer en 30 jours et comprendre les revenus realistes. Tout
           est aligne sur le terrain ivoirien de 2026, pas sur des recettes
-          copiees du marche francais.
+          copiees du marche français.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale en Côte d'Ivoire en 2026">
@@ -560,7 +560,7 @@ export default function VendreFormationCoteDIvoirePage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Abidjan. Le marche ivoirien a
-          ses preferences propres, structurees par une demographie jeune,
+          ses préférences propres, structurees par une demographie jeune,
           une culture entrepreneuriale exceptionnellement forte (Abidjan est
           surnommee &quot;la Manhattan de l&apos;Afrique de l&apos;Ouest&quot;)
           et une diversite religieuse remarquable. Voici les six niches qui
@@ -620,7 +620,7 @@ export default function VendreFormationCoteDIvoirePage() {
           WhatsApp Business. Sujets qui convertissent : publicite Facebook
           ciblee Afrique francophone, contenu Reels viral, tunnels de vente,
           copywriting pour vendeurs Abidjan, gestion de communaute pour PME
-          ivoiriennes. Niche tres concurrentielle mais aussi tres profonde.
+          ivoiriennes. Niche très concurrentielle mais aussi très profonde.
         </p>
 
         <h3
@@ -673,7 +673,7 @@ export default function VendreFormationCoteDIvoirePage() {
           islamiques, developpement personnel inspire de la spiritualite
           locale. A cote, la beaute (cheveux afro, ongles, maquillage,
           peau noire), salle de sport a la maison, recettes traditionnelles
-          ivoiriennes : audience massivement feminine et tres engagee sur
+          ivoiriennes : audience massivement feminine et très engagee sur
           Instagram et TikTok.
         </p>
 
@@ -760,12 +760,12 @@ export default function VendreFormationCoteDIvoirePage() {
           L&apos;application est gratuite, les transferts entre
           particuliers sont quasi sans frais (un changement de paradigme
           dans une region ou les commissions historiques de 3 - 5 pourcent
-          etaient la norme), l&apos;experience utilisateur est moderne. Pour
+          etaient la norme), l&apos;expérience utilisateur est moderne. Pour
           un vendeur de formation, c&apos;est le moyen de paiement prefere
           des moins de 35 ans urbains et des CSP+. L&apos;integration{" "}
           <strong>Wave Côte d&apos;Ivoire paiement</strong> sur Novakou est
           native : ton acheteur clique sur &quot;Payer avec Wave&quot;,
-          scanne le QR ou saisit son numero, et la transaction se valide en
+          scanne le QR ou saisit son numéro, et la transaction se valide en
           quelques secondes.
         </p>
 
@@ -779,7 +779,7 @@ export default function VendreFormationCoteDIvoirePage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Orange Money reste tres puissant en Côte d&apos;Ivoire,
+          Orange Money reste très puissant en Côte d&apos;Ivoire,
           particulierement dans l&apos;interieur (Bouake, Yamoussoukro,
           Korhogo, Daloa, San Pedro) et dans la diaspora francophone
           (France, Belgique, Canada). Les transferts internationaux entrants
@@ -800,9 +800,9 @@ export default function VendreFormationCoteDIvoirePage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          MTN MoMo est tres ancre en Côte d&apos;Ivoire, notamment sur
+          MTN MoMo est très ancre en Côte d&apos;Ivoire, notamment sur
           Yopougon, Abobo et chez les classes populaires-moyennes. Le
-          reseau MTN est aussi tres utilise dans la communaute ghaneenne
+          reseau MTN est aussi très utilise dans la communaute ghaneenne
           installee en CI. Inclure <strong>MTN Mobile Money CI</strong>
           elargit naturellement ton marche a une frange importante de la
           population ivoirienne et ouvre meme sur le Cameroun, le Benin et
@@ -956,7 +956,7 @@ export default function VendreFormationCoteDIvoirePage() {
           style={{ color: C.dark }}
         >
           <li>Eligible au regime de l&apos;Impot Synthetique simplifie (en remplacement BIC + IRPP)</li>
-          <li>Beneficiaire potentiel des abattements du CGA (jusqu&apos;a 30 pourcent sur le benefice imposable)</li>
+          <li>Beneficiaire potentiel des abattements du CGA (jusqu&apos;a 30 pourcent sur le bénéfice imposable)</li>
           <li>Soumis a la TVA mais avec un regime simplifie possible si CA &lt; 200M FCFA selon la nature de l&apos;activite</li>
           <li>Dispense de tenir une comptabilite complete tant que tu es au regime de la micro-entreprise</li>
           <li>Autorise a emettre des factures simplifiees</li>
@@ -985,7 +985,7 @@ export default function VendreFormationCoteDIvoirePage() {
           Agree) est un organisme qui accompagne les TPE et freelances dans
           leur gestion comptable et fiscale. Adherer a un CGA agree donne
           droit a des abattements significatifs sur l&apos;impot
-          synthetique (jusqu&apos;a 30 pourcent du benefice imposable
+          synthetique (jusqu&apos;a 30 pourcent du bénéfice imposable
           exonere), a l&apos;assistance pour les declarations periodiques,
           et a une securisation vis-a-vis de la DGI. Le cout annuel d&apos;un
           CGA tourne autour de 80 000 - 200 000 FCFA selon la structure,
@@ -1004,7 +1004,7 @@ export default function VendreFormationCoteDIvoirePage() {
           style={{ color: C.dark }}
         >
           Pour un formateur freelance en regime synthetique, l&apos;impot
-          se calcule par tranches sur le CA ou le benefice. Pour donner un
+          se calcule par tranches sur le CA ou le bénéfice. Pour donner un
           ordre d&apos;idee : un formateur qui realise 8 millions FCFA de
           CA annuel paie en general autour de 400 000 a 700 000 FCFA
           d&apos;impot total (selon ses charges deductibles et son
@@ -1116,7 +1116,7 @@ export default function VendreFormationCoteDIvoirePage() {
           >
             TikTok et Reels pour vendre des formations
           </Link>{" "}
-          decortique la strategie.
+          decortique la stratégie.
         </p>
 
         <h3
@@ -1162,7 +1162,7 @@ export default function VendreFormationCoteDIvoirePage() {
           monte significativement depuis 2024 (Abidjan est un des marches
           africains les plus chers en CPM). Pour un freelance debutant sans
           tunnel de vente teste, le ROI est negatif 7 fois sur 10. Reserve
-          ce canal pour une phase 2, quand tu as deja vendu naturellement
+          ce canal pour une phase 2, quand tu as déjà vendu naturellement
           au moins 30 fois et compris ton message qui convertit. Le guide{" "}
           <Link
             href="/guides/publicite-facebook"
@@ -1194,7 +1194,7 @@ export default function VendreFormationCoteDIvoirePage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone, montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1368,7 +1368,7 @@ export default function VendreFormationCoteDIvoirePage() {
           En octobre 2026, son chiffre d&apos;affaires mensuel atteint
           2 100 000 FCFA. Repartition : 60 pourcent ventes de la formation
           principale, 15 pourcent ebook (souvent upsell), 25 pourcent
-          abonnements communaute (recurrent). Apres impot synthetique,
+          abonnements communaute (recurrent). Après impot synthetique,
           adhesion CGA et commissions Novakou, il lui reste environ
           1 650 000 FCFA nets - presque 4 fois son salaire d&apos;agence
           precedent, pour 30 heures de travail hebdomadaires. Profil fictif

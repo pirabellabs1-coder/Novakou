@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     "importer Systeme.io Novakou",
     "migrer tunnel Systeme.io",
     "alternative Systeme.io Afrique",
-    "import funnel systeme io",
+    "import funnel système io",
     "passer de Systeme.io à Novakou",
     "tunnel de vente Mobile Money",
   ],

@@ -985,7 +985,7 @@ export default function DescriptionProduitPage() {
             domaine: "Créatif / Photo",
             avant: {
               titre: "Apprendre la photographie avec son smartphone",
-              desc: "Cette formation vous apprend à utiliser votre téléphone pour faire de belles photos. Vous verrez les paramètres de l'appareil photo, la composition, la lumière, la retouche avec des applications. Débutants bienvenus.",
+              desc: "Cette formation vous apprend à utiliser votre téléphone pour faire de belles photos. Vous verrez les paramètrès de l'appareil photo, la composition, la lumière, la retouche avec des applications. Débutants bienvenus.",
               problemes: ["Titre générique, pas de bénéfice", "Description d'un programme scolaire", "Pas d'audience définie", "Pas de résultat mesurable promis"],
             },
             apres: {

@@ -143,7 +143,7 @@ const sections: GuideSection[] = [
     content: (
       <>
         <GP>
-          Dans WhatsApp Business : <GStrong>Paramètres → Outils Business → Catalogue</GStrong>. Ajoutez chacune de vos formations comme un item avec :
+          Dans WhatsApp Business : <GStrong>Paramètrès → Outils Business → Catalogue</GStrong>. Ajoutez chacune de vos formations comme un item avec :
         </GP>
         <GUl>
           <GLi>Image carrée 1080x1080 (idéalement votre thumbnail Novakou).</GLi>

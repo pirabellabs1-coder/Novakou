@@ -864,7 +864,7 @@ Au choix, gratuits :
 - **1Password** (si vous l'avez déjà)
 - **Microsoft Authenticator**
 
-## 2. Aller dans les paramètres Novakou
+## 2. Aller dans les paramètrès Novakou
 \`/parametres\` → onglet **Sécurité** → section **Authentification à deux facteurs**.
 
 Cliquez **« Activer la 2FA »**.

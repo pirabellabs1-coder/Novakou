@@ -226,7 +226,7 @@ const TOC = [
 const FAQ_ITEMS = [
   {
     q: "Faut-il un compte bancaire pour vendre une formation au Mali ?",
-    a: "Non. Au Mali en 2026, un compte Orange Money, Moov Money ou Wave Mali suffit largement pour commencer. Novakou verse directement tes gains sur ton numero Mobile Money malien. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a BDM-SA, Ecobank Mali, BMS, BOA Mali ou Coris Bank pour structurer ta tresorerie.",
+    a: "Non. Au Mali en 2026, un compte Orange Money, Moov Money ou Wave Mali suffit largement pour commencer. Novakou verse directement tes gains sur ton numéro Mobile Money malien. Le compte bancaire devient utile a partir d'environ 500 000 FCFA de chiffre d'affaires mensuel, quand tu veux ouvrir un compte pro a BDM-SA, Ecobank Mali, BMS, BOA Mali ou Coris Bank pour structurer ta tresorerie.",
   },
   {
     q: "Quel est le prix moyen d'une formation vendue au Mali ?",
@@ -234,27 +234,27 @@ const FAQ_ITEMS = [
   },
   {
     q: "Est-ce que je dois declarer mes revenus a la DGI Mali ?",
-    a: "Oui, des le premier FCFA encaisse. Le statut le plus simple au Mali pour un formateur freelance est l'entreprise individuelle au regime simplifie. Tu te declares en ligne sur le portail de la DGI Mali ou en agence (Centre des Impots de ta commune), tu obtiens un NIF (Numero d'Identification Fiscale), et tu paies l'ISCP (Impot Synthetique sur la Contribution des Patentes) qui regroupe plusieurs taxes. Tant que ton CA reste sous le seuil de 25 millions FCFA annuels, le regime simplifie reste avantageux. Cet article est informatif - consulte un expert-comptable agree (ONECCA Mali) pour ta situation precise.",
+    a: "Oui, des le premier FCFA encaisse. Le statut le plus simple au Mali pour un formateur freelance est l'entreprise individuelle au regime simplifie. Tu te declares en ligne sur le portail de la DGI Mali ou en agence (Centre des Impots de ta commune), tu obtiens un NIF (Numéro d'Identification Fiscale), et tu paies l'ISCP (Impot Synthetique sur la Contribution des Patentes) qui regroupe plusieurs taxes. Tant que ton CA reste sous le seuil de 25 millions FCFA annuels, le regime simplifie reste avantageux. Cet article est informatif - consulte un expert-comptable agree (ONECCA Mali) pour ta situation precise.",
   },
   {
     q: "Orange Money ou Moov Money, lequel choisir pour encaisser au Mali ?",
-    a: "Les deux, plus Wave. Orange Money domine historiquement le Mali (Bamako, Kayes, Sikasso, Segou, Mopti) avec la plus large base utilisateurs et les meilleurs reseaux d'agents physiques. Moov Money est tres fort dans le sud-est et chez les jeunes urbains de Bamako. Wave a commence son deploiement au Mali en 2024-2025 et seduit la generation Instagram avec sa gratuite totale entre particuliers. Novakou integre les trois par defaut : ton acheteur choisit, tu encaisses sur ton numero prefere. Refuser un operateur, c'est se priver d'environ 25 a 40 pourcent du marche malien.",
+    a: "Les deux, plus Wave. Orange Money domine historiquement le Mali (Bamako, Kayes, Sikasso, Segou, Mopti) avec la plus large base utilisateurs et les meilleurs reseaux d'agents physiques. Moov Money est très fort dans le sud-est et chez les jeunes urbains de Bamako. Wave a commence son deploiement au Mali en 2024-2025 et seduit la generation Instagram avec sa gratuite totale entre particuliers. Novakou integre les trois par defaut : ton acheteur choisit, tu encaisses sur ton numéro prefere. Refuser un operateur, c'est se priver d'environ 25 a 40 pourcent du marche malien.",
   },
   {
     q: "Combien de temps avant ma premiere vente au Mali ? 🤔",
-    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as deja une petite audience WhatsApp (50 - 200 contacts) a Bamako ou en region. Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram ou TikTok. Les formateurs maliens qui vont le plus vite sont ceux qui pre-vendent dans leur entourage immediat et dans leur diaspora familiale (le cousin de Paris ou de Madrid achete tres facilement pour son petit frere de Bamako).",
+    a: "Avec la methode 30 jours decrite plus haut : entre 14 et 21 jours pour la premiere vente si tu as déjà une petite audience WhatsApp (50 - 200 contacts) a Bamako ou en region. Sans audience, compte 45 a 60 jours - le temps de construire 500 abonnes Instagram ou TikTok. Les formateurs maliens qui vont le plus vite sont ceux qui pre-vendent dans leur entourage immediat et dans leur diaspora familiale (le cousin de Paris ou de Madrid achete très facilement pour son petit frere de Bamako).",
   },
   {
     q: "Faut-il un site web pour vendre une formation au Mali ?",
-    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait deja office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs maliens sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand ton catalogue depasse 3 a 4 produits et que tu vises l'international (diaspora ou marche UEMOA elargi).",
+    a: "Non, plus en 2026. Ta boutique Novakou (novakou.com/ton-pseudo) fait déjà office de site : page de vente, paiement, livraison automatique, espace eleve. 80 pourcent des vendeurs maliens sur Novakou ne possedent aucun site separe. Le seul cas ou un site dedie devient utile : si tu veux ranker sur Google avec du SEO de fond (blog, articles longs), mais cela vient plus tard quand ton catalogue depasse 3 a 4 produits et que tu vises l'international (diaspora ou marche UEMOA elargi).",
   },
   {
     q: "Puis-je vendre une formation depuis Sikasso, Segou ou Mopti ?",
-    a: "Bien sur. La vente de formation en ligne au Mali n'est pas reservee a Bamako. Avec une connexion 4G correcte (Orange ou Malitel), un smartphone recent et un micro-cravate a 5 000 FCFA, tu produis la meme qualite qu'a l'ACI 2000. Plusieurs formateurs Novakou bases a Sikasso, Segou ou Kayes depassent 600 000 FCFA mensuels - leur avantage : couts de vie plus bas qu'a Bamako, donc rentabilite nette superieure. Et leurs formations parlent souvent au monde rural mieux que celles des Bamakois.",
+    a: "Bien sur. La vente de formation en ligne au Mali n'est pas reservee a Bamako. Avec une connexion 4G correcte (Orange ou Malitel), un smartphone recent et un micro-cravate a 5 000 FCFA, tu produis la meme qualité qu'a l'ACI 2000. Plusieurs formateurs Novakou bases a Sikasso, Segou ou Kayes depassent 600 000 FCFA mensuels - leur avantage : couts de vie plus bas qu'a Bamako, donc rentabilite nette superieure. Et leurs formations parlent souvent au monde rural mieux que celles des Bamakois.",
   },
   {
     q: "Comment eviter que ma formation soit piratee et partagee gratuitement ? 🔒",
-    a: "Le risque zero n'existe pas, mais Novakou applique : streaming protege (videos non telechargeables), filigrane dynamique avec le mail de l'acheteur, lien personnalise par compte, blocage automatique si plusieurs IP simultanees. Reste vigilant sur Telegram et WhatsApp ou des groupes de revente existent au Mali comme partout en Afrique francophone. La meilleure defense reste un service inclus (coaching, replays a jour, communaute WhatsApp privee, sessions Q&A live en bambara ou en francais) que le pirate ne peut pas copier.",
+    a: "Le risque zero n'existe pas, mais Novakou applique : streaming protege (videos non telechargeables), filigrane dynamique avec le mail de l'acheteur, lien personnalise par compte, blocage automatique si plusieurs IP simultanees. Reste vigilant sur Telegram et WhatsApp ou des groupes de revente existent au Mali comme partout en Afrique francophone. La meilleure defense reste un service inclus (coaching, replays a jour, communaute WhatsApp privee, sessions Q&A live en bambara ou en français) que le pirate ne peut pas copier.",
   },
 ] as const;
 
@@ -510,16 +510,16 @@ export default function VendreFormationMaliPage() {
           style={{ color: C.dark }}
         >
           Avec Donilab, IMPACT Hub Bamako, Tuwindi Foundation et une
-          diaspora malienne massive (la 3eme source de devises du pays apres
+          diaspora malienne massive (la 3eme source de devises du pays après
           l&apos;or et le coton, structuree en France, en Espagne, aux USA
-          et en Cote d&apos;Ivoire), le pays a deja un ecosysteme digital
+          et en Cote d&apos;Ivoire), le pays a déjà un ecosysteme digital
           qui ne demande qu&apos;a accueillir ton expertise. Ce guide te
           donne la methode integrale : choisir un sujet qui se vend a
-          Bamako et en region, encaisser via Orange Money Mali, gerer ta
+          Bamako et en region, encaisser via Orange Money Mali, gérer ta
           fiscalite micro-entreprise, promouvoir sans budget pub, lancer en
           30 jours et comprendre les revenus realistes. Tout est aligne sur
           le terrain malien de 2026, pas sur des recettes copiees du marche
-          francais ou ivoirien.
+          français ou ivoirien.
         </p>
 
         <MockupFrame title="Le marche de la formation digitale au Mali en 2026">
@@ -562,7 +562,7 @@ export default function VendreFormationMaliPage() {
           style={{ color: C.dark }}
         >
           Tous les sujets ne se valent pas a Bamako. Le marche malien a ses
-          preferences propres, structurees par la demographie jeune, le
+          préférences propres, structurees par la demographie jeune, le
           poids economique de l&apos;agriculture et de l&apos;artisanat
           (l&apos;or et le coton restent les premiers piliers), la dimension
           religieuse forte (islam majoritaire) et la diaspora structuree.
@@ -586,7 +586,7 @@ export default function VendreFormationMaliPage() {
           intensif, aviculture moderne, embouche bovine, cultures
           irrigation goutte-a-goutte, transformation des produits agricoles
           (karite, beurre de karite, neem, bissap, fonio), permaculture
-          adaptee au Sahel. Audience tres engagee : les jeunes diplomes
+          adaptee au Sahel. Audience très engagee : les jeunes diplomes
           maliens qui retournent au village ET les entrepreneurs urbains qui
           veulent diversifier.
         </p>
@@ -640,7 +640,7 @@ export default function VendreFormationMaliPage() {
           savoir islamique (medersa, ecoles coraniques), les formations en
           apprentissage du Coran, tajwid, hadiths, sciences islamiques,
           finance islamique (sukuk, halal banking) ont une audience massive
-          et tres loyale. Ticket moyen plus modere mais churn quasi nul.
+          et très loyale. Ticket moyen plus modere mais churn quasi nul.
         </p>
 
         <h3
@@ -656,7 +656,7 @@ export default function VendreFormationMaliPage() {
           Cheveux afro, ongles, maquillage, soins de la peau noire,
           fabrication de cosmetiques naturels (karite, neem, baobab, hibiscus
           - ingredients locaux abondants), perte de poids, salle de sport a
-          la maison. Audience massivement feminine, tres engagee sur
+          la maison. Audience massivement feminine, très engagee sur
           Instagram et TikTok. Ticket moyen : 10 000 a 28 000 FCFA, et
           excellente recurrence par communaute privee.
         </p>
@@ -674,7 +674,7 @@ export default function VendreFormationMaliPage() {
           Anglais business pour freelance international et expatriation USA,
           espagnol (forte communaute malienne en Espagne), arabe litteraire,
           mandarin (relations Mali-Chine et bourses chinoises). La diaspora
-          francophone malienne est tres demandeuse de cours en ligne pour
+          francophone malienne est très demandeuse de cours en ligne pour
           ses enfants restes au pays. Ticket eleve quand combine avec un
           objectif precis (TOEFL, IELTS, DELE, embauche internationale).
         </p>
@@ -764,7 +764,7 @@ export default function VendreFormationMaliPage() {
           d&apos;agents physiques est le plus dense du pays, ce qui rassure
           les acheteurs ruraux qui veulent pouvoir cash-out facilement.
           L&apos;application est gratuite, les transferts entre particuliers
-          sont tres bon marche, l&apos;experience utilisateur s&apos;est
+          sont très bon marche, l&apos;expérience utilisateur s&apos;est
           modernisee. Pour un vendeur de formation, c&apos;est le moyen de
           paiement prefere de la majorite des Maliens, toutes generations
           confondues. L&apos;integration Orange Money Mali sur Novakou est
@@ -781,9 +781,9 @@ export default function VendreFormationMaliPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          <strong>Moov Money Mali</strong> reste tres fort a Bamako et dans
+          <strong>Moov Money Mali</strong> reste très fort a Bamako et dans
           les villes secondaires du sud (Sikasso, Bougouni, Koutiala) ou
-          Moov a une meilleure couverture reseau qu&apos;Orange. Tres
+          Moov a une meilleure couverture reseau qu&apos;Orange. Très
           populaire chez les 18-30 ans urbains qui apprecient son offre
           tarifaire competitive et ses promotions reseau. Les transferts
           internationaux entrants via Moov Money permettent a un membre de
@@ -803,9 +803,9 @@ export default function VendreFormationMaliPage() {
           style={{ color: C.dark }}
         >
           <strong>Wave Mali</strong> a lance son deploiement au Mali en
-          2024-2025, apres avoir conquis le Senegal et la Cote d&apos;Ivoire.
+          2024-2025, après avoir conquis le Senegal et la Cote d&apos;Ivoire.
           Sa promesse : transferts gratuits entre particuliers, app moderne,
-          experience type fintech europeenne. En 2026, Wave seduit
+          expérience type fintech europeenne. En 2026, Wave seduit
           principalement la jeunesse urbaine bamakoise (18-30 ans), les
           freelances et les commercants e-commerce. L&apos;inclure dans ta
           page de vente est un signal fort de modernite et te rend
@@ -921,7 +921,7 @@ export default function VendreFormationMaliPage() {
           possible en ligne sur le portail e-services de la DGI Mali ou en
           agence (Centre des Impots de ta commune, avec ta CNI ou ton
           passeport et un justificatif d&apos;adresse). Tu obtiens un NIF
-          (Numero d&apos;Identification Fiscale) et un Registre du Commerce
+          (Numéro d&apos;Identification Fiscale) et un Registre du Commerce
           en quelques jours via l&apos;API-Mali (Agence pour la Promotion
           des Investissements).
         </p>
@@ -955,7 +955,7 @@ export default function VendreFormationMaliPage() {
           Au-dela de 25 millions FCFA, tu passes au regime du reel simplifie
           et tu dois t&apos;immatriculer a la TVA. A ce stade, un expert-
           comptable inscrit a l&apos;ONECCA Mali devient indispensable pour
-          gerer ta declaration TVA, ta CSS et ton BIC (Benefices Industriels
+          gérer ta declaration TVA, ta CSS et ton BIC (Bénéfices Industriels
           et Commerciaux).
         </p>
 
@@ -1033,7 +1033,7 @@ export default function VendreFormationMaliPage() {
         >
           <li>
             <strong>Statuts WhatsApp</strong> quotidiens : temoignages
-            clients, micro-conseils, coulisses de ton activite
+            clients, micro-conseils, coulisses de ton activité
           </li>
           <li>
             <strong>Listes de diffusion</strong> segmentees par interet
@@ -1062,7 +1062,7 @@ export default function VendreFormationMaliPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          Facebook - encore tres puissant au Mali
+          Facebook - encore très puissant au Mali
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -1145,7 +1145,7 @@ export default function VendreFormationMaliPage() {
           encheres publicitaires Facebook Ads au Mali ont monte
           significativement depuis 2024. Pour un freelance debutant sans
           tunnel de vente teste, le ROI est negatif 7 fois sur 10. Reserve
-          ce canal pour une phase 2, quand tu as deja vendu naturellement
+          ce canal pour une phase 2, quand tu as déjà vendu naturellement
           au moins 30 fois et compris ton message qui convertit. Le guide{" "}
           <Link
             href="/guides/publicite-facebook"
@@ -1177,7 +1177,7 @@ export default function VendreFormationMaliPage() {
             {[
               {
                 week: "Semaine 1",
-                focus: "Creer le contenu",
+                focus: "Créer le contenu",
                 desc: "3h/jour : structure des modules, enregistrement video au smartphone (Galaxy A ou Tecno recent), montage CapCut. Objectif fin de semaine : 60 % de la formation enregistree.",
               },
               {
@@ -1342,7 +1342,7 @@ export default function VendreFormationMaliPage() {
           rapportent&quot; a 42 000 FCFA, un guide pratique &quot;Embouche
           ovine pour Tabaski - rendement 80 %&quot; a 18 000 FCFA, une
           communaute WhatsApp Premium &quot;Agro Club Mali&quot; a 6 000
-          FCFA/mois (suivi mensuel + Q&A live en bambara et francais +
+          FCFA/mois (suivi mensuel + Q&A live en bambara et français +
           calendrier cultural).
         </p>
         <p
@@ -1353,7 +1353,7 @@ export default function VendreFormationMaliPage() {
           340 000 FCFA. Repartition : 52 pourcent ventes de la formation
           maraichage, 28 pourcent guide embouche ovine (saisonnalite
           Tabaski qui boost), 20 pourcent abonnements Agro Club Mali
-          (recurrence stable). Apres ISCP et commissions Novakou, il lui
+          (recurrence stable). Après ISCP et commissions Novakou, il lui
           reste environ 1 060 000 FCFA nets - presque 4 fois son salaire de
           projet precedent, pour 30 heures de travail hebdomadaires. Profil
           fictif mais entierement aligne sur les metriques observees sur la

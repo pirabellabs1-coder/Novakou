@@ -80,7 +80,7 @@ function Breadcrumb() {
         Guides
       </Link>
       <span>/</span>
-      <span style={{ color: C.dark }}>Creer son produit digital</span>
+      <span style={{ color: C.dark }}>Créer son produit digital</span>
     </nav>
   );
 }
@@ -225,10 +225,10 @@ const TOC = [
   { id: "introduction", label: "Introduction" },
   { id: "types-produits", label: "Les 5 types de produits les plus rentables" },
   { id: "etape-1", label: "Identifier votre expertise unique" },
-  { id: "etape-2", label: "Valider votre idee avant de creer" },
+  { id: "etape-2", label: "Valider votre idee avant de créer" },
   { id: "etape-3", label: "Structurer votre contenu" },
   { id: "etape-4", label: "Produire votre contenu" },
-  { id: "etape-5", label: "Creer votre produit sur Novakou" },
+  { id: "etape-5", label: "Créer votre produit sur Novakou" },
   { id: "etape-6", label: "Fixer le prix juste" },
   { id: "checklist", label: "Checklist finale" },
   { id: "conclusion", label: "Conclusion" },
@@ -319,7 +319,7 @@ export default function CreerSonProduitPage() {
             className="text-3xl sm:text-4xl lg:text-5xl leading-[1.1] mb-6"
             style={{ ...SH, color: C.dark }}
           >
-            Comment creer son premier{" "}
+            Comment créer son premier{" "}
             <span style={{ color: C.primary }}>produit digital</span> en 2026
           </h1>
 
@@ -327,9 +327,9 @@ export default function CreerSonProduitPage() {
             className="text-lg leading-relaxed mb-8 max-w-2xl"
             style={{ color: C.muted }}
           >
-            Le guide etape par etape pour transformer votre savoir en un produit
+            Le guide étape par étape pour transformer votre savoir en un produit
             digital rentable. De l&apos;idee a la premiere vente sur Novakou,
-            decouvrez la methode complete adaptee au marche africain
+            découvrez la methode complete adaptee au marche africain
             francophone.
           </p>
 
@@ -409,7 +409,7 @@ export default function CreerSonProduitPage() {
         {/*  SECTION 1 — INTRODUCTION                              */}
         {/* ════════════════════════════════════════════════════════ */}
         <SectionHeading id="introduction">
-          Pourquoi creer un produit digital en Afrique en 2026
+          Pourquoi créer un produit digital en Afrique en 2026
         </SectionHeading>
 
         <p
@@ -426,11 +426,11 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Un produit digital, c&apos;est tout contenu que vous creez une fois et
+          Un produit digital, c&apos;est tout contenu que vous créez une fois et
           que vous vendez a l&apos;infini, sans stock, sans logistique
           physique, sans frontiere. Une formation video enregistree depuis
           Abidjan peut etre achetee par un etudiant a Dakar, un professionnel a
-          Douala ou un entrepreneur a Paris. C&apos;est le modele economique le
+          Douala ou un entrepreneur a Paris. C&apos;est le modèle economique le
           plus scalable qui existe.
         </p>
         <p
@@ -450,7 +450,7 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          C&apos;est exactement ce que ce guide va vous donner. En six etapes
+          C&apos;est exactement ce que ce guide va vous donner. En six étapes
           concretes, vous allez passer de l&apos;idee brute a un produit
           digital en vente sur Novakou, avec des paiements Mobile Money, une
           boutique professionnelle et vos premiers clients. Que vous soyez
@@ -495,7 +495,7 @@ export default function CreerSonProduitPage() {
           Avant de vous lancer tete baissee dans la creation, il est essentiel
           de comprendre les differents types de produits digitaux et de choisir
           celui qui correspond le mieux a votre expertise, votre audience et vos
-          objectifs financiers. Voici les cinq categories qui generent le plus
+          objectifs financiers. Voici les cinq catégories qui generent le plus
           de revenus sur le marche africain francophone en 2026.
         </p>
 
@@ -512,14 +512,14 @@ export default function CreerSonProduitPage() {
               {
                 icon: "2",
                 name: "Ebooks et guides PDF",
-                desc: "Guides pratiques, methodes, recettes. Rapide a creer, excellent produit d'entree de gamme.",
+                desc: "Guides pratiques, methodes, recettes. Rapide a créer, excellent produit d'entree de gamme.",
                 price: "3 000 - 25 000 FCFA",
                 color: "#2563eb",
               },
               {
                 icon: "3",
                 name: "Templates et ressources",
-                desc: "Modeles Canva, tableurs Excel, presets photo, templates Notion. Forte demande recurrente.",
+                desc: "Modèles Canva, tableurs Excel, presets photo, templates Notion. Forte demande recurrente.",
                 price: "5 000 - 50 000 FCFA",
                 color: "#7c3aed",
               },
@@ -575,7 +575,7 @@ export default function CreerSonProduitPage() {
           Les formations video restent le format le plus populaire et le plus
           rentable. Elles permettent de transmettre des competences de maniere
           structuree, avec un investissement initial en temps qui se rentabilise
-          sur le long terme. Un bon cours peut generer des ventes pendant des
+          sur le long terme. Un bon cours peut générer des ventes pendant des
           annees sans que vous ayez a refaire quoi que ce soit.
         </p>
         <p
@@ -583,7 +583,7 @@ export default function CreerSonProduitPage() {
           style={{ color: C.dark }}
         >
           Les ebooks et guides PDF sont le meilleur point d&apos;entree. Ils
-          sont rapides a creer (une a deux semaines), ne necessitent aucun
+          sont rapides a créer (une a deux semaines), ne necessitent aucun
           materiel particulier, et servent souvent de produit d&apos;appel pour
           attirer des clients vers vos offres plus premium. Un guide bien
           redige sur un sujet precis, par exemple &quot;Les 20 recettes
@@ -621,10 +621,10 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Posez-vous ces questions fondamentales : Quel probleme resolvez-vous
+          Posez-vous ces questions fondamentales : Quel problème resolvez-vous
           regulierement pour les autres ? Quelles questions vous pose-t-on
           souvent ? Dans quel domaine avez-vous au moins deux ans
-          d&apos;experience pratique ? Quels resultats concrets avez-vous
+          d&apos;expérience pratique ? Quels resultats concrets avez-vous
           obtenus pour vous-meme ou pour des clients ?
         </p>
         <p
@@ -633,9 +633,9 @@ export default function CreerSonProduitPage() {
         >
           Vous n&apos;avez pas besoin d&apos;etre le meilleur au monde. Vous avez
           besoin d&apos;etre meilleur que votre audience cible. Un developpeur
-          web avec trois ans d&apos;experience a enormement a enseigner a
+          web avec trois ans d&apos;expérience a enormement a enseigner a
           quelqu&apos;un qui debute. Un comptable qui gere les declarations
-          fiscales depuis cinq ans peut creer un guide indispensable pour les
+          fiscales depuis cinq ans peut créer un guide indispensable pour les
           auto-entrepreneurs. Une cuisiniere qui maitrise la patisserie africaine
           peut transformer ses recettes en un produit digital irresistible.
         </p>
@@ -648,7 +648,7 @@ export default function CreerSonProduitPage() {
               </p>
             </div>
             {[
-              "Quel probleme resolvez-vous regulierement pour d'autres personnes ?",
+              "Quel problème resolvez-vous regulierement pour d'autres personnes ?",
               "Quelles competences vous ont permis d'obtenir des resultats concrets ?",
               "Sur quel sujet vos proches, collegues ou clients viennent-ils vous consulter ?",
               "Quel domaine vous passionne au point d'en parler gratuitement pendant des heures ?",
@@ -685,7 +685,7 @@ export default function CreerSonProduitPage() {
         <WarnBox>
           <strong>Piege a eviter :</strong> Ne choisissez pas un sujet
           uniquement parce qu&apos;il est tendance. Si vous n&apos;avez pas
-          d&apos;experience reelle en trading de crypto-monnaies, ne creez pas
+          d&apos;expérience reelle en trading de crypto-monnaies, ne créez pas
           un cours sur le trading. Votre manque d&apos;expertise se verra
           rapidement, et votre reputation en souffrira. L&apos;authenticite est
           votre meilleur atout.
@@ -695,14 +695,14 @@ export default function CreerSonProduitPage() {
         {/*  SECTION 4 — ETAPE 2 : VALIDATION                     */}
         {/* ════════════════════════════════════════════════════════ */}
         <SectionHeading id="etape-2" number="2">
-          Valider votre idee avant de creer
+          Valider votre idee avant de créer
         </SectionHeading>
 
         <p
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          C&apos;est l&apos;etape que 80 % des createurs sautent, et c&apos;est
+          C&apos;est l&apos;étape que 80 % des createurs sautent, et c&apos;est
           souvent la raison pour laquelle leur produit ne se vend pas. Valider
           votre idee signifie s&apos;assurer que des personnes reelles sont
           pretes a payer pour la solution que vous proposez, avant
@@ -716,9 +716,9 @@ export default function CreerSonProduitPage() {
           Premierement, identifiez votre audience cible avec precision.
           &quot;Tout le monde&quot; n&apos;est pas une audience. Definissez qui
           est votre acheteur ideal : age, pays, profession, niveau
-          d&apos;experience, probleme principal. Par exemple : &quot;Femmes
+          d&apos;experience, problème principal. Par exemple : &quot;Femmes
           entrepreneures en Cote d&apos;Ivoire, 25-40 ans, qui veulent lancer
-          un business de traiteur mais ne savent pas gerer la comptabilite.&quot;
+          un business de traiteur mais ne savent pas gérer la comptabilite.&quot;
         </p>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -727,7 +727,7 @@ export default function CreerSonProduitPage() {
           Deuxiemement, allez la ou votre audience se trouve. Rejoignez les
           groupes Facebook, les chaines Telegram, les forums et les communautes
           WhatsApp ou vos clients potentiels echangent. Observez les questions
-          qu&apos;ils posent, les problemes qu&apos;ils partagent, les solutions
+          qu&apos;ils posent, les problèmes qu&apos;ils partagent, les solutions
           qu&apos;ils cherchent. Notez les mots exacts qu&apos;ils utilisent :
           ce sera votre vocabulaire de vente.
         </p>
@@ -746,10 +746,10 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Quatriemement, faites une pre-vente. Creez une page simple qui
+          Quatriemement, faites une pre-vente. Créez une page simple qui
           presente votre produit a venir avec un prix et un bouton de
           pre-commande. Si des gens paient avant meme que le produit existe,
-          vous avez la validation ultime. Novakou vous permet de creer cette
+          vous avez la validation ultime. Novakou vous permet de créer cette
           page de pre-lancement en quelques minutes.
         </p>
 
@@ -770,7 +770,7 @@ export default function CreerSonProduitPage() {
               [Titre de votre produit]
             </p>
             <p className="text-sm mb-4 max-w-sm mx-auto" style={{ color: C.muted }}>
-              [Description en une phrase du benefice principal pour votre client]
+              [Description en une phrase du bénéfice principal pour votre client]
             </p>
             <div
               className="inline-block px-4 py-2 rounded-lg text-sm font-semibold"
@@ -813,7 +813,7 @@ export default function CreerSonProduitPage() {
         >
           La structure de votre produit digital est ce qui fait la difference
           entre un contenu que les gens consomment jusqu&apos;au bout et un
-          contenu qu&apos;ils abandonnent apres le premier chapitre. Une bonne
+          contenu qu&apos;ils abandonnent après le premier chapitre. Une bonne
           structure suit un arc de progression : vous partez du point A (ou se
           trouve votre client aujourd&apos;hui) pour l&apos;amener au point B
           (le resultat qu&apos;il desire).
@@ -828,15 +828,15 @@ export default function CreerSonProduitPage() {
           apprenants preferent des lecons courtes et focalisees plutot que de
           longues sessions. Prevoyez un module d&apos;introduction qui pose le
           contexte et un module final qui recapitule et donne les prochaines
-          etapes.
+          étapes.
         </p>
         <p
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
           Pour un ebook, pensez en chapitres avec une progression logique.
-          Commencez par le probleme, expliquez les concepts cles, puis donnez
-          les etapes d&apos;action. Chaque chapitre doit se terminer par un
+          Commencez par le problème, expliquez les concepts cles, puis donnez
+          les étapes d&apos;action. Chaque chapitre doit se terminer par un
           resume ou un exercice pratique. Un bon ebook fait entre 30 et 80
           pages, pas besoin d&apos;ecrire un roman.
         </p>
@@ -858,7 +858,7 @@ export default function CreerSonProduitPage() {
               },
               {
                 module: "Module 3",
-                title: "Creer votre boutique en ligne",
+                title: "Créer votre boutique en ligne",
                 lessons: 6,
                 duration: "1h30",
               },
@@ -923,7 +923,7 @@ export default function CreerSonProduitPage() {
           <strong>Regle du &quot;Quick Win&quot; :</strong> Placez un resultat
           rapide et concret dans les premieres lecons. Si votre apprenant obtient
           un petit succes des le debut, il sera motive pour continuer. Par
-          exemple, dans une formation sur le design graphique, faites-lui creer
+          exemple, dans une formation sur le design graphique, faites-lui créer
           un logo simple des la lecon 3.
         </TipBox>
 
@@ -938,12 +938,12 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          C&apos;est l&apos;etape qui bloque le plus de createurs, souvent
+          C&apos;est l&apos;étape qui bloque le plus de createurs, souvent
           parce qu&apos;ils pensent avoir besoin de materiel professionnel
           couteux. La realite ? Les meilleurs produits digitaux vendus en
           Afrique francophone en 2026 sont souvent crees avec un smartphone et
-          des outils gratuits. Ce qui compte, c&apos;est la qualite du contenu,
-          pas la qualite de la production.
+          des outils gratuits. Ce qui compte, c&apos;est la qualité du contenu,
+          pas la qualité de la production.
         </p>
 
         {/* Image: setup d'enregistrement minimaliste */}
@@ -996,7 +996,7 @@ export default function CreerSonProduitPage() {
           (version gratuite suffisante). Canva propose des centaines de
           templates de ebooks professionnels. Ajoutez des visuels, des
           infographies, des captures d&apos;ecran et des schemas pour rendre
-          votre contenu plus digeste. Exportez en PDF haute qualite. Un bon
+          votre contenu plus digeste. Exportez en PDF haute qualité. Un bon
           ebook fait entre 30 et 80 pages avec une mise en page aeree.
         </p>
 
@@ -1010,11 +1010,11 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Creez vos templates dans l&apos;outil natif (Canva pour les designs,
-          Google Sheets ou Excel pour les tableurs, Notion pour les systemes
+          Créez vos templates dans l&apos;outil natif (Canva pour les designs,
+          Google Sheets ou Excel pour les tableurs, Notion pour les systèmes
           d&apos;organisation). Assurez-vous que vos templates sont faciles a
           personnaliser et incluez un guide d&apos;utilisation rapide.
-          L&apos;experience utilisateur de votre template est aussi importante
+          L&apos;expérience utilisateur de votre template est aussi importante
           que son contenu.
         </p>
 
@@ -1083,7 +1083,7 @@ export default function CreerSonProduitPage() {
           <strong>Attention a la paralysie du perfectionnisme :</strong> Votre
           premier produit ne sera pas parfait, et c&apos;est normal. Il vaut
           mieux un produit lance a 80 % qu&apos;un produit parfait qui ne sort
-          jamais. Vous pourrez toujours l&apos;ameliorer apres les premiers
+          jamais. Vous pourrez toujours l&apos;ameliorer après les premiers
           retours clients. Les createurs qui reussissent sont ceux qui lancent,
           pas ceux qui perfectionnent indefiniment.
         </WarnBox>
@@ -1092,7 +1092,7 @@ export default function CreerSonProduitPage() {
         {/*  SECTION 7 — ETAPE 5 : CREER SUR NOVAKOU              */}
         {/* ════════════════════════════════════════════════════════ */}
         <SectionHeading id="etape-5" number="5">
-          Creer votre produit sur Novakou
+          Créer votre produit sur Novakou
         </SectionHeading>
 
         <p
@@ -1101,8 +1101,8 @@ export default function CreerSonProduitPage() {
         >
           Une fois votre contenu pret, il est temps de le mettre en vente sur
           Novakou. La plateforme a ete concue pour que le processus soit le
-          plus simple possible, meme si vous n&apos;avez aucune experience
-          technique. Voici les etapes detaillees pour creer votre produit.
+          plus simple possible, meme si vous n&apos;avez aucune expérience
+          technique. Voici les étapes detaillees pour créer votre produit.
         </p>
 
         {/* Image: plateforme en action */}
@@ -1126,7 +1126,7 @@ export default function CreerSonProduitPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          1. Creez votre compte vendeur
+          1. Créez votre compte vendeur
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -1135,7 +1135,7 @@ export default function CreerSonProduitPage() {
           Rendez-vous sur Novakou et inscrivez-vous en tant que vendeur.
           L&apos;inscription prend moins de 2 minutes : votre nom, votre email,
           un mot de passe. Vous confirmez votre email avec un code de
-          verification, et votre espace vendeur est pret. Aucun abonnement
+          vérification, et votre espace vendeur est pret. Aucun abonnement
           n&apos;est requis : Novakou fonctionne a la commission (10 % par
           vente), ce qui signifie que vous ne payez que quand vous gagnez.
         </p>
@@ -1150,7 +1150,7 @@ export default function CreerSonProduitPage() {
                 N
               </div>
               <p className="text-sm font-bold" style={{ color: C.dark }}>
-                Creer votre compte vendeur
+                Créer votre compte vendeur
               </p>
             </div>
             <div className="space-y-3">
@@ -1174,7 +1174,7 @@ export default function CreerSonProduitPage() {
                 className="h-11 rounded-xl flex items-center justify-center text-sm font-bold text-white mt-4"
                 style={{ backgroundColor: C.primary }}
               >
-                Creer mon compte
+                Créer mon compte
               </div>
               <p className="text-xs text-center" style={{ color: C.muted }}>
                 0 FCFA / mois - 10 % de commission par vente
@@ -1187,7 +1187,7 @@ export default function CreerSonProduitPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          2. Completez votre profil vendeur
+          2. Complétez votre profil vendeur
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
@@ -1205,14 +1205,14 @@ export default function CreerSonProduitPage() {
           className="text-xl font-bold mt-10 mb-4"
           style={{ ...SH, color: C.dark }}
         >
-          3. Creez votre produit
+          3. Créez votre produit
         </h3>
         <p
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
           Depuis votre tableau de bord, cliquez sur &quot;Nouveau produit&quot;.
-          Vous arrivez sur un assistant de creation en etapes qui vous guide a
+          Vous arrivez sur un assistant de creation en étapes qui vous guide a
           travers toute la configuration.
         </p>
         <p
@@ -1221,13 +1221,13 @@ export default function CreerSonProduitPage() {
         >
           Commencez par choisir le type de produit (formation, ebook, template,
           coaching). Ensuite, remplissez le titre (accrocheur et clair sur le
-          benefice), la description detaillee (utilisez le vocabulaire de votre
-          audience), la categorie et les tags pertinents. Ajoutez une image de
+          bénéfice), la description detaillee (utilisez le vocabulaire de votre
+          audience), la catégorie et les tags pertinents. Ajoutez une image de
           couverture attractive — c&apos;est la premiere chose que vos clients
           potentiels verront.
         </p>
 
-        <MockupFrame title="novakou.com/tableau-de-bord - Creer un produit">
+        <MockupFrame title="novakou.com/tableau-de-bord - Créer un produit">
           <div className="space-y-4">
             <div className="flex items-center gap-4 mb-2">
               {["Type", "Details", "Contenu", "Prix", "Publication"].map(
@@ -1289,7 +1289,7 @@ export default function CreerSonProduitPage() {
                   className="text-xs font-medium mb-1"
                   style={{ color: C.muted }}
                 >
-                  Categorie
+                  Catégorie
                 </p>
                 <div
                   className="h-10 rounded-lg border flex items-center px-3 text-sm"
@@ -1330,7 +1330,7 @@ export default function CreerSonProduitPage() {
           l&apos;ordre. Novakou prend en charge le streaming, la protection et
           l&apos;hebergement de vos fichiers. Pour un ebook, uploadez votre PDF.
           Pour des templates, uploadez vos fichiers dans le format natif (les
-          acheteurs pourront les telecharger). Ajoutez eventuellement des bonus
+          acheteurs pourront les télécharger). Ajoutez eventuellement des bonus
           (worksheets, checklists, ressources complementaires) pour augmenter la
           valeur percue.
         </p>
@@ -1348,16 +1348,16 @@ export default function CreerSonProduitPage() {
           Novakou accepte les paiements par Mobile Money (Orange Money, Wave,
           MTN), carte bancaire et virement. Vos acheteurs choisissent le moyen
           qui leur convient. Vous recevez vos gains directement sur votre
-          compte Mobile Money ou votre compte bancaire, selon votre preference.
-          Les fonds sont disponibles sous 48 heures apres chaque vente.
+          compte Mobile Money ou votre compte bancaire, selon votre préférence.
+          Les fonds sont disponibles sous 48 heures après chaque vente.
         </p>
 
         <TipBox>
-          <strong>Fonctionnalite Novakou :</strong> La plateforme genere
+          <strong>Fonctionnalité Novakou :</strong> La plateforme genere
           automatiquement votre boutique en ligne avec une URL personnalisee
           (novakou.com/votre-nom). Vous pouvez partager ce lien sur vos reseaux
           sociaux, dans vos emails et partout ou vous avez une audience. Pas
-          besoin de creer un site web separe.
+          besoin de créer un site web separe.
         </TipBox>
 
         {/* ════════════════════════════════════════════════════════ */}
@@ -1456,12 +1456,12 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          La strategie du &quot;prix de lancement&quot; est tres efficace sur le
+          La stratégie du &quot;prix de lancement&quot; est très efficace sur le
           marche africain. Proposez votre produit a prix reduit pendant la
-          premiere semaine (par exemple, -40 %) pour creer un effet
+          premiere semaine (par exemple, -40 %) pour créer un effet
           d&apos;urgence et obtenir vos premiers avis clients. Ces avis sont
           essentiels : ils rassurent les futurs acheteurs et augmentent
-          significativement votre taux de conversion. Apres la periode de
+          significativement votre taux de conversion. Après la période de
           lancement, passez au prix standard.
         </p>
 
@@ -1479,7 +1479,7 @@ export default function CreerSonProduitPage() {
           en Afrique francophone est de fixer des prix trop bas &quot;parce que
           le pouvoir d&apos;achat est faible&quot;. En realite, les personnes
           qui investissent dans leur formation sont pretes a payer un prix juste
-          pour un contenu de qualite. Un produit a 3 000 FCFA est souvent percu
+          pour un contenu de qualité. Un produit a 3 000 FCFA est souvent percu
           comme ayant moins de valeur qu&apos;un produit a 15 000 FCFA, meme si
           le contenu est identique.
         </WarnBox>
@@ -1509,7 +1509,7 @@ export default function CreerSonProduitPage() {
                 items: [
                   "Le contenu est complet et couvre le sujet annonce",
                   "Chaque lecon/chapitre a ete relu et corrige",
-                  "Les visuels sont de bonne qualite (pas flous, bien eclaires)",
+                  "Les visuels sont de bonne qualité (pas flous, bien eclaires)",
                   "L'audio est clair et audible (pour les videos)",
                   "Un bonus est inclus (checklist, template, ressource)",
                 ],
@@ -1517,11 +1517,11 @@ export default function CreerSonProduitPage() {
               {
                 cat: "Page de vente",
                 items: [
-                  "Le titre est accrocheur et explique le benefice principal",
+                  "Le titre est accrocheur et explique le bénéfice principal",
                   "La description detaille ce que l'acheteur va apprendre",
                   "L'image de couverture est professionnelle et attractive",
                   "Le prix est fixe selon la grille de pricing recommandee",
-                  "La categorie et les tags sont correctement renseignes",
+                  "La catégorie et les tags sont correctement renseignes",
                 ],
               },
               {
@@ -1584,9 +1584,9 @@ export default function CreerSonProduitPage() {
           className="text-[16px] leading-[1.8] mb-5"
           style={{ color: C.dark }}
         >
-          Vous venez de parcourir les six etapes essentielles pour creer et
+          Vous venez de parcourir les six étapes essentielles pour créer et
           vendre votre premier produit digital. De l&apos;identification de
-          votre expertise a la fixation du prix juste, chaque etape a ete
+          votre expertise a la fixation du prix juste, chaque étape a ete
           concue pour vous rapprocher d&apos;un objectif concret : transformer
           votre savoir en revenus.
         </p>
@@ -1609,16 +1609,16 @@ export default function CreerSonProduitPage() {
           abonnement, paiements Mobile Money integres, boutique professionnelle
           generee automatiquement, tunnels de vente et outils marketing inclus.
           Tout ce dont vous avez besoin pour vendre en Afrique francophone est
-          deja la. Il ne reste qu&apos;une chose a faire : vous lancer.
+          déjà la. Il ne reste qu&apos;une chose a faire : vous lancer.
         </p>
         <p
           className="text-[16px] leading-[1.8] mb-8"
           style={{ color: C.dark }}
         >
           Reprenez ce guide depuis le debut. Repondez aux questions de
-          l&apos;etape 1. Validez votre idee avec l&apos;etape 2. Structurez
+          l&apos;étape 1. Validez votre idee avec l&apos;étape 2. Structurez
           votre contenu. Produisez-le avec les outils gratuits que nous avons
-          listes. Creez votre compte vendeur sur Novakou. Et publiez.
+          listes. Créez votre compte vendeur sur Novakou. Et publiez.
           Aujourd&apos;hui, pas demain.
         </p>
 
@@ -1633,7 +1633,7 @@ export default function CreerSonProduitPage() {
             className="text-2xl sm:text-3xl text-white mb-4"
             style={SH}
           >
-            Pret a creer votre premier produit digital ?
+            Pret a créer votre premier produit digital ?
           </p>
           <p
             className="text-base mb-8 max-w-lg mx-auto"
@@ -1652,7 +1652,7 @@ export default function CreerSonProduitPage() {
               color: C.primary,
             }}
           >
-            Creer mon compte vendeur gratuitement
+            Créer mon compte vendeur gratuitement
             <span aria-hidden="true" className="text-lg">
               &rarr;
             </span>
@@ -1678,7 +1678,7 @@ export default function CreerSonProduitPage() {
               {
                 href: "/guides/vendre-en-ligne",
                 title: "Comment vendre en ligne en Afrique",
-                desc: "Strategies de vente et marketing digital pour le marche africain francophone.",
+                desc: "Stratégies de vente et marketing digital pour le marche africain francophone.",
               },
               {
                 href: "/guides/guide-complet-novakou",
