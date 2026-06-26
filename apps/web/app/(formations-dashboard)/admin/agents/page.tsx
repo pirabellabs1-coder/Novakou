@@ -107,13 +107,23 @@ export default function AdminAgentsPage() {
           title="Agents IA"
           subtitle="Vos employés virtuels — ils travaillent côté serveur, 24/7, même quand vous êtes déconnecté."
           actions={
-            <Link
-              href="/admin/agents/analytics"
-              className="inline-flex items-center gap-1.5 text-[12.5px] font-extrabold px-3.5 py-2 rounded-[12px] border"
-              style={{ borderColor: ST.cardBorder, color: ST.green, background: "#fff" }}
-            >
-              <BarChart3 size={15} /> Statistiques
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/admin/agents/activite"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-extrabold px-3.5 py-2 rounded-[12px] border"
+                style={{ borderColor: ST.cardBorder, color: ST.green, background: "#fff" }}
+              >
+                <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-60" style={{ background: ST.green }} /><span className="relative inline-flex rounded-full h-2 w-2" style={{ background: ST.green }} /></span>
+                Activité en direct
+              </Link>
+              <Link
+                href="/admin/agents/analytics"
+                className="inline-flex items-center gap-1.5 text-[12.5px] font-extrabold px-3.5 py-2 rounded-[12px] border"
+                style={{ borderColor: ST.cardBorder, color: ST.green, background: "#fff" }}
+              >
+                <BarChart3 size={15} /> Statistiques
+              </Link>
+            </div>
           }
         />
 
