@@ -1,5 +1,14 @@
 import { prisma } from "@/lib/prisma";
-import { AGENTS, type AgentKey } from "./registry";
+import { AGENTS, mergeConfig, type AgentKey } from "./registry";
+
+/**
+ * Renvoie la config « entraînée » d'un agent (seuils, fenêtres, consignes),
+ * fusion des réglages enregistrés par l'admin et des valeurs par défaut.
+ */
+export async function getAgentConfig(key: AgentKey): Promise<Record<string, string | number>> {
+  const agent = await prisma.aiAgent.findUnique({ where: { key }, select: { config: true } });
+  return mergeConfig(key, agent?.config ?? null);
+}
 
 /** Crée les 5 agents en base s'ils n'existent pas (désactivés par défaut). */
 export async function ensureAgentsSeeded(): Promise<void> {

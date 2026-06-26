@@ -1,13 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { recordRun, proposeAction } from "../runtime";
+import { recordRun, proposeAction, getAgentConfig } from "../runtime";
 
 /** 4 agents supplémentaires (mode règles, sûrs côté serveur). */
 
 // ── 💰 Finance & anti-fraude ─────────────────────────────────────────────────
-const BIG_PAYOUT = 500_000; // FCFA — seuil de double-vérification
-
 export async function runFinance() {
   return recordRun("finance", async () => {
+    const cfg = await getAgentConfig("finance");
+    const bigPayout = Number(cfg.highWithdrawalFcfa);
     const pending = await prisma.instructorWithdrawal.findMany({
       where: { status: "EN_ATTENTE" },
       select: { id: true, amount: true, method: true, createdAt: true },
@@ -15,13 +15,13 @@ export async function runFinance() {
     });
     let actions = 0;
     for (const w of pending) {
-      if (w.amount < BIG_PAYOUT) continue;
+      if (w.amount < bigPayout) continue;
       const a = await proposeAction({
         agentKey: "finance",
         type: "alert",
         risk: "sensitive",
         title: `Retrait élevé à vérifier : ${new Intl.NumberFormat("fr-FR").format(Math.round(w.amount))} FCFA`,
-        reasoning: `Demande de retrait supérieure à ${new Intl.NumberFormat("fr-FR").format(BIG_PAYOUT)} FCFA (méthode : ${w.method}). Vérifiez l'historique et le KYC du vendeur avant d'approuver.`,
+        reasoning: `Demande de retrait supérieure à ${new Intl.NumberFormat("fr-FR").format(bigPayout)} FCFA (méthode : ${w.method}). Vérifiez l'historique et le KYC du vendeur avant d'approuver.`,
         targetType: "withdrawal",
         targetId: w.id,
         payload: { amount: w.amount, method: w.method },
@@ -40,15 +40,17 @@ export async function runFinance() {
 // ── ⭐ Avis & réputation ──────────────────────────────────────────────────────
 export async function runReviews() {
   return recordRun("reviews", async () => {
-    const since = new Date(Date.now() - 26 * 60 * 60 * 1000);
+    const cfg = await getAgentConfig("reviews");
+    const maxRating = Number(cfg.lowRatingMax);
+    const since = new Date(Date.now() - Number(cfg.lookbackHours) * 60 * 60 * 1000);
     const [fReviews, pReviews] = await Promise.all([
       prisma.formationReview.findMany({
-        where: { createdAt: { gte: since }, rating: { lte: 2 } },
+        where: { createdAt: { gte: since }, rating: { lte: maxRating } },
         select: { id: true, rating: true, comment: true, formationId: true },
         take: 100,
       }),
       prisma.digitalProductReview.findMany({
-        where: { createdAt: { gte: since }, rating: { lte: 2 } },
+        where: { createdAt: { gte: since }, rating: { lte: maxRating } },
         select: { id: true, rating: true, comment: true, productId: true },
         take: 100,
       }),
@@ -81,8 +83,10 @@ export async function runReviews() {
 // ── 🎓 Onboarding vendeur ─────────────────────────────────────────────────────
 export async function runOnboarding() {
   return recordRun("onboarding", async () => {
-    const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    // Brouillons jamais publiés depuis > 3 j = vendeurs bloqués dans l'onboarding.
+    const cfg = await getAgentConfig("onboarding");
+    const staleDays = Number(cfg.draftStaleDays);
+    const cutoff = new Date(Date.now() - staleDays * 24 * 60 * 60 * 1000);
+    // Brouillons jamais publiés depuis > N j = vendeurs bloqués dans l'onboarding.
     const [draftFormations, draftProducts] = await Promise.all([
       prisma.formation.count({ where: { status: "BROUILLON", createdAt: { lt: cutoff } } }),
       prisma.digitalProduct.count({ where: { status: "BROUILLON", createdAt: { lt: cutoff } } }),
@@ -94,7 +98,7 @@ export async function runOnboarding() {
         agentKey: "onboarding",
         type: "retention",
         risk: "sensitive",
-        title: `${stuck} produit(s) en brouillon depuis > 3 j — accompagner les vendeurs`,
+        title: `${stuck} produit(s) en brouillon depuis > ${staleDays} j — accompagner les vendeurs`,
         reasoning:
           "Des vendeurs ont commencé un produit mais ne l'ont pas publié. Un e-mail d'accompagnement (aide, modèle, relance) peut débloquer ces ventes.",
         payload: { draftFormations, draftProducts },
@@ -107,10 +111,10 @@ export async function runOnboarding() {
 }
 
 // ── ✍️ Contenu & SEO ──────────────────────────────────────────────────────────
-const WEAK_DESC = 120; // caractères
-
 export async function runContent() {
   return recordRun("content", async () => {
+    const cfg = await getAgentConfig("content");
+    const weakDesc = Number(cfg.minDescLen);
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
         where: { status: { not: "BROUILLON" } },
@@ -126,7 +130,7 @@ export async function runContent() {
     let actions = 0;
     const check = async (kind: "formation" | "product", it: { id: string; title: string; description: string | null; thumbnail: string | null }) => {
       const problems: string[] = [];
-      if (!it.description || it.description.replace(/<[^>]+>/g, "").trim().length < WEAK_DESC) problems.push("description trop courte");
+      if (!it.description || it.description.replace(/<[^>]+>/g, "").trim().length < weakDesc) problems.push("description trop courte");
       if (!it.thumbnail) problems.push("vignette manquante");
       if (problems.length === 0) return;
       const a = await proposeAction({

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { sendEmail, emailLayout } from "@/lib/email";
-import { recordRun, proposeAction } from "../runtime";
+import { recordRun, proposeAction, getAgentConfig } from "../runtime";
 
 /**
  * Agent Assistant (« bras droit ») — rapport quotidien + alertes.
@@ -20,9 +20,18 @@ function fmt(n: number): string {
   return new Intl.NumberFormat("fr-FR").format(n);
 }
 
-export async function runAssistant() {
+export async function runAssistant(opts?: { force?: boolean }) {
   return recordRun("assistant", async () => {
+    const cfg = await getAgentConfig("assistant");
+    const reportHour = Number(cfg.reportHour);
+    const abandonedThreshold = Number(cfg.alertAbandonedMin);
     const now = new Date();
+    // Le cron tourne chaque heure ; on n'envoie le rapport qu'à partir de l'heure
+    // choisie (heure de Lagos/WAT = UTC+1). Le lancement manuel force l'envoi.
+    const watHour = (now.getUTCHours() + 1) % 24;
+    if (!opts?.force && watHour < reportHour) {
+      return { itemsProcessed: 0, actionsCreated: 0, summary: `En attente de l'heure d'envoi (${reportHour} h)` };
+    }
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
     const [
@@ -52,7 +61,7 @@ export async function runAssistant() {
     if (pendingKyc > 0) alerts.push(`${pendingKyc} dossier(s) KYC en attente de vérification`);
     if (pendingWithdrawals > 0) alerts.push(`${pendingWithdrawals} demande(s) de retrait à traiter`);
     if (openDisputes > 0) alerts.push(`${openDisputes} litige(s) ouvert(s)`);
-    if (abandoned24h >= 5) alerts.push(`${abandoned24h} paniers abandonnés sur 24 h — pensez aux relances`);
+    if (abandoned24h >= abandonedThreshold) alerts.push(`${abandoned24h} paniers abandonnés sur 24 h — pensez aux relances`);
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com";
     const row = (label: string, val: string) =>

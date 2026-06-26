@@ -16,7 +16,7 @@ function isAdmin(session: { user?: ({ email?: string | null } & Record<string, u
 }
 
 const RUNNERS: Record<string, () => Promise<unknown>> = {
-  assistant: runAssistant,
+  assistant: () => runAssistant({ force: true }),
   support: runSupport,
   moderation: runModeration,
   kyc: runKyc,

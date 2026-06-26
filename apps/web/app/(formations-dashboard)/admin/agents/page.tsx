@@ -3,12 +3,17 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { ST, StPageHeader, StCard, StButton, StChip } from "@/components/stitch";
-import { ArrowLeft, Bot, Play, Check, X, AlertTriangle, Loader2, BarChart3 } from "lucide-react";
+import { ArrowLeft, Bot, Play, Check, X, AlertTriangle, Loader2, BarChart3, SlidersHorizontal, Save } from "lucide-react";
 
+interface ConfigField {
+  key: string; label: string; type: "number" | "text" | "textarea";
+  default: number | string; hint?: string; min?: number; max?: number; suffix?: string;
+}
 interface AgentRow {
   key: string; name: string; emoji: string; description: string;
   capabilities: string[]; cadence: string; needsLlm: boolean;
   enabled: boolean; autonomy: string; lastRunAt: string | null; pending: number;
+  configSchema: ConfigField[]; config: Record<string, string | number>;
 }
 interface ActionRow {
   id: string; agentKey: string; type: string; status: string; risk: string;
@@ -34,6 +39,9 @@ export default function AdminAgentsPage() {
   const [llm, setLlm] = useState(true);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [configOpen, setConfigOpen] = useState<string | null>(null);
+  const [draft, setDraft] = useState<Record<string, string | number>>({});
+  const [saved, setSaved] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/formations/admin/agents");
@@ -61,6 +69,23 @@ export default function AdminAgentsPage() {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agent: key }),
     }).catch(() => null);
     await load(); setBusy(null);
+  }
+  function toggleConfig(a: AgentRow) {
+    if (configOpen === a.key) { setConfigOpen(null); return; }
+    setDraft({ ...a.config });
+    setConfigOpen(a.key);
+    setSaved(null);
+  }
+  async function saveConfig(key: string) {
+    setBusy(key);
+    await fetch("/api/formations/admin/agents", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, config: draft }),
+    }).catch(() => null);
+    await load();
+    setBusy(null);
+    setSaved(key);
+    setTimeout(() => setSaved((s) => (s === key ? null : s)), 2500);
   }
   async function decide(id: string, decision: "approve" | "reject") {
     setBusy(id);
@@ -149,6 +174,14 @@ export default function AdminAgentsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-[11px]" style={{ color: ST.textMuted }}>{timeAgo(a.lastRunAt)}</span>
                   <button
+                    onClick={() => toggleConfig(a)}
+                    className="inline-flex items-center gap-1 text-[11.5px] font-bold px-2.5 py-1.5 rounded-lg border"
+                    style={{ borderColor: ST.cardBorder, color: configOpen === a.key ? ST.green : ST.textSecondary, background: "#fff" }}
+                    aria-expanded={configOpen === a.key}
+                  >
+                    <SlidersHorizontal size={13} /> Régler
+                  </button>
+                  <button
                     onClick={() => runNow(a.key)}
                     disabled={busy === a.key || !a.enabled}
                     className="inline-flex items-center gap-1 text-[11.5px] font-extrabold px-2.5 py-1.5 rounded-lg disabled:opacity-40"
@@ -158,6 +191,61 @@ export default function AdminAgentsPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Panneau d'entraînement / réglages */}
+              {configOpen === a.key && (
+                <div className="mt-3 pt-3 space-y-3" style={{ borderTop: `1px dashed ${ST.divider}` }}>
+                  <p className="text-[11.5px] font-bold flex items-center gap-1.5" style={{ color: ST.textSecondary }}>
+                    <SlidersHorizontal size={13} style={{ color: ST.green }} /> Entraînement de l'agent
+                  </p>
+                  {a.configSchema.map((f) => (
+                    <div key={f.key}>
+                      <label className="text-[11.5px] font-bold block mb-1" style={{ color: ST.text }}>
+                        {f.label}{f.suffix ? <span style={{ color: ST.textMuted }}> ({f.suffix})</span> : null}
+                      </label>
+                      {f.type === "textarea" ? (
+                        <textarea
+                          value={String(draft[f.key] ?? "")}
+                          onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                          rows={3}
+                          placeholder={f.hint}
+                          className="w-full text-[12.5px] rounded-lg px-2.5 py-2 border resize-y"
+                          style={{ borderColor: ST.cardBorder, color: ST.text }}
+                        />
+                      ) : (
+                        <input
+                          type={f.type === "number" ? "number" : "text"}
+                          value={String(draft[f.key] ?? "")}
+                          min={f.min}
+                          max={f.max}
+                          onChange={(e) => setDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                          className="w-full text-[12.5px] rounded-lg px-2.5 py-2 border"
+                          style={{ borderColor: ST.cardBorder, color: ST.text }}
+                        />
+                      )}
+                      {f.hint && f.type !== "textarea" && <p className="text-[10.5px] mt-1" style={{ color: ST.textMuted }}>{f.hint}</p>}
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => saveConfig(a.key)}
+                      disabled={busy === a.key}
+                      className="inline-flex items-center gap-1.5 text-[12px] font-extrabold px-3.5 py-2 rounded-lg text-white disabled:opacity-40"
+                      style={{ background: ST.green }}
+                    >
+                      {busy === a.key ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Enregistrer
+                    </button>
+                    <button
+                      onClick={() => setDraft({ ...Object.fromEntries(a.configSchema.map((f) => [f.key, f.default])) })}
+                      className="text-[12px] font-bold px-3 py-2 rounded-lg border"
+                      style={{ borderColor: ST.cardBorder, color: ST.textSecondary }}
+                    >
+                      Valeurs par défaut
+                    </button>
+                    {saved === a.key && <span className="text-[11.5px] font-bold" style={{ color: ST.green }}>✓ Enregistré</span>}
+                  </div>
+                </div>
+              )}
             </StCard>
           ))}
         </div>
