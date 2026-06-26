@@ -39,6 +39,7 @@ export async function runModeration() {
           agentKey: "moderation",
           type: "moderate",
           risk: "sensitive",
+          destructive: true, // un masquage est destructif → alerte admin, jamais auto
           title: `Contenu à vérifier : « ${it.title.slice(0, 60)} »`,
           reasoning: `Terme suspect détecté : « ${hit.trim()} ». À examiner (masquer si confirmé).`,
           targetType: kind,

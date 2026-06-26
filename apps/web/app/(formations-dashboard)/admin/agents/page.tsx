@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { ST, StPageHeader, StCard, StButton, StChip } from "@/components/stitch";
-import { ArrowLeft, Bot, Play, Check, X, AlertTriangle, Loader2 } from "lucide-react";
+import { ArrowLeft, Bot, Play, Check, X, AlertTriangle, Loader2, BarChart3 } from "lucide-react";
 
 interface AgentRow {
   key: string; name: string; emoji: string; description: string;
@@ -81,6 +81,15 @@ export default function AdminAgentsPage() {
         <StPageHeader
           title="Agents IA"
           subtitle="Vos employés virtuels — ils travaillent côté serveur, 24/7, même quand vous êtes déconnecté."
+          actions={
+            <Link
+              href="/admin/agents/analytics"
+              className="inline-flex items-center gap-1.5 text-[12.5px] font-extrabold px-3.5 py-2 rounded-[12px] border"
+              style={{ borderColor: ST.cardBorder, color: ST.green, background: "#fff" }}
+            >
+              <BarChart3 size={15} /> Statistiques
+            </Link>
+          }
         />
 
         {!llm && (

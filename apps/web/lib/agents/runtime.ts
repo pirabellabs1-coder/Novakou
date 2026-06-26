@@ -69,6 +69,12 @@ interface ProposeOpts {
   dedupeKey?: string;
   /** Exécuteur appelé immédiatement si l'action est auto-exécutable (low-risk + autonomie). */
   execute?: () => Promise<unknown>;
+  /**
+   * Action DESTRUCTIVE (suppression / masquage / désactivation). JAMAIS
+   * auto-exécutée (même en autonomie "auto") et l'admin est alerté
+   * immédiatement par e-mail + Telegram avant toute validation.
+   */
+  destructive?: boolean;
 }
 
 /**
@@ -99,7 +105,8 @@ export async function proposeAction(opts: ProposeOpts) {
   const canAuto = opts.risk === "low" && (autonomy === "mixed" || autonomy === "auto") && !!opts.execute;
   // En autonomie "auto", même le sensible peut s'exécuter seul (l'admin a choisi le full-auto).
   const forceAuto = autonomy === "auto" && !!opts.execute;
-  const willAuto = canAuto || forceAuto;
+  // Une action DESTRUCTIVE n'est JAMAIS auto-exécutée, quelle que soit l'autonomie.
+  const willAuto = !opts.destructive && (canAuto || forceAuto);
 
   const action = await prisma.agentAction.create({
     data: {
@@ -128,6 +135,15 @@ export async function proposeAction(opts: ProposeOpts) {
         data: { status: "failed", result: { error: (e as Error).message } as object },
       });
     }
+  }
+
+  // Action destructive en attente → alerte admin immédiate (e-mail + Telegram).
+  if (opts.destructive && action.status === "proposed") {
+    const { notifyAdmins } = await import("./notify");
+    await notifyAdmins({
+      subject: `Validation requise — ${opts.title}`,
+      body: `L'agent « ${opts.agentKey} » propose une action SENSIBLE (suppression/masquage) qui n'a PAS été exécutée. ${opts.reasoning ?? ""}\n\nRien ne sera supprimé tant que vous n'avez pas validé.`,
+    }).catch(() => null);
   }
   return action;
 }
