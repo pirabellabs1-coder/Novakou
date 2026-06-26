@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { recordRun, proposeAction, getAgentConfig } from "../runtime";
+import { agentLLM, isLlmConfigured } from "../llm";
 
 /** Découpe une liste de mots saisie par l'admin (virgules ou retours ligne). */
 function splitTerms(raw: unknown): string[] {
@@ -132,29 +133,88 @@ export async function runRetention() {
 }
 
 // ── Support ───────────────────────────────────────────────────────────────────
+const SUPPORT_DRAFT_MAX = 5; // nb max de brouillons IA par exécution (coût/temps)
+
 export async function runSupport() {
   return recordRun("support", async () => {
     const cfg = await getAgentConfig("support");
     const hrs = Number(cfg.unrepliedHours);
+    const persona = String(cfg.instructions || "").trim();
     // Messages non lus depuis > N h (le destinataire n'a pas encore répondu).
     const cutoff = new Date(Date.now() - hrs * 60 * 60 * 1000);
     const waiting = await prisma.message.count({
-      where: { read: false, createdAt: { lt: cutoff } },
+      where: { read: false, createdAt: { lt: cutoff }, deletedAt: null },
     });
+
+    // ── Mode RÈGLES (pas d'IA) : simple alerte agrégée ────────────────────────
+    if (!isLlmConfigured()) {
+      let actions = 0;
+      if (waiting >= 1) {
+        const a = await proposeAction({
+          agentKey: "support",
+          type: "alert",
+          risk: "low",
+          title: `${waiting} message(s) en attente de réponse (> ${hrs} h)`,
+          reasoning: `Des acheteurs attendent une réponse depuis plus de ${hrs} heures. Répondez vite pour ne pas perdre de ventes.`,
+          payload: { waiting },
+          dedupeKey: `support-${new Date().toISOString().slice(0, 13)}`,
+          execute: async () => ({ noted: true }),
+        });
+        if (a) actions++;
+      }
+      return { itemsProcessed: waiting, actionsCreated: actions, summary: `${waiting} message(s) en attente · ${actions} alerte(s)` };
+    }
+
+    // ── Mode IA : rédige un brouillon de réponse par conversation ─────────────
+    const unread = await prisma.message.findMany({
+      where: { read: false, createdAt: { lt: cutoff }, deletedAt: null, type: "TEXT" },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, content: true, conversationId: true, createdAt: true, sender: { select: { name: true } } },
+      take: 100,
+    });
+    // Dernier message non lu par conversation (le plus récent)
+    const latestByConv = new Map<string, (typeof unread)[number]>();
+    for (const m of unread) if (!latestByConv.has(m.conversationId)) latestByConv.set(m.conversationId, m);
+    const targets = [...latestByConv.values()].slice(0, SUPPORT_DRAFT_MAX);
+
     let actions = 0;
-    if (waiting >= 1) {
+    let tokens = 0;
+    const system = [
+      "Tu es l'agent de support client de Novakou, une marketplace de formations et produits numériques en Afrique francophone.",
+      "Rédige une réponse PRÊTE À ENVOYER, en français, polie, chaleureuse et concise (3 à 6 phrases). Vouvoiement.",
+      "N'invente jamais d'information (remboursement, délai, prix) : si tu n'es pas sûr, propose de vérifier et de revenir vers le client.",
+      "Termine par une formule de politesse signée « L'équipe Novakou ».",
+      persona ? `Consignes de la maison : ${persona}` : "",
+    ].filter(Boolean).join("\n");
+
+    for (const m of targets) {
+      const draft = await agentLLM(
+        [
+          { role: "system", content: system },
+          { role: "user", content: `Message d'un client (${m.sender?.name || "client"}) resté sans réponse depuis plus de ${hrs} h :\n\n"""${(m.content || "").slice(0, 1500)}"""\n\nRédige la réponse.` },
+        ],
+        { maxTokens: 400, temperature: 0.5 },
+      );
+      if (!draft) continue;
+      tokens += draft.tokensUsed;
       const a = await proposeAction({
         agentKey: "support",
-        type: "alert",
-        risk: "low",
-        title: `${waiting} message(s) en attente de réponse (> ${hrs} h)`,
-        reasoning: `Des acheteurs attendent une réponse depuis plus de ${hrs} heures. Répondez vite pour ne pas perdre de ventes.`,
-        payload: { waiting },
-        dedupeKey: `support-${new Date().toISOString().slice(0, 13)}`,
-        execute: async () => ({ noted: true }),
+        type: "support_reply",
+        risk: "sensitive", // une réponse envoyée au nom de la plateforme = validée par l'admin
+        title: `Brouillon de réponse — « ${(m.content || "").slice(0, 50)}… »`,
+        reasoning: draft.text,
+        targetType: "conversation",
+        targetId: m.conversationId,
+        payload: { conversationId: m.conversationId, messageId: m.id, draft: draft.text, original: (m.content || "").slice(0, 1500) },
       });
       if (a) actions++;
     }
-    return { itemsProcessed: waiting, actionsCreated: actions, summary: `${waiting} message(s) en attente · ${actions} alerte(s)` };
+
+    return {
+      itemsProcessed: targets.length,
+      actionsCreated: actions,
+      tokensUsed: tokens,
+      summary: `${waiting} message(s) en attente · ${actions} brouillon(s) IA rédigé(s)`,
+    };
   });
 }

@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { recordRun, proposeAction, getAgentConfig } from "../runtime";
+import { agentLLM, isLlmConfigured } from "../llm";
 
 /** 4 agents supplémentaires (mode règles, sûrs côté serveur). */
 
@@ -111,10 +112,14 @@ export async function runOnboarding() {
 }
 
 // ── ✍️ Contenu & SEO ──────────────────────────────────────────────────────────
+const CONTENT_DRAFT_MAX = 5; // nb max de réécritures IA par exécution
+
 export async function runContent() {
   return recordRun("content", async () => {
     const cfg = await getAgentConfig("content");
     const weakDesc = Number(cfg.minDescLen);
+    const persona = String(cfg.instructions || "").trim();
+    const llmOn = isLlmConfigured();
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
         where: { status: { not: "BROUILLON" } },
@@ -128,20 +133,46 @@ export async function runContent() {
       }),
     ]);
     let actions = 0;
+    let tokens = 0;
+    let drafted = 0;
+    const system = [
+      "Tu es l'agent contenu & SEO de Novakou (marketplace de formations / produits numériques, Afrique francophone).",
+      "Réécris la description d'une fiche pour qu'elle VENDE mieux : orientée bénéfices, claire, structurée, en français impeccable, 600 à 900 caractères.",
+      "Intègre naturellement des mots-clés de recherche. Pas de promesses irréalistes. Pas de markdown, du texte simple.",
+      persona ? `Consignes de la maison : ${persona}` : "",
+    ].filter(Boolean).join("\n");
+
     const check = async (kind: "formation" | "product", it: { id: string; title: string; description: string | null; thumbnail: string | null }) => {
+      const plainLen = (it.description || "").replace(/<[^>]+>/g, "").trim().length;
       const problems: string[] = [];
-      if (!it.description || it.description.replace(/<[^>]+>/g, "").trim().length < weakDesc) problems.push("description trop courte");
+      if (!it.description || plainLen < weakDesc) problems.push("description trop courte");
       if (!it.thumbnail) problems.push("vignette manquante");
       if (problems.length === 0) return;
+
+      // En mode IA, on rédige une meilleure description (cap par exécution).
+      let draft: string | null = null;
+      if (llmOn && problems.includes("description trop courte") && drafted < CONTENT_DRAFT_MAX) {
+        const r = await agentLLM(
+          [
+            { role: "system", content: system },
+            { role: "user", content: `Titre de la fiche : « ${it.title} »\nDescription actuelle : """${(it.description || "(vide)").replace(/<[^>]+>/g, "").slice(0, 800)}"""\n\nRéécris une description complète et vendeuse.` },
+          ],
+          { maxTokens: 500, temperature: 0.6 },
+        );
+        if (r) { draft = r.text; tokens += r.tokensUsed; drafted++; }
+      }
+
       const a = await proposeAction({
         agentKey: "content",
         type: "content",
         risk: "low",
         title: `Fiche à améliorer : « ${it.title.slice(0, 50)} »`,
-        reasoning: `Points faibles : ${problems.join(", ")}. Une fiche complète vend mieux et remonte dans la recherche.`,
+        reasoning: draft
+          ? `Points faibles : ${problems.join(", ")}.\n\n✍️ Proposition de description :\n${draft}`
+          : `Points faibles : ${problems.join(", ")}. Une fiche complète vend mieux et remonte dans la recherche.`,
         targetType: kind,
         targetId: it.id,
-        payload: { kind, problems },
+        payload: { kind, problems, ...(draft ? { draftDescription: draft } : {}) },
         execute: async () => ({ noted: true }),
       });
       if (a) actions++;
@@ -151,7 +182,8 @@ export async function runContent() {
     return {
       itemsProcessed: formations.length + products.length,
       actionsCreated: actions,
-      summary: `${formations.length + products.length} fiches analysées · ${actions} à améliorer`,
+      tokensUsed: tokens,
+      summary: `${formations.length + products.length} fiches analysées · ${actions} à améliorer${drafted ? ` · ${drafted} réécrite(s) IA` : ""}`,
     };
   });
 }
