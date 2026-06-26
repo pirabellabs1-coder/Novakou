@@ -11,7 +11,7 @@ import {
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { RoleGuard } from "@/components/formations/RoleGuard";
+import { AffiliateSpaceGuard } from "@/components/formations/AffiliateSpaceGuard";
 
 const navItems = [
   { icon: "bar_chart",          label: "Tableau de bord", href: "/affilie/dashboard" },
@@ -45,9 +45,9 @@ function AffiliéFooter() {
 
 export default function AffiliéLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RoleGuard requiredRole="affilie">
+    <AffiliateSpaceGuard>
       <AffiliéLayoutInner>{children}</AffiliéLayoutInner>
-    </RoleGuard>
+    </AffiliateSpaceGuard>
   );
 }
 
