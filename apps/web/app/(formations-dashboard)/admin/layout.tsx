@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   BrainCircuit,
+  Bot,
   Package,
   Users,
   Receipt,
@@ -39,6 +40,7 @@ type NavItem = { icon: LucideIcon; label: string; href: string };
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Vue générale", href: "/admin/dashboard" },
   { icon: BrainCircuit, label: "IA Assistant", href: "/admin/ai-assistant" },
+  { icon: Bot, label: "Agents IA", href: "/admin/agents" },
   { icon: Package, label: "Produits", href: "/admin/produits" },
   { icon: Users, label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: Receipt, label: "Transactions", href: "/admin/transactions" },

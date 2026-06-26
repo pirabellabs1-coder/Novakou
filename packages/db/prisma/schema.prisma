@@ -3702,3 +3702,75 @@ model PushSubscription {
 
   @@index([userId])
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+// AGENTS IA — employés virtuels autonomes (côté serveur, 24/7)
+// Autonomie mixte : actions low-risk exécutées seules, actions sensibles
+// proposées et validées par l'admin (file AgentAction).
+// ════════════════════════════════════════════════════════════════════════════
+
+model AiAgent {
+  id          String  @id @default(cuid())
+  // Clé stable : "support" | "moderation" | "kyc" | "retention" | "assistant"
+  key         String  @unique
+  name        String
+  description String? @db.Text
+  enabled     Boolean @default(false)
+  // Mode global de l'agent : "mixed" (défaut) | "approval" | "auto" | "off"
+  autonomy    String  @default("mixed")
+  // Réglages libres (seuils, fréquence, ton, modèle IA…)
+  config      Json?
+  lastRunAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  runs    AgentRun[]
+  actions AgentAction[]
+
+  @@index([enabled])
+}
+
+model AgentRun {
+  id             String   @id @default(cuid())
+  agentKey       String
+  status         String   @default("ok") // ok | error | skipped
+  summary        String?  @db.Text
+  itemsProcessed Int      @default(0)
+  actionsCreated Int      @default(0)
+  tokensUsed     Int      @default(0)
+  error          String?  @db.Text
+  startedAt      DateTime @default(now())
+  finishedAt     DateTime?
+
+  agent AiAgent @relation(fields: [agentKey], references: [key], onDelete: Cascade)
+
+  @@index([agentKey, startedAt])
+}
+
+model AgentAction {
+  id        String  @id @default(cuid())
+  agentKey  String
+  // Nature : reply | moderate | kyc_decision | alert | campaign | report | retention
+  type      String
+  // proposed | approved | rejected | executed | auto_executed | failed
+  status    String  @default("proposed")
+  // Risque : "low" (auto possible) | "sensitive" (validation requise)
+  risk      String  @default("sensitive")
+  title     String
+  reasoning String? @db.Text
+  // Cible concernée (conversation, user, produit, kycRequest, withdrawal…)
+  targetType String?
+  targetId   String?
+  // Contenu proposé (brouillon de réponse, décision, payload d'action…)
+  payload   Json?
+  result    Json?
+  decidedBy String?
+  decidedAt DateTime?
+  executedAt DateTime?
+  createdAt DateTime @default(now())
+
+  agent AiAgent @relation(fields: [agentKey], references: [key], onDelete: Cascade)
+
+  @@index([agentKey, status])
+  @@index([status, createdAt])
+}
