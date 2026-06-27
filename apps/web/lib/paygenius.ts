@@ -198,11 +198,12 @@ export async function initPayment(params: PayGeniusInitParams): Promise<{
 
     // 5xx → message générique "indisponible" car probablement transient.
     // 4xx avec message → on remonte le message provider (validation, etc.).
+    // Côté acheteur : message sobre, sans mention d'un autre provider
+    // (GeniusPay est la seule passerelle). Les détails techniques sont déjà
+    // loggés ci-dessus pour le diagnostic admin.
     if (res.status >= 500) {
       throw new Error(
-        providerMsg
-          ? `Provider temporairement indisponible (${providerMsg}). Essayez Moneroo ou réessayez dans 1 minute.`
-          : `Provider temporairement indisponible (HTTP ${res.status}). Essayez Moneroo ou réessayez dans 1 minute.`,
+        "Le paiement est momentanément indisponible. Merci de réessayer dans une minute.",
       );
     }
     throw new Error(providerMsg || `PayGenius init failed (HTTP ${res.status})`);

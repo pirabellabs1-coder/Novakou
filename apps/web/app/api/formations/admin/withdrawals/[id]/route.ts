@@ -258,7 +258,7 @@ export async function PATCH(request: Request, { params }: Params) {
           }).catch(() => null);
           return NextResponse.json(
             {
-              error: `Méthode "${rawMethod}" non supportée par PayGenius. Choisissez mode=moneroo ou mode=manual.`,
+              error: `Méthode "${rawMethod}" non supportée par PayGenius. Utilisez le versement manuel (mode=manual).`,
               code: "UNKNOWN_METHOD_PAYGENIUS",
             },
             { status: 400 },
