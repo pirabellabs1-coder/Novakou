@@ -82,7 +82,10 @@ export default function GoogleAnalytics({ measurementId }: { measurementId: stri
         gtag('js', new Date());
         gtag('config', '${measurementId}', {
           anonymize_ip: true,
-          send_page_view: true
+          // page_view géré par <TrackPageView/> (App Router : 1 page_view par
+          // navigation client). Laisser send_page_view:true ici doublerait la
+          // 1ère page. false = une seule source de vérité pour les page views.
+          send_page_view: false
         });
       `}</Script>
     </>

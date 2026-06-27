@@ -9,6 +9,7 @@
  */
 
 import type { TrackingEventType, TrackerOpts } from "./types";
+import { forwardToGA4 } from "./ga";
 
 const SESSION_KEY = "nk_session_id";
 
@@ -40,6 +41,12 @@ export const tracker = {
    */
   track(type: TrackingEventType | string, opts: TrackerOpts = {}): void {
     if (typeof window === "undefined") return;
+
+    // Miroir GA4 : chaque event interne devient aussi un event GA4 standard
+    // (purchase, add_to_cart, begin_checkout, view_item, search…). Sans ça,
+    // GA4 ne voyait aucune conversion. Best-effort, ne bloque jamais.
+    forwardToGA4(type, opts.entityId, opts.metadata);
+
     const sessionId = getOrCreateSessionId();
     if (!sessionId) return;
 

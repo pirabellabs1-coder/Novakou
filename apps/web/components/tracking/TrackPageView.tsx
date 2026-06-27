@@ -17,6 +17,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { forwardToGA4 } from "@/lib/tracking/ga";
 
 export interface TrackPageViewProps {
   /**
@@ -93,6 +94,11 @@ export default function TrackPageView({
       /* ignore */
     }
     lastKey.current = dedupKey;
+
+    // Miroir GA4 : page_view sur CHAQUE navigation (App Router ne le fait pas
+    // tout seul) + view_item sur les pages détail. C'est ce qui fait remonter
+    // les visites/pages vues dans GA4 et Search Console.
+    forwardToGA4(type, entityId, metadata);
 
     const sessionId = getOrCreateSessionId();
     if (!sessionId) return;
