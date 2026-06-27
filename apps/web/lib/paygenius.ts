@@ -149,7 +149,6 @@ export async function initPayment(params: PayGeniusInitParams): Promise<{
 }> {
   const payload: Record<string, unknown> = {
     amount: Math.round(params.amount),
-    currency: params.currency || "XOF",
     description: params.description,
     customer: {
       name: params.customer.name,
@@ -161,6 +160,12 @@ export async function initPayment(params: PayGeniusInitParams): Promise<{
     error_url: params.error_url || params.return_url,
     metadata: sanitizeMetadata(params.metadata),
   };
+  // ⚠️ GeniusPay (juin 2026) : passer explicitement `currency:"XOF"` déclenche un
+  // 500 « Server Error » côté API provider. XOF est la devise par défaut du
+  // compte → on OMET le champ pour XOF, et on ne l'envoie que pour une devise
+  // non-XOF. (Sans ce contournement, TOUS les paiements échouaient.)
+  const _cur = (params.currency || "XOF").toUpperCase();
+  if (_cur !== "XOF") payload.currency = _cur;
   if (params.payment_method) payload.payment_method = params.payment_method;
 
   const res = await fetch(`${PAYGENIUS_API_BASE}/payments`, {
@@ -346,10 +351,9 @@ export async function initPayout(params: PayGeniusPayoutInitParams): Promise<{
     throw new Error("PAYGENIUS_PAYOUT_WALLET_ID non configuré (UUID du wallet à débiter)");
   }
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     wallet_id: walletId,
     amount: Math.round(params.amount),
-    currency: params.currency || "XOF",
     description: params.description ?? `Retrait Novakou`,
     recipient: {
       name: params.recipient.name,
@@ -364,6 +368,10 @@ export async function initPayout(params: PayGeniusPayoutInitParams): Promise<{
     metadata: sanitizeMetadata(params.metadata),
     idempotency_key: params.idempotency_key,
   };
+  // Même contournement que pour les paiements : ne pas envoyer currency:"XOF"
+  // (déclenche un 500 côté GeniusPay) ; XOF est la devise par défaut.
+  const _curP = (params.currency || "XOF").toUpperCase();
+  if (_curP !== "XOF") payload.currency = _curP;
 
   const res = await fetch(`${PAYGENIUS_API_BASE}/payouts`, {
     method: "POST",
