@@ -4,27 +4,40 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { z } from "zod";
+import {
+  getPayGeniusPayoutMethod,
+  normalizePayGeniusMsisdn,
+  shortPayGeniusMethodLabel,
+} from "@/lib/paygenius-payout-methods";
+import { notifyAdmins } from "@/lib/agents/notify";
+
+const MIN_WITHDRAWAL = 5000;
 
 const withdrawSchema = z.object({
-  amount: z.number().min(5000),
-  method: z.enum(["WAVE", "ORANGE_MONEY", "MTN", "SEPA"]),
-  phone: z.string().optional(),
+  amount: z.number().min(MIN_WITHDRAWAL),
+  method: z.string().min(2), // id méthode PayGenius (ex: "wave_ci_pg")
+  msisdn: z.string().optional(),
   iban: z.string().optional(),
 });
 
 /**
- * Solde affilié RETIRABLE = somme des commissions APPROVED (validées, passé la
- * fenêtre de remboursement de 14 j). On N'utilise PAS pendingEarnings comme
- * solde retirable : ce champ inclut les commissions PENDING encore
- * remboursables → un affilié pouvait encaisser une commission annulée ensuite.
+ * Solde affilié RETIRABLE = commissions APPROVED NON déjà réservées par un
+ * retrait (withdrawalId = null). On ne touche pas pendingEarnings (qui inclut
+ * des commissions encore remboursables).
  */
 async function getApprovedBalance(affiliateId: string): Promise<number> {
   const agg = await prisma.affiliateCommission.aggregate({
-    where: { affiliateId, status: "APPROVED" },
+    where: { affiliateId, status: "APPROVED", withdrawalId: null },
     _sum: { commissionAmount: true },
   });
   return Math.round(agg._sum.commissionAmount ?? 0);
 }
+
+const STATUS_LABEL: Record<string, string> = {
+  EN_ATTENTE: "En attente de versement",
+  TRAITE: "Payé",
+  REFUSE: "Refusé",
+};
 
 export async function GET() {
   try {
@@ -35,34 +48,45 @@ export async function GET() {
     if (!userId) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
     const profile = await prisma.affiliateProfile.findUnique({ where: { userId } });
-    if (!profile) return NextResponse.json({ balance: 0, pending: 0, paidEarnings: 0, history: [] });
+    if (!profile) return NextResponse.json({ balance: 0, pending: 0, reserved: 0, paidEarnings: 0, history: [] });
 
-    const [approved, pendingAgg, paidCommissions] = await Promise.all([
+    const [approved, pendingAgg, reservedAgg, withdrawals] = await Promise.all([
       getApprovedBalance(profile.id),
       prisma.affiliateCommission.aggregate({
         where: { affiliateId: profile.id, status: "PENDING" },
         _sum: { commissionAmount: true },
       }),
-      prisma.affiliateCommission.findMany({
-        where: { affiliateId: profile.id, status: "PAID" },
-        orderBy: { paidAt: "desc" },
-        take: 20,
+      prisma.affiliateCommission.aggregate({
+        where: { affiliateId: profile.id, status: "APPROVED", withdrawalId: { not: null } },
+        _sum: { commissionAmount: true },
+      }),
+      prisma.affiliateWithdrawal.findMany({
+        where: { affiliateId: profile.id },
+        orderBy: { createdAt: "desc" },
+        take: 30,
       }),
     ]);
 
     return NextResponse.json({
-      balance: approved,                                   // retirable maintenant
+      balance: approved,                                          // retirable maintenant
       pending: Math.round(pendingAgg._sum.commissionAmount ?? 0), // en validation (14 j)
+      reserved: Math.round(reservedAgg._sum.commissionAmount ?? 0), // retrait en attente
       paidEarnings: profile.paidEarnings,
-      history: paidCommissions.map((c) => ({
-        id: c.id,
-        amount: c.commissionAmount,
-        paidAt: c.paidAt,
-        ref: c.payoutRef,
+      history: withdrawals.map((w) => ({
+        id: w.id,
+        amount: w.amount,
+        method: w.method,
+        methodLabel: shortPayGeniusMethodLabel(w.method) || w.method,
+        status: w.status,
+        statusLabel: STATUS_LABEL[w.status] ?? w.status,
+        refusedReason: w.refusedReason,
+        createdAt: w.createdAt,
+        processedAt: w.processedAt,
       })),
     });
-  } catch {
-    return NextResponse.json({ balance: 0, pending: 0, paidEarnings: 0, history: [] });
+  } catch (err) {
+    console.error("[affilie/retraits GET]", err);
+    return NextResponse.json({ balance: 0, pending: 0, reserved: 0, paidEarnings: 0, history: [] });
   }
 }
 
@@ -78,15 +102,36 @@ export async function POST(req: NextRequest) {
     const parsed = withdrawSchema.safeParse(body);
     if (!parsed.success)
       return NextResponse.json({ error: "Données invalides" }, { status: 400 });
+    const { amount, method, msisdn, iban } = parsed.data;
 
-    const { amount, method } = parsed.data;
+    // Méthode PayGenius valide ?
+    const methodDef = getPayGeniusPayoutMethod(method);
+    if (!methodDef) {
+      return NextResponse.json({ error: "Méthode de paiement non reconnue." }, { status: 400 });
+    }
 
-    const profile = await prisma.affiliateProfile.findUnique({ where: { userId } });
+    // Coordonnées requises selon la méthode (Mobile Money → msisdn, banque → iban).
+    const accountDetails: Record<string, string> = {};
+    if (methodDef.requiredFields.includes("msisdn")) {
+      if (!msisdn || !msisdn.trim())
+        return NextResponse.json({ error: "Numéro Mobile Money requis." }, { status: 400 });
+      accountDetails.msisdn = normalizePayGeniusMsisdn(msisdn.trim(), methodDef.id);
+    }
+    if (methodDef.requiredFields.includes("iban")) {
+      if (!iban || !iban.trim())
+        return NextResponse.json({ error: "IBAN requis." }, { status: 400 });
+      accountDetails.iban = iban.trim().toUpperCase().replace(/\s/g, "");
+    }
+
+    const profile = await prisma.affiliateProfile.findUnique({
+      where: { userId },
+      select: { id: true, user: { select: { name: true, email: true } } },
+    });
     if (!profile) return NextResponse.json({ error: "Profil affilié introuvable" }, { status: 404 });
 
-    // Commissions VALIDÉES (APPROVED) uniquement, plus anciennes d'abord.
+    // Commissions VALIDÉES non réservées, plus anciennes d'abord.
     const approved = await prisma.affiliateCommission.findMany({
-      where: { affiliateId: profile.id, status: "APPROVED" },
+      where: { affiliateId: profile.id, status: "APPROVED", withdrawalId: null },
       orderBy: { createdAt: "asc" },
       select: { id: true, commissionAmount: true },
     });
@@ -99,47 +144,59 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Sélection FIFO des commissions couvrant le montant (commissions atomiques
-    // → le total payé est ≥ montant demandé).
-    const toPay: string[] = [];
+    // Sélection FIFO couvrant le montant (commissions atomiques → total ≥ montant).
+    const toReserve: string[] = [];
     let acc = 0;
     for (const c of approved) {
       if (acc >= amount) break;
-      toPay.push(c.id);
+      toReserve.push(c.id);
       acc += c.commissionAmount;
     }
-    const paidTotal = Math.round(acc);
+    const reservedTotal = Math.round(acc);
     const payoutRef = `affwd_${profile.id}_${Date.now().toString(36)}`;
 
-    // Transaction : on marque les commissions PAID (le cron auto-payout ne les
-    // repaiera donc PAS → plus de double paiement) et on met à jour les
-    // compteurs du profil de façon cohérente.
-    await prisma.$transaction([
-      prisma.affiliateCommission.updateMany({
-        where: { id: { in: toPay }, status: "APPROVED" },
-        data: { status: "PAID", paidAt: new Date(), payoutRef },
-      }),
-      prisma.affiliateProfile.update({
-        where: { id: profile.id },
+    // Transaction : créer la demande EN_ATTENTE et RÉSERVER les commissions
+    // (withdrawalId) — elles restent APPROVED mais ne sont plus retirables.
+    // AUCUN versement ici : l'admin validera et déclenchera le payout PayGenius.
+    const withdrawal = await prisma.$transaction(async (tx) => {
+      const wd = await tx.affiliateWithdrawal.create({
         data: {
-          pendingEarnings: { decrement: paidTotal },
-          paidEarnings: { increment: paidTotal },
+          affiliateId: profile.id,
+          userId,
+          amount: reservedTotal,
+          method: methodDef.id,
+          accountDetails,
+          status: "EN_ATTENTE",
+          payoutRef,
         },
-      }),
-    ]);
+      });
+      await tx.affiliateCommission.updateMany({
+        where: { id: { in: toReserve }, status: "APPROVED", withdrawalId: null },
+        data: { withdrawalId: wd.id },
+      });
+      return wd;
+    });
 
+    // Notification à l'affilié (demande enregistrée, en attente de versement).
     await prisma.notification.create({
       data: {
         userId,
         type: "PAYMENT",
-        title: "Retrait affilié enregistré",
-        message: `Votre retrait de ${paidTotal} FCFA via ${method} est en cours de traitement.`,
+        title: "Demande de retrait enregistrée",
+        message: `Votre retrait de ${reservedTotal} FCFA via ${shortPayGeniusMethodLabel(methodDef.id)} est en attente de versement. Vous serez notifié dès qu'il sera traité.`,
         link: "/affilie/retraits",
       },
     }).catch(() => null);
 
+    // Alerte admin (Telegram + e-mail) pour traiter le versement.
+    await notifyAdmins({
+      subject: `Retrait affilié à verser — ${reservedTotal} FCFA`,
+      body: `${profile.user?.name ?? "Un affilié"} (${profile.user?.email ?? "?"}) demande un retrait de ${reservedTotal} FCFA via ${shortPayGeniusMethodLabel(methodDef.id)}. À valider et verser depuis l'espace admin.`,
+      url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/admin/affiliate-withdrawals`,
+    }).catch(() => null);
+
     return NextResponse.json(
-      { success: true, paidAmount: paidTotal, payoutRef, message: "Retrait initié avec succès" },
+      { success: true, withdrawalId: withdrawal.id, amount: reservedTotal, payoutRef, message: "Demande de retrait enregistrée. Versement après validation." },
       { status: 201 },
     );
   } catch (err) {

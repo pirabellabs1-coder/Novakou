@@ -2134,6 +2134,7 @@ model AffiliateProfile {
   program     AffiliateProgram      @relation(fields: [programId], references: [id], onDelete: Cascade)
   clicks      AffiliateClick[]
   commissions AffiliateCommission[]
+  withdrawals AffiliateWithdrawal[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2142,6 +2143,35 @@ model AffiliateProfile {
   @@index([programId])
   @@index([affiliateCode])
   @@index([status])
+}
+
+/// Demande de retrait d'un affilié. Miroir d'InstructorWithdrawal pour les
+/// affiliés (qui n'ont pas d'InstructeurProfile). Flux : EN_ATTENTE → l'admin
+/// approuve → payout PayGenius → TRAITE (ou REFUSE). Les commissions couvrant le
+/// montant sont RÉSERVÉES (withdrawalId) tant que le retrait n'est pas payé, puis
+/// passées en PAID au versement (ou libérées si refus).
+model AffiliateWithdrawal {
+  id              String    @id @default(cuid())
+  affiliateId     String
+  userId          String
+  amount          Float
+  method          String    // code méthode (wave_ci, orange_money_sn, bank_transfer…)
+  accountDetails  Json      // { msisdn / phone / iban / ... }
+  status          String    @default("EN_ATTENTE") // EN_ATTENTE | TRAITE | REFUSE
+  refusedReason   String?
+  processedAt     DateTime?
+  payoutRef       String?   // référence interne affwd_...
+  paymentRef      String?   // référence provider (PayGenius PYT-...)
+  paymentProvider String?   // "paygenius" | "manual"
+  errorMessage    String?
+  createdAt       DateTime  @default(now())
+
+  affiliate   AffiliateProfile      @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  commissions AffiliateCommission[]
+
+  @@index([affiliateId])
+  @@index([status])
+  @@index([paymentRef])
 }
 
 model AffiliateClick {
@@ -2179,8 +2209,12 @@ model AffiliateCommission {
   status           CommissionStatus @default(PENDING)
   paidAt           DateTime?
   payoutRef        String? // payout transaction reference
+  // Réservation : une commission rattachée à un retrait EN_ATTENTE/payé n'est
+  // plus retirable (évite le double-retrait). Libérée (null) si le retrait échoue.
+  withdrawalId     String?
 
-  affiliate AffiliateProfile @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  affiliate  AffiliateProfile     @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  withdrawal AffiliateWithdrawal? @relation(fields: [withdrawalId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2188,6 +2222,7 @@ model AffiliateCommission {
   @@index([affiliateId])
   @@index([status])
   @@index([createdAt])
+  @@index([withdrawalId])
 }
 
 // ── Discount System ───────────────────────────────────────────

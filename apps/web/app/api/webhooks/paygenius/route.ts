@@ -716,6 +716,9 @@ async function handlePayoutWebhook(reference: string, eventName: string, declare
     include: { instructeur: { include: { user: { select: { id: true } } } } },
   });
   if (!w) {
+    // Peut-être un retrait AFFILIÉ (table distincte).
+    const affResult = await handleAffiliatePayout(reference, status);
+    if (affResult) return affResult;
     console.warn("[paygenius webhook payout] withdrawal introuvable :", reference);
     return NextResponse.json({ ok: true, ignored: true, reason: "withdrawal_not_found" });
   }
@@ -768,6 +771,80 @@ async function handlePayoutWebhook(reference: string, eventName: string, declare
 
   // processing / pending : on ne touche pas au statut
   return NextResponse.json({ ok: true, payout: status, ignored: true });
+}
+
+/**
+ * Réconciliation d'un payout AFFILIÉ (table AffiliateWithdrawal).
+ * - success  → TRAITE + commissions réservées passées en PAID + paidEarnings.
+ * - failed   → REFUSE + commissions libérées (withdrawalId = null) → redeviennent retirables.
+ * Renvoie une réponse si le payout correspond à un retrait affilié, sinon null.
+ */
+async function handleAffiliatePayout(
+  reference: string,
+  status: ReturnType<typeof normalizePayoutStatus>,
+): Promise<NextResponse | null> {
+  const wd = await prisma.affiliateWithdrawal.findFirst({ where: { paymentRef: reference } });
+  if (!wd) return null;
+
+  if (status === "success") {
+    if (wd.status !== "TRAITE") {
+      await prisma.$transaction([
+        prisma.affiliateWithdrawal.update({
+          where: { id: wd.id },
+          data: { status: "TRAITE", processedAt: new Date(), errorMessage: null },
+        }),
+        prisma.affiliateCommission.updateMany({
+          where: { withdrawalId: wd.id },
+          data: { status: "PAID", paidAt: new Date(), payoutRef: reference },
+        }),
+        prisma.affiliateProfile.update({
+          where: { id: wd.affiliateId },
+          data: { paidEarnings: { increment: wd.amount } },
+        }),
+      ]);
+      await prisma.notification.create({
+        data: {
+          userId: wd.userId,
+          type: "PAYMENT",
+          title: "Retrait versé ✅",
+          message: `Vos ${Math.round(wd.amount)} FCFA viennent d'être envoyés (PayGenius). Vérifiez votre compte.`,
+          link: "/affilie/retraits",
+        },
+      }).catch(() => null);
+    }
+    return NextResponse.json({ ok: true, payout: "success", kind: "affiliate" });
+  }
+
+  if (status === "failed" || status === "cancelled") {
+    await prisma.$transaction([
+      prisma.affiliateWithdrawal.update({
+        where: { id: wd.id },
+        data: {
+          status: "REFUSE",
+          processedAt: new Date(),
+          errorMessage: `PayGenius a rejeté le payout (status=${status}).`,
+          refusedReason: "Échec du transfert PayGenius — vérifiez vos coordonnées et réessayez.",
+        },
+      }),
+      // Libère les commissions réservées → redeviennent retirables.
+      prisma.affiliateCommission.updateMany({
+        where: { withdrawalId: wd.id },
+        data: { withdrawalId: null },
+      }),
+    ]);
+    await prisma.notification.create({
+      data: {
+        userId: wd.userId,
+        type: "PAYMENT",
+        title: "Retrait échoué",
+        message: `Votre retrait de ${Math.round(wd.amount)} FCFA n'a pas pu aboutir. Vos gains restent disponibles — vérifiez vos coordonnées et réessayez.`,
+        link: "/affilie/retraits",
+      },
+    }).catch(() => null);
+    return NextResponse.json({ ok: true, payout: status, kind: "affiliate" });
+  }
+
+  return NextResponse.json({ ok: true, payout: status, kind: "affiliate", ignored: true });
 }
 
 /**

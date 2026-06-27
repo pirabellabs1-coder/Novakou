@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
   { icon: Users, label: "Utilisateurs", href: "/admin/utilisateurs" },
   { icon: Receipt, label: "Transactions", href: "/admin/transactions" },
   { icon: Banknote, label: "Retraits vendeurs", href: "/admin/retraits-vendeurs" },
+  { icon: Banknote, label: "Retraits affiliés", href: "/admin/affiliate-withdrawals" },
   { icon: Landmark, label: "Retraits plateforme", href: "/admin/retraits" },
   { icon: MessageSquare, label: "Commentaires", href: "/admin/commentaires" },
   { icon: Flag, label: "Signalements", href: "/admin/signalements" },
