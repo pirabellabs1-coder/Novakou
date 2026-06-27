@@ -11,9 +11,14 @@ import { isPayGeniusConfigured } from "@/lib/paygenius";
  * Sécurité : on n'expose AUCUNE clé. Juste des booléens.
  */
 export async function GET() {
-  // PayGenius = passerelle de paiement UNIQUE. On n'annonce que PayGenius ;
-  // Moneroo n'apparaît qu'en repli si PayGenius n'est pas configuré.
-  const providers = isPayGeniusConfigured()
+  // Provider actif piloté par env PAYMENT_PROVIDER (par défaut "moneroo" depuis
+  // le 2026-06-27, settlement GeniusPay bloqué). Repasser à GeniusPay =
+  // PAYMENT_PROVIDER=paygenius. On annonce uniquement le provider actif.
+  const pref = (process.env.PAYMENT_PROVIDER || "moneroo").toLowerCase();
+  const usePayGenius = pref === "paygenius" && isPayGeniusConfigured();
+  const useMoneroo = !usePayGenius && isMonerooConfigured();
+
+  const providers = usePayGenius
     ? [
         {
           id: "paygenius",
@@ -22,24 +27,33 @@ export async function GET() {
           description: "Paiement Mobile Money / carte via GeniusPay",
         },
       ]
-    : isMonerooConfigured()
+    : useMoneroo
       ? [
           {
             id: "moneroo",
             label: "Moneroo",
             available: true,
-            description: "Paiement Mobile Money / carte (repli)",
+            description: "Paiement Mobile Money / carte",
           },
         ]
-      : [
-          {
-            // Dev sans passerelle : entrée factice pour que le checkout s'affiche
-            id: "paygenius",
-            label: "GeniusPay (mock)",
-            available: false,
-            description: "Mode développement — aucune vraie passerelle configurée",
-          },
-        ];
+      : isPayGeniusConfigured()
+        ? [
+            {
+              id: "paygenius",
+              label: "GeniusPay",
+              available: true,
+              description: "Paiement Mobile Money / carte via GeniusPay",
+            },
+          ]
+        : [
+            {
+              // Dev sans passerelle : entrée factice pour que le checkout s'affiche
+              id: "paygenius",
+              label: "GeniusPay (mock)",
+              available: false,
+              description: "Mode développement — aucune vraie passerelle configurée",
+            },
+          ];
 
   return NextResponse.json({ data: providers });
 }

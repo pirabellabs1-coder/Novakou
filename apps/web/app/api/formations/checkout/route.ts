@@ -16,8 +16,11 @@ import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/payge
 
 type PaymentProvider = "moneroo" | "paygenius";
 function resolveProvider(_raw: unknown): PaymentProvider {
-  // PayGenius = fournisseur de paiement UNIQUE. Le provider entrant est ignoré ;
-  // Moneroo ne reste qu'un repli dormant si PayGenius n'est pas configuré.
+  // Provider actif piloté par env PAYMENT_PROVIDER. Basculé sur Moneroo le
+  // 2026-06-27 (settlement GeniusPay bloqué). Revenir à GeniusPay = PAYMENT_PROVIDER=paygenius.
+  const _pref = (process.env.PAYMENT_PROVIDER || "moneroo").toLowerCase();
+  if (_pref === "paygenius" && isPayGeniusConfigured()) return "paygenius";
+  if (isMonerooConfigured()) return "moneroo";
   return isPayGeniusConfigured() ? "paygenius" : "moneroo";
 }
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
