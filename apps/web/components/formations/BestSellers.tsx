@@ -25,7 +25,13 @@ type Item = {
 };
 
 async function fetchBestSellers(): Promise<Item[]> {
-  try {
+  // ⚠️ PAS de try/catch ici : une erreur DB transitoire doit se PROPAGER
+  // pour que `unstable_cache` NE mette PAS en cache un résultat vide. Sinon un
+  // simple hoquet Supabase fige « Catalogue en construction » pendant 5 min
+  // (ou pire, le grave dans le rendu statique du build). La gestion d'erreur
+  // gracieuse est faite dans le composant <BestSellers/> (catch → fallback),
+  // sans empoisonner le cache : la requête suivante réessaie à neuf.
+  {
     // Fetch top formations + top products, merge and sort
     const [formations, products] = await Promise.all([
       prisma.formation.findMany({
@@ -122,9 +128,6 @@ async function fetchBestSellers(): Promise<Item[]> {
     return [...formItems, ...prodItems]
       .sort((a, b) => b.salesCount - a.salesCount)
       .slice(0, 3);
-  } catch (err) {
-    console.warn("[BestSellers] DB fetch failed:", err);
-    return [];
   }
 }
 
@@ -141,7 +144,15 @@ const fetchBestSellersCached = unstable_cache(
 );
 
 export async function BestSellers() {
-  const items = await fetchBestSellersCached();
+  // Le catch est ICI (pas dans la fonction cachée) : un échec DB ne sera donc
+  // jamais mémorisé par unstable_cache — il sera réessayé à la requête suivante.
+  let items: Item[] = [];
+  try {
+    items = await fetchBestSellersCached();
+  } catch (err) {
+    console.warn("[BestSellers] fetch failed (non caché, réessai au prochain hit):", err);
+    items = [];
+  }
 
   if (items.length === 0) {
     // Fallback empty state when no products yet
