@@ -412,7 +412,7 @@ export default function VendeurDashboard() {
           />
           <StKpi
             label="Ventes"
-            value={isLoading ? "…" : (d?.current?.sales ?? d?.recentSales?.length ?? 0).toLocaleString("fr-FR")}
+            value={isLoading ? "…" : (d?.current?.sales ?? 0).toLocaleString("fr-FR")}
             icon={ShoppingBag}
             chip={<StDeltaChip pct={deltaPct(d?.current?.sales, d?.previous?.sales)} suffix="vs mois préc." />}
           />

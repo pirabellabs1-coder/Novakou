@@ -55,7 +55,7 @@ export default function AdminAffiliateWithdrawalsPage() {
     const label = mode === "manual" ? "Marquer payé manuellement" : "Verser via Moneroo";
     const ok = await confirmAction({
       title: `${label} — ${fcfa(r.amount)}`,
-      message: `${r.name ?? r.email} · ${r.methodLabel}\nDestination : ${JSON.stringify(r.accountDetails)}`,
+      message: `${r.name ?? r.email} · ${r.methodLabel}\nDestination : ${(r.accountDetails?.msisdn as string) || (r.accountDetails?.iban as string) || "—"}`,
       confirmLabel: label,
     });
     if (!ok) return;

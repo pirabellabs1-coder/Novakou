@@ -133,9 +133,11 @@ export default function AbandonsPage() {
   const totalLost = (stats.FAILED?.amount ?? 0) + (stats.ABANDONED?.amount ?? 0);
   const totalRecovered = stats.RECOVERED?.amount ?? 0;
   const totalCompleted = stats.COMPLETED?.amount ?? 0;
-  const conversionRate = stats.COMPLETED?.count
-    ? Math.round((stats.COMPLETED.count / ((stats.COMPLETED?.count ?? 0) + (stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0))) * 100)
-    : 0;
+  // Taux de conversion = tentatives abouties (payées + récupérées) sur l'ensemble
+  // des tentatives résolues (payées + récupérées + échouées + abandonnées).
+  const convSuccess = (stats.COMPLETED?.count ?? 0) + (stats.RECOVERED?.count ?? 0);
+  const convDenom = convSuccess + (stats.FAILED?.count ?? 0) + (stats.ABANDONED?.count ?? 0);
+  const conversionRate = convDenom ? Math.round((convSuccess / convDenom) * 100) : 0;
 
   const filters: Array<{ id: StatusFilter; label: string }> = [
     { id: "unresolved", label: "À relancer" },

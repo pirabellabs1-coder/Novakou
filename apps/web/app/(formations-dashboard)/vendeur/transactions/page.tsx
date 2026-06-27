@@ -197,8 +197,8 @@ export default function TransactionsPage() {
             tone="green"
           />
           <StKpiCompact
-            label={`Transactions · ${filtered.filter((t) => t.status === "completed").length} complétée${filtered.filter((t) => t.status === "completed").length !== 1 ? "s" : ""}`}
-            value={filtered.length}
+            label={`Transactions complétées · ${filtered.length} au total`}
+            value={filtered.filter((t) => t.status === "completed").length}
             icon={ShoppingBag}
             tone="blue"
           />
