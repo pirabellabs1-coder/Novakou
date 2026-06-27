@@ -360,7 +360,7 @@ export default function AdminRetraitsPage() {
               size="lg"
               icon={Banknote}
               onClick={submit}
-              disabled={submitting || amount < 1000 || !accountInput.trim()}
+              disabled={submitting || amount < 100 || !accountInput.trim()}
             >
               {submitting ? "Envoi..." : "Demander le retrait"}
             </StButton>
