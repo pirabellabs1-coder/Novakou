@@ -148,7 +148,7 @@ const sections: GuideSection[] = [
     content: (
       <>
         <GP>
-          Novakou a intégré nativement <GStrong>Moneroo</GStrong> et <GStrong>PayGenius</GStrong>, les deux agrégateurs leaders en Afrique francophone. Vous ne contractez pas individuellement avec chaque opérateur.
+          Novakou a intégré nativement <GStrong>Moneroo</GStrong>, l'agrégateur de paiement leader en Afrique francophone. Vous ne contractez pas individuellement avec chaque opérateur.
         </GP>
         <GH3>Étape 1 — Activer les méthodes de paiement</GH3>
         <GP>
@@ -211,7 +211,7 @@ const sections: GuideSection[] = [
           Une grosse partie de vos acheteurs peut venir de la <GStrong>diaspora africaine</GStrong> en France, Belgique, Canada, USA. Ces personnes n'ont souvent pas de Mobile Money mais ont une carte Visa/Mastercard.
         </GP>
         <GP>
-          Novakou active automatiquement le paiement carte (via Stripe ou PayGenius selon le pays de l'acheteur) — <GStrong>pas de config à faire</GStrong>. Sur une formation à 30 000 FCFA payée par un client en France, vous recevez environ 25 500 FCFA nets.
+          Novakou active automatiquement le paiement carte selon le pays de l'acheteur — <GStrong>pas de config à faire</GStrong>. Sur une formation à 30 000 FCFA payée par un client en France, vous recevez environ 25 500 FCFA nets.
         </GP>
         <GP>
           Voir aussi : <GA href="/guides/vendre-diaspora-africaine">Vendre à la diaspora — guide complet</GA>.

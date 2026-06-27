@@ -123,7 +123,7 @@ const sections: GuideSection[] = [
         </GP>
         <GH3>Frais et reversement</GH3>
         <GUl>
-          <GLi><GStrong>Frais Stripe/PayGenius</GStrong> : 2,9 % + 0,30 €.</GLi>
+          <GLi><GStrong>Frais carte</GStrong> : ~2,9 % + 0,30 € (selon le pays).</GLi>
           <GLi><GStrong>Commission Novakou</GStrong> : 10 % (identique aux ventes Mobile Money).</GLi>
           <GLi><GStrong>Conversion devise</GStrong> : automatique en FCFA sur votre portefeuille.</GLi>
           <GLi><GStrong>Délai réception</GStrong> : 5-7 jours ouvrés (vs instantané pour Mobile Money).</GLi>
