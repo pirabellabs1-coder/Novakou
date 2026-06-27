@@ -51,8 +51,8 @@ export default function AdminAffiliateWithdrawalsPage() {
     onSettled: () => { qc.invalidateQueries({ queryKey: ["admin-affiliate-withdrawals"] }); setBusy(null); },
   });
 
-  async function approve(r: Row) {
-    const label = "Marquer payé manuellement";
+  async function approve(r: Row, mode: "moneroo" | "manual") {
+    const label = mode === "manual" ? "Marquer payé manuellement" : "Verser via Moneroo";
     const ok = await confirmAction({
       title: `${label} — ${fcfa(r.amount)}`,
       message: `${r.name ?? r.email} · ${r.methodLabel}\nDestination : ${JSON.stringify(r.accountDetails)}`,
@@ -60,7 +60,7 @@ export default function AdminAffiliateWithdrawalsPage() {
     });
     if (!ok) return;
     setBusy(r.id);
-    try { await act.mutateAsync({ id: r.id, action: "approve", mode: "manual" }); }
+    try { await act.mutateAsync({ id: r.id, action: "approve", mode }); }
     catch (e) { await confirmAction({ title: "Échec", message: (e as Error).message, confirmLabel: "OK" }); }
   }
   async function reject(r: Row) {
@@ -123,9 +123,13 @@ export default function AdminAffiliateWithdrawalsPage() {
                     </div>
                     {r.status === "EN_ATTENTE" && (
                       <div className="flex flex-col gap-1.5 flex-shrink-0">
-                        <button onClick={() => approve(r)} disabled={busy === r.id}
+                        <button onClick={() => approve(r, "moneroo")} disabled={busy === r.id}
                           className="inline-flex items-center gap-1 text-[11.5px] font-extrabold px-3 py-1.5 rounded-lg text-white disabled:opacity-40" style={{ background: ST.green }}>
-                          {busy === r.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Marquer payé
+                          {busy === r.id ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} />} Verser (Moneroo)
+                        </button>
+                        <button onClick={() => approve(r, "manual")} disabled={busy === r.id}
+                          className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg border disabled:opacity-40" style={{ borderColor: ST.cardBorder, color: ST.text }}>
+                          <Check size={13} /> Marquer payé
                         </button>
                         <button onClick={() => reject(r)} disabled={busy === r.id}
                           className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg border disabled:opacity-40" style={{ borderColor: ST.cardBorder, color: ST.roseText }}>

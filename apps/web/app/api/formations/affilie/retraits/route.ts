@@ -5,17 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { z } from "zod";
 import {
-  getPayGeniusPayoutMethod,
-  normalizePayGeniusMsisdn,
-  shortPayGeniusMethodLabel,
-} from "@/lib/paygenius-payout-methods";
+  getPayoutMethod,
+  normalizeMsisdn,
+  shortMethodLabel,
+} from "@/lib/moneroo-payout-methods";
 import { notifyAdmins } from "@/lib/agents/notify";
 
 const MIN_WITHDRAWAL = 5000;
 
 const withdrawSchema = z.object({
   amount: z.number().min(MIN_WITHDRAWAL),
-  method: z.string().min(2), // id méthode PayGenius (ex: "wave_ci_pg")
+  method: z.string().min(2), // id méthode Moneroo (ex: "wave_ci")
   msisdn: z.string().optional(),
   iban: z.string().optional(),
 });
@@ -76,7 +76,7 @@ export async function GET() {
         id: w.id,
         amount: w.amount,
         method: w.method,
-        methodLabel: shortPayGeniusMethodLabel(w.method) || w.method,
+        methodLabel: shortMethodLabel(w.method) || w.method,
         status: w.status,
         statusLabel: STATUS_LABEL[w.status] ?? w.status,
         refusedReason: w.refusedReason,
@@ -102,25 +102,20 @@ export async function POST(req: NextRequest) {
     const parsed = withdrawSchema.safeParse(body);
     if (!parsed.success)
       return NextResponse.json({ error: "Données invalides" }, { status: 400 });
-    const { amount, method, msisdn, iban } = parsed.data;
+    const { amount, method, msisdn } = parsed.data;
 
-    // Méthode PayGenius valide ?
-    const methodDef = getPayGeniusPayoutMethod(method);
+    // Méthode Moneroo valide ?
+    const methodDef = getPayoutMethod(method);
     if (!methodDef) {
       return NextResponse.json({ error: "Méthode de paiement non reconnue." }, { status: 400 });
     }
 
-    // Coordonnées requises selon la méthode (Mobile Money → msisdn, banque → iban).
+    // Coordonnées requises (méthodes Moneroo affiliés = Mobile Money → msisdn).
     const accountDetails: Record<string, string> = {};
     if (methodDef.requiredFields.includes("msisdn")) {
       if (!msisdn || !msisdn.trim())
         return NextResponse.json({ error: "Numéro Mobile Money requis." }, { status: 400 });
-      accountDetails.msisdn = normalizePayGeniusMsisdn(msisdn.trim(), methodDef.id);
-    }
-    if (methodDef.requiredFields.includes("iban")) {
-      if (!iban || !iban.trim())
-        return NextResponse.json({ error: "IBAN requis." }, { status: 400 });
-      accountDetails.iban = iban.trim().toUpperCase().replace(/\s/g, "");
+      accountDetails.msisdn = normalizeMsisdn(msisdn.trim(), methodDef.id);
     }
 
     const profile = await prisma.affiliateProfile.findUnique({
@@ -157,7 +152,7 @@ export async function POST(req: NextRequest) {
 
     // Transaction : créer la demande EN_ATTENTE et RÉSERVER les commissions
     // (withdrawalId) — elles restent APPROVED mais ne sont plus retirables.
-    // AUCUN versement ici : l'admin validera et déclenchera le payout PayGenius.
+    // AUCUN versement ici : l'admin validera et déclenchera le payout Moneroo.
     const withdrawal = await prisma.$transaction(async (tx) => {
       const wd = await tx.affiliateWithdrawal.create({
         data: {
@@ -183,7 +178,7 @@ export async function POST(req: NextRequest) {
         userId,
         type: "PAYMENT",
         title: "Demande de retrait enregistrée",
-        message: `Votre retrait de ${reservedTotal} FCFA via ${shortPayGeniusMethodLabel(methodDef.id)} est en attente de versement. Vous serez notifié dès qu'il sera traité.`,
+        message: `Votre retrait de ${reservedTotal} FCFA via ${shortMethodLabel(methodDef.id)} est en attente de versement. Vous serez notifié dès qu'il sera traité.`,
         link: "/affilie/retraits",
       },
     }).catch(() => null);
@@ -191,7 +186,7 @@ export async function POST(req: NextRequest) {
     // Alerte admin (Telegram + e-mail) pour traiter le versement.
     await notifyAdmins({
       subject: `Retrait affilié à verser — ${reservedTotal} FCFA`,
-      body: `${profile.user?.name ?? "Un affilié"} (${profile.user?.email ?? "?"}) demande un retrait de ${reservedTotal} FCFA via ${shortPayGeniusMethodLabel(methodDef.id)}. À valider et verser depuis l'espace admin.`,
+      body: `${profile.user?.name ?? "Un affilié"} (${profile.user?.email ?? "?"}) demande un retrait de ${reservedTotal} FCFA via ${shortMethodLabel(methodDef.id)}. À valider et verser depuis l'espace admin.`,
       url: `${process.env.NEXT_PUBLIC_APP_URL || "https://novakou.com"}/admin/affiliate-withdrawals`,
     }).catch(() => null);
 

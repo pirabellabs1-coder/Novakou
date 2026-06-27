@@ -4,18 +4,18 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import {
-  initPayout as initPayGeniusPayout,
-  isPayGeniusConfigured,
-  classifyPayGeniusError,
-} from "@/lib/paygenius";
+  initPayout as initMonerooPayout,
+  isMonerooConfigured,
+  classifyMonerooError,
+} from "@/lib/moneroo";
 import {
-  getPayGeniusPayoutMethod,
-  normalizePayGeniusMsisdn,
-  shortPayGeniusMethodLabel,
-} from "@/lib/paygenius-payout-methods";
+  getPayoutMethod,
+  normalizeMsisdn,
+  shortMethodLabel,
+} from "@/lib/moneroo-payout-methods";
 
 type Params = { params: Promise<{ id: string }> };
-type PayoutMode = "paygenius" | "manual";
+type PayoutMode = "moneroo" | "manual";
 
 function isAdmin(session: { user?: { role?: string | null } } | null): boolean {
   const role = session?.user?.role?.toString().toUpperCase();
@@ -32,7 +32,7 @@ async function releaseCommissions(withdrawalId: string) {
 
 /**
  * PATCH /api/formations/admin/affiliate-withdrawals/[id]
- *   { action: "approve", mode?: "paygenius" | "manual" }
+ *   { action: "approve", mode?: "moneroo" | "manual" }  (défaut: moneroo)
  *   { action: "reject", refusedReason: string }
  */
 export async function PATCH(request: Request, { params }: Params) {
@@ -44,7 +44,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const body = await request.json().catch(() => ({}));
     const action: string = body.action;
     const refusedReason: string = (body.refusedReason ?? "").trim();
-    const mode: PayoutMode = String(body.mode ?? "").toLowerCase() === "manual" ? "manual" : "paygenius";
+    const mode: PayoutMode = String(body.mode ?? "").toLowerCase() === "manual" ? "manual" : "moneroo";
 
     if (!["approve", "reject"].includes(action)) {
       return NextResponse.json({ error: "Action invalide (approve | reject)." }, { status: 400 });
@@ -64,12 +64,10 @@ export async function PATCH(request: Request, { params }: Params) {
       if (refusedReason.length < 5) {
         return NextResponse.json({ error: "Motif de refus requis (5 caractères min)." }, { status: 400 });
       }
-      await prisma.$transaction([
-        prisma.affiliateWithdrawal.update({
-          where: { id },
-          data: { status: "REFUSE", processedAt: new Date(), refusedReason },
-        }),
-      ]);
+      await prisma.affiliateWithdrawal.update({
+        where: { id },
+        data: { status: "REFUSE", processedAt: new Date(), refusedReason },
+      });
       await releaseCommissions(id);
       await prisma.notification.create({
         data: {
@@ -85,11 +83,14 @@ export async function PATCH(request: Request, { params }: Params) {
 
     // ─── APPROVE ───────────────────────────────────────────────────────────────
     const details = (w.accountDetails ?? {}) as Record<string, string>;
-    const name = (w.affiliate?.user?.name || w.affiliate?.user?.email || "Affilié").trim();
+    const fullName = (w.affiliate?.user?.name || w.affiliate?.user?.email || "Affilié").trim();
+    const parts = fullName.split(/\s+/);
+    const firstName = parts[0] || "Affilié";
+    const lastName = parts.slice(1).join(" ") || "Novakou";
     const email = w.affiliate?.user?.email ?? "";
 
     // Mode manuel : versement hors plateforme → TRAITE + commissions PAID.
-    if (mode === "manual" || !isPayGeniusConfigured()) {
+    if (mode === "manual" || !isMonerooConfigured()) {
       await prisma.$transaction([
         prisma.affiliateWithdrawal.update({
           where: { id },
@@ -116,62 +117,59 @@ export async function PATCH(request: Request, { params }: Params) {
       return NextResponse.json({ data: { id, status: "TRAITE", mode: "manual" } });
     }
 
-    // Mode PayGenius : déclencher un vrai payout.
-    const methodDef = getPayGeniusPayoutMethod(w.method);
+    // ─── Mode Moneroo : déclencher un vrai payout ──────────────────────────────
+    const methodDef = getPayoutMethod(w.method);
     if (!methodDef) {
-      return NextResponse.json({ error: `Méthode "${w.method}" inconnue dans le catalogue PayGenius.` }, { status: 400 });
+      return NextResponse.json({ error: `Méthode "${w.method}" inconnue dans le catalogue Moneroo.` }, { status: 400 });
     }
 
-    let account = "";
-    let recipientPhone = details.msisdn || details.phone || "";
-    if (methodDef.requiredFields.includes("msisdn")) {
-      if (!recipientPhone) return NextResponse.json({ error: "Numéro Mobile Money manquant." }, { status: 400 });
-      account = normalizePayGeniusMsisdn(String(recipientPhone), methodDef.id);
-      recipientPhone = account;
-    } else if (methodDef.requiredFields.includes("iban")) {
-      const ibanRaw = details.iban || "";
-      if (!ibanRaw.trim()) return NextResponse.json({ error: "IBAN manquant." }, { status: 400 });
-      account = ibanRaw.trim().toUpperCase().replace(/\s/g, "");
+    const recipient: Record<string, string> = {};
+    const missing: string[] = [];
+    for (const fld of methodDef.requiredFields) {
+      if (fld === "msisdn") {
+        const raw = details.msisdn ?? details.phone;
+        if (!raw || !String(raw).trim()) missing.push("msisdn (numéro Mobile Money)");
+        else recipient.msisdn = normalizeMsisdn(String(raw), methodDef.id);
+      } else {
+        const val = details[fld];
+        if (!val || !String(val).trim()) missing.push(fld);
+        else recipient[fld] = String(val).trim();
+      }
+    }
+    if (missing.length > 0) {
+      return NextResponse.json({ error: `Coordonnées incomplètes : ${missing.join(", ")}` }, { status: 400 });
     }
 
-    let payoutRefId: string;
+    let payoutData;
     try {
-      console.log(`[affiliate paygenius:payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
-      const payoutData = await initPayGeniusPayout({
+      console.log(`[affiliate moneroo:payout] id=${id} amount=${Math.round(w.amount)} method=${methodDef.id}`);
+      payoutData = await initMonerooPayout({
         amount: Math.round(w.amount),
-        currency: "XOF",
-        description: `Retrait affilié Novakou - ${shortPayGeniusMethodLabel(methodDef.id)}`,
-        recipient: {
-          name,
-          phone: recipientPhone || normalizePayGeniusMsisdn("0000000000", methodDef.id),
-          email,
-        },
-        destination: {
-          type: methodDef.destinationType,
-          provider: methodDef.destinationProvider,
-          account,
-        },
+        currency: methodDef.currency,
+        description: `Retrait affilié Novakou - ${shortMethodLabel(methodDef.id)}`,
+        customer: { email, first_name: firstName, last_name: lastName },
+        method: methodDef.id,
+        recipient,
         metadata: { type: "affiliate_withdrawal", withdrawalId: w.id, affiliateId: w.affiliateId, userId: w.userId },
-        idempotency_key: `affwd_${w.id}`,
+        idempotencyKey: `affwd_${w.id}`,
       });
-      payoutRefId = payoutData.reference;
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error(`[affiliate paygenius:payout:error] id=${id} error=${msg}`);
-      const classified = classifyPayGeniusError(msg);
+      console.error(`[affiliate moneroo:payout:error] id=${id} error=${msg}`);
+      const classified = classifyMonerooError(msg);
       await prisma.affiliateWithdrawal.update({
         where: { id },
         data: {
           status: "REFUSE",
           processedAt: new Date(),
-          paymentProvider: "paygenius",
+          paymentProvider: "moneroo",
           errorMessage: msg.slice(0, 500),
-          refusedReason: `PayGenius: ${classified.userMessage}`,
+          refusedReason: `Moneroo: ${classified.userMessage}`,
         },
       }).catch(() => null);
       await releaseCommissions(id);
       return NextResponse.json(
-        { error: classified.userMessage, code: "PAYGENIUS_INIT_FAILED", category: classified.category },
+        { error: classified.userMessage, code: "MONEROO_INIT_FAILED", category: classified.category },
         { status: 502 },
       );
     }
@@ -179,20 +177,20 @@ export async function PATCH(request: Request, { params }: Params) {
     // Succès de l'init : on garde EN_ATTENTE, le webhook confirmera (TRAITE + PAID).
     await prisma.affiliateWithdrawal.update({
       where: { id },
-      data: { paymentRef: payoutRefId, paymentProvider: "paygenius", errorMessage: null },
+      data: { paymentRef: payoutData.id, paymentProvider: "moneroo", errorMessage: null },
     });
     await prisma.notification.create({
       data: {
         userId: w.userId,
         type: "PAYMENT",
         title: "Retrait en cours",
-        message: `Votre retrait de ${Math.round(w.amount)} FCFA via ${shortPayGeniusMethodLabel(methodDef.id)} (PayGenius) est en cours. Vous serez notifié dès réception.`,
+        message: `Votre retrait de ${Math.round(w.amount)} FCFA via ${shortMethodLabel(methodDef.id)} est en cours. Vous serez notifié dès réception.`,
         link: "/affilie/retraits",
       },
     }).catch(() => null);
 
     return NextResponse.json({
-      data: { id, status: "EN_ATTENTE", mode: "paygenius", paymentRef: payoutRefId, note: "Envoyé à PayGenius. Le webhook confirmera le versement." },
+      data: { id, status: "EN_ATTENTE", mode: "moneroo", paymentRef: payoutData.id, note: "Envoyé à Moneroo. Le webhook confirmera le versement." },
     });
   } catch (err) {
     console.error("[admin/affiliate-withdrawals PATCH]", err);

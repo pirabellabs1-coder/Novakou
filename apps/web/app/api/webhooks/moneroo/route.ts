@@ -178,10 +178,14 @@ export async function POST(req: Request) {
   // Si le nom ne nous dit rien, on cherche dans InstructorWithdrawal
   // pour voir si cet ID correspond a un retrait que nous avons initie.
   const isPayoutInDb = !isPayoutByName
-    ? !!(await prisma.instructorWithdrawal.findFirst({
+    ? (!!(await prisma.instructorWithdrawal.findFirst({
         where: { paymentRef: paymentId },
         select: { id: true },
-      }))
+      })) ||
+       !!(await prisma.affiliateWithdrawal.findFirst({
+        where: { paymentRef: paymentId },
+        select: { id: true },
+      })))
     : false;
 
   if (isPayoutByName || isPayoutInDb) {
@@ -915,8 +919,66 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
     include: { instructeur: { include: { user: { select: { id: true } } } } },
   });
   if (!w) {
-    console.warn("[moneroo webhook payout] withdrawal introuvable pour paymentRef:", payoutId);
-    return NextResponse.json({ ok: true, ignored: true, reason: "withdrawal_not_found" });
+    // Pas un retrait vendeur/mentor → essayer un retrait AFFILIÉ.
+    const aw = await prisma.affiliateWithdrawal.findFirst({ where: { paymentRef: payoutId } });
+    if (!aw) {
+      console.warn("[moneroo webhook payout] withdrawal introuvable pour paymentRef:", payoutId);
+      return NextResponse.json({ ok: true, ignored: true, reason: "withdrawal_not_found" });
+    }
+    if (status === "success") {
+      if (aw.status !== "TRAITE") {
+        await prisma.$transaction([
+          prisma.affiliateWithdrawal.update({
+            where: { id: aw.id },
+            data: { status: "TRAITE", processedAt: new Date(), errorMessage: null },
+          }),
+          prisma.affiliateCommission.updateMany({
+            where: { withdrawalId: aw.id },
+            data: { status: "PAID", paidAt: new Date(), payoutRef: aw.payoutRef },
+          }),
+          prisma.affiliateProfile.update({
+            where: { id: aw.affiliateId },
+            data: { paidEarnings: { increment: aw.amount } },
+          }),
+        ]);
+        await prisma.notification.create({
+          data: {
+            userId: aw.userId,
+            type: "PAYMENT",
+            title: "Retrait versé ✅",
+            message: `Vos ${Math.round(aw.amount)} FCFA viennent d'être envoyés. Vérifiez votre compte.`,
+            link: "/affilie/retraits",
+          },
+        }).catch(() => null);
+      }
+      return NextResponse.json({ ok: true, payout: "success", kind: "affiliate" });
+    }
+    if (status === "failed" || status === "cancelled") {
+      await prisma.affiliateWithdrawal.update({
+        where: { id: aw.id },
+        data: {
+          status: "REFUSE",
+          processedAt: new Date(),
+          errorMessage: `Moneroo a rejeté le payout (status=${status}).`,
+          refusedReason: "Échec du transfert Moneroo — vos gains restent disponibles.",
+        },
+      });
+      await prisma.affiliateCommission.updateMany({
+        where: { withdrawalId: aw.id },
+        data: { withdrawalId: null }, // libère les commissions réservées
+      });
+      await prisma.notification.create({
+        data: {
+          userId: aw.userId,
+          type: "PAYMENT",
+          title: "Retrait échoué",
+          message: `Votre retrait de ${Math.round(aw.amount)} FCFA n'a pas pu aboutir. Vos gains restent disponibles.`,
+          link: "/affilie/retraits",
+        },
+      }).catch(() => null);
+      return NextResponse.json({ ok: true, payout: status, kind: "affiliate" });
+    }
+    return NextResponse.json({ ok: true, payout: status, ignored: true, kind: "affiliate" });
   }
 
   // ── success ──────────────────────────────────────────────────────────
