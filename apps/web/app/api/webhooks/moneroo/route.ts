@@ -185,6 +185,10 @@ export async function POST(req: Request) {
        !!(await prisma.affiliateWithdrawal.findFirst({
         where: { paymentRef: paymentId },
         select: { id: true },
+      })) ||
+       !!(await prisma.platformPayout.findFirst({
+        where: { paymentRef: paymentId },
+        select: { id: true },
       })))
     : false;
 
@@ -922,8 +926,23 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
     // Pas un retrait vendeur/mentor → essayer un retrait AFFILIÉ.
     const aw = await prisma.affiliateWithdrawal.findFirst({ where: { paymentRef: payoutId } });
     if (!aw) {
-      console.warn("[moneroo webhook payout] withdrawal introuvable pour paymentRef:", payoutId);
-      return NextResponse.json({ ok: true, ignored: true, reason: "withdrawal_not_found" });
+      // Ni vendeur ni affilié → essayer un retrait COMMISSION PLATEFORME (admin).
+      const pp = await prisma.platformPayout.findFirst({ where: { paymentRef: payoutId } });
+      if (!pp) {
+        console.warn("[moneroo webhook payout] withdrawal introuvable pour paymentRef:", payoutId);
+        return NextResponse.json({ ok: true, ignored: true, reason: "withdrawal_not_found" });
+      }
+      if (status === "success") {
+        if (pp.status !== "TRAITE") {
+          await prisma.platformPayout.update({ where: { id: pp.id }, data: { status: "TRAITE", processedAt: new Date(), errorMessage: null } });
+        }
+        return NextResponse.json({ ok: true, payout: "success", kind: "platform" });
+      }
+      if (status === "failed" || status === "cancelled") {
+        await prisma.platformPayout.update({ where: { id: pp.id }, data: { status: "REFUSE", processedAt: new Date(), errorMessage: `Moneroo a rejeté le payout (status=${status}).` } });
+        return NextResponse.json({ ok: true, payout: status, kind: "platform" });
+      }
+      return NextResponse.json({ ok: true, payout: status, ignored: true, kind: "platform" });
     }
     if (status === "success") {
       if (aw.status !== "TRAITE") {

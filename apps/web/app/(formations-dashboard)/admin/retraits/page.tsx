@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from "react";
 import { useToastStore } from "@/store/toast";
+import { PAYOUT_METHODS } from "@/lib/moneroo-payout-methods";
 import {
   StCard,
   StPageHeader,
@@ -47,11 +48,14 @@ interface Payout {
 }
 
 const METHODS = [
-  { value: "virement", label: "Virement bancaire (IBAN)" },
-  { value: "mobile_money", label: "Mobile Money (Wave / Orange / MTN)" },
-  { value: "paypal", label: "PayPal" },
-  { value: "wise", label: "Wise" },
+  { value: "mobile_money", label: "Mobile Money (versement auto Moneroo)" },
+  { value: "virement", label: "Virement bancaire (IBAN) — manuel" },
+  { value: "paypal", label: "PayPal — manuel" },
+  { value: "wise", label: "Wise — manuel" },
 ];
+
+// Opérateurs Mobile Money Moneroo (codes exacts du catalogue) pour le versement auto.
+const MM_OPERATORS = PAYOUT_METHODS.filter((m) => m.category === "mobile_money").map((m) => ({ value: m.id, label: m.label }));
 
 function fmtFCFA(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n)) + " FCFA";
@@ -63,7 +67,8 @@ export default function AdminRetraitsPage() {
   const [balance, setBalance] = useState<Balance | null>(null);
   const [withdrawals, setWithdrawals] = useState<Payout[]>([]);
   const [amount, setAmount] = useState<number>(0);
-  const [method, setMethod] = useState("virement");
+  const [method, setMethod] = useState("mobile_money");
+  const [monerooMethod, setMonerooMethod] = useState(MM_OPERATORS[0]?.value ?? "");
   const [accountInput, setAccountInput] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -117,12 +122,16 @@ export default function AdminRetraitsPage() {
   };
 
   async function submit() {
-    if (!amount || amount < 1000) {
-      toast("warning", "Montant minimum : 1 000 FCFA");
+    if (!amount || amount < 100) {
+      toast("warning", "Montant minimum : 100 FCFA");
       return;
     }
     if (!accountInput.trim()) {
       toast("warning", `${accountLabel[method]} requis`);
+      return;
+    }
+    if (method === "mobile_money" && !monerooMethod) {
+      toast("warning", "Choisissez votre opérateur Mobile Money");
       return;
     }
     if (balance && amount > balance.available) {
@@ -132,7 +141,7 @@ export default function AdminRetraitsPage() {
 
     const details: Record<string, string> = {};
     if (method === "virement") details.iban = accountInput.trim();
-    else if (method === "mobile_money") details.phone = accountInput.trim();
+    else if (method === "mobile_money") { details.phone = accountInput.trim(); details.monerooMethod = monerooMethod; }
     else details.email = accountInput.trim();
 
     setSubmitting(true);
@@ -258,9 +267,9 @@ export default function AdminRetraitsPage() {
                 type="number"
                 value={amount || ""}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                min={1000}
+                min={100}
                 max={balance.available}
-                placeholder="1 000 minimum"
+                placeholder="100 minimum"
                 className="w-full px-4 py-3 rounded-xl text-[17px] font-extrabold tabular-nums focus:outline-none transition-all"
                 style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
               />
@@ -294,6 +303,27 @@ export default function AdminRetraitsPage() {
                 ))}
               </select>
             </div>
+
+            {method === "mobile_money" && (
+              <div className="md:col-span-2">
+                <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>
+                  Opérateur Mobile Money
+                </label>
+                <select
+                  value={monerooMethod}
+                  onChange={(e) => setMonerooMethod(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl text-[13.5px] font-semibold focus:outline-none transition-all"
+                  style={{ color: ST.text, border: "1px solid #dde6e0", background: "#fff" }}
+                >
+                  {MM_OPERATORS.map((m) => (
+                    <option key={m.value} value={m.value}>{m.label}</option>
+                  ))}
+                </select>
+                <p className="text-[11.5px] mt-1.5" style={{ color: ST.textMuted }}>
+                  Versement automatique via Moneroo — tracé et confirmé par webhook.
+                </p>
+              </div>
+            )}
 
             <div className="md:col-span-2">
               <label className="block text-[12px] font-extrabold mb-2" style={{ color: ST.textLabel }}>

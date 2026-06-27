@@ -17,9 +17,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { initPayout as initMonerooPayout, isMonerooConfigured, classifyMonerooError } from "@/lib/moneroo";
+import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
 
 const VALID_METHODS = ["virement", "mobile_money", "paypal", "wise"] as const;
-const MIN_AMOUNT = 1000; // 1 000 FCFA minimum
+const MIN_AMOUNT = 100; // 100 FCFA minimum
 
 function isAdminSession(session: Awaited<ReturnType<typeof getServerSession>>): boolean {
   if (!session?.user) return false;
@@ -115,7 +117,7 @@ export async function POST(req: Request) {
 
   const adminUserId = session?.user?.id ?? "unknown-admin";
 
-  const payout = await prisma.platformPayout.create({
+  let payout = await prisma.platformPayout.create({
     data: {
       adminUserId,
       amount,
@@ -137,6 +139,41 @@ export async function POST(req: Request) {
       },
     })
     .catch(() => null);
+
+  // Versement Moneroo AUTOMATIQUE pour Mobile Money (l'admin s'auto-autorise).
+  // Le webhook Moneroo passera ensuite le PlatformPayout en TRAITE/REFUSE.
+  // Les autres méthodes (virement / paypal / wise) restent manuelles.
+  const monerooMethodId = String(details.monerooMethod ?? "");
+  const rawMsisdn = String(details.msisdn ?? details.phone ?? "");
+  const methodDef = getPayoutMethod(monerooMethodId);
+  if (method === "mobile_money" && isMonerooConfigured() && methodDef && rawMsisdn) {
+    const fullName = (session?.user?.name || session?.user?.email || "Admin Novakou").trim();
+    const parts = fullName.split(/\s+/);
+    try {
+      const data = await initMonerooPayout({
+        amount: Math.round(amount),
+        currency: methodDef.currency,
+        description: "Retrait commission Novakou",
+        customer: { email: session?.user?.email || "admin@novakou.com", first_name: parts[0] || "Admin", last_name: parts.slice(1).join(" ") || "Novakou" },
+        method: monerooMethodId,
+        recipient: { msisdn: normalizeMsisdn(rawMsisdn, monerooMethodId) },
+        metadata: { type: "platform_payout", payoutId: payout.id },
+        idempotencyKey: `pfwd_${payout.id}`,
+      });
+      payout = await prisma.platformPayout.update({
+        where: { id: payout.id },
+        data: { paymentRef: data.id, paymentProvider: "moneroo", errorMessage: null },
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const classified = classifyMonerooError(msg);
+      payout = await prisma.platformPayout.update({
+        where: { id: payout.id },
+        data: { status: "REFUSE", processedAt: new Date(), paymentProvider: "moneroo", errorMessage: msg.slice(0, 500), note: `Moneroo: ${classified.userMessage}` },
+      });
+      return NextResponse.json({ error: classified.userMessage, data: payout, code: "MONEROO_INIT_FAILED" }, { status: 502 });
+    }
+  }
 
   return NextResponse.json({ data: payout }, { status: 201 });
 }

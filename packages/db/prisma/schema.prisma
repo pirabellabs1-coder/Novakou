@@ -1467,10 +1467,15 @@ model PlatformPayout {
   status         String    @default("EN_ATTENTE") // EN_ATTENTE | TRAITE | REFUSE
   processedAt    DateTime?
   note           String?
+  // Versement Moneroo (mobile_money) : trace provider pour réconciliation webhook
+  paymentRef      String?
+  paymentProvider String?  // "moneroo" | "manual"
+  errorMessage    String?
   createdAt      DateTime  @default(now())
 
   @@index([adminUserId])
   @@index([status])
+  @@index([paymentRef])
 }
 
 // ── Enums produits numériques & marketing ──
