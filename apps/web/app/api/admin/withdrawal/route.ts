@@ -19,6 +19,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { initPayout as initMonerooPayout, isMonerooConfigured, classifyMonerooError } from "@/lib/moneroo";
 import { getPayoutMethod, normalizeMsisdn } from "@/lib/moneroo-payout-methods";
+import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 
 const VALID_METHODS = ["virement", "mobile_money", "paypal", "wise"] as const;
 const MIN_AMOUNT = 100; // 100 FCFA minimum
@@ -139,6 +140,11 @@ export async function POST(req: Request) {
       },
     })
     .catch(() => null);
+
+  // E-mail de confirmation « demande enregistrée » à l'admin demandeur.
+  if (session?.user?.email) {
+    await sendWithdrawalRequestedEmail(session.user.email, session.user.name, amount, method === "mobile_money" ? "Mobile Money" : method, "/admin/retraits");
+  }
 
   // Versement Moneroo AUTOMATIQUE pour Mobile Money (l'admin s'auto-autorise).
   // Le webhook Moneroo passera ensuite le PlatformPayout en TRAITE/REFUSE.

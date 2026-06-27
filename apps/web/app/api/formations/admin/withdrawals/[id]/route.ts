@@ -20,6 +20,7 @@ import {
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
 import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
+import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
 import {
   getPayGeniusPayoutMethod,
   normalizePayGeniusMsisdn,
@@ -115,6 +116,7 @@ export async function PATCH(request: Request, { params }: Params) {
           link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
         },
       }).catch(() => null);
+      await sendWithdrawalFailedEmail(w.instructeur.user.email, w.instructeur.user.name, w.amount, reason, w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet");
       return NextResponse.json({ data: { id, status: "REFUSE", refusedReason: reason } });
     }
 
@@ -186,6 +188,8 @@ export async function PATCH(request: Request, { params }: Params) {
             link: isMentor ? "/mentor/finances" : "/wallet",
           },
         }).catch(() => null);
+
+        await sendWithdrawalPaidEmail(w.instructeur.user.email, w.instructeur.user.name, w.amount, shortMethodLabel(w.method.replace(/_mentor$/, "")), isMentor ? "/mentor/finances" : "/wallet");
 
         return NextResponse.json({ data: { id, status: "TRAITE", role, mode: "manual" } });
       }
@@ -518,6 +522,8 @@ export async function PATCH(request: Request, { params }: Params) {
         link: isMentor ? "/mentor/finances" : "/wallet",
       },
     }).catch(() => null);
+
+    await sendWithdrawalFailedEmail(w.instructeur.user.email, w.instructeur.user.name, w.amount, refusedReason.trim(), isMentor ? "/mentor/finances" : "/wallet");
 
     return NextResponse.json({
       data: { id, status: "REFUSE", role, refusedReason: refusedReason.trim() },

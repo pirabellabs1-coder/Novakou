@@ -13,6 +13,7 @@ import {
   normalizeMsisdn,
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
+import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
 
 type Params = { params: Promise<{ id: string }> };
 type PayoutMode = "moneroo" | "manual";
@@ -78,6 +79,7 @@ export async function PATCH(request: Request, { params }: Params) {
           link: "/affilie/retraits",
         },
       }).catch(() => null);
+      await sendWithdrawalFailedEmail(w.affiliate?.user?.email, w.affiliate?.user?.name, w.amount, refusedReason, "/affilie/retraits");
       return NextResponse.json({ data: { id, status: "REFUSE", refusedReason } });
     }
 
@@ -114,6 +116,7 @@ export async function PATCH(request: Request, { params }: Params) {
           link: "/affilie/retraits",
         },
       }).catch(() => null);
+      await sendWithdrawalPaidEmail(w.affiliate?.user?.email, w.affiliate?.user?.name, w.amount, shortMethodLabel(w.method), "/affilie/retraits");
       return NextResponse.json({ data: { id, status: "TRAITE", mode: "manual" } });
     }
 

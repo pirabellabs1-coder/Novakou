@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { HOLD_PERIOD_HOURS } from "@/lib/formations/escrow";
 import { computeVendorBalance, computeMentorBalance } from "@/lib/formations/wallet-balance";
+import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 import { resolveActiveUserId } from "@/lib/formations/active-user";
 import { getOrCreateInstructeur } from "@/lib/formations/instructeur";
 import { getActiveShopId } from "@/lib/formations/active-shop";
@@ -406,7 +407,7 @@ export async function POST(request: Request) {
         { status: 403 },
       );
     }
-    const otpUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+    const otpUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, name: true } });
     if (!otpUser?.email) {
       return NextResponse.json({ error: "Aucune adresse e-mail sur le compte" }, { status: 400 });
     }
@@ -496,6 +497,8 @@ export async function POST(request: Request) {
         },
       }).catch(() => null);
 
+      await sendWithdrawalRequestedEmail(otpUser.email, otpUser.name, amount, method, "/wallet");
+
       return NextResponse.json({ data: withdrawal });
     }
 
@@ -562,6 +565,8 @@ export async function POST(request: Request) {
           link: "/mentor/dashboard",
         },
       }).catch(() => null);
+
+      await sendWithdrawalRequestedEmail(otpUser.email, otpUser.name, amount, method, "/mentor/finances");
 
       return NextResponse.json({ data: withdrawal });
     }

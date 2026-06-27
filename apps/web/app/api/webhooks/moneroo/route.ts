@@ -20,6 +20,7 @@ import { retrievePayment, retrievePayout } from "@/lib/moneroo";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
 import { prisma } from "@/lib/prisma";
 import { shortMethodLabel } from "@/lib/moneroo-payout-methods";
+import { sendWithdrawalPaidEmail, sendWithdrawalFailedEmail } from "@/lib/email/withdrawals";
 import { rateLimit } from "@/lib/api-rate-limit";
 import { sendDigitalProductDeliveryEmail } from "@/lib/email/formations";
 import { PLATFORM_COMMISSION_RATE } from "@/lib/formations/constants";
@@ -920,11 +921,11 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
   // Retrouver le withdrawal via paymentRef
   const w = await prisma.instructorWithdrawal.findFirst({
     where: { paymentRef: payoutId },
-    include: { instructeur: { include: { user: { select: { id: true } } } } },
+    include: { instructeur: { include: { user: { select: { id: true, email: true, name: true } } } } },
   });
   if (!w) {
     // Pas un retrait vendeur/mentor → essayer un retrait AFFILIÉ.
-    const aw = await prisma.affiliateWithdrawal.findFirst({ where: { paymentRef: payoutId } });
+    const aw = await prisma.affiliateWithdrawal.findFirst({ where: { paymentRef: payoutId }, include: { affiliate: { select: { user: { select: { email: true, name: true } } } } } });
     if (!aw) {
       // Ni vendeur ni affilié → essayer un retrait COMMISSION PLATEFORME (admin).
       const pp = await prisma.platformPayout.findFirst({ where: { paymentRef: payoutId } });
@@ -935,11 +936,15 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
       if (status === "success") {
         if (pp.status !== "TRAITE") {
           await prisma.platformPayout.update({ where: { id: pp.id }, data: { status: "TRAITE", processedAt: new Date(), errorMessage: null } });
+          const admin = await prisma.user.findUnique({ where: { id: pp.adminUserId }, select: { email: true, name: true } }).catch(() => null);
+          if (admin?.email) await sendWithdrawalPaidEmail(admin.email, admin.name, pp.amount, "Mobile Money", "/admin/retraits");
         }
         return NextResponse.json({ ok: true, payout: "success", kind: "platform" });
       }
       if (status === "failed" || status === "cancelled") {
         await prisma.platformPayout.update({ where: { id: pp.id }, data: { status: "REFUSE", processedAt: new Date(), errorMessage: `Moneroo a rejeté le payout (status=${status}).` } });
+        const admin = await prisma.user.findUnique({ where: { id: pp.adminUserId }, select: { email: true, name: true } }).catch(() => null);
+        if (admin?.email) await sendWithdrawalFailedEmail(admin.email, admin.name, pp.amount, "Le transfert Moneroo a échoué.", "/admin/retraits");
         return NextResponse.json({ ok: true, payout: status, kind: "platform" });
       }
       return NextResponse.json({ ok: true, payout: status, ignored: true, kind: "platform" });
@@ -969,6 +974,7 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
             link: "/affilie/retraits",
           },
         }).catch(() => null);
+        await sendWithdrawalPaidEmail(aw.affiliate?.user?.email, aw.affiliate?.user?.name, aw.amount, "Mobile Money", "/affilie/retraits");
       }
       return NextResponse.json({ ok: true, payout: "success", kind: "affiliate" });
     }
@@ -995,6 +1001,7 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
           link: "/affilie/retraits",
         },
       }).catch(() => null);
+      await sendWithdrawalFailedEmail(aw.affiliate?.user?.email, aw.affiliate?.user?.name, aw.amount, "Le transfert Moneroo a échoué.", "/affilie/retraits");
       return NextResponse.json({ ok: true, payout: status, kind: "affiliate" });
     }
     return NextResponse.json({ ok: true, payout: status, ignored: true, kind: "affiliate" });
@@ -1020,6 +1027,7 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
           link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
         },
       }).catch(() => null);
+      await sendWithdrawalPaidEmail(w.instructeur.user.email, w.instructeur.user.name, w.amount, shortMethodLabel(w.method), w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet");
     }
     return NextResponse.json({ ok: true, payout: "success" });
   }
@@ -1044,6 +1052,7 @@ async function handlePayoutWebhook(payoutId: string, eventName: string, fallback
         link: w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet",
       },
     }).catch(() => null);
+    await sendWithdrawalFailedEmail(w.instructeur.user.email, w.instructeur.user.name, w.amount, "Le transfert Moneroo a échoué.", w.method.endsWith("_mentor") ? "/mentor/finances" : "/wallet");
     return NextResponse.json({ ok: true, payout: status });
   }
 

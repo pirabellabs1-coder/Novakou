@@ -10,6 +10,7 @@ import {
   shortMethodLabel,
 } from "@/lib/moneroo-payout-methods";
 import { notifyAdmins } from "@/lib/agents/notify";
+import { sendWithdrawalRequestedEmail } from "@/lib/email/withdrawals";
 
 const MIN_WITHDRAWAL = 5000;
 
@@ -182,6 +183,8 @@ export async function POST(req: NextRequest) {
         link: "/affilie/retraits",
       },
     }).catch(() => null);
+
+    await sendWithdrawalRequestedEmail(profile.user?.email ?? "", profile.user?.name, reservedTotal, shortMethodLabel(methodDef.id), "/affilie/retraits");
 
     // Alerte admin (Telegram + e-mail) pour traiter le versement.
     await notifyAdmins({
