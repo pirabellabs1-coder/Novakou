@@ -427,6 +427,13 @@ export function normalizeMsisdn(phone: string, methodId?: string): string {
         if (digits.startsWith("0")) {
           digits = digits.slice(1);
         }
+        // Bénin : nouveau plan à 10 chiffres « 01XXXXXXXX ». Après avoir retiré le
+        // « 0 », il reste « 1XXXXXXXX » (9 chiffres) ; Moneroo attend 8 chiffres
+        // (format 229XXXXXXXX, vérifié par un payout live réussi) → on retire aussi
+        // le « 1 » résiduel du préfixe national « 01 ».
+        if (countryCode === "BJ" && digits.length === 9 && digits.startsWith("1")) {
+          digits = digits.slice(1);
+        }
         digits = dialCode + digits;
       }
     }
