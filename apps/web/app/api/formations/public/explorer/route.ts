@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolveStorageFields } from "@/lib/storage-resolver";
+import { cldUrl } from "@/lib/cloudinary-url";
+
+// Vignette carrée marketplace : 600px suffisent largement pour une carte
+// (~300px affichés, ×2 pour le retina). Cloudinary redimensionne + compresse.
+const CARD = { width: 600, height: 600, crop: "fill" as const };
 
 export async function GET(request: Request) {
   try {
@@ -164,7 +169,7 @@ export async function GET(request: Request) {
       title: f.title,
       price: f.price,
       originalPrice: f.originalPrice,
-      thumbnail: f.thumbnail,
+      thumbnail: cldUrl(f.thumbnail, CARD),
       rating: f.rating,
       reviewsCount: f.reviewsCount,
       salesCount: f.studentsCount,
@@ -186,7 +191,7 @@ export async function GET(request: Request) {
       originalPrice: p.originalPrice,
       // Marketplace cards prefer the square vignette; fall back to the wide
       // banner for older products that only have one image.
-      thumbnail: p.thumbnail ?? p.banner,
+      thumbnail: cldUrl(p.thumbnail ?? p.banner, CARD),
       rating: p.rating,
       reviewsCount: p.reviewsCount,
       salesCount: p.salesCount,
@@ -208,7 +213,7 @@ export async function GET(request: Request) {
       // avec formations/produits côté frontend.
       price: b.priceXof,
       originalPrice: b.originalPriceXof,
-      thumbnail: b.thumbnail ?? b.banner,
+      thumbnail: cldUrl(b.thumbnail ?? b.banner, CARD),
       rating: b.rating,
       reviewsCount: b.reviewsCount,
       salesCount: b._count.purchases,

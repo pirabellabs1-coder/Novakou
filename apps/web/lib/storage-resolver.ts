@@ -17,6 +17,22 @@
 //   return NextResponse.json({ data: resolved });
 
 import { resolveStorageFileUrl, type StorageBucket } from "@/lib/supabase-storage";
+import { cldUrl } from "@/lib/cloudinary-url";
+
+// Champs TOUJOURS images (sous-ensemble de URL_FIELDS) : on leur applique
+// l'optimisation Cloudinary f_auto,q_auto (sans resize → dimensions préservées,
+// zéro risque de layout). On EXCLUT volontairement url/fileUrl/videoUrl/pdfUrl…
+// qui peuvent pointer vers des PDF/vidéos (les transformer les casserait).
+const IMAGE_FIELDS = new Set([
+  "image",
+  "avatar",
+  "thumbnail",
+  "banner",
+  "coverImage",
+  "imageBannerUrl",
+  "logoUrl",
+  "previewUrl",
+]);
 
 // Noms de champs qu'on doit résoudre (case-sensitive). Cette liste couvre
 // tous les champs de fichier connus du schéma Novakou. Ajouter ici si un
@@ -82,7 +98,9 @@ export async function resolveStorageFields<T>(
     const entries = await Promise.all(
       Object.entries(obj).map(async ([key, v]) => {
         if (URL_FIELDS.has(key) && typeof v === "string" && v.length > 0) {
-          return [key, await resolveStorageFileUrl(v, fallbackBucket, expiresIn, download)] as const;
+          const resolved = await resolveStorageFileUrl(v, fallbackBucket, expiresIn, download);
+          // Images Cloudinary → format/qualité auto (AVIF/WebP). Sûr et global.
+          return [key, IMAGE_FIELDS.has(key) ? cldUrl(resolved) : resolved] as const;
         }
         if (v && typeof v === "object") {
           return [key, await walk(v, depth + 1)] as const;

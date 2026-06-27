@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { cldUrl } from "@/lib/cloudinary-url";
 
 /** Strip HTML tags for safe display in cards */
 function stripHtml(html: string | null | undefined): string {
@@ -80,7 +81,7 @@ async function fetchBestSellers(): Promise<Item[]> {
       const isBestseller = f.studentsCount >= 20;
       return {
         href: `/formation/${f.slug}`,
-        img: f.thumbnail,
+        img: cldUrl(f.thumbnail, { width: 700, height: 700, crop: "fill" }) ?? null,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
           ? "bg-[#22c55e] text-[#004b1e]"
@@ -105,7 +106,7 @@ async function fetchBestSellers(): Promise<Item[]> {
         href: `/produit/${p.slug}`,
         // Cards prefer the dedicated thumbnail; fall back to banner for
         // legacy products that only ever uploaded one image.
-        img: p.thumbnail ?? p.banner,
+        img: cldUrl(p.thumbnail ?? p.banner, { width: 700, height: 700, crop: "fill" }) ?? null,
         badge: isBestseller ? "Bestseller" : isNew ? "Nouveau" : "Populaire",
         badgeBg: isBestseller
           ? "bg-[#22c55e] text-[#004b1e]"
