@@ -31,6 +31,7 @@ import {
   ExternalLink,
   Store,
   LogOut,
+  GraduationCap,
   type LucideIcon,
 } from "lucide-react";
 import { NovakouNotificationBell } from "@/components/notifications/NovakouNotificationBell";
@@ -52,6 +53,7 @@ const navItems: NavItem[] = [
   { icon: Gavel, label: "Disputes mentor", href: "/admin/mentor-disputes" },
   { icon: BadgeCheck, label: "Vérification KYC", href: "/admin/kyc" },
   { icon: UserMinus, label: "Suppressions de compte", href: "/admin/suppressions" },
+  { icon: GraduationCap, label: "Académie", href: "/admin/academie" },
   { icon: Megaphone, label: "Campagnes email", href: "/admin/emails" },
   { icon: MessagesSquare, label: "Conversations", href: "/admin/conversations" },
   { icon: Headphones, label: "Tickets support", href: "/admin/tickets" },

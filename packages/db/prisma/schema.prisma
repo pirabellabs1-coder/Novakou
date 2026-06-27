@@ -3809,3 +3809,23 @@ model AgentAction {
   @@index([agentKey, status])
   @@index([status, createdAt])
 }
+
+/// Académie Novakou — ressources de formation (PDF / vidéo / lien) créées par
+/// l'admin et mises à disposition de TOUS les utilisateurs connectés.
+model AcademyResource {
+  id          String   @id @default(cuid())
+  title       String
+  description String?  @db.Text
+  type        String   @default("VIDEO") // "VIDEO" | "PDF" | "LINK"
+  url         String   // URL vidéo (YouTube/Vimeo), PDF (uploadé) ou lien externe
+  thumbnail   String?
+  category    String   @default("Général")
+  published   Boolean  @default(true)
+  order       Int      @default(0)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, category])
+  @@index([order])
+}

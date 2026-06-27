@@ -189,6 +189,7 @@ function UserMenu({
             <Link href="/apprenant/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Espace apprenant</Link>
 
             <div className="my-1 border-t border-gray-100" />
+            <Link href="/academie" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">school</span>Académie</Link>
             <Link href={isAdmin ? "/admin/configuration" : isVendor ? "/vendeur/parametres" : "/apprenant/parametres"} onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-2.5 text-sm text-[#191c1e] hover:bg-gray-50"><span className="material-symbols-outlined text-[18px] text-[#5c647a]">settings</span>Paramètres</Link>
             <button onClick={() => { setOpen(false); signOut({ callbackUrl: "/" }); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 text-left">
               <span className="material-symbols-outlined text-[18px]">logout</span>Se déconnecter
