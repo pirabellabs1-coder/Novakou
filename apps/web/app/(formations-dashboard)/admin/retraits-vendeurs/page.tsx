@@ -31,7 +31,6 @@ import {
   FlaskConical,
   BadgeCheck,
   RefreshCw,
-  Wand2,
   CreditCard,
   Inbox,
 } from "lucide-react";
@@ -204,10 +203,10 @@ export default function AdminRetraitsVendeursPage() {
   const pendingIds = withdrawals.filter((w) => w.status === "EN_ATTENTE").map((w) => w.id);
   const selectedPendingCount = [...bulkIds].filter((id) => pendingIds.includes(id)).length;
 
-  async function bulkApprove(mode: "moneroo" | "paygenius" | "manual") {
+  async function bulkApprove(mode: "moneroo" | "manual") {
     const ids = [...bulkIds].filter((id) => pendingIds.includes(id));
     if (ids.length === 0) return;
-    if (!confirm(`Approuver ${ids.length} retrait(s) via ${mode === "manual" ? "transfert manuel" : mode === "paygenius" ? "PayGenius" : "Moneroo"} ?\n\nLe paiement sera déclenché immédiatement pour chacun.`)) return;
+    if (!confirm(`Approuver ${ids.length} retrait(s) via ${mode === "manual" ? "transfert manuel" : "Moneroo"} ?\n\nLe paiement sera déclenché immédiatement pour chacun.`)) return;
     setBulkRunning(true);
     try {
       const results = await Promise.allSettled(
@@ -268,7 +267,7 @@ export default function AdminRetraitsVendeursPage() {
   }
 
   const approveMut = useMutation({
-    mutationFn: async (args: { id: string; mode: "moneroo" | "paygenius" | "manual" }) => {
+    mutationFn: async (args: { id: string; mode: "moneroo" | "manual" }) => {
       const res = await fetch(`/api/formations/admin/withdrawals/${args.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -289,11 +288,10 @@ export default function AdminRetraitsVendeursPage() {
       if (mode === "manual") {
         setToast("Retrait marqué comme traité manuellement ✅");
       } else if (status === "completed" || status === "success") {
-        setToast(`Retrait versé via ${mode === "paygenius" ? "PayGenius" : "Moneroo"} ✅`);
-      } else if (mode === "moneroo" || mode === "paygenius") {
-        const provider = mode === "paygenius" ? "PayGenius" : "Moneroo";
+        setToast("Retrait versé via Moneroo ✅");
+      } else if (mode === "moneroo") {
         setToast(
-          `Payout envoyé à ${provider} (ref ${ref ?? "—"}) — Le statut passera à TRAITE dès réception du webhook confirmation provider. Si après 15 min toujours EN_ATTENTE, cliquer "Réconcilier".`
+          `Payout envoyé à Moneroo (ref ${ref ?? "—"}) — Le statut passera à TRAITE dès réception du webhook confirmation provider. Si après 15 min toujours EN_ATTENTE, cliquer "Réconcilier".`
         );
       } else {
         setToast("Retrait traité — vérifiez le statut dans la liste");
@@ -407,17 +405,6 @@ export default function AdminRetraitsVendeursPage() {
     if (ok) approveMut.mutate({ id: w.id, mode: "moneroo" });
   }
 
-  async function handleApprovePayGenius(w: Withdrawal) {
-    const ok = await confirmAction({
-      title: `Payer ${fmtFCFA(w.amount)} FCFA via PayGenius ?`,
-      message: `Bénéficiaire : ${w.user.name ?? w.user.email} · Méthode : ${methodLabel(w.method)}. PayGenius débite le wallet pré-financé et envoie l'argent au bénéficiaire.`,
-      confirmLabel: "Lancer le paiement",
-      confirmVariant: "default",
-      icon: "auto_awesome",
-    });
-    if (ok) approveMut.mutate({ id: w.id, mode: "paygenius" });
-  }
-
   async function handleApproveManual(w: Withdrawal) {
     const ok = await confirmAction({
       title: `Marquer comme traité manuellement ?`,
@@ -506,7 +493,7 @@ export default function AdminRetraitsVendeursPage() {
 
         <StPageHeader
           title="Demandes de retrait vendeurs & mentors"
-          subtitle="Approuvez ou refusez les retraits. Payez automatiquement via Moneroo / PayGenius."
+          subtitle="Approuvez ou refusez les retraits. Payez automatiquement via Moneroo."
           actions={
             <StButton
               variant="secondary"
@@ -705,7 +692,7 @@ export default function AdminRetraitsVendeursPage() {
         ) : (
           <div className="space-y-3">
             {/* Barre bulk — visible quand >= 1 EN_ATTENTE sélectionné.
-                Permet d'approuver via Moneroo/PayGenius/manuel ou refuser en masse. */}
+                Permet d'approuver via Moneroo/manuel ou refuser en masse. */}
             {selectedPendingCount > 0 && (
               <div
                 className="sticky top-2 z-20 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-2xl rounded-xl"
@@ -729,15 +716,6 @@ export default function AdminRetraitsVendeursPage() {
                   </button>
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
-                  <button
-                    onClick={() => bulkApprove("paygenius")}
-                    disabled={bulkRunning}
-                    className="px-3 py-2 rounded-[9px] text-white text-[10px] font-extrabold uppercase tracking-widest disabled:opacity-50"
-                    style={{ background: ST.blueText }}
-                    title="Payer la sélection via PayGenius"
-                  >
-                    {bulkRunning ? "…" : "Payer PayGenius"}
-                  </button>
                   <button
                     onClick={() => bulkApprove("moneroo")}
                     disabled={bulkRunning}
@@ -847,16 +825,6 @@ export default function AdminRetraitsVendeursPage() {
                           >
                             <CreditCard size={14} />
                             Payer Moneroo
-                          </button>
-                          <button
-                            onClick={() => handleApprovePayGenius(w)}
-                            disabled={approveMut.isPending || refuseMut.isPending}
-                            className="px-4 py-2 rounded-[10px] text-white text-[10px] font-extrabold uppercase tracking-widest transition-colors disabled:opacity-50 inline-flex items-center gap-1"
-                            style={{ background: ST.blueText }}
-                            title="Déclencher un paiement via PayGenius (wallet pré-financé requis)"
-                          >
-                            <Wand2 size={14} />
-                            Payer PayGenius
                           </button>
                           <button
                             onClick={() => handleApproveManual(w)}

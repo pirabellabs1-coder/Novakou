@@ -60,9 +60,9 @@ type PayoutMode = "moneroo" | "paygenius" | "manual";
 function resolvePayoutMode(raw: unknown): PayoutMode {
   const v = String(raw ?? "").toLowerCase();
   if (v === "manual") return "manual";
-  if (v === "moneroo") return "moneroo"; // repli explicite uniquement
-  // PayGenius = fournisseur de versement par défaut (gateway unique).
-  return "paygenius";
+  if (v === "paygenius") return "paygenius"; // GeniusPay retiré — toléré seulement si explicitement demandé
+  // Moneroo = fournisseur de versement par défaut (GeniusPay retiré le 2026-06-27).
+  return "moneroo";
 }
 
 export async function PATCH(request: Request, { params }: Params) {
