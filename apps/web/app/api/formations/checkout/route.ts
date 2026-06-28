@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
+import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import {
@@ -510,6 +511,12 @@ export async function POST(request: Request) {
 
       return { createdEnrollments: txEnrollments, createdPurchases: txPurchases };
     });
+
+    // Rafraîchir les pages publiques en cache (compteur de ventes) dès qu'une
+    // vente fraîche est enregistrée — sinon la home/fiche reste figée (ISR 300s).
+    if (createdEnrollments.length + createdPurchases.length > 0) {
+      revalidatePublicCatalog();
+    }
 
     // Record discount usage
     if (appliedCode && (createdEnrollments.length + createdPurchases.length) > 0) {

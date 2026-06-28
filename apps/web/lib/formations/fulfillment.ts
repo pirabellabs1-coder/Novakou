@@ -28,6 +28,7 @@ import { onFormationPurchase, onProductPurchase } from "@/lib/marketing/hooks";
 import { resolveStorageFileUrl } from "@/lib/supabase-storage";
 import { broadcast } from "@/lib/realtime/broadcast";
 import { sendPushToUser } from "@/lib/push/web-push";
+import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 
 // Signed URLs Supabase expirent par défaut en 1h. Pour un email transactionnel
 // qui peut rester non-lu plusieurs jours, on prend 7 jours. Au-delà, l'utilisateur
@@ -592,6 +593,12 @@ export async function fulfillCheckout(p: FulfillParams): Promise<FulfillResult> 
       where: { ...attemptMatch, status: { in: ["FAILED", "ABANDONED"] } },
       data: { status: "RECOVERED", recoveredAt: new Date() },
     }).catch(() => null);
+  }
+
+  // Rafraîchir les pages publiques en cache (compteurs de ventes) dès qu'une
+  // vente fraîche est enregistrée — sinon la home/fiche reste figée (ISR 300s).
+  if (createdEnrollments.length + createdPurchases.length > 0) {
+    revalidatePublicCatalog();
   }
 
   return {

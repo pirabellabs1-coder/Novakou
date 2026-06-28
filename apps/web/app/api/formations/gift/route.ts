@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
+import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 import crypto from "crypto";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://novakou.com";
@@ -209,6 +210,9 @@ export async function POST(request: Request) {
         // Audit 2026-05-26 : sync salesCount + currentBuyers (cf. checkout).
         data: { salesCount: { increment: 1 }, currentBuyers: { increment: 1 } },
       });
+
+      // Rafraîchir le catalogue public (compteur de ventes) immédiatement.
+      revalidatePublicCatalog();
 
       await notifyGiftRecipient({
         to: recipient.email,
