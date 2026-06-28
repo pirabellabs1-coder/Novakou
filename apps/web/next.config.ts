@@ -15,7 +15,7 @@ const securityHeaders = isDev
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "X-XSS-Protection", value: "1; mode=block" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-      { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=()" },
+      { key: "Permissions-Policy", value: "camera=(self), microphone=(self), geolocation=(), browsing-topics=(), interest-cohort=()" },
       {
         key: "Content-Security-Policy",
         value: [
@@ -49,7 +49,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "moitlulfuypzxemydqke.supabase.co" }, // Supabase Storage
     ],
     formats: ["image/avif", "image/webp"],
-    minimumCacheTTL: 3600,
+    minimumCacheTTL: 86400, // 24 h : moins de re-optimisations Vercel (coût + perf CDN)
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
