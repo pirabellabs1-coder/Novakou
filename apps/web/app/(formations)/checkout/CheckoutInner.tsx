@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -347,6 +348,8 @@ export default function CheckoutInner() {
   async function handlePay() {
     if (!termsAccepted) { setError("Veuillez accepter les conditions générales."); return; }
     if (!email) { setError("Adresse email requise."); return; }
+    // Invité : l'e-mail d'achat doit être une vraie adresse Gmail (anti faux comptes).
+    if (!session && !isAllowedBuyerEmail(email)) { setError(ALLOWED_BUYER_EMAIL_MESSAGE); return; }
     // Téléphone non obligatoire ici — Moneroo le demandera si Mobile Money
     if (cartItems.length === 0) { setError("Votre panier est vide."); return; }
 
@@ -477,12 +480,12 @@ export default function CheckoutInner() {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Adresse email</label>
+                <label className="block text-xs font-semibold text-[#5c647a] mb-1.5">Adresse Gmail</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
+                  placeholder="votre.nom@gmail.com"
                   disabled={!!session?.user?.email}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-[#f7f9fb] text-sm text-[#191c1e] placeholder:text-[#5c647a] focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] disabled:opacity-60"
                 />

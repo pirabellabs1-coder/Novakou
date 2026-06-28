@@ -6,6 +6,7 @@ import { IS_DEV } from "@/lib/env";
 import { initPayment as initMoneroo, isMonerooConfigured } from "@/lib/moneroo";
 import { initPayment as initPayGenius, isPayGeniusConfigured } from "@/lib/paygenius";
 import { fulfillCheckout } from "@/lib/formations/fulfillment";
+import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import { cookies } from "next/headers";
 import crypto from "crypto";
 
@@ -45,8 +46,8 @@ export async function POST(request: Request) {
     // Guest checkout
     if (!userId && body.guestEmail) {
       const email = String(body.guestEmail).trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return NextResponse.json({ error: "Email invalide" }, { status: 400 });
+      if (!isAllowedBuyerEmail(email)) {
+        return NextResponse.json({ error: ALLOWED_BUYER_EMAIL_MESSAGE }, { status: 400 });
       }
       let user = await prisma.user.findUnique({ where: { email } });
       if (!user) {

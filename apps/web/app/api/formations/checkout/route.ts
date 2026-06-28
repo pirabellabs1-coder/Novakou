@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth/config";
 import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
+import { isAllowedBuyerEmail, ALLOWED_BUYER_EMAIL_MESSAGE } from "@/lib/email/allowed-buyer-email";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import {
@@ -52,8 +53,8 @@ export async function POST(request: Request) {
     // Guest checkout — create or find user by email
     if (!userId && body.guestEmail) {
       const email = String(body.guestEmail).trim().toLowerCase();
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return NextResponse.json({ error: "Email invalide" }, { status: 400 });
+      if (!isAllowedBuyerEmail(email)) {
+        return NextResponse.json({ error: ALLOWED_BUYER_EMAIL_MESSAGE }, { status: 400 });
       }
       const existing = await prisma.user.findUnique({ where: { email } });
       if (existing) {
