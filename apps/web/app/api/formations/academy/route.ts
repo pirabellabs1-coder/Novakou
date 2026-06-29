@@ -6,12 +6,9 @@ import { IS_DEV } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
-// GET — ressources publiées de l'Académie (tout utilisateur connecté)
+// GET — ressources publiées de l'Académie. PUBLIC : accessible à tous,
+// même sans connexion (ebooks et vidéos gratuits = aimant d'acquisition).
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user && !IS_DEV) {
-    return NextResponse.json({ error: "Connectez-vous pour accéder à l'Académie", data: [] }, { status: 401 });
-  }
   const items = await prisma.academyResource.findMany({
     where: { published: true },
     orderBy: [{ order: "asc" }, { createdAt: "desc" }],

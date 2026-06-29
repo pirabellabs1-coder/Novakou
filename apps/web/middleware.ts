@@ -33,6 +33,7 @@ const PUBLIC_ROUTES = [
   "/fonctionnalites", // Page des fonctionnalités
   "/nouveautes",      // Guide public des nouveautés 2.0 (cible des emails)
   "/guides",          // Guides gratuits (pas d'auth requise)
+  "/academie",        // Académie publique : ebooks/vidéos gratuits, accessible sans connexion
   "/faq",
   "/cgu",
   "/confidentialite",
