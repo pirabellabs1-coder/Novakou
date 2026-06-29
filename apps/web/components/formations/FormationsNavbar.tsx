@@ -18,7 +18,12 @@ const NAV_LINKS = [
   { href: "/tarifs", label: "Tarifs" },
   { href: "/affiliation", label: "Affiliation" },
   { href: "/mentors", label: "Mentorat" },
-  { href: "/guides", label: "Blog" },
+  { href: "/academie", label: "Ressources", dropdown: true },
+];
+
+const RESOURCE_LINKS = [
+  { href: "/academie", icon: "school", label: "Académie", desc: "Guides & ebooks gratuits" },
+  { href: "/guides", icon: "article", label: "Blog & guides", desc: "Conseils pour vendre plus" },
 ];
 
 const FEATURE_CATEGORIES = [
@@ -84,6 +89,35 @@ function FeaturesMegaMenu({ onClose }: { onClose: () => void }) {
           Voir toutes les fonctionnalités <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
         </Link>
       </div>
+    </div>
+  );
+}
+
+function ResourcesDropdown() {
+  const [open, setOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  return (
+    <div className="relative"
+      onMouseEnter={() => { if (timer.current) clearTimeout(timer.current); setOpen(true); }}
+      onMouseLeave={() => { timer.current = setTimeout(() => setOpen(false), 200); }}>
+      <button className="text-slate-600 hover:text-green-500 transition-colors duration-300 flex items-center gap-0.5">
+        Ressources
+        <span className={`material-symbols-outlined text-[16px] transition-transform ${open ? "rotate-180" : ""}`}>expand_more</span>
+      </button>
+      {open && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-[300px] bg-white rounded-2xl border border-gray-100 shadow-2xl overflow-hidden z-50 p-2">
+          {RESOURCE_LINKS.map((it) => (
+            <Link key={it.href} href={it.href} onClick={() => setOpen(false)}
+              className="flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-[#006e2f]/5 transition-colors">
+              <span className="material-symbols-outlined text-[20px] text-[#006e2f] mt-0.5" style={{ fontVariationSettings: "'FILL' 1" }}>{it.icon}</span>
+              <div>
+                <p className="text-sm font-bold text-[#191c1e]">{it.label}</p>
+                <p className="text-xs text-[#5c647a]">{it.desc}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -234,6 +268,8 @@ export function FormationsNavbar() {
                 </button>
                 {megaOpen && <FeaturesMegaMenu onClose={() => setMegaOpen(false)} />}
               </div>
+            ) : l.dropdown ? (
+              <ResourcesDropdown key={l.label} />
             ) : (
               <Link key={l.href} href={l.href} className="text-slate-600 hover:text-green-500 transition-colors duration-300">{l.label}</Link>
             )
@@ -285,7 +321,7 @@ export function FormationsNavbar() {
       {mobileMenu && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-xl max-h-[80vh] overflow-y-auto">
           <div className="px-4 py-3 space-y-1">
-            {NAV_LINKS.filter((l) => !l.mega).map((l) => (
+            {NAV_LINKS.filter((l) => !l.mega && !l.dropdown).map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -293,6 +329,16 @@ export function FormationsNavbar() {
                 className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold text-[#191c1e] hover:bg-[#006e2f]/5 hover:text-[#006e2f] transition-colors"
               >
                 {l.label}
+              </Link>
+            ))}
+            {/* Ressources (Académie + Blog) on mobile */}
+            <div className="my-2 border-t border-gray-100" />
+            <p className="px-3 py-1 text-[10px] font-bold text-[#5c647a] uppercase tracking-widest">Ressources</p>
+            {RESOURCE_LINKS.map((it) => (
+              <Link key={it.href} href={it.href} onClick={() => setMobileMenu(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#191c1e] hover:bg-[#006e2f]/5 transition-colors">
+                <span className="material-symbols-outlined text-[18px] text-[#006e2f]" style={{ fontVariationSettings: "'FILL' 1" }}>{it.icon}</span>
+                {it.label}
               </Link>
             ))}
             {/* Fonctionnalités expanded on mobile */}
