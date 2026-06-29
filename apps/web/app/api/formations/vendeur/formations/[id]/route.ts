@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
+import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -129,6 +130,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       },
     });
 
+    // Édition (prix, titre, statut…) → rafraîchir les pages publiques en cache.
+    revalidatePublicCatalog();
     return NextResponse.json({ data: updated });
   } catch (err) {
     console.error("[formations/[id] PATCH]", err);

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { IS_DEV } from "@/lib/env";
 import { resolveVendorContext } from "@/lib/formations/active-user";
 import { resolveStorageFileUrl, getStorageObjectPath } from "@/lib/supabase-storage";
+import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 
 // Reconvertit une URL Supabase Storage (signée ou non) en chemin brut pour la DB.
 // Pour les URLs externes (Cloudinary, http public), conserve la valeur telle quelle.
@@ -198,6 +199,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         },
       },
     });
+
+    // Une édition (prix, titre, visuel, statut…) doit rafraîchir IMMÉDIATEMENT
+    // les pages publiques en cache : home, explorateur et fiche produit.
+    revalidatePublicCatalog();
 
     // Résoudre les chemins en signed URLs pour la réponse — sinon le client
     // récupère des chemins bruts non-cliquables jusqu'au prochain refetch GET.

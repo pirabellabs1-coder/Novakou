@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth/config";
 import { prisma } from "@/lib/prisma";
 import { createAuditLog } from "@/lib/admin/audit";
 import { createNotification } from "@/lib/notifications/service";
+import { revalidatePublicCatalog } from "@/lib/formations/revalidate-public";
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -50,6 +51,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       }
     }
 
+    revalidatePublicCatalog();
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[admin/produits PATCH]", err);
@@ -163,6 +165,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       }).catch(() => null);
     }
 
+    revalidatePublicCatalog();
     return NextResponse.json({ success: true, mode: "draft" });
   } catch (err) {
     console.error("[admin/produits DELETE]", err);
