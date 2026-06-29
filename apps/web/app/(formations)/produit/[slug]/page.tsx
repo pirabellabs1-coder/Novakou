@@ -3,23 +3,11 @@ import { prisma } from "@/lib/prisma";
 import ProduitPageClient from "./ProduitPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
-// ISR : 5min cache for public product pages
-export const revalidate = 300;
-
-/** Pre-render the top 50 products at build time for fast LCP. */
-export async function generateStaticParams() {
-  try {
-    const products = await prisma.digitalProduct.findMany({
-      where: { status: "ACTIF", hiddenFromMarketplace: false },
-      select: { slug: true },
-      orderBy: { salesCount: "desc" },
-      take: 50,
-    });
-    return products.map((p) => ({ slug: p.slug }));
-  } catch {
-    return [];
-  }
-}
+// Rendu DYNAMIQUE (SSR à chaque requête). Même contrainte que la page
+// formation : le layout racine lit les en-têtes via next-intl, donc une
+// régénération ISR plante en prod (DYNAMIC_SERVER_USAGE). force-dynamic =
+// rendu correct + compteur de ventes/prix toujours à jour.
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

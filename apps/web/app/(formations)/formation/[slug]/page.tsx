@@ -3,25 +3,12 @@ import { prisma } from "@/lib/prisma";
 import FormationPageClient from "./FormationPageClient";
 import TrackPageView from "@/components/tracking/TrackPageView";
 
-// ISR : revalidate every 5 minutes — public formation pages shouldn't hit
-// the DB on every visit. Trade-off : up to 5min stale data on price/title
-// changes. Mutations (vendor edits) can call revalidatePath() to bust.
-export const revalidate = 300;
-
-/** Pre-render the top 50 formations at build time for fast LCP. */
-export async function generateStaticParams() {
-  try {
-    const formations = await prisma.formation.findMany({
-      where: { status: "ACTIF", hiddenFromMarketplace: false },
-      select: { slug: true },
-      orderBy: { studentsCount: "desc" },
-      take: 50,
-    });
-    return formations.map((f) => ({ slug: f.slug }));
-  } catch {
-    return [];
-  }
-}
+// Rendu DYNAMIQUE (SSR à chaque requête). Cette page NE PEUT PAS être
+// statique/ISR : le layout racine lit les en-têtes de la requête via next-intl
+// (getLocale/getMessages), donc toute régénération ISR plante en production
+// avec DYNAMIC_SERVER_USAGE. force-dynamic = rendu toujours correct + données
+// fraîches (titre, prix, nb d'élèves à jour à chaque visite).
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
