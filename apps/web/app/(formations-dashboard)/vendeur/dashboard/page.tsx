@@ -146,7 +146,10 @@ export default function VendeurDashboard() {
   });
   const kycLevel = kycResp?.data?.currentLevel ?? 0;
   const kycPending = !!kycResp?.data?.pending;
-  const needsKyc = kycLevel < 2;
+  // Ne JAMAIS afficher la bannière tant que la réponse KYC n'est pas arrivée :
+  // sinon kycLevel vaut 0 pendant le chargement → flash « vérification requise »
+  // d'une seconde chez les vendeurs déjà vérifiés, à chaque visite.
+  const needsKyc = !!kycResp?.data && kycLevel < 2;
 
   const d = response?.data;
   const qc = useQueryClient();

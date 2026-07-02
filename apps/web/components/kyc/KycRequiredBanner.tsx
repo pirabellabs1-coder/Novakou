@@ -13,6 +13,7 @@ import { getKycStatusLabel, roleRequiresKyc } from "@/lib/auth/kyc-guard";
 export function KycRequiredBanner() {
   const { data: session, update } = useSession();
   const [apiKycLevel, setApiKycLevel] = useState<number | null>(null);
+  const [checked, setChecked] = useState(false);
 
   // Force JWT refresh on mount to pick up KYC level changes from admin
   useEffect(() => {
@@ -25,11 +26,16 @@ export function KycRequiredBanner() {
           setApiKycLevel(data.currentLevel);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setChecked(true));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!session?.user) return null;
+  // Anti-flash : ne rien afficher tant que le niveau réel (API) n'est pas connu.
+  // Sinon le JWT périmé (niveau 1) fait apparaître la bannière une seconde chez
+  // les utilisateurs déjà vérifiés.
+  if (!checked) return null;
 
   const role = session.user.role;
   // Use the highest KYC level between JWT and API
