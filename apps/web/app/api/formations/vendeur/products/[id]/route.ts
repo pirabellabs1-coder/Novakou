@@ -237,7 +237,24 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const existing = await prisma.digitalProduct.findFirst({ where: { id, instructeurId: ctx.instructeurId } });
     if (!existing) return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
 
+    // ⚠️ NE JAMAIS hard-delete un produit qui a déjà des achats : la relation
+    // DigitalProductPurchase.product est en onDelete: Cascade → supprimer le
+    // produit EFFACERAIT tous les achats (les clients perdent leur accès, et
+    // les ventes/revenus disparaissent, laissant des lignes PlatformRevenue
+    // orphelines). On ARCHIVE à la place : masqué du marketplace, non vendable,
+    // mais l'historique et les accès acheteurs restent intacts.
+    const purchaseCount = await prisma.digitalProductPurchase.count({ where: { productId: id } });
+    if (purchaseCount > 0) {
+      await prisma.digitalProduct.update({
+        where: { id },
+        data: { status: "ARCHIVE", hiddenFromMarketplace: true },
+      });
+      revalidatePublicCatalog();
+      return NextResponse.json({ data: { ok: true, archived: true, reason: "purchases_exist" } });
+    }
+
     await prisma.digitalProduct.delete({ where: { id } });
+    revalidatePublicCatalog();
     return NextResponse.json({ data: { ok: true } });
   } catch (err) {
     console.error("[vendeur/products/[id] DELETE]", err);

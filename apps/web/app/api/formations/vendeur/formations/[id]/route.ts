@@ -151,7 +151,21 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
     const existing = await prisma.formation.findFirst({ where: { id, instructeurId: ctx.instructeurId } });
     if (!existing) return NextResponse.json({ error: "Formation introuvable" }, { status: 404 });
 
+    // ⚠️ NE JAMAIS hard-delete une formation qui a des inscrits : Enrollment est
+    // en onDelete: Cascade → supprimer la formation effacerait les inscriptions
+    // (les apprenants perdent leur accès, ventes/revenus disparus). On ARCHIVE.
+    const enrollCount = await prisma.enrollment.count({ where: { formationId: id } });
+    if (enrollCount > 0) {
+      await prisma.formation.update({
+        where: { id },
+        data: { status: "BROUILLON", hiddenFromMarketplace: true },
+      });
+      revalidatePublicCatalog();
+      return NextResponse.json({ data: { ok: true, archived: true, reason: "enrollments_exist" } });
+    }
+
     await prisma.formation.delete({ where: { id } });
+    revalidatePublicCatalog();
     return NextResponse.json({ data: { ok: true } });
   } catch (err) {
     console.error("[formations/[id] DELETE]", err);
