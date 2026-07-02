@@ -167,48 +167,25 @@ export default async function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Satoshi (fontshare) — chargé en ASYNC pour ne PAS bloquer le rendu.
-            La technique media="print" puis onload="this.media='all'" est le
-            pattern standard depuis 2020 : le browser fetch le CSS en
-            background, ne l'applique pas (media print), puis l'active dès
-            qu'il arrive. Pendant ce temps display=swap utilise le fallback
-            (sans-serif). Économie : ~750ms de render-blocking time. */}
-        <link
-          rel="preload"
-          as="style"
-          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
-        />
+        {/* ⚠️ PAS de pattern media="print" + onLoad ici : React ne rend PAS
+            l'attribut onload en SSR → la feuille restait en media="print"
+            pour toujours et la police ne s'appliquait JAMAIS (icônes affichées
+            en texte brut en permanence — bug masqué avant par un @import de
+            la font complète dans globals.css, depuis supprimé).
+            Feuilles de style normales : CSS ~1 Ko chacune + preconnect déjà
+            en place → coût de blocage minime, rendu garanti. */}
         <link
           rel="stylesheet"
           href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
-          media="print"
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          {...({ onLoad: "this.media='all'" } as any)}
         />
-        <noscript>
-          <link
-            rel="stylesheet"
-            href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap"
-          />
-        </noscript>
 
         {/* Material Symbols (Google Fonts) — SUBSET via &icon_names=
-            Avant : font variable complète 3.8 MB (3000+ icônes inutiles).
-            Après : ~70 KB (uniquement les ~350 icônes réellement utilisées).
-            display=block évite aussi le FOUT (cache les ligatures brutes
+            (~350 icônes utilisées, axe FILL uniquement → ~41 Ko).
+            display=block évite le FOUT (cache les ligatures brutes
             "package_2", "sell" pendant le chargement). Liste d'icônes
             maintenue dans lib/material-symbols-subset.ts. */}
         <link rel="preload" as="style" href={MATERIAL_SYMBOLS_URL} />
-        <link
-          rel="stylesheet"
-          href={MATERIAL_SYMBOLS_URL}
-          media="print"
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          {...({ onLoad: "this.media='all'" } as any)}
-        />
-        <noscript>
-          <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} />
-        </noscript>
+        <link rel="stylesheet" href={MATERIAL_SYMBOLS_URL} />
 
         {/* Anti-FOUT Material Symbols : tant que la font n'est pas chargée,
             les ligatures (texte "package_2", "sell"...) restent invisibles
