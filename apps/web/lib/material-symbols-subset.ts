@@ -83,6 +83,11 @@ const ICONS_PARAM = MATERIAL_SYMBOLS_USED.join(",");
 /**
  * URL Google Fonts pour Material Symbols Outlined, subset aux icônes utilisées.
  * display=block évite le FOUT (cf. layout.tsx).
+ *
+ * Axes : seul FILL (0..1) est réellement utilisé dans le code
+ * (fontVariationSettings "'FILL' 1" pour les icônes actives). wght/opsz/GRAD
+ * sont figés à leur valeur par défaut (400/24/0) → police BEAUCOUP plus
+ * légère (348 Ko → ~120 Ko) et chargement icônes quasi instantané.
  */
 export const MATERIAL_SYMBOLS_URL =
-  `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,300..600,0..1,-25..0&icon_names=${ICONS_PARAM}&display=block`;
+  `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1&icon_names=${ICONS_PARAM}&display=block`;
