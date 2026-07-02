@@ -160,6 +160,12 @@ export default async function RootLayout({
             PageSpeed flagait ces deux preconnect comme inutiles. */}
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="anonymous" />
+        {/* Material Symbols vient de Google Fonts (fonts.googleapis.com pour le
+            CSS → fonts.gstatic.com pour le .woff2). SANS ces preconnect, la
+            police d'icônes payait un DNS+TLS complet sur chaque domaine → 10-20s
+            sur mobile 3G/4G, d'où les icônes affichées en texte brut. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/* Satoshi (fontshare) — chargé en ASYNC pour ne PAS bloquer le rendu.
             La technique media="print" puis onload="this.media='all'" est le
@@ -227,6 +233,10 @@ export default async function RootLayout({
             } catch(e){}
             try {
               if (document.fonts && document.fonts.load) {
+                // On révèle les icônes dès que la police est réellement prête
+                // (signal fiable). Le setTimeout n'est qu'un filet de sécurité
+                // porté à 8s : sur réseau lent, mieux vaut des icônes vides
+                // quelques secondes de plus que le texte brut « arrow_forward ».
                 document.fonts.load('24px "Material Symbols Outlined"').then(function(){
                   document.documentElement.classList.add('ms-ready');
                 }).catch(function(){
@@ -234,7 +244,7 @@ export default async function RootLayout({
                 });
                 setTimeout(function(){
                   document.documentElement.classList.add('ms-ready');
-                }, 3000);
+                }, 8000);
               } else {
                 document.documentElement.classList.add('ms-ready');
               }
