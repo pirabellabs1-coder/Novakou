@@ -68,6 +68,8 @@ import {
   Gem,
   Briefcase,
   Video,
+  Mail,
+  Download,
   type LucideIcon,
 } from "lucide-react";
 import { MediaUpload } from "@/components/funnels/MediaUpload";
@@ -95,7 +97,9 @@ type BlockType =
   // Ready-made sections
   | "hero" | "features" | "countdown" | "testimonials" | "faq" | "cta" | "stats" | "pricing"
   // Conversion & Trust
-  | "scarcity" | "guarantee" | "logo-bar" | "alert" | "social-proof" | "comparison" | "floating-cta";
+  | "scarcity" | "guarantee" | "logo-bar" | "alert" | "social-proof" | "comparison" | "floating-cta"
+  // Lead capture (page de capture d'emails)
+  | "lead-form";
 
 interface Block {
   id: string;
@@ -255,6 +259,22 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
     icon: Code,
     atomic: true,
     default: { html: "<p>Votre HTML personnalisé</p>" },
+  },
+  "lead-form": {
+    label: "Formulaire de capture",
+    icon: Mail,
+    atomic: true,
+    default: {
+      title: "Recevez votre cadeau gratuit",
+      subtitle: "Entrez votre email ci-dessous pour le recevoir immédiatement.",
+      buttonText: "Je le veux !",
+      collectName: true,
+      collectPhone: false,
+      successMessage: "C'est bon ! Surveillez votre boîte mail (et vos spams).",
+      goNextStep: false,
+      bgColor: "#ffffff",
+      align: "center",
+    },
   },
   product: {
     label: "Produit / Formation",
@@ -537,6 +557,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
   {
     label: "Conversion", icon: MousePointerClick, items: [
       { key: "button", label: "Bouton", icon: MousePointer2 },
+      { key: "lead-form", label: "Formulaire (capture)", icon: Mail },
       { key: "product", label: "Produit / Formation", icon: ShoppingBag },
       { key: "scarcity", label: "Rareté / Limite", icon: Flame },
       { key: "guarantee", label: "Garantie", icon: ShieldCheck },
@@ -568,7 +589,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
 
 // Which palette keys are allowed inside a column (no infinite nesting: no row/section inside column)
 const COLUMN_ALLOWED_KEYS: PaletteKey[] = [
-  "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "content-box",
+  "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "content-box", "lead-form",
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -609,6 +630,15 @@ type StepInfo = {
 };
 
 const STEP_INFO: Record<string, StepInfo> = {
+  CAPTURE: {
+    icon: Mail,
+    color: "#7c3aed",
+    bgTint: "#7c3aed0D",
+    title: "Page de capture",
+    subtitle: "Collectez les emails de vos visiteurs en échange d'un cadeau (guide, vidéo, checklist…)",
+    advice: "Une page de capture efficace = UNE promesse claire + UN formulaire. Offrez quelque chose de gratuit (ebook, checklist, mini-vidéo) contre l'email. Pas de menu, pas de distraction : un titre fort, 2-3 bénéfices, le formulaire. Vos leads apparaissent dans le bouton « Leads » en haut de l'éditeur.",
+    templateLabel: "Template page de capture",
+  },
   LANDING: {
     icon: Rocket,
     color: "#006e2f",
@@ -668,6 +698,14 @@ function getStepTemplate(stepType: string): Block[] {
         { id: newBlockId(), type: "product", data: { kind: "", id: "", layout: "hero", showImage: true, showRating: true, showPrice: true, showCount: true, showDescription: true, ctaText: "OUI, j'ajoute à ma commande", ctaIcon: "shopping_cart", bgColor: "", textColor: "", accentColor: "#f59e0b", align: "center" } },
         { id: newBlockId(), type: "countdown", data: { title: "Cette offre expire dans :", endsInHours: 1, subtitle: "Après cela, le prix revient à son tarif normal." } },
         { id: newBlockId(), type: "button", data: { text: "Non merci, continuer sans cette offre", link: "", linkType: "external", style: "secondary", size: "sm", align: "center", bgColor: "", textColor: "#6b7280", fullWidth: false, icon: "" } },
+      ];
+    case "CAPTURE":
+      return [
+        { id: newBlockId(), type: "heading", data: { content: "Téléchargez votre guide GRATUIT", level: 1, align: "center", color: "" } },
+        { id: newBlockId(), type: "text", data: { content: "Découvrez la méthode pas à pas pour obtenir [résultat] — sans [obstacle]. Entrez votre email ci-dessous et recevez-le immédiatement.", align: "center", size: 18, color: "" } },
+        { id: newBlockId(), type: "list", data: { items: ["Le plan d'action complet, étape par étape", "Les erreurs à éviter absolument", "Applicable dès aujourd'hui, même en partant de zéro"], icon: "check_circle", color: "#7c3aed" } },
+        { id: newBlockId(), type: "lead-form", data: { title: "Où doit-on l'envoyer ?", subtitle: "Recevez le guide directement dans votre boîte mail.", buttonText: "Recevoir le guide gratuit", collectName: true, collectPhone: false, successMessage: "C'est bon ! Surveillez votre boîte mail (et vos spams).", goNextStep: false, bgColor: "#ffffff", align: "center" } },
+        { id: newBlockId(), type: "social-proof", data: { text: "Déjà téléchargé par des centaines de personnes", avatars: 5, rating: 5 } },
       ];
     case "THANK_YOU":
       return [
@@ -940,6 +978,28 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
       );
     case "html":
       return <StringInput label="Code HTML" value={(block.data.html as string) ?? ""} onChange={(v) => update({ html: v })} multiline />;
+    case "lead-form":
+      return (
+        <div className="space-y-2.5">
+          <div className="bg-purple-50 border border-purple-200 rounded-lg px-3 py-2 text-[10px] text-purple-800 flex items-start gap-1">
+            <Info size={12} className="mt-0.5 flex-shrink-0" />
+            Les emails collectés apparaissent dans le bouton « Leads » en haut de l&apos;éditeur (export CSV possible).
+          </div>
+          <StringInput label="Titre du formulaire" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <StringInput label="Sous-titre" value={(block.data.subtitle as string) ?? ""} onChange={(v) => update({ subtitle: v })} multiline />
+          <StringInput label="Texte du bouton" value={(block.data.buttonText as string) ?? ""} onChange={(v) => update({ buttonText: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Champ prénom" value={(block.data.collectName ? "oui" : "non")} options={[{ value: "oui", label: "Afficher" }, { value: "non", label: "Masquer" }]} onChange={(v) => update({ collectName: v === "oui" })} />
+            <SelectInput label="Champ téléphone" value={(block.data.collectPhone ? "oui" : "non")} options={[{ value: "oui", label: "Afficher" }, { value: "non", label: "Masquer" }]} onChange={(v) => update({ collectPhone: v === "oui" })} />
+          </div>
+          <SelectInput label="Après l'envoi" value={(block.data.goNextStep ? "next" : "message")} options={[{ value: "message", label: "Afficher le message de succès" }, { value: "next", label: "Aller à l'étape suivante" }]} onChange={(v) => update({ goNextStep: v === "next" })} />
+          <StringInput label="Message de succès" value={(block.data.successMessage as string) ?? ""} onChange={(v) => update({ successMessage: v })} multiline />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
+            <ColorPicker label="Fond de la carte" value={(block.data.bgColor as string) ?? null} onChange={(c) => update({ bgColor: c })} />
+          </div>
+        </div>
+      );
     case "video":
       return (
         <div className="space-y-2.5">
@@ -1821,6 +1881,79 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// LEADS PANEL — emails capturés par les blocs « Formulaire de capture »
+// ═══════════════════════════════════════════════════════════════════════════
+function LeadsPanel({ funnelId, onClose }: { funnelId: string; onClose: () => void }) {
+  const [leads, setLeads] = useState<Array<{ id: string; name: string | null; email: string; phone: string | null; createdAt: string }>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/formations/vendeur/funnels/${funnelId}/leads`)
+      .then((r) => r.json())
+      .then((j) => setLeads(j.data ?? []))
+      .catch(() => setLeads([]))
+      .finally(() => setLoading(false));
+  }, [funnelId]);
+
+  function exportCsv() {
+    const rows = [["Nom", "Email", "Téléphone", "Date"], ...leads.map((l) => [l.name ?? "", l.email, l.phone ?? "", new Date(l.createdAt).toLocaleString("fr-FR")])];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
+    const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "leads-novakou.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  return (
+    <div className="fixed inset-0 z-[9990]" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200" />
+      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
+          <h3 className="text-sm font-extrabold text-[#191c1e] flex items-center gap-2">
+            <Mail size={16} className="text-purple-600" />Leads capturés
+            {!loading && <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">{leads.length}</span>}
+          </h3>
+          <div className="flex items-center gap-2">
+            {leads.length > 0 && (
+              <button onClick={exportCsv} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-purple-600 text-white hover:bg-purple-700 transition-colors">
+                <Download size={13} />CSV
+              </button>
+            )}
+            <button onClick={onClose} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors"><X size={18} /></button>
+          </div>
+        </div>
+        <div className="p-4">
+          {loading ? (
+            <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-14 rounded-xl bg-gray-100 animate-pulse" />)}</div>
+          ) : leads.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <Mail size={40} className="text-gray-200 mx-auto mb-3" />
+              <p className="text-sm font-bold text-[#191c1e]">Aucun lead pour le moment</p>
+              <p className="text-xs text-[#5c647a] mt-1">Ajoutez un bloc « Formulaire (capture) » sur une étape, publiez, et partagez le lien. Les emails collectés apparaîtront ici.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {leads.map((l) => (
+                <div key={l.id} className="border border-gray-100 rounded-xl px-3.5 py-2.5 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-bold text-[#191c1e] truncate">{l.name || "—"}</p>
+                    <p className="text-[10px] text-[#5c647a] flex-shrink-0">{new Date(l.createdAt).toLocaleDateString("fr-FR")}</p>
+                  </div>
+                  <p className="text-xs text-[#006e2f] font-semibold truncate">{l.email}</p>
+                  {l.phone && <p className="text-[11px] text-[#5c647a]">{l.phone}</p>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MAIN EDITOR
 // ═══════════════════════════════════════════════════════════════════════════
 export default function FunnelEditorClient({ id }: { id: string }) {
@@ -1832,6 +1965,8 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [activeStepId, setActiveStepId] = useState<string | null>(null);
   const [showAddBlock, setShowAddBlock] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLeads, setShowLeads] = useState(false);
   const [pendingTemplate, setPendingTemplate] = useState<{ kind: "step" | "landing"; data: Block[] } | null>(null);
 
   const load = useCallback(async () => {
@@ -1946,6 +2081,14 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               : savedAt ? (<><CheckCircle2 size={14} className="text-green-500" />Sauvegardé</>)
               : null}
           </div>
+          <button onClick={() => setShowLeads(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">
+            <Mail size={14} />Leads
+          </button>
+          <button onClick={() => setShowSettings(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
+            <SlidersHorizontal size={14} />Réglages
+          </button>
           <a href={`/f/${funnel.slug}${funnel.isActive ? "" : "?preview=1"}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
             <ExternalLink size={14} />Aperçu
@@ -1956,63 +2099,81 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             {funnel.isActive ? "Publié" : "Publier"}
           </button>
         </div>
+
+        {/* ── Étapes du tunnel : stepper HORIZONTAL en haut (remplace l'ancienne
+             sidebar verticale) — pills animées, défilables sur mobile. ── */}
+        <div className="border-t border-gray-100 bg-white/60">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-2.5 flex items-center gap-1.5 overflow-x-auto">
+            {funnel.steps.map((s, i) => {
+              const info = STEP_INFO[s.stepType] ?? STEP_INFO.LANDING;
+              const isActive = s.id === activeStepId;
+              const StepIcon = info.icon;
+              return (
+                <div key={s.id} className="flex items-center gap-1.5 flex-shrink-0">
+                  {i > 0 && <ArrowRight size={14} className="text-gray-300 flex-shrink-0" />}
+                  <button onClick={() => setActiveStepId(s.id)}
+                    className={`group flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full border transition-all duration-300 ease-out ${
+                      isActive
+                        ? "text-white shadow-lg scale-[1.05]"
+                        : "bg-white text-[#191c1e] border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:-translate-y-0.5"
+                    }`}
+                    style={isActive ? { background: info.color, borderColor: info.color, boxShadow: `0 6px 18px ${info.color}55` } : undefined}>
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-extrabold transition-colors duration-300 ${
+                      isActive ? "bg-white/25 text-white" : "bg-gray-100 text-[#5c647a] group-hover:bg-gray-200"
+                    }`}>
+                      {i + 1}
+                    </span>
+                    <StepIcon size={14} className={`transition-colors duration-300 ${isActive ? "text-white" : "text-[#5c647a]"}`} />
+                    <span className="text-xs font-bold whitespace-nowrap max-w-[150px] truncate">{s.title}</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Steps sidebar (compacte) */}
-        <aside className="lg:col-span-2">
-          <div className="bg-white rounded-xl border border-gray-100 p-3 sticky top-20">
-            <h3 className="text-[10px] font-bold text-[#5c647a] mb-2 uppercase tracking-wider">Étapes</h3>
-            <div className="space-y-1">
-              {funnel.steps.map((s) => {
-                const info = STEP_INFO[s.stepType] ?? STEP_INFO.LANDING;
-                const isActive = s.id === activeStepId;
-                const StepIcon = info.icon;
-                return (
-                  <button key={s.id} onClick={() => setActiveStepId(s.id)}
-                    className={`w-full flex items-center gap-2 text-left px-2 py-2 rounded-lg transition-colors ${isActive ? "bg-[#006e2f]/10" : "hover:bg-gray-50"}`}>
-                    <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${isActive ? "bg-[#006e2f] text-white" : "bg-gray-100 text-[#5c647a]"}`}>
-                      <StepIcon size={14} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-[11px] font-bold truncate leading-tight ${isActive ? "text-[#006e2f]" : "text-[#191c1e]"}`}>{s.title}</p>
-                      <p className="text-[9px] text-[#5c647a] leading-tight">{s.stepType}</p>
-                    </div>
-                  </button>
-                );
-              })}
+      {/* ── Panneau Réglages (slide-over droite) : URL, limite, thème, suppression ── */}
+      {showSettings && (
+        <div className="fixed inset-0 z-[9990]" onClick={() => setShowSettings(false)}>
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200" />
+          <div
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
+              <h3 className="text-sm font-extrabold text-[#191c1e] flex items-center gap-2">
+                <SlidersHorizontal size={16} className="text-[#006e2f]" />Réglages du tunnel
+              </h3>
+              <button onClick={() => setShowSettings(false)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors">
+                <X size={18} />
+              </button>
             </div>
-            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
-              <p className="text-[9px] font-bold text-[#5c647a] uppercase">URL publique</p>
-              <p className="text-[10px] text-[#191c1e] tabular-nums bg-gray-50 px-2 py-1 rounded truncate">/f/{funnel.slug}</p>
-            </div>
-            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
-              <p className="text-[9px] font-bold text-[#5c647a] uppercase flex items-center gap-1">
-                <Flame size={12} />Limite de ventes
-              </p>
-              <div className="flex items-center gap-1.5">
-                <input type="number" min="0" placeholder="∞"
+            <div className="p-5 space-y-6">
+              <div>
+                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-1.5">URL publique</p>
+                <p className="text-xs text-[#191c1e] tabular-nums bg-gray-50 px-3 py-2 rounded-lg truncate border border-gray-100">/f/{funnel.slug}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <Flame size={12} />Limite de ventes
+                </p>
+                <input type="number" min="0" placeholder="∞ (aucune limite)"
                   value={funnel.salesLimit ?? ""}
                   onChange={(e) => {
                     const val = e.target.value ? parseInt(e.target.value) : null;
                     setFunnel((f) => f ? { ...f, salesLimit: val } : f);
                   }}
                   onBlur={() => save({ salesLimit: funnel.salesLimit })}
-                  className="w-full px-2 py-1 text-[11px] rounded border border-gray-200 bg-white" />
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white" />
+                {funnel.salesLimit !== null && funnel.salesLimit > 0 && (
+                  <p className="text-[10px] text-[#5c647a] mt-1">{funnel.salesCount}/{funnel.salesLimit} ventes</p>
+                )}
               </div>
-              {funnel.salesLimit !== null && funnel.salesLimit > 0 && (
-                <p className="text-[9px] text-[#5c647a]">
-                  {funnel.salesCount}/{funnel.salesLimit} ventes
+              <div>
+                <p className="text-[10px] font-bold text-[#5c647a] uppercase tracking-wider mb-2 flex items-center gap-1">
+                  <Palette size={12} />Thème du tunnel
                 </p>
-              )}
-              {/* Theme settings */}
-              <details className="mt-2 border border-gray-100 rounded-lg overflow-hidden">
-                <summary className="flex items-center gap-1.5 px-2 py-1.5 text-[9px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
-                  <Palette size={12} />
-                  Thème
-                  <ChevronDown size={12} className="ml-auto" />
-                </summary>
-                <div className="px-2 pb-2 space-y-2">
+                <div className="space-y-3">
                   <ColorPicker label="Couleur principale" value={funnel.theme?.primaryColor || "#006e2f"} onChange={(c) => save({ theme: { ...funnel.theme, primaryColor: c ?? "#006e2f" } })} />
                   <ColorPicker label="Couleur accent" value={funnel.theme?.accentColor || "#22c55e"} onChange={(c) => save({ theme: { ...funnel.theme, accentColor: c ?? "#22c55e" } })} />
                   <ColorPicker label="Couleur texte" value={funnel.theme?.textColor || "#191c1e"} onChange={(c) => save({ theme: { ...funnel.theme, textColor: c ?? "#191c1e" } })} />
@@ -2022,7 +2183,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                     <select
                       value={funnel.theme?.font || "Manrope"}
                       onChange={(e) => save({ theme: { ...funnel.theme, font: e.target.value } })}
-                      className="w-full px-2 py-1.5 text-[11px] rounded border border-gray-200 bg-white"
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-gray-200 bg-white"
                     >
                       {["Manrope", "Inter", "DM Sans", "Poppins", "Montserrat", "Raleway", "Playfair Display", "Lora", "Nunito", "Space Grotesk", "Outfit", "Plus Jakarta Sans"].map((f) => (
                         <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
@@ -2030,16 +2191,21 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                     </select>
                   </div>
                 </div>
-              </details>
-              <button onClick={handleDelete} className="w-full mt-2 text-[10px] text-red-500 hover:text-red-700 flex items-center justify-center gap-1 py-1.5">
-                <Trash2 size={12} />Supprimer
-              </button>
+              </div>
+              <div className="pt-4 border-t border-gray-100">
+                <button onClick={handleDelete} className="w-full text-xs text-red-500 hover:text-red-700 hover:bg-red-50 flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-red-100 transition-colors">
+                  <Trash2 size={14} />Supprimer ce tunnel
+                </button>
+              </div>
             </div>
           </div>
-        </aside>
+        </div>
+      )}
 
-        {/* Editor */}
-        <main className="lg:col-span-10 space-y-4">
+      {/* ── Panneau Leads (emails capturés par les formulaires) ── */}
+      {showLeads && <LeadsPanel funnelId={id} onClose={() => setShowLeads(false)} />}
+
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-6 space-y-4">
           {(() => {
             const info = STEP_INFO[activeStep?.stepType ?? "LANDING"] ?? STEP_INFO.LANDING;
             const InfoIcon = info.icon;
@@ -2061,7 +2227,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: info.color }}>Étape {activeStep?.stepOrder} / 4</p>
+                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: info.color }}>Étape {activeStep?.stepOrder} / {funnel.steps.length}</p>
                       <span className="text-[10px] font-semibold text-[#5c647a] bg-white/60 px-2 py-0.5 rounded-full">{activeStep?.stepType}</span>
                     </div>
                     <input type="text" value={activeStep?.title ?? ""}
@@ -2151,8 +2317,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
               </button>
             </>
           )}
-        </main>
-      </div>
+      </main>
 
       {showAddBlock && <PalettePicker onPick={addBlock} onClose={() => setShowAddBlock(false)} />}
 

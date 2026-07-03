@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { MediaUpload } from "@/components/funnels/MediaUpload";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 // Values are stored as a CSS `background` string:
 //   - "" / null → transparent / inherit
 //   - "#RRGGBB" → solid color
 //   - "linear-gradient(...)" → gradient
+//   - "linear-gradient(rgba(0,0,0,x)...), url(...) center/cover no-repeat" → image (+ voile)
 
-type Mode = "none" | "solid" | "gradient";
+type Mode = "none" | "solid" | "gradient" | "image";
 
 const PRESET_COLORS: string[] = [
   "#ffffff", "#f3f4f6", "#111827", "#ecfdf5", "#dbeafe", "#ede9fe", "#fef3c7", "#fee2e2",
@@ -53,8 +55,22 @@ interface Props {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function parseMode(v: string | null | undefined): Mode {
   if (!v) return "none";
+  if (v.includes("url(")) return "image"; // AVANT gradient : le voile contient aussi "gradient("
   if (v.includes("gradient(")) return "gradient";
   return "solid";
+}
+
+// Parse une valeur image → { url, overlay 0-100 }
+function parseImage(v: string): { url: string; overlay: number } {
+  const um = v.match(/url\(["']?([^"')]+)["']?\)/i);
+  const om = v.match(/rgba\(0,\s*0,\s*0,\s*([0-9.]+)\)/i);
+  return { url: um ? um[1] : "", overlay: om ? Math.round(parseFloat(om[1]) * 100) : 0 };
+}
+
+function makeImage(url: string, overlay: number): string {
+  const a = Math.max(0, Math.min(85, overlay)) / 100;
+  const veil = a > 0 ? `linear-gradient(rgba(0,0,0,${a}), rgba(0,0,0,${a})), ` : "";
+  return `${veil}url("${url}") center/cover no-repeat`;
 }
 
 // Parse "linear-gradient(135deg, #aabbcc, #ddeeff)" → { deg, from, to }
@@ -70,7 +86,13 @@ function makeGradient(deg: number, from: string, to: string): string {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export function BackgroundPicker({ value, onChange, label, defaultSolid = "#ffffff" }: Props) {
-  const mode = parseMode(value);
+  const derivedMode = parseMode(value);
+  // Onglet Image sélectionné mais aucune image encore uploadée → on force
+  // l'affichage de l'onglet sans committer de valeur cassée.
+  const [imageTab, setImageTab] = useState(false);
+  const mode: Mode = imageTab && derivedMode !== "image" ? "image" : derivedMode;
+  const parsedImg = derivedMode === "image" && value ? parseImage(value) : { url: "", overlay: 35 };
+  const [imgOverlay, setImgOverlay] = useState(parsedImg.overlay);
   const [open, setOpen] = useState(false);
   const [anchor, setAnchor] = useState<{ top: number; left: number; width: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
@@ -117,7 +139,11 @@ export function BackgroundPicker({ value, onChange, label, defaultSolid = "#ffff
 
   const current = value ?? "";
   const isEmpty = !value;
-  const displayLabel = isEmpty ? "Aucun / transparent" : mode === "gradient" ? "Dégradé" : current.toUpperCase();
+  const displayLabel = isEmpty
+    ? (imageTab ? "Image (à choisir)" : "Aucun / transparent")
+    : mode === "image" ? "Image de fond"
+    : mode === "gradient" ? "Dégradé"
+    : current.toUpperCase();
 
   return (
     <div className="relative">
@@ -152,11 +178,13 @@ export function BackgroundPicker({ value, onChange, label, defaultSolid = "#ffff
         >
           {/* Tabs */}
           <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-4">
-            {(["none", "solid", "gradient"] as Mode[]).map((m) => {
+            {(["none", "solid", "gradient", "image"] as Mode[]).map((m) => {
               const active = mode === m;
-              const lbl = m === "none" ? "Aucun" : m === "solid" ? "Couleur" : "Dégradé";
+              const lbl = m === "none" ? "Aucun" : m === "solid" ? "Couleur" : m === "gradient" ? "Dégradé" : "Image";
               return (
                 <button key={m} type="button" onClick={() => {
+                  if (m === "image") { setImageTab(true); return; }
+                  setImageTab(false);
                   if (m === "none") onChange(null);
                   else if (m === "solid") onChange(defaultSolid);
                   else onChange(makeGradient(gradDeg, gradFrom, gradTo));
@@ -268,6 +296,43 @@ export function BackgroundPicker({ value, onChange, label, defaultSolid = "#ffff
                 </div>
                 <div className="h-16 rounded-lg border border-gray-200" style={{ background: makeGradient(gradDeg, gradFrom, gradTo) }} />
               </div>
+            </div>
+          )}
+
+          {/* IMAGE mode : photo d'arrière-plan + voile sombre pour la lisibilité */}
+          {mode === "image" && (
+            <div className="space-y-3">
+              <MediaUpload
+                label="Image d'arrière-plan"
+                value={parsedImg.url || null}
+                onChange={(url) => {
+                  if (url) onChange(makeImage(url, imgOverlay));
+                  else { onChange(null); setImageTab(true); }
+                }}
+                accept="image"
+                aspectRatio="auto"
+              />
+              {parsedImg.url && (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Voile sombre (lisibilité du texte)</label>
+                      <span className="text-[10px] font-bold text-[#191c1e] tabular-nums">{imgOverlay}%</span>
+                    </div>
+                    <input type="range" min={0} max={80} step={5} value={imgOverlay}
+                      onChange={(e) => {
+                        const v = parseInt(e.target.value, 10);
+                        setImgOverlay(v);
+                        onChange(makeImage(parsedImg.url, v));
+                      }}
+                      className="w-full accent-[#006e2f]" />
+                    <p className="text-[10px] text-[#5c647a] mt-0.5">Assombrit la photo pour que le texte blanc reste lisible.</p>
+                  </div>
+                  <div className="h-20 rounded-lg border border-gray-200 flex items-center justify-center" style={{ background: makeImage(parsedImg.url, imgOverlay) }}>
+                    <span className="text-white text-xs font-extrabold drop-shadow">Aperçu du texte</span>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>,

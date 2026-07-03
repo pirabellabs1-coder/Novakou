@@ -142,10 +142,11 @@ export async function POST(request: Request) {
     const inst = { id: ctx.instructeurId };
 
     const body = await request.json();
-    const { name, productId, formationId } = body as {
+    const { name, productId, formationId, kind } = body as {
       name?: string;
       productId?: string;
       formationId?: string;
+      kind?: "funnel" | "capture";
     };
 
     if (!name || name.trim().length < 3) {
@@ -235,6 +236,37 @@ export async function POST(request: Request) {
         },
       },
     ];
+
+    // ── PAGE DE CAPTURE : une seule étape, dédiée à la collecte d'emails. ──
+    if (kind === "capture") {
+      const captureBlocks = [
+        { id: "cap-h", type: "heading", data: { content: "Téléchargez votre guide GRATUIT", level: 1, align: "center", color: "" } },
+        { id: "cap-t", type: "text", data: { content: "Découvrez la méthode pas à pas pour obtenir [résultat] — sans [obstacle]. Entrez votre email ci-dessous et recevez-le immédiatement.", align: "center", size: 18, color: "" } },
+        { id: "cap-l", type: "list", data: { items: ["Le plan d'action complet, étape par étape", "Les erreurs à éviter absolument", "Applicable dès aujourd'hui, même en partant de zéro"], icon: "check_circle", color: "#7c3aed" } },
+        { id: "cap-f", type: "lead-form", data: { title: "Où doit-on l'envoyer ?", subtitle: "Recevez le guide directement dans votre boîte mail.", buttonText: "Recevoir le guide gratuit", collectName: true, collectPhone: false, successMessage: "C'est bon ! Surveillez votre boîte mail (et vos spams).", goNextStep: false, bgColor: "#ffffff", align: "center" } },
+      ];
+      const captureFunnel = await prisma.salesFunnel.create({
+        data: {
+          instructeurId: inst.id, shopId: activeShopId,
+          name: name.trim(),
+          slug,
+          theme: defaultTheme,
+          isActive: false,
+          steps: {
+            create: [{
+              stepOrder: 1,
+              stepType: "CAPTURE",
+              title: "Page de capture",
+              headlineFr: "Téléchargez votre guide GRATUIT",
+              ctaTextFr: "Recevoir le guide gratuit",
+              blocks: captureBlocks,
+            }],
+          },
+        },
+        include: { steps: { orderBy: { stepOrder: "asc" } } },
+      });
+      return NextResponse.json({ data: captureFunnel });
+    }
 
     const funnel = await prisma.salesFunnel.create({
       data: { instructeurId: inst.id, shopId: activeShopId,

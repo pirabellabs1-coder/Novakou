@@ -738,6 +738,90 @@ function ProductBlock({ data, theme }: { data: Record<string, unknown>; theme: T
 // ═══════════════════════════════════════════════════════════════════════════
 // READY-MADE SECTION RENDERERS
 // ═══════════════════════════════════════════════════════════════════════════
+// ─── LEAD FORM (page de capture) ────────────────────────────────────────────
+function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; funnelSlug?: string }) {
+  const title = (data.title as string) ?? "";
+  const subtitle = (data.subtitle as string) ?? "";
+  const buttonText = (data.buttonText as string) || "Recevoir";
+  const collectName = data.collectName !== false;
+  const collectPhone = data.collectPhone === true;
+  const successMessage = (data.successMessage as string) || "Merci ! Vérifiez votre boîte mail.";
+  const goNextStep = data.goNextStep === true;
+  const bgColor = (data.bgColor as string) || "#ffffff";
+  const align = (data.align as string) ?? "center";
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (state === "loading" || state === "done") return;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Entrez une adresse email valide."); return;
+    }
+    setState("loading"); setError(null);
+    try {
+      const res = await fetch("/api/formations/public/funnel-lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug: funnelSlug, email: email.trim(), name: name.trim() || undefined, phone: phone.trim() || undefined }),
+      });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || "Une erreur est survenue. Réessayez.");
+      setState("done");
+      if (goNextStep) setTimeout(() => onCta(), 900);
+    } catch (err) {
+      setState("error");
+      setError(err instanceof Error ? err.message : "Une erreur est survenue. Réessayez.");
+    }
+  }
+
+  const inputCls = "w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-shadow";
+
+  return (
+    <div className="max-w-md w-full mx-auto my-4">
+      <div className="rounded-2xl border border-gray-100 shadow-xl p-6 md:p-7" style={{ background: bgColor, textAlign: align as "left" | "center" | "right" }}>
+        {state === "done" && !goNextStep ? (
+          <div className="py-6 text-center">
+            <CheckCircle2 size={44} className="mx-auto mb-3" style={{ color: theme.primaryColor }} />
+            <p className="text-base font-extrabold text-gray-900">{successMessage}</p>
+          </div>
+        ) : (
+          <>
+            {title && <p className="text-lg font-extrabold text-gray-900 leading-snug">{title}</p>}
+            {subtitle && <p className="text-sm text-gray-500 mt-1 mb-4">{subtitle}</p>}
+            <form onSubmit={submit} className="space-y-2.5 text-left">
+              {collectName && (
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Votre prénom"
+                  className={inputCls} style={{ "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties} />
+              )}
+              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Votre meilleure adresse email"
+                className={inputCls} style={{ "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties} />
+              {collectPhone && (
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Votre numéro WhatsApp"
+                  className={inputCls} style={{ "--tw-ring-color": `${theme.primaryColor}40` } as CSSProperties} />
+              )}
+              {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+              <button type="submit" disabled={state === "loading"}
+                className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-white text-sm font-extrabold shadow-lg active:scale-[0.98] transition-transform disabled:opacity-70"
+                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` }}>
+                {state === "loading" ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {state === "loading" ? "Envoi…" : buttonText}
+              </button>
+            </form>
+            <p className="flex items-center justify-center gap-1 text-[10.5px] text-gray-400 mt-3">
+              <Lock size={11} /> Vos données restent privées. Zéro spam.
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function HeroBlock({ data, theme, onCta }: { data: Record<string, unknown>; theme: Theme; onCta: () => void }) {
   const { badge, headline, subheadline, ctaText, imageUrl, ctaLink } = data as {
     badge?: string; headline?: string; subheadline?: string; ctaText?: string; imageUrl?: string; bgColor?: string; textColor?: string; ctaLink?: string;
@@ -1439,6 +1523,8 @@ function renderBlock(block: Block, theme: Theme, onCta: () => void, parentColor?
     case "content-box": return <ContentBoxBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} />;
     // Product
     case "product": return <ProductBlock key={block.id} data={block.data} theme={effTheme} />;
+    // Lead capture (page de capture)
+    case "lead-form": return <LeadFormBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} />;
     // Atomic
     case "heading": return <HeadingBlock key={block.id} data={block.data} theme={effTheme} />;
     case "text": return <TextBlock key={block.id} data={block.data} theme={effTheme} />;

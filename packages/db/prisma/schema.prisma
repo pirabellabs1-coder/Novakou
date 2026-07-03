@@ -1998,6 +1998,7 @@ enum SequenceEnrollmentStatus {
 
 enum FunnelStepType {
   LANDING
+  CAPTURE
   PRODUCT
   CHECKOUT
   UPSELL
@@ -2399,6 +2400,7 @@ model SalesFunnel {
   steps       FunnelStep[]
   events      FunnelEvent[]
   abTests     FunnelABTest[]
+  leads       FunnelLead[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2406,6 +2408,25 @@ model SalesFunnel {
   @@index([instructeurId])
   @@index([slug])
   @@index([isActive])
+}
+
+// Lead capturé par un bloc « Formulaire de capture » sur une page de tunnel.
+// Un email unique par funnel (re-soumission = mise à jour du nom/téléphone).
+model FunnelLead {
+  id            String  @id @default(cuid())
+  funnelId      String
+  instructeurId String
+  name          String?
+  email         String
+  phone         String?
+
+  funnel SalesFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([funnelId, email])
+  @@index([instructeurId])
+  @@index([funnelId])
 }
 
 model FunnelStep {

@@ -59,6 +59,7 @@ export default function FunnelsListPage() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newKind, setNewKind] = useState<"funnel" | "capture">("funnel");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -85,7 +86,7 @@ export default function FunnelsListPage() {
       const res = await fetch("/api/formations/vendeur/funnels", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim() }),
+        body: JSON.stringify({ name: newName.trim(), kind: newKind }),
       });
       if (!res.ok) {
         const j = await res.json();
@@ -234,10 +235,26 @@ export default function FunnelsListPage() {
               style={{ border: `1px solid ${ST.cardBorder}` }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-[19px] font-extrabold mb-2" style={{ color: ST.text }}>Nouveau funnel de vente</h2>
-              <p className="text-[13px] font-semibold mb-5" style={{ color: ST.textSecondary }}>
-                Donnez un nom à votre funnel. Vous pourrez tout configurer ensuite (design, blocks, produits).
+              <h2 className="text-[19px] font-extrabold mb-2" style={{ color: ST.text }}>Créer une nouvelle page</h2>
+              <p className="text-[13px] font-semibold mb-4" style={{ color: ST.textSecondary }}>
+                Choisissez le type, donnez un nom — vous personnalisez tout ensuite (design, blocs, produits).
               </p>
+
+              {/* Choix du type : tunnel complet OU page de capture seule */}
+              <div className="grid grid-cols-2 gap-2.5 mb-4">
+                <button type="button" onClick={() => setNewKind("funnel")}
+                  className={`text-left rounded-[14px] p-3.5 border-2 transition-all ${newKind === "funnel" ? "shadow-md" : "opacity-70 hover:opacity-100"}`}
+                  style={{ borderColor: newKind === "funnel" ? ST.green : "#e4eae6", background: newKind === "funnel" ? ST.greenSoft : "#fff" }}>
+                  <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>🛒 Tunnel de vente</p>
+                  <p className="text-[11px] font-semibold mt-1 leading-snug" style={{ color: ST.textSecondary }}>4 étapes : Landing → Checkout → Upsell → Merci. Pour vendre un produit.</p>
+                </button>
+                <button type="button" onClick={() => setNewKind("capture")}
+                  className={`text-left rounded-[14px] p-3.5 border-2 transition-all ${newKind === "capture" ? "shadow-md" : "opacity-70 hover:opacity-100"}`}
+                  style={{ borderColor: newKind === "capture" ? "#7c3aed" : "#e4eae6", background: newKind === "capture" ? "#f5f3ff" : "#fff" }}>
+                  <p className="text-[13px] font-extrabold" style={{ color: ST.text }}>📧 Page de capture</p>
+                  <p className="text-[11px] font-semibold mt-1 leading-snug" style={{ color: ST.textSecondary }}>Une seule page avec formulaire — collectez des emails contre un cadeau.</p>
+                </button>
+              </div>
 
               {error && (
                 <div className="rounded-[12px] px-4 py-3 mb-4 flex items-center gap-2" style={{ background: ST.roseSoft, border: "1px solid #f4d4de" }}>
@@ -261,8 +278,11 @@ export default function FunnelsListPage() {
               <div className="rounded-[12px] p-3 mt-4 mb-5 flex items-start gap-2" style={{ background: ST.greenSoft, border: "1px solid #d7ecde" }}>
                 <Info size={16} className="mt-0.5 flex-shrink-0" style={{ color: ST.green }} />
                 <p className="text-[12px] font-semibold" style={{ color: "#2f7a4c" }}>
-                  Votre funnel sera créé avec 4 étapes par défaut :{" "}
-                  <strong>Landing → Checkout → Upsell → Merci</strong>. Vous pourrez tout personnaliser.
+                  {newKind === "capture" ? (
+                    <>Votre page de capture sera créée avec un <strong>formulaire email prêt à l&apos;emploi</strong>. Les leads collectés apparaissent dans l&apos;éditeur (bouton « Leads », export CSV).</>
+                  ) : (
+                    <>Votre funnel sera créé avec 4 étapes par défaut : <strong>Landing → Checkout → Upsell → Merci</strong>. Vous pourrez tout personnaliser.</>
+                  )}
                 </p>
               </div>
 

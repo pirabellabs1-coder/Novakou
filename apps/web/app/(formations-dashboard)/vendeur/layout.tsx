@@ -174,6 +174,20 @@ function VendeurLayoutInner({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Éditeur de tunnel ([id]) : mode PLEIN ÉCRAN immersif — pas de sidebar ni de
+  // chrome dashboard, l'éditeur occupe tout l'espace (façon Système.io/canva).
+  // La liste (/funnels) et la création IA (/funnels/nouveau-ai) gardent le shell.
+  if (
+    /^\/vendeur\/marketing\/funnels\/[^/]+$/.test(pathname ?? "") &&
+    !(pathname ?? "").endsWith("/nouveau-ai")
+  ) {
+    return (
+      <div className="min-h-screen bg-[#f7f9fb]" style={{ fontFamily: "var(--font-inter), Inter, sans-serif" }}>
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-screen bg-[#f7f9fb]"
