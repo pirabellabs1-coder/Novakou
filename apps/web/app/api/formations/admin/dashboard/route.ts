@@ -108,15 +108,23 @@ export async function GET() {
       }),
     ]);
 
-    // Total revenue (lifetime)
+    // Total revenue (lifetime).
+    // Base = somme des achats/inscriptions encore présents. Mais on prend le
+    // MAX avec le registre comptable PlatformRevenue (realGross ci-dessous) :
+    // ainsi le total est CUMULATIF et ne DIMINUE JAMAIS si un achat/produit est
+    // supprimé (le registre PlatformRevenue, lui, persiste). Corrige aussi
+    // l'affichage des ventes dont le produit a été supprimé/migré.
     const totalEnrollmentRevenue = allEnrollments.reduce((s, e) => s + (e.refundedAt ? 0 : e.paidAmount), 0);
     const totalPurchaseRevenue = allPurchases.reduce((s, p) => s + p.paidAmount, 0);
-    const totalRevenue = totalEnrollmentRevenue + totalPurchaseRevenue;
+    const purchaseBasedRevenue = totalEnrollmentRevenue + totalPurchaseRevenue;
 
     // Platform commission from real PlatformRevenue ledger (precise), fallback to commission rate estimate
     const realCommission = platformRevenueAgg._sum.commissionAmount ?? 0;
     const realAffiliatePaid = platformRevenueAgg._sum.affiliateAmount ?? 0;
     const realGross = platformRevenueAgg._sum.grossAmount ?? 0;
+    // Revenus totaux affichés = MAX(achats présents, registre comptable) → jamais
+    // en baisse, inclut les ventes réelles dont le produit a été supprimé/migré.
+    const totalRevenue = Math.max(purchaseBasedRevenue, realGross);
     const platformCommission = realCommission > 0 ? realCommission : totalRevenue * PLATFORM_COMMISSION_RATE;
 
     // Transactions this month
