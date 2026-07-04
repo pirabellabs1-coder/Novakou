@@ -90,7 +90,6 @@ import { ConfirmModal } from "@/components/funnels/ConfirmModal";
 import { TemplatePreviewMockup } from "@/components/funnels/TemplatePreviewMockup";
 import { LANDING_TEMPLATES } from "@/lib/funnels/templates";
 import { confirmAction } from "@/store/confirm";
-import DndBlockCanvas from "@/components/funnels/DndBlockCanvas";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -679,6 +678,40 @@ function dropTargetFromEvent(t: HTMLElement | null): { owner: string; col: numbe
     return { owner: ownId, col: -1 };
   }
   return null;
+}
+
+// Pour le DÉPLACEMENT d'éléments existants, on filtre par TYPE de bloc
+// (les clés palette "row-2"… correspondent toutes au type "row").
+const COLUMN_ALLOWED_TYPES: string[] = COLUMN_ALLOWED_KEYS as string[];
+const SLOT_ALLOWED_TYPES: string[] = [...COLUMN_ALLOWED_TYPES, "row"];
+
+// Interdit de déposer un conteneur dans lui-même ou dans sa propre descendance.
+function isSelfOrDescendant(list: Block[], moveId: string, ownerId: string): boolean {
+  if (moveId === ownerId) return true;
+  const blk = treeFind(list, moveId);
+  return !!(blk && treeFind([blk], ownerId));
+}
+
+// Déplace un bloc existant (où qu'il soit) DANS une colonne (colIdx ≥ 0)
+// ou dans le slot d'une section/boîte (colIdx = -1).
+function treeMoveToColumn(list: Block[], moveId: string, ownerId: string, colIdx: number): Block[] {
+  const blk = treeFind(list, moveId);
+  if (!blk || isSelfOrDescendant(list, moveId, ownerId)) return list;
+  const without = treeRemove(list, moveId);
+  return colIdx === -1 ? treeInsertIntoSlot(without, ownerId, blk) : treeInsertIntoColumn(without, ownerId, colIdx, blk);
+}
+
+// Déplace un bloc existant (où qu'il soit) au NIVEAU PAGE, à l'index donné —
+// gère aussi la sortie d'une colonne/section vers la page.
+function treeMoveToIndex(list: Block[], moveId: string, index: number): Block[] {
+  const blk = treeFind(list, moveId);
+  if (!blk) return list;
+  const topIdx = list.findIndex((b) => b.id === moveId);
+  const without = treeRemove(list, moveId);
+  let t = index;
+  if (topIdx !== -1 && topIdx < index) t = index - 1; // l'index se décale après retrait
+  t = Math.max(0, Math.min(without.length, t));
+  return [...without.slice(0, t), blk, ...without.slice(t)];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2395,6 +2428,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   // index d'insertion survolé sur le canvas (ligne verte).
   const [paletteDrag, setPaletteDrag] = useState<PaletteKey | null>(null);
   const [dropIdx, setDropIdx] = useState<number | null>(null);
+  // Déplacement d'un élément EXISTANT de la page (id du bloc en cours de drag) —
+  // couvre : réordonner, entrer/sortir d'une colonne ou d'une section.
+  const [moveDrag, setMoveDrag] = useState<string | null>(null);
+  // Bloc le plus profond sous la souris au mousedown → c'est LUI qu'on déplace
+  // (permet de tirer un élément imbriqué hors de sa colonne).
+  const pressedRef = useRef<{ id: string | null; inEditable: boolean }>({ id: null, inEditable: false });
   // Ciblage d'une COLONNE de rangée : surbrillance au drag + picker « ajouter
   // dans cette colonne » au clic sur une colonne (vide) directement sur la page.
   const [dropCol, setDropCol] = useState<{ owner: string; col: number } | null>(null);
@@ -2922,8 +2961,8 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 ${selectedId ? `.nk-canvas [data-nk-block="${selectedId}"] { outline: 2px solid #006e2f; outline-offset: 2px; border-radius: 6px; }` : ""}
                 .nk-canvas [data-nk-slot]:not(:has([data-nk-block])) { min-height: 64px; border: 2px dashed #cfd8d2; border-radius: 12px; position: relative; cursor: pointer; }
                 .nk-canvas [data-nk-slot]:not(:has([data-nk-block]))::after { content: "+ Ajouter un élément ici"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9aa79f; font-size: 11px; font-weight: 700; pointer-events: none; }
-                ${paletteDrag && dropCol && dropCol.col >= 0 ? `.nk-canvas [data-nk-owner="${dropCol.owner}"][data-nk-col="${dropCol.col}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
-                ${paletteDrag && dropCol && dropCol.col === -1 ? `.nk-canvas [data-nk-slot="${dropCol.owner}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
+                ${(paletteDrag || moveDrag) && dropCol && dropCol.col >= 0 ? `.nk-canvas [data-nk-owner="${dropCol.owner}"][data-nk-col="${dropCol.col}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
+                ${(paletteDrag || moveDrag) && dropCol && dropCol.col === -1 ? `.nk-canvas [data-nk-slot="${dropCol.owner}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
                 ${device === "mobile" ? `
                   /* Aperçu mobile fidèle : le cadre fait 400px mais la fenêtre reste
                      grande — on force donc les règles mobiles (empilement, paddings,
@@ -2961,15 +3000,32 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             </div>
           ) : (
             <>
-              <DndBlockCanvas
-                blocks={blocks}
-                onReorder={persistBlocks}
-                renderBlock={(block, i) => {
+              <div>
+                {blocks.map((block, i) => {
                   const isSel = selectedId === block.id;
                   const tpl = BLOCK_TEMPLATES[block.type];
                   const isInlineText = block.type === "heading" || block.type === "text";
                   return (
                     <div
+                      key={block.id}
+                      draggable
+                      onMouseDownCapture={(e) => {
+                        const t = e.target as HTMLElement;
+                        pressedRef.current = {
+                          id: (t.closest?.("[data-nk-block]") as HTMLElement | null)?.getAttribute("data-nk-block") || null,
+                          inEditable: !!t.closest?.('[contenteditable="true"]'),
+                        };
+                      }}
+                      onDragStart={(e) => {
+                        // Dans un texte éditable : laisser la sélection de texte
+                        // (déplacer un Titre/Texte de 1er niveau = poignée ⋮ à gauche)
+                        if (pressedRef.current.inEditable) { e.preventDefault(); return; }
+                        const id = pressedRef.current.id || block.id;
+                        e.dataTransfer.setData("application/x-nk-move", id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setMoveDrag(id);
+                      }}
+                      onDragEnd={() => { setMoveDrag(null); setDropIdx(null); setDropCol(null); }}
                       onClickCapture={(e) => {
                         // Édition inline : laisser le clic atteindre le contentEditable
                         // (pas d'ouverture du tiroir mobile : on tape le texte sur place)
@@ -2999,12 +3055,21 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         setSidebarOpen(true);
                       }}
                       onDragOver={(e) => {
-                        if (!paletteDrag) return;
+                        if (!paletteDrag && !moveDrag) return;
                         e.preventDefault();
-                        e.dataTransfer.dropEffect = "copy";
+                        e.dataTransfer.dropEffect = paletteDrag ? "copy" : "move";
                         const tgt = dropTargetFromEvent(e.target as HTMLElement);
-                        const allowed = tgt ? (tgt.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS) : null;
-                        if (tgt && allowed && allowed.includes(paletteDrag)) {
+                        // Autorisé dans cette cible ? (clé palette OU type du bloc déplacé)
+                        let ok = false;
+                        if (tgt) {
+                          if (paletteDrag) ok = (tgt.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS).includes(paletteDrag);
+                          else if (moveDrag) {
+                            const mv = treeFind(blocks, moveDrag);
+                            ok = !!mv && (tgt.col === -1 ? SLOT_ALLOWED_TYPES : COLUMN_ALLOWED_TYPES).includes(mv.type)
+                              && !isSelfOrDescendant(blocks, moveDrag, tgt.owner);
+                          }
+                        }
+                        if (tgt && ok) {
                           setDropCol(tgt);
                           setDropIdx(null);
                           return;
@@ -3015,23 +3080,46 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                       }}
                       onDrop={(e) => {
                         const key = e.dataTransfer.getData("application/x-nk-block");
-                        if (!key) return;
+                        const moveId = e.dataTransfer.getData("application/x-nk-move");
+                        if (!key && !moveId) return;
                         e.preventDefault(); e.stopPropagation();
                         const tgt = dropTargetFromEvent(e.target as HTMLElement);
-                        const allowed = tgt ? (tgt.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS) : null;
-                        if (tgt && allowed && allowed.includes(key as PaletteKey)) {
-                          insertBlockIntoColumn(tgt.owner, tgt.col, key as PaletteKey);
+                        // ── Ajout depuis la palette ──
+                        if (key) {
+                          const allowed = tgt ? (tgt.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS) : null;
+                          if (tgt && allowed && allowed.includes(key as PaletteKey)) {
+                            insertBlockIntoColumn(tgt.owner, tgt.col, key as PaletteKey);
+                            return;
+                          }
+                          const r = e.currentTarget.getBoundingClientRect();
+                          insertBlockAt(e.clientY < r.top + r.height / 2 ? i : i + 1, key as PaletteKey);
+                          return;
+                        }
+                        // ── Déplacement d'un élément existant ──
+                        const mv = treeFind(blocks, moveId);
+                        if (!mv) return;
+                        if (tgt && (tgt.col === -1 ? SLOT_ALLOWED_TYPES : COLUMN_ALLOWED_TYPES).includes(mv.type)
+                          && !isSelfOrDescendant(blocks, moveId, tgt.owner)) {
+                          persistBlocks(treeMoveToColumn(blocks, moveId, tgt.owner, tgt.col));
+                          setSelectedId(moveId);
                           return;
                         }
                         const r = e.currentTarget.getBoundingClientRect();
-                        insertBlockAt(e.clientY < r.top + r.height / 2 ? i : i + 1, key as PaletteKey);
+                        persistBlocks(treeMoveToIndex(blocks, moveId, e.clientY < r.top + r.height / 2 ? i : i + 1));
+                        setSelectedId(moveId);
                       }}
-                      className={`relative transition-all ${isSel ? "ring-2 ring-[#006e2f]" : "hover:ring-2 hover:ring-[#006e2f]/35"} ${isInlineText ? "" : "cursor-pointer"}`}>
-                      {/* Ligne d'insertion (drag depuis la palette) */}
-                      {paletteDrag && dropIdx === i && (
+                      className={`group/block relative transition-all ${isSel ? "ring-2 ring-[#006e2f]" : "hover:ring-2 hover:ring-[#006e2f]/35"} ${isInlineText ? "" : "cursor-pointer"} ${moveDrag === block.id ? "opacity-40" : ""}`}>
+                      {/* Poignée : glisser pour déplacer (page ↔ colonnes ↔ sections) */}
+                      <div
+                        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-6 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm opacity-0 group-hover/block:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:border-[#006e2f] hover:text-[#006e2f] text-[#5c647a]"
+                        title="Glisser pour déplacer">
+                        <span className="material-symbols-outlined text-[16px]">drag_indicator</span>
+                      </div>
+                      {/* Ligne d'insertion (ajout palette OU déplacement) */}
+                      {(paletteDrag || moveDrag) && dropIdx === i && (
                         <div className="absolute top-0 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
                       )}
-                      {paletteDrag && dropIdx === i + 1 && (
+                      {(paletteDrag || moveDrag) && dropIdx === i + 1 && (
                         <div className="absolute bottom-0 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
                       )}
                       {/* Étiquette du type + actions rapides — DANS le bloc pour ne
@@ -3062,12 +3150,17 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                       )}
                     </div>
                   );
-                }}
-              />
-              {paletteDrag && (
+                })}
+              </div>
+              {(paletteDrag || moveDrag) && (
                 <div
-                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDropIdx(blocks.length); }}
-                  onDrop={(e) => { const key = e.dataTransfer.getData("application/x-nk-block"); if (key) { e.preventDefault(); insertBlockAt(blocks.length, key as PaletteKey); } }}
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = paletteDrag ? "copy" : "move"; setDropIdx(blocks.length); }}
+                  onDrop={(e) => {
+                    const key = e.dataTransfer.getData("application/x-nk-block");
+                    const moveId = e.dataTransfer.getData("application/x-nk-move");
+                    if (key) { e.preventDefault(); insertBlockAt(blocks.length, key as PaletteKey); return; }
+                    if (moveId) { e.preventDefault(); persistBlocks(treeMoveToIndex(blocks, moveId, blocks.length)); setSelectedId(moveId); }
+                  }}
                   className={`mx-4 md:mx-6 mt-3 h-14 rounded-2xl border-2 border-dashed flex items-center justify-center text-xs font-bold transition-colors ${dropIdx === blocks.length ? "border-[#006e2f] bg-[#006e2f]/10 text-[#006e2f]" : "border-gray-300 text-gray-400"}`}>
                   Déposer ici (fin de page)
                 </div>
