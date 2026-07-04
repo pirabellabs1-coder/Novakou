@@ -75,6 +75,10 @@ import {
   Monitor,
   Smartphone,
   Save,
+  Music,
+  MessageCircle,
+  Share2,
+  Star,
   type LucideIcon,
 } from "lucide-react";
 import { renderBlock as renderPublicBlock } from "@/app/f/[slug]/FunnelLandingClient";
@@ -105,7 +109,9 @@ type BlockType =
   // Conversion & Trust
   | "scarcity" | "guarantee" | "logo-bar" | "alert" | "social-proof" | "comparison" | "floating-cta"
   // Lead capture (page de capture d'emails)
-  | "lead-form";
+  | "lead-form"
+  // Nouveaux éléments (v3)
+  | "audio" | "badge" | "quote" | "rating" | "progress" | "whatsapp" | "social-share";
 
 interface Block {
   id: string;
@@ -281,6 +287,48 @@ const BLOCK_TEMPLATES: Record<BlockType, BlockTpl> = {
       bgColor: "#ffffff",
       align: "center",
     },
+  },
+  audio: {
+    label: "Audio",
+    icon: Music,
+    atomic: true,
+    default: { url: "", title: "Écoutez ce message" },
+  },
+  badge: {
+    label: "Pastille",
+    icon: BadgeCheck,
+    atomic: true,
+    default: { text: "OFFRE LIMITÉE", bgColor: "", textColor: "", align: "center" },
+  },
+  quote: {
+    label: "Citation",
+    icon: Quote,
+    atomic: true,
+    default: { text: "Cette formation a changé ma façon de vendre. Résultats dès la première semaine.", author: "Client satisfait", role: "Entrepreneur", accentColor: "" },
+  },
+  rating: {
+    label: "Note (étoiles)",
+    icon: Star,
+    atomic: true,
+    default: { value: 5, text: "4,9/5 — plus de 100 avis", color: "#f59e0b", align: "center" },
+  },
+  progress: {
+    label: "Progression",
+    icon: BarChart3,
+    atomic: true,
+    default: { label: "Places déjà réservées", value: 80, color: "", showPercent: true },
+  },
+  whatsapp: {
+    label: "Bouton WhatsApp",
+    icon: MessageCircle,
+    atomic: true,
+    default: { phone: "", message: "Bonjour, je suis intéressé par votre offre", label: "Discuter sur WhatsApp", align: "center", fullWidth: false },
+  },
+  "social-share": {
+    label: "Partage social",
+    icon: Share2,
+    atomic: true,
+    default: { title: "Partagez cette page avec vos proches", shareText: "Découvrez cette offre !" },
   },
   product: {
     label: "Produit / Formation",
@@ -549,6 +597,10 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
       { key: "text", label: "Texte", icon: Pilcrow },
       { key: "list", label: "Liste à puces", icon: ListChecks },
       { key: "icon-box", label: "Boîte à icône", icon: Boxes },
+      { key: "badge", label: "Pastille", icon: BadgeCheck },
+      { key: "quote", label: "Citation", icon: Quote },
+      { key: "rating", label: "Note (étoiles)", icon: Star },
+      { key: "progress", label: "Progression", icon: BarChart3 },
       { key: "divider", label: "Ligne", icon: Minus },
       { key: "spacer", label: "Espace", icon: MoveVertical },
     ],
@@ -557,6 +609,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
     label: "Média", icon: Images, items: [
       { key: "image", label: "Image", icon: ImageIcon },
       { key: "video", label: "Vidéo", icon: PlayCircle },
+      { key: "audio", label: "Audio", icon: Music },
       { key: "image-gallery", label: "Galerie", icon: GalleryThumbnails },
     ],
   },
@@ -564,6 +617,8 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
     label: "Conversion", icon: MousePointerClick, items: [
       { key: "button", label: "Bouton", icon: MousePointer2 },
       { key: "lead-form", label: "Formulaire (capture)", icon: Mail },
+      { key: "whatsapp", label: "Bouton WhatsApp", icon: MessageCircle },
+      { key: "social-share", label: "Partage social", icon: Share2 },
       { key: "product", label: "Produit / Formation", icon: ShoppingBag },
       { key: "scarcity", label: "Rareté / Limite", icon: Flame },
       { key: "guarantee", label: "Garantie", icon: ShieldCheck },
@@ -596,6 +651,7 @@ const PALETTE_CATEGORIES: Array<{ label: string; icon: LucideIcon; items: Palett
 // Which palette keys are allowed inside a column (no infinite nesting: no row/section inside column)
 const COLUMN_ALLOWED_KEYS: PaletteKey[] = [
   "heading", "text", "image", "button", "icon-box", "divider", "spacer", "list", "video", "html", "product", "content-box", "lead-form",
+  "audio", "badge", "quote", "rating", "progress", "whatsapp",
 ];
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -634,6 +690,62 @@ type StepInfo = {
   advice: string;
   templateLabel: string;
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ARBRE DE BLOCS — les conteneurs (row/section/content-box) portent des
+// enfants. Ces helpers permettent de sélectionner/modifier/supprimer un bloc
+// N'IMPORTE OÙ dans la hiérarchie (clic direct sur la page, façon Système.io).
+// ═══════════════════════════════════════════════════════════════════════════
+function childListsOf(b: Block): Block[][] {
+  if (b.type === "row") return ((b.data.columns as Array<{ blocks: Block[] }>) ?? []).map((c) => c.blocks ?? []);
+  if (b.type === "section" || b.type === "content-box") return [((b.data.blocks as Block[]) ?? [])];
+  return [];
+}
+
+function treeFind(list: Block[], id: string): Block | null {
+  for (const b of list) {
+    if (b.id === id) return b;
+    for (const kids of childListsOf(b)) {
+      const found = treeFind(kids, id);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function mapChildren(b: Block, fn: (kids: Block[]) => Block[]): Block {
+  if (b.type === "row") {
+    const cols = ((b.data.columns as Array<{ blocks: Block[] }>) ?? []).map((c) => ({ ...c, blocks: fn(c.blocks ?? []) }));
+    return { ...b, data: { ...b.data, columns: cols } };
+  }
+  if (b.type === "section" || b.type === "content-box") {
+    return { ...b, data: { ...b.data, blocks: fn((b.data.blocks as Block[]) ?? []) } };
+  }
+  return b;
+}
+
+function treeUpdate(list: Block[], id: string, next: Block): Block[] {
+  return list.map((b) => {
+    if (b.id === id) return next;
+    return mapChildren(b, (kids) => treeUpdate(kids, id, next));
+  });
+}
+
+function treeRemove(list: Block[], id: string): Block[] {
+  return list.filter((b) => b.id !== id).map((b) => mapChildren(b, (kids) => treeRemove(kids, id)));
+}
+
+function treeInsertIntoColumn(list: Block[], ownerId: string, colIdx: number, nb: Block): Block[] {
+  return list.map((b) => {
+    if (b.id === ownerId && b.type === "row") {
+      const cols = ((b.data.columns as Array<{ blocks: Block[] }>) ?? []).map((c, i) =>
+        i === colIdx ? { ...c, blocks: [...(c.blocks ?? []), nb] } : c,
+      );
+      return { ...b, data: { ...b.data, columns: cols } };
+    }
+    return mapChildren(b, (kids) => treeInsertIntoColumn(kids, ownerId, colIdx, nb));
+  });
+}
 
 const STEP_INFO: Record<string, StepInfo> = {
   CAPTURE: {
@@ -1003,6 +1115,81 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
             <ColorPicker label="Fond de la carte" value={(block.data.bgColor as string) ?? null} onChange={(c) => update({ bgColor: c })} />
+          </div>
+        </div>
+      );
+    case "audio":
+      return (
+        <div className="space-y-2.5">
+          <MediaUpload label="Fichier audio (MP3) ou URL" value={(block.data.url as string) ?? null} onChange={(url) => update({ url })} accept="audio" aspectRatio="auto" />
+          <StringInput label="URL directe (alternative)" value={(block.data.url as string) ?? ""} onChange={(v) => update({ url: v })} placeholder="https://…/audio.mp3" />
+          <StringInput label="Titre au-dessus du lecteur" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+        </div>
+      );
+    case "badge":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Texte de la pastille" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <ColorPicker label="Fond" value={(block.data.bgColor as string) ?? null} onChange={(c) => update({ bgColor: c })} />
+            <ColorPicker label="Texte" value={(block.data.textColor as string) ?? null} onChange={(c) => update({ textColor: c })} />
+          </div>
+          <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
+        </div>
+      );
+    case "quote":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Citation" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} multiline />
+          <div className="grid grid-cols-2 gap-2">
+            <StringInput label="Auteur" value={(block.data.author as string) ?? ""} onChange={(v) => update({ author: v })} />
+            <StringInput label="Rôle / titre" value={(block.data.role as string) ?? ""} onChange={(v) => update({ role: v })} />
+          </div>
+          <ColorPicker label="Couleur d'accent" value={(block.data.accentColor as string) ?? null} onChange={(c) => update({ accentColor: c })} />
+        </div>
+      );
+    case "rating":
+      return (
+        <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Note (0 à 5)" value={(block.data.value as number) ?? 5} onChange={(v) => update({ value: Math.max(0, Math.min(5, v)) })} />
+            <ColorPicker label="Couleur des étoiles" value={(block.data.color as string) ?? "#f59e0b"} onChange={(c) => update({ color: c })} />
+          </div>
+          <StringInput label="Texte à côté" value={(block.data.text as string) ?? ""} onChange={(v) => update({ text: v })} placeholder="4,9/5 — plus de 100 avis" />
+          <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
+        </div>
+      );
+    case "progress":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Libellé" value={(block.data.label as string) ?? ""} onChange={(v) => update({ label: v })} placeholder="Places déjà réservées" />
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Valeur (%)" value={(block.data.value as number) ?? 70} onChange={(v) => update({ value: Math.max(0, Math.min(100, v)) })} />
+            <ColorPicker label="Couleur" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
+          </div>
+          <SelectInput label="Afficher le %" value={block.data.showPercent === false ? "non" : "oui"} options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} onChange={(v) => update({ showPercent: v === "oui" })} />
+        </div>
+      );
+    case "whatsapp":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Numéro WhatsApp (avec indicatif)" value={(block.data.phone as string) ?? ""} onChange={(v) => update({ phone: v })} placeholder="22957335726" />
+          <StringInput label="Message pré-rempli" value={(block.data.message as string) ?? ""} onChange={(v) => update({ message: v })} multiline />
+          <StringInput label="Texte du bouton" value={(block.data.label as string) ?? ""} onChange={(v) => update({ label: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
+            <SelectInput label="Pleine largeur" value={block.data.fullWidth ? "oui" : "non"} options={[{ value: "non", label: "Non" }, { value: "oui", label: "Oui" }]} onChange={(v) => update({ fullWidth: v === "oui" })} />
+          </div>
+        </div>
+      );
+    case "social-share":
+      return (
+        <div className="space-y-2.5">
+          <StringInput label="Titre au-dessus des boutons" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
+          <StringInput label="Texte partagé (WhatsApp / X)" value={(block.data.shareText as string) ?? ""} onChange={(v) => update({ shareText: v })} multiline />
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-[10px] text-blue-800 flex items-start gap-1">
+            <Info size={12} className="mt-0.5 flex-shrink-0" />
+            Boutons WhatsApp, Facebook et X — le lien partagé est l&apos;URL publique de ce tunnel.
           </div>
         </div>
       );
@@ -1845,7 +2032,61 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
       <div className={compact ? "p-3" : "p-4"}>
         {isAtomic ? renderAtomicEditor(block, update) : renderSectionEditor(block, update)}
       </div>
-      {/* Advanced: Animation + Visibility */}
+      {/* ── STYLE AVANCÉ : fond, bordures, ombres, espacements, effets —
+           disponible sur TOUS les éléments (appliqué au rendu public + canvas) ── */}
+      <details className="border-t border-gray-200" open={compact}>
+        <summary className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
+          <Palette size={14} />
+          Style avancé (fond, bordures, ombres…)
+          <ChevronDown size={14} className="ml-auto" />
+        </summary>
+        <div className="px-4 pb-3 space-y-2.5">
+          <BackgroundPicker label="Fond du bloc" value={(block.data._bg as string) ?? null} onChange={(c) => update({ _bg: c })} />
+          <ColorPicker label="Couleur du texte (forcer)" value={(block.data._textColor as string) ?? null} onChange={(c) => update({ _textColor: c })} />
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Bordure (px)" value={(block.data._borderWidth as number) ?? 0} onChange={(v) => update({ _borderWidth: Math.max(0, v) })} />
+            <ColorPicker label="Couleur bordure" value={(block.data._borderColor as string) ?? null} onChange={(c) => update({ _borderColor: c })} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <SelectInput label="Style bordure" value={(block.data._borderStyle as string) ?? "solid"} options={[
+              { value: "solid", label: "Pleine" },
+              { value: "dashed", label: "Tirets" },
+              { value: "dotted", label: "Points" },
+            ]} onChange={(v) => update({ _borderStyle: v })} />
+            <NumberInput label="Arrondi (px)" value={(block.data._borderRadius as number) ?? 0} onChange={(v) => update({ _borderRadius: Math.max(0, v) })} />
+          </div>
+          <SelectInput label="Ombre" value={(block.data._shadow as string) ?? "none"} options={[
+            { value: "none", label: "Aucune" },
+            { value: "sm", label: "Légère" },
+            { value: "md", label: "Moyenne" },
+            { value: "lg", label: "Grande" },
+            { value: "xl", label: "Très grande" },
+            { value: "glow", label: "Halo vert" },
+          ]} onChange={(v) => update({ _shadow: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Padding vertical (px)" value={(block.data._padY as number) ?? 0} onChange={(v) => update({ _padY: Math.max(0, v) })} />
+            <NumberInput label="Padding horizontal (px)" value={(block.data._padX as number) ?? 0} onChange={(v) => update({ _padX: Math.max(0, v) })} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Marge haut (px)" value={(block.data._marginTop as number) ?? 0} onChange={(v) => update({ _marginTop: v })} />
+            <NumberInput label="Marge bas (px)" value={(block.data._marginBottom as number) ?? 0} onChange={(v) => update({ _marginBottom: v })} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Largeur max (px, 0 = auto)" value={(block.data._maxWidth as number) ?? 0} onChange={(v) => update({ _maxWidth: Math.max(0, v) })} />
+            <SelectInput label="Position du bloc" value={(block.data._align2 as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ _align2: v })} />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label="Opacité (%)" value={(block.data._opacity as number) ?? 100} onChange={(v) => update({ _opacity: Math.max(5, Math.min(100, v)) })} />
+            <SelectInput label="Effet au survol" value={(block.data._hover as string) ?? "none"} options={[
+              { value: "none", label: "Aucun" },
+              { value: "zoom", label: "Zoom" },
+              { value: "lift", label: "Soulever" },
+              { value: "shadow", label: "Ombre" },
+            ]} onChange={(v) => update({ _hover: v })} />
+          </div>
+        </div>
+      </details>
+      {/* Animation + visibilité + CSS perso */}
       <details className="border-t border-gray-200">
         <summary className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-gray-50 list-none">
           <SlidersHorizontal size={14} />
@@ -1866,10 +2107,6 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
             { value: "desktop", label: "Desktop" },
             { value: "mobile", label: "Mobile" },
           ]} onChange={(v) => update({ _visibility: v })} />
-          <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Marge haut (px)" value={(block.data._marginTop as number) ?? 0} onChange={(v) => update({ _marginTop: v })} />
-            <NumberInput label="Marge bas (px)" value={(block.data._marginBottom as number) ?? 0} onChange={(v) => update({ _marginBottom: v })} />
-          </div>
           <div>
             <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">CSS personnalisé</label>
             <textarea
@@ -1883,6 +2120,44 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
         </div>
       </details>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ÉDITION INLINE — Titres et Textes se modifient DIRECTEMENT sur la page
+// (contentEditable, mêmes classes visuelles que le rendu public).
+// ═══════════════════════════════════════════════════════════════════════════
+function InlineTextEditor({ block, theme, onCommit }: { block: Block; theme: { textColor: string }; onCommit: (content: string) => void }) {
+  const d = block.data as Record<string, unknown>;
+  const isHeading = block.type === "heading";
+  const level = Math.min(Math.max(Number(d.level) || 2, 1), 6);
+  const sizeCls = isHeading
+    ? level === 1 ? "text-3xl md:text-5xl font-extrabold leading-tight"
+      : level === 2 ? "text-2xl md:text-4xl font-extrabold leading-tight"
+      : level === 3 ? "text-xl md:text-2xl font-extrabold leading-tight"
+      : "text-lg md:text-xl font-extrabold leading-tight"
+    : "leading-relaxed whitespace-pre-wrap";
+  const ref = useRef<HTMLDivElement>(null);
+  // Texte injecté hors React (pas d'enfants contrôlés) → le curseur ne saute
+  // pas pendant la frappe ; resynchronisé si modifié depuis l'inspecteur.
+  useEffect(() => {
+    const el = ref.current;
+    if (el && document.activeElement !== el) el.innerText = (d.content as string) ?? "";
+  }, [d.content]);
+  return (
+    <div
+      ref={ref}
+      contentEditable
+      suppressContentEditableWarning
+      onBlur={() => onCommit(ref.current?.innerText ?? "")}
+      onKeyDown={(e) => { if (isHeading && e.key === "Enter") { e.preventDefault(); (e.currentTarget as HTMLElement).blur(); } }}
+      className={`${sizeCls} outline-none rounded px-1 -mx-1 cursor-text transition-shadow focus:ring-2 focus:ring-[#006e2f]/40 hover:ring-1 hover:ring-[#006e2f]/20`}
+      style={{
+        color: (d.color as string) || theme.textColor,
+        textAlign: ((d.align as string) ?? "left") as "left" | "center" | "right",
+        fontSize: !isHeading ? `${Number(d.size ?? 16)}px` : undefined,
+      }}
+    />
   );
 }
 
@@ -1977,6 +2252,14 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null); // bloc sélectionné sur le canvas
   const [sidebarTab, setSidebarTab] = useState<"elements" | "blocks">("elements");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  // Drag & drop depuis la palette : clé de l'élément en cours de glissement +
+  // index d'insertion survolé sur le canvas (ligne verte).
+  const [paletteDrag, setPaletteDrag] = useState<PaletteKey | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
+  // Ciblage d'une COLONNE de rangée : surbrillance au drag + picker « ajouter
+  // dans cette colonne » au clic sur une colonne (vide) directement sur la page.
+  const [dropCol, setDropCol] = useState<{ owner: string; col: number } | null>(null);
+  const [columnTarget, setColumnTarget] = useState<{ owner: string; col: number } | null>(null);
   // Historique annuler/rétablir, par étape
   const historyRef = useRef<Record<string, { past: Block[][]; future: Block[][] }>>({});
   const [, setHistVersion] = useState(0);
@@ -2005,7 +2288,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     autoGalleryRef.current = true;
     const first = funnel.steps[0];
     const blocks = (first?.blocks as unknown[]) ?? [];
-    if (blocks.length === 0) setShowGallery(true);
+    // Page de VENTE vide → proposer la galerie de templates (fermable : la
+    // page reste alors 100 % vide et se construit bloc par bloc).
+    // Page de CAPTURE : pas de galerie (templates de vente hors sujet).
+    if (blocks.length === 0 && first?.stepType === "LANDING") setShowGallery(true);
   }, [funnel]);
 
   async function save(patch: Omit<Partial<Funnel>, "steps"> & { steps?: Partial<Step>[] }) {
@@ -2104,6 +2390,16 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     setShowAddBlock(false);
     setSelectedId(nb.id); // sélection immédiate → l'inspecteur s'ouvre à gauche
   }
+
+  // Insertion à une position précise (drag & drop depuis la palette)
+  function insertBlockAt(idx: number, key: PaletteKey) {
+    const nb = createFromPaletteKey(key);
+    const clamped = Math.max(0, Math.min(blocks.length, idx));
+    persistBlocks([...blocks.slice(0, clamped), nb, ...blocks.slice(clamped)]);
+    setSelectedId(nb.id);
+    setPaletteDrag(null);
+    setDropIdx(null);
+  }
   function duplicateBlock(idx: number) {
     const src = blocks[idx];
     if (!src) return;
@@ -2118,9 +2414,31 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     persistBlocks(next);
   }
 
-  // Bloc sélectionné (canvas → inspecteur dans la barre latérale)
+  // Bloc sélectionné (clic direct sur la page — y compris IMBRIQUÉ dans une
+  // rangée/section). selectedIdx ≥ 0 seulement pour les blocs de premier niveau
+  // (les flèches monter/descendre/dupliquer ne s'appliquent qu'à eux).
   const selectedIdx = blocks.findIndex((b) => b.id === selectedId);
-  const selectedBlock = selectedIdx >= 0 ? blocks[selectedIdx] : null;
+  const selectedBlock = selectedId ? treeFind(blocks, selectedId) : null;
+  const selectedIsTop = selectedIdx >= 0;
+
+  // Ajout d'un élément DANS une colonne de rangée (clic ou drop sur la colonne)
+  function insertBlockIntoColumn(ownerId: string, colIdx: number, key: PaletteKey) {
+    const nb = createFromPaletteKey(key);
+    persistBlocks(treeInsertIntoColumn(blocks, ownerId, colIdx, nb));
+    setColumnTarget(null);
+    setPaletteDrag(null);
+    setDropIdx(null);
+    setDropCol(null);
+    setSelectedId(nb.id);
+  }
+
+  // Charger le template par défaut de l'étape (écrase après confirmation)
+  function applyStepTemplate() {
+    if (!activeStep) return;
+    const tpl = getStepTemplate(activeStep.stepType);
+    if (blocks.length > 0) setPendingTemplate({ kind: "step", data: tpl });
+    else persistBlocks(tpl);
+  }
 
   // Thème « live » du canvas (mêmes défauts que la page publique)
   const liveTheme = {
@@ -2162,6 +2480,11 @@ export default function FunnelEditorClient({ id }: { id: string }) {
             <button onClick={() => setDevice("desktop")} className={`p-1.5 rounded-md transition-colors ${device === "desktop" ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a]"}`} title="Aperçu ordinateur"><Monitor size={15} /></button>
             <button onClick={() => setDevice("mobile")} className={`p-1.5 rounded-md transition-colors ${device === "mobile" ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a]"}`} title="Aperçu mobile"><Smartphone size={15} /></button>
           </div>
+          <button onClick={() => (activeStep?.stepType === "LANDING" ? setShowGallery(true) : applyStepTemplate())}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors"
+            title="Templates prêts à l'emploi pour cette étape">
+            <Wand2 size={14} />Templates
+          </button>
           <button onClick={() => setShowLeads(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">
             <Mail size={14} />Leads
@@ -2301,13 +2624,20 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#191c1e] border border-gray-200 hover:bg-gray-50 transition-colors">
                   <ArrowLeft size={14} />Retour
                 </button>
-                <div className="flex items-center gap-0.5">
-                  <button onClick={() => moveBlock(selectedIdx, -1)} disabled={selectedIdx === 0} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Monter"><ArrowUp size={15} /></button>
-                  <button onClick={() => moveBlock(selectedIdx, 1)} disabled={selectedIdx === blocks.length - 1} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Descendre"><ArrowDown size={15} /></button>
-                  <button onClick={() => duplicateBlock(selectedIdx)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors" title="Dupliquer"><Copy size={15} /></button>
-                </div>
+                {selectedIsTop && (
+                  <div className="flex items-center gap-0.5">
+                    <button onClick={() => moveBlock(selectedIdx, -1)} disabled={selectedIdx === 0} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Monter"><ArrowUp size={15} /></button>
+                    <button onClick={() => moveBlock(selectedIdx, 1)} disabled={selectedIdx === blocks.length - 1} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Descendre"><ArrowDown size={15} /></button>
+                    <button onClick={() => duplicateBlock(selectedIdx)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors" title="Dupliquer"><Copy size={15} /></button>
+                  </div>
+                )}
               </div>
-              <BlockEditor compact block={selectedBlock} onChange={(b) => updateBlock(selectedIdx, b)} onDelete={() => deleteBlock(selectedIdx)} />
+              <BlockEditor
+                compact
+                block={selectedBlock}
+                onChange={(b) => persistBlocks(treeUpdate(blocks, selectedBlock.id, b))}
+                onDelete={() => { persistBlocks(treeRemove(blocks, selectedBlock.id)); setSelectedId(null); }}
+              />
             </div>
           ) : (
             /* ── Palette : Éléments | Blocs ── */
@@ -2329,8 +2659,11 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         const ItIcon = it.icon;
                         return (
                           <button key={it.key} onClick={() => addBlock(it.key)}
-                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-1 py-3 hover:border-[#006e2f] hover:shadow-sm hover:-translate-y-0.5 transition-all"
-                            title={`Ajouter : ${it.label}`}>
+                            draggable
+                            onDragStart={(e) => { e.dataTransfer.setData("application/x-nk-block", it.key); e.dataTransfer.effectAllowed = "copy"; setPaletteDrag(it.key); }}
+                            onDragEnd={() => { setPaletteDrag(null); setDropIdx(null); setDropCol(null); }}
+                            className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-1 py-3 hover:border-[#006e2f] hover:shadow-sm hover:-translate-y-0.5 transition-all cursor-grab active:cursor-grabbing"
+                            title={`Cliquez pour ajouter en bas, ou GLISSEZ sur la page : ${it.label}`}>
                             <ItIcon size={18} className="text-[#5c647a]" />
                             <span className="text-[10px] font-semibold text-[#191c1e] leading-tight text-center">{it.label}</span>
                           </button>
@@ -2346,7 +2679,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                     const ItIcon = it.icon;
                     return (
                       <button key={it.key} onClick={() => addBlock(it.key)}
-                        className="w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 hover:border-[#006e2f] hover:shadow-sm transition-all text-left">
+                        draggable
+                        onDragStart={(e) => { e.dataTransfer.setData("application/x-nk-block", it.key); e.dataTransfer.effectAllowed = "copy"; setPaletteDrag(it.key); }}
+                        onDragEnd={() => { setPaletteDrag(null); setDropIdx(null); setDropCol(null); }}
+                        className="w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3.5 py-3 hover:border-[#006e2f] hover:shadow-sm transition-all text-left cursor-grab active:cursor-grabbing">
                         <ItIcon size={18} className="text-[#006e2f] flex-shrink-0" />
                         <span className="text-xs font-bold text-[#191c1e]">{it.label}</span>
                         <Plus size={14} className="ml-auto text-[#5c647a]" />
@@ -2361,85 +2697,31 @@ export default function FunnelEditorClient({ id }: { id: string }) {
 
         {/* ══ CANVAS : rendu RÉEL de la page — cliquez un élément pour le régler ══ */}
         <main className="flex-1 overflow-y-auto" onClick={() => setSelectedId(null)}>
-          <div className="max-w-4xl mx-auto px-4 md:px-6 pt-5 space-y-4">
-          {(() => {
-            const info = STEP_INFO[activeStep?.stepType ?? "LANDING"] ?? STEP_INFO.LANDING;
-            const InfoIcon = info.icon;
-            const applyStepTemplate = () => {
-              if (!activeStep) return;
-              const tpl = getStepTemplate(activeStep.stepType);
-              if (blocks.length > 0) {
-                setPendingTemplate({ kind: "step", data: tpl });
-              } else {
-                persistBlocks(tpl);
-              }
-            };
-            const openGallery = () => setShowGallery(true);
-            return (
-              <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <div className="flex items-start gap-3 p-5" style={{ background: info.bgTint }}>
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: info.color }}>
-                    <InfoIcon size={22} className="text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: info.color }}>Étape {activeStep?.stepOrder} / {funnel.steps.length}</p>
-                      <span className="text-[10px] font-semibold text-[#5c647a] bg-white/60 px-2 py-0.5 rounded-full">{activeStep?.stepType}</span>
-                    </div>
-                    <input type="text" value={activeStep?.title ?? ""}
-                      onChange={(e) => {
-                        if (!activeStep) return;
-                        setFunnel((f) => f ? { ...f, steps: f.steps.map((s) => s.id === activeStep.id ? { ...s, title: e.target.value } : s) } : f);
-                      }}
-                      onBlur={() => activeStep && save({ steps: [{ id: activeStep.id, title: activeStep.title }] })}
-                      className="text-xl font-extrabold text-[#191c1e] bg-transparent focus:outline-none focus:bg-white/50 px-2 py-0.5 rounded w-full -ml-2" />
-                    <p className="text-sm font-semibold text-[#191c1e] mt-0.5">{info.title}</p>
-                    <p className="text-xs text-[#5c647a] mt-0.5">{info.subtitle}</p>
-                  </div>
-                </div>
-                <details className="border-t border-gray-100">
-                  <summary className="flex items-center gap-2 px-5 py-3 text-xs font-semibold text-[#5c647a] cursor-pointer hover:bg-gray-50 list-none">
-                    <Lightbulb size={16} />
-                    Guide — comment utiliser cette étape
-                    <ChevronDown size={16} className="ml-auto" />
-                  </summary>
-                  <div className="px-5 pb-4 text-xs text-[#191c1e] leading-relaxed">
-                    {info.advice}
-                  </div>
-                </details>
-                <div className="flex items-center justify-between gap-2 px-5 py-3 bg-gray-50 border-t border-gray-100 flex-wrap">
-                  <p className="text-[11px] text-[#5c647a]">
-                    {blocks.length === 0 ? "Aucun contenu — choisissez un template ou construisez depuis zéro." : `${blocks.length} bloc${blocks.length > 1 ? "s" : ""} sur cette étape`}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {activeStep?.stepType === "LANDING" && (
-                      <button onClick={openGallery} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-[#006e2f] border border-[#006e2f] hover:bg-[#006e2f]/5 transition-colors">
-                        <Palette size={14} />
-                        Galerie de templates
-                      </button>
-                    )}
-                    <button onClick={applyStepTemplate} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-opacity" style={{ background: info.color }}>
-                      <Wand2 size={14} />
-                      {blocks.length === 0 ? "Charger template par défaut" : "Template par défaut"}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
-          </div>
-
           {/* Zone de rendu réel (thème du tunnel appliqué) */}
           <div className={device === "mobile" ? "max-w-[400px] mx-auto my-5 rounded-[30px] border-[10px] border-gray-900 overflow-hidden shadow-2xl" : "max-w-4xl mx-auto px-4 md:px-6 my-5"}>
             <div className={device === "mobile" ? "" : "rounded-2xl border border-gray-200 shadow-sm overflow-hidden"}>
-              <div className="min-h-[50vh] pb-10" style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
+              {/* Styles du canvas : colonnes vides cliquables, sélection imbriquée, cible de drop */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                .nk-canvas [data-nk-col]:not(:has([data-nk-block])) { min-height: 72px; border: 2px dashed #cfd8d2; border-radius: 12px; position: relative; cursor: pointer; transition: border-color .2s, background .2s; }
+                .nk-canvas [data-nk-col]:not(:has([data-nk-block])):hover { border-color: #006e2f; background: rgba(0,110,47,.05); }
+                .nk-canvas [data-nk-col]:not(:has([data-nk-block]))::after { content: "+ Ajouter dans cette colonne"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9aa79f; font-size: 11px; font-weight: 700; pointer-events: none; }
+                ${selectedId ? `.nk-canvas [data-nk-block="${selectedId}"] { outline: 2px solid #006e2f; outline-offset: 2px; border-radius: 6px; }` : ""}
+                ${paletteDrag && dropCol ? `.nk-canvas [data-nk-owner="${dropCol.owner}"][data-nk-col="${dropCol.col}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
+              ` }} />
+              <div className="nk-canvas min-h-[50vh] pb-10" style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
           {blocks.length === 0 ? (
-            <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-12 text-center">
-              <Boxes size={48} className="text-gray-300 mx-auto" />
-              <p className="text-sm font-bold text-[#191c1e] mt-3">Page vierge — commencez par une rangée</p>
-              <p className="text-xs text-[#5c647a] mt-1 mb-4">Choisissez d&apos;abord un layout (1, 2, 3 ou 4 colonnes), puis ajoutez des éléments dans chaque colonne.</p>
-              <button onClick={() => setShowAddBlock(true)} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
-                <Plus size={16} />Ajouter un élément
+            <div
+              onDragOver={(e) => { if (paletteDrag) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDropIdx(0); } }}
+              onDrop={(e) => { const key = e.dataTransfer.getData("application/x-nk-block"); if (key) { e.preventDefault(); insertBlockAt(0, key as PaletteKey); } }}
+              className={`mx-4 md:mx-6 my-6 rounded-2xl border-2 border-dashed p-12 text-center transition-colors ${paletteDrag ? "border-[#006e2f] bg-[#006e2f]/5" : "border-gray-300 bg-white/60"}`}>
+              <Boxes size={48} className={`mx-auto ${paletteDrag ? "text-[#006e2f]" : "text-gray-300"}`} />
+              <p className="text-sm font-bold text-[#191c1e] mt-3">Page vierge — à vous de jouer</p>
+              <p className="text-xs text-[#5c647a] mt-1 mb-4">
+                <strong>Glissez un élément</strong> depuis la colonne de gauche et déposez-le ici, ou cliquez dessus pour l&apos;ajouter.
+                Vous pouvez aussi partir d&apos;un template prêt à l&apos;emploi.
+              </p>
+              <button onClick={(e) => { e.stopPropagation(); if (activeStep?.stepType === "LANDING") setShowGallery(true); else applyStepTemplate(); }} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold" style={{ background: "linear-gradient(to right, #006e2f, #22c55e)" }}>
+                <Palette size={16} />Choisir un template
               </button>
             </div>
           ) : (
@@ -2450,10 +2732,59 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 renderBlock={(block, i) => {
                   const isSel = selectedId === block.id;
                   const tpl = BLOCK_TEMPLATES[block.type];
+                  const isInlineText = block.type === "heading" || block.type === "text";
                   return (
                     <div
-                      onClick={(e) => { e.stopPropagation(); setSelectedId(block.id); }}
-                      className={`relative cursor-pointer transition-all ${isSel ? "ring-2 ring-[#006e2f]" : "hover:ring-2 hover:ring-[#006e2f]/35"}`}>
+                      onClickCapture={(e) => {
+                        // Édition inline : laisser le clic atteindre le contentEditable
+                        if (isInlineText) { e.stopPropagation(); setSelectedId(block.id); return; }
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const t = e.target as HTMLElement;
+                        const blkEl = t.closest("[data-nk-block]") as HTMLElement | null;
+                        const colEl = t.closest("[data-nk-col]") as HTMLElement | null;
+                        // Clic dans une colonne, hors de tout bloc enfant → proposer d'ajouter DANS la colonne
+                        if (colEl && (!blkEl || !colEl.contains(blkEl))) {
+                          setColumnTarget({ owner: colEl.getAttribute("data-nk-owner") || "", col: Number(colEl.getAttribute("data-nk-col") || 0) });
+                          return;
+                        }
+                        // Sélection du bloc le plus PROFOND cliqué (imbriqué inclus)
+                        setSelectedId(blkEl?.getAttribute("data-nk-block") || block.id);
+                      }}
+                      onDragOver={(e) => {
+                        if (!paletteDrag) return;
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "copy";
+                        const colEl = (e.target as HTMLElement).closest?.("[data-nk-col]") as HTMLElement | null;
+                        if (colEl) {
+                          setDropCol({ owner: colEl.getAttribute("data-nk-owner") || "", col: Number(colEl.getAttribute("data-nk-col") || 0) });
+                          setDropIdx(null);
+                          return;
+                        }
+                        setDropCol(null);
+                        const r = e.currentTarget.getBoundingClientRect();
+                        setDropIdx(e.clientY < r.top + r.height / 2 ? i : i + 1);
+                      }}
+                      onDrop={(e) => {
+                        const key = e.dataTransfer.getData("application/x-nk-block");
+                        if (!key) return;
+                        e.preventDefault(); e.stopPropagation();
+                        const colEl = (e.target as HTMLElement).closest?.("[data-nk-col]") as HTMLElement | null;
+                        if (colEl && COLUMN_ALLOWED_KEYS.includes(key as PaletteKey)) {
+                          insertBlockIntoColumn(colEl.getAttribute("data-nk-owner") || "", Number(colEl.getAttribute("data-nk-col") || 0), key as PaletteKey);
+                          return;
+                        }
+                        const r = e.currentTarget.getBoundingClientRect();
+                        insertBlockAt(e.clientY < r.top + r.height / 2 ? i : i + 1, key as PaletteKey);
+                      }}
+                      className={`relative transition-all ${isSel ? "ring-2 ring-[#006e2f]" : "hover:ring-2 hover:ring-[#006e2f]/35"} ${isInlineText ? "" : "cursor-pointer"}`}>
+                      {/* Ligne d'insertion (drag depuis la palette) */}
+                      {paletteDrag && dropIdx === i && (
+                        <div className="absolute -top-2.5 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
+                      )}
+                      {paletteDrag && dropIdx === i + 1 && (
+                        <div className="absolute -bottom-2.5 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
+                      )}
                       {/* Étiquette du type + actions rapides */}
                       <div className={`absolute -top-3 right-3 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 transition-opacity ${isSel ? "opacity-100" : "opacity-0 group-hover/block:opacity-100"}`}>
                         <span className="px-2 text-[10px] font-bold text-[#006e2f] whitespace-nowrap">{tpl?.label ?? block.type}</span>
@@ -2467,14 +2798,30 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         <button onClick={(e) => { e.stopPropagation(); deleteBlock(i); }}
                           className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-r-lg transition-colors" title="Supprimer"><Trash2 size={15} /></button>
                       </div>
-                      {/* Rendu RÉEL du bloc — identique à la page publique, inerte dans l'éditeur */}
-                      <div className="pointer-events-none select-none">
-                        {renderPublicBlock(block, liveTheme, () => {}, undefined, funnel.slug, funnel.salesLimit, funnel.salesCount)}
-                      </div>
+                      {/* Rendu RÉEL — Titres/Textes éditables EN DIRECT sur la page */}
+                      {isInlineText ? (
+                        <InlineTextEditor
+                          block={block}
+                          theme={liveTheme}
+                          onCommit={(content) => persistBlocks(treeUpdate(blocks, block.id, { ...block, data: { ...block.data, content } }))}
+                        />
+                      ) : (
+                        <div className="select-none">
+                          {renderPublicBlock(block, liveTheme, () => {}, undefined, funnel.slug, funnel.salesLimit, funnel.salesCount)}
+                        </div>
+                      )}
                     </div>
                   );
                 }}
               />
+              {paletteDrag && (
+                <div
+                  onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDropIdx(blocks.length); }}
+                  onDrop={(e) => { const key = e.dataTransfer.getData("application/x-nk-block"); if (key) { e.preventDefault(); insertBlockAt(blocks.length, key as PaletteKey); } }}
+                  className={`mx-4 md:mx-6 mt-3 h-14 rounded-2xl border-2 border-dashed flex items-center justify-center text-xs font-bold transition-colors ${dropIdx === blocks.length ? "border-[#006e2f] bg-[#006e2f]/10 text-[#006e2f]" : "border-gray-300 text-gray-400"}`}>
+                  Déposer ici (fin de page)
+                </div>
+              )}
               <button onClick={(e) => { e.stopPropagation(); setShowAddBlock(true); }}
                 className="mx-4 md:mx-6 mt-4 w-[calc(100%-2rem)] md:w-[calc(100%-3rem)] py-3.5 rounded-2xl border-2 border-dashed border-gray-300 text-sm font-bold text-[#5c647a] hover:border-[#006e2f] hover:text-[#006e2f] transition-colors flex items-center justify-center gap-2">
                 <Plus size={18} />Ajouter un élément
@@ -2488,6 +2835,15 @@ export default function FunnelEditorClient({ id }: { id: string }) {
       </div>
 
       {showAddBlock && <PalettePicker onPick={addBlock} onClose={() => setShowAddBlock(false)} />}
+
+      {/* Picker « ajouter dans cette colonne » (clic sur une colonne du canvas) */}
+      {columnTarget && (
+        <PalettePicker
+          allowed={COLUMN_ALLOWED_KEYS}
+          onPick={(key) => insertBlockIntoColumn(columnTarget.owner, columnTarget.col, key)}
+          onClose={() => setColumnTarget(null)}
+        />
+      )}
 
       {/* Template gallery modal */}
       {showGallery && (

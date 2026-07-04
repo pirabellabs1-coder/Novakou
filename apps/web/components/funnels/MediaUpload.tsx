@@ -5,7 +5,7 @@ import { useState, useRef, useCallback } from "react";
 interface Props {
   value: string | null | undefined;
   onChange: (url: string | null) => void;
-  accept?: "image" | "video" | "both";
+  accept?: "image" | "video" | "both" | "audio";
   label?: string;
   maxSizeMB?: number;
   aspectRatio?: "video" | "square" | "landscape" | "auto";
@@ -15,6 +15,7 @@ const ACCEPT_MAP: Record<string, string> = {
   image: "image/jpeg,image/png,image/webp,image/gif,image/svg+xml",
   video: "video/mp4,video/webm,video/quicktime",
   both: "image/jpeg,image/png,image/webp,image/gif,image/svg+xml,video/mp4,video/webm,video/quicktime",
+  audio: "audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/aac,audio/mp4",
 };
 
 export function MediaUpload({
@@ -29,7 +30,8 @@ export function MediaUpload({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isVideo = value && /\.(mp4|webm|mov|quicktime)/i.test(value);
+  const isVideo = value && /\.(mp4|webm|mov|quicktime)/i.test(value) && accept !== "audio";
+  const isAudio = value && (accept === "audio" || /\.(mp3|wav|ogg|aac|m4a)(\?|$)/i.test(value));
 
   const uploadFile = useCallback(
     async (file: File) => {
@@ -88,8 +90,11 @@ export function MediaUpload({
             {label}
           </label>
         )}
-        <div className={`relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50 ${aspectClass}`}>
-          {isVideo ? (
+        <div className={`relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50 ${isAudio ? "" : aspectClass}`}>
+          {isAudio ? (
+            // eslint-disable-next-line jsx-a11y/media-has-caption
+            <audio src={value ?? undefined} controls className="w-full px-2 py-3" />
+          ) : isVideo ? (
             <video src={value} controls className="w-full h-full object-cover" />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element

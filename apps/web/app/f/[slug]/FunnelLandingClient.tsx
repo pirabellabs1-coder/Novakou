@@ -574,14 +574,16 @@ function ContentBoxBlock({ data, theme, onCta, parentColor, funnelSlug, salesLim
   );
 }
 
-function RowBlock({ data, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; parentColor?: string; funnelSlug?: string; salesLimit?: number | null; salesCount?: number }) {
+function RowBlock({ data, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount, ownerId }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; parentColor?: string; funnelSlug?: string; salesLimit?: number | null; salesCount?: number; ownerId?: string }) {
   const { columns = [], gap = 16, bgColor, padding = 24 } = data as { columns?: Array<{ blocks: Block[] }>; gap?: number; bgColor?: string; padding?: number };
   if (!columns.length) return null;
   return (
     <section style={{ background: bgColor || undefined, paddingTop: `${padding}px`, paddingBottom: `${padding}px` }} className="px-4">
       <div className="max-w-6xl mx-auto grid" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`, gap: `${gap}px` }}>
         {columns.map((col, i) => (
-          <div key={i} className="flex flex-col gap-4 min-w-0">
+          // data-nk-owner/col : l'éditeur repère les colonnes pour « cliquer
+          // sur une colonne → ajouter un élément dedans » + drop ciblé.
+          <div key={i} className="flex flex-col gap-4 min-w-0" data-nk-owner={ownerId} data-nk-col={i}>
             {(col.blocks ?? []).map((child) => renderBlock(child, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount))}
           </div>
         ))}
@@ -817,6 +819,152 @@ function LeadFormBlock({ data, theme, onCta, funnelSlug }: { data: Record<string
             </p>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── AUDIO ───────────────────────────────────────────────────────────────────
+function AudioBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const url = (data.url as string) ?? "";
+  const title = (data.title as string) ?? "";
+  if (!url) {
+    return (
+      <div className="max-w-xl mx-auto my-3 px-4 py-6 rounded-xl border-2 border-dashed border-gray-300 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
+        <Music size={16} /> Audio — ajoutez une URL de fichier (MP3)
+      </div>
+    );
+  }
+  return (
+    <div className="max-w-xl mx-auto my-3 px-4">
+      {title && <p className="text-sm font-bold mb-2 flex items-center gap-1.5" style={{ color: theme.textColor }}><Music size={15} style={{ color: theme.primaryColor }} />{title}</p>}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio controls preload="none" src={url} className="w-full rounded-xl" />
+    </div>
+  );
+}
+
+// ─── BADGE (pastille) ────────────────────────────────────────────────────────
+function BadgeBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const text = (data.text as string) ?? "";
+  const bg = (data.bgColor as string) || `${theme.primaryColor}15`;
+  const color = (data.textColor as string) || theme.primaryColor;
+  const align = (data.align as string) ?? "center";
+  if (!text) return null;
+  return (
+    <div className="px-4 my-2" style={{ textAlign: align as "left" | "center" | "right" }}>
+      <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider" style={{ background: bg, color }}>
+        {text}
+      </span>
+    </div>
+  );
+}
+
+// ─── CITATION ────────────────────────────────────────────────────────────────
+function QuoteBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const text = (data.text as string) ?? "";
+  const author = (data.author as string) ?? "";
+  const role = (data.role as string) ?? "";
+  const accent = (data.accentColor as string) || theme.primaryColor;
+  if (!text) return null;
+  return (
+    <div className="max-w-2xl mx-auto my-4 px-4">
+      <blockquote className="border-l-4 pl-5 py-1" style={{ borderColor: accent }}>
+        <p className="text-lg italic leading-relaxed" style={{ color: theme.textColor }}>&ldquo;{text}&rdquo;</p>
+        {(author || role) && (
+          <footer className="mt-2 text-sm font-bold" style={{ color: accent }}>
+            {author}{role && <span className="font-normal text-gray-500"> — {role}</span>}
+          </footer>
+        )}
+      </blockquote>
+    </div>
+  );
+}
+
+// ─── NOTE (étoiles) ──────────────────────────────────────────────────────────
+function RatingBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const value = Math.max(0, Math.min(5, Number(data.value ?? 5)));
+  const text = (data.text as string) ?? "";
+  const color = (data.color as string) || "#f59e0b";
+  const align = (data.align as string) ?? "center";
+  return (
+    <div className="px-4 my-2" style={{ textAlign: align as "left" | "center" | "right" }}>
+      <span className="inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-0.5">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Star key={i} size={20} style={{ color, fill: i <= Math.round(value) ? color : "transparent" }} strokeWidth={1.5} />
+          ))}
+        </span>
+        {text && <span className="text-sm font-semibold" style={{ color: theme.textColor }}>{text}</span>}
+      </span>
+    </div>
+  );
+}
+
+// ─── BARRE DE PROGRESSION ────────────────────────────────────────────────────
+function ProgressBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
+  const value = Math.max(0, Math.min(100, Number(data.value ?? 70)));
+  const label = (data.label as string) ?? "";
+  const color = (data.color as string) || theme.primaryColor;
+  const showPercent = data.showPercent !== false;
+  return (
+    <div className="max-w-xl mx-auto my-3 px-4">
+      {(label || showPercent) && (
+        <div className="flex items-center justify-between mb-1.5">
+          {label && <p className="text-sm font-bold" style={{ color: theme.textColor }}>{label}</p>}
+          {showPercent && <p className="text-sm font-extrabold tabular-nums" style={{ color }}>{value}%</p>}
+        </div>
+      )}
+      <div className="h-3.5 rounded-full bg-gray-200/70 overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700" style={{ width: `${value}%`, background: `linear-gradient(90deg, ${color}, ${color}cc)` }} />
+      </div>
+    </div>
+  );
+}
+
+// ─── BOUTON WHATSAPP ─────────────────────────────────────────────────────────
+function WhatsappBlock({ data }: { data: Record<string, unknown>; theme: Theme }) {
+  const phone = String(data.phone ?? "").replace(/[^\d]/g, "");
+  const message = (data.message as string) ?? "";
+  const label = (data.label as string) || "Discuter sur WhatsApp";
+  const align = (data.align as string) ?? "center";
+  const fullWidth = data.fullWidth === true;
+  const href = phone ? `https://wa.me/${phone}${message ? `?text=${encodeURIComponent(message)}` : ""}` : undefined;
+  return (
+    <div className="px-4 my-3" style={{ textAlign: align as "left" | "center" | "right" }}>
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        className={`${fullWidth ? "flex w-full" : "inline-flex"} items-center justify-center gap-2 px-6 py-3.5 rounded-2xl text-white text-sm font-extrabold shadow-lg active:scale-[0.98] transition-transform ${!phone ? "opacity-50 pointer-events-none" : ""}`}
+        style={{ background: "linear-gradient(135deg, #25d366, #128c7e)" }}>
+        <MessageCircle size={18} />
+        {label}
+      </a>
+      {!phone && <p className="text-[10px] text-gray-400 mt-1">Ajoutez votre numéro WhatsApp dans les réglages du bloc</p>}
+    </div>
+  );
+}
+
+// ─── PARTAGE SOCIAL ──────────────────────────────────────────────────────────
+function SocialShareBlock({ data, theme, funnelSlug }: { data: Record<string, unknown>; theme: Theme; funnelSlug?: string }) {
+  const title = (data.title as string) ?? "Partagez cette page";
+  const shareText = (data.shareText as string) ?? "";
+  const pageUrl = `https://novakou.com/f/${funnelSlug ?? ""}`;
+  const enc = encodeURIComponent;
+  const links = [
+    { name: "WhatsApp", href: `https://wa.me/?text=${enc(`${shareText} ${pageUrl}`.trim())}`, bg: "#25d366", icon: <MessageCircle size={18} /> },
+    { name: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${enc(pageUrl)}`, bg: "#1877f2", icon: <Share2 size={18} /> },
+    { name: "X", href: `https://twitter.com/intent/tweet?text=${enc(shareText)}&url=${enc(pageUrl)}`, bg: "#111111", icon: <Share2 size={18} /> },
+  ];
+  return (
+    <div className="px-4 my-4 text-center">
+      {title && <p className="text-sm font-bold mb-2.5" style={{ color: theme.textColor }}>{title}</p>}
+      <div className="inline-flex items-center gap-2.5">
+        {links.map((l) => (
+          <a key={l.name} href={l.href} target="_blank" rel="noopener noreferrer" title={`Partager sur ${l.name}`}
+            className="w-11 h-11 rounded-full flex items-center justify-center text-white shadow-md hover:scale-110 transition-transform"
+            style={{ background: l.bg }}>
+            {l.icon}
+          </a>
+        ))}
       </div>
     </div>
   );
@@ -1513,20 +1661,118 @@ function ScarcityBlock({ data, theme, salesLimit, salesCount }: { data: Record<s
 // a textColor, that color is passed down as `parentColor`, which becomes the
 // effective theme.textColor for the children. This way, atomic blocks (text,
 // list, icon-box, heading) inside a dark section automatically use light text.
+// ═══════════════════════════════════════════════════════════════════════════
+// STYLE UNIVERSEL — chaque bloc peut porter des réglages avancés (_bg, bordure,
+// arrondi, ombre, padding, marges, opacité, largeur max, effet au survol,
+// animation, visibilité, CSS perso). Appliqué ICI pour que le rendu public ET
+// le canvas de l'éditeur soient identiques.
+// ═══════════════════════════════════════════════════════════════════════════
+const BLOCK_SHADOWS: Record<string, string> = {
+  sm: "0 1px 3px rgba(0,0,0,0.10)",
+  md: "0 6px 16px rgba(0,0,0,0.12)",
+  lg: "0 12px 32px rgba(0,0,0,0.16)",
+  xl: "0 24px 60px rgba(0,0,0,0.22)",
+  glow: "0 10px 34px rgba(0,110,47,0.35)",
+};
+const BLOCK_HOVER_CLS: Record<string, string> = {
+  zoom: "transition-transform duration-300 hover:scale-[1.02]",
+  lift: "transition-all duration-300 hover:-translate-y-1 hover:shadow-xl",
+  shadow: "transition-shadow duration-300 hover:shadow-2xl",
+};
+
 // Exporté : l'éditeur de tunnels s'en sert pour afficher un canvas WYSIWYG
 // (rendu RÉEL de la page, identique au public — façon Système.io).
 export function renderBlock(block: Block, theme: Theme, onCta: () => void, parentColor?: string, funnelSlug?: string, salesLimit?: number | null, salesCount?: number): ReactElement | null {
+  const inner = renderBlockInner(block, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount);
+  if (!inner) return null;
+  const d = (block.data ?? {}) as Record<string, unknown>;
+
+  const anim = ((d._animation as string) ?? "none") as AnimationType;
+  const vis = (d._visibility as string) ?? "all";
+  const visClass = vis === "desktop" ? "hidden md:block" : vis === "mobile" ? "md:hidden" : "";
+  const hoverCls = BLOCK_HOVER_CLS[(d._hover as string) ?? ""] ?? "";
+  const customCss = (d._customCss as string) ?? "";
+
+  const style: CSSProperties = {};
+  if (d._bg) style.background = d._bg as string;
+  if (d._textColor) style.color = d._textColor as string;
+  const bw = Number(d._borderWidth ?? 0);
+  if (bw > 0) {
+    style.borderWidth = `${bw}px`;
+    style.borderStyle = (d._borderStyle as string) || "solid";
+    style.borderColor = (d._borderColor as string) || "#e5e7eb";
+  }
+  if (d._borderRadius !== undefined && d._borderRadius !== null && d._borderRadius !== "" && Number(d._borderRadius) > 0) {
+    style.borderRadius = `${Number(d._borderRadius)}px`;
+  }
+  const sh = BLOCK_SHADOWS[(d._shadow as string) ?? ""];
+  if (sh) style.boxShadow = sh;
+  if (d._padY !== undefined && d._padY !== null && d._padY !== "" && Number(d._padY) > 0) {
+    style.paddingTop = `${Number(d._padY)}px`;
+    style.paddingBottom = `${Number(d._padY)}px`;
+  }
+  if (d._padX !== undefined && d._padX !== null && d._padX !== "" && Number(d._padX) > 0) {
+    style.paddingLeft = `${Number(d._padX)}px`;
+    style.paddingRight = `${Number(d._padX)}px`;
+  }
+  const mt = Number(d._marginTop ?? 0);
+  const mb = Number(d._marginBottom ?? 0);
+  if (mt) style.marginTop = `${mt}px`;
+  if (mb) style.marginBottom = `${mb}px`;
+  const op = Number(d._opacity ?? 100);
+  if (op > 0 && op < 100) style.opacity = op / 100;
+  const mw = Number(d._maxWidth ?? 0);
+  if (mw > 0) {
+    style.maxWidth = `${mw}px`;
+    const alg = (d._align2 as string) || "center";
+    style.marginLeft = alg === "left" ? undefined : "auto";
+    style.marginRight = alg === "right" ? undefined : "auto";
+  }
+
+  const hasStyle = Object.keys(style).length > 0;
+  // data-nk-block : identifiant porté par CHAQUE bloc rendu (y compris les
+  // enfants imbriqués dans rangées/sections) — l'éditeur s'en sert pour la
+  // sélection au clic directement sur la page (façon Système.io).
+  if (!hasStyle && !visClass && anim === "none" && !hoverCls && !customCss) {
+    return (
+      <div key={block.id} data-nk-block={block.id}>
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <AnimatedBlock key={block.id} animation={anim} className={visClass}>
+      {customCss ? (
+        <style dangerouslySetInnerHTML={{ __html: customCss.replace(/\.block/g, `#fh-block-${block.id}`) }} />
+      ) : null}
+      <div id={`fh-block-${block.id}`} data-nk-block={block.id} style={hasStyle ? style : undefined} className={hoverCls || undefined}>
+        {inner}
+      </div>
+    </AnimatedBlock>
+  );
+}
+
+function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentColor?: string, funnelSlug?: string, salesLimit?: number | null, salesCount?: number): ReactElement | null {
   // If parent set a color, override theme.textColor for this subtree
   const effTheme: Theme = parentColor ? { ...theme, textColor: parentColor } : theme;
   switch (block.type) {
     // Containers — pass their own textColor (or inherited) further down
-    case "row": return <RowBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} />;
+    case "row": return <RowBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} ownerId={block.id} />;
     case "section": return <SectionBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} />;
     case "content-box": return <ContentBoxBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} />;
     // Product
     case "product": return <ProductBlock key={block.id} data={block.data} theme={effTheme} />;
     // Lead capture (page de capture)
     case "lead-form": return <LeadFormBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} />;
+    // Nouveaux éléments (v3)
+    case "audio": return <AudioBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "badge": return <BadgeBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "quote": return <QuoteBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "rating": return <RatingBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "progress": return <ProgressBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "whatsapp": return <WhatsappBlock key={block.id} data={block.data} theme={effTheme} />;
+    case "social-share": return <SocialShareBlock key={block.id} data={block.data} theme={effTheme} funnelSlug={funnelSlug} />;
     // Atomic
     case "heading": return <HeadingBlock key={block.id} data={block.data} theme={effTheme} />;
     case "text": return <TextBlock key={block.id} data={block.data} theme={effTheme} />;
@@ -1654,27 +1900,9 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
           </div>
         </div>
       ) : (
-        blocks.map((block) => {
-          const vis = (block.data._visibility as string) ?? "all";
-          const anim = (block.data._animation as string) ?? "none";
-          const customCss = (block.data._customCss as string) ?? "";
-          const visClass = vis === "desktop" ? "hidden md:block" : vis === "mobile" ? "md:hidden" : "";
-          const marginTop = (block.data._marginTop as number) ?? 0;
-          const marginBottom = (block.data._marginBottom as number) ?? 0;
-          const rendered = renderBlock(block, theme, handleCta, undefined, funnel.slug, funnel.salesLimit, funnel.salesCount);
-          if (!rendered) return null;
-          const marginStyle = (marginTop || marginBottom) ? { marginTop: `${marginTop}px`, marginBottom: `${marginBottom}px` } : undefined;
-          return (
-            <AnimatedBlock key={block.id} animation={anim as AnimationType} className={visClass}>
-              {customCss && (
-                <style dangerouslySetInnerHTML={{ __html: customCss.replace(/\.block/g, `#fh-block-${block.id}`) }} />
-              )}
-              <div id={`fh-block-${block.id}`} style={marginStyle}>
-                {rendered}
-              </div>
-            </AnimatedBlock>
-          );
-        })
+        // Le style avancé, l'animation, la visibilité et le CSS perso sont
+        // désormais appliqués DANS renderBlock (donc identiques dans l'éditeur).
+        blocks.map((block) => renderBlock(block, theme, handleCta, undefined, funnel.slug, funnel.salesLimit, funnel.salesCount))
       )}
 
       <footer className="py-6 px-4 text-center bg-white border-t border-gray-100">

@@ -23,6 +23,13 @@ const ALLOWED_MIME = new Set([
   "video/mp4",
   "video/webm",
   "video/quicktime",
+  // Audio (bloc « Audio » du builder de tunnels)
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/ogg",
+  "audio/aac",
+  "audio/mp4",
 ]);
 
 /**
@@ -46,7 +53,7 @@ export async function POST(request: Request) {
 
     if (!ALLOWED_MIME.has(file.type)) {
       return NextResponse.json(
-        { error: `Type de fichier non supporté : ${file.type}. Formats acceptés : JPG, PNG, WebP, GIF, SVG, MP4, WebM, MOV.` },
+        { error: `Type de fichier non supporté : ${file.type}. Formats acceptés : JPG, PNG, WebP, GIF, SVG, MP4, WebM, MOV, MP3, WAV, OGG.` },
         { status: 400 }
       );
     }
