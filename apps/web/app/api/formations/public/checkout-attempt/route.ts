@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/api-rate-limit";
 
 /**
  * POST /api/formations/public/checkout-attempt
@@ -36,6 +37,17 @@ const ACTION_TO_STATUS: Record<string, ActionToStatus> = {
 
 export async function POST(request: NextRequest) {
   try {
+    // Endpoint public (tracking d'abandons) → rate-limit léger par IP pour
+    // éviter le spam de CheckoutAttempt.
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const rl = rateLimit(`checkout-attempt:${ip}`, 60, 60_000);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: "Trop de requêtes" }, { status: 429 });
+    }
+
     const body = await request.json();
     const {
       action,
