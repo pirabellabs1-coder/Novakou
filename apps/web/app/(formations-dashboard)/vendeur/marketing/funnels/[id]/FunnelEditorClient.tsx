@@ -735,6 +735,15 @@ function treeRemove(list: Block[], id: string): Block[] {
   return list.filter((b) => b.id !== id).map((b) => mapChildren(b, (kids) => treeRemove(kids, id)));
 }
 
+function treeInsertIntoSlot(list: Block[], ownerId: string, nb: Block): Block[] {
+  return list.map((b) => {
+    if (b.id === ownerId && (b.type === "section" || b.type === "content-box")) {
+      return { ...b, data: { ...b.data, blocks: [...((b.data.blocks as Block[]) ?? []), nb] } };
+    }
+    return mapChildren(b, (kids) => treeInsertIntoSlot(kids, ownerId, nb));
+  });
+}
+
 function treeInsertIntoColumn(list: Block[], ownerId: string, colIdx: number, nb: Block): Block[] {
   return list.map((b) => {
     if (b.id === ownerId && b.type === "row") {
@@ -1640,7 +1649,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
 // ═══════════════════════════════════════════════════════════════════════════
 type ColumnData = { blocks: Block[]; width?: number };
 
-function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: Block) => void; onDelete: () => void }) {
+function RowEditor({ block, onChange, onDelete, compact }: { block: Block; onChange: (b: Block) => void; onDelete: () => void; compact?: boolean }) {
   const [pickerColIdx, setPickerColIdx] = useState<number | null>(null);
   const columns = (block.data.columns as ColumnData[]) ?? [];
   const gap = (block.data.gap as number) ?? 16;
@@ -1705,8 +1714,8 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
         </div>
       </div>
 
-      {/* Row-level settings (collapsed) */}
-      <details className="border-b border-gray-200">
+      {/* Row-level settings */}
+      <details className="border-b border-gray-200" open={compact}>
         <summary className="px-4 py-2 text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-white">
           Réglages de la rangée
         </summary>
@@ -1719,7 +1728,17 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
         </div>
       </details>
 
-      {/* Columns */}
+      {/* En mode barre latérale : PAS de gestion des colonnes ici — le contenu
+          se remplit SUR LA PAGE (clic sur une colonne / glisser-déposer). */}
+      {compact && (
+        <div className="px-4 py-3 bg-white text-[11px] text-[#5c647a] leading-relaxed flex items-start gap-2">
+          <Info size={13} className="mt-0.5 flex-shrink-0 text-[#006e2f]" />
+          Le contenu des colonnes se gère <strong>directement sur la page</strong> : cliquez une colonne (ou glissez-y un élément) pour la remplir.
+        </div>
+      )}
+
+      {/* Columns (mode carte pleine largeur uniquement) */}
+      {!compact && (
       <div className="p-4" style={{ background: bgColor || undefined }}>
         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
           {columns.map((col, colIdx) => (
@@ -1746,6 +1765,8 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
         </div>
       </div>
 
+      )}
+
       {pickerColIdx !== null && (
         <PalettePicker onPick={(key) => addToColumn(pickerColIdx, key)} onClose={() => setPickerColIdx(null)} allowed={COLUMN_ALLOWED_KEYS} />
       )}
@@ -1758,7 +1779,7 @@ function RowEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: 
 // ═══════════════════════════════════════════════════════════════════════════
 function ContainerEditor({
   block, onChange, onDelete,
-  title, iconName, accentColor, renderSettings, previewStyle,
+  title, iconName, accentColor, renderSettings, previewStyle, compact,
 }: {
   block: Block;
   onChange: (b: Block) => void;
@@ -1768,6 +1789,7 @@ function ContainerEditor({
   accentColor: string;
   renderSettings: (updateData: (patch: Record<string, unknown>) => void) => React.ReactNode;
   previewStyle?: React.CSSProperties;
+  compact?: boolean;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const IconName = iconName;
@@ -1799,13 +1821,22 @@ function ContainerEditor({
         </button>
       </div>
 
-      <details className="border-b border-gray-200">
+      <details className="border-b border-gray-200" open={compact}>
         <summary className="px-4 py-2 text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider cursor-pointer hover:bg-white">
           Réglages
         </summary>
         <div className="p-4 bg-white space-y-2.5">{renderSettings(updateData)}</div>
       </details>
 
+      {/* En barre latérale : le contenu se gère SUR LA PAGE (clic dans la zone). */}
+      {compact && (
+        <div className="px-4 py-3 bg-white text-[11px] text-[#5c647a] leading-relaxed flex items-start gap-2">
+          <Info size={13} className="mt-0.5 flex-shrink-0 text-[#006e2f]" />
+          Le contenu se gère <strong>directement sur la page</strong> : cliquez dans la zone (ou glissez-y un élément) pour la remplir.
+        </div>
+      )}
+
+      {!compact && (
       <div className="p-3" style={previewStyle}>
         <div className="bg-white/50 rounded-xl border border-gray-200 p-2.5 min-h-[120px] flex flex-col gap-2">
           {children.map((child, bIdx) => (
@@ -1819,6 +1850,8 @@ function ContainerEditor({
         </div>
       </div>
 
+      )}
+
       {pickerOpen && (
         <PalettePicker onPick={addChild} onClose={() => setPickerOpen(false)} allowed={COLUMN_ALLOWED_KEYS} />
       )}
@@ -1826,10 +1859,10 @@ function ContainerEditor({
   );
 }
 
-function SectionEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: Block) => void; onDelete: () => void }) {
+function SectionEditor({ block, onChange, onDelete, compact }: { block: Block; onChange: (b: Block) => void; onDelete: () => void; compact?: boolean }) {
   return (
     <ContainerEditor
-      block={block} onChange={onChange} onDelete={onDelete}
+      block={block} onChange={onChange} onDelete={onDelete} compact={compact}
       title="Section" iconName={LayoutDashboard} accentColor="#006e2f"
       previewStyle={{ background: (block.data.bgColor as string) || undefined }}
       renderSettings={(updateData) => (
@@ -1858,7 +1891,7 @@ function SectionEditor({ block, onChange, onDelete }: { block: Block; onChange: 
   );
 }
 
-function ContentBoxEditor({ block, onChange, onDelete }: { block: Block; onChange: (b: Block) => void; onDelete: () => void }) {
+function ContentBoxEditor({ block, onChange, onDelete, compact }: { block: Block; onChange: (b: Block) => void; onDelete: () => void; compact?: boolean }) {
   const bg = (block.data.bgColor as string) || "#ffffff";
   const border = (block.data.borderColor as string) || "#e5e7eb";
   const radius = (block.data.radius as number) ?? 16;
@@ -1866,7 +1899,7 @@ function ContentBoxEditor({ block, onChange, onDelete }: { block: Block; onChang
   const borderWidth = (block.data.borderWidth as number) ?? 1;
   return (
     <ContainerEditor
-      block={block} onChange={onChange} onDelete={onDelete}
+      block={block} onChange={onChange} onDelete={onDelete} compact={compact}
       title="Boîte de contenu" iconName={MousePointerClick} accentColor="#006e2f"
       previewStyle={{ background: bg, borderRadius: `${radius}px`, border: `${borderWidth}px solid ${border}`, padding: `${padding}px` }}
       renderSettings={(updateData) => (
@@ -1998,9 +2031,9 @@ function ProductEditor({ block, update }: { block: Block; update: (data: Record<
 function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onChange: (b: Block) => void; onDelete: () => void; compact?: boolean }) {
   const update = (data: Record<string, unknown>) => onChange({ ...block, data: { ...block.data, ...data } });
 
-  if (block.type === "row") return <RowEditor block={block} onChange={onChange} onDelete={onDelete} />;
-  if (block.type === "section") return <SectionEditor block={block} onChange={onChange} onDelete={onDelete} />;
-  if (block.type === "content-box") return <ContentBoxEditor block={block} onChange={onChange} onDelete={onDelete} />;
+  if (block.type === "row") return <RowEditor block={block} onChange={onChange} onDelete={onDelete} compact={compact} />;
+  if (block.type === "section") return <SectionEditor block={block} onChange={onChange} onDelete={onDelete} compact={compact} />;
+  if (block.type === "content-box") return <ContentBoxEditor block={block} onChange={onChange} onDelete={onDelete} compact={compact} />;
 
   const tpl = BLOCK_TEMPLATES[block.type];
   const isAtomic = tpl.atomic;
@@ -2424,7 +2457,8 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   // Ajout d'un élément DANS une colonne de rangée (clic ou drop sur la colonne)
   function insertBlockIntoColumn(ownerId: string, colIdx: number, key: PaletteKey) {
     const nb = createFromPaletteKey(key);
-    persistBlocks(treeInsertIntoColumn(blocks, ownerId, colIdx, nb));
+    // colIdx -1 = « slot » d'une section/boîte de contenu ; sinon colonne de rangée.
+    persistBlocks(colIdx === -1 ? treeInsertIntoSlot(blocks, ownerId, nb) : treeInsertIntoColumn(blocks, ownerId, colIdx, nb));
     setColumnTarget(null);
     setPaletteDrag(null);
     setDropIdx(null);
@@ -2706,7 +2740,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 .nk-canvas [data-nk-col]:not(:has([data-nk-block])):hover { border-color: #006e2f; background: rgba(0,110,47,.05); }
                 .nk-canvas [data-nk-col]:not(:has([data-nk-block]))::after { content: "+ Ajouter dans cette colonne"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9aa79f; font-size: 11px; font-weight: 700; pointer-events: none; }
                 ${selectedId ? `.nk-canvas [data-nk-block="${selectedId}"] { outline: 2px solid #006e2f; outline-offset: 2px; border-radius: 6px; }` : ""}
-                ${paletteDrag && dropCol ? `.nk-canvas [data-nk-owner="${dropCol.owner}"][data-nk-col="${dropCol.col}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
+                .nk-canvas [data-nk-slot]:not(:has([data-nk-block])) { min-height: 64px; border: 2px dashed #cfd8d2; border-radius: 12px; position: relative; cursor: pointer; }
+                .nk-canvas [data-nk-slot]:not(:has([data-nk-block]))::after { content: "+ Ajouter un élément ici"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9aa79f; font-size: 11px; font-weight: 700; pointer-events: none; }
+                ${paletteDrag && dropCol && dropCol.col >= 0 ? `.nk-canvas [data-nk-owner="${dropCol.owner}"][data-nk-col="${dropCol.col}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
+                ${paletteDrag && dropCol && dropCol.col === -1 ? `.nk-canvas [data-nk-slot="${dropCol.owner}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
               ` }} />
               <div className="nk-canvas min-h-[50vh] pb-10" style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
           {blocks.length === 0 ? (
@@ -2743,10 +2780,19 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         const t = e.target as HTMLElement;
                         const blkEl = t.closest("[data-nk-block]") as HTMLElement | null;
                         const colEl = t.closest("[data-nk-col]") as HTMLElement | null;
+                        const slotEl = t.closest("[data-nk-slot]") as HTMLElement | null;
                         // Clic dans une colonne, hors de tout bloc enfant → proposer d'ajouter DANS la colonne
                         if (colEl && (!blkEl || !colEl.contains(blkEl))) {
                           setColumnTarget({ owner: colEl.getAttribute("data-nk-owner") || "", col: Number(colEl.getAttribute("data-nk-col") || 0) });
                           return;
+                        }
+                        // Clic dans une section/boîte (zone vide) → ajouter DEDANS
+                        if (slotEl && slotEl.getAttribute("data-nk-slot")) {
+                          const inner = blkEl && slotEl.contains(blkEl) && blkEl !== e.currentTarget;
+                          if (!inner) {
+                            setColumnTarget({ owner: slotEl.getAttribute("data-nk-slot") || "", col: -1 });
+                            return;
+                          }
                         }
                         // Sélection du bloc le plus PROFOND cliqué (imbriqué inclus)
                         setSelectedId(blkEl?.getAttribute("data-nk-block") || block.id);
@@ -2761,6 +2807,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                           setDropIdx(null);
                           return;
                         }
+                        const slotOverEl = (e.target as HTMLElement).closest?.("[data-nk-slot]") as HTMLElement | null;
+                        if (slotOverEl && slotOverEl.getAttribute("data-nk-slot")) {
+                          setDropCol({ owner: slotOverEl.getAttribute("data-nk-slot") || "", col: -1 });
+                          setDropIdx(null);
+                          return;
+                        }
                         setDropCol(null);
                         const r = e.currentTarget.getBoundingClientRect();
                         setDropIdx(e.clientY < r.top + r.height / 2 ? i : i + 1);
@@ -2772,6 +2824,11 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         const colEl = (e.target as HTMLElement).closest?.("[data-nk-col]") as HTMLElement | null;
                         if (colEl && COLUMN_ALLOWED_KEYS.includes(key as PaletteKey)) {
                           insertBlockIntoColumn(colEl.getAttribute("data-nk-owner") || "", Number(colEl.getAttribute("data-nk-col") || 0), key as PaletteKey);
+                          return;
+                        }
+                        const slotDropEl = (e.target as HTMLElement).closest?.("[data-nk-slot]") as HTMLElement | null;
+                        if (slotDropEl && slotDropEl.getAttribute("data-nk-slot") && COLUMN_ALLOWED_KEYS.includes(key as PaletteKey)) {
+                          insertBlockIntoColumn(slotDropEl.getAttribute("data-nk-slot") || "", -1, key as PaletteKey);
                           return;
                         }
                         const r = e.currentTarget.getBoundingClientRect();

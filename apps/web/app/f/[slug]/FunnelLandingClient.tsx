@@ -506,7 +506,7 @@ function AtomicVideoBlock({ data, theme }: { data: Record<string, unknown>; them
 // ═══════════════════════════════════════════════════════════════════════════
 // CONTAINER RENDERERS (Row / Section / Content-box)
 // ═══════════════════════════════════════════════════════════════════════════
-function SectionBlock({ data, theme, onCta, funnelSlug, salesLimit, salesCount }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; funnelSlug?: string; salesLimit?: number | null; salesCount?: number }) {
+function SectionBlock({ data, theme, onCta, funnelSlug, salesLimit, salesCount, ownerId }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; funnelSlug?: string; salesLimit?: number | null; salesCount?: number; ownerId?: string }) {
   const { blocks = [], bgColor, bgImage, paddingY = 64, paddingX = 16, maxWidth = 1152, textColor, parallax, overlayColor } = data as {
     blocks?: Block[]; bgColor?: string; bgImage?: string; paddingY?: number; paddingX?: number; maxWidth?: number; textColor?: string; parallax?: boolean; overlayColor?: string;
   };
@@ -529,7 +529,7 @@ function SectionBlock({ data, theme, onCta, funnelSlug, salesLimit, salesCount }
         <div className="absolute inset-0" style={{ background: overlayColor, opacity: 0.6, pointerEvents: "none" }} />
       )}
       <div className="mx-auto relative" style={{ maxWidth: maxWidth > 0 ? `${maxWidth}px` : "100%" }}>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4" data-nk-slot={ownerId}>
           {blocks.map((child) => renderBlock(child, theme, onCta, inherit, funnelSlug, salesLimit, salesCount))}
         </div>
       </div>
@@ -544,7 +544,7 @@ const SHADOW_MAP: Record<string, string> = {
   lg: "0 12px 32px rgba(0,0,0,0.12)",
 };
 
-function ContentBoxBlock({ data, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; parentColor?: string; funnelSlug?: string; salesLimit?: number | null; salesCount?: number }) {
+function ContentBoxBlock({ data, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount, ownerId }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; parentColor?: string; funnelSlug?: string; salesLimit?: number | null; salesCount?: number; ownerId?: string }) {
   const { blocks = [], bgColor = "#ffffff", borderColor = "#e5e7eb", borderWidth = 1, radius = 16, padding = 24, shadow = "md", textColor } = data as {
     blocks?: Block[]; bgColor?: string; borderColor?: string; borderWidth?: number; radius?: number; padding?: number; shadow?: string; textColor?: string;
   };
@@ -567,7 +567,7 @@ function ContentBoxBlock({ data, theme, onCta, parentColor, funnelSlug, salesLim
         color: inherit || undefined,
       }}
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4" data-nk-slot={ownerId}>
         {blocks.map((child) => renderBlock(child, theme, onCta, inherit, funnelSlug, salesLimit, salesCount))}
       </div>
     </div>
@@ -1759,8 +1759,8 @@ function renderBlockInner(block: Block, theme: Theme, onCta: () => void, parentC
   switch (block.type) {
     // Containers — pass their own textColor (or inherited) further down
     case "row": return <RowBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} ownerId={block.id} />;
-    case "section": return <SectionBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} />;
-    case "content-box": return <ContentBoxBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} />;
+    case "section": return <SectionBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} ownerId={block.id} />;
+    case "content-box": return <ContentBoxBlock key={block.id} data={block.data} theme={effTheme} onCta={onCta} parentColor={parentColor} funnelSlug={funnelSlug} salesLimit={salesLimit} salesCount={salesCount} ownerId={block.id} />;
     // Product
     case "product": return <ProductBlock key={block.id} data={block.data} theme={effTheme} />;
     // Lead capture (page de capture)
