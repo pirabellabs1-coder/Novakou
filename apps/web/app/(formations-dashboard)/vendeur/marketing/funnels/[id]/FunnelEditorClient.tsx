@@ -654,6 +654,33 @@ const COLUMN_ALLOWED_KEYS: PaletteKey[] = [
   "audio", "badge", "quote", "rating", "progress", "whatsapp",
 ];
 
+// Dans une SECTION ou une BOÎTE (slot), on autorise en plus les rangées de
+// colonnes — une section contient typiquement des rangées (façon Système.io).
+const SLOT_ALLOWED_KEYS: PaletteKey[] = [...COLUMN_ALLOWED_KEYS, "row-1", "row-2", "row-3", "row-4"];
+
+// Cible de dépôt sous le pointeur (drag depuis la palette) :
+//  - colonne de rangée ou slot de section/boîte — le plus PROFOND des deux gagne
+//  - le CORPS d'une section/boîte (paddings, marges internes) cible aussi son
+//    slot : sans ça, déposer sur 80 % de la surface visible d'une section
+//    insérait AVANT/APRÈS au lieu de DEDANS.
+function dropTargetFromEvent(t: HTMLElement | null): { owner: string; col: number } | null {
+  if (!t || !t.closest) return null;
+  const colEl = t.closest("[data-nk-col]") as HTMLElement | null;
+  const slotEl = t.closest("[data-nk-slot]") as HTMLElement | null;
+  if (colEl && (!slotEl || slotEl.contains(colEl))) {
+    return { owner: colEl.getAttribute("data-nk-owner") || "", col: Number(colEl.getAttribute("data-nk-col") || 0) };
+  }
+  if (slotEl && slotEl.getAttribute("data-nk-slot")) {
+    return { owner: slotEl.getAttribute("data-nk-slot") || "", col: -1 };
+  }
+  const blkEl = t.closest("[data-nk-block]") as HTMLElement | null;
+  const ownId = blkEl?.getAttribute("data-nk-block") || "";
+  if (blkEl && ownId && blkEl.querySelector(`[data-nk-slot="${ownId}"]`)) {
+    return { owner: ownId, col: -1 };
+  }
+  return null;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2975,15 +3002,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         if (!paletteDrag) return;
                         e.preventDefault();
                         e.dataTransfer.dropEffect = "copy";
-                        const colEl = (e.target as HTMLElement).closest?.("[data-nk-col]") as HTMLElement | null;
-                        if (colEl) {
-                          setDropCol({ owner: colEl.getAttribute("data-nk-owner") || "", col: Number(colEl.getAttribute("data-nk-col") || 0) });
-                          setDropIdx(null);
-                          return;
-                        }
-                        const slotOverEl = (e.target as HTMLElement).closest?.("[data-nk-slot]") as HTMLElement | null;
-                        if (slotOverEl && slotOverEl.getAttribute("data-nk-slot")) {
-                          setDropCol({ owner: slotOverEl.getAttribute("data-nk-slot") || "", col: -1 });
+                        const tgt = dropTargetFromEvent(e.target as HTMLElement);
+                        const allowed = tgt ? (tgt.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS) : null;
+                        if (tgt && allowed && allowed.includes(paletteDrag)) {
+                          setDropCol(tgt);
                           setDropIdx(null);
                           return;
                         }
@@ -2995,14 +3017,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         const key = e.dataTransfer.getData("application/x-nk-block");
                         if (!key) return;
                         e.preventDefault(); e.stopPropagation();
-                        const colEl = (e.target as HTMLElement).closest?.("[data-nk-col]") as HTMLElement | null;
-                        if (colEl && COLUMN_ALLOWED_KEYS.includes(key as PaletteKey)) {
-                          insertBlockIntoColumn(colEl.getAttribute("data-nk-owner") || "", Number(colEl.getAttribute("data-nk-col") || 0), key as PaletteKey);
-                          return;
-                        }
-                        const slotDropEl = (e.target as HTMLElement).closest?.("[data-nk-slot]") as HTMLElement | null;
-                        if (slotDropEl && slotDropEl.getAttribute("data-nk-slot") && COLUMN_ALLOWED_KEYS.includes(key as PaletteKey)) {
-                          insertBlockIntoColumn(slotDropEl.getAttribute("data-nk-slot") || "", -1, key as PaletteKey);
+                        const tgt = dropTargetFromEvent(e.target as HTMLElement);
+                        const allowed = tgt ? (tgt.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS) : null;
+                        if (tgt && allowed && allowed.includes(key as PaletteKey)) {
+                          insertBlockIntoColumn(tgt.owner, tgt.col, key as PaletteKey);
                           return;
                         }
                         const r = e.currentTarget.getBoundingClientRect();
@@ -3068,10 +3086,10 @@ export default function FunnelEditorClient({ id }: { id: string }) {
 
       {showAddBlock && <PalettePicker onPick={addBlock} onClose={() => setShowAddBlock(false)} />}
 
-      {/* Picker « ajouter dans cette colonne » (clic sur une colonne du canvas) */}
+      {/* Picker « ajouter dans cette colonne / cette section » (clic sur le canvas) */}
       {columnTarget && (
         <PalettePicker
-          allowed={COLUMN_ALLOWED_KEYS}
+          allowed={columnTarget.col === -1 ? SLOT_ALLOWED_KEYS : COLUMN_ALLOWED_KEYS}
           onPick={(key) => insertBlockIntoColumn(columnTarget.owner, columnTarget.col, key)}
           onClose={() => setColumnTarget(null)}
         />
