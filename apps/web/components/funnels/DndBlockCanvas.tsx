@@ -55,7 +55,9 @@ export default function DndBlockCanvas({
   }, []);
 
   return (
-    <div className="space-y-4">
+    // Pas d'espace artificiel entre les blocs : la page de l'éditeur
+    // s'empile exactement comme la page publiée.
+    <div>
       {blocks.map((block, i) => (
         <div
           key={block.id}
@@ -68,11 +70,11 @@ export default function DndBlockCanvas({
         >
           {/* Drop indicator line */}
           {overIdx === i && dragIdx !== null && dragIdx !== i && (
-            <div className="absolute -top-2 left-0 right-0 h-1 bg-[#006e2f] rounded-full z-20 shadow-[0_0_8px_rgba(0,110,47,0.4)]" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-[#006e2f] rounded-full z-20 shadow-[0_0_8px_rgba(0,110,47,0.4)]" />
           )}
-          {/* Drag handle */}
+          {/* Drag handle — à l'intérieur du bloc pour ne jamais être rogné */}
           <div
-            className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-6 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm opacity-0 group-hover/block:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:border-[#006e2f] hover:text-[#006e2f] text-[#5c647a]"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-6 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-200 shadow-sm opacity-0 group-hover/block:opacity-100 transition-opacity cursor-grab active:cursor-grabbing hover:border-[#006e2f] hover:text-[#006e2f] text-[#5c647a]"
             title="Glisser pour réorganiser"
           >
             <span className="material-symbols-outlined text-[16px]">drag_indicator</span>

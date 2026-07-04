@@ -2878,11 +2878,17 @@ export default function FunnelEditorClient({ id }: { id: string }) {
 
         {/* ══ CANVAS : rendu RÉEL de la page — cliquez un élément pour le régler ══ */}
         <main className="flex-1 overflow-y-auto" onClick={() => setSelectedId(null)}>
-          {/* Zone de rendu réel (thème du tunnel appliqué) */}
-          <div className={device === "mobile" ? "max-w-[400px] mx-auto my-5 rounded-[30px] border-[10px] border-gray-900 overflow-hidden shadow-2xl" : "max-w-4xl mx-auto px-4 md:px-6 my-5"}>
-            <div className={device === "mobile" ? "" : "rounded-2xl border border-gray-200 shadow-sm overflow-hidden"}>
+          {/* Zone de rendu réel (thème du tunnel appliqué) — PLEINE LARGEUR comme
+              la vraie page publiée (façon Système.io). L'ancienne « carte »
+              (max-w + coins arrondis + overflow-hidden) rognait les barres
+              d'outils et donnait un effet « dans une case ». */}
+          <div className={device === "mobile" ? "max-w-[400px] mx-auto my-5 rounded-[30px] border-[10px] border-gray-900 overflow-hidden shadow-2xl" : ""}>
+            <div>
               {/* Styles du canvas : colonnes vides cliquables, sélection imbriquée, cible de drop */}
               <style dangerouslySetInnerHTML={{ __html: `
+                /* Les blocs « fixed » (barre CTA flottante…) restent DANS la page
+                   pendant l'édition au lieu de recouvrir l'interface de l'éditeur. */
+                .nk-canvas [data-nk-block] .fixed { position: relative !important; top: auto !important; bottom: auto !important; left: auto !important; right: auto !important; z-index: auto !important; }
                 .nk-canvas [data-nk-col]:not(:has([data-nk-block])) { min-height: 72px; border: 2px dashed #cfd8d2; border-radius: 12px; position: relative; cursor: pointer; transition: border-color .2s, background .2s; }
                 .nk-canvas [data-nk-col]:not(:has([data-nk-block])):hover { border-color: #006e2f; background: rgba(0,110,47,.05); }
                 .nk-canvas [data-nk-col]:not(:has([data-nk-block]))::after { content: "+ Ajouter dans cette colonne"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9aa79f; font-size: 11px; font-weight: 700; pointer-events: none; }
@@ -2910,7 +2916,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   .nk-canvas .md\\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
                 ` : ""}
               ` }} />
-              <div className="nk-canvas min-h-[50vh] pb-10" style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
+              <div className={`nk-canvas pb-10 ${device === "mobile" ? "min-h-[60vh]" : "min-h-[calc(100vh-110px)]"}`} style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
           {blocks.length === 0 ? (
             <div
               onDragOver={(e) => { if (paletteDrag) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDropIdx(0); } }}
@@ -3005,13 +3011,14 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                       className={`relative transition-all ${isSel ? "ring-2 ring-[#006e2f]" : "hover:ring-2 hover:ring-[#006e2f]/35"} ${isInlineText ? "" : "cursor-pointer"}`}>
                       {/* Ligne d'insertion (drag depuis la palette) */}
                       {paletteDrag && dropIdx === i && (
-                        <div className="absolute -top-2.5 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
+                        <div className="absolute top-0 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
                       )}
                       {paletteDrag && dropIdx === i + 1 && (
-                        <div className="absolute -bottom-2.5 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
+                        <div className="absolute bottom-0 left-2 right-2 h-1.5 bg-[#006e2f] rounded-full z-30 shadow-[0_0_10px_rgba(0,110,47,0.6)]" />
                       )}
-                      {/* Étiquette du type + actions rapides */}
-                      <div className={`absolute -top-3 right-3 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 transition-opacity ${isSel ? "opacity-100" : "opacity-0 group-hover/block:opacity-100"}`}>
+                      {/* Étiquette du type + actions rapides — DANS le bloc pour ne
+                          jamais être rognée par les bords de la zone de travail */}
+                      <div className={`absolute top-2 right-2 z-20 flex items-center gap-0.5 bg-white rounded-lg shadow-md border border-gray-200 transition-opacity ${isSel ? "opacity-100" : "opacity-0 group-hover/block:opacity-100"}`}>
                         <span className="px-2 text-[10px] font-bold text-[#006e2f] whitespace-nowrap">{tpl?.label ?? block.type}</span>
                         <div className="w-px h-4 bg-gray-200" />
                         <button onClick={(e) => { e.stopPropagation(); moveBlock(i, -1); }} disabled={i === 0}
