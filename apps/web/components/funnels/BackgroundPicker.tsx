@@ -146,9 +146,9 @@ export function BackgroundPicker({ value, onChange, label, defaultSolid = "#ffff
     : current.toUpperCase();
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       {label && (
-        <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">
+        <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">
           {label}
         </label>
       )}
@@ -316,7 +316,7 @@ export function BackgroundPicker({ value, onChange, label, defaultSolid = "#ffff
                 <>
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Voile sombre (lisibilité du texte)</label>
+                      <label className="text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">Voile sombre (lisibilité du texte)</label>
                       <span className="text-[10px] font-bold text-[#191c1e] tabular-nums">{imgOverlay}%</span>
                     </div>
                     <input type="range" min={0} max={80} step={5} value={imgOverlay}

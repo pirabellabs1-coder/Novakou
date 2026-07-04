@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactElement, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type ReactElement, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -313,9 +313,14 @@ function useLink(raw: string | undefined, onDefault: () => void) {
 // ATOMIC BLOCK RENDERERS
 // ═══════════════════════════════════════════════════════════════════════════
 function HeadingBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
-  const { content, level = 2, align = "left", color, gradient } = data as { content?: string; level?: number; align?: string; color?: string; gradient?: string };
+  const { content, level = 2, align = "left", color, gradient, size, lineHeight, letterSpacing, font, weight } = data as {
+    content?: string; level?: number; align?: string; color?: string; gradient?: string;
+    size?: number; lineHeight?: number; letterSpacing?: number; font?: string; weight?: number;
+  };
   const safeLevel = Math.min(Math.max(Number(level) || 2, 1), 6);
-  const sizeCls = safeLevel === 1 ? "text-3xl md:text-5xl" : safeLevel === 2 ? "text-2xl md:text-4xl" : safeLevel === 3 ? "text-xl md:text-2xl" : "text-lg md:text-xl";
+  // Taille personnalisée (px) → remplace les classes responsives ; 0/absent = auto.
+  const customSize = Number(size ?? 0);
+  const sizeCls = customSize > 0 ? "" : safeLevel === 1 ? "text-3xl md:text-5xl" : safeLevel === 2 ? "text-2xl md:text-4xl" : safeLevel === 3 ? "text-xl md:text-2xl" : "text-lg md:text-xl";
   const hasGradient = gradient && gradient.includes("gradient");
   const gradientStyle: React.CSSProperties = hasGradient ? {
     backgroundImage: gradient,
@@ -328,6 +333,11 @@ function HeadingBlock({ data, theme }: { data: Record<string, unknown>; theme: T
     style: {
       color: hasGradient ? undefined : (color || theme.textColor),
       textAlign: align as "left" | "center" | "right",
+      fontSize: customSize > 0 ? `${customSize}px` : undefined,
+      lineHeight: Number(lineHeight ?? 0) > 0 ? Number(lineHeight) : undefined,
+      letterSpacing: letterSpacing !== undefined && Number(letterSpacing) !== 0 ? `${Number(letterSpacing)}px` : undefined,
+      fontFamily: font ? `'${font}', sans-serif` : undefined,
+      fontWeight: Number(weight ?? 0) > 0 ? Number(weight) : undefined,
       ...gradientStyle,
     },
   };
@@ -340,9 +350,20 @@ function HeadingBlock({ data, theme }: { data: Record<string, unknown>; theme: T
 }
 
 function TextBlock({ data, theme }: { data: Record<string, unknown>; theme: Theme }) {
-  const { content, align = "left", size = 16, color } = data as { content?: string; align?: string; size?: number; color?: string };
+  const { content, align = "left", size = 16, color, lineHeight, letterSpacing, font, weight } = data as {
+    content?: string; align?: string; size?: number; color?: string;
+    lineHeight?: number; letterSpacing?: number; font?: string; weight?: number;
+  };
   return (
-    <p className="leading-relaxed whitespace-pre-wrap" style={{ color: color || theme.textColor, textAlign: align as "left" | "center" | "right", fontSize: `${size}px` }}>
+    <p className="leading-relaxed whitespace-pre-wrap" style={{
+      color: color || theme.textColor,
+      textAlign: align as "left" | "center" | "right",
+      fontSize: `${size}px`,
+      lineHeight: Number(lineHeight ?? 0) > 0 ? Number(lineHeight) : undefined,
+      letterSpacing: letterSpacing !== undefined && Number(letterSpacing) !== 0 ? `${Number(letterSpacing)}px` : undefined,
+      fontFamily: font ? `'${font}', sans-serif` : undefined,
+      fontWeight: Number(weight ?? 0) > 0 ? Number(weight) : undefined,
+    }}>
       {content}
     </p>
   );
@@ -510,21 +531,21 @@ function SectionBlock({ data, theme, onCta, funnelSlug, salesLimit, salesCount, 
   const { blocks = [], bgColor, bgImage, paddingY = 64, paddingX = 16, maxWidth = 1152, textColor, parallax, overlayColor } = data as {
     blocks?: Block[]; bgColor?: string; bgImage?: string; paddingY?: number; paddingX?: number; maxWidth?: number; textColor?: string; parallax?: boolean; overlayColor?: string;
   };
+  // Paddings via variables CSS (.nk-section dans globals.css) : la règle
+  // mobile les plafonne avec min() pour un rendu propre sur téléphone.
   const style: React.CSSProperties = {
     background: bgImage
       ? `${bgColor ? bgColor + "," : ""} url(${bgImage}) center/cover no-repeat`
       : bgColor || undefined,
     backgroundAttachment: parallax && bgImage ? "fixed" : undefined,
-    paddingTop: `${paddingY}px`,
-    paddingBottom: `${paddingY}px`,
-    paddingLeft: `${paddingX}px`,
-    paddingRight: `${paddingX}px`,
+    ["--nk-pad-y" as string]: `${paddingY}px`,
+    ["--nk-pad-x" as string]: `${paddingX}px`,
     color: textColor || undefined,
     position: overlayColor ? "relative" as const : undefined,
   };
   const inherit = textColor || undefined;
   return (
-    <section style={style}>
+    <section style={style} className="nk-section">
       {overlayColor && (
         <div className="absolute inset-0" style={{ background: overlayColor, opacity: 0.6, pointerEvents: "none" }} />
       )}
@@ -575,11 +596,13 @@ function ContentBoxBlock({ data, theme, onCta, parentColor, funnelSlug, salesLim
 }
 
 function RowBlock({ data, theme, onCta, parentColor, funnelSlug, salesLimit, salesCount, ownerId }: { data: Record<string, unknown>; theme: Theme; onCta: () => void; parentColor?: string; funnelSlug?: string; salesLimit?: number | null; salesCount?: number; ownerId?: string }) {
-  const { columns = [], gap = 16, bgColor, padding = 24 } = data as { columns?: Array<{ blocks: Block[] }>; gap?: number; bgColor?: string; padding?: number };
+  const { columns = [], gap = 16, bgColor, padding = 24, stackMobile } = data as { columns?: Array<{ blocks: Block[] }>; gap?: number; bgColor?: string; padding?: number; stackMobile?: boolean };
   if (!columns.length) return null;
+  // nk-row-stack : les colonnes s'empilent en 1 colonne sous 768px (règle
+  // globale dans globals.css) — désactivable par rangée via stackMobile=false.
   return (
     <section style={{ background: bgColor || undefined, paddingTop: `${padding}px`, paddingBottom: `${padding}px` }} className="px-4">
-      <div className="max-w-6xl mx-auto grid" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`, gap: `${gap}px` }}>
+      <div className={`max-w-6xl mx-auto grid ${stackMobile === false ? "" : "nk-row-stack"}`} style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))`, gap: `${gap}px` }}>
         {columns.map((col, i) => (
           // data-nk-owner/col : l'éditeur repère les colonnes pour « cliquer
           // sur une colonne → ajouter un élément dedans » + drop ciblé.
@@ -1826,7 +1849,10 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   useEffect(() => {
     async function load() {
       try {
-        const res = await fetch(`/api/formations/public/funnel/${slug}`);
+        // ?preview=1 (lien « Aperçu » de l'éditeur) : transmis à l'API pour
+        // voir un tunnel pas encore publié — sans compter de vue.
+        const isPreview = new URLSearchParams(window.location.search).get("preview") === "1";
+        const res = await fetch(`/api/formations/public/funnel/${slug}${isPreview ? "?preview=1" : ""}`);
         if (!res.ok) { setNotFound(true); return; }
         const json = await res.json();
         setFunnel(json.data);
@@ -1840,20 +1866,39 @@ export default function FunnelLandingClient({ slug }: { slug: string }) {
   // in the same hook order (React's Rules of Hooks).
   const fontFamily = funnel?.theme?.font || "Manrope";
 
-  // Load Google Font dynamically if not the default. Must run on every render
-  // path — keep it above the early returns below.
+  // Polices par bloc (typographie pro) : collecter récursivement les `font`
+  // définies dans les blocs de toutes les étapes pour les charger aussi.
+  const blockFonts = useMemo(() => {
+    const acc = new Set<string>();
+    const walk = (list: Block[]) => {
+      for (const b of list ?? []) {
+        const d = (b.data ?? {}) as Record<string, unknown>;
+        if (typeof d.font === "string" && d.font) acc.add(d.font);
+        const cols = d.columns as Array<{ blocks?: Block[] }> | undefined;
+        if (Array.isArray(cols)) cols.forEach((c) => walk(c?.blocks ?? []));
+        const kids = d.blocks as Block[] | undefined;
+        if (Array.isArray(kids)) walk(kids);
+      }
+    };
+    for (const s of funnel?.steps ?? []) walk(((s.blocks as Block[] | null) ?? []));
+    return Array.from(acc);
+  }, [funnel]);
+
+  // Load Google Fonts dynamically (thème + polices par bloc). Must run on
+  // every render path — keep it above the early returns below.
   useEffect(() => {
-    if (fontFamily && fontFamily !== "Manrope") {
-      const id = `gfont-${fontFamily.replace(/\s/g, "-")}`;
+    for (const fam of [fontFamily, ...blockFonts]) {
+      if (!fam || fam === "Manrope") continue;
+      const id = `gfont-${fam.replace(/\s/g, "-")}`;
       if (!document.getElementById(id)) {
         const link = document.createElement("link");
         link.id = id;
         link.rel = "stylesheet";
-        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontFamily)}:wght@300;400;500;600;700;800&display=swap`;
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fam)}:wght@300;400;500;600;700;800&display=swap`;
         document.head.appendChild(link);
       }
     }
-  }, [fontFamily]);
+  }, [fontFamily, blockFonts]);
 
   function handleCta() {
     if (!funnel) return;

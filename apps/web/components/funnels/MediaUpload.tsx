@@ -86,7 +86,7 @@ export function MediaUpload({
     return (
       <div className="space-y-2">
         {label && (
-          <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">
+          <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">
             {label}
           </label>
         )}
@@ -141,7 +141,7 @@ export function MediaUpload({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">
+        <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">
           {label}
         </label>
       )}

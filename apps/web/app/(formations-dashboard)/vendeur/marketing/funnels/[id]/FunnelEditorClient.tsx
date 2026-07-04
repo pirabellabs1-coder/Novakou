@@ -713,6 +713,18 @@ function treeFind(list: Block[], id: string): Block | null {
   return null;
 }
 
+// Chemin racine → bloc (fil d'Ariane « Page › Rangée › Texte »).
+function treePath(list: Block[], id: string): Block[] {
+  for (const b of list) {
+    if (b.id === id) return [b];
+    for (const kids of childListsOf(b)) {
+      const p = treePath(kids, id);
+      if (p.length) return [b, ...p];
+    }
+  }
+  return [];
+}
+
 function mapChildren(b: Block, fn: (kids: Block[]) => Block[]): Block {
   if (b.type === "row") {
     const cols = ((b.data.columns as Array<{ blocks: Block[] }>) ?? []).map((c) => ({ ...c, blocks: fn(c.blocks ?? []) }));
@@ -861,8 +873,8 @@ const TEMPLATE_BADGE_ICONS: Record<string, LucideIcon> = {
 // ═══════════════════════════════════════════════════════════════════════════
 function StringInput({ label, value, onChange, multiline, placeholder }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean; placeholder?: string }) {
   return (
-    <div>
-      <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">{label}</label>
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">{label}</label>
       {multiline ? (
         <textarea value={value} onChange={(e) => onChange(e.target.value)} rows={3} placeholder={placeholder}
           className="w-full text-sm text-[#191c1e] placeholder-gray-400 bg-white px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] resize-none" />
@@ -876,34 +888,62 @@ function StringInput({ label, value, onChange, multiline, placeholder }: { label
 
 function NumberInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
-    <div>
-      <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">{label}</label>
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">{label}</label>
       <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))}
         className="w-full text-sm text-[#191c1e] bg-white px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f]" />
     </div>
   );
 }
 
-function SelectInput<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: Array<{ value: T; label: string }>; onChange: (v: T) => void }) {
+function SliderInput({ label, value, min, max, step = 1, unit, onChange }: { label: string; value: number; min: number; max: number; step?: number; unit?: string; onChange: (v: number) => void }) {
   return (
-    <div>
-      <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">{label}</label>
-      <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${options.length}, 1fr)` }}>
-        {options.map((o) => (
-          <button key={o.value} onClick={() => onChange(o.value)}
-            className={`px-2 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all ${value === o.value ? "border-[#006e2f] bg-[#006e2f]/5 text-[#006e2f]" : "border-gray-200 bg-white text-[#5c647a] hover:border-gray-300"}`}>
-            {o.label}
-          </button>
-        ))}
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">
+        {label}{unit ? <span className="text-gray-400 normal-case"> ({unit})</span> : null}
+      </label>
+      <div className="flex items-center gap-2">
+        <input type="range" min={min} max={max} step={step} value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="flex-1 min-w-0 h-1.5 accent-[#006e2f] cursor-pointer" />
+        <input type="number" min={min} max={max} step={step} value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="w-12 flex-shrink-0 text-[11px] text-right text-[#191c1e] bg-white px-1 py-1 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#006e2f]/30 focus:border-[#006e2f] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
       </div>
+    </div>
+  );
+}
+
+function SelectInput<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: Array<{ value: T; label: string }>; onChange: (v: T) => void }) {
+  const asDropdown = options.length > 3 || options.reduce((n, o) => n + o.label.length, 0) > 18;
+  return (
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">{label}</label>
+      {asDropdown ? (
+        <select value={value} onChange={(e) => onChange(e.target.value as T)}
+          className="w-full text-xs font-semibold text-[#191c1e] bg-white px-2.5 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006e2f]/30 focus:border-[#006e2f] cursor-pointer">
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      ) : (
+        <div className="flex flex-wrap gap-1">
+          {options.map((o) => (
+            <button key={o.value} onClick={() => onChange(o.value)}
+              className={`flex-1 whitespace-nowrap px-2 py-1.5 rounded-lg text-xs font-semibold border-2 transition-all ${value === o.value ? "border-[#006e2f] bg-[#006e2f]/5 text-[#006e2f]" : "border-gray-200 bg-white text-[#5c647a] hover:border-gray-300"}`}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
 
 function ListEditor<T extends Record<string, unknown>>({ label, items, template, onChange, renderItem }: { label: string; items: T[]; template: T; onChange: (items: T[]) => void; renderItem: (item: T, update: (patch: Partial<T>) => void) => React.ReactNode }) {
   return (
-    <div>
-      <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-2">{label}</label>
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-2">{label}</label>
       <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="bg-white border border-gray-200 rounded-xl p-3">
@@ -982,6 +1022,33 @@ function PalettePicker({ onPick, onClose, allowed }: { onPick: (key: PaletteKey)
 // ═══════════════════════════════════════════════════════════════════════════
 const ALIGN_OPTS = [{ value: "left" as const, label: "Gauche" }, { value: "center" as const, label: "Centre" }, { value: "right" as const, label: "Droite" }];
 
+// Polices disponibles (mêmes que le thème du tunnel) — chargées à la volée
+// dans l'éditeur pour un aperçu fidèle.
+const FONT_FAMILIES = ["Manrope", "Inter", "DM Sans", "Poppins", "Montserrat", "Raleway", "Playfair Display", "Lora", "Nunito", "Space Grotesk", "Outfit", "Plus Jakarta Sans"];
+
+const FONT_WEIGHT_OPTS = [
+  { value: "0", label: "Auto" },
+  { value: "300", label: "Fin" },
+  { value: "400", label: "Normal" },
+  { value: "500", label: "Médium" },
+  { value: "600", label: "Semi-gras" },
+  { value: "700", label: "Gras" },
+  { value: "800", label: "Très gras" },
+];
+
+// Panneau typographie façon Système.io : police, graisse, hauteur de ligne,
+// espacement des lettres — partagé entre Titre et Texte.
+function TypographyControls({ data, update }: { data: Record<string, unknown>; update: (d: Record<string, unknown>) => void }) {
+  return (
+    <>
+      <SelectInput label="Police" value={(data.font as string) ?? ""} options={[{ value: "", label: "Police du thème" }, ...FONT_FAMILIES.map((f) => ({ value: f, label: f }))]} onChange={(v) => update({ font: v })} />
+      <SelectInput label="Graisse" value={String(data.weight ?? 0)} options={FONT_WEIGHT_OPTS} onChange={(v) => update({ weight: Number(v) })} />
+      <SliderInput label="Hauteur de ligne (0 = auto)" unit="×" min={0} max={2.5} step={0.05} value={Number(data.lineHeight ?? 0)} onChange={(v) => update({ lineHeight: v })} />
+      <SliderInput label="Espacement des lettres" unit="px" min={-3} max={10} step={0.5} value={Number(data.letterSpacing ?? 0)} onChange={(v) => update({ letterSpacing: v })} />
+    </>
+  );
+}
+
 function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>) => void) {
   switch (block.type) {
     case "heading":
@@ -992,6 +1059,8 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
             <SelectInput label="Niveau" value={((block.data.level as number) ?? 2).toString()} options={[{ value: "1", label: "H1" }, { value: "2", label: "H2" }, { value: "3", label: "H3" }]} onChange={(v) => update({ level: Number(v) })} />
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "left"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
           </div>
+          <SliderInput label="Taille (0 = auto)" unit="px" min={0} max={96} value={Number(block.data.size ?? 0)} onChange={(v) => update({ size: v })} />
+          <TypographyControls data={block.data} update={update} />
           <ColorPicker label="Couleur" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
           <BackgroundPicker label="Dégradé texte (optionnel)" value={(block.data.gradient as string) ?? null} onChange={(g) => update({ gradient: g })} />
         </div>
@@ -1002,8 +1071,9 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           <StringInput label="Contenu" value={(block.data.content as string) ?? ""} onChange={(v) => update({ content: v })} multiline />
           <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "left"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
-            <NumberInput label="Taille (px)" value={(block.data.size as number) ?? 16} onChange={(v) => update({ size: v })} />
+            <SliderInput label="Taille" unit="px" min={10} max={72} value={(block.data.size as number) ?? 16} onChange={(v) => update({ size: v })} />
           </div>
+          <TypographyControls data={block.data} update={update} />
           <ColorPicker label="Couleur" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
         </div>
       );
@@ -1014,7 +1084,7 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           <StringInput label="Texte alternatif (SEO)" value={(block.data.alt as string) ?? ""} onChange={(v) => update({ alt: v })} />
           <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Alignement" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
-            <NumberInput label="Arrondi (px)" value={(block.data.radius as number) ?? 12} onChange={(v) => update({ radius: v })} />
+            <SliderInput label="Arrondi" unit="px" min={0} max={60} value={(block.data.radius as number) ?? 12} onChange={(v) => update({ radius: v })} />
           </div>
         </div>
       );
@@ -1025,11 +1095,11 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           <StringInput label="Lien (URL de destination) *" value={(block.data.link as string) ?? ""} onChange={(v) => update({ link: v })} placeholder="https://... ou /formations/explorer" />
           <p className="text-[10px] text-[#5c647a] -mt-1.5">URL externe, interne (commence par /), ou #ancre-sur-cette-page</p>
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône (optionnel)</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône (optionnel)</label>
             <IconPicker value={(block.data.icon as string) ?? ""} onChange={(ic) => update({ icon: ic })} />
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <SelectInput label="Style" value={(block.data.style as string) ?? "primary"} options={[{ value: "primary", label: "Plein" }, { value: "outline", label: "Contour" }, { value: "secondary", label: "Secondaire" }]} onChange={(v) => update({ style: v })} />
+          <SelectInput label="Style" value={(block.data.style as string) ?? "primary"} options={[{ value: "primary", label: "Plein" }, { value: "outline", label: "Contour" }, { value: "secondary", label: "Secondaire" }]} onChange={(v) => update({ style: v })} />
+          <div className="grid grid-cols-2 gap-2">
             <SelectInput label="Taille" value={(block.data.size as string) ?? "md"} options={[{ value: "sm", label: "S" }, { value: "md", label: "M" }, { value: "lg", label: "L" }]} onChange={(v) => update({ size: v })} />
             <SelectInput label="Align" value={(block.data.align as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ align: v })} />
           </div>
@@ -1045,7 +1115,7 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
       return (
         <div className="space-y-2.5">
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône</label>
             <IconPicker value={(block.data.icon as string) ?? "verified"} onChange={(ic) => update({ icon: ic })} />
           </div>
           <StringInput label="Titre" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
@@ -1067,16 +1137,16 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
           ]} onChange={(v) => update({ shape: v })} />
           {((block.data.shape as string) ?? "line") === "line" && (
             <div className="grid grid-cols-2 gap-2">
-              <NumberInput label="Épaisseur (px)" value={(block.data.thickness as number) ?? 1} onChange={(v) => update({ thickness: v })} />
-              <NumberInput label="Largeur (%)" value={(block.data.width as number) ?? 100} onChange={(v) => update({ width: v })} />
+              <SliderInput label="Épaisseur" unit="px" min={1} max={20} value={(block.data.thickness as number) ?? 1} onChange={(v) => update({ thickness: v })} />
+              <SliderInput label="Largeur" unit="%" min={10} max={100} value={(block.data.width as number) ?? 100} onChange={(v) => update({ width: v })} />
             </div>
           )}
           {((block.data.shape as string) ?? "line") !== "line" && (
-            <NumberInput label="Hauteur (px)" value={(block.data.height as number) ?? 60} onChange={(v) => update({ height: v })} />
+            <SliderInput label="Hauteur" unit="px" min={20} max={300} value={(block.data.height as number) ?? 60} onChange={(v) => update({ height: v })} />
           )}
           <ColorPicker label="Couleur" value={(block.data.color as string) ?? "#e5e7eb"} onChange={(c) => update({ color: c ?? "#e5e7eb" })} />
           <div className="flex items-center gap-3">
-            <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Inverser</label>
+            <label className="text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">Inverser</label>
             <button onClick={() => update({ flip: !block.data.flip })}
               className={`w-9 h-5 rounded-full transition-colors relative ${block.data.flip ? "bg-[#006e2f]" : "bg-gray-300"}`}>
               <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.flip ? "left-4" : "left-0.5"}`} />
@@ -1085,12 +1155,12 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
         </div>
       );
     case "spacer":
-      return <NumberInput label="Hauteur (px)" value={(block.data.height as number) ?? 32} onChange={(v) => update({ height: v })} />;
+      return <SliderInput label="Hauteur" unit="px" min={20} max={300} value={(block.data.height as number) ?? 32} onChange={(v) => update({ height: v })} />;
     case "list":
       return (
         <div className="space-y-2.5">
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône de puce</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône de puce</label>
             <IconPicker value={(block.data.icon as string) ?? "check_circle"} onChange={(ic) => update({ icon: ic })} />
           </div>
           <ColorPicker label="Couleur icône" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
@@ -1173,7 +1243,7 @@ function renderAtomicEditor(block: Block, update: (data: Record<string, unknown>
         <div className="space-y-2.5">
           <StringInput label="Libellé" value={(block.data.label as string) ?? ""} onChange={(v) => update({ label: v })} placeholder="Places déjà réservées" />
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Valeur (%)" value={(block.data.value as number) ?? 70} onChange={(v) => update({ value: Math.max(0, Math.min(100, v)) })} />
+            <SliderInput label="Valeur" unit="%" min={0} max={100} value={(block.data.value as number) ?? 70} onChange={(v) => update({ value: Math.max(0, Math.min(100, v)) })} />
             <ColorPicker label="Couleur" value={(block.data.color as string) ?? null} onChange={(c) => update({ color: c })} />
           </div>
           <SelectInput label="Afficher le %" value={block.data.showPercent === false ? "non" : "oui"} options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} onChange={(v) => update({ showPercent: v === "oui" })} />
@@ -1251,7 +1321,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
             renderItem={(item, patch) => (
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label>
+                  <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône</label>
                   <IconPicker value={item.icon} onChange={(ic) => patch({ icon: ic })} />
                 </div>
                 <StringInput label="Titre" value={item.title} onChange={(v) => patch({ title: v })} />
@@ -1277,14 +1347,14 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
           )}
           {cdMode === "fixed_date" && (
             <div>
-              <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Date de fin</label>
+              <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Date de fin</label>
               <input type="datetime-local" value={(block.data.endsAt as string) ?? ""}
                 onChange={(e) => update({ endsAt: e.target.value })}
                 className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm" />
             </div>
           )}
           {cdMode === "per_visitor" && (
-            <NumberInput label="Durée par visiteur (minutes)" value={(block.data.durationMinutes as number) ?? 30} onChange={(v) => update({ durationMinutes: v })} />
+            <NumberInput label="Durée/visiteur (min)" value={(block.data.durationMinutes as number) ?? 30} onChange={(v) => update({ durationMinutes: v })} />
           )}
           <StringInput label="Sous-titre" value={(block.data.subtitle as string) ?? ""} onChange={(v) => update({ subtitle: v })} />
           <SelectInput label="Taille" value={(block.data.size as string) ?? "md"} options={[
@@ -1382,7 +1452,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
             renderItem={(item, patch) => (
               <div className="space-y-2">
                 <div>
-                  <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône (optionnel)</label>
+                  <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône (optionnel)</label>
                   <IconPicker value={item.icon ?? ""} onChange={(ic) => patch({ icon: ic })} />
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -1410,7 +1480,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
           </div>
           <StringInput label="Devise" value={(block.data.currency as string) ?? "FCFA"} onChange={(v) => update({ currency: v })} />
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône des avantages</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône des avantages</label>
             <IconPicker value={(block.data.benefitIcon as string) ?? "check_circle"} onChange={(ic) => update({ benefitIcon: ic })} />
           </div>
           <ListEditor
@@ -1437,7 +1507,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
             { value: "inline", label: "Texte" },
           ]} onChange={(v) => update({ style: v })} />
           <div className="flex items-center gap-3">
-            <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Barre de progression</label>
+            <label className="text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">Barre de progression</label>
             <button onClick={() => update({ showProgressBar: !block.data.showProgressBar })}
               className={`w-9 h-5 rounded-full transition-colors relative ${block.data.showProgressBar ? "bg-[#006e2f]" : "bg-gray-300"}`}>
               <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.showProgressBar ? "left-4" : "left-0.5"}`} />
@@ -1458,7 +1528,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
       return (
         <div className="space-y-3">
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône</label>
             <IconPicker value={(block.data.icon as string) ?? "verified_user"} onChange={(ic) => update({ icon: ic })} />
           </div>
           <StringInput label="Titre" value={(block.data.title as string) ?? ""} onChange={(v) => update({ title: v })} />
@@ -1491,13 +1561,13 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
                 {(block.data.style as string) === "images" ? (
                   <MediaUpload label="Logo" value={item.url ?? null} onChange={(url) => patch({ url: url ?? "" })} accept="image" />
                 ) : (
-                  <div><label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label><IconPicker value={item.icon ?? "star"} onChange={(ic) => patch({ icon: ic })} /></div>
+                  <div><label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône</label><IconPicker value={item.icon ?? "star"} onChange={(ic) => patch({ icon: ic })} /></div>
                 )}
               </div>
             )}
           />
           <div className="flex items-center gap-3">
-            <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Niveaux de gris</label>
+            <label className="text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">Niveaux de gris</label>
             <button onClick={() => update({ grayscale: !block.data.grayscale })}
               className={`w-9 h-5 rounded-full transition-colors relative ${block.data.grayscale ? "bg-[#006e2f]" : "bg-gray-300"}`}>
               <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.grayscale ? "left-4" : "left-0.5"}`} />
@@ -1517,7 +1587,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
             { value: "danger", label: "Critique" },
           ]} onChange={(v) => update({ variant: v })} />
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône</label>
             <IconPicker value={(block.data.icon as string) ?? "campaign"} onChange={(ic) => update({ icon: ic })} />
           </div>
         </div>
@@ -1547,7 +1617,7 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
               onChange={(items) => update({ counterItems: items })}
               renderItem={(item, patch) => (
                 <div className="space-y-2">
-                  <div><label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône</label><IconPicker value={item.icon} onChange={(ic) => patch({ icon: ic })} /></div>
+                  <div><label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône</label><IconPicker value={item.icon} onChange={(ic) => patch({ icon: ic })} /></div>
                   <StringInput label="Valeur" value={item.value} onChange={(v) => patch({ value: v })} />
                   <StringInput label="Label" value={item.label} onChange={(v) => patch({ label: v })} />
                 </div>
@@ -1622,8 +1692,8 @@ function renderSectionEditor(block: Block, update: (data: Record<string, unknown
       return (
         <div className="space-y-3">
           <ColumnPicker value={(block.data.columns as number) ?? 3} onChange={(cols) => update({ columns: cols })} options={[2, 3, 4]} />
-          <NumberInput label="Espace (px)" value={(block.data.gap as number) ?? 8} onChange={(v) => update({ gap: v })} />
-          <NumberInput label="Arrondi (px)" value={(block.data.radius as number) ?? 12} onChange={(v) => update({ radius: v })} />
+          <SliderInput label="Espace" unit="px" min={0} max={60} value={(block.data.gap as number) ?? 8} onChange={(v) => update({ gap: v })} />
+          <SliderInput label="Arrondi" unit="px" min={0} max={60} value={(block.data.radius as number) ?? 12} onChange={(v) => update({ radius: v })} />
           <ListEditor
             label="Images"
             items={(block.data.images as Array<{ url: string; alt: string; caption?: string }>) ?? []}
@@ -1721,9 +1791,10 @@ function RowEditor({ block, onChange, onDelete, compact }: { block: Block; onCha
         </summary>
         <div className="p-4 bg-white space-y-2.5">
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Espace entre colonnes (px)" value={gap} onChange={(v) => updateData({ gap: v })} />
-            <NumberInput label="Padding vertical (px)" value={padding} onChange={(v) => updateData({ padding: v })} />
+            <SliderInput label="Espace colonnes" unit="px" min={0} max={80} value={gap} onChange={(v) => updateData({ gap: v })} />
+            <SliderInput label="Padding vert." unit="px" min={0} max={160} value={padding} onChange={(v) => updateData({ padding: v })} />
           </div>
+          <SelectInput label="Empiler les colonnes sur mobile" value={block.data.stackMobile === false ? "non" : "oui"} options={[{ value: "oui", label: "Oui" }, { value: "non", label: "Non" }]} onChange={(v) => updateData({ stackMobile: v === "oui" })} />
           <BackgroundPicker label="Arrière-plan de la rangée" value={bgColor || null} onChange={(c) => updateData({ bgColor: c ?? "" })} />
         </div>
       </details>
@@ -1868,16 +1939,16 @@ function SectionEditor({ block, onChange, onDelete, compact }: { block: Block; o
       renderSettings={(updateData) => (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Padding vertical (px)" value={(block.data.paddingY as number) ?? 64} onChange={(v) => updateData({ paddingY: v })} />
-            <NumberInput label="Padding horizontal (px)" value={(block.data.paddingX as number) ?? 16} onChange={(v) => updateData({ paddingX: v })} />
+            <SliderInput label="Padding vert." unit="px" min={0} max={200} value={(block.data.paddingY as number) ?? 64} onChange={(v) => updateData({ paddingY: v })} />
+            <SliderInput label="Padding horiz." unit="px" min={0} max={120} value={(block.data.paddingX as number) ?? 16} onChange={(v) => updateData({ paddingX: v })} />
           </div>
-          <NumberInput label="Largeur max (px, 0 = pleine)" value={(block.data.maxWidth as number) ?? 1152} onChange={(v) => updateData({ maxWidth: v })} />
+          <NumberInput label="Largeur max (0 = pleine)" value={(block.data.maxWidth as number) ?? 1152} onChange={(v) => updateData({ maxWidth: v })} />
           <BackgroundPicker label="Arrière-plan de la section" value={(block.data.bgColor as string) || null} onChange={(c) => updateData({ bgColor: c ?? "" })} />
           <ColorPicker label="Couleur du texte" value={(block.data.textColor as string) || null} onChange={(c) => updateData({ textColor: c ?? "" })} />
           <MediaUpload label="Image de fond (optionnel — par-dessus la couleur)" value={(block.data.bgImage as string) ?? null} onChange={(url) => updateData({ bgImage: url ?? "" })} accept="image" aspectRatio="landscape" />
           {(block.data.bgImage as string) && (
             <div className="flex items-center gap-3">
-              <label className="text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider">Effet parallaxe</label>
+              <label className="text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug">Effet parallaxe</label>
               <button onClick={() => updateData({ parallax: !block.data.parallax })}
                 className={`w-9 h-5 rounded-full transition-colors relative ${block.data.parallax ? "bg-[#006e2f]" : "bg-gray-300"}`}>
                 <span className={`block w-4 h-4 rounded-full bg-white shadow absolute top-0.5 transition-all ${block.data.parallax ? "left-4" : "left-0.5"}`} />
@@ -1905,11 +1976,11 @@ function ContentBoxEditor({ block, onChange, onDelete, compact }: { block: Block
       renderSettings={(updateData) => (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Padding (px)" value={padding} onChange={(v) => updateData({ padding: v })} />
-            <NumberInput label="Arrondi (px)" value={radius} onChange={(v) => updateData({ radius: v })} />
+            <SliderInput label="Padding" unit="px" min={0} max={120} value={padding} onChange={(v) => updateData({ padding: v })} />
+            <SliderInput label="Arrondi" unit="px" min={0} max={60} value={radius} onChange={(v) => updateData({ radius: v })} />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Épaisseur bord (px)" value={borderWidth} onChange={(v) => updateData({ borderWidth: v })} />
+            <SliderInput label="Épaisseur bord" unit="px" min={0} max={12} value={borderWidth} onChange={(v) => updateData({ borderWidth: v })} />
             <SelectInput label="Ombre" value={(block.data.shadow as string) ?? "md"} options={[
               { value: "none", label: "Aucune" }, { value: "sm", label: "Petite" }, { value: "md", label: "Moyenne" }, { value: "lg", label: "Grande" },
             ]} onChange={(v) => updateData({ shadow: v })} />
@@ -1956,7 +2027,7 @@ function ProductEditor({ block, update }: { block: Block; update: (data: Record<
   return (
     <div className="space-y-2.5">
       <div>
-        <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Produit / Formation à vendre *</label>
+        <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Produit / Formation à vendre *</label>
         {catalogLoading ? (
           <div className="text-xs text-[#5c647a] px-3 py-2 bg-white rounded-lg border border-gray-200">Chargement du catalogue…</div>
         ) : catalog.length === 0 ? (
@@ -2013,7 +2084,7 @@ function ProductEditor({ block, update }: { block: Block; update: (data: Record<
 
       <StringInput label="Texte du bouton" value={(block.data.ctaText as string) ?? ""} onChange={(v) => update({ ctaText: v })} />
       <div>
-        <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Icône du bouton</label>
+        <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Icône du bouton</label>
         <IconPicker value={(block.data.ctaIcon as string) ?? "shopping_cart"} onChange={(ic) => update({ ctaIcon: ic })} />
       </div>
 
@@ -2073,11 +2144,11 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
           Style avancé (fond, bordures, ombres…)
           <ChevronDown size={14} className="ml-auto" />
         </summary>
-        <div className="px-4 pb-3 space-y-2.5">
+        <div className="px-4 pb-3 space-y-2.5 min-w-0">
           <BackgroundPicker label="Fond du bloc" value={(block.data._bg as string) ?? null} onChange={(c) => update({ _bg: c })} />
           <ColorPicker label="Couleur du texte (forcer)" value={(block.data._textColor as string) ?? null} onChange={(c) => update({ _textColor: c })} />
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Bordure (px)" value={(block.data._borderWidth as number) ?? 0} onChange={(v) => update({ _borderWidth: Math.max(0, v) })} />
+            <SliderInput label="Bordure" unit="px" min={0} max={12} value={(block.data._borderWidth as number) ?? 0} onChange={(v) => update({ _borderWidth: Math.max(0, v) })} />
             <ColorPicker label="Couleur bordure" value={(block.data._borderColor as string) ?? null} onChange={(c) => update({ _borderColor: c })} />
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -2086,7 +2157,7 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
               { value: "dashed", label: "Tirets" },
               { value: "dotted", label: "Points" },
             ]} onChange={(v) => update({ _borderStyle: v })} />
-            <NumberInput label="Arrondi (px)" value={(block.data._borderRadius as number) ?? 0} onChange={(v) => update({ _borderRadius: Math.max(0, v) })} />
+            <SliderInput label="Arrondi" unit="px" min={0} max={60} value={(block.data._borderRadius as number) ?? 0} onChange={(v) => update({ _borderRadius: Math.max(0, v) })} />
           </div>
           <SelectInput label="Ombre" value={(block.data._shadow as string) ?? "none"} options={[
             { value: "none", label: "Aucune" },
@@ -2096,27 +2167,23 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
             { value: "xl", label: "Très grande" },
             { value: "glow", label: "Halo vert" },
           ]} onChange={(v) => update({ _shadow: v })} />
+          <SliderInput label="Padding vert." unit="px" min={0} max={120} value={(block.data._padY as number) ?? 0} onChange={(v) => update({ _padY: Math.max(0, v) })} />
+          <SliderInput label="Padding horiz." unit="px" min={0} max={120} value={(block.data._padX as number) ?? 0} onChange={(v) => update({ _padX: Math.max(0, v) })} />
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Padding vertical (px)" value={(block.data._padY as number) ?? 0} onChange={(v) => update({ _padY: Math.max(0, v) })} />
-            <NumberInput label="Padding horizontal (px)" value={(block.data._padX as number) ?? 0} onChange={(v) => update({ _padX: Math.max(0, v) })} />
+            <SliderInput label="Marge haut" unit="px" min={-60} max={160} value={(block.data._marginTop as number) ?? 0} onChange={(v) => update({ _marginTop: v })} />
+            <SliderInput label="Marge bas" unit="px" min={-60} max={160} value={(block.data._marginBottom as number) ?? 0} onChange={(v) => update({ _marginBottom: v })} />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Marge haut (px)" value={(block.data._marginTop as number) ?? 0} onChange={(v) => update({ _marginTop: v })} />
-            <NumberInput label="Marge bas (px)" value={(block.data._marginBottom as number) ?? 0} onChange={(v) => update({ _marginBottom: v })} />
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Largeur max (px, 0 = auto)" value={(block.data._maxWidth as number) ?? 0} onChange={(v) => update({ _maxWidth: Math.max(0, v) })} />
+            <NumberInput label="Largeur max (0 = auto)" value={(block.data._maxWidth as number) ?? 0} onChange={(v) => update({ _maxWidth: Math.max(0, v) })} />
             <SelectInput label="Position du bloc" value={(block.data._align2 as string) ?? "center"} options={ALIGN_OPTS} onChange={(v) => update({ _align2: v })} />
           </div>
-          <div className="grid grid-cols-2 gap-2">
-            <NumberInput label="Opacité (%)" value={(block.data._opacity as number) ?? 100} onChange={(v) => update({ _opacity: Math.max(5, Math.min(100, v)) })} />
-            <SelectInput label="Effet au survol" value={(block.data._hover as string) ?? "none"} options={[
-              { value: "none", label: "Aucun" },
-              { value: "zoom", label: "Zoom" },
-              { value: "lift", label: "Soulever" },
-              { value: "shadow", label: "Ombre" },
-            ]} onChange={(v) => update({ _hover: v })} />
-          </div>
+          <SliderInput label="Opacité" unit="%" min={5} max={100} value={(block.data._opacity as number) ?? 100} onChange={(v) => update({ _opacity: Math.max(5, Math.min(100, v)) })} />
+          <SelectInput label="Effet au survol" value={(block.data._hover as string) ?? "none"} options={[
+            { value: "none", label: "Aucun" },
+            { value: "zoom", label: "Zoom" },
+            { value: "lift", label: "Soulever" },
+            { value: "shadow", label: "Ombre" },
+          ]} onChange={(v) => update({ _hover: v })} />
         </div>
       </details>
       {/* Animation + visibilité + CSS perso */}
@@ -2141,7 +2208,7 @@ function BlockEditor({ block, onChange, onDelete, compact }: { block: Block; onC
             { value: "mobile", label: "Mobile" },
           ]} onChange={(v) => update({ _visibility: v })} />
           <div>
-            <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">CSS personnalisé</label>
+            <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">CSS personnalisé</label>
             <textarea
               value={(block.data._customCss as string) ?? ""}
               onChange={(e) => update({ _customCss: e.target.value })}
@@ -2164,8 +2231,12 @@ function InlineTextEditor({ block, theme, onCommit }: { block: Block; theme: { t
   const d = block.data as Record<string, unknown>;
   const isHeading = block.type === "heading";
   const level = Math.min(Math.max(Number(d.level) || 2, 1), 6);
+  // Taille personnalisée → pas de classes responsives (l'inline fontSize prime),
+  // comme HeadingBlock côté public.
+  const hasCustomSize = isHeading && Number(d.size ?? 0) > 0;
   const sizeCls = isHeading
-    ? level === 1 ? "text-3xl md:text-5xl font-extrabold leading-tight"
+    ? hasCustomSize ? "font-extrabold leading-tight"
+      : level === 1 ? "text-3xl md:text-5xl font-extrabold leading-tight"
       : level === 2 ? "text-2xl md:text-4xl font-extrabold leading-tight"
       : level === 3 ? "text-xl md:text-2xl font-extrabold leading-tight"
       : "text-lg md:text-xl font-extrabold leading-tight"
@@ -2188,7 +2259,12 @@ function InlineTextEditor({ block, theme, onCommit }: { block: Block; theme: { t
       style={{
         color: (d.color as string) || theme.textColor,
         textAlign: ((d.align as string) ?? "left") as "left" | "center" | "right",
-        fontSize: !isHeading ? `${Number(d.size ?? 16)}px` : undefined,
+        // Typographie pro : mêmes règles que le rendu public (HeadingBlock/TextBlock)
+        fontSize: isHeading ? (Number(d.size ?? 0) > 0 ? `${Number(d.size)}px` : undefined) : `${Number(d.size ?? 16)}px`,
+        lineHeight: Number(d.lineHeight ?? 0) > 0 ? Number(d.lineHeight) : undefined,
+        letterSpacing: d.letterSpacing !== undefined && Number(d.letterSpacing) !== 0 ? `${Number(d.letterSpacing)}px` : undefined,
+        fontFamily: d.font ? `'${d.font}', sans-serif` : undefined,
+        fontWeight: Number(d.weight ?? 0) > 0 ? Number(d.weight) : undefined,
       }}
     />
   );
@@ -2285,6 +2361,9 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [selectedId, setSelectedId] = useState<string | null>(null); // bloc sélectionné sur le canvas
   const [sidebarTab, setSidebarTab] = useState<"elements" | "blocks">("elements");
   const [device, setDevice] = useState<"desktop" | "mobile">("desktop");
+  // Petits écrans (<md) : la barre latérale devient un tiroir coulissant,
+  // ouvert via le bouton flottant ou automatiquement à la sélection d'un bloc.
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Drag & drop depuis la palette : clé de l'élément en cours de glissement +
   // index d'insertion survolé sur le canvas (ligne verte).
   const [paletteDrag, setPaletteDrag] = useState<PaletteKey | null>(null);
@@ -2295,8 +2374,26 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   const [columnTarget, setColumnTarget] = useState<{ owner: string; col: number } | null>(null);
   // Historique annuler/rétablir, par étape
   const historyRef = useRef<Record<string, { past: Block[][]; future: Block[][] }>>({});
+  // Numéro de séquence des sauvegardes (voir save() : ignore les réponses périmées)
+  const saveSeqRef = useRef(0);
   const [, setHistVersion] = useState(0);
   const [pendingTemplate, setPendingTemplate] = useState<{ kind: "step" | "landing"; data: Block[] } | null>(null);
+
+  // Charger les polices Google du builder une fois : le <select> Police et le
+  // canvas affichent ainsi chaque police fidèlement (comme la page publique).
+  useEffect(() => {
+    for (const fam of FONT_FAMILIES) {
+      if (fam === "Manrope") continue; // police par défaut, déjà chargée par l'app
+      const fid = `gfont-${fam.replace(/\s/g, "-")}`;
+      if (!document.getElementById(fid)) {
+        const link = document.createElement("link");
+        link.id = fid;
+        link.rel = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fam)}:wght@300;400;500;600;700;800&display=swap`;
+        document.head.appendChild(link);
+      }
+    }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -2329,6 +2426,11 @@ export default function FunnelEditorClient({ id }: { id: string }) {
 
   async function save(patch: Omit<Partial<Funnel>, "steps"> & { steps?: Partial<Step>[] }) {
     if (!funnel) return;
+    // Anti-régression : chaque sauvegarde porte un numéro de séquence. Une
+    // réponse qui arrive APRÈS l'envoi d'une sauvegarde plus récente est
+    // ignorée — sinon elle écraserait l'état local le plus récent (blocs
+    // disparus du canvas, puis perte réelle au prochain enregistrement).
+    const seq = ++saveSeqRef.current;
     setSaving(true);
     try {
       const res = await fetch(`/api/formations/vendeur/funnels/${id}`, {
@@ -2338,10 +2440,12 @@ export default function FunnelEditorClient({ id }: { id: string }) {
       });
       if (res.ok) {
         const json = await res.json();
-        setFunnel(json.data);
-        setSavedAt(new Date());
+        if (seq === saveSeqRef.current) {
+          setFunnel(json.data);
+          setSavedAt(new Date());
+        }
       }
-    } finally { setSaving(false); }
+    } finally { if (seq === saveSeqRef.current) setSaving(false); }
   }
 
   async function handleDelete() {
@@ -2452,6 +2556,8 @@ export default function FunnelEditorClient({ id }: { id: string }) {
   // (les flèches monter/descendre/dupliquer ne s'appliquent qu'à eux).
   const selectedIdx = blocks.findIndex((b) => b.id === selectedId);
   const selectedBlock = selectedId ? treeFind(blocks, selectedId) : null;
+  // Fil d'Ariane : chaîne racine → bloc sélectionné (ex. Section › Rangée › Texte)
+  const selectedPath = selectedId ? treePath(blocks, selectedId) : [];
   const selectedIsTop = selectedIdx >= 0;
 
   // Ajout d'un élément DANS une colonne de rangée (clic ou drop sur la colonne)
@@ -2488,57 +2594,58 @@ export default function FunnelEditorClient({ id }: { id: string }) {
     <div className="h-screen flex flex-col overflow-hidden bg-[#eef1f4]">
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 z-20 flex-shrink-0">
-        <div className="px-4 md:px-6 h-14 flex items-center gap-3">
+        {/* Barre d'actions : libellés masqués sous lg (icônes seules) pour tenir sur mobile */}
+        <div className="px-2 md:px-6 h-14 flex items-center gap-0.5 md:gap-3">
           <Link href="/vendeur/marketing/funnels"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-1.5 px-2 md:px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#5c647a] hover:text-[#191c1e] hover:bg-gray-100 transition-colors flex-shrink-0"
             title="Sortir de l'éditeur">
-            <ArrowLeft size={16} />Sortir
+            <ArrowLeft size={16} /><span className="hidden sm:inline">Sortir</span>
           </Link>
           <input type="text" value={funnel.name}
             onChange={(e) => setFunnel({ ...funnel, name: e.target.value })}
             onBlur={() => save({ name: funnel.name })}
-            className="text-sm font-bold text-[#191c1e] flex-1 bg-transparent placeholder-gray-400 focus:outline-none focus:bg-gray-50 px-2 py-1 rounded transition-colors"
+            className="text-sm font-bold text-[#191c1e] flex-1 min-w-[48px] bg-transparent placeholder-gray-400 focus:outline-none focus:bg-gray-50 px-2 py-1 rounded transition-colors"
             placeholder="Nom du funnel" />
-          <div className="flex items-center gap-2 text-xs text-[#5c647a]">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-[#5c647a] flex-shrink-0">
             {saving ? (<><Loader2 size={14} className="animate-spin" />Sauvegarde…</>)
               : savedAt ? (<><CheckCircle2 size={14} className="text-green-500" />Sauvegardé</>)
               : null}
           </div>
           {/* Annuler / Rétablir */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 flex-shrink-0">
             <button onClick={undo} disabled={!canUndo} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Annuler"><Undo2 size={16} /></button>
             <button onClick={redo} disabled={!canRedo} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Rétablir"><Redo2 size={16} /></button>
           </div>
           {/* Aperçu ordinateur / mobile */}
-          <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-0.5">
+          <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-0.5 flex-shrink-0">
             <button onClick={() => setDevice("desktop")} className={`p-1.5 rounded-md transition-colors ${device === "desktop" ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a]"}`} title="Aperçu ordinateur"><Monitor size={15} /></button>
             <button onClick={() => setDevice("mobile")} className={`p-1.5 rounded-md transition-colors ${device === "mobile" ? "bg-white text-[#006e2f] shadow-sm" : "text-[#5c647a]"}`} title="Aperçu mobile"><Smartphone size={15} /></button>
           </div>
           <button onClick={() => (activeStep?.stepType === "LANDING" ? setShowGallery(true) : applyStepTemplate())}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors"
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors flex-shrink-0"
             title="Templates prêts à l'emploi pour cette étape">
-            <Wand2 size={14} />Templates
+            <Wand2 size={14} /><span className="hidden lg:inline">Templates</span>
           </button>
           <button onClick={() => setShowLeads(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">
-            <Mail size={14} />Leads
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors flex-shrink-0" title="Leads capturés">
+            <Mail size={14} /><span className="hidden lg:inline">Leads</span>
           </button>
           <button onClick={() => setShowSettings(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
-            <SlidersHorizontal size={14} />Réglages
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors flex-shrink-0" title="Réglages du tunnel">
+            <SlidersHorizontal size={14} /><span className="hidden lg:inline">Réglages</span>
           </button>
           <button onClick={() => activeStep && save({ steps: [{ id: activeStep.id, blocks }] })}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
-            <Save size={14} />Sauvegarder
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors flex-shrink-0" title="Sauvegarder">
+            <Save size={14} /><span className="hidden lg:inline">Sauvegarder</span>
           </button>
           <a href={`/f/${funnel.slug}${funnel.isActive ? "" : "?preview=1"}`} target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors">
-            <ExternalLink size={14} />Aperçu
+            className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-[#191c1e] hover:bg-gray-200 transition-colors flex-shrink-0" title="Aperçu dans un nouvel onglet">
+            <ExternalLink size={14} /><span className="hidden lg:inline">Aperçu</span>
           </a>
           <button onClick={() => save({ isActive: !funnel.isActive })}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${funnel.isActive ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-900 text-white hover:bg-gray-700"}`}>
+            className={`flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex-shrink-0 ${funnel.isActive ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-900 text-white hover:bg-gray-700"}`}>
             {funnel.isActive ? <CheckCircle2 size={14} /> : <Send size={14} />}
-            {funnel.isActive ? "Publié" : "Publier"}
+            <span className="hidden sm:inline">{funnel.isActive ? "Publié" : "Publier"}</span>
           </button>
         </div>
 
@@ -2580,7 +2687,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
         <div className="fixed inset-0 z-[9990]" onClick={() => setShowSettings(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-200" />
           <div
-            className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl overflow-y-auto animate-in slide-in-from-right duration-300"
+            className="absolute right-0 top-0 h-full w-full max-w-sm bg-white shadow-2xl overflow-y-auto overflow-x-hidden animate-in slide-in-from-right duration-300"
             onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 bg-white border-b border-gray-100 px-5 py-4 flex items-center justify-between z-10">
               <h3 className="text-sm font-extrabold text-[#191c1e] flex items-center gap-2">
@@ -2621,7 +2728,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                   <ColorPicker label="Couleur texte" value={funnel.theme?.textColor || "#191c1e"} onChange={(c) => save({ theme: { ...funnel.theme, textColor: c ?? "#191c1e" } })} />
                   <BackgroundPicker label="Fond de page" value={funnel.theme?.bgColor || "#f7f9fb"} onChange={(c) => save({ theme: { ...funnel.theme, bgColor: c ?? "#f7f9fb" } })} />
                   <div>
-                    <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">Police</label>
+                    <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">Police</label>
                     <select
                       value={funnel.theme?.font || "Manrope"}
                       onChange={(e) => save({ theme: { ...funnel.theme, font: e.target.value } })}
@@ -2648,18 +2755,50 @@ export default function FunnelEditorClient({ id }: { id: string }) {
       {showLeads && <LeadsPanel funnelId={id} onClose={() => setShowLeads(false)} />}
 
       <div className="flex-1 flex overflow-hidden">
-        {/* ══ BARRE LATÉRALE GAUCHE : Éléments / Blocs / Inspecteur (façon Système.io) ══ */}
-        <aside className="w-[330px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto">
+        {/* Voile derrière le tiroir (mobile uniquement) */}
+        {sidebarOpen && (
+          <div className="md:hidden fixed inset-0 z-[70] bg-black/40 backdrop-blur-[1px]" onClick={() => setSidebarOpen(false)} />
+        )}
+        {/* ══ BARRE LATÉRALE GAUCHE : Éléments / Blocs / Inspecteur (façon Système.io)
+             — tiroir coulissant sur mobile, colonne fixe à partir de md ══ */}
+        <aside className={`fixed md:static top-0 bottom-0 left-0 z-[80] md:z-auto w-[300px] md:w-[330px] flex-shrink-0 bg-white border-r border-gray-200 overflow-y-auto overflow-x-hidden transition-transform duration-200 md:transition-none md:translate-x-0 ${sidebarOpen ? "translate-x-0 shadow-2xl md:shadow-none" : "-translate-x-full"}`}>
+          {/* En-tête de fermeture (mobile) */}
+          <div className="md:hidden sticky top-0 z-10 bg-white border-b border-gray-100 px-3 py-2 flex items-center justify-between">
+            <span className="text-xs font-extrabold text-[#191c1e]">{selectedBlock ? "Paramètres de l'élément" : "Éléments"}</span>
+            <button onClick={() => setSidebarOpen(false)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors" title="Fermer"><X size={18} /></button>
+          </div>
           {selectedBlock ? (
             /* ── Inspecteur du bloc sélectionné ── */
             <div className="p-3">
-              <div className="flex items-center justify-between mb-3">
-                <button onClick={() => setSelectedId(null)}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#191c1e] border border-gray-200 hover:bg-gray-50 transition-colors">
-                  <ArrowLeft size={14} />Retour
-                </button>
+              {/* Fil d'Ariane façon Système.io : Page › Section › Rangée › Texte */}
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="flex items-center flex-wrap gap-x-1 gap-y-1 min-w-0 text-[11px] font-bold pt-1">
+                  <button onClick={() => setSelectedId(null)}
+                    className="flex items-center gap-1 text-[#5c647a] hover:text-[#006e2f] transition-colors"
+                    title="Retour à la palette d'éléments">
+                    <ArrowLeft size={12} />Page
+                  </button>
+                  {selectedPath.map((b, i) => {
+                    const last = i === selectedPath.length - 1;
+                    const crumbLabel = BLOCK_TEMPLATES[b.type]?.label ?? b.type;
+                    return (
+                      <span key={b.id} className="flex items-center gap-1 min-w-0">
+                        <span className="text-gray-300">›</span>
+                        {last ? (
+                          <span className="text-[#006e2f] truncate max-w-[110px]">{crumbLabel}</span>
+                        ) : (
+                          <button onClick={() => setSelectedId(b.id)}
+                            className="text-[#5c647a] hover:text-[#006e2f] transition-colors truncate max-w-[90px]"
+                            title={`Sélectionner : ${crumbLabel}`}>
+                            {crumbLabel}
+                          </button>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
                 {selectedIsTop && (
-                  <div className="flex items-center gap-0.5">
+                  <div className="flex items-center gap-0.5 flex-shrink-0">
                     <button onClick={() => moveBlock(selectedIdx, -1)} disabled={selectedIdx === 0} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Monter"><ArrowUp size={15} /></button>
                     <button onClick={() => moveBlock(selectedIdx, 1)} disabled={selectedIdx === blocks.length - 1} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 disabled:opacity-30 transition-colors" title="Descendre"><ArrowDown size={15} /></button>
                     <button onClick={() => duplicateBlock(selectedIdx)} className="p-1.5 rounded-lg text-[#5c647a] hover:bg-gray-100 transition-colors" title="Dupliquer"><Copy size={15} /></button>
@@ -2729,6 +2868,14 @@ export default function FunnelEditorClient({ id }: { id: string }) {
           )}
         </aside>
 
+        {/* Bouton flottant (mobile) : paramètres du bloc sélectionné, sinon palette */}
+        <button onClick={() => setSidebarOpen(true)}
+          className="md:hidden fixed bottom-5 left-5 z-[60] w-14 h-14 rounded-full text-white shadow-2xl flex items-center justify-center active:scale-95 transition-transform"
+          style={{ background: "linear-gradient(135deg, #006e2f, #22c55e)" }}
+          title={selectedId ? "Paramètres de l'élément" : "Ajouter un élément"}>
+          {selectedId ? <SlidersHorizontal size={24} /> : <Plus size={26} />}
+        </button>
+
         {/* ══ CANVAS : rendu RÉEL de la page — cliquez un élément pour le régler ══ */}
         <main className="flex-1 overflow-y-auto" onClick={() => setSelectedId(null)}>
           {/* Zone de rendu réel (thème du tunnel appliqué) */}
@@ -2744,6 +2891,24 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                 .nk-canvas [data-nk-slot]:not(:has([data-nk-block]))::after { content: "+ Ajouter un élément ici"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9aa79f; font-size: 11px; font-weight: 700; pointer-events: none; }
                 ${paletteDrag && dropCol && dropCol.col >= 0 ? `.nk-canvas [data-nk-owner="${dropCol.owner}"][data-nk-col="${dropCol.col}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
                 ${paletteDrag && dropCol && dropCol.col === -1 ? `.nk-canvas [data-nk-slot="${dropCol.owner}"] { outline: 2px dashed #006e2f; outline-offset: -2px; background: rgba(0,110,47,.07); border-radius: 12px; }` : ""}
+                ${device === "mobile" ? `
+                  /* Aperçu mobile fidèle : le cadre fait 400px mais la fenêtre reste
+                     grande — on force donc les règles mobiles (empilement, paddings,
+                     tailles de titres, visibilité par appareil) dans le canvas. */
+                  .nk-canvas .nk-row-stack { grid-template-columns: 1fr !important; }
+                  .nk-canvas .nk-section { padding: min(var(--nk-pad-y, 64px), 48px) min(var(--nk-pad-x, 16px), 20px) !important; }
+                  .nk-canvas .hidden.md\\:block { display: none !important; }
+                  .nk-canvas .md\\:hidden { display: block !important; }
+                  .nk-canvas .md\\:text-6xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+                  .nk-canvas .md\\:text-5xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+                  .nk-canvas .md\\:text-4xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+                  .nk-canvas .md\\:text-3xl { font-size: 1.5rem !important; line-height: 2rem !important; }
+                  .nk-canvas .md\\:text-2xl { font-size: 1.25rem !important; line-height: 1.75rem !important; }
+                  .nk-canvas .md\\:text-xl { font-size: 1.125rem !important; line-height: 1.75rem !important; }
+                  .nk-canvas .md\\:grid-cols-2 { grid-template-columns: 1fr !important; }
+                  .nk-canvas .md\\:grid-cols-3 { grid-template-columns: 1fr !important; }
+                  .nk-canvas .md\\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+                ` : ""}
               ` }} />
               <div className="nk-canvas min-h-[50vh] pb-10" style={{ background: liveTheme.bgColor, fontFamily: `'${liveTheme.font}', sans-serif`, color: liveTheme.textColor }}>
           {blocks.length === 0 ? (
@@ -2774,6 +2939,7 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                     <div
                       onClickCapture={(e) => {
                         // Édition inline : laisser le clic atteindre le contentEditable
+                        // (pas d'ouverture du tiroir mobile : on tape le texte sur place)
                         if (isInlineText) { e.stopPropagation(); setSelectedId(block.id); return; }
                         e.preventDefault();
                         e.stopPropagation();
@@ -2796,6 +2962,8 @@ export default function FunnelEditorClient({ id }: { id: string }) {
                         }
                         // Sélection du bloc le plus PROFOND cliqué (imbriqué inclus)
                         setSelectedId(blkEl?.getAttribute("data-nk-block") || block.id);
+                        // Mobile : ouvrir le tiroir des paramètres (sans effet ≥ md)
+                        setSidebarOpen(true);
                       }}
                       onDragOver={(e) => {
                         if (!paletteDrag) return;

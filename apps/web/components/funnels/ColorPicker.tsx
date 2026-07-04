@@ -67,9 +67,9 @@ export function ColorPicker({ value, onChange, label }: Props) {
   const isValidHex = (v: string) => /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v);
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       {label && (
-        <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1">
+        <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1">
           {label}
         </label>
       )}
@@ -188,8 +188,8 @@ interface ColumnProps {
 
 export function ColumnPicker({ value, onChange, options = [1, 2, 3, 4] }: ColumnProps) {
   return (
-    <div>
-      <label className="block text-[10px] font-semibold text-[#5c647a] uppercase tracking-wider mb-1.5">
+    <div className="min-w-0">
+      <label className="block text-[9px] font-semibold text-[#5c647a] uppercase tracking-wide leading-snug mb-1.5">
         Disposition en colonnes
       </label>
       <div className="flex gap-1.5">

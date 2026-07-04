@@ -254,3 +254,19 @@
 .nk-rich .rte-video-embed { position: relative; padding-bottom: 56.25%; height: 0; margin: 1rem 0; border-radius: 0.6rem; overflow: hidden; background: #000; }
 .nk-rich .rte-video-embed iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .nk-rich iframe { max-width: 100%; border-radius: 0.6rem; }
+
+/* ── Tunnels de vente (pages /f/[slug] + canvas de l'éditeur) ─────────────────
+   Responsive des blocs construits dans le builder :
+   - .nk-section  : paddings pilotés par variables CSS, plafonnés sur mobile
+   - .nk-row-stack: les colonnes d'une rangée s'empilent en 1 colonne < 768px */
+.nk-section {
+  padding: var(--nk-pad-y, 64px) var(--nk-pad-x, 16px);
+}
+@media (max-width: 767px) {
+  .nk-section {
+    padding: min(var(--nk-pad-y, 64px), 48px) min(var(--nk-pad-x, 16px), 20px);
+  }
+  .nk-row-stack {
+    grid-template-columns: 1fr !important;
+  }
+}
